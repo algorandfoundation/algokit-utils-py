@@ -59,6 +59,13 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
+@dataclasses.dataclass
+class CreateResult:
+    app_id: int
+    app_address: str
+    transaction_id: str
+
+
 class ApplicationClient:
     def __init__(
         self,
@@ -118,7 +125,7 @@ class ApplicationClient:
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         extra_pages: int | None = None,
         **kwargs: Any,
-    ) -> tuple[int, str, str]:
+    ) -> CreateResult:
         """Submits a signed ApplicationCallTransaction with application id == 0
         and the schema and source from the Application passed"""
 
@@ -172,7 +179,7 @@ class ApplicationClient:
         self.app_id = app_id
         self.app_addr = app_addr
 
-        return app_id, app_addr, create_txid
+        return CreateResult(app_id, app_addr, create_txid)
 
     def update(
         self,
