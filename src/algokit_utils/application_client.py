@@ -84,7 +84,7 @@ class ApplicationClient:
             case Path() as path:
                 if path.is_dir():
                     path = path / "application.json"
-                self.app = ApplicationSpecification.from_json(path.read_text(encoding="utf8"))
+                self.app = ApplicationSpecification.from_json(path.read_text(encoding="utf-8"))
             case str():
                 self.app = ApplicationSpecification.from_json(app)
         self.app_id = app_id
@@ -615,10 +615,15 @@ class ApplicationClient:
         contents = self.client.application_box_by_name(self.app_id, name)
         return b64decode(contents["value"])
 
-    def resolve(self, to_resolve: DefaultArgumentDict) -> Any:
+    def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
+        def _data_check(value: Any) -> int | str | bytes:
+            if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytes):
+                return value
+            raise ValueError("Unexpected type for constant data")
+
         match to_resolve:
             case {"source": "constant", "data": data}:
-                return data
+                return _data_check(data)
             case {"source": "global-state", "data": str() as key}:
                 global_state = self.get_global_state(raw=True)
                 return global_state[key.encode()]
@@ -629,7 +634,8 @@ class ApplicationClient:
             case {"source": "abi-method", "data": dict() as method_dict}:
                 method = abi.Method.undictify(method_dict)  # type: ignore[attr-defined]
                 result = self.call(method)
-                return result.return_value
+                return _data_check(result.return_value)
+
             case {"source": source}:
                 raise ValueError(f"Unrecognized default argument source: {source}")
             case _:

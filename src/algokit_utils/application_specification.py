@@ -90,11 +90,11 @@ def _decode_method_config(data: dict[str, Any]) -> MethodConfig:
 
 
 def _encode_source(teal_text: str) -> str:
-    return base64.b64encode(teal_text.encode()).decode("utf8")
+    return base64.b64encode(teal_text.encode()).decode("utf-8")
 
 
 def _decode_source(b64_text: str) -> str:
-    return base64.b64decode(b64_text).decode("utf8")
+    return base64.b64decode(b64_text).decode("utf-8")
 
 
 def _encode_state_schema(schema: StateSchema) -> dict[str, int]:
