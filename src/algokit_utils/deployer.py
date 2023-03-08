@@ -30,10 +30,43 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 
+class DeploymentFailedError(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class AlgoClientConfig:
     server: str
     token: str | None = None
+
+
+@dataclasses.dataclass
+class Account:
+    private_key: str
+    address: str
+
+
+@dataclasses.dataclass
+class AppNote:
+    name: str
+    version: str
+    deletable: bool
+    updatable: bool
+
+    @staticmethod
+    def from_json(value: str) -> "AppNote":
+        return AppNote(**json.loads(value))
+
+
+@dataclasses.dataclass
+class App:
+    id: int
+    address: str
+    created_at_round: int
+    note: AppNote
+
+
+DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
@@ -52,12 +85,6 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
     config = config or _get_config_from_environment("INDEXER")
     return IndexerClient(config.token, config.server)
-
-
-@dataclasses.dataclass
-class Account:
-    private_key: str
-    address: str
 
 
 def get_account_from_mnemonic(mnemonic: str) -> Account:
@@ -108,7 +135,7 @@ def get_or_create_kmd_wallet_account(
         account = get_kmd_wallet_account(client, kmd_client, name)
         assert account
         logger.debug(
-            f"Couldn't find existing account in Sandbox with name '{name}'."
+            f"Couldn't find existing account in Sandbox with name '{name}'. "
             f"So created account {account.address} with keys stored in KMD."
         )
 
@@ -195,7 +222,7 @@ def send_transaction(
     signed_transaction = transaction.sign(from_account.private_key)
     client.send_transaction(signed_transaction)
 
-    logger.debug(f"Sent transaction id '{transaction.get_txid()}' {transaction.type} from {from_account.address}")
+    logger.debug(f"Sent transaction {transaction.get_txid()} type={transaction.type} from {from_account.address}")
 
     if not skip_waiting:
         # TODO: wait for confirmation
@@ -248,15 +275,6 @@ def get_account(
     raise Exception(f"Missing environment variable '{mnemonic_key}' when looking for account '{name}'")
 
 
-@dataclasses.dataclass
-class App:
-    id: int
-    address: str
-
-
-DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
-
-
 def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> dict[str, App]:
     apps: dict[str, App] = {}
 
@@ -280,16 +298,17 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 for t in transactions_response["transactions"]
                 if t["application-transaction"]["application-id"] == 0 and t["sender"] == creator_address
             )
-            note = creation_transaction.get("note")
-            if not note:
+            note_json = creation_transaction.get("note")
+            if not note_json:
                 continue
-            note = base64.b64decode(note).decode("utf-8")
+            note_json = base64.b64decode(note_json).decode("utf-8")
             try:
-                app_data = json.loads(note)
+                app_note = AppNote.from_json(note_json)
             except json.decoder.JSONDecodeError:
                 continue
-            app_name = app_data.get("name")
-            apps[app_name] = App(app_id, algosdk.logic.get_application_address(app_id))
+            apps[app_note.name] = App(
+                app_id, algosdk.logic.get_application_address(app_id), app_created_at_round, app_note
+            )
 
         token = response.get("next-token")
         if not token:
@@ -298,10 +317,8 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
     return apps
 
 
-@dataclasses.dataclass
-class AppNote:
-    name: str
-    version: str
+def create_note(app_spec: ApplicationSpecification, version: str) -> AppNote:
+    return AppNote(app_spec.contract.name, version, app_spec.deletable, app_spec.updatable)
 
 
 def encode_note(note: AppNote) -> bytes:
@@ -336,11 +353,15 @@ def deploy_app(
         app_client = ApplicationClient(
             algod_client, app_spec, signer=AccountTransactionSigner(creator_account.private_key)
         )
-        create_result = app_client.create(note=encode_note(AppNote(name, version)))
-        logger.info(f"{name} deployed successfully, with app id {create_result.app_id}.")
-        return App(create_result.app_id, create_result.app_address)
 
-    logger.debug(f"{name} found in {creator_account.address} account, with app id {app.id}.")
+        app_note = create_note(app_spec, version)
+        create_result = app_client.create(note=encode_note(app_note))
+        logger.info(f"{name} ({version}) deployed successfully, with app id {create_result.app_id}.")
+        return App(create_result.app_id, create_result.app_address, create_result.confirmed_round, app_note)
+
+    logger.debug(
+        f"{name} found in {creator_account.address} account, with app id {app.id}, version={app.note.version}."
+    )
     application_create_params = indexer_client.applications(app.id)["application"]["params"]
 
     # TODO: put these somewhere more useful
@@ -374,49 +395,58 @@ def deploy_app(
     if schema_breaking_change:
         logger.warning(
             f"Detected a breaking app schema change from "
-            f"{_schema_str(current_global_schema, current_local_schema)} to"
+            f"{_schema_str(current_global_schema, current_local_schema)} to "
             f"{_schema_str(required_global_schema, required_local_schema)}."
         )
 
-        if not delete_app_on_schema_break:
-            # TODO: include environment check
-            raise Exception(
+        if app.note.deletable:
+            # TODO: warn depending on environment?
+            logger.warning("App is deletable. Creating new app and then deleting old one")
+        elif delete_app_on_schema_break:
+            logger.warning("Received delete_app_on_schema_break=True. Creating new app and then deleting old one")
+        else:
+            raise DeploymentFailedError(
                 "Stopping deployment. If you want to delete and recreate the app "
                 "then re-run with delete_app_on_schema_break=True"
             )
-        logger.warning("Received delete_app_on_schema_break=True. Creating new app and then deleting old one")
 
-    if app_updated:
-        logger.info(f"Detected a TEAL update in app {app.id}")
+    elif app_updated:
+        logger.info(f"Detected a TEAL update in app id {app.id}")
 
-        if not delete_app_on_update_if_exists:
+        if app.note.updatable:
+            logger.info("App is updatable. Will perform update application transaction")
+        elif delete_app_on_update_if_exists:
+            logger.warning("Received delete_app_on_update_if_exists=True. Creating new app and then deleting old one")
+        else:
             # TODO: include environment check
-            raise Exception(
+            raise DeploymentFailedError(
                 "Stopping deployment. If you want to delete and recreate the app "
                 "then re-run with delete_app_on_update_if_exists=True"
             )
 
-        logger.warning("Received delete_app_on_update_if_exists=True. Creating new app and then deleting old one")
-
     if schema_breaking_change or (app_updated and delete_app_on_update_if_exists):
-        logger.info(f"Deploying new version of {name} in {creator_account.address} account.")
+        logger.info(f"Deploying {name} ({version}) in {creator_account.address} account.")
         app_client = ApplicationClient(
-            algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
+            algod_client, app_spec, signer=AccountTransactionSigner(creator_account.private_key)
         )
 
-        create_result = app_client.create(note=encode_note(AppNote(name, version)))
+        app_note = create_note(app_spec, version)
+        create_result = app_client.create(note=encode_note(app_note))
+        logger.info(f"{name} ({version}) deployed successfully, with app id {create_result.app_id}.")
 
         # delete the old app
-        logger.info(f"Deleting old version of {name} in {creator_account.address} account, with app id {app.id}")
+        logger.info(f"Deleting {name} ({app.note.version}) in {creator_account.address} account, with app id {app.id}")
         old_app_client = ApplicationClient(
             algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
         )
         old_app_client.delete()
-        return App(create_result.app_id, create_result.app_address)
+        return App(create_result.app_id, create_result.app_address, create_result.confirmed_round, app_note)
     elif app_updated:
-        logger.info(f"Updating to new version of {name} in {creator_account.address} account, with app id {app.id}")
+        logger.info(f"Updating {name} to {version} in {creator_account.address} account, with app id {app.id}")
         app_client = ApplicationClient(
             algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
         )
-        app_client.update(note=encode_note(AppNote(name, version)))
+        app_note = create_note(app_spec, version)
+        update_result = app_client.update(note=encode_note(app_note))
+        return App(update_result.app_id, update_result.app_address, update_result.confirmed_round, app_note)
     return app
