@@ -141,6 +141,7 @@ class ApplicationSpecification:
     local_state_schema: StateSchema
     bare_call_config: MethodConfig
 
+    # TODO: move to app client
     @property
     def updatable(self) -> bool:
         return self.bare_call_config.update_application != CallConfig.NEVER or any(

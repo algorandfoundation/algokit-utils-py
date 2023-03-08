@@ -22,7 +22,7 @@ class DeployFixture:
         self.request = request
         self.algod_client = get_algod_client()
         self.indexer = get_indexer_client()
-        self.creator_name = get_unique_name()
+        self.creator_name = _get_unique_name()
         self.creator = get_account(self.algod_client, self.creator_name)
 
     def deploy(
@@ -30,7 +30,7 @@ class DeployFixture:
         app_spec: ApplicationSpecification,
         version: str,
         *,
-        delete_app_on_update_if_exists: bool = False,
+        delete_app_on_update: bool = False,
         delete_app_on_schema_break: bool = False,
     ) -> App:
         app = deploy_app(
@@ -39,7 +39,7 @@ class DeployFixture:
             app_spec,
             self.creator,
             version=version,
-            delete_app_on_update_if_exists=delete_app_on_update_if_exists,
+            delete_app_on_update=delete_app_on_update,
             delete_app_on_schema_break=delete_app_on_schema_break,
         )
         self._wait_for_round(app.created_at_round)
@@ -99,7 +99,7 @@ def get_specs(
     return specs
 
 
-def get_unique_name() -> str:
+def _get_unique_name() -> str:
     name = str(uuid4()).replace("-", "")
     assert name.isalnum()
     return name
@@ -148,7 +148,7 @@ def test_deploy_app_with_existing_immutable_app_and_delete_app_on_update_equals_
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", delete_app_on_update_if_exists=True)
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", delete_app_on_update=True)
 
     assert app_v1.id != app_v2.id
     deploy_fixture.check_log_stability()
@@ -257,7 +257,7 @@ def test_deploy_with_update(
         deploy_fixture.deploy(
             v2,
             "2.0",
-            delete_app_on_update_if_exists=delete_on_app_update == DeleteAppUpdate.Enabled,
+            delete_app_on_update=delete_on_app_update == DeleteAppUpdate.Enabled,
         )
     except DeploymentFailedError as error:
         logger.info(f"DeploymentFailedError: {error}")
