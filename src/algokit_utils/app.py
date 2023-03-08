@@ -140,10 +140,22 @@ def deploy_app(
     creator_account: Account,
     version: str,
     *,
+    # TODO: enums
     delete_app_on_schema_break: bool = False,
-    delete_app_on_update_if_exists: bool = False,
+    delete_app_on_update: bool = False,
+    # allow_update: bool -> TMPL
+    # allow_delete: bool -> TMPL
+    # on_update: NO, Update, Delete
+    # on_schema_break: No, Delete
+    # TODO: TMPL values
 ) -> App:
     # TODO: return ApplicationClient
+
+    # TODO: deploy time control
+    # TMPL _deletable
+    # TMPL _updatable
+    # add blueprint for these
+    # fall back to reading app spec
 
     # TODO: what about template substitution?
 
@@ -207,16 +219,16 @@ def deploy_app(
 
         if app.note.updatable:
             logger.info("App is updatable. Will perform update application transaction")
-        elif delete_app_on_update_if_exists:
-            logger.warning("Received delete_app_on_update_if_exists=True. Creating new app and then deleting old one")
+        elif delete_app_on_update:
+            logger.warning("Received delete_app_on_update=True. Creating new app and then deleting old one")
         else:
             # TODO: include environment check
             raise DeploymentFailedError(
                 "Stopping deployment. If you want to delete and recreate the app "
-                "then re-run with delete_app_on_update_if_exists=True"
+                "then re-run with delete_app_on_update=True"
             )
 
-    if schema_breaking_change or (app_updated and delete_app_on_update_if_exists):
+    if schema_breaking_change or (app_updated and delete_app_on_update):
         logger.info(f"Deploying {name} ({version}) in {creator_account.address} account.")
         app_client = ApplicationClient(
             algod_client, app_spec, signer=AccountTransactionSigner(creator_account.private_key)

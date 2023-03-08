@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def send_transaction(
     client: AlgodClient,
     transaction: PaymentTxn,
-    from_account: Account,  # TODO: logic signature support
+    from_account: Account,  # TODO: logic signature support, re-keyed account
     *,
     skip_waiting: bool,
     max_fee: float,
