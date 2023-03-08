@@ -8,14 +8,10 @@ from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema, SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-from dotenv import load_dotenv
 
 from algokit_utils.application_client import ApplicationClient
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.models import Account
-
-# TODO: should this library be doing this
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 

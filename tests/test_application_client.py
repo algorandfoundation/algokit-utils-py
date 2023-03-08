@@ -10,7 +10,7 @@ from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
 from pyteal import CallConfig, MethodConfig
 
-from tests.conf_test import check_output_stability
+from tests.conftest import check_output_stability
 
 logger = logging.getLogger(__name__)
 

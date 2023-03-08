@@ -1634,7 +1634,7 @@ dev = ["pre-commit", "pytest-asyncio", "tox"]
 name = "python-dotenv"
 version = "1.0.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -2257,4 +2257,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9e842d6d468504825cc5ebfafc2e8e1c753f0915cb0b6b99f940a1a5ed2abefd"
+content-hash = "72abbf01f732e641edf261612c5a047c0a7705bb0787fd182af35993a29eb514"
