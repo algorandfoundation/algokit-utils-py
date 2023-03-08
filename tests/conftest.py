@@ -3,6 +3,13 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
+
+
+@pytest.fixture(autouse=True, scope="session")
+def environment_fixture():
+    env_path = Path(__file__).parent / ".." / "example.env"
+    load_dotenv(env_path)
 
 
 def check_output_stability(logs: str, *, test_name: str = None) -> None:
