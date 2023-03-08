@@ -7,6 +7,7 @@ from typing import Any, Literal, TypeAlias, TypedDict
 from algosdk.abi import Contract  # type: ignore[attr-defined]
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
+from algosdk.v2client.indexer import IndexerClient
 from pyteal import CallConfig, MethodConfig
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "ApplicationSpecification",
     "AppSpecStateDict",
 ]
+
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 
@@ -200,3 +202,33 @@ class ApplicationSpecification:
         (output_dir / "clear.teal").write_text(self.clear_program)
         (output_dir / "contract.json").write_text(json.dumps(self.contract.dictify(), indent=4))
         (output_dir / "application.json").write_text(self.to_json())
+
+
+def _state_schema(schema: dict[str, int]) -> StateSchema:
+    return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
+
+
+def _app_spec_from_app_id(indexer_client: IndexerClient, app_id: int) -> ApplicationSpecification:
+    app_info = indexer_client.applications(app_id)  # type: ignore[no-untyped-call]
+    application_create_params = app_info["application"]["params"]
+    approval_program = application_create_params["approval-program"]
+    clear_program = application_create_params["clear-state-program"]
+    global_schema = _state_schema(application_create_params["global-state-schema"])
+    local_schema = _state_schema(application_create_params["local-state-schema"])
+
+    # TODO: can we determine these from approval_program?!
+    contract = Contract("", [])
+    hints: dict[str, MethodHints] = {}
+    schema: StateDict = {"global": {}, "local": {}}
+    bare_call_config = MethodConfig()
+
+    return ApplicationSpecification(
+        approval_program=approval_program,
+        clear_program=clear_program,
+        contract=contract,
+        hints=hints,
+        schema=schema,
+        global_state_schema=global_schema,
+        local_state_schema=local_schema,
+        bare_call_config=bare_call_config,
+    )

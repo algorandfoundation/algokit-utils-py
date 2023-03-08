@@ -3,10 +3,11 @@ from enum import Enum
 from pathlib import Path
 from uuid import uuid4
 
-import algokit_utils.deployer
 import pytest
+from algokit_utils.account import get_account, get_sandbox_default_account
+from algokit_utils.app import App, DeploymentFailedError, deploy_app
 from algokit_utils.application_specification import ApplicationSpecification
-from algokit_utils.deployer import DeploymentFailedError
+from algokit_utils.network_clients import get_algod_client, get_indexer_client
 from pyteal import CallConfig, MethodConfig
 
 from tests.conf_test import check_output_stability
@@ -19,10 +20,10 @@ class DeployFixture:
         self.app_ids = []
         self.caplog = caplog
         self.request = request
-        self.algod_client = algokit_utils.deployer.get_algod_client()
-        self.indexer = algokit_utils.deployer.get_indexer_client()
+        self.algod_client = get_algod_client()
+        self.indexer = get_indexer_client()
         self.creator_name = get_unique_name()
-        self.creator = algokit_utils.deployer.get_account(self.algod_client, self.creator_name)
+        self.creator = get_account(self.algod_client, self.creator_name)
 
     def deploy(
         self,
@@ -31,8 +32,8 @@ class DeployFixture:
         *,
         delete_app_on_update_if_exists: bool = False,
         delete_app_on_schema_break: bool = False,
-    ) -> algokit_utils.deployer.App:
-        app = algokit_utils.deployer.deploy_app(
+    ) -> App:
+        app = deploy_app(
             self.algod_client,
             self.indexer,
             app_spec,
@@ -52,7 +53,7 @@ class DeployFixture:
         check_output_stability(logs, test_name=self.request.node.name + suffix)
 
     def _normalize_logs(self, logs: str) -> str:
-        dispenser = algokit_utils.deployer.get_sandbox_default_account(self.algod_client)
+        dispenser = get_sandbox_default_account(self.algod_client)
         logs = logs.replace(self.creator_name, "{creator}")
         logs = logs.replace(self.creator.address, "{creator_account}")
         logs = logs.replace(dispenser.address, "{dispenser_account}")
@@ -111,15 +112,6 @@ def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture)
 
     assert app.id
     deploy_fixture.check_log_stability()
-
-
-# New app
-# New app with updatable = true, V2 - Ok
-# New app with updatable = false, V2 - Error
-# New app with updatable = false, V2 with delete on update - Ok
-# New app with deletable = true, V3 - Ok
-# New app with deletable = false, V3 - Error
-# New app with deletable = false, V3 with delete on schema - Ok
 
 
 def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture):
