@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from pathlib import Path
 from uuid import uuid4
 
@@ -196,4 +197,76 @@ def test_deploy_app_with_existing_permanent_app_and_delete_app_on_schema_break_e
 
     app_v3 = deploy_fixture.deploy(v3, "3.0", delete_app_on_schema_break=True)
     assert app_v1.id != app_v3.id
+    deploy_fixture.check_log_stability()
+
+
+class Deletable(Enum):
+    No = 0
+    Yes = 1
+
+
+class Updatable(Enum):
+    No = 0
+    Yes = 1
+
+
+class DeleteSchemaBreak(Enum):
+    Disabled = 0
+    Enabled = 1
+
+
+@pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
+@pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
+@pytest.mark.parametrize("delete_on_schema_break", [DeleteSchemaBreak.Disabled, DeleteSchemaBreak.Enabled])
+def test_deploy_with_schema_breaking_change(
+    deploy_fixture: DeployFixture,
+    *,
+    deletable: Deletable,
+    updatable: Updatable,
+    delete_on_schema_break: DeleteSchemaBreak,
+):
+    v1, _, v3 = get_specs(deletable=deletable == Deletable.Yes, updatable=updatable == Updatable.Yes)
+
+    app_v1 = deploy_fixture.deploy(v1, "1.0")
+    assert app_v1.id
+
+    try:
+        deploy_fixture.deploy(
+            v3,
+            "3.0",
+            delete_app_on_schema_break=delete_on_schema_break == DeleteSchemaBreak.Enabled,
+        )
+    except DeploymentFailedError as error:
+        logger.info(f"DeploymentFailedError: {error}")
+    deploy_fixture.check_log_stability()
+
+
+class DeleteAppUpdate(Enum):
+    Disabled = 0
+    Enabled = 1
+
+
+@pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
+@pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
+@pytest.mark.parametrize("delete_on_app_update", [DeleteAppUpdate.Disabled, DeleteAppUpdate.Enabled])
+def test_deploy_with_update(
+    deploy_fixture: DeployFixture,
+    *,
+    deletable: Deletable,
+    updatable: Updatable,
+    delete_on_app_update: DeleteAppUpdate,
+):
+    v1, v2, _ = get_specs(deletable=deletable == Deletable.Yes, updatable=updatable == Updatable.Yes)
+
+    app_v1 = deploy_fixture.deploy(v1, "1.0")
+    assert app_v1.id
+
+    try:
+        deploy_fixture.deploy(
+            v2,
+            "2.0",
+            delete_app_on_update_if_exists=delete_on_app_update == DeleteAppUpdate.Enabled,
+        )
+    except DeploymentFailedError as error:
+        logger.info(f"DeploymentFailedError: {error}")
     deploy_fixture.check_log_stability()
