@@ -1,32 +1,100 @@
+import logging
 from pathlib import Path
 from uuid import uuid4
 
 import algokit_utils.deployer
-from algokit_utils import ApplicationClient
+import pytest
 from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils.deployer import DeploymentFailedError
+from pyteal import CallConfig, MethodConfig
+
+from tests.conf_test import check_output_stability
+
+logger = logging.getLogger(__name__)
 
 
-class GeneratedCounterClient:
-    def __init__(self, client: ApplicationClient):
-        self._client = client
+class DeployFixture:
+    def __init__(self, caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest):
+        self.app_ids = []
+        self.caplog = caplog
+        self.request = request
+        self.algod_client = algokit_utils.deployer.get_algod_client()
+        self.indexer = algokit_utils.deployer.get_indexer_client()
+        self.creator_name = get_unique_name()
+        self.creator = algokit_utils.deployer.get_account(self.algod_client, self.creator_name)
 
-    def increment(self) -> int:
-        return self._client.call("increment").return_value
+    def deploy(
+        self,
+        app_spec: ApplicationSpecification,
+        version: str,
+        *,
+        delete_app_on_update_if_exists: bool = False,
+        delete_app_on_schema_break: bool = False,
+    ) -> algokit_utils.deployer.App:
+        app = algokit_utils.deployer.deploy_app(
+            self.algod_client,
+            self.indexer,
+            app_spec,
+            self.creator,
+            version=version,
+            delete_app_on_update_if_exists=delete_app_on_update_if_exists,
+            delete_app_on_schema_break=delete_app_on_schema_break,
+        )
+        self._wait_for_round(app.created_at_round)
+        self.app_ids.append(app.id)
+        return app
 
-    def decrement(self) -> int:
-        return self._client.call("decrement").return_value
+    def check_log_stability(self, suffix: str = ""):
+        records = self.caplog.get_records("call")
+        logs = "\n".join(f"{r.levelname}: {r.message}" for r in records)
+        logs = self._normalize_logs(logs)
+        check_output_stability(logs, test_name=self.request.node.name + suffix)
+
+    def _normalize_logs(self, logs: str) -> str:
+        dispenser = algokit_utils.deployer.get_sandbox_default_account(self.algod_client)
+        logs = logs.replace(self.creator_name, "{creator}")
+        logs = logs.replace(self.creator.address, "{creator_account}")
+        logs = logs.replace(dispenser.address, "{dispenser_account}")
+        for index, app_id in enumerate(self.app_ids):
+            logs = logs.replace(f"app id {app_id}", f"app id {{app{index}}}")
+        return logs
+
+    def _wait_for_round(self, round_target: int, max_attempts: int = 100) -> None:
+        for _attempts in range(max_attempts):
+            health = self.indexer.health()
+            if health["round"] >= round_target:
+                break
 
 
-def _read_spec(path: str) -> ApplicationSpecification:
-    return ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
+@pytest.fixture
+def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest) -> DeployFixture:
+    caplog.set_level(logging.DEBUG)
+    return DeployFixture(caplog, request)
 
 
-V1_spec = _read_spec("helloworld_application_v1.json")
-V2_spec = _read_spec("helloworld_application_v2.json")
-V3_spec = _read_spec("counter_application.json")
-# pretend these app specs are all different versions of the "same" app
-V2_spec.contract.name = V1_spec.contract.name
-V3_spec.contract.name = V1_spec.contract.name
+def _read_spec(path: str, *, updatable: bool = False, deletable: bool = False) -> ApplicationSpecification:
+    spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
+    # patch spec to simulate updatable, deletable
+    if not updatable:
+        kwargs = dict(spec.bare_call_config.__dict__)
+        kwargs["update_application"] = CallConfig.NEVER
+        spec.bare_call_config = MethodConfig(**kwargs)
+    if not deletable:
+        kwargs = dict(spec.bare_call_config.__dict__)
+        kwargs["delete_application"] = CallConfig.NEVER
+        spec.bare_call_config = MethodConfig(**kwargs)
+    return spec
+
+
+def get_specs(
+    *, updatable: bool = False, deletable: bool = False
+) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
+    specs = (
+        _read_spec("app_v1.json", updatable=updatable, deletable=deletable),
+        _read_spec("app_v2.json", updatable=updatable, deletable=deletable),
+        _read_spec("app_v3.json", updatable=updatable, deletable=deletable),
+    )
+    return specs
 
 
 def get_unique_name() -> str:
@@ -35,62 +103,97 @@ def get_unique_name() -> str:
     return name
 
 
-def test_deploy_new():
-    algod_client = algokit_utils.deployer.get_algod_client()
-    indexer = algokit_utils.deployer.get_indexer_client()
-    algokit_utils.deployer.get_indexer_client()
-    creator = algokit_utils.deployer.get_account(algod_client, get_unique_name())
+def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture):
+    v1, _, _ = get_specs()
 
-    app = algokit_utils.deployer.deploy_app(algod_client, indexer, V1_spec, creator, version="1.0")
-    # TODO: better assert
+    app = deploy_fixture.deploy(v1, version="1.0")
+
     assert app.id
+    deploy_fixture.check_log_stability()
 
 
-def test_deploy_new_then_update():
-    algod_client = algokit_utils.deployer.get_algod_client()
-    indexer = algokit_utils.deployer.get_indexer_client()
-    algokit_utils.deployer.get_indexer_client()
-    creator = algokit_utils.deployer.get_account(algod_client, get_unique_name())
+# New app
+# New app with updatable = true, V2 - Ok
+# New app with updatable = false, V2 - Error
+# New app with updatable = false, V2 with delete on update - Ok
+# New app with deletable = true, V3 - Ok
+# New app with deletable = false, V3 - Error
+# New app with deletable = false, V3 with delete on schema - Ok
 
-    app_v1 = algokit_utils.deployer.deploy_app(algod_client, indexer, V1_spec, creator, version="1.0")
+
+def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture):
+    v1, v2, _ = get_specs(updatable=True)
+    assert v1.updatable
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    app_v2 = algokit_utils.deployer.deploy_app(algod_client, indexer, V2_spec, creator, version="2.0")
-    # TODO: better assert
-    assert app_v2.id != app_v1.id
+    app_v2 = deploy_fixture.deploy(v2, version="2.0")
+
+    assert app_v1.id == app_v2.id
+    deploy_fixture.check_log_stability()
 
 
-def test_deploy_new_then_update_with_delete_on_update():
-    algod_client = algokit_utils.deployer.get_algod_client()
-    indexer = algokit_utils.deployer.get_indexer_client()
-    algokit_utils.deployer.get_indexer_client()
-    creator = algokit_utils.deployer.get_account(algod_client, get_unique_name())
+def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixture):
+    v1, v2, _ = get_specs(updatable=False)
+    assert not v1.updatable
 
-    app_v1 = algokit_utils.deployer.deploy_app(algod_client, indexer, V1_spec, creator, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    app_v2 = algokit_utils.deployer.deploy_app(
-        algod_client, indexer, V2_spec, creator, version="2.0", delete_app_on_update_if_exists=True
-    )
-    # TODO: better assert
-    assert app_v2.id != app_v1.id
+    with pytest.raises(DeploymentFailedError):
+        deploy_fixture.deploy(v2, version="2.0")
+    deploy_fixture.check_log_stability()
 
 
-# scenarios
-# create v1
-# create v1, update v2
-# create v1, update v2, delete on update = true
-# create v1, update v2, delete on update = false
-# create v1, update v3 (schema change), delete on schema break = true
-# create v1, update v3 (schema change), delete on schema break = false
+def test_deploy_app_with_existing_immutable_app_and_delete_app_on_update_equals_true_succeeds(
+    deploy_fixture: DeployFixture,
+):
+    v1, v2, _ = get_specs(updatable=False)
+    assert not v1.updatable
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    assert app_v1.id
+
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", delete_app_on_update_if_exists=True)
+
+    assert app_v1.id != app_v2.id
+    deploy_fixture.check_log_stability()
 
 
-def _interact_with_counter(api: GeneratedCounterClient):
-    api.increment()
-    api.increment()
-    api.increment()
-    result = api.increment()
-    print(f"Current counter value: {result}")
+def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployFixture):
+    v1, _, v3 = get_specs(deletable=True)
+    assert v1.deletable
 
-    result = api.decrement()
-    print(f"Current counter value: {result}")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    assert app_v1.id
+
+    app_v3 = deploy_fixture.deploy(v3, version="3.0")
+    assert app_v1.id != app_v3.id
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture):
+    v1, _, v3 = get_specs(deletable=False)
+    assert not v1.deletable
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    assert app_v1.id
+
+    with pytest.raises(DeploymentFailedError):
+        deploy_fixture.deploy(v3, version="3.0")
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_app_with_existing_permanent_app_and_delete_app_on_schema_break_equal_true_succeeds(
+    deploy_fixture: DeployFixture,
+):
+    v1, _, v3 = get_specs(deletable=False)
+    assert not v1.deletable
+
+    app_v1 = deploy_fixture.deploy(v1, "1.0")
+    assert app_v1.id
+
+    app_v3 = deploy_fixture.deploy(v3, "3.0", delete_app_on_schema_break=True)
+    assert app_v1.id != app_v3.id
+    deploy_fixture.check_log_stability()

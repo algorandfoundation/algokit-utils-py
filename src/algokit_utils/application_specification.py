@@ -111,6 +111,23 @@ def _decode_state_schema(data: dict[str, int]) -> StateSchema:
     )
 
 
+# App Properties - Fixed part of app definition. i.e. on app spec, include in app note too?
+# Deletable - False, can't delete unless Can Delete is true
+#           - True, can delete if required
+# Updatable - False, can't update unless Can Update is true
+#           - True, can update if required
+#
+# Detected Changes (Upgrade, Schema Break) - Determined at deploy time, difference between source and target env
+# New       - App does not exist in specified Creator account
+# TEAL      - App exists, TEAL changed, but schema requirements the same (or less)
+# Schema    - App exists, schema requirements increased
+#
+# Deployment Flags (Can Delete, Can Update) - Different values per Environment
+# Local - Can Delete = True, Can Update = True
+# Dev/Test - Can Delete = True, Can Update = True. Warn if deleting or updating?
+# Main - Can Delete = False, Can Update = False
+
+
 @dataclasses.dataclass(kw_only=True)
 class ApplicationSpecification:
     approval_program: str
@@ -121,6 +138,18 @@ class ApplicationSpecification:
     global_state_schema: StateSchema
     local_state_schema: StateSchema
     bare_call_config: MethodConfig
+
+    @property
+    def updatable(self) -> bool:
+        return self.bare_call_config.update_application != CallConfig.NEVER or any(
+            h for h in self.hints.values() if h.call_config.update_application != CallConfig.NEVER
+        )
+
+    @property
+    def deletable(self) -> bool:
+        return self.bare_call_config.delete_application != CallConfig.NEVER or any(
+            h for h in self.hints.values() if h.call_config.delete_application != CallConfig.NEVER
+        )
 
     def dictify(self) -> dict:
         return {

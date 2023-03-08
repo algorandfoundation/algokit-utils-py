@@ -60,10 +60,11 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 
 
 @dataclasses.dataclass
-class CreateResult:
+class CreateUpdateResult:
     app_id: int
     app_address: str
     transaction_id: str
+    confirmed_round: int
 
 
 class ApplicationClient:
@@ -125,7 +126,7 @@ class ApplicationClient:
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         extra_pages: int | None = None,
         **kwargs: Any,
-    ) -> CreateResult:
+    ) -> CreateUpdateResult:
         """Submits a signed ApplicationCallTransaction with application id == 0
         and the schema and source from the Application passed"""
 
@@ -169,7 +170,6 @@ class ApplicationClient:
             )
 
         create_result = self._execute_atc(atc)
-
         create_txid = create_result.tx_ids[0]
 
         result = self.client.pending_transaction_info(create_txid)
@@ -179,7 +179,7 @@ class ApplicationClient:
         self.app_id = app_id
         self.app_addr = app_addr
 
-        return CreateResult(app_id, app_addr, create_txid)
+        return CreateUpdateResult(app_id, app_addr, create_txid, create_result.confirmed_round)
 
     def update(
         self,
@@ -187,7 +187,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> CreateUpdateResult:
         """Submits a signed ApplicationCallTransaction with OnComplete set
         to UpdateApplication and source from the Application passed"""
 
@@ -223,7 +223,9 @@ class ApplicationClient:
 
         update_result = self._execute_atc(atc)
 
-        return update_result.tx_ids[0]
+        return CreateUpdateResult(
+            self.app_id, get_application_address(self.app_id), update_result.tx_ids[0], update_result.confirmed_round
+        )
 
     def opt_in(
         self,
