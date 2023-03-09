@@ -23,8 +23,9 @@ UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 DELETABLE_TEMPLATE_NAME = "TMPL_DELETABLE"
 
 NOTE_PREFIX = "APP NOTE:"
-# when base64 encoding bytes, 3 bytes are stored in every 4 characters so assert the
-# NOTE_PREFIX length is a multiple of 3, so we don't need to worry about the padding/changing characters at the end
+# when base64 encoding bytes, 3 bytes are stored in every 4 characters
+# assert the NOTE_PREFIX length is a multiple of 3, so we don't need to worry about the
+# padding/changing characters at the end
 assert len(NOTE_PREFIX) % 3 == 0
 
 
@@ -87,16 +88,7 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 application_id=app_id,
                 note_prefix=NOTE_PREFIX.encode("utf-8"),
             )  # type: ignore[no-untyped-call]
-            # created_transactions_response = indexer.search_transactions(
-            #    min_round=app_created_at_round, max_round=app_created_at_round, txn_type="appl", application_id=app_id,
-            # )  # type: ignore[no-untyped-call]
             update_transactions: list[dict] = update_transactions_response["transactions"][:]
-            # creation_transaction = next(
-            #    t
-            #    for t in created_transactions_response["transactions"]
-            #    if t["application-transaction"]["application-id"] == 0 and t["sender"] == creator_address
-            # )
-            # update_transactions.append(creation_transaction)
 
             def sort_by_round(transaction: dict) -> tuple[int, int]:
                 confirmed = transaction["confirmed-round"]
@@ -184,15 +176,13 @@ def _replace_template_variable(program_lines: list[str], template_variable: str,
     return result, match_count
 
 
-def _merge_template_variables(
-    template_values: dict[str, int | str] | None, allow_update: bool | None, allow_delete: bool | None
-) -> dict[str, int | str]:
-    merged_template_values: dict[str, int | str] = {f"TMPL_{k}": v for k, v in (template_values or {}).items()}
+def _add_deploy_template_variables(
+    template_values: dict[str, int | str], allow_update: bool | None, allow_delete: bool | None
+) -> None:
     if allow_update is not None:
-        merged_template_values[UPDATABLE_TEMPLATE_NAME] = int(allow_update)
+        template_values[UPDATABLE_TEMPLATE_NAME] = int(allow_update)
     if allow_delete is not None:
-        merged_template_values[DELETABLE_TEMPLATE_NAME] = int(allow_delete)
-    return merged_template_values
+        template_values[DELETABLE_TEMPLATE_NAME] = int(allow_delete)
 
 
 def _check_template_variables(approval_program: str, template_values: dict[str, int | str]) -> None:
@@ -256,14 +246,16 @@ def deploy_app(
 ) -> App:
     # TODO: return ApplicationClient
 
-    approval_template_values = _merge_template_variables(template_values, allow_update, allow_delete)
-    _check_template_variables(app_spec.approval_program, approval_template_values)
-
     # make a copy
     app_spec = ApplicationSpecification.from_json(app_spec.to_json())
-    app_spec.approval_program = replace_template_variables(app_spec.approval_program, approval_template_values)
-    app_spec.clear_program = replace_template_variables(app_spec.clear_program, template_values or {})
-    # add blueprint for these
+
+    mapped_template_values: dict[str, int | str] = {f"TMPL_{k}": v for k, v in (template_values or {}).items()}
+    app_spec.clear_program = replace_template_variables(app_spec.clear_program, mapped_template_values)
+
+    _add_deploy_template_variables(mapped_template_values, allow_update=allow_update, allow_delete=allow_delete)
+    _check_template_variables(app_spec.approval_program, mapped_template_values)
+    app_spec.approval_program = replace_template_variables(app_spec.approval_program, mapped_template_values)
+
     updatable = (
         allow_update
         if allow_update is not None
