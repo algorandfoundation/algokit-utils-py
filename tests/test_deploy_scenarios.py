@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 from algokit_utils.account import get_account, get_sandbox_default_account
-from algokit_utils.app import App, DeploymentFailedError, deploy_app
+from algokit_utils.app import App, DeploymentFailedError, deploy_app, replace_template_variables
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
 from pyteal import CallConfig, MethodConfig
@@ -116,7 +116,6 @@ def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture)
 
 def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture):
     v1, v2, _ = get_specs(updatable=True)
-    assert v1.updatable
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
@@ -129,7 +128,6 @@ def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployF
 
 def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixture):
     v1, v2, _ = get_specs(updatable=False)
-    assert not v1.updatable
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
@@ -143,7 +141,6 @@ def test_deploy_app_with_existing_immutable_app_and_delete_app_on_update_equals_
     deploy_fixture: DeployFixture,
 ):
     v1, v2, _ = get_specs(updatable=False)
-    assert not v1.updatable
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
@@ -156,7 +153,6 @@ def test_deploy_app_with_existing_immutable_app_and_delete_app_on_update_equals_
 
 def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployFixture):
     v1, _, v3 = get_specs(deletable=True)
-    assert v1.deletable
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
@@ -168,7 +164,6 @@ def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployF
 
 def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture):
     v1, _, v3 = get_specs(deletable=False)
-    assert not v1.deletable
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
@@ -182,7 +177,6 @@ def test_deploy_app_with_existing_permanent_app_and_delete_app_on_schema_break_e
     deploy_fixture: DeployFixture,
 ):
     v1, _, v3 = get_specs(deletable=False)
-    assert not v1.deletable
 
     app_v1 = deploy_fixture.deploy(v1, "1.0")
     assert app_v1.id
@@ -262,3 +256,18 @@ def test_deploy_with_update(
     except DeploymentFailedError as error:
         logger.info(f"DeploymentFailedError: {error}")
     deploy_fixture.check_log_stability()
+
+
+def test_template_substitution():
+    program = """
+test TMPL_INT // TMPL_INT
+test TMPL_INT
+no change
+test TMPL_STR // TMPL_STR
+TMPL_STR
+TMPL_STR // TMPL_INT
+TMPL_STR // foo //
+TMPL_STR // bar
+"""
+    result = replace_template_variables(program, {"TMPL_INT": 123, "TMPL_STR": "ABC"})
+    check_output_stability(result)

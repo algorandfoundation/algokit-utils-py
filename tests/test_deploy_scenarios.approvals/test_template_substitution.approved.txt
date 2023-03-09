@@ -1,0 +1,9 @@
+
+test 123 // TMPL_INT
+test 123
+no change
+test 0x414243 // TMPL_STR
+0x414243
+0x414243 // TMPL_INT
+0x414243 // foo //
+0x414243 // bar
