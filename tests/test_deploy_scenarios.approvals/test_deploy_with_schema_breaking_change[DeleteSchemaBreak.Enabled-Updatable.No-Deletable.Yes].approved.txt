@@ -1,8 +1,0 @@
-INFO: SampleApp not found in {creator_account} account, deploying app.
-INFO: SampleApp (1.0) deployed successfully, with app id {app0}.
-DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=1.0.
-WARNING: Detected a breaking app schema change from Global: uints=0, byte_slices=0, Local: uints=0, byte_slices=0 to Global: uints=1, byte_slices=0, Local: uints=0, byte_slices=0.
-WARNING: App is deletable. Creating new app and then deleting old one
-INFO: Deploying SampleApp (3.0) in {creator_account} account.
-INFO: SampleApp (3.0) deployed successfully, with app id {app1}.
-INFO: Deleting SampleApp (1.0) in {creator_account} account, with app id {app0}

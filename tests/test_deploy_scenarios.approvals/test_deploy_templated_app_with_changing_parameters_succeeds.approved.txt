@@ -1,0 +1,21 @@
+INFO: Deploy V1 as updatable, deletable
+INFO: SampleApp not found in {creator_account} account, deploying app.
+INFO: SampleApp (1) deployed successfully, with app id {app0}.
+INFO: Deploy V2 as immutable, deletable
+DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=1.
+INFO: Detected a TEAL update in app id {app0}
+INFO: App is updatable and on_update=UpdateApp, will update app
+INFO: Updating SampleApp to 2 in {creator_account} account, with app id {app0}
+INFO: Attempt to deploy V3 as updatable, deletable, it will fail because V2 was immutable
+DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=2.
+INFO: Detected a TEAL update in app id {app0}
+WARNING: App is not updatable but on_update=UpdateApp, will attempt to update app, update will most likely fail
+INFO: Updating SampleApp to 3 in {creator_account} account, with app id {app0}
+ERROR: LogicException: assert failed pc=140
+INFO: 2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp
+DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=2.
+INFO: Detected a TEAL update in app id {app0}
+WARNING: App is not updatable and on_update=DeleteApp, will attempt to create new app and delete old app
+INFO: Deploying SampleApp (4) in {creator_account} account.
+INFO: SampleApp (4) deployed successfully, with app id {app2}.
+INFO: Deleting SampleApp (2) in {creator_account} account, with app id {app0}
