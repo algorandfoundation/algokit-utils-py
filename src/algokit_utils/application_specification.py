@@ -141,19 +141,6 @@ class ApplicationSpecification:
     local_state_schema: StateSchema
     bare_call_config: MethodConfig
 
-    # TODO: move to app client
-    @property
-    def updatable(self) -> bool:
-        return self.bare_call_config.update_application != CallConfig.NEVER or any(
-            h for h in self.hints.values() if h.call_config.update_application != CallConfig.NEVER
-        )
-
-    @property
-    def deletable(self) -> bool:
-        return self.bare_call_config.delete_application != CallConfig.NEVER or any(
-            h for h in self.hints.values() if h.call_config.delete_application != CallConfig.NEVER
-        )
-
     def dictify(self) -> dict:
         return {
             "hints": {k: v.dictify() for k, v in self.hints.items() if not v.empty()},
