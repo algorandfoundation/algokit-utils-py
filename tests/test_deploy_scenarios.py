@@ -1,14 +1,24 @@
 import logging
+import re
 from enum import Enum
 from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from algokit_utils.account import get_account, get_sandbox_default_account
-from algokit_utils.app import App, DeploymentFailedError, deploy_app, replace_template_variables
+from algokit_utils.app import (
+    DELETABLE_TEMPLATE_NAME,
+    UPDATABLE_TEMPLATE_NAME,
+    App,
+    DeploymentFailedError,
+    OnSchemaBreak,
+    OnUpdate,
+    deploy_app,
+    replace_template_variables,
+)
 from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils.logic_error import LogicException
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
-from pyteal import CallConfig, MethodConfig
 
 from tests.conftest import check_output_stability
 
@@ -30,8 +40,10 @@ class DeployFixture:
         app_spec: ApplicationSpecification,
         version: str,
         *,
-        delete_app_on_update: bool = False,
-        delete_app_on_schema_break: bool = False,
+        on_update: OnUpdate = OnUpdate.UpdateApp,
+        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        allow_delete: bool | None = None,
+        allow_update: bool | None = None,
     ) -> App:
         app = deploy_app(
             self.algod_client,
@@ -39,8 +51,10 @@ class DeployFixture:
             app_spec,
             self.creator,
             version=version,
-            delete_app_on_update=delete_app_on_update,
-            delete_app_on_schema_break=delete_app_on_schema_break,
+            on_update=on_update,
+            on_schema_break=on_schema_break,
+            allow_update=allow_update,
+            allow_delete=allow_delete,
         )
         self._wait_for_round(app.created_at_round)
         self.app_ids.append(app.id)
@@ -59,6 +73,7 @@ class DeployFixture:
         logs = logs.replace(dispenser.address, "{dispenser_account}")
         for index, app_id in enumerate(self.app_ids):
             logs = logs.replace(f"app id {app_id}", f"app id {{app{index}}}")
+        logs = re.sub(r"app id \d+", r"{appN_failed}", logs)
         return logs
 
     def _wait_for_round(self, round_target: int, max_attempts: int = 100) -> None:
@@ -74,17 +89,21 @@ def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequ
     return DeployFixture(caplog, request)
 
 
-def _read_spec(path: str, *, updatable: bool = False, deletable: bool = False) -> ApplicationSpecification:
+def _read_spec(path: str, *, updatable: bool | None = None, deletable: bool | None = None) -> ApplicationSpecification:
     spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
-    # patch spec to simulate updatable, deletable
-    if not updatable:
-        kwargs = dict(spec.bare_call_config.__dict__)
-        kwargs["update_application"] = CallConfig.NEVER
-        spec.bare_call_config = MethodConfig(**kwargs)
-    if not deletable:
-        kwargs = dict(spec.bare_call_config.__dict__)
-        kwargs["delete_application"] = CallConfig.NEVER
-        spec.bare_call_config = MethodConfig(**kwargs)
+
+    template_variables = {}
+    if updatable is not None:
+        template_variables[UPDATABLE_TEMPLATE_NAME] = int(updatable)
+
+    if deletable is not None:
+        template_variables[DELETABLE_TEMPLATE_NAME] = int(deletable)
+
+    spec.approval_program = (
+        replace_template_variables(spec.approval_program, template_variables)
+        .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
+        .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
+    )
     return spec
 
 
@@ -132,33 +151,35 @@ def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixt
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    with pytest.raises(DeploymentFailedError):
+    with pytest.raises(LogicException) as error:
         deploy_fixture.deploy(v2, version="2.0")
+    logger.error(f"LogicException: {error.value.message}")
+
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_immutable_app_and_delete_app_on_update_equals_true_succeeds(
+def test_deploy_app_with_existing_immutable_app_and_on_update_equals_delete_app_succeeds(
     deploy_fixture: DeployFixture,
 ):
-    v1, v2, _ = get_specs(updatable=False)
+    v1, v2, _ = get_specs(updatable=False, deletable=True)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", delete_app_on_update=True)
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
 
     assert app_v1.id != app_v2.id
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployFixture):
-    v1, _, v3 = get_specs(deletable=True)
+    v1, v2, _ = get_specs(deletable=True)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    app_v3 = deploy_fixture.deploy(v3, version="3.0")
-    assert app_v1.id != app_v3.id
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
+    assert app_v1.id != app_v2.id
     deploy_fixture.check_log_stability()
 
 
@@ -168,12 +189,13 @@ def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixt
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.id
 
-    with pytest.raises(DeploymentFailedError):
+    with pytest.raises(DeploymentFailedError) as error:
         deploy_fixture.deploy(v3, version="3.0")
+    logger.error(f"DeploymentFailedError: {error.value}")
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_permanent_app_and_delete_app_on_schema_break_equal_true_succeeds(
+def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_delete_app_fails(
     deploy_fixture: DeployFixture,
 ):
     v1, _, v3 = get_specs(deletable=False)
@@ -181,8 +203,55 @@ def test_deploy_app_with_existing_permanent_app_and_delete_app_on_schema_break_e
     app_v1 = deploy_fixture.deploy(v1, "1.0")
     assert app_v1.id
 
-    app_v3 = deploy_fixture.deploy(v3, "3.0", delete_app_on_schema_break=True)
-    assert app_v1.id != app_v3.id
+    with pytest.raises(LogicException) as exc_info:
+        deploy_fixture.deploy(v3, "3.0", on_schema_break=OnSchemaBreak.DeleteApp)
+
+    logger.error(f"Deployment failed: {exc_info.value.message}")
+
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: DeployFixture):
+    app_spec = _read_spec("app_v1.json")
+
+    logger.info("Deploy V1 as updatable, deletable")
+    deploy_fixture.deploy(
+        app_spec,
+        version="1",
+        allow_delete=True,
+        allow_update=True,
+    )
+
+    logger.info("Deploy V2 as immutable, deletable")
+    deploy_fixture.deploy(
+        app_spec,
+        version="2",
+        allow_delete=True,
+        allow_update=False,
+    )
+
+    logger.info("Attempt to deploy V3 as updatable, deletable, it will fail because V2 was immutable")
+    with pytest.raises(LogicException) as exc_info:
+        # try to make it updatable again
+        deploy_fixture.deploy(
+            app_spec,
+            version="3",
+            allow_delete=True,
+            allow_update=True,
+        )
+
+    logger.error(f"LogicException: {exc_info.value.message}")
+
+    logger.info("2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp")
+    # deploy with delete_app_on_update=True so we can replace it
+    deploy_fixture.deploy(
+        app_spec,
+        version="4",
+        on_update=OnUpdate.DeleteApp,
+        allow_delete=True,
+        allow_update=True,
+    )
+
     deploy_fixture.check_log_stability()
 
 
@@ -196,65 +265,71 @@ class Updatable(Enum):
     Yes = 1
 
 
-class DeleteSchemaBreak(Enum):
-    Disabled = 0
-    Enabled = 1
-
-
 @pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
 @pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
-@pytest.mark.parametrize("delete_on_schema_break", [DeleteSchemaBreak.Disabled, DeleteSchemaBreak.Enabled])
+@pytest.mark.parametrize("on_schema_break", [OnSchemaBreak.Fail, OnSchemaBreak.DeleteApp])
 def test_deploy_with_schema_breaking_change(
     deploy_fixture: DeployFixture,
     *,
     deletable: Deletable,
     updatable: Updatable,
-    delete_on_schema_break: DeleteSchemaBreak,
+    on_schema_break: OnSchemaBreak,
 ):
-    v1, _, v3 = get_specs(deletable=deletable == Deletable.Yes, updatable=updatable == Updatable.Yes)
+    v1 = _read_spec("app_v1.json")
+    v3 = _read_spec("app_v3.json")
 
-    app_v1 = deploy_fixture.deploy(v1, "1.0")
+    app_v1 = deploy_fixture.deploy(
+        v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
+    )
     assert app_v1.id
 
     try:
         deploy_fixture.deploy(
             v3,
             "3.0",
-            delete_app_on_schema_break=delete_on_schema_break == DeleteSchemaBreak.Enabled,
+            allow_delete=deletable == deletable.Yes,
+            allow_update=updatable == updatable.Yes,
+            on_schema_break=on_schema_break,
         )
     except DeploymentFailedError as error:
-        logger.info(f"DeploymentFailedError: {error}")
+        logger.error(f"DeploymentFailedError: {error}")
+    except LogicException as error:
+        logger.error(f"LogicException: {error.message}")
+
     deploy_fixture.check_log_stability()
-
-
-class DeleteAppUpdate(Enum):
-    Disabled = 0
-    Enabled = 1
 
 
 @pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
 @pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
-@pytest.mark.parametrize("delete_on_app_update", [DeleteAppUpdate.Disabled, DeleteAppUpdate.Enabled])
+@pytest.mark.parametrize("on_update", [OnUpdate.Fail, OnUpdate.UpdateApp, OnUpdate.DeleteApp])
 def test_deploy_with_update(
     deploy_fixture: DeployFixture,
     *,
     deletable: Deletable,
     updatable: Updatable,
-    delete_on_app_update: DeleteAppUpdate,
+    on_update: OnUpdate,
 ):
-    v1, v2, _ = get_specs(deletable=deletable == Deletable.Yes, updatable=updatable == Updatable.Yes)
+    v1 = _read_spec("app_v1.json")
+    v2 = _read_spec("app_v2.json")
 
-    app_v1 = deploy_fixture.deploy(v1, "1.0")
+    app_v1 = deploy_fixture.deploy(
+        v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
+    )
     assert app_v1.id
 
     try:
         deploy_fixture.deploy(
             v2,
             "2.0",
-            delete_app_on_update=delete_on_app_update == DeleteAppUpdate.Enabled,
+            allow_delete=deletable == deletable.Yes,
+            allow_update=updatable == updatable.Yes,
+            on_update=on_update,
         )
     except DeploymentFailedError as error:
-        logger.info(f"DeploymentFailedError: {error}")
+        logger.error(f"DeploymentFailedError: {error}")
+    except LogicException as error:
+        logger.error(f"LogicException: {error.message}")
+
     deploy_fixture.check_log_stability()
 
 
