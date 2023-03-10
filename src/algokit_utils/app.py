@@ -88,7 +88,9 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 application_id=app_id,
                 note_prefix=NOTE_PREFIX.encode("utf-8"),
             )  # type: ignore[no-untyped-call]
-            update_transactions: list[dict] = update_transactions_response["transactions"][:]
+            update_transactions: list[dict] = update_transactions_response["transactions"]
+            if not update_transactions:
+                continue
 
             def sort_by_round(transaction: dict) -> tuple[int, int]:
                 confirmed = transaction["confirmed-round"]
