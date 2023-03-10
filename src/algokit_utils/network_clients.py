@@ -17,6 +17,10 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
     server = os.getenv(f"{environment_prefix}_SERVER")
     if server is None:
         raise Exception(f"Server environment variable not set: {environment_prefix}_SERVER")
+    port = os.getenv(f"{environment_prefix}_PORT")
+    if port:
+        server = server.rstrip("/")
+        server = f"{server}:{port}"
     return AlgoClientConfig(server, os.getenv(f"{environment_prefix}_TOKEN"))
 
 
