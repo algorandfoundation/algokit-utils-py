@@ -80,8 +80,8 @@ class ApplicationClient:
                 self.app = ApplicationSpecification.from_json(path.read_text(encoding="utf-8"))
             case str():
                 self.app = ApplicationSpecification.from_json(app)
-        self.app_id = app_id
-        self.app_addr = get_application_address(app_id) if self.app_id != 0 else None
+        self._app_id = app_id
+        self._app_address = get_application_address(app_id) if self.app_id != 0 else None
 
         self.signer = signer
         self.sender = sender
@@ -109,6 +109,14 @@ class ApplicationClient:
         self.on_opt_in = find_method(lambda x: x.opt_in != CallConfig.NEVER)
         self.on_close_out = find_method(lambda x: x.close_out != CallConfig.NEVER)
         self.on_delete = find_method(lambda x: x.delete_application != CallConfig.NEVER)
+
+    @property
+    def app_id(self) -> int:
+        return self._app_id
+
+    @property
+    def app_address(self) -> str | None:
+        return self._app_address
 
     def create(
         self,
@@ -166,8 +174,8 @@ class ApplicationClient:
 
         result = self.client.pending_transaction_info(create_txid)
 
-        self.app_id = result["application-index"]
-        self.app_addr = get_application_address(self.app_id)
+        self._app_id = result["application-index"]
+        self._app_address = get_application_address(self._app_id)
 
         return create_result
 
@@ -548,7 +556,7 @@ class ApplicationClient:
 
         sp = self.get_suggested_params()
 
-        rcv = self.app_addr if addr is None else addr
+        rcv = addr or self.app_address
 
         atc = AtomicTransactionComposer()
         atc.add_transaction(
@@ -584,7 +592,7 @@ class ApplicationClient:
 
     def get_application_account_info(self) -> dict[str, Any]:
         """gets the account info for the application account"""
-        return self.client.account_info(self.app_addr)  # type: ignore[no-any-return]
+        return self.client.account_info(self.app_address)  # type: ignore[no-any-return]
 
     def get_box_names(self) -> list[bytes]:
         box_resp = self.client.application_boxes(self.app_id)
