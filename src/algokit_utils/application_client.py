@@ -179,6 +179,92 @@ class ApplicationClient:
 
         return create_result
 
+    def replace(
+        self,
+        sender: str | None = None,
+        signer: TransactionSigner | None = None,
+        suggested_params: transaction.SuggestedParams | None = None,
+        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        extra_pages: int | None = None,
+        **kwargs: Any,
+    ) -> AtomicTransactionResponse:
+        """Replace the existing app with a new version.
+        Submits a signed ApplicationCallTransaction with application id == 0
+        and the schema and source from the Application passed and also deletes the existing app
+        associated with this client, done within the same transaction so both either succeed or fail"""
+
+        if extra_pages is None:
+            extra_pages = num_extra_program_pages(self.approval.raw_binary, self.clear.raw_binary)
+
+        sp = self.get_suggested_params(suggested_params)
+        signer, sender = self._resolve_signer_sender(signer, sender)
+
+        atc = AtomicTransactionComposer()
+        if self.on_create is not None:
+            self.add_method_call(
+                atc,
+                self.on_create,
+                sender=sender,
+                suggested_params=sp,
+                on_complete=on_complete,
+                approval_program=self.approval.raw_binary,
+                clear_program=self.clear.raw_binary,
+                global_schema=self.app.global_state_schema,
+                local_schema=self.app.local_state_schema,
+                extra_pages=extra_pages,
+                **kwargs,
+            )
+        else:
+            atc.add_transaction(
+                TransactionWithSigner(
+                    txn=transaction.ApplicationCreateTxn(
+                        sender=sender,
+                        sp=sp,
+                        on_complete=on_complete,
+                        approval_program=self.approval.raw_binary,
+                        clear_program=self.clear.raw_binary,
+                        global_schema=self.app.global_state_schema,
+                        local_schema=self.app.local_state_schema,
+                        extra_pages=extra_pages,
+                        **kwargs,
+                    ),
+                    signer=signer,
+                )
+            )
+
+        if self.on_delete:
+            self.add_method_call(
+                atc,
+                self.on_delete,
+                on_complete=transaction.OnComplete.DeleteApplicationOC,
+                sender=sender,
+                suggested_params=sp,
+                signer=signer,
+                **kwargs,
+            )
+        else:
+            atc.add_transaction(
+                TransactionWithSigner(
+                    txn=transaction.ApplicationDeleteTxn(
+                        sender=sender,
+                        sp=sp,
+                        index=self.app_id,
+                        **kwargs,
+                    ),
+                    signer=signer,
+                )
+            )
+
+        create_result = self._execute_atc(atc)
+        create_txid = create_result.tx_ids[0]
+
+        result = self.client.pending_transaction_info(create_txid)
+
+        self._app_id = result["application-index"]
+        self._app_address = get_application_address(self._app_id)
+
+        return create_result
+
     def update(
         self,
         sender: str | None = None,
