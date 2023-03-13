@@ -366,12 +366,16 @@ class ApplicationClient:
         self,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
+        app_id: int | None = None,
         **kwargs: Any,
     ) -> "ApplicationClient":
         """makes a copy of the current ApplicationClient and the fields passed"""
 
         ac = copy.copy(self)
         ac.signer, ac.sender = ac._resolve_signer_sender(signer, sender)
+        if app_id is not None:
+            ac._app_id = app_id
+            ac._app_address = get_application_address(app_id)
         ac.__dict__.update(**kwargs)
         return ac
 
