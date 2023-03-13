@@ -55,8 +55,8 @@ class DeployFixture:
             allow_update=allow_update,
             allow_delete=allow_delete,
         )
-        self.app_ids.append(app.app_id)
-        return app
+        self.app_ids.append(app.client.app_id)
+        return app.client
 
     def check_log_stability(self, suffix: str = ""):
         records = self.caplog.get_records("call")
