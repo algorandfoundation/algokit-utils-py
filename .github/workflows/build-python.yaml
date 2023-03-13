@@ -29,7 +29,10 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
+          pipx install algokit
+          algokit localnet start
           poetry run pytest --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+          algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
