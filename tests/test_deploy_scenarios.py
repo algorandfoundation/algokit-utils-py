@@ -19,8 +19,7 @@ from algokit_utils.app import (
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.logic_error import LogicException
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
-
-from tests.conftest import check_output_stability
+from conftest import check_output_stability
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +82,7 @@ def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequ
 
 
 def _read_spec(path: str, *, updatable: bool | None = None, deletable: bool | None = None) -> ApplicationSpecification:
+    path = Path(__file__).parent / path
     spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
 
     template_variables = {}
