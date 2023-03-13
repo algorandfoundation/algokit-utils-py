@@ -232,6 +232,13 @@ class OnSchemaBreak(Enum):
     DeleteApp = 2
 
 
+def _indexer_wait_for_round(indexer_client: IndexerClient, round_target: int, max_attempts: int = 100) -> None:
+    for _attempts in range(max_attempts):
+        health = indexer_client.health()  # type: ignore[no-untyped-call]
+        if health["round"] >= round_target:
+            break
+
+
 # TODO: split this function up
 def deploy_app(
     algod_client: AlgodClient,
@@ -245,9 +252,7 @@ def deploy_app(
     allow_update: bool | None = None,
     allow_delete: bool | None = None,
     template_values: dict[str, int | str] | None = None,
-) -> App:
-    # TODO: return ApplicationClient
-
+) -> ApplicationClient:
     # make a copy
     app_spec = ApplicationSpecification.from_json(app_spec.to_json())
 
@@ -287,10 +292,11 @@ def deploy_app(
         algod_client, app_spec, app_id=app_id, signer=AccountTransactionSigner(creator_account.private_key)
     )
 
-    def create_app() -> App:
+    def create_app() -> ApplicationClient:
         create_result = app_client.create(note=app_spec_note.encode())
-        logger.info(f"{name} ({version}) deployed successfully, with app id {create_result.app_id}.")
-        return App(create_result.app_id, create_result.app_address, create_result.confirmed_round, app_spec_note)
+        logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
+        _indexer_wait_for_round(indexer_client, create_result.confirmed_round)
+        return app_client
 
     if app is None:
         logger.info(f"{name} not found in {creator_account.address} account, deploying app.")
@@ -322,7 +328,7 @@ def deploy_app(
         current_local_schema, required_local_schema
     )
 
-    def create_and_delete_app() -> App:
+    def create_and_delete_app() -> ApplicationClient:
         logger.info(f"Deploying {name} ({version}) in {creator_account.address} account.")
 
         new_app = create_app()
@@ -335,17 +341,20 @@ def deploy_app(
         old_app_client = ApplicationClient(
             algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
         )
-        old_app_client.delete()
+        delete_result = old_app_client.delete()
+
+        _indexer_wait_for_round(indexer_client, delete_result.confirmed_round)
 
         return new_app
 
-    def update_app() -> App:
+    def update_app() -> ApplicationClient:
         assert on_update == OnUpdate.UpdateApp
         assert app
         logger.info(f"Updating {name} to {version} in {creator_account.address} account, with app id {app.id}")
 
         update_result = app_client.update(note=app_spec_note.encode())
-        return App(update_result.app_id, update_result.app_address, update_result.confirmed_round, app_spec_note)
+        _indexer_wait_for_round(indexer_client, update_result.confirmed_round)
+        return app_client
 
     if schema_breaking_change:
         logger.warning(
@@ -400,4 +409,4 @@ def deploy_app(
 
     logger.info("No detected changes in app, nothing to do.")
 
-    return app
+    return app_client

@@ -5,11 +5,11 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from algokit_utils import ApplicationClient
 from algokit_utils.account import get_account, get_sandbox_default_account
 from algokit_utils.app import (
     DELETABLE_TEMPLATE_NAME,
     UPDATABLE_TEMPLATE_NAME,
-    App,
     DeploymentFailedError,
     OnSchemaBreak,
     OnUpdate,
@@ -44,7 +44,7 @@ class DeployFixture:
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
         allow_delete: bool | None = None,
         allow_update: bool | None = None,
-    ) -> App:
+    ) -> ApplicationClient:
         app = deploy_app(
             self.algod_client,
             self.indexer,
@@ -56,8 +56,7 @@ class DeployFixture:
             allow_update=allow_update,
             allow_delete=allow_delete,
         )
-        self._wait_for_round(app.created_at_round)
-        self.app_ids.append(app.id)
+        self.app_ids.append(app.app_id)
         return app
 
     def check_log_stability(self, suffix: str = ""):
@@ -75,12 +74,6 @@ class DeployFixture:
             logs = logs.replace(f"app id {app_id}", f"app id {{app{index}}}")
         logs = re.sub(r"app id \d+", r"{appN_failed}", logs)
         return logs
-
-    def _wait_for_round(self, round_target: int, max_attempts: int = 100) -> None:
-        for _attempts in range(max_attempts):
-            health = self.indexer.health()
-            if health["round"] >= round_target:
-                break
 
 
 @pytest.fixture
@@ -129,7 +122,7 @@ def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture)
 
     app = deploy_fixture.deploy(v1, version="1.0")
 
-    assert app.id
+    assert app.app_id
     deploy_fixture.check_log_stability()
 
 
@@ -137,11 +130,11 @@ def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployF
     v1, v2, _ = get_specs(updatable=True)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     app_v2 = deploy_fixture.deploy(v2, version="2.0")
 
-    assert app_v1.id == app_v2.id
+    assert app_v1.app_id == app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
@@ -149,7 +142,7 @@ def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixt
     v1, v2, _ = get_specs(updatable=False)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     with pytest.raises(LogicException) as error:
         deploy_fixture.deploy(v2, version="2.0")
@@ -164,11 +157,11 @@ def test_deploy_app_with_existing_immutable_app_and_on_update_equals_delete_app_
     v1, v2, _ = get_specs(updatable=False, deletable=True)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
 
-    assert app_v1.id != app_v2.id
+    assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
@@ -176,10 +169,10 @@ def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployF
     v1, v2, _ = get_specs(deletable=True)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
-    assert app_v1.id != app_v2.id
+    assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
@@ -187,7 +180,7 @@ def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixt
     v1, _, v3 = get_specs(deletable=False)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     with pytest.raises(DeploymentFailedError) as error:
         deploy_fixture.deploy(v3, version="3.0")
@@ -201,7 +194,7 @@ def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_delet
     v1, _, v3 = get_specs(deletable=False)
 
     app_v1 = deploy_fixture.deploy(v1, "1.0")
-    assert app_v1.id
+    assert app_v1.app_id
 
     with pytest.raises(LogicException) as exc_info:
         deploy_fixture.deploy(v3, "3.0", on_schema_break=OnSchemaBreak.DeleteApp)
@@ -281,7 +274,7 @@ def test_deploy_with_schema_breaking_change(
     app_v1 = deploy_fixture.deploy(
         v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
     )
-    assert app_v1.id
+    assert app_v1.app_id
 
     try:
         deploy_fixture.deploy(
@@ -315,7 +308,7 @@ def test_deploy_with_update(
     app_v1 = deploy_fixture.deploy(
         v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
     )
-    assert app_v1.id
+    assert app_v1.app_id
 
     try:
         deploy_fixture.deploy(

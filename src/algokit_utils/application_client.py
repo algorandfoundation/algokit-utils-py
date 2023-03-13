@@ -59,14 +59,6 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
-@dataclasses.dataclass
-class CreateUpdateResult:
-    app_id: int
-    app_address: str
-    transaction_id: str
-    confirmed_round: int
-
-
 class ApplicationClient:
     def __init__(
         self,
@@ -126,7 +118,7 @@ class ApplicationClient:
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         extra_pages: int | None = None,
         **kwargs: Any,
-    ) -> CreateUpdateResult:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with application id == 0
         and the schema and source from the Application passed"""
 
@@ -173,13 +165,11 @@ class ApplicationClient:
         create_txid = create_result.tx_ids[0]
 
         result = self.client.pending_transaction_info(create_txid)
-        app_id = result["application-index"]
-        app_addr = get_application_address(app_id)
 
-        self.app_id = app_id
-        self.app_addr = app_addr
+        self.app_id = result["application-index"]
+        self.app_addr = get_application_address(self.app_id)
 
-        return CreateUpdateResult(app_id, app_addr, create_txid, create_result.confirmed_round)
+        return create_result
 
     def update(
         self,
@@ -187,7 +177,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> CreateUpdateResult:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with OnComplete set
         to UpdateApplication and source from the Application passed"""
 
@@ -221,11 +211,7 @@ class ApplicationClient:
                 )
             )
 
-        update_result = self._execute_atc(atc)
-
-        return CreateUpdateResult(
-            self.app_id, get_application_address(self.app_id), update_result.tx_ids[0], update_result.confirmed_round
-        )
+        return self._execute_atc(atc)
 
     def opt_in(
         self,
@@ -233,7 +219,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with OnComplete set to OptIn"""
 
         sp = self.get_suggested_params(suggested_params)
@@ -263,9 +249,7 @@ class ApplicationClient:
                 )
             )
 
-        opt_in_result = self._execute_atc(atc)
-
-        return opt_in_result.tx_ids[0]
+        return self._execute_atc(atc)
 
     def close_out(
         self,
@@ -273,7 +257,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with OnComplete set to CloseOut"""
 
         sp = self.get_suggested_params(suggested_params)
@@ -303,9 +287,7 @@ class ApplicationClient:
                 )
             )
 
-        close_out_result = self._execute_atc(atc)
-
-        return close_out_result.tx_ids[0]
+        return self._execute_atc(atc)
 
     def clear_state(
         self,
@@ -313,7 +295,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with OnComplete set to ClearState"""
 
         sp = self.get_suggested_params(suggested_params)
@@ -332,9 +314,7 @@ class ApplicationClient:
             )
         )
 
-        clear_state_result = atc.execute(self.client, 4)
-
-        return clear_state_result.tx_ids[0]
+        return atc.execute(self.client, 4)
 
     def delete(
         self,
@@ -342,7 +322,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> AtomicTransactionResponse:
         """Submits a signed ApplicationCallTransaction with OnComplete set to DeleteApplication"""
 
         sp = self.get_suggested_params(suggested_params)
@@ -372,9 +352,7 @@ class ApplicationClient:
                 )
             )
 
-        delete_result = self._execute_atc(atc)
-
-        return delete_result.tx_ids[0]
+        return self._execute_atc(atc)
 
     def prepare(
         self,
@@ -563,12 +541,12 @@ class ApplicationClient:
         atc.add_transaction(TransactionWithSigner(txn=txn, signer=self.signer))
         return atc
 
-    def fund(self, amt: int, addr: str | None = None) -> str:
+    def fund(self, amt: int, addr: str | None = None) -> AtomicTransactionResponse:
         """convenience method to pay the address passed, defaults to paying the
         app address for this client from the current signer"""
         signer, sender = self._resolve_signer_sender(self.signer, self.sender)
 
-        sp = self.client.suggested_params()
+        sp = self.get_suggested_params()
 
         rcv = self.app_addr if addr is None else addr
 
@@ -579,8 +557,7 @@ class ApplicationClient:
                 signer=signer,
             )
         )
-        atc.execute(self.client, 4)
-        return atc.tx_ids.pop()
+        return atc.execute(self.client, 4)
 
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
         """gets the global state info for the app id set"""
