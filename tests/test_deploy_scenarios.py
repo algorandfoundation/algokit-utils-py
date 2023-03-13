@@ -188,6 +188,27 @@ def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixt
     deploy_fixture.check_log_stability()
 
 
+def test_deploy_app_with_existing_permanent_app_on_update_delete_fails_and_doesnt_create_2nd_app(
+    deploy_fixture: DeployFixture,
+):
+    v1, v2, _ = get_specs(deletable=False)
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    assert app_v1.app_id
+
+    with pytest.raises(LogicException) as error:
+        deploy_fixture.deploy(v2, version="3.0", on_update=OnUpdate.DeleteApp)
+    all_apps = deploy_fixture.indexer.lookup_account_application_by_creator(deploy_fixture.creator.address)[
+        "applications"
+    ]  # type: ignore[no-untyped-call]
+
+    # ensure no other apps were created
+    assert len(all_apps) == 1
+
+    logger.error(f"DeploymentFailedError: {error.value.message}")
+    deploy_fixture.check_log_stability()
+
+
 def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_delete_app_fails(
     deploy_fixture: DeployFixture,
 ):

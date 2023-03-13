@@ -343,23 +343,16 @@ def deploy_app(
     )
 
     def create_and_delete_app() -> DeployResponse:
-        logger.info(f"Deploying {name} ({version}) in {creator_account.address} account.")
-
-        new_app = create_app()
-
-        # delete the old app
         assert app
-        logger.info(f"Deleting {name} ({app.note.version}) in {creator_account.address} account, with app id {app.id}")
-
-        # TODO: passing the new app_spec to delete the old app doesn't seem right... (even tho it works)
-        old_app_client = ApplicationClient(
-            algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
+        logger.info(
+            f"Replacing {name} ({app.note.version}) with {name} ({version}) in {creator_account.address} account."
         )
-        delete_result = old_app_client.delete()
+        create_result = app_client.replace()
+        logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
+        logger.info(f"{name} ({app.note.version}) with app id {app.id}, deleted successfully.")
+        _indexer_wait_for_round(indexer_client, create_result.confirmed_round)
 
-        _indexer_wait_for_round(indexer_client, delete_result.confirmed_round)
-
-        return DeployResponse(new_app.client, new_app.created_round, action_taken=DeployAction.DeletedAndCreated)
+        return DeployResponse(app_client, create_result.confirmed_round, action_taken=DeployAction.DeletedAndCreated)
 
     def update_app() -> DeployResponse:
         assert on_update == OnUpdate.UpdateApp
