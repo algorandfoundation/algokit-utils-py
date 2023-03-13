@@ -2,7 +2,6 @@ INFO: SampleApp not found in {creator_account} account, deploying app.
 INFO: SampleApp (1.0) deployed successfully, with app id {app0}.
 DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=1.0.
 INFO: Detected a TEAL update in app id {app0}
-WARNING: App is updatable but on_update=DeleteApp, will attempt to create new app and delete old app
+WARNING: App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app
 INFO: Replacing SampleApp (1.0) with SampleApp (2.0) in {creator_account} account.
-INFO: SampleApp (2.0) deployed successfully, with app id {app1}.
-INFO: SampleApp (1.0) with app id {app0}, deleted successfully.
+ERROR: LogicException: assert failed pc=153

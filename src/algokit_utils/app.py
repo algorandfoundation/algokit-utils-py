@@ -224,12 +224,12 @@ def replace_template_variables(program: str, template_values: dict[str, int | st
 class OnUpdate(Enum):
     Fail = 0
     UpdateApp = 1
-    DeleteApp = 2
+    ReplaceApp = 2
 
 
 class OnSchemaBreak(Enum):
     Fail = 0
-    DeleteApp = 2
+    ReplaceApp = 2
 
 
 def _indexer_wait_for_round(indexer_client: IndexerClient, round_target: int, max_attempts: int = 100) -> None:
@@ -243,7 +243,7 @@ class DeployAction(Enum):
     Nothing = 0
     Created = 1
     Updated = 2
-    DeletedAndCreated = 3
+    Replaced = 3
 
 
 @dataclasses.dataclass
@@ -352,7 +352,7 @@ def deploy_app(
         logger.info(f"{name} ({app.note.version}) with app id {app.id}, deleted successfully.")
         _indexer_wait_for_round(indexer_client, create_result.confirmed_round)
 
-        return DeployResponse(app_client, create_result.confirmed_round, action_taken=DeployAction.DeletedAndCreated)
+        return DeployResponse(app_client, create_result.confirmed_round, action_taken=DeployAction.Replaced)
 
     def update_app() -> DeployResponse:
         assert on_update == OnUpdate.UpdateApp
@@ -374,15 +374,15 @@ def deploy_app(
             raise DeploymentFailedError(
                 "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
                 "If you want to try deleting and recreating the app then "
-                "re-run with on_schema_break=OnSchemaBreak.DeleteApp"
+                "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
             )
         if app.note.deletable:
             logger.info(
-                "App is deletable and on_schema_break=DeleteApp, will attempt to create new app and delete old app"
+                "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
             )
         else:
             logger.warning(
-                "App is not deletable but on_schema_break=DeleteApp, "
+                "App is not deletable but on_schema_break=ReplaceApp, "
                 "will attempt to delete app, delete will most likely fail"
             )
         return create_and_delete_app()
@@ -397,14 +397,14 @@ def deploy_app(
         if app.note.updatable and on_update == OnUpdate.UpdateApp:
             logger.info("App is updatable and on_update=UpdateApp, will update app")
             return update_app()
-        elif app.note.updatable and on_update == OnUpdate.DeleteApp:
+        elif app.note.updatable and on_update == OnUpdate.ReplaceApp:
             logger.warning(
-                "App is updatable but on_update=DeleteApp, will attempt to create new app and delete old app"
+                "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
             )
             return create_and_delete_app()
-        elif on_update == OnUpdate.DeleteApp:
+        elif on_update == OnUpdate.ReplaceApp:
             logger.warning(
-                "App is not updatable and on_update=DeleteApp, will attempt to create new app and delete old app"
+                "App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app"
             )
             return create_and_delete_app()
         else:

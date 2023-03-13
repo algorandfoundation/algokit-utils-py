@@ -15,7 +15,7 @@ ERROR: LogicException: assert failed pc=140
 INFO: 2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp
 DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=2.
 INFO: Detected a TEAL update in app id {app0}
-WARNING: App is not updatable and on_update=DeleteApp, will attempt to create new app and delete old app
+WARNING: App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app
 INFO: Replacing SampleApp (2) with SampleApp (4) in {creator_account} account.
 INFO: SampleApp (4) deployed successfully, with app id {app2}.
 INFO: SampleApp (2) with app id {app0}, deleted successfully.

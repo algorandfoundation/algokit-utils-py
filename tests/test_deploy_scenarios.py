@@ -151,7 +151,7 @@ def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixt
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_immutable_app_and_on_update_equals_delete_app_succeeds(
+def test_deploy_app_with_existing_immutable_app_and_on_update_equals_replace_app_succeeds(
     deploy_fixture: DeployFixture,
 ):
     v1, v2, _ = get_specs(updatable=False, deletable=True)
@@ -159,7 +159,7 @@ def test_deploy_app_with_existing_immutable_app_and_on_update_equals_delete_app_
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.app_id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.ReplaceApp)
 
     assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
@@ -171,7 +171,7 @@ def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployF
     app_v1 = deploy_fixture.deploy(v1, version="1.0")
     assert app_v1.app_id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.DeleteApp)
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.ReplaceApp)
     assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
 
@@ -188,7 +188,7 @@ def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixt
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_permanent_app_on_update_delete_fails_and_doesnt_create_2nd_app(
+def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fails_and_doesnt_create_2nd_app(
     deploy_fixture: DeployFixture,
 ):
     v1, v2, _ = get_specs(deletable=False)
@@ -197,7 +197,7 @@ def test_deploy_app_with_existing_permanent_app_on_update_delete_fails_and_doesn
     assert app_v1.app_id
 
     with pytest.raises(LogicException) as error:
-        deploy_fixture.deploy(v2, version="3.0", on_update=OnUpdate.DeleteApp)
+        deploy_fixture.deploy(v2, version="3.0", on_update=OnUpdate.ReplaceApp)
     all_apps = deploy_fixture.indexer.lookup_account_application_by_creator(deploy_fixture.creator.address)[
         "applications"
     ]  # type: ignore[no-untyped-call]
@@ -209,7 +209,7 @@ def test_deploy_app_with_existing_permanent_app_on_update_delete_fails_and_doesn
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_delete_app_fails(
+def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_replace_app_fails(
     deploy_fixture: DeployFixture,
 ):
     v1, _, v3 = get_specs(deletable=False)
@@ -218,7 +218,7 @@ def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_delet
     assert app_v1.app_id
 
     with pytest.raises(LogicException) as exc_info:
-        deploy_fixture.deploy(v3, "3.0", on_schema_break=OnSchemaBreak.DeleteApp)
+        deploy_fixture.deploy(v3, "3.0", on_schema_break=OnSchemaBreak.ReplaceApp)
 
     logger.error(f"Deployment failed: {exc_info.value.message}")
 
@@ -257,11 +257,11 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
     logger.error(f"LogicException: {exc_info.value.message}")
 
     logger.info("2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp")
-    # deploy with delete_app_on_update=True so we can replace it
+    # deploy with allow_delete=True, so we can replace it
     deploy_fixture.deploy(
         app_spec,
         version="4",
-        on_update=OnUpdate.DeleteApp,
+        on_update=OnUpdate.ReplaceApp,
         allow_delete=True,
         allow_update=True,
     )
@@ -281,7 +281,7 @@ class Updatable(Enum):
 
 @pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
 @pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
-@pytest.mark.parametrize("on_schema_break", [OnSchemaBreak.Fail, OnSchemaBreak.DeleteApp])
+@pytest.mark.parametrize("on_schema_break", [OnSchemaBreak.Fail, OnSchemaBreak.ReplaceApp])
 def test_deploy_with_schema_breaking_change(
     deploy_fixture: DeployFixture,
     *,
@@ -315,7 +315,7 @@ def test_deploy_with_schema_breaking_change(
 
 @pytest.mark.parametrize("deletable", [Deletable.No, Deletable.Yes])
 @pytest.mark.parametrize("updatable", [Updatable.No, Updatable.Yes])
-@pytest.mark.parametrize("on_update", [OnUpdate.Fail, OnUpdate.UpdateApp, OnUpdate.DeleteApp])
+@pytest.mark.parametrize("on_update", [OnUpdate.Fail, OnUpdate.UpdateApp, OnUpdate.ReplaceApp])
 def test_deploy_with_update(
     deploy_fixture: DeployFixture,
     *,
