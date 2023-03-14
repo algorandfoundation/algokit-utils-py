@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 DELETABLE_TEMPLATE_NAME = "TMPL_DELETABLE"
+TemplateValueDict = dict[str, int | str | bytes]
 
 NOTE_PREFIX = "APP_DEPLOY::"
 # when base64 encoding bytes, 3 bytes are stored in every 4 characters
@@ -185,7 +186,7 @@ def _replace_template_variable(program_lines: list[str], template_variable: str,
 
 
 def _add_deploy_template_variables(
-    template_values: dict[str, int | str], allow_update: bool | None, allow_delete: bool | None
+    template_values: TemplateValueDict, allow_update: bool | None, allow_delete: bool | None
 ) -> None:
     if allow_update is not None:
         template_values[UPDATABLE_TEMPLATE_NAME] = int(allow_update)
@@ -193,7 +194,7 @@ def _add_deploy_template_variables(
         template_values[DELETABLE_TEMPLATE_NAME] = int(allow_delete)
 
 
-def _check_template_variables(approval_program: str, template_values: dict[str, int | str]) -> None:
+def _check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
     if UPDATABLE_TEMPLATE_NAME in approval_program and UPDATABLE_TEMPLATE_NAME not in template_values:
         raise DeploymentFailedError(
             "allow_update must be specified if deploy time configuration of update is being used"
@@ -217,10 +218,21 @@ def _check_template_variables(approval_program: str, template_values: dict[str, 
                 logger.warning(f"{template_variable_name} not found in approval program, but variable was provided")
 
 
-def replace_template_variables(program: str, template_values: dict[str, int | str]) -> str:
+def replace_template_variables(program: str, template_values: TemplateValueDict) -> str:
     program_lines = program.splitlines()
     for template_variable_name, template_value in template_values.items():
-        value = str(template_value) if isinstance(template_value, int) else "0x" + template_value.encode("utf-8").hex()
+        match template_value:
+            case int():
+                value = str(template_value)
+            case str():
+                value = "0x" + template_value.encode("utf-8").hex()
+            case bytes():
+                value = "0x" + template_value.hex()
+            case _:
+                raise DeploymentFailedError(
+                    "Unexpected template value type " f"{template_variable_name}: {template_value.__class__}"
+                )
+
         program_lines, matches = _replace_template_variable(program_lines, template_variable_name, value)
 
     result = "\n".join(program_lines)
@@ -265,12 +277,12 @@ def deploy_app(
     on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
     allow_update: bool | None = None,
     allow_delete: bool | None = None,
-    template_values: dict[str, int | str] | None = None,
+    template_values: TemplateValueDict | None = None,
 ) -> DeployResponse:
     # make a copy
     app_spec = ApplicationSpecification.from_json(app_spec.to_json())
 
-    mapped_template_values: dict[str, int | str] = {f"TMPL_{k}": v for k, v in (template_values or {}).items()}
+    mapped_template_values = {f"TMPL_{k}": v for k, v in (template_values or {}).items()}
     app_spec.clear_program = replace_template_variables(app_spec.clear_program, mapped_template_values)
 
     _add_deploy_template_variables(mapped_template_values, allow_update=allow_update, allow_delete=allow_delete)
