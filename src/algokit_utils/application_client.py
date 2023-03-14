@@ -639,24 +639,6 @@ class ApplicationClient:
         atc.add_transaction(TransactionWithSigner(txn=txn, signer=self.signer))
         return atc
 
-    def fund(self, amt: int, addr: str | None = None) -> AtomicTransactionResponse:
-        """convenience method to pay the address passed, defaults to paying the
-        app address for this client from the current signer"""
-        signer, sender = self._resolve_signer_sender(self.signer, self.sender)
-
-        sp = self.get_suggested_params()
-
-        rcv = addr or self.app_address
-
-        atc = AtomicTransactionComposer()
-        atc.add_transaction(
-            TransactionWithSigner(
-                txn=transaction.PaymentTxn(sender, sp, rcv, amt),
-                signer=signer,
-            )
-        )
-        return atc.execute(self.client, 4)
-
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
         """gets the global state info for the app id set"""
         global_state = self.client.application_info(self.app_id)

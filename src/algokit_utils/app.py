@@ -22,7 +22,7 @@ DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 DELETABLE_TEMPLATE_NAME = "TMPL_DELETABLE"
 
-NOTE_PREFIX = "APP NOTE:"
+NOTE_PREFIX = "APP_DEPLOY::"
 # when base64 encoding bytes, 3 bytes are stored in every 4 characters
 # assert the NOTE_PREFIX length is a multiple of 3, so we don't need to worry about the
 # padding/changing characters at the end
@@ -72,7 +72,7 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
 
     creator_address = creator_account if isinstance(creator_account, str) else creator_account.address
     token = None
-    # TODO: abstract pagination logic?
+    # TODO: paginated indexer call instead of N + 1 calls
     while True:
         response = indexer.lookup_account_application_by_creator(
             creator_address, limit=DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT, next_page=token
@@ -87,6 +87,8 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 txn_type="appl",
                 application_id=app_id,
                 note_prefix=NOTE_PREFIX.encode("utf-8"),
+                address=creator_address,
+                address_role="sender",
             )  # type: ignore[no-untyped-call]
             update_transactions: list[dict] = update_transactions_response["transactions"]
             if not update_transactions:
@@ -261,7 +263,7 @@ def deploy_app(
     creator_account: Account,
     version: str,
     *,
-    on_update: OnUpdate = OnUpdate.UpdateApp,
+    on_update: OnUpdate = OnUpdate.Fail,
     on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
     allow_update: bool | None = None,
     allow_delete: bool | None = None,
@@ -323,8 +325,8 @@ def deploy_app(
         algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
     )
 
-    application_info = indexer_client.applications(app.id)  # type: ignore[no-untyped-call]
-    application_create_params = application_info["application"]["params"]
+    application_info = algod_client.application_info(app.id)  # type: ignore[no-untyped-call]
+    application_create_params = application_info["params"]
 
     current_approval = base64.b64decode(application_create_params["approval-program"])
     current_clear = base64.b64decode(application_create_params["clear-state-program"])
