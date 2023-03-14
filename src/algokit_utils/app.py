@@ -64,6 +64,7 @@ class App:
     id: int
     address: str
     created_at_round: int
+    updated_at_round: int
     note: AppNote
 
 
@@ -101,6 +102,7 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
 
             update_transactions.sort(key=sort_by_round, reverse=True)
             latest_transaction = update_transactions[0]
+            app_updated_at_round = latest_transaction["confirmed-round"]
 
             note_b64 = latest_transaction.get("note")
             if not note_b64:
@@ -110,7 +112,9 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 app_note = AppNote.from_b64(note_b64)
             except json.decoder.JSONDecodeError:
                 continue
-            apps[app_note.name] = App(app_id, get_application_address(app_id), app_created_at_round, app_note)
+            apps[app_note.name] = App(
+                app_id, get_application_address(app_id), app_created_at_round, app_updated_at_round, app_note
+            )
 
         token = response.get("next-token")
         if not token:
@@ -234,13 +238,6 @@ class OnSchemaBreak(Enum):
     ReplaceApp = 2
 
 
-def _indexer_wait_for_round(indexer_client: IndexerClient, round_target: int, max_attempts: int = 100) -> None:
-    for _attempts in range(max_attempts):
-        health = indexer_client.health()  # type: ignore[no-untyped-call]
-        if health["round"] >= round_target:
-            break
-
-
 class DeployAction(Enum):
     Nothing = 0
     Created = 1
@@ -252,6 +249,7 @@ class DeployAction(Enum):
 class DeployResponse:
     client: ApplicationClient
     created_round: int
+    updated_round: int
     action_taken: DeployAction = DeployAction.Nothing
 
 
@@ -311,8 +309,9 @@ def deploy_app(
     def create_app() -> DeployResponse:
         create_result = app_client.create(note=app_spec_note.encode())
         logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
-        _indexer_wait_for_round(indexer_client, create_result.confirmed_round)
-        return DeployResponse(app_client, create_result.confirmed_round, action_taken=DeployAction.Created)
+        return DeployResponse(
+            app_client, create_result.confirmed_round, create_result.confirmed_round, action_taken=DeployAction.Created
+        )
 
     if app is None:
         logger.info(f"{name} not found in {creator_account.address} account, deploying app.")
@@ -352,9 +351,10 @@ def deploy_app(
         create_result = app_client.replace()
         logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
         logger.info(f"{name} ({app.note.version}) with app id {app.id}, deleted successfully.")
-        _indexer_wait_for_round(indexer_client, create_result.confirmed_round)
 
-        return DeployResponse(app_client, create_result.confirmed_round, action_taken=DeployAction.Replaced)
+        return DeployResponse(
+            app_client, create_result.confirmed_round, create_result.confirmed_round, action_taken=DeployAction.Replaced
+        )
 
     def update_app() -> DeployResponse:
         assert on_update == OnUpdate.UpdateApp
@@ -362,8 +362,9 @@ def deploy_app(
         logger.info(f"Updating {name} to {version} in {creator_account.address} account, with app id {app.id}")
 
         update_result = app_client.update(note=app_spec_note.encode())
-        _indexer_wait_for_round(indexer_client, update_result.confirmed_round)
-        return DeployResponse(app_client, app.created_at_round, action_taken=DeployAction.Updated)
+        return DeployResponse(
+            app_client, app.created_at_round, update_result.confirmed_round, action_taken=DeployAction.Updated
+        )
 
     if schema_breaking_change:
         logger.warning(
@@ -418,4 +419,4 @@ def deploy_app(
 
     logger.info("No detected changes in app, nothing to do.")
 
-    return DeployResponse(app_client, app.created_at_round)
+    return DeployResponse(app_client, app.created_at_round, app.updated_at_round)

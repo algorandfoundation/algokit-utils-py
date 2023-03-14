@@ -6,11 +6,13 @@ from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
+_PURE_STAKE_HOST = "purestake.io"
+
 
 @dataclasses.dataclass
 class AlgoClientConfig:
     server: str
-    token: str | None = None
+    token: str = ""
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
@@ -21,18 +23,29 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
     if port:
         server = server.rstrip("/")
         server = f"{server}:{port}"
-    return AlgoClientConfig(server, os.getenv(f"{environment_prefix}_TOKEN"))
+    return AlgoClientConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""))
+
+
+def _is_pure_stake_url(url: str) -> bool:
+    parsed = parse.urlparse(url)
+    host = parsed.netloc.split(":")[0].lower()
+    return host.endswith(_PURE_STAKE_HOST)
+
+
+def _get_headers(config: AlgoClientConfig) -> dict[str, str] | None:
+    return {"X-API-TOKEN": config.token} if _is_pure_stake_url(config.server) else None
 
 
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
-    # TODO: alternate headers etc.
     config = config or _get_config_from_environment("ALGOD")
-    return AlgodClient(config.token, config.server)  # type: ignore[no-untyped-call]
+    headers = _get_headers(config)
+    return AlgodClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
     config = config or _get_config_from_environment("INDEXER")
-    return IndexerClient(config.token, config.server)  # type: ignore[no-untyped-call]
+    headers = _get_headers(config)
+    return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
 def is_sandbox(client: AlgodClient) -> bool:
