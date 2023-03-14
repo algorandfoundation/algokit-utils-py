@@ -30,7 +30,7 @@ class DeployFixture:
         self.caplog = caplog
         self.request = request
         self.algod_client = get_algod_client()
-        self.indexer = get_indexer_client()
+        self.indexer_client = get_indexer_client()
         self.creator_name = _get_unique_name()
         self.creator = get_account(self.algod_client, self.creator_name)
 
@@ -46,7 +46,7 @@ class DeployFixture:
     ) -> ApplicationClient:
         app = deploy_app(
             self.algod_client,
-            self.indexer,
+            self.indexer_client,
             app_spec,
             self.creator,
             version=version,
@@ -55,6 +55,7 @@ class DeployFixture:
             allow_update=allow_update,
             allow_delete=allow_delete,
         )
+        self._wait_for_indexer_round(app.updated_round)
         self.app_ids.append(app.client.app_id)
         return app.client
 
@@ -73,6 +74,12 @@ class DeployFixture:
             logs = logs.replace(f"app id {app_id}", f"app id {{app{index}}}")
         logs = re.sub(r"app id \d+", r"{appN_failed}", logs)
         return logs
+
+    def _wait_for_indexer_round(self, round_target: int, max_attempts: int = 100) -> None:
+        for _attempts in range(max_attempts):
+            health = self.indexer_client.health()  # type: ignore[no-untyped-call]
+            if health["round"] >= round_target:
+                break
 
 
 @pytest.fixture
@@ -198,7 +205,7 @@ def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fai
 
     with pytest.raises(LogicException) as error:
         deploy_fixture.deploy(v2, version="3.0", on_update=OnUpdate.ReplaceApp)
-    all_apps = deploy_fixture.indexer.lookup_account_application_by_creator(deploy_fixture.creator.address)[
+    all_apps = deploy_fixture.indexer_client.lookup_account_application_by_creator(deploy_fixture.creator.address)[
         "applications"
     ]  # type: ignore[no-untyped-call]
 
