@@ -1,6 +1,6 @@
 import dataclasses
 import os
-import re
+from urllib import parse
 
 from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
@@ -41,12 +41,10 @@ def is_sandbox(client: AlgodClient) -> bool:
 
 
 def _replace_kmd_port(address: str, port: str) -> str:
-    # TODO: parse this properly
-
-    match = re.search(r"(:[0-9]+/?)$", address)
-    if match:
-        address = address[: -len(match.group(1))]
-    return f"{address}:{port}"
+    parsed_algod = parse.urlparse(address)
+    kmd_host = parsed_algod.netloc.split(":", maxsplit=1)[0] + f":{port}"
+    kmd_parsed = parsed_algod._replace(netloc=kmd_host)
+    return parse.urlunparse(kmd_parsed)
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
