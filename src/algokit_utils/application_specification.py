@@ -8,7 +8,7 @@ from algosdk.abi import Contract  # type: ignore[attr-defined]
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
 from algosdk.v2client.algod import AlgodClient
-from pyteal import CallConfig, MethodConfig
+from pyteal import CallConfig, MethodConfig  # TODO: remove PyTeal references
 
 __all__ = [
     "DefaultArgumentDict",

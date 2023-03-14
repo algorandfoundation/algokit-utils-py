@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any, cast
 
 import algosdk
-from algosdk import abi, transaction
+from algosdk import transaction
+from algosdk.abi import ABIType, Method, Returns  # type: ignore[attr-defined]
 from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import (
     ABI_RETURN_HASH,
@@ -25,7 +26,7 @@ from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
 from algosdk.v2client.algod import AlgodClient
-from pyteal import ABIReturnSubroutine, CallConfig, MethodConfig
+from pyteal import CallConfig, MethodConfig  # TODO: remove PyTeal references
 
 from algokit_utils.application_specification import (
     ApplicationSpecification,
@@ -34,10 +35,6 @@ from algokit_utils.application_specification import (
 )
 from algokit_utils.logic_error import LogicException, parse_logic_error
 from algokit_utils.state_decode import decode_state
-
-# mypy: allow-untyped-calls,
-# mypy: disable_error_code = attr-defined
-# mypy: disable_error_code = name-defined
 
 
 class Program:
@@ -49,7 +46,7 @@ class Program:
         source map for matching pc to line number
         """
         self.teal = program
-        result: dict = client.compile(self.teal, source_map=True)
+        result: dict = client.compile(self.teal, source_map=True)  # type: ignore[no-untyped-call]
         self.raw_binary = b64decode(result["result"])
         self.binary_hash: str = result["hash"]
         self.source_map = SourceMap(result["sourcemap"])
@@ -93,7 +90,7 @@ class ApplicationClient:
 
         self.suggested_params = suggested_params
 
-        def find_method(predicate: Callable[[MethodConfig], bool]) -> abi.Method | None:
+        def find_method(predicate: Callable[[MethodConfig], bool]) -> Method | None:
             matching = [
                 method for method in self.app.contract.methods if predicate(self._method_hints(method).call_config)
             ]
@@ -154,7 +151,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationCreateTxn(
+                    txn=transaction.ApplicationCreateTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         on_complete=on_complete,
@@ -172,7 +169,7 @@ class ApplicationClient:
         create_result = self._execute_atc(atc)
         create_txid = create_result.tx_ids[0]
 
-        result = self.client.pending_transaction_info(create_txid)
+        result = self.client.pending_transaction_info(create_txid)  # type: ignore[no-untyped-call]
 
         self._app_id = result["application-index"]
         self._app_address = get_application_address(self._app_id)
@@ -217,7 +214,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationCreateTxn(
+                    txn=transaction.ApplicationCreateTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         on_complete=on_complete,
@@ -245,7 +242,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationDeleteTxn(
+                    txn=transaction.ApplicationDeleteTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         index=self.app_id,
@@ -258,7 +255,7 @@ class ApplicationClient:
         create_result = self._execute_atc(atc)
         create_txid = create_result.tx_ids[0]
 
-        result = self.client.pending_transaction_info(create_txid)
+        result = self.client.pending_transaction_info(create_txid)  # type: ignore[no-untyped-call]
 
         self._app_id = result["application-index"]
         self._app_address = get_application_address(self._app_id)
@@ -293,7 +290,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationUpdateTxn(
+                    txn=transaction.ApplicationUpdateTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         index=self.app_id,
@@ -333,7 +330,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationOptInTxn(
+                    txn=transaction.ApplicationOptInTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         index=self.app_id,
@@ -371,7 +368,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationCloseOutTxn(
+                    txn=transaction.ApplicationCloseOutTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         index=self.app_id,
@@ -398,7 +395,7 @@ class ApplicationClient:
         atc = AtomicTransactionComposer()
         atc.add_transaction(
             TransactionWithSigner(
-                txn=transaction.ApplicationClearStateTxn(
+                txn=transaction.ApplicationClearStateTxn(  # type: ignore[no-untyped-call]
                     sender=sender,
                     sp=sp,
                     index=self.app_id,
@@ -436,7 +433,7 @@ class ApplicationClient:
         else:
             atc.add_transaction(
                 TransactionWithSigner(
-                    txn=transaction.ApplicationDeleteTxn(
+                    txn=transaction.ApplicationDeleteTxn(  # type: ignore[no-untyped-call]
                         sender=sender,
                         sp=sp,
                         index=self.app_id,
@@ -467,7 +464,7 @@ class ApplicationClient:
 
     def call(
         self,
-        method: abi.Method | ABIReturnSubroutine | str,
+        method: Method | str,
         sender: str | None = None,
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -522,7 +519,7 @@ class ApplicationClient:
         # If its a read-only method, use dryrun (TODO: swap with simulate later?)
         if hints.read_only:
             dr_req = transaction.create_dryrun(self.client, atc.gather_signatures())
-            dr_result = self.client.dryrun(dr_req)
+            dr_result = self.client.dryrun(dr_req)  # type: ignore[no-untyped-call]
             for txn in dr_result["txns"]:
                 if "app-call-messages" in txn:
                     if "REJECT" in txn["app-call-messages"]:
@@ -539,7 +536,7 @@ class ApplicationClient:
     def add_method_call(
         self,
         atc: AtomicTransactionComposer,
-        method: abi.Method | ABIReturnSubroutine | str,
+        method: Method | str,
         sender: str | None = None,
         signer: TransactionSigner | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -618,10 +615,8 @@ class ApplicationClient:
 
         return atc
 
-    def _resolve_abi_method(self, method: abi.Method | ABIReturnSubroutine | str) -> abi.Method:
-        if isinstance(method, ABIReturnSubroutine):
-            return method.method_spec()
-        elif isinstance(method, str):
+    def _resolve_abi_method(self, method: Method | str) -> Method:
+        if isinstance(method, str):
             try:
                 return next(iter(m for m in self.app.contract.methods if m.get_signature() == method))
             except StopIteration:
@@ -641,7 +636,7 @@ class ApplicationClient:
 
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
         """gets the global state info for the app id set"""
-        global_state = self.client.application_info(self.app_id)
+        global_state = self.client.application_info(self.app_id)  # type: ignore[no-untyped-call]
         return cast(
             dict[bytes | str, bytes | str | int],
             decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
@@ -653,7 +648,7 @@ class ApplicationClient:
         if account is None:
             _, account = self._resolve_signer_sender(self.signer, self.sender)
 
-        acct_state = self.client.account_application_info(account, self.app_id)
+        acct_state = self.client.account_application_info(account, self.app_id)  # type: ignore[no-untyped-call]
         if "app-local-state" not in acct_state or "key-value" not in acct_state["app-local-state"]:
             return {}
 
@@ -664,7 +659,7 @@ class ApplicationClient:
 
     def get_application_account_info(self) -> dict[str, Any]:
         """gets the account info for the application account"""
-        return self.client.account_info(self.app_address)  # type: ignore[no-any-return]
+        return self.client.account_info(self.app_address)  # type: ignore[no-untyped-call, no-any-return]
 
     def get_box_names(self) -> list[bytes]:
         box_resp = self.client.application_boxes(self.app_id)
@@ -691,7 +686,7 @@ class ApplicationClient:
                 acct_state = self.get_local_state(sender, raw=True)
                 return acct_state[key.encode()]
             case {"source": "abi-method", "data": dict() as method_dict}:
-                method = abi.Method.undictify(method_dict)  # type: ignore[attr-defined]
+                method = Method.undictify(method_dict)
                 result = self.call(method)
                 return _data_check(result.return_value)
 
@@ -700,7 +695,7 @@ class ApplicationClient:
             case _:
                 raise TypeError("Unable to interpret default argument specification")
 
-    def _method_hints(self, method: abi.Method) -> MethodHints:
+    def _method_hints(self, method: Method) -> MethodHints:
         sig = method.get_signature()
         if sig not in self.app.hints:
             return MethodHints()
@@ -716,7 +711,7 @@ class ApplicationClient:
         if self.suggested_params is not None:
             return self.suggested_params
 
-        return self.client.suggested_params()  # type: ignore[no-any-return]
+        return self.client.suggested_params()  # type: ignore[no-untyped-call, no-any-return]
 
     def _execute_atc(self, atc: AtomicTransactionComposer, wait_rounds: int = 4) -> AtomicTransactionResponse:
         try:
@@ -750,9 +745,9 @@ class ApplicationClient:
 
 def _get_sender_from_signer(signer: TransactionSigner) -> str:
     if isinstance(signer, AccountTransactionSigner):
-        return cast(str, address_from_private_key(signer.private_key))
+        return cast(str, address_from_private_key(signer.private_key))  # type: ignore[no-untyped-call]
     elif isinstance(signer, MultisigTransactionSigner):
-        return cast(str, signer.msig.address())
+        return cast(str, signer.msig.address())  # type: ignore[no-untyped-call]
     elif isinstance(signer, LogicSigTransactionSigner):
         return signer.lsig.address()
     else:
@@ -761,7 +756,7 @@ def _get_sender_from_signer(signer: TransactionSigner) -> str:
 
 # TEMPORARY, use SDK one when available
 def _parse_result(
-    methods: dict[int, abi.Method],
+    methods: dict[int, Method],
     txns: list[dict[str, Any]],
     txids: list[str],
 ) -> list[ABIResult]:
@@ -776,7 +771,7 @@ def _parse_result(
 
         # Parse log for ABI method return value
         try:
-            if methods[i].returns.type == abi.Returns.VOID:  # type: ignore[attr-defined]
+            if methods[i].returns.type == Returns.VOID:
                 method_results.append(
                     ABIResult(
                         tx_id=txids[i],
@@ -803,7 +798,7 @@ def _parse_result(
 
             raw_value = result_bytes[4:]
             abi_return_type = methods[i].returns.type
-            if isinstance(abi_return_type, abi.ABIType):  # type: ignore[attr-defined]
+            if isinstance(abi_return_type, ABIType):
                 return_value = abi_return_type.decode(raw_value)
             else:
                 return_value = raw_value
