@@ -7,7 +7,7 @@ from typing import Any, Literal, TypeAlias, TypedDict
 from algosdk.abi import Contract  # type: ignore[attr-defined]
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
-from algosdk.v2client.indexer import IndexerClient
+from algosdk.v2client.algod import AlgodClient
 from pyteal import CallConfig, MethodConfig
 
 __all__ = [
@@ -196,9 +196,9 @@ def _state_schema(schema: dict[str, int]) -> StateSchema:
     return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
 
 
-def _app_spec_from_app_id(indexer_client: IndexerClient, app_id: int) -> ApplicationSpecification:
-    app_info = indexer_client.applications(app_id)  # type: ignore[no-untyped-call]
-    application_create_params = app_info["application"]["params"]
+def __dont_use_app_spec_from_app_id(algod_client: AlgodClient, app_id: int) -> ApplicationSpecification:
+    app_info = algod_client.application_info(app_id)  # type: ignore[no-untyped-call]
+    application_create_params = app_info["params"]
     approval_program = application_create_params["approval-program"]
     clear_program = application_create_params["clear-state-program"]
     global_schema = _state_schema(application_create_params["global-state-schema"])
