@@ -1,25 +1,18 @@
 import logging
 import re
 from enum import Enum
-from pathlib import Path
-from uuid import uuid4
 
 import pytest
-from algokit_utils import ApplicationClient
 from algokit_utils.account import get_account, get_sandbox_default_account
 from algokit_utils.app import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
     DeploymentFailedError,
-    OnSchemaBreak,
-    OnUpdate,
-    deploy_app,
     replace_template_variables,
 )
+from algokit_utils.application_client import ApplicationClient, OnSchemaBreak, OnUpdate, get_next_version
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.logic_error import LogicException
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
-from conftest import check_output_stability
+from conftest import check_output_stability, get_specs, get_unique_name, read_spec
 
 logger = logging.getLogger(__name__)
 
@@ -31,33 +24,30 @@ class DeployFixture:
         self.request = request
         self.algod_client = get_algod_client()
         self.indexer_client = get_indexer_client()
-        self.creator_name = _get_unique_name()
+        self.creator_name = get_unique_name()
         self.creator = get_account(self.algod_client, self.creator_name)
 
     def deploy(
         self,
         app_spec: ApplicationSpecification,
-        version: str,
         *,
+        version: str | None = None,
         on_update: OnUpdate = OnUpdate.UpdateApp,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
         allow_delete: bool | None = None,
         allow_update: bool | None = None,
     ) -> ApplicationClient:
-        app = deploy_app(
-            self.algod_client,
-            self.indexer_client,
-            app_spec,
-            self.creator,
+        app_client = ApplicationClient(self.algod_client, self.indexer_client, app_spec, self.creator)
+        response = app_client.deploy(
             version=version,
             on_update=on_update,
             on_schema_break=on_schema_break,
             allow_update=allow_update,
             allow_delete=allow_delete,
         )
-        self._wait_for_indexer_round(app.updated_round)
-        self.app_ids.append(app.client.app_id)
-        return app.client
+        self._wait_for_indexer_round(response.app.updated_round)
+        self.app_ids.append(app_client.app_id)
+        return app_client
 
     def check_log_stability(self, suffix: str = ""):
         records = self.caplog.get_records("call")
@@ -86,42 +76,6 @@ class DeployFixture:
 def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest) -> DeployFixture:
     caplog.set_level(logging.DEBUG)
     return DeployFixture(caplog, request)
-
-
-def _read_spec(path: str, *, updatable: bool | None = None, deletable: bool | None = None) -> ApplicationSpecification:
-    path = Path(__file__).parent / path
-    spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
-
-    template_variables = {}
-    if updatable is not None:
-        template_variables[UPDATABLE_TEMPLATE_NAME] = int(updatable)
-
-    if deletable is not None:
-        template_variables[DELETABLE_TEMPLATE_NAME] = int(deletable)
-
-    spec.approval_program = (
-        replace_template_variables(spec.approval_program, template_variables)
-        .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
-        .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
-    )
-    return spec
-
-
-def get_specs(
-    *, updatable: bool = False, deletable: bool = False
-) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
-    specs = (
-        _read_spec("app_v1.json", updatable=updatable, deletable=deletable),
-        _read_spec("app_v2.json", updatable=updatable, deletable=deletable),
-        _read_spec("app_v3.json", updatable=updatable, deletable=deletable),
-    )
-    return specs
-
-
-def _get_unique_name() -> str:
-    name = str(uuid4()).replace("-", "")
-    assert name.isalnum()
-    return name
 
 
 def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture):
@@ -233,45 +187,60 @@ def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_repla
 
 
 def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: DeployFixture):
-    app_spec = _read_spec("app_v1.json")
+    app_spec = read_spec("app_v1.json")
 
     logger.info("Deploy V1 as updatable, deletable")
-    deploy_fixture.deploy(
+    app_client = deploy_fixture.deploy(
         app_spec,
         version="1",
         allow_delete=True,
         allow_update=True,
     )
 
+    response = app_client.call("hello", args={"name": "call_1"})
+    logger.info(f"Called hello: {response.abi_results[0].return_value}")
+
     logger.info("Deploy V2 as immutable, deletable")
-    deploy_fixture.deploy(
+    app_client = deploy_fixture.deploy(
         app_spec,
-        version="2",
         allow_delete=True,
         allow_update=False,
     )
+
+    response = app_client.call("hello", args={"name": "call_2"})
+    logger.info(f"Called hello: {response.abi_results[0].return_value}")
 
     logger.info("Attempt to deploy V3 as updatable, deletable, it will fail because V2 was immutable")
     with pytest.raises(LogicException) as exc_info:
         # try to make it updatable again
         deploy_fixture.deploy(
             app_spec,
-            version="3",
             allow_delete=True,
             allow_update=True,
         )
 
     logger.error(f"LogicException: {exc_info.value.message}")
+    response = app_client.call("hello", args={"name": "call_3"})
+    logger.info(f"Called hello: {response.abi_results[0].return_value}")
 
     logger.info("2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp")
     # deploy with allow_delete=True, so we can replace it
-    deploy_fixture.deploy(
+    app_client = deploy_fixture.deploy(
         app_spec,
         version="4",
         on_update=OnUpdate.ReplaceApp,
         allow_delete=True,
         allow_update=True,
     )
+    response = app_client.call("hello", args={"name": "call_4"})
+    logger.info(f"Called hello: {response.abi_results[0].return_value}")
+    app_id = app_client.app_id
+
+    app_client = ApplicationClient(
+        deploy_fixture.algod_client, deploy_fixture.indexer_client, app_spec, app_id, signer=deploy_fixture.creator
+    )
+    response = app_client.call("hello", args={"name": "call_5"})
+    logger.info(f"Called hello: {response.abi_results[0].return_value}")
 
     deploy_fixture.check_log_stability()
 
@@ -296,8 +265,8 @@ def test_deploy_with_schema_breaking_change(
     updatable: Updatable,
     on_schema_break: OnSchemaBreak,
 ):
-    v1 = _read_spec("app_v1.json")
-    v3 = _read_spec("app_v3.json")
+    v1 = read_spec("app_v1.json")
+    v3 = read_spec("app_v3.json")
 
     app_v1 = deploy_fixture.deploy(
         v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
@@ -330,8 +299,8 @@ def test_deploy_with_update(
     updatable: Updatable,
     on_update: OnUpdate,
 ):
-    v1 = _read_spec("app_v1.json")
-    v2 = _read_spec("app_v2.json")
+    v1 = read_spec("app_v1.json")
+    v2 = read_spec("app_v2.json")
 
     app_v1 = deploy_fixture.deploy(
         v1, "1.0", allow_delete=deletable == deletable.Yes, allow_update=updatable == updatable.Yes
@@ -365,5 +334,35 @@ TMPL_STR // TMPL_INT
 TMPL_STR // foo //
 TMPL_STR // bar
 """
-    result = replace_template_variables(program, {"TMPL_INT": 123, "TMPL_STR": "ABC"})
+    result = replace_template_variables(program, {"INT": 123, "STR": "ABC"})
     check_output_stability(result)
+
+
+@pytest.mark.parametrize(
+    "current,expected_next",
+    [
+        ("1", "2"),
+        ("v1", "v2"),
+        ("v1-alpha", "v2-alpha"),
+        ("1.0", "1.1"),
+        ("v1.0", "v1.1"),
+        ("v1.0-alpha", "v1.1-alpha"),
+        ("1.0.0", "1.0.1"),
+        ("v1.0.0", "v1.0.1"),
+        ("v1.0.0-alpha", "v1.0.1-alpha"),
+    ],
+)
+def test_auto_version_increment(current: str | None, expected_next: str | None) -> None:
+    try:
+        value = get_next_version(current)
+    except DeploymentFailedError:
+        if expected_next is not None:
+            raise AssertionError(f"failed to auto increment {current}") from None
+        else:
+            return
+    assert value == expected_next
+
+
+def test_auto_version_increment_failure():
+    with pytest.raises(DeploymentFailedError):
+        get_next_version("teapot")
