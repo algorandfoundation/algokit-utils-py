@@ -3,27 +3,23 @@ import dataclasses
 import json
 import logging
 import re
-from enum import Enum
 
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 from algosdk.logic import get_application_address
-from algosdk.transaction import StateSchema, SuggestedParams
-from algosdk.v2client.algod import AlgodClient
+from algosdk.transaction import StateSchema
 from algosdk.v2client.indexer import IndexerClient
-from pyteal import CallConfig
 
-from algokit_utils.application_client import ApplicationClient
-from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.models import Account
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
-UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
-DELETABLE_TEMPLATE_NAME = "TMPL_DELETABLE"
+_UPDATABLE = "UPDATABLE"
+_DELETABLE = "DELETABLE"
+UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
+DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
 TemplateValueDict = dict[str, int | str | bytes]
 
-NOTE_PREFIX = "APP_DEPLOY::"
+NOTE_PREFIX = "ALGOKIT_DEPLOYER:j"  # this prefix also makes the note ARC-2 compliant
 # when base64 encoding bytes, 3 bytes are stored in every 4 characters
 # assert the NOTE_PREFIX length is a multiple of 3, so we don't need to worry about the
 # padding/changing characters at the end
@@ -35,22 +31,28 @@ class DeploymentFailedError(Exception):
 
 
 @dataclasses.dataclass
-class AppNote:
+class AppReference:
+    app_id: int
+    app_address: str
+
+
+@dataclasses.dataclass
+class AppDeployMetaData:
     name: str
     version: str
-    deletable: bool = dataclasses.field(kw_only=True)
-    updatable: bool = dataclasses.field(kw_only=True)
+    deletable: bool | None
+    updatable: bool | None
 
     @staticmethod
-    def from_json(value: str) -> "AppNote":
-        return AppNote(**json.loads(value))
+    def from_json(value: str) -> "AppDeployMetaData":
+        return AppDeployMetaData(**json.loads(value))
 
     @classmethod
-    def from_b64(cls: type["AppNote"], b64: str) -> "AppNote":
+    def from_b64(cls: type["AppDeployMetaData"], b64: str) -> "AppDeployMetaData":
         return cls.decode(base64.b64decode(b64))
 
     @classmethod
-    def decode(cls: type["AppNote"], value: bytes) -> "AppNote":
+    def decode(cls: type["AppDeployMetaData"], value: bytes) -> "AppDeployMetaData":
         note = value.decode("utf-8")
         assert note.startswith(NOTE_PREFIX)
         return cls.from_json(note[len(NOTE_PREFIX) :])
@@ -61,16 +63,21 @@ class AppNote:
 
 
 @dataclasses.dataclass
-class App:
-    id: int
-    address: str
-    created_at_round: int
-    updated_at_round: int
-    note: AppNote
+class AppMetaData(AppReference, AppDeployMetaData):
+    created_round: int
+    updated_round: int
+    created_metadata: AppDeployMetaData
+    deleted: bool
 
 
-def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> dict[str, App]:
-    apps: dict[str, App] = {}
+@dataclasses.dataclass
+class AppLookup:
+    creator: str
+    apps: dict[str, AppMetaData] = dataclasses.field(default_factory=dict)
+
+
+def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> AppLookup:
+    apps: dict[str, AppMetaData] = {}
 
     creator_address = creator_account if isinstance(creator_account, str) else creator_account.address
     token = None
@@ -84,44 +91,61 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
         for app in response["applications"]:
             app_id = app["id"]
             app_created_at_round = app["created-at-round"]
-            update_transactions_response = indexer.search_transactions(
+            app_deleted = app.get("deleted", False)
+            search_transactions_response = indexer.search_transactions(
                 min_round=app_created_at_round,
                 txn_type="appl",
                 application_id=app_id,
-                note_prefix=NOTE_PREFIX.encode("utf-8"),
                 address=creator_address,
                 address_role="sender",
+                note_prefix=NOTE_PREFIX.encode("utf-8"),
             )  # type: ignore[no-untyped-call]
-            update_transactions: list[dict] = update_transactions_response["transactions"]
-            if not update_transactions:
+            transactions: list[dict] = search_transactions_response["transactions"]
+            if not transactions:
                 continue
+
+            created_transaction = next(
+                t
+                for t in transactions
+                if t["application-transaction"]["application-id"] == 0 and t["sender"] == creator_address
+            )
 
             def sort_by_round(transaction: dict) -> tuple[int, int]:
                 confirmed = transaction["confirmed-round"]
                 offset = transaction["intra-round-offset"]
                 return confirmed, offset
 
-            update_transactions.sort(key=sort_by_round, reverse=True)
-            latest_transaction = update_transactions[0]
+            transactions.sort(key=sort_by_round, reverse=True)
+            latest_transaction = transactions[0]
             app_updated_at_round = latest_transaction["confirmed-round"]
 
-            note_b64 = latest_transaction.get("note")
-            if not note_b64:
-                continue
+            def parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
+                if not metadata_b64:
+                    return None
+                try:
+                    return AppDeployMetaData.from_b64(metadata_b64)
+                except json.decoder.JSONDecodeError:
+                    return None
 
-            try:
-                app_note = AppNote.from_b64(note_b64)
-            except json.decoder.JSONDecodeError:
-                continue
-            apps[app_note.name] = App(
-                app_id, get_application_address(app_id), app_created_at_round, app_updated_at_round, app_note
-            )
+            create_metadata = parse_note(created_transaction.get("note"))
+            update_metadata = parse_note(latest_transaction.get("note"))
+
+            if create_metadata and create_metadata.name:
+                apps[create_metadata.name] = AppMetaData(
+                    app_id=app_id,
+                    app_address=get_application_address(app_id),
+                    created_metadata=create_metadata,
+                    created_round=app_created_at_round,
+                    **(update_metadata or create_metadata).__dict__,
+                    updated_round=app_updated_at_round,
+                    deleted=app_deleted,
+                )
 
         token = response.get("next-token")
         if not token:
             break
 
-    return apps
+    return AppLookup(creator_address, apps)
 
 
 # TODO: put these somewhere more useful
@@ -140,36 +164,10 @@ def _schema_str(global_schema: StateSchema, local_schema: StateSchema) -> str:
     )
 
 
-def get_application_client(
-    algod_client: AlgodClient,
-    indexer_client: IndexerClient,
-    creator_account: Account | str,
-    app_spec: ApplicationSpecification,
-    *,
-    signer: TransactionSigner | None = None,
-    sender: str | None = None,
-    suggested_params: SuggestedParams | None = None,
-) -> ApplicationClient | None:
-    creator_address = creator_account if isinstance(creator_account, str) else creator_account.address
-    apps = get_creator_apps(indexer_client, creator_address)
-
-    app_name = app_spec.contract.name
-    app = apps.get(app_name)
-    if not app:
-        logger.info(f"Could not find app {app_name} in account {creator_address}.")
-        return None
-
-    logger.info(f"{app_name} ({app.note.version}) found in {creator_address} account with app id {app.id}.")
-
-    return ApplicationClient(
-        algod_client, app_spec, app_id=app.id, signer=signer, sender=sender, suggested_params=suggested_params
-    )
-
-
 def _replace_template_variable(program_lines: list[str], template_variable: str, value: str) -> tuple[list[str], int]:
     result: list[str] = []
     match_count = 0
-    pattern = re.compile(rf"(\b){template_variable}(\b|$)")
+    pattern = re.compile(rf"(\b)TMPL_{template_variable}(\b|$)")
 
     def replacement(m: re.Match) -> str:
         return f"{m.group(1)}{value}{m.group(2)}"
@@ -189,28 +187,35 @@ def _add_deploy_template_variables(
     template_values: TemplateValueDict, allow_update: bool | None, allow_delete: bool | None
 ) -> None:
     if allow_update is not None:
-        template_values[UPDATABLE_TEMPLATE_NAME] = int(allow_update)
+        template_values[_UPDATABLE] = int(allow_update)
     if allow_delete is not None:
-        template_values[DELETABLE_TEMPLATE_NAME] = int(allow_delete)
+        template_values[_DELETABLE] = int(allow_delete)
+
+
+def _strip_comments(program: str) -> str:
+    lines = [x.split("//", maxsplit=1)[0] for x in program.splitlines()]
+    program = "\n".join(lines)
+    return program
 
 
 def _check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
-    if UPDATABLE_TEMPLATE_NAME in approval_program and UPDATABLE_TEMPLATE_NAME not in template_values:
+    approval_program = _strip_comments(approval_program)
+    if UPDATABLE_TEMPLATE_NAME in approval_program and _UPDATABLE not in template_values:
         raise DeploymentFailedError(
             "allow_update must be specified if deploy time configuration of update is being used"
         )
-    if DELETABLE_TEMPLATE_NAME in approval_program and DELETABLE_TEMPLATE_NAME not in template_values:
+    if DELETABLE_TEMPLATE_NAME in approval_program and _DELETABLE not in template_values:
         raise DeploymentFailedError(
             "allow_delete must be specified if deploy time configuration of delete is being used"
         )
 
     for template_variable_name in template_values:
         if template_variable_name not in approval_program:
-            if template_variable_name == UPDATABLE_TEMPLATE_NAME:
+            if template_variable_name == _UPDATABLE:
                 raise DeploymentFailedError(
                     "allow_update must only be specified if deploy time configuration of update is being used"
                 )
-            elif template_variable_name == DELETABLE_TEMPLATE_NAME:
+            elif template_variable_name == _DELETABLE:
                 raise DeploymentFailedError(
                     "allow_delete must only be specified if deploy time configuration of delete is being used"
                 )
@@ -237,198 +242,3 @@ def replace_template_variables(program: str, template_values: TemplateValueDict)
 
     result = "\n".join(program_lines)
     return result
-
-
-class OnUpdate(Enum):
-    Fail = 0
-    UpdateApp = 1
-    ReplaceApp = 2
-
-
-class OnSchemaBreak(Enum):
-    Fail = 0
-    ReplaceApp = 2
-
-
-class DeployAction(Enum):
-    Nothing = 0
-    Created = 1
-    Updated = 2
-    Replaced = 3
-
-
-@dataclasses.dataclass
-class DeployResponse:
-    client: ApplicationClient
-    created_round: int
-    updated_round: int
-    action_taken: DeployAction = DeployAction.Nothing
-
-
-# TODO: split this function up
-def deploy_app(
-    algod_client: AlgodClient,
-    indexer_client: IndexerClient,
-    app_spec: ApplicationSpecification,
-    creator_account: Account,
-    version: str,
-    *,
-    on_update: OnUpdate = OnUpdate.Fail,
-    on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
-    allow_update: bool | None = None,
-    allow_delete: bool | None = None,
-    template_values: TemplateValueDict | None = None,
-) -> DeployResponse:
-    # make a copy
-    app_spec = ApplicationSpecification.from_json(app_spec.to_json())
-
-    mapped_template_values = {f"TMPL_{k}": v for k, v in (template_values or {}).items()}
-    app_spec.clear_program = replace_template_variables(app_spec.clear_program, mapped_template_values)
-
-    _add_deploy_template_variables(mapped_template_values, allow_update=allow_update, allow_delete=allow_delete)
-    _check_template_variables(app_spec.approval_program, mapped_template_values)
-    app_spec.approval_program = replace_template_variables(app_spec.approval_program, mapped_template_values)
-
-    updatable = (
-        allow_update
-        if allow_update is not None
-        else (
-            app_spec.bare_call_config.update_application != CallConfig.NEVER
-            or any(h for h in app_spec.hints.values() if h.call_config.update_application != CallConfig.NEVER)
-        )
-    )
-
-    deletable = (
-        allow_delete
-        if allow_delete is not None
-        else (
-            app_spec.bare_call_config.delete_application != CallConfig.NEVER
-            or any(h for h in app_spec.hints.values() if h.call_config.delete_application != CallConfig.NEVER)
-        )
-    )
-
-    name = app_spec.contract.name
-    app_spec_note = AppNote(name, version, updatable=updatable, deletable=deletable)
-
-    # TODO: allow resolve app id via environment variable
-    apps = get_creator_apps(indexer_client, creator_account)
-    app = apps.get(name)
-    app_id = app.id if app else 0
-    app_client = ApplicationClient(
-        algod_client, app_spec, app_id=app_id, signer=AccountTransactionSigner(creator_account.private_key)
-    )
-
-    def create_app() -> DeployResponse:
-        create_result = app_client.create(note=app_spec_note.encode())
-        logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
-        return DeployResponse(
-            app_client, create_result.confirmed_round, create_result.confirmed_round, action_taken=DeployAction.Created
-        )
-
-    if app is None:
-        logger.info(f"{name} not found in {creator_account.address} account, deploying app.")
-        return create_app()
-
-    logger.debug(
-        f"{name} found in {creator_account.address} account, with app id {app.id}, version={app.note.version}."
-    )
-    app_client = ApplicationClient(
-        algod_client, app_spec, app_id=app.id, signer=AccountTransactionSigner(creator_account.private_key)
-    )
-
-    application_info = algod_client.application_info(app.id)  # type: ignore[no-untyped-call]
-    application_create_params = application_info["params"]
-
-    current_approval = base64.b64decode(application_create_params["approval-program"])
-    current_clear = base64.b64decode(application_create_params["clear-state-program"])
-    current_global_schema = _state_schema(application_create_params["global-state-schema"])
-    current_local_schema = _state_schema(application_create_params["local-state-schema"])
-
-    required_global_schema = app_spec.global_state_schema
-    required_local_schema = app_spec.local_state_schema
-    new_approval = app_client.approval.raw_binary
-    new_clear = app_client.clear.raw_binary
-
-    app_updated = current_approval != new_approval or current_clear != new_clear
-
-    schema_breaking_change = _schema_is_less(current_global_schema, required_global_schema) or _schema_is_less(
-        current_local_schema, required_local_schema
-    )
-
-    def create_and_delete_app() -> DeployResponse:
-        assert app
-        logger.info(
-            f"Replacing {name} ({app.note.version}) with {name} ({version}) in {creator_account.address} account."
-        )
-        create_result = app_client.replace()
-        logger.info(f"{name} ({version}) deployed successfully, with app id {app_client.app_id}.")
-        logger.info(f"{name} ({app.note.version}) with app id {app.id}, deleted successfully.")
-
-        return DeployResponse(
-            app_client, create_result.confirmed_round, create_result.confirmed_round, action_taken=DeployAction.Replaced
-        )
-
-    def update_app() -> DeployResponse:
-        assert on_update == OnUpdate.UpdateApp
-        assert app
-        logger.info(f"Updating {name} to {version} in {creator_account.address} account, with app id {app.id}")
-
-        update_result = app_client.update(note=app_spec_note.encode())
-        return DeployResponse(
-            app_client, app.created_at_round, update_result.confirmed_round, action_taken=DeployAction.Updated
-        )
-
-    if schema_breaking_change:
-        logger.warning(
-            f"Detected a breaking app schema change from: "
-            f"{_schema_str(current_global_schema, current_local_schema)} to "
-            f"{_schema_str(required_global_schema, required_local_schema)}."
-        )
-
-        if on_schema_break == OnSchemaBreak.Fail:
-            raise DeploymentFailedError(
-                "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
-                "If you want to try deleting and recreating the app then "
-                "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
-            )
-        if app.note.deletable:
-            logger.info(
-                "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
-            )
-        else:
-            logger.warning(
-                "App is not deletable but on_schema_break=ReplaceApp, "
-                "will attempt to delete app, delete will most likely fail"
-            )
-        return create_and_delete_app()
-    elif app_updated:
-        logger.info(f"Detected a TEAL update in app id {app.id}")
-
-        if on_update == OnUpdate.Fail:
-            raise DeploymentFailedError(
-                "Update detected and on_update=Fail, stopping deployment. "
-                "If you want to try updating the app then re-run with on_update=UpdateApp"
-            )
-        if app.note.updatable and on_update == OnUpdate.UpdateApp:
-            logger.info("App is updatable and on_update=UpdateApp, will update app")
-            return update_app()
-        elif app.note.updatable and on_update == OnUpdate.ReplaceApp:
-            logger.warning(
-                "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
-            )
-            return create_and_delete_app()
-        elif on_update == OnUpdate.ReplaceApp:
-            logger.warning(
-                "App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app"
-            )
-            return create_and_delete_app()
-        else:
-            logger.warning(
-                "App is not updatable but on_update=UpdateApp, "
-                "will attempt to update app, update will most likely fail"
-            )
-            return update_app()
-
-    logger.info("No detected changes in app, nothing to do.")
-
-    return DeployResponse(app_client, app.created_at_round, app.updated_at_round)

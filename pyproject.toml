@@ -71,8 +71,8 @@ line-length = 120
 pythonpath = ["src", "tests"]
 
 [tool.mypy]
-files = ["src"]
-exclude = ["dist", "tests"]
+files = ["src", "tests"]
+exclude = ["dist"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true

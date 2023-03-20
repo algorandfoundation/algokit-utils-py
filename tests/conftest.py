@@ -1,8 +1,11 @@
 import inspect
 import subprocess
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
+from algokit_utils.app import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME, replace_template_variables
+from algokit_utils.application_specification import ApplicationSpecification
 from dotenv import load_dotenv
 
 
@@ -48,3 +51,39 @@ def check_output_stability(logs: str, *, test_name: str = None) -> None:
             f"New output folder created at {output_file_str} from test {test_name} - "
             "if this was intentional, please commit the files to the git repo"
         )
+
+
+def read_spec(path: str, *, updatable: bool | None = None, deletable: bool | None = None) -> ApplicationSpecification:
+    path = Path(__file__).parent / path
+    spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
+
+    template_variables = {}
+    if updatable is not None:
+        template_variables["UPDATABLE"] = int(updatable)
+
+    if deletable is not None:
+        template_variables["DELETABLE"] = int(deletable)
+
+    spec.approval_program = (
+        replace_template_variables(spec.approval_program, template_variables)
+        .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
+        .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
+    )
+    return spec
+
+
+def get_specs(
+    *, updatable: bool = False, deletable: bool = False
+) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
+    specs = (
+        read_spec("app_v1.json", updatable=updatable, deletable=deletable),
+        read_spec("app_v2.json", updatable=updatable, deletable=deletable),
+        read_spec("app_v3.json", updatable=updatable, deletable=deletable),
+    )
+    return specs
+
+
+def get_unique_name() -> str:
+    name = str(uuid4()).replace("-", "")
+    assert name.isalnum()
+    return name
