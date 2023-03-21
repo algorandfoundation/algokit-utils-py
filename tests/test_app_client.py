@@ -9,13 +9,13 @@ from algosdk.transaction import OnComplete
 from tests.conftest import get_unique_name, read_spec
 
 
-@pytest.fixture
+@pytest.fixture()
 def app_spec() -> ApplicationSpecification:
     app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
     return app_spec
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_fixture(app_spec: ApplicationSpecification) -> ApplicationClient:
     algod_client = get_algod_client()
     indexer_client = get_indexer_client()
