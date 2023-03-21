@@ -59,6 +59,20 @@ logger = logging.getLogger(__name__)
 
 ABIArgsDict = dict[str, int | str | bytes | dict[str, int | str | bytes]]
 
+__all__ = [
+    "ABICallArgs",
+    "ApplicationClient",
+    "DeployResponse",
+    "OnUpdate",
+    "OnSchemaBreak",
+    "OperationPerformed",
+    "Program",
+    "TransactionResponse",
+    "get_app_id_from_tx_id",
+    "get_next_version",
+    "num_extra_program_pages",
+]
+
 
 class Program:
     """A compiled TEAL program"""
@@ -79,7 +93,7 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(kw_only=True)
 class ABICallArgs:
     method: Method | str | bool | None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
@@ -862,6 +876,53 @@ class ApplicationClient:
         )
         return self._execute_atc_tr(atc)
 
+    def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
+        """gets the global state info for the app id set"""
+        global_state = cast(dict[str, Any], self.algod_client.application_info(self.app_id))
+        return cast(
+            dict[bytes | str, bytes | str | int],
+            decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
+        )
+
+    def get_local_state(self, account: str | None = None, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
+        """gets the local state info for the app id set and the account specified"""
+
+        if account is None:
+            _, account = self._resolve_signer_sender(self.signer, self.sender)
+
+        acct_state = cast(dict[str, Any], self.algod_client.account_application_info(account, self.app_id))
+        return cast(
+            dict[bytes | str, bytes | str | int],
+            decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
+        )
+
+    def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
+        def _data_check(value: Any) -> int | str | bytes:
+            if isinstance(value, (str, bytes, bytes)):
+                return value
+            raise ValueError("Unexpected type for constant data")
+
+        match to_resolve:
+            case {"source": "constant", "data": data}:
+                return _data_check(data)
+            case {"source": "global-state", "data": str() as key}:
+                global_state = self.get_global_state(raw=True)
+                return global_state[key.encode()]
+            case {"source": "local-state", "data": str() as key}:
+                _, sender = self._resolve_signer_sender(self.signer, self.sender)
+                acct_state = self.get_local_state(sender, raw=True)
+                return acct_state[key.encode()]
+            case {"source": "abi-method", "data": dict() as method_dict}:
+                method = Method.undictify(method_dict)
+                response = self.call(method)
+                assert isinstance(response, ABIResult)
+                return _data_check(response.return_value)
+
+            case {"source": source}:
+                raise ValueError(f"Unrecognized default argument source: {source}")
+            case _:
+                raise TypeError("Unable to interpret default argument specification")
+
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
         self._check_app_id()
@@ -1095,74 +1156,6 @@ class ApplicationClient:
         else:
             return method
 
-    def add_transaction(
-        self, atc: AtomicTransactionComposer, txn: transaction.Transaction
-    ) -> AtomicTransactionComposer:
-        if self.signer is None:
-            raise Exception("No signer available")
-
-        atc.add_transaction(TransactionWithSigner(txn=txn, signer=self.signer))
-        return atc
-
-    def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
-        """gets the global state info for the app id set"""
-        global_state = cast(dict[str, Any], self.algod_client.application_info(self.app_id))
-        return cast(
-            dict[bytes | str, bytes | str | int],
-            decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
-        )
-
-    def get_local_state(self, account: str | None = None, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
-        """gets the local state info for the app id set and the account specified"""
-
-        if account is None:
-            _, account = self._resolve_signer_sender(self.signer, self.sender)
-
-        acct_state = cast(dict[str, Any], self.algod_client.account_application_info(account, self.app_id))
-        return cast(
-            dict[bytes | str, bytes | str | int],
-            decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
-        )
-
-    def get_application_account_info(self) -> dict[str, Any]:
-        """gets the account info for the application account"""
-        return cast(dict[str, Any], self.algod_client.account_info(self.app_address))
-
-    def get_box_names(self) -> list[bytes]:
-        box_resp = cast(dict[str, Any], self.algod_client.application_boxes(self.app_id))
-        return [base64.b64decode(box["name"]) for box in box_resp["boxes"]]
-
-    def get_box_contents(self, name: bytes) -> bytes:
-        contents = cast(dict[str, Any], self.algod_client.application_box_by_name(self.app_id, name))
-        return base64.b64decode(contents["value"])
-
-    def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
-        def _data_check(value: Any) -> int | str | bytes:
-            if isinstance(value, (str, bytes, bytes)):
-                return value
-            raise ValueError("Unexpected type for constant data")
-
-        match to_resolve:
-            case {"source": "constant", "data": data}:
-                return _data_check(data)
-            case {"source": "global-state", "data": str() as key}:
-                global_state = self.get_global_state(raw=True)
-                return global_state[key.encode()]
-            case {"source": "local-state", "data": str() as key}:
-                _, sender = self._resolve_signer_sender(self.signer, self.sender)
-                acct_state = self.get_local_state(sender, raw=True)
-                return acct_state[key.encode()]
-            case {"source": "abi-method", "data": dict() as method_dict}:
-                method = Method.undictify(method_dict)
-                response = self.call(method)
-                assert isinstance(response, ABIResult)
-                return _data_check(response.return_value)
-
-            case {"source": source}:
-                raise ValueError(f"Unrecognized default argument source: {source}")
-            case _:
-                raise TypeError("Unable to interpret default argument specification")
-
     def _method_hints(self, method: Method) -> MethodHints:
         sig = method.get_signature()
         if sig not in self.app_spec.hints:
@@ -1209,6 +1202,27 @@ class ApplicationClient:
         else:
             resolved_sender = _get_sender_from_signer(resolved_signer)
         return resolved_signer, resolved_sender
+
+
+def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
+    result = cast(dict[str, Any], algod_client.pending_transaction_info(tx_id))
+    return cast(int, result["application-index"])
+
+
+def get_next_version(current_version: str) -> str:
+    pattern = re.compile(r"(?P<prefix>\w*)(?P<version>(?:\d+\.)*\d+)(?P<suffix>\w*)")
+    match = pattern.match(current_version)
+    if match:
+        version = match.group("version")
+        new_version = _increment_version(version)
+
+        def replacement(m: re.Match) -> str:
+            return f"{m.group('prefix')}{new_version}{m.group('suffix')}"
+
+        return re.sub(pattern, replacement, current_version)
+    raise DeploymentFailedError(
+        f"Could not auto increment {current_version}, please specify the next version using the version parameter"
+    )
 
 
 def _get_sender_from_signer(signer: TransactionSigner) -> str:
@@ -1294,22 +1308,6 @@ def _increment_version(version: str) -> str:
     return ".".join(str(x) for x in split)
 
 
-def get_next_version(current_version: str) -> str:
-    pattern = re.compile(r"(?P<prefix>\w*)(?P<version>(?:\d+\.)*\d+)(?P<suffix>\w*)")
-    match = pattern.match(current_version)
-    if match:
-        version = match.group("version")
-        new_version = _increment_version(version)
-
-        def replacement(m: re.Match) -> str:
-            return f"{m.group('prefix')}{new_version}{m.group('suffix')}"
-
-        return re.sub(pattern, replacement, current_version)
-    raise DeploymentFailedError(
-        f"Could not auto increment {current_version}, " f"please specify the next version using the version parameter"
-    )
-
-
 def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.OnComplete) -> CallConfig:
     def get(key: MethodConfigKey) -> CallConfig:
         return method_config.get(key, CallConfig.NEVER)
@@ -1327,8 +1325,3 @@ def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.O
             return get("close_out")
         case transaction.OnComplete.ClearStateOC:
             return get("clear_state")
-
-
-def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
-    result = cast(dict[str, Any], algod_client.pending_transaction_info(tx_id))
-    return cast(int, result["application-index"])

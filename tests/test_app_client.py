@@ -5,8 +5,7 @@ from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.network_clients import get_algod_client, get_indexer_client
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 from algosdk.transaction import OnComplete
-
-from tests.conftest import get_unique_name, read_spec
+from conftest import get_unique_name, read_spec
 
 
 @pytest.fixture()
