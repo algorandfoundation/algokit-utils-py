@@ -27,6 +27,7 @@ python-dotenv = "^1.0.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+# TODO: Copy the stuff
 [tool.ruff]
 line-length = 120
 select = ["E", "F", "ANN", "UP", "N", "C", "B", "A", "YTT", "W", "FBT", "Q", "RUF", "I"]
