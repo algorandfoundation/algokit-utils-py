@@ -3,15 +3,12 @@ import dataclasses
 import json
 import logging
 import re
-import typing
 
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
+from algosdk.v2client.indexer import IndexerClient
 
-if typing.TYPE_CHECKING:
-    from algosdk.v2client.indexer import IndexerClient
-
-    from algokit_utils.models import Account
+from algokit_utils.models import Account
 
 logger = logging.getLogger(__name__)
 
