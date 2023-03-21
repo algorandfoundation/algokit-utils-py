@@ -19,7 +19,7 @@ def send_transaction(
     # TODO: cap fee
 
     signed_transaction = transaction.sign(from_account.private_key)  # type: ignore[no-untyped-call]
-    client.send_transaction(signed_transaction)  # type: ignore[no-untyped-call]
+    client.send_transaction(signed_transaction)
 
     txid = transaction.get_txid()  # type: ignore[no-untyped-call]
     logger.debug(f"Sent transaction {txid} type={transaction.type} from {from_account.address}")

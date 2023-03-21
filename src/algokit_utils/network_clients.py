@@ -39,7 +39,7 @@ def _get_headers(config: AlgoClientConfig) -> dict[str, str] | None:
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     config = config or _get_config_from_environment("ALGOD")
     headers = _get_headers(config)
-    return AlgodClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
+    return AlgodClient(config.token, config.server, headers)
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
@@ -49,7 +49,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
 
 
 def is_sandbox(client: AlgodClient) -> bool:
-    params = client.suggested_params()  # type: ignore[no-untyped-call]
+    params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
 
 

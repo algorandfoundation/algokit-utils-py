@@ -32,7 +32,7 @@ def decode_state(state: list[dict[str, Any]], *, raw: bool = False) -> dict[str 
             case 3:
                 val = None
             case _:
-                raise NotImplementedError()
+                raise NotImplementedError
 
         decoded_state[key] = val
     return decoded_state

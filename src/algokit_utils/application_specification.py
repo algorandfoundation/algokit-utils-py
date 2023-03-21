@@ -3,9 +3,9 @@ import dataclasses
 import json
 from enum import IntFlag
 from pathlib import Path
-from typing import Any, Literal, TypeAlias, TypedDict, cast
+from typing import Any, Literal, TypeAlias, TypedDict
 
-from algosdk.abi import Contract  # type: ignore[attr-defined]
+from algosdk.abi import Contract
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
 
@@ -13,7 +13,8 @@ __all__ = [
     "CallConfig",
     "DefaultArgumentDict",
     "DefaultArgumentType",
-    "MethodConfig",
+    "MethodConfigDict",
+    "MethodConfigKey",
     "MethodHints",
     "ApplicationSpecification",
     "AppSpecStateDict",
@@ -35,15 +36,10 @@ class StructArgDict(TypedDict):
     elements: list[list[str]]
 
 
-class MethodConfig(TypedDict):
-    no_op: CallConfig
-    opt_in: CallConfig
-    close_out: CallConfig
-    clear_state: CallConfig
-    update_application: CallConfig
-    delete_application: CallConfig
-
-
+MethodConfigKey: TypeAlias = Literal[
+    "no_op", "opt_in", "close_out", "clear_state", "update_application", "delete_application"
+]
+MethodConfigDict: TypeAlias = dict[MethodConfigKey, CallConfig]
 DefaultArgumentType: TypeAlias = Literal["abi-method", "local-state", "global-state", "constant"]
 
 
@@ -73,7 +69,7 @@ class MethodHints:
     structs: dict[str, StructArgDict] = dataclasses.field(default_factory=dict)
     #: defaults
     default_arguments: dict[str, DefaultArgumentDict] = dataclasses.field(default_factory=dict)
-    call_config: MethodConfig = dataclasses.field(default_factory=dict)  # type: ignore[assignment]
+    call_config: MethodConfigDict = dataclasses.field(default_factory=dict)
 
     def empty(self) -> bool:
         return not self.dictify()
@@ -100,12 +96,12 @@ class MethodHints:
         )
 
 
-def _encode_method_config(mc: MethodConfig) -> dict[str, str | None]:
-    return {k: cast(CallConfig, v).name for k, v in mc.items() if v != CallConfig.NEVER}
+def _encode_method_config(mc: MethodConfigDict) -> dict[str, str | None]:
+    return {k: v.name for k, v in mc.items() if v != CallConfig.NEVER}
 
 
-def _decode_method_config(data: dict[str, Any]) -> MethodConfig:
-    return {k: CallConfig[v] for k, v in data.items()}  # type: ignore[return-value]
+def _decode_method_config(data: dict[MethodConfigKey, Any]) -> MethodConfigDict:
+    return {k: CallConfig[v] for k, v in data.items()}
 
 
 def _encode_source(teal_text: str) -> str:
@@ -156,7 +152,7 @@ class ApplicationSpecification:
     schema: StateDict
     global_state_schema: StateSchema
     local_state_schema: StateSchema
-    bare_call_config: MethodConfig
+    bare_call_config: MethodConfigDict
 
     def dictify(self) -> dict:
         return {

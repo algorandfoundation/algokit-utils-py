@@ -19,7 +19,7 @@ class TransferParameters:
 
 
 def transfer(transfer_parameters: TransferParameters, client: AlgodClient) -> PaymentTxn:
-    suggested_params = client.suggested_params()  # type: ignore[no-untyped-call]
+    suggested_params = client.suggested_params()
     transaction = PaymentTxn(
         sender=transfer_parameters.from_account.address,
         sp=suggested_params,
