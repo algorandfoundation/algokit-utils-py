@@ -2,11 +2,10 @@ import base64
 import dataclasses
 import logging
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from enum import Enum
 from math import ceil
-from types import MethodType
-from typing import Any, Literal, cast, overload
+from typing import Any, cast, overload
 
 import algosdk
 from algosdk import transaction
@@ -28,7 +27,6 @@ from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-from pyteal import CallConfig, MethodConfig  # TODO: remove PyTeal references
 
 from algokit_utils.app import (
     AppDeployMetaData,
@@ -47,10 +45,12 @@ from algokit_utils.app import (
 )
 from algokit_utils.application_specification import (
     ApplicationSpecification,
+    CallConfig,
     DefaultArgumentDict,
+    MethodConfig,
     MethodHints,
 )
-from algokit_utils.logic_error import LogicException, parse_logic_error
+from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import Account
 from algokit_utils.state_decode import decode_state
 
@@ -78,18 +78,11 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
-class _AutoFindMethod(Method):
-    def __init__(self) -> None:
-        super().__init__("auto", [], Returns(Returns.VOID))
-
-
-_AUTO_FIND_METHOD = _AutoFindMethod()
-
-
 @dataclasses.dataclass
 class ABICallArgs:
-    method: Method | str | None
+    method: Method | str | bool | None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
+    bare: bool = False
     lease: str | bytes | None = dataclasses.field(default=None)
 
 
@@ -118,6 +111,13 @@ class DeployResponse:
     action_taken: OperationPerformed = OperationPerformed.Nothing
 
 
+@dataclasses.dataclass(kw_only=True)
+class TransactionResponse:
+    tx_id: str
+    abi_result: ABIResult | None
+    confirmed_round: int | None = None
+
+
 class ApplicationClient:
     @overload
     def __init__(
@@ -125,9 +125,8 @@ class ApplicationClient:
         algod_client: AlgodClient,
         indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
-        app_id: int = 0,
-        /,
         *,
+        app_id: int = 0,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -140,9 +139,8 @@ class ApplicationClient:
         algod_client: AlgodClient,
         indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
-        creator: str | Account,
-        /,
         *,
+        creator: str | Account,
         existing_deployments: AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -155,10 +153,9 @@ class ApplicationClient:
         algod_client: AlgodClient,
         indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
-        # TODO: fix this without forcing positional args
-        app_id_or_creator: int | str | Account = 0,
-        /,
         *,
+        app_id: int = 0,
+        creator: str | Account | None = None,
         existing_deployments: AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -171,11 +168,8 @@ class ApplicationClient:
         self._clear_program: Program | None = None
         self._approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
-        if isinstance(app_id_or_creator, int):
-            self.app_id = app_id_or_creator
-            self._creator: str | None = None
-        else:
-            self._creator = app_id_or_creator if isinstance(app_id_or_creator, str) else app_id_or_creator.address
+        if creator is not None:
+            self._creator: str | None = creator.address if isinstance(creator, Account) else creator
             if existing_deployments and existing_deployments.creator != self._creator:
                 raise Exception(
                     "Attempt to create application client with invalid existing_deployments against"
@@ -183,24 +177,27 @@ class ApplicationClient:
                     f"expected creator {self._creator}"
                 )
             self.app_id = 0
+        else:
+            self.app_id = app_id
+            self._creator = None
 
         self.signer: TransactionSigner | None
         if signer:
             self.signer = (
                 signer if isinstance(signer, TransactionSigner) else AccountTransactionSigner(signer.private_key)
             )
-        elif isinstance(app_id_or_creator, Account):
-            self.signer = AccountTransactionSigner(app_id_or_creator.private_key)
+        elif isinstance(creator, Account):
+            self.signer = AccountTransactionSigner(creator.private_key)
         else:
             self.signer = None
         self.sender = sender
-        # TODO: don't resolve here, resolve in _add_method_call
-        self.suggested_params = suggested_params or algod_client.suggested_params()  # type: ignore[no-untyped-call]
+        self.suggested_params = suggested_params
 
     @property
     def app_address(self) -> str:
         return get_application_address(self.app_id)
 
+    # TODO: source map changes
     @property
     def approval(self) -> Program:
         if not self._approval_program:
@@ -228,6 +225,7 @@ class ApplicationClient:
         update_args: ABICallArgs | None = None,
         delete_args: ABICallArgs | None = None,
     ) -> DeployResponse:
+        """Ensures app associated with app client's creator is present and up to date"""
         if self.app_id:
             raise DeploymentFailedError(f"Attempt to deploy app which already has an app index of {self.app_id}")
         signer, sender = self._resolve_signer_sender(signer, sender)
@@ -249,8 +247,13 @@ class ApplicationClient:
             allow_update
             if allow_update is not None
             else (
-                self.app_spec.bare_call_config.update_application != CallConfig.NEVER
-                or any(h for h in self.app_spec.hints.values() if h.call_config.update_application != CallConfig.NEVER)
+                _get_call_config(self.app_spec.bare_call_config, transaction.OnComplete.UpdateApplicationOC)
+                != CallConfig.NEVER
+                or any(
+                    h
+                    for h in self.app_spec.hints.values()
+                    if _get_call_config(h.call_config, transaction.OnComplete.UpdateApplicationOC) != CallConfig.NEVER
+                )
             )
         )
 
@@ -258,8 +261,13 @@ class ApplicationClient:
             allow_delete
             if allow_delete is not None
             else (
-                self.app_spec.bare_call_config.delete_application != CallConfig.NEVER
-                or any(h for h in self.app_spec.hints.values() if h.call_config.delete_application != CallConfig.NEVER)
+                _get_call_config(self.app_spec.bare_call_config, transaction.OnComplete.DeleteApplicationOC)
+                != CallConfig.NEVER
+                or any(
+                    h
+                    for h in self.app_spec.hints.values()
+                    if _get_call_config(h.call_config, transaction.OnComplete.DeleteApplicationOC) != CallConfig.NEVER
+                )
             )
         )
 
@@ -276,7 +284,9 @@ class ApplicationClient:
                 version = get_next_version(app.version)
         app_spec_note = AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
 
-        def unpack_args(args: ABICallArgs | None) -> tuple[Method | str | None, ABIArgsDict | None, bytes | None]:
+        def unpack_args(
+            args: ABICallArgs | None,
+        ) -> tuple[Method | str | bool | None, ABIArgsDict | None, bytes | None]:
             if args is None:
                 return None, None, None
             return args.method, args.args, args.lease.encode("utf-8") if isinstance(args.lease, str) else args.lease
@@ -299,7 +309,7 @@ class ApplicationClient:
             assert self.existing_deployments
             method, args, lease = unpack_args(create_args)
             create_result = self.create(
-                method=method,
+                abi_method=method,
                 args=args,
                 note=app_spec_note.encode(),
                 signer=signer,
@@ -308,6 +318,7 @@ class ApplicationClient:
                 lease=lease,
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
+            assert create_result.confirmed_round is not None
             app_metadata = create_metadata(create_result.confirmed_round)
             self.existing_deployments.apps[name] = app_metadata
             return DeployResponse(app_metadata, action_taken=OperationPerformed.Create)
@@ -345,25 +356,26 @@ class ApplicationClient:
             create_method, c_args, create_lease = unpack_args(create_args)
             delete_method, d_args, delete_lease = unpack_args(delete_args)
             atc = AtomicTransactionComposer()
-            self.create(
-                method=create_method,
+            self.compose_create(
+                atc,
+                abi_method=create_method,
                 args=c_args,
-                atc=atc,
                 note=app_spec_note.encode(),
                 signer=signer,
                 sender=sender,
                 template_values=template_values,
                 lease=create_lease,
             )
-            self.delete(
-                method=delete_method,
+            self.compose_delete(
+                atc,
+                abi_method=delete_method,
                 args=d_args,
-                atc=atc,
                 signer=signer,
                 sender=sender,
                 lease=delete_lease,
             )
             create_delete_result = self._execute_atc(atc)
+            self._set_app_id_from_tx_id(create_delete_result.tx_ids[0])
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
             logger.info(f"{name} ({app.version}) with app id {app.app_id}, deleted successfully.")
 
@@ -379,7 +391,7 @@ class ApplicationClient:
             logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
             method, args, lease = unpack_args(update_args)
             update_result = self.update(
-                method=method,
+                abi_method=method,
                 args=args,
                 note=app_spec_note.encode(),
                 signer=signer,
@@ -448,30 +460,12 @@ class ApplicationClient:
 
         return DeployResponse(app)
 
-    @overload
-    def create(
+    def compose_create(
         self,
-        method: Method | str | None = _AUTO_FIND_METHOD,
-        args: ABIArgsDict | None = None,
-        *,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        template_values: TemplateValueDict | None = None,
-        extra_pages: int | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
-
-    @overload
-    def create(
-        self,
-        method: Method | str | None = _AUTO_FIND_METHOD,
-        args: ABIArgsDict | None = None,
-        *,
         atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
+        args: ABIArgsDict | None = None,
+        *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -481,42 +475,14 @@ class ApplicationClient:
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
-
-    def create(
-        self,
-        method: Method | str | None = _AUTO_FIND_METHOD,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        template_values: TemplateValueDict | None = None,
-        extra_pages: int | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
-        """Submits a signed ApplicationCallTransaction with application id == 0
-        and the schema and source from the Application passed"""
+        """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
 
         approval_program, clear_program = self._substitute_template_and_compile(template_values)
 
         if extra_pages is None:
             extra_pages = num_extra_program_pages(approval_program.raw_binary, clear_program.raw_binary)
 
-        execute_atc = atc is None
-        if atc is None:
-            atc = AtomicTransactionComposer()
-        create_method: Method | None
-        if method is _AUTO_FIND_METHOD:
-            create_method = self._find_create_abi_method(on_complete)
-        elif method:
-            create_method = self._resolve_abi_method(method)
-        else:
-            create_method = None
-
+        create_method = self._resolve_method(abi_method, args, on_complete, CallConfig.CREATE)
         self._add_method_call(
             atc,
             app_id=0,
@@ -534,42 +500,48 @@ class ApplicationClient:
             note=note,
             lease=lease,
         )
-        txn_index = len(atc.txn_list) - 1
 
-        def update_app_id(response: AtomicTransactionResponse) -> None:
-            txn = response.tx_ids[txn_index]
-            self._set_app_id_from_tx_id(txn)
-
-        if execute_atc:
-            create_result = self._execute_atc(atc)
-            update_app_id(create_result)
-            return create_result
-
-        _add_execute_post_hook(atc, update_app_id)
-        return None
-
-    @overload
-    def update(
+    def create(
         self,
-        method: Method | str | None = None,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
+        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         template_values: TemplateValueDict | None = None,
+        extra_pages: int | None = None,
         note: bytes | None = None,
         lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
+    ) -> TransactionResponse:
+        """Submits a signed transaction with application id == 0 and the schema and source of client's app_spec"""
 
-    @overload
-    def update(
+        atc = AtomicTransactionComposer()
+
+        self.compose_create(
+            atc,
+            abi_method,
+            args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            on_complete=on_complete,
+            template_values=template_values,
+            extra_pages=extra_pages,
+            note=note,
+            lease=lease,
+        )
+        create_result = self._execute_atc_tr(atc)
+        self._set_app_id_from_tx_id(create_result.tx_id)
+        return create_result
+
+    def compose_update(
         self,
-        method: Method | str | None = None,
+        atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
-        atc: AtomicTransactionComposer,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -577,156 +549,109 @@ class ApplicationClient:
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
+        """Adds a signed transaction with on_complete=UpdateApplication to atc"""
 
-    def update(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        template_values: TemplateValueDict | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
         self._load_reference_and_check_app_id()
         approval_program, clear_program = self._substitute_template_and_compile(template_values)
 
-        execute_atc = atc is None
-        if atc is None:
-            atc = AtomicTransactionComposer()
-
-        update_method = (
-            self._resolve_abi_method(method)
-            if method
-            else self._find_abi_method(lambda x: CallConfig.CALL in x.update_application)
-        )
+        update_method = self._resolve_method(abi_method, args, transaction.OnComplete.UpdateApplicationOC)
         self._add_method_call(
             atc=atc,
             method=update_method,
             abi_args=args,
             signer=signer,
             sender=sender,
-            suggested_params=suggested_params or self.suggested_params,
+            suggested_params=suggested_params,
             on_complete=transaction.OnComplete.UpdateApplicationOC,
             approval_program=approval_program.raw_binary,
             clear_program=clear_program.raw_binary,
             note=note,
             lease=lease,
         )
-        if execute_atc:
-            return self._execute_atc(atc)
-        return None
 
-    @overload
-    def delete(
+    def update(
         self,
-        method: Method | str | None = None,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
+        template_values: TemplateValueDict | None = None,
+        note: bytes | None = None,
         lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
+    ) -> TransactionResponse:
+        """Submits a signed transaction with on_complete=UpdateApplication"""
 
-    @overload
-    def delete(
+        atc = AtomicTransactionComposer()
+        self.compose_update(
+            atc,
+            abi_method,
+            args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            template_values=template_values,
+            note=note,
+            lease=lease,
+        )
+        return self._execute_atc_tr(atc)
+
+    def compose_delete(
         self,
-        method: Method | str | None = None,
+        atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
-        atc: AtomicTransactionComposer,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
+        """Adds a signed transaction with on_complete=DeleteApplication to atc"""
 
-    def delete(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
-        signer, sender = self._resolve_signer_sender(signer, sender)
-
-        delete_method = self._resolve_abi_method(method) if method else self._find_delete_abi_method()
-        return self.call(
+        delete_method = self._resolve_method(abi_method, args, on_complete=transaction.OnComplete.DeleteApplicationOC)
+        self.compose_call(
+            atc,
             delete_method,
             args,
-            atc=atc,
             signer=signer,
             sender=sender,
-            suggested_params=suggested_params or self.suggested_params,
+            suggested_params=suggested_params,
             on_complete=transaction.OnComplete.DeleteApplicationOC,
             lease=lease,
         )
 
-    @overload
-    def call(
+    def delete(
         self,
-        method: Method | str | None = None,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
         lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
+    ) -> TransactionResponse:
+        """Submits a signed transaction with on_complete=DeleteApplication"""
 
-    @overload
-    def call(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        do_dry_run: Literal[True],
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> ABIResult:
-        ...
+        atc = AtomicTransactionComposer()
+        self.compose_delete(
+            atc,
+            abi_method,
+            args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            lease=lease,
+        )
+        return self._execute_atc_tr(atc)
 
-    @overload
-    def call(
+    def compose_call(
         self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: Literal[None],
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
-
-    @overload
-    def call(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
         atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
+        args: ABIArgsDict | None = None,
+        *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
@@ -734,32 +659,11 @@ class ApplicationClient:
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
+        """Adds a signed transaction with specified parameters to atc"""
 
-    def call(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-        do_dry_run: bool = False,
-    ) -> AtomicTransactionResponse | ABIResult | None:
-        """Handles calling the application"""
         self._load_reference_and_check_app_id()
-        method = self._resolve_abi_method(method) if method else None
-        hints = self._method_hints(method) if method else None
-
-        execute_atc = atc is None
-        if atc is None:
-            atc = AtomicTransactionComposer()
-
-        atc = self._add_method_call(
+        method = self._resolve_method(abi_method, args, on_complete)
+        self._add_method_call(
             atc,
             method=method,
             abi_args=args,
@@ -771,9 +675,38 @@ class ApplicationClient:
             lease=lease,
         )
 
+    def call(
+        self,
+        abi_method: Method | str | None = None,
+        args: ABIArgsDict | None = None,
+        *,
+        signer: TransactionSigner | None = None,
+        sender: str | None = None,
+        suggested_params: transaction.SuggestedParams | None = None,
+        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        note: bytes | None = None,
+        lease: bytes | None = None,
+    ) -> TransactionResponse:
+        """Submits a signed transaction with specified parameters"""
+
+        atc = AtomicTransactionComposer()
+        method = self._resolve_method(abi_method, args, on_complete)
+        self.compose_call(
+            atc,
+            abi_method=method,
+            args=args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            on_complete=on_complete,
+            note=note,
+            lease=lease,
+        )
+
         # If its a read-only method, use dryrun (TODO: swap with simulate later?)
-        if do_dry_run:
-            if method and hints and hints.read_only:
+        if method:
+            hints = self._method_hints(method)
+            if hints and hints.read_only:
                 dr_req = transaction.create_dryrun(self.algod_client, atc.gather_signatures())
                 dr_result = self.algod_client.dryrun(dr_req)  # type: ignore[no-untyped-call]
                 for txn in dr_result["txns"]:
@@ -783,59 +716,28 @@ class ApplicationClient:
                             raise Exception(f"Dryrun for readonly method failed: {msg}")
 
                 method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-                return method_results.pop()
-            raise Exception(f"Cannot do dryrun for method: {method}, it is not readonly")
+                # TODO: finish this
+                return TransactionResponse(abi_result=method_results[0], tx_id=atc.tx_ids[0])
 
-        if execute_atc:
-            return self._execute_atc(atc)
+        return self._execute_atc_tr(atc)
 
-        return None
-
-    @overload
-    def opt_in(
+    def compose_opt_in(
         self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
-
-    @overload
-    def opt_in(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
         atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
+        args: ABIArgsDict | None = None,
+        *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
-
-    def opt_in(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
-        return self.call(
-            method=method,
+        """Adds a signed transaction with on_complete=OptIn to atc"""
+        self.compose_call(
+            atc,
+            abi_method=abi_method,
             args=args,
-            atc=atc,
             signer=signer,
             sender=sender,
             suggested_params=suggested_params,
@@ -844,10 +746,9 @@ class ApplicationClient:
             lease=lease,
         )
 
-    @overload
-    def close_out(
+    def opt_in(
         self,
-        method: Method | str | None = None,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
@@ -855,40 +756,38 @@ class ApplicationClient:
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | None = None,
         lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
+    ) -> TransactionResponse:
+        """Submits a signed transaction with on_complete=OptIn"""
+        atc = AtomicTransactionComposer()
+        self.compose_opt_in(
+            atc,
+            abi_method=abi_method,
+            args=args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            note=note,
+            lease=lease,
+        )
+        return self._execute_atc_tr(atc)
 
-    @overload
-    def close_out(
+    def compose_close_out(
         self,
-        method: Method | str | None = None,
+        atc: AtomicTransactionComposer,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
-        atc: AtomicTransactionComposer,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
-
-    def close_out(
-        self,
-        method: Method | str | None = None,
-        args: ABIArgsDict | None = None,
-        *,
-        atc: AtomicTransactionComposer | None = None,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
-        return self.call(
-            method=method,
+        """Adds a signed transaction with on_complete=CloseOut to ac"""
+        return self.compose_call(
+            atc,
+            abi_method=abi_method,
             args=args,
-            atc=atc,
             signer=signer,
             sender=sender,
             on_complete=transaction.OnComplete.CloseOutOC,
@@ -897,20 +796,32 @@ class ApplicationClient:
             lease=lease,
         )
 
-    @overload
-    def clear_state(
+    def close_out(
         self,
+        abi_method: Method | str | bool | None = None,
+        args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | None = None,
         lease: bytes | None = None,
-    ) -> AtomicTransactionResponse:
-        ...
+    ) -> TransactionResponse:
+        """Submits a signed transaction with on_complete=CloseOut"""
+        atc = AtomicTransactionComposer()
+        self.compose_close_out(
+            atc,
+            abi_method=abi_method,
+            args=args,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            note=note,
+            lease=lease,
+        )
+        return self._execute_atc_tr(atc)
 
-    @overload
-    def clear_state(
+    def compose_clear_state(
         self,
         atc: AtomicTransactionComposer,
         *,
@@ -920,22 +831,9 @@ class ApplicationClient:
         note: bytes | None = None,
         lease: bytes | None = None,
     ) -> None:
-        ...
-
-    def clear_state(
-        self,
-        atc: AtomicTransactionComposer | None = None,
-        *,
-        signer: TransactionSigner | None = None,
-        sender: str | None = None,
-        suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
-        lease: bytes | None = None,
-    ) -> AtomicTransactionResponse | None:
-        """Submits a signed ApplicationCallTransaction with OnComplete set to ClearState"""
-
-        return self.call(
-            atc=atc,
+        """Adds a signed transaction with on_complete=ClearState to atc"""
+        return self.compose_call(
+            atc,
             signer=signer,
             sender=sender,
             suggested_params=suggested_params,
@@ -943,6 +841,27 @@ class ApplicationClient:
             note=note,
             lease=lease,
         )
+
+    def clear_state(
+        self,
+        *,
+        signer: TransactionSigner | None = None,
+        sender: str | None = None,
+        suggested_params: transaction.SuggestedParams | None = None,
+        note: bytes | None = None,
+        lease: bytes | None = None,
+    ) -> TransactionResponse:
+        """Submits a signed transaction with on_complete=ClearState"""
+        atc = AtomicTransactionComposer()
+        self.compose_clear_state(
+            atc,
+            signer=signer,
+            sender=sender,
+            suggested_params=suggested_params,
+            note=note,
+            lease=lease,
+        )
+        return self._execute_atc_tr(atc)
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
@@ -969,18 +888,35 @@ class ApplicationClient:
                 "3.) create an app first using create or deploy methods"
             )
 
-    def _find_create_abi_method(self, on_complete: transaction.OnComplete) -> Method | None:
-        # map enum to MethodConfig key e.g. OptInOC -> opt_in
-        on_complete_key = "".join(["_" + c.lower() if c.isupper() else c for c in on_complete.name[:-2]])[1:]
+    def _resolve_method(
+        self,
+        abi_method: Method | str | bool | None,
+        args: ABIArgsDict | None,
+        on_complete: transaction.OnComplete,
+        call_config: CallConfig = CallConfig.CALL,
+    ) -> Method | None:
+        matches: list[Method | None] = []
+        match abi_method:
+            case str() | Method():  # abi method specified
+                return self._resolve_abi_method(abi_method)
+            case bool() | None:  # find abi method
+                has_bare_config = call_config in _get_call_config(self.app_spec.bare_call_config, on_complete)
+                abi_methods = self._find_abi_methods(args, on_complete, call_config)
+                if abi_method is not False:
+                    matches += abi_methods
+                if has_bare_config and abi_method is not True:
+                    matches += [None]
 
-        create_method = self._find_abi_method(
-            lambda x: CallConfig.CREATE in dataclasses.asdict(x).get(on_complete_key, CallConfig.NEVER)
-        )
-        return create_method
-
-    def _find_delete_abi_method(self) -> Method | None:
-        delete_method = self._find_abi_method(lambda x: CallConfig.CALL in x.delete_application)
-        return delete_method
+        if len(matches) == 1:  # exact match
+            return matches[0]
+        elif len(matches) > 1:  # ambiguous match
+            signatures = ", ".join((m.get_signature() if isinstance(m, Method) else "bare") for m in matches)
+            raise Exception(
+                f"Could not find an exact method to use for {on_complete} with call_config of {call_config}, "
+                f"specify the exact method using abi_method and args parameters, considered: {signatures}"
+            )
+        else:  # no match
+            raise Exception(f"Could not find any methods to use for {on_complete} with call_config of {call_config}")
 
     def _substitute_template_and_compile(
         self,
@@ -1005,7 +941,7 @@ class ApplicationClient:
             if self._approval_program:
                 self._approval_source_map = self._approval_program.source_map
             else:
-                # TODO: check this works for bytes templates
+                # TODO: this will produce an incorrect source map for bytes as their length is not fixed
                 template_values: TemplateValueDict = {k: 0 for k in _find_template_vars(self.app_spec.approval_program)}
                 approval_program = replace_template_variables(self.app_spec.approval_program, template_values)
                 approval = Program(approval_program, self.algod_client)
@@ -1015,7 +951,7 @@ class ApplicationClient:
     def _add_method_call(
         self,
         atc: AtomicTransactionComposer,
-        method: Method | str | None = None,
+        method: Method | None = None,
         app_id: int | None = None,
         sender: str | None = None,
         signer: TransactionSigner | None = None,
@@ -1038,7 +974,11 @@ class ApplicationClient:
         """Adds a transaction to the AtomicTransactionComposer passed"""
         if app_id is None:
             app_id = self.app_id
-        sp = suggested_params or self.suggested_params
+        sp = (
+            suggested_params
+            or self.suggested_params
+            or self.algod_client.suggested_params()  # type: ignore[no-untyped-call]
+        )
         signer, sender = self._resolve_signer_sender(signer, sender)
         if boxes is not None:
             # TODO: algosdk actually does this, but it's type hints say otherwise...
@@ -1051,8 +991,33 @@ class ApplicationClient:
         else:
             encoded_lease = None
 
-        if method:  # resolve ABI method and args
-            method = self._resolve_abi_method(method)
+        if not method:  # not an abi method, treat as a regular call
+            if abi_args:
+                raise Exception(f"ABI arguments specified on a bare call: {', '.join(abi_args)}")
+            atc.add_transaction(
+                TransactionWithSigner(
+                    txn=transaction.ApplicationCallTxn(  # type: ignore[no-untyped-call]
+                        sender=sender,
+                        sp=sp,
+                        index=app_id,
+                        on_complete=on_complete,
+                        approval_program=approval_program,
+                        clear_program=clear_program,
+                        global_schema=self.app_spec.global_state_schema,
+                        local_schema=self.app_spec.local_state_schema,
+                        extra_pages=extra_pages,
+                        accounts=accounts,
+                        foreign_apps=foreign_apps,
+                        foreign_assets=foreign_assets,
+                        boxes=encoded_boxes,
+                        note=note,
+                        lease=encoded_lease,
+                        rekey_to=rekey_to,
+                    ),
+                    signer=signer,
+                )
+            )
+        else:  # resolve ABI method args
             hints = self._method_hints(method)
 
             args: list = []
@@ -1101,44 +1066,29 @@ class ApplicationClient:
                 lease=encoded_lease,
                 rekey_to=rekey_to,
             )
-        else:  # not an abi method, treat as a regular call
-            if abi_args:
-                raise Exception(f"ABI arguments specified on a bare call: {', '.join(abi_args)}")
-            atc.add_transaction(
-                TransactionWithSigner(
-                    txn=transaction.ApplicationCallTxn(  # type: ignore[no-untyped-call]
-                        sender=sender,
-                        sp=sp,
-                        index=app_id,
-                        on_complete=on_complete,
-                        approval_program=approval_program,
-                        clear_program=clear_program,
-                        global_schema=self.app_spec.global_state_schema,
-                        local_schema=self.app_spec.local_state_schema,
-                        extra_pages=extra_pages,
-                        accounts=accounts,
-                        foreign_apps=foreign_apps,
-                        foreign_assets=foreign_assets,
-                        boxes=encoded_boxes,
-                        note=note,
-                        lease=encoded_lease,
-                        rekey_to=rekey_to,
-                    ),
-                    signer=signer,
-                )
-            )
 
         return atc
 
-    def _find_abi_method(self, predicate: Callable[[MethodConfig], bool]) -> Method | None:
-        matching = [
-            method for method in self.app_spec.contract.methods if predicate(self._method_hints(method).call_config)
+    def _method_matches(
+        self, method: Method, args: ABIArgsDict | None, on_complete: transaction.OnComplete, call_config: CallConfig
+    ) -> bool:
+        hints = self._method_hints(method)
+        if call_config not in _get_call_config(hints.call_config, on_complete):
+            return False
+        method_args = {m.name for m in method.args}
+        provided_args = set(args or {}) | set(hints.default_arguments)
+
+        # TODO: also match on types?
+        return method_args == provided_args
+
+    def _find_abi_methods(
+        self, args: ABIArgsDict | None, on_complete: transaction.OnComplete, call_config: CallConfig
+    ) -> list[Method]:
+        return [
+            method
+            for method in self.app_spec.contract.methods
+            if self._method_matches(method, args, on_complete, call_config)
         ]
-        if len(matching) == 1:
-            return matching[0]
-        elif len(matching) > 1:
-            raise Exception("Could not infer an abi.Method to use, specify the exact method using abi_args")
-        return None
 
     def _resolve_abi_method(self, method: Method | str) -> Method:
         if isinstance(method, str):
@@ -1213,7 +1163,8 @@ class ApplicationClient:
             case {"source": "abi-method", "data": dict() as method_dict}:
                 method = Method.undictify(method_dict)
                 response = self.call(method)
-                return _data_check(response.abi_results[0].return_value)
+                assert isinstance(response, ABIResult)
+                return _data_check(response.return_value)
 
             case {"source": source}:
                 raise ValueError(f"Unrecognized default argument source: {source}")
@@ -1226,6 +1177,14 @@ class ApplicationClient:
             return MethodHints()
         return self.app_spec.hints[sig]
 
+    def _execute_atc_tr(self, atc: AtomicTransactionComposer) -> TransactionResponse:
+        result = self._execute_atc(atc)
+        return TransactionResponse(
+            tx_id=result.tx_ids[0],
+            abi_result=result.abi_results[0] if result.abi_results else None,
+            confirmed_round=result.confirmed_round,
+        )
+
     def _execute_atc(self, atc: AtomicTransactionComposer, wait_rounds: int = 4) -> AtomicTransactionResponse:
         try:
             return atc.execute(self.algod_client, wait_rounds=wait_rounds)
@@ -1234,7 +1193,7 @@ class ApplicationClient:
             if logic_error_data is not None:
                 source_map = self._get_approval_source_map()
                 if source_map:
-                    raise LogicException(
+                    raise LogicError(
                         logic_error=ex,
                         program=self.app_spec.approval_program,
                         source_map=source_map,
@@ -1243,8 +1202,7 @@ class ApplicationClient:
             raise ex
 
     def _set_app_id_from_tx_id(self, tx_id: str) -> None:
-        result = self.algod_client.pending_transaction_info(tx_id)  # type: ignore[no-untyped-call]
-        self.app_id = result["application-index"]
+        self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
 
     def _resolve_signer_sender(
         self, signer: TransactionSigner | None, sender: str | None
@@ -1360,12 +1318,25 @@ def get_next_version(current_version: str) -> str:
     )
 
 
-def _add_execute_post_hook(atc: AtomicTransactionComposer, hook: Callable[[AtomicTransactionResponse], None]) -> None:
-    original = atc.execute
+def _get_call_config(method_config: MethodConfig, on_complete: transaction.OnComplete) -> CallConfig:
+    def get(key: str) -> CallConfig:
+        return cast(CallConfig, method_config.get(key, CallConfig.NEVER))
 
-    def execute(self: AtomicTransactionComposer, client: AlgodClient, wait_rounds: int) -> AtomicTransactionResponse:
-        result = original(client, wait_rounds)
-        hook(result)
-        return result
+    match on_complete:
+        case transaction.OnComplete.NoOpOC:
+            return get("no_op")
+        case transaction.OnComplete.UpdateApplicationOC:
+            return get("update_application")
+        case transaction.OnComplete.DeleteApplicationOC:
+            return get("delete_application")
+        case transaction.OnComplete.OptInOC:
+            return get("opt_in")
+        case transaction.OnComplete.CloseOutOC:
+            return get("close_out")
+        case transaction.OnComplete.ClearStateOC:
+            return get("clear_state")
 
-    atc.execute = MethodType(execute, atc)  # type: ignore[assignment]
+
+def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
+    result = algod_client.pending_transaction_info(tx_id)  # type: ignore[no-untyped-call]
+    return cast(int, result["application-index"])

@@ -1,18 +1,19 @@
 import base64
 import dataclasses
 import json
+from enum import IntFlag
 from pathlib import Path
-from typing import Any, Literal, TypeAlias, TypedDict
+from typing import Any, Literal, TypeAlias, TypedDict, cast
 
 from algosdk.abi import Contract  # type: ignore[attr-defined]
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
-from algosdk.v2client.algod import AlgodClient
-from pyteal import CallConfig, MethodConfig  # TODO: remove PyTeal references
 
 __all__ = [
+    "CallConfig",
     "DefaultArgumentDict",
     "DefaultArgumentType",
+    "MethodConfig",
     "MethodHints",
     "ApplicationSpecification",
     "AppSpecStateDict",
@@ -22,9 +23,25 @@ __all__ = [
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 
 
+class CallConfig(IntFlag):
+    NEVER = 0
+    CALL = 1
+    CREATE = 2
+    ALL = 3
+
+
 class StructArgDict(TypedDict):
     name: str
     elements: list[list[str]]
+
+
+class MethodConfig(TypedDict):
+    no_op: CallConfig
+    opt_in: CallConfig
+    close_out: CallConfig
+    clear_state: CallConfig
+    update_application: CallConfig
+    delete_application: CallConfig
 
 
 DefaultArgumentType: TypeAlias = Literal["abi-method", "local-state", "global-state", "constant"]
@@ -56,7 +73,7 @@ class MethodHints:
     structs: dict[str, StructArgDict] = dataclasses.field(default_factory=dict)
     #: defaults
     default_arguments: dict[str, DefaultArgumentDict] = dataclasses.field(default_factory=dict)
-    call_config: MethodConfig = dataclasses.field(default_factory=MethodConfig)
+    call_config: MethodConfig = dataclasses.field(default_factory=dict)  # type: ignore[assignment]
 
     def empty(self) -> bool:
         return not self.dictify()
@@ -69,7 +86,7 @@ class MethodHints:
             d["default_arguments"] = self.default_arguments
         if self.structs:
             d["structs"] = self.structs
-        if not self.call_config.is_never():
+        if any(v for v in self.call_config.values() if v != CallConfig.NEVER):
             d["call_config"] = _encode_method_config(self.call_config)
         return d
 
@@ -83,12 +100,12 @@ class MethodHints:
         )
 
 
-def _encode_method_config(mc: MethodConfig) -> dict[str, Any]:
-    return {k: v.name for k, v in mc.__dict__.items() if v != CallConfig.NEVER}
+def _encode_method_config(mc: MethodConfig) -> dict[str, str | None]:
+    return {k: cast(CallConfig, v).name for k, v in mc.items() if v != CallConfig.NEVER}
 
 
 def _decode_method_config(data: dict[str, Any]) -> MethodConfig:
-    return MethodConfig(**{k: CallConfig[v] for k, v in data.items()})
+    return {k: CallConfig[v] for k, v in data.items()}  # type: ignore[return-value]
 
 
 def _encode_source(teal_text: str) -> str:
@@ -194,29 +211,3 @@ class ApplicationSpecification:
 
 def _state_schema(schema: dict[str, int]) -> StateSchema:
     return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
-
-
-def __dont_use_app_spec_from_app_id(algod_client: AlgodClient, app_id: int) -> ApplicationSpecification:
-    app_info = algod_client.application_info(app_id)  # type: ignore[no-untyped-call]
-    application_create_params = app_info["params"]
-    approval_program = application_create_params["approval-program"]
-    clear_program = application_create_params["clear-state-program"]
-    global_schema = _state_schema(application_create_params["global-state-schema"])
-    local_schema = _state_schema(application_create_params["local-state-schema"])
-
-    # TODO: can we determine these from approval_program?!
-    contract = Contract("", [])
-    hints: dict[str, MethodHints] = {}
-    schema: StateDict = {"global": {}, "local": {}}
-    bare_call_config = MethodConfig()
-
-    return ApplicationSpecification(
-        approval_program=approval_program,
-        clear_program=clear_program,
-        contract=contract,
-        hints=hints,
-        schema=schema,
-        global_state_schema=global_schema,
-        local_state_schema=local_schema,
-        bare_call_config=bare_call_config,
-    )
