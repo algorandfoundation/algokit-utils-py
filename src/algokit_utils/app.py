@@ -3,12 +3,15 @@ import dataclasses
 import json
 import logging
 import re
+import typing
 
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
-from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils.models import Account
+if typing.TYPE_CHECKING:
+    from algosdk.v2client.indexer import IndexerClient
+
+    from algokit_utils.models import Account
 
 logger = logging.getLogger(__name__)
 
@@ -194,8 +197,7 @@ def _add_deploy_template_variables(
 
 def _strip_comments(program: str) -> str:
     lines = [x.split("//", maxsplit=1)[0] for x in program.splitlines()]
-    program = "\n".join(lines)
-    return program
+    return "\n".join(lines)
 
 
 def _check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
@@ -215,12 +217,11 @@ def _check_template_variables(approval_program: str, template_values: TemplateVa
                 raise DeploymentFailedError(
                     "allow_update must only be specified if deploy time configuration of update is being used"
                 )
-            elif template_variable_name == _DELETABLE:
+            if template_variable_name == _DELETABLE:
                 raise DeploymentFailedError(
                     "allow_delete must only be specified if deploy time configuration of delete is being used"
                 )
-            else:
-                logger.warning(f"{template_variable_name} not found in approval program, but variable was provided")
+            logger.warning(f"{template_variable_name} not found in approval program, but variable was provided")
 
 
 def replace_template_variables(program: str, template_values: TemplateValueDict) -> str:
@@ -235,10 +236,9 @@ def replace_template_variables(program: str, template_values: TemplateValueDict)
                 value = "0x" + template_value.hex()
             case _:
                 raise DeploymentFailedError(
-                    "Unexpected template value type " f"{template_variable_name}: {template_value.__class__}"
+                    f"Unexpected template value type {template_variable_name}: {template_value.__class__}"
                 )
 
         program_lines, matches = _replace_template_variable(program_lines, template_variable_name, value)
 
-    result = "\n".join(program_lines)
-    return result
+    return "\n".join(program_lines)

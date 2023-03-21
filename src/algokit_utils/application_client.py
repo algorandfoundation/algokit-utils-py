@@ -9,7 +9,7 @@ from typing import Any, cast, overload
 
 import algosdk
 from algosdk import transaction
-from algosdk.abi import ABIType, Method, Returns  # type: ignore[attr-defined]
+from algosdk.abi import ABIType, Method, Returns
 from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import (
     ABI_RETURN_HASH,
@@ -47,7 +47,8 @@ from algokit_utils.application_specification import (
     ApplicationSpecification,
     CallConfig,
     DefaultArgumentDict,
-    MethodConfig,
+    MethodConfigDict,
+    MethodConfigKey,
     MethodHints,
 )
 from algokit_utils.logic_error import LogicError, parse_logic_error
@@ -68,7 +69,7 @@ class Program:
         source map for matching pc to line number
         """
         self.teal = program
-        result: dict = client.compile(self.teal, source_map=True)  # type: ignore[no-untyped-call]
+        result: dict = client.compile(self.teal, source_map=True)
         self.raw_binary = base64.b64decode(result["result"])
         self.binary_hash: str = result["hash"]
         self.source_map = SourceMap(result["sourcemap"])
@@ -330,7 +331,7 @@ class ApplicationClient:
         assert isinstance(app, AppMetaData)
         logger.debug(f"{name} found in {self._creator} account, with app id {app.app_id}, version={app.version}.")
 
-        application_info = self.algod_client.application_info(app.app_id)  # type: ignore[no-untyped-call]
+        application_info = cast(dict[str, Any], self.algod_client.application_info(app.app_id))
         application_create_params = application_info["params"]
 
         current_approval = base64.b64decode(application_create_params["approval-program"])
@@ -707,16 +708,14 @@ class ApplicationClient:
         if method:
             hints = self._method_hints(method)
             if hints and hints.read_only:
-                dr_req = transaction.create_dryrun(self.algod_client, atc.gather_signatures())
-                dr_result = self.algod_client.dryrun(dr_req)  # type: ignore[no-untyped-call]
+                dr_req = transaction.create_dryrun(self.algod_client, atc.gather_signatures())  # type: ignore[arg-type]
+                dr_result = self.algod_client.dryrun(dr_req)  # type: ignore[arg-type]
                 for txn in dr_result["txns"]:
-                    if "app-call-messages" in txn:
-                        if "REJECT" in txn["app-call-messages"]:
-                            msg = ", ".join(txn["app-call-messages"])
-                            raise Exception(f"Dryrun for readonly method failed: {msg}")
+                    if "app-call-messages" in txn and "REJECT" in txn["app-call-messages"]:
+                        msg = ", ".join(txn["app-call-messages"])
+                        raise Exception(f"Dryrun for readonly method failed: {msg}")
 
                 method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-                # TODO: finish this
                 return TransactionResponse(abi_result=method_results[0], tx_id=atc.tx_ids[0])
 
         return self._execute_atc_tr(atc)
@@ -974,11 +973,7 @@ class ApplicationClient:
         """Adds a transaction to the AtomicTransactionComposer passed"""
         if app_id is None:
             app_id = self.app_id
-        sp = (
-            suggested_params
-            or self.suggested_params
-            or self.algod_client.suggested_params()  # type: ignore[no-untyped-call]
-        )
+        sp = suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self._resolve_signer_sender(signer, sender)
         if boxes is not None:
             # TODO: algosdk actually does this, but it's type hints say otherwise...
@@ -1057,7 +1052,7 @@ class ApplicationClient:
                 global_schema=global_schema,
                 approval_program=approval_program,
                 clear_program=clear_program,
-                extra_pages=extra_pages,
+                extra_pages=extra_pages or 0,
                 accounts=accounts,
                 foreign_apps=foreign_apps,
                 foreign_assets=foreign_assets,
@@ -1111,7 +1106,7 @@ class ApplicationClient:
 
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
         """gets the global state info for the app id set"""
-        global_state = self.algod_client.application_info(self.app_id)  # type: ignore[no-untyped-call]
+        global_state = cast(dict[str, Any], self.algod_client.application_info(self.app_id))
         return cast(
             dict[bytes | str, bytes | str | int],
             decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
@@ -1123,30 +1118,27 @@ class ApplicationClient:
         if account is None:
             _, account = self._resolve_signer_sender(self.signer, self.sender)
 
-        acct_state = self.algod_client.account_application_info(account, self.app_id)  # type: ignore[no-untyped-call]
-        if "app-local-state" not in acct_state or "key-value" not in acct_state["app-local-state"]:
-            return {}
-
+        acct_state = cast(dict[str, Any], self.algod_client.account_application_info(account, self.app_id))
         return cast(
-            dict[str | bytes, bytes | str | int],
-            decode_state(acct_state["app-local-state"]["key-value"], raw=raw),
+            dict[bytes | str, bytes | str | int],
+            decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
         )
 
     def get_application_account_info(self) -> dict[str, Any]:
         """gets the account info for the application account"""
-        return self.algod_client.account_info(self.app_address)  # type: ignore[no-untyped-call, no-any-return]
+        return cast(dict[str, Any], self.algod_client.account_info(self.app_address))
 
     def get_box_names(self) -> list[bytes]:
-        box_resp = self.algod_client.application_boxes(self.app_id)
+        box_resp = cast(dict[str, Any], self.algod_client.application_boxes(self.app_id))
         return [base64.b64decode(box["name"]) for box in box_resp["boxes"]]
 
     def get_box_contents(self, name: bytes) -> bytes:
-        contents = self.algod_client.application_box_by_name(self.app_id, name)
+        contents = cast(dict[str, Any], self.algod_client.application_box_by_name(self.app_id, name))
         return base64.b64decode(contents["value"])
 
     def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
         def _data_check(value: Any) -> int | str | bytes:
-            if isinstance(value, str) or isinstance(value, bytes) or isinstance(value, bytes):
+            if isinstance(value, (str, bytes, bytes)):
                 return value
             raise ValueError("Unexpected type for constant data")
 
@@ -1318,9 +1310,9 @@ def get_next_version(current_version: str) -> str:
     )
 
 
-def _get_call_config(method_config: MethodConfig, on_complete: transaction.OnComplete) -> CallConfig:
-    def get(key: str) -> CallConfig:
-        return cast(CallConfig, method_config.get(key, CallConfig.NEVER))
+def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.OnComplete) -> CallConfig:
+    def get(key: MethodConfigKey) -> CallConfig:
+        return method_config.get(key, CallConfig.NEVER)
 
     match on_complete:
         case transaction.OnComplete.NoOpOC:
@@ -1338,5 +1330,5 @@ def _get_call_config(method_config: MethodConfig, on_complete: transaction.OnCom
 
 
 def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
-    result = algod_client.pending_transaction_info(tx_id)  # type: ignore[no-untyped-call]
+    result = cast(dict[str, Any], algod_client.pending_transaction_info(tx_id))
     return cast(int, result["application-index"])
