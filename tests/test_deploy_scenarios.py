@@ -72,7 +72,7 @@ class DeployFixture:
                 break
 
 
-@pytest.fixture
+@pytest.fixture()
 def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest) -> DeployFixture:
     caplog.set_level(logging.DEBUG)
     return DeployFixture(caplog, request)
@@ -343,7 +343,7 @@ TMPL_STR // bar
 
 
 @pytest.mark.parametrize(
-    "current,expected_next",
+    ("current", "expected_next"),
     [
         ("1", "2"),
         ("v1", "v2"),
