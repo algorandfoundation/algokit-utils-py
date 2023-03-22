@@ -137,7 +137,6 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
         *,
         app_id: int = 0,
@@ -151,10 +150,10 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
         *,
         creator: str | Account,
+        indexer_client: IndexerClient | None = None,
         existing_deployments: AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -165,29 +164,33 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        indexer_client: IndexerClient,
         app_spec: ApplicationSpecification,
         *,
         app_id: int = 0,
         creator: str | Account | None = None,
+        indexer_client: IndexerClient | None = None,
         existing_deployments: AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
     ):
         self.algod_client = algod_client
-        self.indexer_client = indexer_client
         self.app_spec = app_spec
         self._approval_program: Program | None = None
         self._clear_program: Program | None = None
         self._approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
+        self._indexer_client = indexer_client
         if creator is not None:
+            if not self.existing_deployments and not self._indexer_client:
+                raise Exception(
+                    "If using the creator parameter either existing_deployments or indexer_client must also be provided"
+                )
             self._creator: str | None = creator.address if isinstance(creator, Account) else creator
-            if existing_deployments and existing_deployments.creator != self._creator:
+            if self.existing_deployments and self.existing_deployments.creator != self._creator:
                 raise Exception(
                     "Attempt to create application client with invalid existing_deployments against"
-                    f"a different creator ({existing_deployments.creator} instead of "
+                    f"a different creator ({self.existing_deployments.creator} instead of "
                     f"expected creator {self._creator}"
                 )
             self.app_id = 0
@@ -928,7 +931,8 @@ class ApplicationClient:
 
     def _load_app_reference(self) -> AppReference | AppMetaData:
         if not self.existing_deployments and self._creator:
-            self.existing_deployments = get_creator_apps(self.indexer_client, self._creator)
+            assert self._indexer_client
+            self.existing_deployments = get_creator_apps(self._indexer_client, self._creator)
 
         if self.existing_deployments and self.app_id == 0:
             app = self.existing_deployments.apps.get(self.app_spec.contract.name)
