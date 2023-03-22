@@ -696,7 +696,7 @@ class ApplicationClient:
 
     def call(
         self,
-        abi_method: Method | str | None = None,
+        abi_method: Method | str | bool | None = None,
         args: ABIArgsDict | None = None,
         *,
         signer: TransactionSigner | None = None,
@@ -1064,8 +1064,8 @@ class ApplicationClient:
                         on_complete=on_complete,
                         approval_program=approval_program,
                         clear_program=clear_program,
-                        global_schema=self.app_spec.global_state_schema,
-                        local_schema=self.app_spec.local_state_schema,
+                        global_schema=global_schema,
+                        local_schema=local_schema,
                         extra_pages=extra_pages,
                         accounts=accounts,
                         foreign_apps=foreign_apps,

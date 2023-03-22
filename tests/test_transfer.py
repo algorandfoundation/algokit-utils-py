@@ -9,9 +9,11 @@ def test_transfer(client_fixture: ApplicationClient, creator: Account) -> None:
         ),
     )
 
-    payment, txn = transfer(
-        TransferParameters(from_account=creator, to_address=client_fixture.app_address, amount=100_000),
+    requested_amount = 100_000
+    transfer(
+        TransferParameters(from_account=creator, to_address=client_fixture.app_address, amount=requested_amount),
         client_fixture.algod_client,
     )
 
-    assert txn != ""
+    actual_amount = client_fixture.algod_client.account_info(client_fixture.app_address).get("amount")
+    assert actual_amount == requested_amount
