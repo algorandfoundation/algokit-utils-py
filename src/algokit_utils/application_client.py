@@ -685,6 +685,7 @@ class ApplicationClient:
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
+        rekey_to: str | None = None,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
 
@@ -704,6 +705,7 @@ class ApplicationClient:
             boxes=boxes,
             note=note,
             lease=lease,
+            rekey_to=rekey_to,
         )
 
     @overload
@@ -722,6 +724,7 @@ class ApplicationClient:
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
+        rekey_to: str | None = None,
     ) -> ABITransactionResponse:
         ...
 
@@ -741,6 +744,7 @@ class ApplicationClient:
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
+        rekey_to: str | None = None,
     ) -> TransactionResponse:
         ...
 
@@ -759,6 +763,7 @@ class ApplicationClient:
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
+        rekey_to: str | None = None,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with specified parameters"""
 
@@ -778,6 +783,7 @@ class ApplicationClient:
             boxes=boxes,
             note=note,
             lease=lease,
+            rekey_to=rekey_to,
         )
 
         # If its a read-only method, use dryrun (TODO: swap with simulate later?)
