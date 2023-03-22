@@ -675,6 +675,10 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        accounts: list[str] | None = None,
+        foreign_apps: list[int] | None = None,
+        foreign_assets: list[int] | None = None,
+        boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
@@ -690,6 +694,10 @@ class ApplicationClient:
             sender=sender,
             suggested_params=suggested_params,
             on_complete=on_complete,
+            accounts=accounts,
+            foreign_apps=foreign_apps,
+            foreign_assets=foreign_assets,
+            boxes=boxes,
             note=note,
             lease=lease,
         )
@@ -703,6 +711,10 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        accounts: list[str] | None = None,
+        foreign_apps: list[int] | None = None,
+        foreign_assets: list[int] | None = None,
+        boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
@@ -718,6 +730,10 @@ class ApplicationClient:
             sender=sender,
             suggested_params=suggested_params,
             on_complete=on_complete,
+            accounts=accounts,
+            foreign_apps=foreign_apps,
+            foreign_assets=foreign_assets,
+            boxes=boxes,
             note=note,
             lease=lease,
         )
@@ -1017,6 +1033,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         method: Method | None = None,
+        abi_args: ABIArgsDict | None = None,
         app_id: int | None = None,
         sender: str | None = None,
         signer: TransactionSigner | None = None,
@@ -1034,7 +1051,6 @@ class ApplicationClient:
         note: bytes | str | None = None,
         lease: bytes | str | None = None,
         rekey_to: str | None = None,
-        abi_args: ABIArgsDict | None = None,
     ) -> AtomicTransactionComposer:
         """Adds a transaction to the AtomicTransactionComposer passed"""
         if app_id is None:
@@ -1048,7 +1064,7 @@ class ApplicationClient:
             encoded_boxes = None
 
         if lease is not None:
-            encoded_lease = lease if isinstance(lease, bytes) else lease.encode("utf-8")
+            encoded_lease = lease.encode("utf-8") if isinstance(lease, str) else lease
         else:
             encoded_lease = None
 
