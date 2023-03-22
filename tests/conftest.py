@@ -86,7 +86,7 @@ def read_spec(
 
 
 def get_specs(
-    *, updatable: bool = False, deletable: bool = False
+    updatable: bool | None = None, deletable: bool | None = None
 ) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
     specs = (
         read_spec("app_v1.json", updatable=updatable, deletable=deletable),

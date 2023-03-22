@@ -88,32 +88,32 @@ def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequ
 def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture) -> None:
     v1, _, _ = get_specs()
 
-    app = deploy_fixture.deploy(v1, version="1.0")
+    app = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
 
     assert app.app_id
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs(updatable=True)
+    v1, v2, _ = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=True, allow_delete=False)
     assert app_v1.app_id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0")
+    app_v2 = deploy_fixture.deploy(v2, version="2.0", allow_update=True, allow_delete=False)
 
     assert app_v1.app_id == app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs(updatable=False)
+    v1, v2, _ = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
 
     with pytest.raises(LogicError) as error:
-        deploy_fixture.deploy(v2, version="2.0")
+        deploy_fixture.deploy(v2, version="2.0", allow_update=False, allow_delete=False)
     logger.error(f"LogicException: {error.value.message}")
 
     deploy_fixture.check_log_stability()
@@ -122,50 +122,78 @@ def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixt
 def test_deploy_app_with_existing_immutable_app_and_on_update_equals_replace_app_succeeds(
     deploy_fixture: DeployFixture,
 ) -> None:
-    v1, v2, _ = get_specs(updatable=False, deletable=True)
+    v1, v2, _ = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=True)
     assert app_v1.app_id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.ReplaceApp)
+    app_v2 = deploy_fixture.deploy(
+        v2, version="2.0", allow_update=False, allow_delete=True, on_update=OnUpdate.ReplaceApp
+    )
 
     assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs(deletable=True)
+    v1, v2, _ = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=True)
     assert app_v1.app_id
 
-    app_v2 = deploy_fixture.deploy(v2, version="2.0", on_update=OnUpdate.ReplaceApp)
+    app_v2 = deploy_fixture.deploy(
+        v2, version="2.0", allow_update=False, allow_delete=True, on_update=OnUpdate.ReplaceApp
+    )
     assert app_v1.app_id != app_v2.app_id
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture) -> None:
-    v1, _, v3 = get_specs(deletable=False)
+    v1, _, v3 = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
 
     with pytest.raises(DeploymentFailedError) as error:
-        deploy_fixture.deploy(v3, version="3.0")
+        deploy_fixture.deploy(v3, version="3.0", allow_update=False, allow_delete=False)
     logger.error(f"DeploymentFailedError: {error.value}")
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_app_with_existing_immutable_app_cannot_determine_if_updatable(deploy_fixture: DeployFixture) -> None:
+    v1, v2, _ = get_specs(updatable=False, deletable=False)
+
+    app_v1 = deploy_fixture.deploy(v1)
+    assert app_v1.app_id
+
+    with pytest.raises(LogicError) as error:
+        deploy_fixture.deploy(v2, on_update=OnUpdate.UpdateApp)
+    logger.error(f"LogicError: {error.value.message}")
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_app_with_existing_permanent_app_cannot_determine_if_deletable(deploy_fixture: DeployFixture) -> None:
+    v1, v2, _ = get_specs(updatable=False, deletable=False)
+
+    app_v1 = deploy_fixture.deploy(v1)
+    assert app_v1.app_id
+
+    with pytest.raises(LogicError) as error:
+        deploy_fixture.deploy(v2, on_update=OnUpdate.ReplaceApp)
+    logger.error(f"LogicError: {error.value.message}")
     deploy_fixture.check_log_stability()
 
 
 def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fails_and_doesnt_create_2nd_app(
     deploy_fixture: DeployFixture,
 ) -> None:
-    v1, v2, _ = get_specs(deletable=False)
+    v1, v2, _ = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
 
     with pytest.raises(LogicError) as error:
-        deploy_fixture.deploy(v2, version="3.0", on_update=OnUpdate.ReplaceApp)
+        deploy_fixture.deploy(v2, version="3.0", allow_update=False, allow_delete=False, on_update=OnUpdate.ReplaceApp)
     lookup_response = deploy_fixture.indexer_client.lookup_account_application_by_creator(
         deploy_fixture.creator.address
     )  # type: ignore[no-untyped-call]
@@ -181,13 +209,15 @@ def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fai
 def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_replace_app_fails(
     deploy_fixture: DeployFixture,
 ) -> None:
-    v1, _, v3 = get_specs(deletable=False)
+    v1, _, v3 = get_specs()
 
-    app_v1 = deploy_fixture.deploy(v1, version="1.0")
+    app_v1 = deploy_fixture.deploy(v1, allow_update=False, allow_delete=False, version="1.0")
     assert app_v1.app_id
 
     with pytest.raises(LogicError) as exc_info:
-        deploy_fixture.deploy(v3, version="3.0", on_schema_break=OnSchemaBreak.ReplaceApp)
+        deploy_fixture.deploy(
+            v3, allow_update=False, allow_delete=False, version="3.0", on_schema_break=OnSchemaBreak.ReplaceApp
+        )
 
     logger.error(f"Deployment failed: {exc_info.value.message}")
 
