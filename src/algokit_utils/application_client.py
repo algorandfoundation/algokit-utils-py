@@ -491,7 +491,7 @@ class ApplicationClient:
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
@@ -531,7 +531,7 @@ class ApplicationClient:
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with application id == 0 and the schema and source of client's app_spec"""
@@ -565,7 +565,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: TemplateValueDict | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=UpdateApplication to atc"""
@@ -597,7 +597,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: TemplateValueDict | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=UpdateApplication"""
@@ -675,7 +675,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
@@ -703,7 +703,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with specified parameters"""
@@ -747,7 +747,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=OptIn to atc"""
@@ -771,7 +771,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=OptIn"""
@@ -797,7 +797,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=CloseOut to ac"""
@@ -821,7 +821,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=CloseOut"""
@@ -845,7 +845,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=ClearState to atc"""
@@ -865,7 +865,7 @@ class ApplicationClient:
         signer: TransactionSigner | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=ClearState"""
@@ -1031,7 +1031,7 @@ class ApplicationClient:
         foreign_apps: list[int] | None = None,
         foreign_assets: list[int] | None = None,
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
-        note: bytes | None = None,
+        note: bytes | str | None = None,
         lease: bytes | str | None = None,
         rekey_to: str | None = None,
         abi_args: ABIArgsDict | None = None,
@@ -1123,7 +1123,7 @@ class ApplicationClient:
                 foreign_apps=foreign_apps,
                 foreign_assets=foreign_assets,
                 boxes=encoded_boxes,
-                note=note,
+                note=note.encode("utf-8") if isinstance(note, str) else note,
                 lease=encoded_lease,
                 rekey_to=rekey_to,
             )
