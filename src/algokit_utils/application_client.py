@@ -981,7 +981,10 @@ class ApplicationClient:
             case str() | Method():  # abi method specified
                 return self._resolve_abi_method(abi_method)
             case bool() | None:  # find abi method
-                has_bare_config = call_config in _get_call_config(self.app_spec.bare_call_config, on_complete)
+                has_bare_config = (
+                    call_config in _get_call_config(self.app_spec.bare_call_config, on_complete)
+                    or on_complete == transaction.OnComplete.ClearStateOC
+                )
                 abi_methods = self._find_abi_methods(args, on_complete, call_config)
                 if abi_method is not False:
                     matches += abi_methods
