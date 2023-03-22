@@ -5,7 +5,7 @@ import re
 from collections.abc import Sequence
 from enum import Enum
 from math import ceil
-from typing import Any, cast, overload
+from typing import Any, Literal, cast, overload
 
 import algosdk
 from algosdk import transaction
@@ -131,8 +131,12 @@ class DeployResponse:
 @dataclasses.dataclass(kw_only=True)
 class TransactionResponse:
     tx_id: str
-    abi_result: ABIResult | None
-    confirmed_round: int | None = None
+    confirmed_round: int | None
+
+
+@dataclasses.dataclass(kw_only=True)
+class AbiTransactionResponse(TransactionResponse):
+    abi_result: ABIResult
 
 
 class ApplicationClient:
@@ -533,7 +537,7 @@ class ApplicationClient:
         extra_pages: int | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with application id == 0 and the schema and source of client's app_spec"""
 
         atc = AtomicTransactionComposer()
@@ -599,7 +603,7 @@ class ApplicationClient:
         template_values: TemplateValueDict | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with on_complete=UpdateApplication"""
 
         atc = AtomicTransactionComposer()
@@ -650,7 +654,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with on_complete=DeleteApplication"""
 
         atc = AtomicTransactionComposer()
@@ -702,6 +706,44 @@ class ApplicationClient:
             lease=lease,
         )
 
+    @overload
+    def call(
+        self,
+        abi_method: Method | str | Literal[True],
+        args: ABIArgsDict | None = None,
+        *,
+        signer: TransactionSigner | None = None,
+        sender: str | None = None,
+        suggested_params: transaction.SuggestedParams | None = None,
+        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        accounts: list[str] | None = None,
+        foreign_apps: list[int] | None = None,
+        foreign_assets: list[int] | None = None,
+        boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
+        note: bytes | str | None = None,
+        lease: bytes | None = None,
+    ) -> AbiTransactionResponse:
+        ...
+
+    @overload
+    def call(
+        self,
+        abi_method: Literal[False],
+        args: ABIArgsDict | None = None,
+        *,
+        signer: TransactionSigner | None = None,
+        sender: str | None = None,
+        suggested_params: transaction.SuggestedParams | None = None,
+        on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
+        accounts: list[str] | None = None,
+        foreign_apps: list[int] | None = None,
+        foreign_assets: list[int] | None = None,
+        boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
+        note: bytes | str | None = None,
+        lease: bytes | None = None,
+    ) -> TransactionResponse:
+        ...
+
     def call(
         self,
         abi_method: Method | str | bool | None = None,
@@ -717,7 +759,7 @@ class ApplicationClient:
         boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with specified parameters"""
 
         atc = AtomicTransactionComposer()
@@ -750,7 +792,7 @@ class ApplicationClient:
                         raise Exception(f"Dryrun for readonly method failed: {msg}")
 
                 method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-                return TransactionResponse(abi_result=method_results[0], tx_id=atc.tx_ids[0])
+                return AbiTransactionResponse(abi_result=method_results[0], tx_id=atc.tx_ids[0], confirmed_round=None)
 
         return self._execute_atc_tr(atc)
 
@@ -789,7 +831,7 @@ class ApplicationClient:
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with on_complete=OptIn"""
         atc = AtomicTransactionComposer()
         self.compose_opt_in(
@@ -839,7 +881,7 @@ class ApplicationClient:
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with on_complete=CloseOut"""
         atc = AtomicTransactionComposer()
         self.compose_close_out(
@@ -883,7 +925,7 @@ class ApplicationClient:
         suggested_params: transaction.SuggestedParams | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> TransactionResponse:
+    ) -> TransactionResponse | AbiTransactionResponse:
         """Submits a signed transaction with on_complete=ClearState"""
         atc = AtomicTransactionComposer()
         self.compose_clear_state(
@@ -1188,11 +1230,17 @@ class ApplicationClient:
 
     def _execute_atc_tr(self, atc: AtomicTransactionComposer) -> TransactionResponse:
         result = self._execute_atc(atc)
-        return TransactionResponse(
-            tx_id=result.tx_ids[0],
-            abi_result=result.abi_results[0] if result.abi_results else None,
-            confirmed_round=result.confirmed_round,
-        )
+        if result.abi_results:
+            return AbiTransactionResponse(
+                tx_id=result.tx_ids[0],
+                abi_result=result.abi_results[0],
+                confirmed_round=result.confirmed_round,
+            )
+        else:
+            return TransactionResponse(
+                tx_id=result.tx_ids[0],
+                confirmed_round=result.confirmed_round,
+            )
 
     def _execute_atc(self, atc: AtomicTransactionComposer, wait_rounds: int = 4) -> AtomicTransactionResponse:
         try:

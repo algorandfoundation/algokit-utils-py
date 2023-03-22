@@ -3,6 +3,7 @@ import dataclasses
 import json
 import logging
 import re
+from collections.abc import Mapping
 
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
@@ -30,7 +31,9 @@ _UPDATABLE = "UPDATABLE"
 _DELETABLE = "DELETABLE"
 UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
 DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
-TemplateValueDict = dict[str, int | str | bytes]
+TemplateValue = int | str | bytes
+TemplateValueDict = dict[str, TemplateValue]
+TemplateValueMapping = Mapping[str, TemplateValue]
 
 NOTE_PREFIX = "ALGOKIT_DEPLOYER:j"  # this prefix also makes the note ARC-2 compliant
 # when base64 encoding bytes, 3 bytes are stored in every 4 characters
@@ -234,7 +237,7 @@ def _check_template_variables(approval_program: str, template_values: TemplateVa
             logger.warning(f"{template_variable_name} not found in approval program, but variable was provided")
 
 
-def replace_template_variables(program: str, template_values: TemplateValueDict) -> str:
+def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
     program_lines = program.splitlines()
     for template_variable_name, template_value in template_values.items():
         match template_value:

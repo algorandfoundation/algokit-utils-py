@@ -15,18 +15,18 @@ from algokit_utils import (
     get_indexer_client,
     replace_template_variables,
 )
-from algosdk.algod import AlgodClient
+from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 from dotenv import load_dotenv
 
 
 @pytest.fixture(autouse=True, scope="session")
-def environment_fixture():
+def environment_fixture() -> None:
     env_path = Path(__file__).parent / ".." / "example.env"
     load_dotenv(env_path)
 
 
-def check_output_stability(logs: str, *, test_name: str = None) -> None:
+def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
     """Test that the contract output hasn't changed for an Application, using git diff"""
     caller_frame = inspect.stack()[1]
     caller_path = Path(caller_frame.filename).resolve()
@@ -64,8 +64,10 @@ def check_output_stability(logs: str, *, test_name: str = None) -> None:
         )
 
 
-def read_spec(path: str, *, updatable: bool | None = None, deletable: bool | None = None) -> ApplicationSpecification:
-    path = Path(__file__).parent / path
+def read_spec(
+    file_name: str, *, updatable: bool | None = None, deletable: bool | None = None
+) -> ApplicationSpecification:
+    path = Path(__file__).parent / file_name
     spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
 
     template_variables = {}
@@ -127,5 +129,5 @@ def app_spec() -> ApplicationSpecification:
 def client_fixture(
     algod_client: AlgodClient, indexer_client: IndexerClient, creator: Account, app_spec: ApplicationSpecification
 ) -> ApplicationClient:
-    client = ApplicationClient(algod_client, app_spec, indexer_client=indexer_client, creator=creator)
+    client = ApplicationClient(algod_client, app_spec, creator=creator, indexer_client=indexer_client)
     return client
