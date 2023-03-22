@@ -53,7 +53,6 @@ from algokit_utils.application_specification import (
 )
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import Account
-from algokit_utils.state_decode import decode_state
 
 logger = logging.getLogger(__name__)
 
@@ -881,7 +880,7 @@ class ApplicationClient:
         global_state = cast(dict[str, Any], self.algod_client.application_info(self.app_id))
         return cast(
             dict[bytes | str, bytes | str | int],
-            decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
+            _decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
         )
 
     def get_local_state(self, account: str | None = None, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
@@ -893,7 +892,7 @@ class ApplicationClient:
         acct_state = cast(dict[str, Any], self.algod_client.account_application_info(account, self.app_id))
         return cast(
             dict[bytes | str, bytes | str | int],
-            decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
+            _decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
         )
 
     def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
@@ -1325,3 +1324,39 @@ def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.O
             return get("close_out")
         case transaction.OnComplete.ClearStateOC:
             return get("clear_state")
+
+
+def _str_or_hex(v: bytes) -> str:
+    decoded: str
+    try:
+        decoded = v.decode("utf-8")
+    except UnicodeDecodeError:
+        decoded = v.hex()
+
+    return decoded
+
+
+def _decode_state(state: list[dict[str, Any]], *, raw: bool = False) -> dict[str | bytes, bytes | str | int | None]:
+    decoded_state: dict[str | bytes, bytes | str | int | None] = {}
+
+    for state_value in state:
+        raw_key = base64.b64decode(state_value["key"])
+
+        key: str | bytes = raw_key if raw else _str_or_hex(raw_key)
+        val: str | bytes | int | None
+
+        action = state_value["value"]["action"] if "action" in state_value["value"] else state_value["value"]["type"]
+
+        match action:
+            case 1:
+                raw_val = base64.b64decode(state_value["value"]["bytes"])
+                val = raw_val if raw else _str_or_hex(raw_val)
+            case 2:
+                val = state_value["value"]["uint"]
+            case 3:
+                val = None
+            case _:
+                raise NotImplementedError
+
+        decoded_state[key] = val
+    return decoded_state
