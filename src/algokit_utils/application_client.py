@@ -1143,7 +1143,8 @@ class ApplicationClient:
             hints = self._method_hints(method)
 
             args: list = []
-            abi_args = abi_args or {}
+            # copy args so we don't mutate original
+            abi_args = dict(abi_args or {})
             for method_arg in method.args:
                 name = method_arg.name
                 if name in abi_args:
