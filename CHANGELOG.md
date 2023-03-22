@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.1 (2023-03-22)
+### Fix
+* Don't mutate provided args when calling ([`c152ed9`](https://github.com/algorandfoundation/algokit-utils-py/commit/c152ed9171d2e734ebae69abb803b60e01e96338))
+
 ## v0.1.0 (2023-03-22)
 ### Feature
 * Allow bytes for template_values ([`399bd91`](https://github.com/algorandfoundation/algokit-utils-py/commit/399bd91b863c746c22b8cd75d4539c15c14bc217))
