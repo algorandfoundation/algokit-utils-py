@@ -2,6 +2,6 @@ INFO: SampleApp not found in {creator_account} account, deploying app.
 INFO: SampleApp (1.0) deployed successfully, with app id {app0}.
 DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=1.0.
 INFO: Detected a TEAL update in app id {app0}
-INFO: App is updatable and on_update=UpdateApp, will update app
+WARNING: App is not updatable but on_update=UpdateApp, will attempt to update app, update will most likely fail
 INFO: Updating SampleApp to 2.0 in {creator_account} account, with app id {app0}
 ERROR: LogicException: assert failed pc=140
