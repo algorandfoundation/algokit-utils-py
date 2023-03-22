@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 from algokit_utils import ABICallArgs, Account, ApplicationClient, TransferParameters, transfer
 
 
@@ -15,5 +17,7 @@ def test_transfer(client_fixture: ApplicationClient, creator: Account) -> None:
         client_fixture.algod_client,
     )
 
-    actual_amount = client_fixture.algod_client.account_info(client_fixture.app_address).get("amount")
+    actual_amount = cast(dict[str, Any], client_fixture.algod_client.account_info(client_fixture.app_address)).get(
+        "amount"
+    )
     assert actual_amount == requested_amount
