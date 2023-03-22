@@ -59,7 +59,7 @@ from algokit_utils.models import Account
 
 logger = logging.getLogger(__name__)
 
-ABIArgsDict = dict[str, int | str | bytes | dict[str, int | str | bytes]]
+ABIArgsDict = dict[str, Any]
 
 __all__ = [
     "ABICallArgs",
