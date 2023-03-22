@@ -42,8 +42,8 @@ from algokit_utils.application_specification import (
     DefaultArgumentDict,
     DefaultArgumentType,
     MethodConfigDict,
-    MethodConfigKey,
     MethodHints,
+    OnCompleteActionName,
 )
 from algokit_utils.logic_error import LogicError
 from algokit_utils.models import Account
@@ -89,7 +89,7 @@ __all__ = [
     "DefaultArgumentDict",
     "DefaultArgumentType",
     "MethodConfigDict",
-    "MethodConfigKey",
+    "OnCompleteActionName",
     "MethodHints",
     "LogicError",
     "Account",
