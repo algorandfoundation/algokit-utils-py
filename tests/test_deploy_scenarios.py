@@ -42,7 +42,9 @@ class DeployFixture:
         allow_delete: bool | None = None,
         allow_update: bool | None = None,
     ) -> ApplicationClient:
-        app_client = ApplicationClient(self.algod_client, self.indexer_client, app_spec, creator=self.creator)
+        app_client = ApplicationClient(
+            self.algod_client, app_spec, indexer_client=self.indexer_client, creator=self.creator
+        )
         response = app_client.deploy(
             version=version,
             on_update=on_update,
@@ -243,7 +245,6 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
 
     app_client = ApplicationClient(
         deploy_fixture.algod_client,
-        deploy_fixture.indexer_client,
         app_spec,
         app_id=app_id,
         signer=deploy_fixture.creator,

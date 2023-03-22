@@ -127,5 +127,5 @@ def app_spec() -> ApplicationSpecification:
 def client_fixture(
     algod_client: AlgodClient, indexer_client: IndexerClient, creator: Account, app_spec: ApplicationSpecification
 ) -> ApplicationClient:
-    client = ApplicationClient(algod_client, indexer_client, app_spec, creator=creator)
+    client = ApplicationClient(algod_client, app_spec, indexer_client=indexer_client, creator=creator)
     return client
