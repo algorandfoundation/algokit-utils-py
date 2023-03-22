@@ -61,7 +61,10 @@ class AppDeployMetaData:
 
     @staticmethod
     def from_json(value: str) -> "AppDeployMetaData":
-        return AppDeployMetaData(**json.loads(value))
+        json_value: dict = json.loads(value)
+        json_value.setdefault("deletable", None)
+        json_value.setdefault("updatable", None)
+        return AppDeployMetaData(**json_value)
 
     @classmethod
     def from_b64(cls: type["AppDeployMetaData"], b64: str) -> "AppDeployMetaData":
@@ -138,9 +141,10 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
             def parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
                 if not metadata_b64:
                     return None
+                # noinspection PyBroadException
                 try:
                     return AppDeployMetaData.from_b64(metadata_b64)
-                except json.decoder.JSONDecodeError:
+                except Exception:
                     return None
 
             create_metadata = parse_note(created_transaction.get("note"))
