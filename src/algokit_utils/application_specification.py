@@ -14,7 +14,7 @@ __all__ = [
     "DefaultArgumentDict",
     "DefaultArgumentType",
     "MethodConfigDict",
-    "MethodConfigKey",
+    "OnCompleteActionName",
     "MethodHints",
     "ApplicationSpecification",
     "AppSpecStateDict",
@@ -36,10 +36,10 @@ class StructArgDict(TypedDict):
     elements: list[list[str]]
 
 
-MethodConfigKey: TypeAlias = Literal[
+OnCompleteActionName: TypeAlias = Literal[
     "no_op", "opt_in", "close_out", "clear_state", "update_application", "delete_application"
 ]
-MethodConfigDict: TypeAlias = dict[MethodConfigKey, CallConfig]
+MethodConfigDict: TypeAlias = dict[OnCompleteActionName, CallConfig]
 DefaultArgumentType: TypeAlias = Literal["abi-method", "local-state", "global-state", "constant"]
 
 
@@ -100,7 +100,7 @@ def _encode_method_config(mc: MethodConfigDict) -> dict[str, str | None]:
     return {k: v.name for k, v in mc.items() if v != CallConfig.NEVER}
 
 
-def _decode_method_config(data: dict[MethodConfigKey, Any]) -> MethodConfigDict:
+def _decode_method_config(data: dict[OnCompleteActionName, Any]) -> MethodConfigDict:
     return {k: CallConfig[v] for k, v in data.items()}
 
 

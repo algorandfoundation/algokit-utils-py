@@ -48,8 +48,8 @@ from algokit_utils.application_specification import (
     CallConfig,
     DefaultArgumentDict,
     MethodConfigDict,
-    MethodConfigKey,
     MethodHints,
+    OnCompleteActionName,
 )
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import Account
@@ -1308,7 +1308,7 @@ def _increment_version(version: str) -> str:
 
 
 def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.OnComplete) -> CallConfig:
-    def get(key: MethodConfigKey) -> CallConfig:
+    def get(key: OnCompleteActionName) -> CallConfig:
         return method_config.get(key, CallConfig.NEVER)
 
     match on_complete:
