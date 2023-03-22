@@ -4,8 +4,19 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from algokit_utils.app import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME, replace_template_variables
-from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils import (
+    DELETABLE_TEMPLATE_NAME,
+    UPDATABLE_TEMPLATE_NAME,
+    Account,
+    ApplicationClient,
+    ApplicationSpecification,
+    get_account,
+    get_algod_client,
+    get_indexer_client,
+    replace_template_variables,
+)
+from algosdk.algod import AlgodClient
+from algosdk.v2client.indexer import IndexerClient
 from dotenv import load_dotenv
 
 
@@ -87,3 +98,34 @@ def get_unique_name() -> str:
     name = str(uuid4()).replace("-", "")
     assert name.isalnum()
     return name
+
+
+@pytest.fixture()
+def algod_client() -> AlgodClient:
+    return get_algod_client()
+
+
+@pytest.fixture()
+def indexer_client() -> IndexerClient:
+    return get_indexer_client()
+
+
+@pytest.fixture()
+def creator(algod_client: AlgodClient) -> Account:
+    creator_name = get_unique_name()
+    creator = get_account(algod_client, creator_name)
+    return creator
+
+
+@pytest.fixture()
+def app_spec() -> ApplicationSpecification:
+    app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
+    return app_spec
+
+
+@pytest.fixture()
+def client_fixture(
+    algod_client: AlgodClient, indexer_client: IndexerClient, creator: Account, app_spec: ApplicationSpecification
+) -> ApplicationClient:
+    client = ApplicationClient(algod_client, indexer_client, app_spec, creator=creator)
+    return client

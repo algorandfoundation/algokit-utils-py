@@ -3,15 +3,20 @@ import re
 from enum import Enum
 
 import pytest
-from algokit_utils.account import get_account, get_sandbox_default_account
-from algokit_utils.app import (
+from algokit_utils import (
+    ApplicationClient,
+    ApplicationSpecification,
     DeploymentFailedError,
+    LogicError,
+    OnSchemaBreak,
+    OnUpdate,
+    get_account,
+    get_algod_client,
+    get_indexer_client,
+    get_next_version,
+    get_sandbox_default_account,
     replace_template_variables,
 )
-from algokit_utils.application_client import ApplicationClient, OnSchemaBreak, OnUpdate, get_next_version
-from algokit_utils.application_specification import ApplicationSpecification
-from algokit_utils.logic_error import LogicError
-from algokit_utils.network_clients import get_algod_client, get_indexer_client
 from conftest import check_output_stability, get_specs, get_unique_name, read_spec
 
 logger = logging.getLogger(__name__)

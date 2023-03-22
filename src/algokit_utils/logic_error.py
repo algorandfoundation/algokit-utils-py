@@ -4,6 +4,10 @@ from typing import TypedDict
 
 from algosdk.source_map import SourceMap as AlgoSourceMap
 
+__all__ = [
+    "LogicError",
+]
+
 LOGIC_ERROR = (
     "TransactionPool.Remember: transaction (?P<transaction_id>[A-Z0-9]+): "
     "logic eval error: (?P<message>.*). Details: pc=(?P<pc>[0-9]+), opcodes=.*"

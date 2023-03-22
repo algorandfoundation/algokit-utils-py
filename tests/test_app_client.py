@@ -1,28 +1,14 @@
-import pytest
-from algokit_utils.account import get_account
-from algokit_utils.application_client import ABICallArgs, ApplicationClient, get_app_id_from_tx_id
-from algokit_utils.application_specification import ApplicationSpecification
-from algokit_utils.network_clients import get_algod_client, get_indexer_client
+from algokit_utils import (
+    ABICallArgs,
+    Account,
+    ApplicationClient,
+    ApplicationSpecification,
+    TransferParameters,
+    get_app_id_from_tx_id,
+    transfer,
+)
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 from algosdk.transaction import OnComplete
-from conftest import get_unique_name, read_spec
-
-
-@pytest.fixture()
-def app_spec() -> ApplicationSpecification:
-    app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
-    return app_spec
-
-
-@pytest.fixture()
-def client_fixture(app_spec: ApplicationSpecification) -> ApplicationClient:
-    algod_client = get_algod_client()
-    indexer_client = get_indexer_client()
-    creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-
-    client = ApplicationClient(algod_client, indexer_client, app_spec, creator=creator)
-    return client
 
 
 def test_bare_create(client_fixture: ApplicationClient) -> None:
@@ -92,12 +78,17 @@ def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> 
     assert result.abi_results[2].return_value == "Hello ABI, test3"
 
 
-def test_deploy_with_create(client_fixture: ApplicationClient) -> None:
+def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account) -> None:
     client_fixture.deploy(
         "v1",
         create_args=ABICallArgs(
             method="create",
         ),
+    )
+
+    transfer(
+        TransferParameters(from_account=creator, to_address=client_fixture.app_address, amount=100_000),
+        client_fixture.algod_client,
     )
 
     assert client_fixture.call("hello", args={"name": "test"}).abi_result.return_value == "Hello ABI, test"
