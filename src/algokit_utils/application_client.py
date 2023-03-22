@@ -29,6 +29,8 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils.app import (
+    DELETABLE_TEMPLATE_NAME,
+    UPDATABLE_TEMPLATE_NAME,
     AppDeployMetaData,
     AppLookup,
     AppMetaData,
@@ -40,6 +42,7 @@ from algokit_utils.app import (
     _schema_is_less,
     _schema_str,
     _state_schema,
+    _strip_comments,
     get_creator_apps,
     replace_template_variables,
 )
@@ -263,29 +266,12 @@ class ApplicationClient:
         updatable = (
             allow_update
             if allow_update is not None
-            else (
-                _get_call_config(self.app_spec.bare_call_config, transaction.OnComplete.UpdateApplicationOC)
-                != CallConfig.NEVER
-                or any(
-                    h
-                    for h in self.app_spec.hints.values()
-                    if _get_call_config(h.call_config, transaction.OnComplete.UpdateApplicationOC) != CallConfig.NEVER
-                )
-            )
+            else _get_deploy_control(self.app_spec, UPDATABLE_TEMPLATE_NAME, transaction.OnComplete.UpdateApplicationOC)
         )
-
         deletable = (
             allow_delete
             if allow_delete is not None
-            else (
-                _get_call_config(self.app_spec.bare_call_config, transaction.OnComplete.DeleteApplicationOC)
-                != CallConfig.NEVER
-                or any(
-                    h
-                    for h in self.app_spec.hints.values()
-                    if _get_call_config(h.call_config, transaction.OnComplete.DeleteApplicationOC) != CallConfig.NEVER
-                )
-            )
+            else _get_deploy_control(self.app_spec, DELETABLE_TEMPLATE_NAME, transaction.OnComplete.DeleteApplicationOC)
         )
 
         name = self.app_spec.contract.name
@@ -439,10 +425,14 @@ class ApplicationClient:
                 logger.info(
                     "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
                 )
-            else:
+            elif app.deletable is False:
                 logger.warning(
                     "App is not deletable but on_schema_break=ReplaceApp, "
                     "will attempt to delete app, delete will most likely fail"
+                )
+            else:
+                logger.warning(
+                    "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
                 )
             return create_and_delete_app()
         elif app_updated:
@@ -462,15 +452,27 @@ class ApplicationClient:
                 )
                 return create_and_delete_app()
             elif on_update == OnUpdate.ReplaceApp:
-                logger.warning(
-                    "App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app"
-                )
+                if app.updatable is False:
+                    logger.warning(
+                        "App is not updatable and on_update=ReplaceApp, "
+                        "will attempt to create new app and delete old app"
+                    )
+                else:
+                    logger.warning(
+                        "Cannot determine if App is updatable and on_update=ReplaceApp, "
+                        "will attempt to create new app and delete old app"
+                    )
                 return create_and_delete_app()
             else:
-                logger.warning(
-                    "App is not updatable but on_update=UpdateApp, "
-                    "will attempt to update app, update will most likely fail"
-                )
+                if app.updatable is False:
+                    logger.warning(
+                        "App is not updatable but on_update=UpdateApp, "
+                        "will attempt to update app, update will most likely fail"
+                    )
+                else:
+                    logger.warning(
+                        "Cannot determine if App is updatable and on_update=UpdateApp, " "will attempt to update app"
+                    )
                 return update_app()
 
         logger.info("No detected changes in app, nothing to do.")
@@ -1364,3 +1366,13 @@ def _decode_state(state: list[dict[str, Any]], *, raw: bool = False) -> dict[str
 
         decoded_state[key] = val
     return decoded_state
+
+
+def _get_deploy_control(
+    app_spec: ApplicationSpecification, template_var: str, on_complete: transaction.OnComplete
+) -> bool | None:
+    if template_var not in _strip_comments(app_spec.approval_program):
+        return None
+    return _get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
+        h for h in app_spec.hints.values() if _get_call_config(h.call_config, on_complete) != CallConfig.NEVER
+    )
