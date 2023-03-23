@@ -98,9 +98,15 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 
 @dataclasses.dataclass(kw_only=True)
 class ABICallArgs:
-    method: Method | str | bool | None
+    method: Method | str | bool | None = None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
-    lease: str | bytes | None = dataclasses.field(default=None)
+    lease: str | bytes | None = None
+
+
+class ABICallArgsDict(TypedDict, total=False):
+    method: Method | str | bool | None
+    args: ABIArgsDict
+    lease: str | bytes | None
 
 
 class OnUpdate(Enum):
@@ -183,23 +189,6 @@ class FullCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=Fals
     foreign_assets: list[int] | None
     boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None
     rekey_to: str | None
-
-
-def _convert_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> FullCallParameters:
-    if args is None:
-        return FullCallParameters()
-    _args = dataclasses.asdict(args) if isinstance(args, CommonCallParameters) else args
-    if not isinstance(_args, dict):
-        raise Exception(f"Unexpected parameters type: {args}")
-    return FullCallParameters(**_args)
-
-
-def _add_lease_parameter(
-    parameters: CommonCallParameters | OnCompleteCallParameters, lease: bytes | None = None
-) -> OnCompleteCallParameters:
-    copy = OnCompleteCallParameters(**dataclasses.asdict(parameters))
-    copy.lease = lease
-    return copy
 
 
 class ApplicationClient:
@@ -308,9 +297,9 @@ class ApplicationClient:
         on_update: OnUpdate = OnUpdate.Fail,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
         template_values: TemplateValueDict | None = None,
-        create_args: ABICallArgs | None = None,
-        update_args: ABICallArgs | None = None,
-        delete_args: ABICallArgs | None = None,
+        create_args: ABICallArgs | ABICallArgsDict | None = None,
+        update_args: ABICallArgs | ABICallArgsDict | None = None,
+        delete_args: ABICallArgs | ABICallArgsDict | None = None,
     ) -> DeployResponse:
         """Ensures app associated with app client's creator is present and up to date"""
         if self.app_id:
@@ -325,8 +314,13 @@ class ApplicationClient:
                 f"Attempt to deploy contract with a sender address {sender} that differs "
                 f"from the given creator address for this application client: {self._creator}"
             )
+
+        _create_args = _convert_deploy_args(create_args)
+        _update_args = _convert_deploy_args(update_args)
+        _delete_args = _convert_deploy_args(delete_args)
+
         # make a copy
-        template_values = template_values or {}
+        template_values = dict(template_values or {})
         _add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
         approval_program, clear_program = self._substitute_template_and_compile(template_values)
 
@@ -354,13 +348,6 @@ class ApplicationClient:
                 version = get_next_version(app.version)
         app_spec_note = AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
 
-        def unpack_args(
-            args: ABICallArgs | None,
-        ) -> tuple[Method | str | bool | None, ABIArgsDict | None, bytes | None]:
-            if args is None:
-                return None, None, None
-            return args.method, args.args, args.lease.encode("utf-8") if isinstance(args.lease, str) else args.lease
-
         def create_metadata(
             created_round: int, updated_round: int | None = None, original_metadata: AppDeployMetaData | None = None
         ) -> AppMetaData:
@@ -379,11 +366,10 @@ class ApplicationClient:
 
         def create_app() -> DeployResponse:
             assert self.existing_deployments
-            method, args, lease = unpack_args(create_args)
             create_response = self.create(
-                abi_method=method,
-                args=args,
-                parameters=_add_lease_parameter(common_parameters, lease),
+                abi_method=_create_args.method,
+                **_create_args.args,
+                parameters=_add_lease_parameter(common_parameters, _create_args.lease),
                 template_values=template_values,
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
@@ -425,21 +411,19 @@ class ApplicationClient:
             assert isinstance(app, AppMetaData)
             assert self.existing_deployments
             logger.info(f"Replacing {name} ({app.version}) with {name} ({version}) in {self._creator} account.")
-            create_method, c_args, create_lease = unpack_args(create_args)
-            delete_method, d_args, delete_lease = unpack_args(delete_args)
             atc = AtomicTransactionComposer()
             self.compose_create(
                 atc,
-                abi_method=create_method,
-                args=c_args,
-                parameters=_add_lease_parameter(common_parameters, create_lease),
+                abi_method=_create_args.method,
+                **_create_args.args,
+                parameters=_add_lease_parameter(common_parameters, _create_args.lease),
                 template_values=template_values,
             )
             self.compose_delete(
                 atc,
-                abi_method=delete_method,
-                args=d_args,
-                parameters=_add_lease_parameter(common_parameters, delete_lease),
+                abi_method=_delete_args.method,
+                **_delete_args.args,
+                parameters=_add_lease_parameter(common_parameters, _delete_args.lease),
             )
             create_delete_response = self._execute_atc(atc)
             create_response = _tr_from_atr(atc, create_delete_response, 0)
@@ -463,11 +447,10 @@ class ApplicationClient:
             assert isinstance(app, AppMetaData)
             assert self.existing_deployments
             logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
-            method, args, lease = unpack_args(update_args)
             update_response = self.update(
-                abi_method=method,
-                args=args,
-                parameters=_add_lease_parameter(common_parameters, lease=lease),
+                abi_method=_update_args.method,
+                **_update_args.args,
+                parameters=_add_lease_parameter(common_parameters, lease=_update_args.lease),
                 template_values=template_values,
             )
             app_metadata = create_metadata(
@@ -553,11 +536,11 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
+        **kwargs: Any,
     ) -> tuple[Program, Program]:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
 
@@ -566,20 +549,20 @@ class ApplicationClient:
         if extra_pages is None:
             extra_pages = num_extra_program_pages(approval_program.raw_binary, clear_program.raw_binary)
 
-        parameters = _convert_parameters(parameters)
+        parameters = _convert_call_parameters(parameters)
         self._add_method_call(
             atc,
             app_id=0,
             abi_method=abi_method,
-            abi_args=args,
-            parameters=parameters,
+            abi_args=kwargs,
             on_complete=parameters.on_complete,
+            call_config=CallConfig.CREATE,
+            parameters=parameters,
             approval_program=approval_program.raw_binary,
             clear_program=clear_program.raw_binary,
             global_schema=self.app_spec.global_state_schema,
             local_schema=self.app_spec.local_state_schema,
             extra_pages=extra_pages,
-            call_config=CallConfig.CREATE,
         )
 
         return approval_program, clear_program
@@ -587,11 +570,11 @@ class ApplicationClient:
     def create(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with application id == 0 and the schema and source of client's app_spec"""
 
@@ -600,10 +583,10 @@ class ApplicationClient:
         self._approval_program, self._clear_program = self.compose_create(
             atc,
             abi_method,
-            args,
             parameters=parameters,
             template_values=template_values,
             extra_pages=extra_pages,
+            **kwargs,
         )
         create_result = self._execute_atc_tr(atc)
         self._set_app_id_from_tx_id(create_result.tx_id)
@@ -613,23 +596,20 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         template_values: TemplateValueDict | None = None,
+        **kwargs: Any,
     ) -> tuple[Program, Program]:
         """Adds a signed transaction with on_complete=UpdateApplication to atc"""
 
-        self._load_reference_and_check_app_id()
         approval_program, clear_program = self._substitute_template_and_compile(template_values)
 
-        _parameters = _convert_parameters(parameters)
-        create_method = self._resolve_method(abi_method, args, _parameters.on_complete, CallConfig.CREATE)
         self._add_method_call(
             atc=atc,
-            abi_method=create_method,
-            abi_args=args,
-            parameters=_parameters,
+            abi_method=abi_method,
+            abi_args=kwargs,
+            parameters=parameters,
             on_complete=transaction.OnComplete.UpdateApplicationOC,
             approval_program=approval_program.raw_binary,
             clear_program=clear_program.raw_binary,
@@ -640,10 +620,10 @@ class ApplicationClient:
     def update(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         template_values: TemplateValueDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=UpdateApplication"""
 
@@ -651,9 +631,9 @@ class ApplicationClient:
         self._approval_program, self._clear_program = self.compose_update(
             atc,
             abi_method,
-            args,
             parameters=parameters,
             template_values=template_values,
+            **kwargs,
         )
         return self._execute_atc_tr(atc)
 
@@ -661,27 +641,27 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> None:
         """Adds a signed transaction with on_complete=DeleteApplication to atc"""
 
-        delete_method = self._resolve_method(abi_method, args, on_complete=transaction.OnComplete.DeleteApplicationOC)
+        delete_method = self._resolve_method(abi_method, kwargs, on_complete=transaction.OnComplete.DeleteApplicationOC)
         self._add_method_call(
             atc,
             delete_method,
-            abi_args=args,
-            parameters=_convert_parameters(parameters),
+            abi_args=kwargs,
+            parameters=parameters,
             on_complete=transaction.OnComplete.DeleteApplicationOC,
         )
 
     def delete(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=DeleteApplication"""
 
@@ -689,8 +669,8 @@ class ApplicationClient:
         self.compose_delete(
             atc,
             abi_method,
-            args,
             parameters=parameters,
+            **kwargs,
         )
         return self._execute_atc_tr(atc)
 
@@ -698,18 +678,17 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: FullCallParameters | FullCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
 
-        self._load_reference_and_check_app_id()
-        _parameters = _convert_parameters(parameters)
+        _parameters = _convert_call_parameters(parameters)
         self._add_method_call(
             atc,
             abi_method=abi_method,
-            abi_args=args,
+            abi_args=kwargs,
             parameters=_parameters,
             on_complete=_parameters.on_complete,
             accounts=_parameters.accounts,
@@ -723,9 +702,9 @@ class ApplicationClient:
     def call(
         self,
         abi_method: Method | str | Literal[True],
-        args: ABIArgsDict | None = None,
         *,
         parameters: FullCallParameters | FullCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> ABITransactionResponse:
         ...
 
@@ -733,30 +712,30 @@ class ApplicationClient:
     def call(
         self,
         abi_method: Literal[False],
-        args: ABIArgsDict | None = None,
         *,
         parameters: FullCallParameters | FullCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse:
         ...
 
     def call(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: FullCallParameters | FullCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with specified parameters"""
         atc = AtomicTransactionComposer()
-        _parameters = _convert_parameters(parameters)
+        _parameters = _convert_call_parameters(parameters)
         self.compose_call(
             atc,
             abi_method=abi_method,
-            args=args,
             parameters=_parameters,
+            **kwargs,
         )
 
-        method = self._resolve_method(abi_method, args, _parameters.on_complete)
+        method = self._resolve_method(abi_method, kwargs, _parameters.on_complete)
         # If its a read-only method, use dryrun (TODO: swap with simulate later?)
         if method:
             response = self._dry_run_call(method, atc)
@@ -783,33 +762,33 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> None:
         """Adds a signed transaction with on_complete=OptIn to atc"""
         self._add_method_call(
             atc,
             abi_method=abi_method,
-            abi_args=args,
-            parameters=_convert_parameters(parameters),
+            abi_args=kwargs,
+            parameters=parameters,
             on_complete=transaction.OnComplete.OptInOC,
         )
 
     def opt_in(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=OptIn"""
         atc = AtomicTransactionComposer()
         self.compose_opt_in(
             atc,
             abi_method=abi_method,
-            args=args,
             parameters=parameters,
+            **kwargs,
         )
         return self._execute_atc_tr(atc)
 
@@ -817,33 +796,33 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> None:
         """Adds a signed transaction with on_complete=CloseOut to ac"""
         self._add_method_call(
             atc,
             abi_method=abi_method,
-            abi_args=args,
-            parameters=_convert_parameters(parameters),
+            abi_args=kwargs,
+            parameters=parameters,
             on_complete=transaction.OnComplete.CloseOutOC,
         )
 
     def close_out(
         self,
         abi_method: Method | str | bool | None = None,
-        args: ABIArgsDict | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=CloseOut"""
         atc = AtomicTransactionComposer()
         self.compose_close_out(
             atc,
             abi_method=abi_method,
-            args=args,
             parameters=parameters,
+            **kwargs,
         )
         return self._execute_atc_tr(atc)
 
@@ -856,7 +835,7 @@ class ApplicationClient:
         """Adds a signed transaction with on_complete=ClearState to atc"""
         return self._add_method_call(
             atc,
-            parameters=_convert_parameters(parameters),
+            parameters=parameters,
             on_complete=transaction.OnComplete.ClearStateOC,
         )
 
@@ -1009,7 +988,7 @@ class ApplicationClient:
         abi_method: Method | str | bool | None = None,
         abi_args: ABIArgsDict | None = None,
         app_id: int | None = None,
-        parameters: CommonCallParameters | None = None,
+        parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         local_schema: transaction.StateSchema | None = None,
         global_schema: transaction.StateSchema | None = None,
@@ -1025,9 +1004,9 @@ class ApplicationClient:
     ) -> None:
         """Adds a transaction to the AtomicTransactionComposer passed"""
         if app_id is None:
+            self._load_reference_and_check_app_id()
             app_id = self.app_id
-        if parameters is None:
-            parameters = CommonCallParameters()
+        parameters = _convert_call_parameters(parameters)
         method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self._resolve_signer_sender(parameters.signer, parameters.sender)
@@ -1207,6 +1186,46 @@ def get_next_version(current_version: str) -> str:
     )
 
 
+def execute_atc_with_logic_error(
+    atc: AtomicTransactionComposer,
+    algod_client: AlgodClient,
+    wait_rounds: int = 4,
+    approval_program: str | None = None,
+    approval_source_map: SourceMap | None = None,
+) -> AtomicTransactionResponse:
+    try:
+        return atc.execute(algod_client, wait_rounds=wait_rounds)
+    except Exception as ex:
+        if approval_source_map and approval_program:
+            logic_error_data = parse_logic_error(str(ex))
+            if logic_error_data is not None:
+                raise LogicError(
+                    logic_error=ex,
+                    program=approval_program,
+                    source_map=approval_source_map,
+                    **logic_error_data,
+                ) from ex
+        raise ex
+
+
+def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> FullCallParameters:
+    _args = dataclasses.asdict(args) if isinstance(args, CommonCallParameters) else (args or {})
+    return FullCallParameters(**_args)
+
+
+def _convert_deploy_args(args: ABICallArgs | ABICallArgsDict | None) -> ABICallArgs:
+    _args = dataclasses.asdict(args) if isinstance(args, ABICallArgs) else (args or {})
+    return ABICallArgs(**_args)
+
+
+def _add_lease_parameter(
+    parameters: CommonCallParameters | OnCompleteCallParameters, lease: bytes | str | None
+) -> OnCompleteCallParameters:
+    copy = OnCompleteCallParameters(**dataclasses.asdict(parameters))
+    copy.lease = lease
+    return copy
+
+
 def _get_sender_from_signer(signer: TransactionSigner) -> str:
     if isinstance(signer, AccountTransactionSigner):
         sender = address_from_private_key(signer.private_key)  # type: ignore[no-untyped-call]
@@ -1378,25 +1397,3 @@ def _tr_from_atr(
             tx_id=result.tx_ids[transaction_index],
             confirmed_round=result.confirmed_round,
         )
-
-
-def execute_atc_with_logic_error(
-    atc: AtomicTransactionComposer,
-    algod_client: AlgodClient,
-    wait_rounds: int = 4,
-    approval_program: str | None = None,
-    approval_source_map: SourceMap | None = None,
-) -> AtomicTransactionResponse:
-    try:
-        return atc.execute(algod_client, wait_rounds=wait_rounds)
-    except Exception as ex:
-        if approval_source_map and approval_program:
-            logic_error_data = parse_logic_error(str(ex))
-            if logic_error_data is not None:
-                raise LogicError(
-                    logic_error=ex,
-                    program=approval_program,
-                    source_map=approval_source_map,
-                    **logic_error_data,
-                ) from ex
-        raise ex

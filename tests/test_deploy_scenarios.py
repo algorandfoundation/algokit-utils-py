@@ -235,7 +235,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         allow_update=True,
     )
 
-    response = app_client.call("hello", args={"name": "call_1"})
+    response = app_client.call("hello", name="call_1")
     assert response.abi_result
     logger.info(f"Called hello: {response.abi_result.return_value}")
 
@@ -246,7 +246,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         allow_update=False,
     )
 
-    response = app_client.call("hello", args={"name": "call_2"})
+    response = app_client.call("hello", name="call_2")
     assert response.abi_result
     logger.info(f"Called hello: {response.abi_result.return_value}")
 
@@ -260,7 +260,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         )
 
     logger.error(f"LogicException: {exc_info.value.message}")
-    response = app_client.call("hello", args={"name": "call_3"})
+    response = app_client.call("hello", name="call_3")
     assert response.abi_result
     logger.info(f"Called hello: {response.abi_result.return_value}")
 
@@ -273,7 +273,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         allow_delete=True,
         allow_update=True,
     )
-    response = app_client.call("hello", args={"name": "call_4"})
+    response = app_client.call("hello", name="call_4")
     assert response.abi_result
     logger.info(f"Called hello: {response.abi_result.return_value}")
     app_id = app_client.app_id
@@ -284,7 +284,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         app_id=app_id,
         signer=deploy_fixture.creator,
     )
-    response = app_client.call("hello", args={"name": "call_5"})
+    response = app_client.call("hello", name="call_5")
     assert response.abi_result
     logger.info(f"Called hello: {response.abi_result.return_value}")
 
