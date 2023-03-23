@@ -70,6 +70,7 @@ __all__ = [
     "OperationPerformed",
     "Program",
     "TransactionResponse",
+    "execute_atc_with_logic_error",
     "get_app_id_from_tx_id",
     "get_next_version",
     "num_extra_program_pages",

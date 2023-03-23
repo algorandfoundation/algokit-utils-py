@@ -20,6 +20,7 @@ __all__ = [
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "TemplateValueDict",
     "get_creator_apps",
     "replace_template_variables",
 ]
