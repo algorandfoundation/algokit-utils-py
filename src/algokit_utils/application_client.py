@@ -214,7 +214,12 @@ class ApplicationClient:
             self.signer = AccountTransactionSigner(creator.private_key)
         else:
             self.signer = None
-        self.sender = sender
+        if sender:
+            self.sender: str | None = sender
+        elif self.signer:
+            self.sender = _get_sender_from_signer(self.signer)
+        else:
+            self.sender = None
         self.suggested_params = suggested_params
 
     @property
