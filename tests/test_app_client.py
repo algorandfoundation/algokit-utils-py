@@ -31,7 +31,7 @@ def test_abi_create_args(client_fixture: ApplicationClient, app_spec: Applicatio
 
 
 def test_create_auto_find(client_fixture: ApplicationClient) -> None:
-    client_fixture.create(on_complete=OnComplete.OptInOC)
+    client_fixture.create(parameters={"on_complete": OnComplete.OptInOC})
 
     assert client_fixture.call("hello", args={"name": "test"}).abi_result.return_value == "Opt In, test"
 
