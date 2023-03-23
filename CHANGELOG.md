@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.3 (2023-03-23)
+### Fix
+* Get_account now works if called a second time for the same account name ([`513dd4c`](https://github.com/algorandfoundation/algokit-utils-py/commit/513dd4c734211fa60d98e5d7b8d01b9aa6b3f830))
+
 ## v0.1.2 (2023-03-23)
 ### Fix
 * Expose execute_atc_with_logic_error, allow specifying approval source map ([`f7a887b`](https://github.com/algorandfoundation/algokit-utils-py/commit/f7a887bd688d8527b3559da69bf4426f40fa01d1))
