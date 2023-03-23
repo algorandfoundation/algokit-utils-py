@@ -128,7 +128,7 @@ def get_account(
 
     if is_sandbox(client):
         account = get_or_create_kmd_wallet_account(client, name, fund_with, kmd_client)
-        os.environ[mnemonic_key] = account.private_key
+        os.environ[mnemonic_key] = from_private_key(account.private_key)  # type: ignore[no-untyped-call]
         return account
 
     raise Exception(f"Missing environment variable '{mnemonic_key}' when looking for account '{name}'")
