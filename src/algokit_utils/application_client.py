@@ -122,16 +122,19 @@ class OperationPerformed(Enum):
     Replace = 3
 
 
-@dataclasses.dataclass
-class DeployResponse:
-    app: AppMetaData
-    action_taken: OperationPerformed = OperationPerformed.Nothing
-
-
 @dataclasses.dataclass(kw_only=True)
 class TransactionResponse:
     tx_id: str
     confirmed_round: int | None
+
+
+@dataclasses.dataclass(kw_only=True)
+class DeployResponse:
+    app: AppMetaData
+    create_response: TransactionResponse | None = None
+    delete_response: TransactionResponse | None = None
+    update_response: TransactionResponse | None = None
+    action_taken: OperationPerformed = OperationPerformed.Nothing
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -372,22 +375,24 @@ class ApplicationClient:
             )
             return app_metadata
 
-        base_parameters = CommonCallParameters(note=app_spec_note.encode(), signer=signer, sender=sender)
+        common_parameters = CommonCallParameters(note=app_spec_note.encode(), signer=signer, sender=sender)
 
         def create_app() -> DeployResponse:
             assert self.existing_deployments
             method, args, lease = unpack_args(create_args)
-            create_result = self.create(
+            create_response = self.create(
                 abi_method=method,
                 args=args,
-                parameters=_add_lease_parameter(base_parameters, lease=lease),
+                parameters=_add_lease_parameter(common_parameters, lease),
                 template_values=template_values,
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
-            assert create_result.confirmed_round is not None
-            app_metadata = create_metadata(create_result.confirmed_round)
+            assert create_response.confirmed_round is not None
+            app_metadata = create_metadata(create_response.confirmed_round)
             self.existing_deployments.apps[name] = app_metadata
-            return DeployResponse(app_metadata, action_taken=OperationPerformed.Create)
+            return DeployResponse(
+                app=app_metadata, create_response=create_response, action_taken=OperationPerformed.Create
+            )
 
         if app.app_id == 0:
             logger.info(f"{name} not found in {self._creator} account, deploying app.")
@@ -426,24 +431,31 @@ class ApplicationClient:
                 atc,
                 abi_method=create_method,
                 args=c_args,
-                parameters=_add_lease_parameter(base_parameters, lease=create_lease),
+                parameters=_add_lease_parameter(common_parameters, create_lease),
                 template_values=template_values,
             )
             self.compose_delete(
                 atc,
                 abi_method=delete_method,
                 args=d_args,
-                parameters=_add_lease_parameter(base_parameters, lease=delete_lease),
+                parameters=_add_lease_parameter(common_parameters, delete_lease),
             )
-            create_delete_result = self._execute_atc(atc)
-            self._set_app_id_from_tx_id(create_delete_result.tx_ids[0])
+            create_delete_response = self._execute_atc(atc)
+            create_response = _tr_from_atr(atc, create_delete_response, 0)
+            delete_response = _tr_from_atr(atc, create_delete_response, 1)
+            self._set_app_id_from_tx_id(create_response.tx_id)
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
             logger.info(f"{name} ({app.version}) with app id {app.app_id}, deleted successfully.")
 
-            app_metadata = create_metadata(create_delete_result.confirmed_round)
+            app_metadata = create_metadata(create_delete_response.confirmed_round)
             self.existing_deployments.apps[name] = app_metadata
-            # TODO: include transaction responses
-            return DeployResponse(app_metadata, action_taken=OperationPerformed.Replace)
+
+            return DeployResponse(
+                app=app_metadata,
+                create_response=create_response,
+                delete_response=delete_response,
+                action_taken=OperationPerformed.Replace,
+            )
 
         def update_app() -> DeployResponse:
             assert on_update == OnUpdate.UpdateApp
@@ -451,17 +463,19 @@ class ApplicationClient:
             assert self.existing_deployments
             logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
             method, args, lease = unpack_args(update_args)
-            update_result = self.update(
+            update_response = self.update(
                 abi_method=method,
                 args=args,
-                parameters=_add_lease_parameter(base_parameters, lease=lease),
+                parameters=_add_lease_parameter(common_parameters, lease=lease),
                 template_values=template_values,
             )
             app_metadata = create_metadata(
-                app.created_round, updated_round=update_result.confirmed_round, original_metadata=app.created_metadata
+                app.created_round, updated_round=update_response.confirmed_round, original_metadata=app.created_metadata
             )
             self.existing_deployments.apps[name] = app_metadata
-            return DeployResponse(app_metadata, action_taken=OperationPerformed.Update)
+            return DeployResponse(
+                app=app_metadata, update_response=update_response, action_taken=OperationPerformed.Update
+            )
 
         if schema_breaking_change:
             logger.warning(
@@ -532,7 +546,7 @@ class ApplicationClient:
 
         logger.info("No detected changes in app, nothing to do.")
 
-        return DeployResponse(app)
+        return DeployResponse(app=app)
 
     def compose_create(
         self,
@@ -1138,17 +1152,7 @@ class ApplicationClient:
 
     def _execute_atc_tr(self, atc: AtomicTransactionComposer) -> TransactionResponse:
         result = self._execute_atc(atc)
-        if result.abi_results:
-            return ABITransactionResponse(
-                tx_id=result.tx_ids[0],
-                abi_result=result.abi_results[0],
-                confirmed_round=result.confirmed_round,
-            )
-        else:
-            return TransactionResponse(
-                tx_id=result.tx_ids[0],
-                confirmed_round=result.confirmed_round,
-            )
+        return _tr_from_atr(atc, result)
 
     def _execute_atc(self, atc: AtomicTransactionComposer) -> AtomicTransactionResponse:
         return execute_atc_with_logic_error(
@@ -1343,6 +1347,27 @@ def _get_deploy_control(
     return _get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
         h for h in app_spec.hints.values() if _get_call_config(h.call_config, on_complete) != CallConfig.NEVER
     )
+
+
+def _tr_from_atr(
+    atc: AtomicTransactionComposer, result: AtomicTransactionResponse, transaction_index: int = 0
+) -> TransactionResponse:
+    if result.abi_results and transaction_index in atc.method_dict:  # expecting an ABI result
+        abi_index = 0
+        # count how many of the earlier transactions were also ABI
+        for index in range(transaction_index):
+            if index in atc.method_dict:
+                abi_index += 1
+        return ABITransactionResponse(
+            tx_id=result.tx_ids[transaction_index],
+            abi_result=result.abi_results[abi_index],
+            confirmed_round=result.confirmed_round,
+        )
+    else:
+        return TransactionResponse(
+            tx_id=result.tx_ids[transaction_index],
+            confirmed_round=result.confirmed_round,
+        )
 
 
 def execute_atc_with_logic_error(
