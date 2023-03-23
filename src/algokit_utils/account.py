@@ -1,7 +1,7 @@
 import logging
 import os
 from collections.abc import Callable
-from typing import Any, cast
+from typing import Any
 
 from algosdk.account import address_from_private_key
 from algosdk.kmd import KMDClient
@@ -39,7 +39,8 @@ def get_or_create_kmd_wallet_account(
     account = get_kmd_wallet_account(client, kmd_client, name)
 
     if account:
-        account_info = cast(dict[str, Any], client.account_info(account.address))
+        account_info = client.account_info(account.address)
+        assert isinstance(account_info, dict)
         if account_info["amount"] > 0:
             return account
         logger.debug(f"Found existing account in Sandbox with name '{name}'." f"But no funds in the account.")
@@ -105,7 +106,8 @@ def get_kmd_wallet_account(
     matched_account_key = None
     if predicate:
         for key in key_ids:
-            account = cast(dict[str, Any], client.account_info(key))
+            account = client.account_info(key)
+            assert isinstance(account, dict)
             if predicate(account):
                 matched_account_key = key
     else:

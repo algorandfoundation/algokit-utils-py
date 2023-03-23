@@ -401,7 +401,8 @@ class ApplicationClient:
         assert isinstance(app, AppMetaData)
         logger.debug(f"{name} found in {self._creator} account, with app id {app.app_id}, version={app.version}.")
 
-        application_info = cast(dict[str, Any], self.algod_client.application_info(app.app_id))
+        application_info = self.algod_client.application_info(app.app_id)
+        assert isinstance(application_info, dict)
         application_create_params = application_info["params"]
 
         current_approval = base64.b64decode(application_create_params["approval-program"])
@@ -874,7 +875,8 @@ class ApplicationClient:
 
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
         """gets the global state info for the app id set"""
-        global_state = cast(dict[str, Any], self.algod_client.application_info(self.app_id))
+        global_state = self.algod_client.application_info(self.app_id)
+        assert isinstance(global_state, dict)
         return cast(
             dict[bytes | str, bytes | str | int],
             _decode_state(global_state.get("params", {}).get("global-state", {}), raw=raw),
@@ -886,7 +888,8 @@ class ApplicationClient:
         if account is None:
             _, account = self._resolve_signer_sender(self.signer, self.sender)
 
-        acct_state = cast(dict[str, Any], self.algod_client.account_application_info(account, self.app_id))
+        acct_state = self.algod_client.account_application_info(account, self.app_id)
+        assert isinstance(acct_state, dict)
         return cast(
             dict[bytes | str, bytes | str | int],
             _decode_state(acct_state.get("app-local-state", {}).get("key-value", {}), raw=raw),
@@ -1181,8 +1184,11 @@ class ApplicationClient:
 
 
 def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
-    result = cast(dict[str, Any], algod_client.pending_transaction_info(tx_id))
-    return cast(int, result["application-index"])
+    result = algod_client.pending_transaction_info(tx_id)
+    assert isinstance(result, dict)
+    app_id = result["application-index"]
+    assert isinstance(app_id, int)
+    return app_id
 
 
 def get_next_version(current_version: str) -> str:
@@ -1203,9 +1209,13 @@ def get_next_version(current_version: str) -> str:
 
 def _get_sender_from_signer(signer: TransactionSigner) -> str:
     if isinstance(signer, AccountTransactionSigner):
-        return cast(str, address_from_private_key(signer.private_key))  # type: ignore[no-untyped-call]
+        sender = address_from_private_key(signer.private_key)  # type: ignore[no-untyped-call]
+        assert isinstance(sender, str)
+        return sender
     elif isinstance(signer, MultisigTransactionSigner):
-        return cast(str, signer.msig.address())  # type: ignore[no-untyped-call]
+        sender = signer.msig.address()  # type: ignore[no-untyped-call]
+        assert isinstance(sender, str)
+        return sender
     elif isinstance(signer, LogicSigTransactionSigner):
         return signer.lsig.address()
     else:
