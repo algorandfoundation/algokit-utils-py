@@ -100,7 +100,6 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 class ABICallArgs:
     method: Method | str | bool | None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
-    bare: bool = False
     lease: str | bytes | None = dataclasses.field(default=None)
 
 
