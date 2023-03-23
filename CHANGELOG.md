@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.2 (2023-03-23)
+### Fix
+* Expose execute_atc_with_logic_error, allow specifying approval source map ([`f7a887b`](https://github.com/algorandfoundation/algokit-utils-py/commit/f7a887bd688d8527b3559da69bf4426f40fa01d1))
+* Resolve sender on __init__ ([`000612d`](https://github.com/algorandfoundation/algokit-utils-py/commit/000612dbfc14f55c0c78341f395710235e562caa))
+* Add rekey_to to call method ([#3](https://github.com/algorandfoundation/algokit-utils-py/issues/3)) ([`940e7aa`](https://github.com/algorandfoundation/algokit-utils-py/commit/940e7aaa9794891eb14a120a27c37084e78b4c18))
+* Handle app notes with partial data ([#2](https://github.com/algorandfoundation/algokit-utils-py/issues/2)) ([`3cc75db`](https://github.com/algorandfoundation/algokit-utils-py/commit/3cc75db1f40e72da6762c1fe371153a0d610a2b7))
+
 ## v0.1.1 (2023-03-22)
 ### Fix
 * Don't mutate provided args when calling ([`c152ed9`](https://github.com/algorandfoundation/algokit-utils-py/commit/c152ed9171d2e734ebae69abb803b60e01e96338))
