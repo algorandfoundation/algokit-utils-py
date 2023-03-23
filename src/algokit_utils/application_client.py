@@ -185,7 +185,7 @@ class ApplicationClient:
         self.app_spec = app_spec
         self._approval_program: Program | None = None
         self._clear_program: Program | None = None
-        self._approval_source_map: SourceMap | None = None
+        self.approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
         self._indexer_client = indexer_client
         if creator is not None:
@@ -226,17 +226,12 @@ class ApplicationClient:
     def app_address(self) -> str:
         return get_application_address(self.app_id)
 
-    # TODO: source map changes
     @property
-    def approval(self) -> Program:
-        if not self._approval_program:
-            self._approval_program = Program(self.app_spec.approval_program, self.algod_client)
+    def approval(self) -> Program | None:
         return self._approval_program
 
     @property
-    def clear(self) -> Program:
-        if not self._clear_program:
-            self._clear_program = Program(self.app_spec.clear_program, self.algod_client)
+    def clear(self) -> Program | None:
         return self._clear_program
 
     def deploy(
@@ -502,7 +497,7 @@ class ApplicationClient:
         extra_pages: int | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> None:
+    ) -> tuple[Program, Program]:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
 
         approval_program, clear_program = self._substitute_template_and_compile(template_values)
@@ -529,6 +524,8 @@ class ApplicationClient:
             lease=lease,
         )
 
+        return approval_program, clear_program
+
     def create(
         self,
         abi_method: Method | str | bool | None = None,
@@ -547,7 +544,7 @@ class ApplicationClient:
 
         atc = AtomicTransactionComposer()
 
-        self.compose_create(
+        self._approval_program, self._clear_program = self.compose_create(
             atc,
             abi_method,
             args,
@@ -576,7 +573,7 @@ class ApplicationClient:
         template_values: TemplateValueDict | None = None,
         note: bytes | str | None = None,
         lease: bytes | None = None,
-    ) -> None:
+    ) -> tuple[Program, Program]:
         """Adds a signed transaction with on_complete=UpdateApplication to atc"""
 
         self._load_reference_and_check_app_id()
@@ -597,6 +594,8 @@ class ApplicationClient:
             lease=lease,
         )
 
+        return approval_program, clear_program
+
     def update(
         self,
         abi_method: Method | str | bool | None = None,
@@ -612,7 +611,7 @@ class ApplicationClient:
         """Submits a signed transaction with on_complete=UpdateApplication"""
 
         atc = AtomicTransactionComposer()
-        self.compose_update(
+        self._approval_program, self._clear_program = self.compose_update(
             atc,
             abi_method,
             args,
@@ -1069,21 +1068,11 @@ class ApplicationClient:
         self._clear_program = Program(clear, self.algod_client)
         return self._approval_program, self._clear_program
 
-    def _get_approval_source_map(self) -> SourceMap:
-        def _find_template_vars(program: str) -> list[str]:
-            pattern = re.compile(r"\bTMPL_(\w*)\b")
-            return pattern.findall(program)
+    def _get_approval_source_map(self) -> SourceMap | None:
+        if self.approval:
+            return self.approval.source_map
 
-        if not self._approval_source_map:
-            if self._approval_program:
-                self._approval_source_map = self._approval_program.source_map
-            else:
-                # TODO: this will produce an incorrect source map for bytes as their length is not fixed
-                template_values: TemplateValueDict = {k: 0 for k in _find_template_vars(self.app_spec.approval_program)}
-                approval_program = replace_template_variables(self.app_spec.approval_program, template_values)
-                approval = Program(approval_program, self.algod_client)
-                self._approval_source_map = approval.source_map
-        return self._approval_source_map
+        return self.approval_source_map
 
     def _add_method_call(
         self,
@@ -1254,21 +1243,13 @@ class ApplicationClient:
                 confirmed_round=result.confirmed_round,
             )
 
-    def _execute_atc(self, atc: AtomicTransactionComposer, wait_rounds: int = 4) -> AtomicTransactionResponse:
-        try:
-            return atc.execute(self.algod_client, wait_rounds=wait_rounds)
-        except Exception as ex:
-            logic_error_data = parse_logic_error(str(ex))
-            if logic_error_data is not None:
-                source_map = self._get_approval_source_map()
-                if source_map:
-                    raise LogicError(
-                        logic_error=ex,
-                        program=self.app_spec.approval_program,
-                        source_map=source_map,
-                        **logic_error_data,
-                    ) from ex
-            raise ex
+    def _execute_atc(self, atc: AtomicTransactionComposer) -> AtomicTransactionResponse:
+        return execute_atc_with_logic_error(
+            atc,
+            self.algod_client,
+            approval_program=self.approval.teal if self.approval else self.app_spec.approval_program,
+            approval_source_map=self._get_approval_source_map(),
+        )
 
     def _set_app_id_from_tx_id(self, tx_id: str) -> None:
         self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
@@ -1455,3 +1436,25 @@ def _get_deploy_control(
     return _get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
         h for h in app_spec.hints.values() if _get_call_config(h.call_config, on_complete) != CallConfig.NEVER
     )
+
+
+def execute_atc_with_logic_error(
+    atc: AtomicTransactionComposer,
+    algod_client: AlgodClient,
+    wait_rounds: int = 4,
+    approval_program: str | None = None,
+    approval_source_map: SourceMap | None = None,
+) -> AtomicTransactionResponse:
+    try:
+        return atc.execute(algod_client, wait_rounds=wait_rounds)
+    except Exception as ex:
+        if approval_source_map and approval_program:
+            logic_error_data = parse_logic_error(str(ex))
+            if logic_error_data is not None:
+                raise LogicError(
+                    logic_error=ex,
+                    program=approval_program,
+                    source_map=approval_source_map,
+                    **logic_error_data,
+                ) from ex
+        raise ex
