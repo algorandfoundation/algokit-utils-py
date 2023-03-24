@@ -177,7 +177,6 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
     return AppLookup(creator_address, apps)
 
 
-# TODO: put these somewhere more useful
 def _state_schema(schema: dict[str, int]) -> StateSchema:
     return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
 

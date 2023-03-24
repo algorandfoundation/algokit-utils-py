@@ -9,7 +9,7 @@ from algosdk.transaction import OnComplete
 
 
 def test_bare_create(client_fixture: ApplicationClient) -> None:
-    client_fixture.create(abi_method=False)
+    client_fixture.create(call_abi_method=False)
 
     assert client_fixture.call("hello", name="test").return_value == "Hello Bare, test"
 
@@ -30,7 +30,7 @@ def test_abi_create_args(
 
 
 def test_create_auto_find(client_fixture: ApplicationClient) -> None:
-    client_fixture.create(parameters={"on_complete": OnComplete.OptInOC})
+    client_fixture.create(transaction_parameters={"on_complete": OnComplete.OptInOC})
 
     assert client_fixture.call("hello", name="test").return_value == "Opt In, test"
 
@@ -47,7 +47,7 @@ def test_abi_create_with_atc(client_fixture: ApplicationClient) -> None:
 
 def test_bare_create_with_atc(client_fixture: ApplicationClient) -> None:
     atc = AtomicTransactionComposer()
-    client_fixture.compose_create(atc, abi_method=False)
+    client_fixture.compose_create(atc, call_abi_method=False)
 
     create_result = atc.execute(client_fixture.algod_client, 4)
     client_fixture.app_id = get_app_id_from_tx_id(client_fixture.algod_client, create_result.tx_ids[0])
