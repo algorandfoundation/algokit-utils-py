@@ -410,9 +410,9 @@ class ApplicationClient:
         def create_app() -> DeployResponse:
             assert self.existing_deployments
             create_response = self.create(
-                call_abi_method=_create_args.method,
+                _create_args.method,
+                _add_lease_parameter(common_parameters, _create_args.lease),
                 **_create_args.args,
-                transaction_parameters=_add_lease_parameter(common_parameters, _create_args.lease),
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
             assert create_response.confirmed_round is not None
@@ -445,15 +445,15 @@ class ApplicationClient:
             atc = AtomicTransactionComposer()
             self.compose_create(
                 atc,
-                call_abi_method=_create_args.method,
+                _create_args.method,
+                _add_lease_parameter(common_parameters, _create_args.lease),
                 **_create_args.args,
-                transaction_parameters=_add_lease_parameter(common_parameters, _create_args.lease),
             )
             self.compose_delete(
                 atc,
-                call_abi_method=_delete_args.method,
+                _delete_args.method,
+                _add_lease_parameter(common_parameters, _delete_args.lease),
                 **_delete_args.args,
-                transaction_parameters=_add_lease_parameter(common_parameters, _delete_args.lease),
             )
             create_delete_response = self.execute_atc(atc)
             create_response = _tr_from_atr(atc, create_delete_response, 0)
@@ -478,9 +478,9 @@ class ApplicationClient:
             assert self.existing_deployments
             logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
             update_response = self.update(
-                call_abi_method=_update_args.method,
+                _update_args.method,
+                _add_lease_parameter(common_parameters, lease=_update_args.lease),
                 **_update_args.args,
-                transaction_parameters=_add_lease_parameter(common_parameters, lease=_update_args.lease),
             )
             app_metadata = create_metadata(
                 app.created_round, updated_round=update_response.confirmed_round, original_metadata=app.created_metadata
