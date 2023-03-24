@@ -28,31 +28,12 @@ from algosdk.source_map import SourceMap
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils.app import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
-    AppDeployMetaData,
-    AppLookup,
-    AppMetaData,
-    AppReference,
-    DeploymentFailedError,
-    TemplateValueDict,
-    _add_deploy_template_variables,
-    _check_template_variables,
-    _schema_is_less,
-    _schema_str,
-    _state_schema,
-    _strip_comments,
-    get_creator_apps,
-    replace_template_variables,
-)
+import algokit_utils.deploy as au_deploy
 from algokit_utils.application_specification import (
     ApplicationSpecification,
     CallConfig,
     DefaultArgumentDict,
-    MethodConfigDict,
     MethodHints,
-    OnCompleteActionName,
 )
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import Account
@@ -134,9 +115,6 @@ class OperationPerformed(Enum):
     Replace = 3
 
 
-# TODO: consider using prepare so signer, sender are only defined at app_client instantiation
-
-
 @dataclasses.dataclass(kw_only=True)
 class TransactionResponse:
     tx_id: str
@@ -145,7 +123,7 @@ class TransactionResponse:
 
 @dataclasses.dataclass(kw_only=True)
 class DeployResponse:
-    app: AppMetaData
+    app: au_deploy.AppMetaData
     create_response: TransactionResponse | None = None
     delete_response: TransactionResponse | None = None
     update_response: TransactionResponse | None = None
@@ -211,6 +189,7 @@ class ApplicationClient:
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
     ):
         ...
 
@@ -222,10 +201,11 @@ class ApplicationClient:
         *,
         creator: str | Account,
         indexer_client: IndexerClient | None = None,
-        existing_deployments: AppLookup | None = None,
+        existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
     ):
         ...
 
@@ -237,15 +217,28 @@ class ApplicationClient:
         app_id: int = 0,
         creator: str | Account | None = None,
         indexer_client: IndexerClient | None = None,
-        existing_deployments: AppLookup | None = None,
+        existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
     ):
         self.algod_client = algod_client
         self.app_spec = app_spec
-        self._approval_program: Program | None = None
-        self._clear_program: Program | None = None
+        self._approval_program: Program | None
+        self._clear_program: Program | None
+
+        if template_values:
+            self._approval_program, self._clear_program = substitute_template_and_compile(
+                self.algod_client, app_spec, template_values
+            )
+        elif not au_deploy.has_template_vars(app_spec):
+            self._approval_program = Program(self.app_spec.approval_program, self.algod_client)
+            self._clear_program = Program(self.app_spec.clear_program, self.algod_client)
+        else:  # can't compile programs yet
+            self._approval_program = None
+            self._clear_program = None
+
         self.approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
         self._indexer_client = indexer_client
@@ -295,6 +288,37 @@ class ApplicationClient:
     def clear(self) -> Program | None:
         return self._clear_program
 
+    def prepare(
+        self,
+        signer: TransactionSigner | Account | None = None,
+        sender: str | None = None,
+        app_id: int | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
+    ) -> "ApplicationClient":
+        import copy
+
+        new_client = copy.copy(self)
+        self._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
+        return new_client
+
+    def _prepare(
+        self,
+        target: "ApplicationClient",
+        signer: TransactionSigner | Account | None = None,
+        sender: str | None = None,
+        app_id: int | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
+    ) -> None:
+        target.app_id = self.app_id if app_id is None else app_id
+        if signer or sender:
+            target.signer, target.sender = target._resolve_signer_sender(
+                AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
+            )
+        if template_values:
+            target._approval_program, target._clear_program = substitute_template_and_compile(
+                target.algod_client, target.app_spec, template_values
+            )
+
     def deploy(
         self,
         version: str | None = None,
@@ -305,21 +329,23 @@ class ApplicationClient:
         allow_delete: bool | None = None,
         on_update: OnUpdate = OnUpdate.Fail,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
-        template_values: TemplateValueDict | None = None,
+        template_values: au_deploy.TemplateValueDict | None = None,
         create_args: ABICallArgs | ABICallArgsDict | None = None,
         update_args: ABICallArgs | ABICallArgsDict | None = None,
         delete_args: ABICallArgs | ABICallArgsDict | None = None,
     ) -> DeployResponse:
         """Ensures app associated with app client's creator is present and up to date"""
         if self.app_id:
-            raise DeploymentFailedError(f"Attempt to deploy app which already has an app index of {self.app_id}")
+            raise au_deploy.DeploymentFailedError(
+                f"Attempt to deploy app which already has an app index of {self.app_id}"
+            )
         signer, sender = self._resolve_signer_sender(signer, sender)
         if not sender:
-            raise DeploymentFailedError("No sender provided, unable to deploy app")
+            raise au_deploy.DeploymentFailedError("No sender provided, unable to deploy app")
         if not self._creator:
-            raise DeploymentFailedError("No creator provided, unable to deploy app")
+            raise au_deploy.DeploymentFailedError("No creator provided, unable to deploy app")
         if self._creator != sender:
-            raise DeploymentFailedError(
+            raise au_deploy.DeploymentFailedError(
                 f"Attempt to deploy contract with a sender address {sender} that differs "
                 f"from the given creator address for this application client: {self._creator}"
             )
@@ -330,18 +356,25 @@ class ApplicationClient:
 
         # make a copy
         template_values = dict(template_values or {})
-        _add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
-        approval_program, clear_program = self._substitute_template_and_compile(template_values)
+        au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
+
+        # TODO: how to undo this if deployment fails?!
+        self._prepare(self, template_values=template_values, sender=sender, signer=signer)
+        approval_program, clear_program = self._check_is_compiled()
 
         updatable = (
             allow_update
             if allow_update is not None
-            else _get_deploy_control(self.app_spec, UPDATABLE_TEMPLATE_NAME, transaction.OnComplete.UpdateApplicationOC)
+            else au_deploy.get_deploy_control(
+                self.app_spec, au_deploy.UPDATABLE_TEMPLATE_NAME, transaction.OnComplete.UpdateApplicationOC
+            )
         )
         deletable = (
             allow_delete
             if allow_delete is not None
-            else _get_deploy_control(self.app_spec, DELETABLE_TEMPLATE_NAME, transaction.OnComplete.DeleteApplicationOC)
+            else au_deploy.get_deploy_control(
+                self.app_spec, au_deploy.DELETABLE_TEMPLATE_NAME, transaction.OnComplete.DeleteApplicationOC
+            )
         )
 
         name = self.app_spec.contract.name
@@ -353,14 +386,16 @@ class ApplicationClient:
             if app.app_id == 0:
                 version = "v1.0"
             else:
-                assert isinstance(app, AppDeployMetaData)
+                assert isinstance(app, au_deploy.AppDeployMetaData)
                 version = get_next_version(app.version)
-        app_spec_note = AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
+        app_spec_note = au_deploy.AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
 
         def create_metadata(
-            created_round: int, updated_round: int | None = None, original_metadata: AppDeployMetaData | None = None
-        ) -> AppMetaData:
-            app_metadata = AppMetaData(
+            created_round: int,
+            updated_round: int | None = None,
+            original_metadata: au_deploy.AppDeployMetaData | None = None,
+        ) -> au_deploy.AppMetaData:
+            app_metadata = au_deploy.AppMetaData(
                 app_id=self.app_id,
                 app_address=self.app_address,
                 created_metadata=original_metadata or app_spec_note,
@@ -379,7 +414,6 @@ class ApplicationClient:
                 abi_method=_create_args.method,
                 **_create_args.args,
                 parameters=_add_lease_parameter(common_parameters, _create_args.lease),
-                template_values=template_values,
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
             assert create_response.confirmed_round is not None
@@ -393,31 +427,20 @@ class ApplicationClient:
             logger.info(f"{name} not found in {self._creator} account, deploying app.")
             return create_app()
 
-        assert isinstance(app, AppMetaData)
+        assert isinstance(app, au_deploy.AppMetaData)
         logger.debug(f"{name} found in {self._creator} account, with app id {app.app_id}, version={app.version}.")
 
-        application_info = self.algod_client.application_info(app.app_id)
-        assert isinstance(application_info, dict)
-        application_create_params = application_info["params"]
-
-        current_approval = base64.b64decode(application_create_params["approval-program"])
-        current_clear = base64.b64decode(application_create_params["clear-state-program"])
-        current_global_schema = _state_schema(application_create_params["global-state-schema"])
-        current_local_schema = _state_schema(application_create_params["local-state-schema"])
-
-        required_global_schema = self.app_spec.global_state_schema
-        required_local_schema = self.app_spec.local_state_schema
-        new_approval = approval_program.raw_binary
-        new_clear = clear_program.raw_binary
-
-        app_updated = current_approval != new_approval or current_clear != new_clear
-
-        schema_breaking_change = _schema_is_less(current_global_schema, required_global_schema) or _schema_is_less(
-            current_local_schema, required_local_schema
+        app_changes = au_deploy.check_for_app_changes(
+            self.algod_client,
+            new_approval=approval_program.raw_binary,
+            new_clear=clear_program.raw_binary,
+            new_global_schema=self.app_spec.global_state_schema,
+            new_local_schema=self.app_spec.local_state_schema,
+            app_id=app.app_id,
         )
 
         def create_and_delete_app() -> DeployResponse:
-            assert isinstance(app, AppMetaData)
+            assert isinstance(app, au_deploy.AppMetaData)
             assert self.existing_deployments
             logger.info(f"Replacing {name} ({app.version}) with {name} ({version}) in {self._creator} account.")
             atc = AtomicTransactionComposer()
@@ -426,7 +449,6 @@ class ApplicationClient:
                 abi_method=_create_args.method,
                 **_create_args.args,
                 parameters=_add_lease_parameter(common_parameters, _create_args.lease),
-                template_values=template_values,
             )
             self.compose_delete(
                 atc,
@@ -453,14 +475,13 @@ class ApplicationClient:
 
         def update_app() -> DeployResponse:
             assert on_update == OnUpdate.UpdateApp
-            assert isinstance(app, AppMetaData)
+            assert isinstance(app, au_deploy.AppMetaData)
             assert self.existing_deployments
             logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
             update_response = self.update(
                 abi_method=_update_args.method,
                 **_update_args.args,
                 parameters=_add_lease_parameter(common_parameters, lease=_update_args.lease),
-                template_values=template_values,
             )
             app_metadata = create_metadata(
                 app.created_round, updated_round=update_response.confirmed_round, original_metadata=app.created_metadata
@@ -470,15 +491,11 @@ class ApplicationClient:
                 app=app_metadata, update_response=update_response, action_taken=OperationPerformed.Update
             )
 
-        if schema_breaking_change:
-            logger.warning(
-                f"Detected a breaking app schema change from: "
-                f"{_schema_str(current_global_schema, current_local_schema)} to "
-                f"{_schema_str(required_global_schema, required_local_schema)}."
-            )
+        if app_changes.schema_breaking_change:
+            logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
 
             if on_schema_break == OnSchemaBreak.Fail:
-                raise DeploymentFailedError(
+                raise au_deploy.DeploymentFailedError(
                     "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
                     "If you want to try deleting and recreating the app then "
                     "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
@@ -497,11 +514,11 @@ class ApplicationClient:
                     "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
                 )
             return create_and_delete_app()
-        elif app_updated:
+        elif app_changes.app_updated:
             logger.info(f"Detected a TEAL update in app id {app.app_id}")
 
             if on_update == OnUpdate.Fail:
-                raise DeploymentFailedError(
+                raise au_deploy.DeploymentFailedError(
                     "Update detected and on_update=Fail, stopping deployment. "
                     "If you want to try updating the app then re-run with on_update=UpdateApp"
                 )
@@ -541,19 +558,24 @@ class ApplicationClient:
 
         return DeployResponse(app=app)
 
+    def _check_is_compiled(self) -> tuple[Program, Program]:
+        if self._approval_program is None or self._clear_program is None:
+            raise Exception(
+                "Compiled programs are not available, " "please provide template_values before creating or updating"
+            )
+        return self._approval_program, self._clear_program
+
     def compose_create(
         self,
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
         *,
         parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
-        template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
         **kwargs: Any,
-    ) -> tuple[Program, Program]:
+    ) -> None:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
-
-        approval_program, clear_program = self._substitute_template_and_compile(template_values)
+        approval_program, clear_program = self._check_is_compiled()
 
         if extra_pages is None:
             extra_pages = num_extra_program_pages(approval_program.raw_binary, clear_program.raw_binary)
@@ -574,14 +596,11 @@ class ApplicationClient:
             extra_pages=extra_pages,
         )
 
-        return approval_program, clear_program
-
     def create(
         self,
         abi_method: Method | str | bool | None = None,
         *,
         parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
-        template_values: TemplateValueDict | None = None,
         extra_pages: int | None = None,
         **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -589,11 +608,10 @@ class ApplicationClient:
 
         atc = AtomicTransactionComposer()
 
-        self._approval_program, self._clear_program = self.compose_create(
+        self.compose_create(
             atc,
             abi_method,
             parameters=parameters,
-            template_values=template_values,
             extra_pages=extra_pages,
             **kwargs,
         )
@@ -607,12 +625,10 @@ class ApplicationClient:
         abi_method: Method | str | bool | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
-        template_values: TemplateValueDict | None = None,
         **kwargs: Any,
-    ) -> tuple[Program, Program]:
+    ) -> None:
         """Adds a signed transaction with on_complete=UpdateApplication to atc"""
-
-        approval_program, clear_program = self._substitute_template_and_compile(template_values)
+        approval_program, clear_program = self._check_is_compiled()
 
         self._add_method_call(
             atc=atc,
@@ -624,24 +640,20 @@ class ApplicationClient:
             clear_program=clear_program.raw_binary,
         )
 
-        return approval_program, clear_program
-
     def update(
         self,
         abi_method: Method | str | bool | None = None,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
-        template_values: TemplateValueDict | None = None,
         **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=UpdateApplication"""
 
         atc = AtomicTransactionComposer()
-        self._approval_program, self._clear_program = self.compose_update(
+        self.compose_update(
             atc,
             abi_method,
             parameters=parameters,
-            template_values=template_values,
             **kwargs,
         )
         return self._execute_atc_tr(atc)
@@ -912,10 +924,10 @@ class ApplicationClient:
         self._load_app_reference()
         self._check_app_id()
 
-    def _load_app_reference(self) -> AppReference | AppMetaData:
+    def _load_app_reference(self) -> au_deploy.AppReference | au_deploy.AppMetaData:
         if not self.existing_deployments and self._creator:
             assert self._indexer_client
-            self.existing_deployments = get_creator_apps(self._indexer_client, self._creator)
+            self.existing_deployments = au_deploy.get_creator_apps(self._indexer_client, self._creator)
 
         if self.existing_deployments and self.app_id == 0:
             app = self.existing_deployments.apps.get(self.app_spec.contract.name)
@@ -923,7 +935,7 @@ class ApplicationClient:
                 self.app_id = app.app_id
                 return app
 
-        return AppReference(self.app_id, self.app_address)
+        return au_deploy.AppReference(self.app_id, self.app_address)
 
     def _check_app_id(self) -> None:
         if self.app_id == 0:
@@ -947,7 +959,7 @@ class ApplicationClient:
                 return self._resolve_abi_method(abi_method)
             case bool() | None:  # find abi method
                 has_bare_config = (
-                    call_config in _get_call_config(self.app_spec.bare_call_config, on_complete)
+                    call_config in au_deploy.get_call_config(self.app_spec.bare_call_config, on_complete)
                     or on_complete == transaction.OnComplete.ClearStateOC
                 )
                 abi_methods = self._find_abi_methods(args, on_complete, call_config)
@@ -968,20 +980,6 @@ class ApplicationClient:
             raise Exception(
                 f"Could not find any methods to use for {on_complete.name} with call_config of {call_config.name}"
             )
-
-    def _substitute_template_and_compile(
-        self,
-        template_values: TemplateValueDict | None,
-    ) -> tuple[Program, Program]:
-        template_values = dict(template_values or {})
-        clear = replace_template_variables(self.app_spec.clear_program, template_values)
-
-        _check_template_variables(self.app_spec.approval_program, template_values)
-        approval = replace_template_variables(self.app_spec.approval_program, template_values)
-
-        self._approval_program = Program(approval, self.algod_client)
-        self._clear_program = Program(clear, self.algod_client)
-        return self._approval_program, self._clear_program
 
     def _get_approval_source_map(self) -> SourceMap | None:
         if self.approval:
@@ -1103,7 +1101,7 @@ class ApplicationClient:
         self, method: Method, args: ABIArgsDict | None, on_complete: transaction.OnComplete, call_config: CallConfig
     ) -> bool:
         hints = self._method_hints(method)
-        if call_config not in _get_call_config(hints.call_config, on_complete):
+        if call_config not in au_deploy.get_call_config(hints.call_config, on_complete):
             return False
         method_args = {m.name for m in method.args}
         provided_args = set(args or {}) | set(hints.default_arguments)
@@ -1166,6 +1164,20 @@ class ApplicationClient:
         return resolved_signer, resolved_sender
 
 
+def substitute_template_and_compile(
+    algod_client: AlgodClient,
+    app_spec: ApplicationSpecification,
+    template_values: au_deploy.TemplateValueDict,
+) -> tuple[Program, Program]:
+    template_values = dict(template_values or {})
+    clear = au_deploy.replace_template_variables(app_spec.clear_program, template_values)
+
+    au_deploy.check_template_variables(app_spec.approval_program, template_values)
+    approval = au_deploy.replace_template_variables(app_spec.approval_program, template_values)
+
+    return Program(approval, algod_client), Program(clear, algod_client)
+
+
 def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
     result = algod_client.pending_transaction_info(tx_id)
     assert isinstance(result, dict)
@@ -1185,7 +1197,7 @@ def get_next_version(current_version: str) -> str:
             return f"{m.group('prefix')}{new_version}{m.group('suffix')}"
 
         return re.sub(pattern, replacement, current_version)
-    raise DeploymentFailedError(
+    raise au_deploy.DeploymentFailedError(
         f"Could not auto increment {current_version}, please specify the next version using the version parameter"
     )
 
@@ -1317,25 +1329,6 @@ def _increment_version(version: str) -> str:
     return ".".join(str(x) for x in split)
 
 
-def _get_call_config(method_config: MethodConfigDict, on_complete: transaction.OnComplete) -> CallConfig:
-    def get(key: OnCompleteActionName) -> CallConfig:
-        return method_config.get(key, CallConfig.NEVER)
-
-    match on_complete:
-        case transaction.OnComplete.NoOpOC:
-            return get("no_op")
-        case transaction.OnComplete.UpdateApplicationOC:
-            return get("update_application")
-        case transaction.OnComplete.DeleteApplicationOC:
-            return get("delete_application")
-        case transaction.OnComplete.OptInOC:
-            return get("opt_in")
-        case transaction.OnComplete.CloseOutOC:
-            return get("close_out")
-        case transaction.OnComplete.ClearStateOC:
-            return get("clear_state")
-
-
 def _str_or_hex(v: bytes) -> str:
     decoded: str
     try:
@@ -1370,16 +1363,6 @@ def _decode_state(state: list[dict[str, Any]], *, raw: bool = False) -> dict[str
 
         decoded_state[key] = val
     return decoded_state
-
-
-def _get_deploy_control(
-    app_spec: ApplicationSpecification, template_var: str, on_complete: transaction.OnComplete
-) -> bool | None:
-    if template_var not in _strip_comments(app_spec.approval_program):
-        return None
-    return _get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
-        h for h in app_spec.hints.values() if _get_call_config(h.call_config, on_complete) != CallConfig.NEVER
-    )
 
 
 def _tr_from_atr(

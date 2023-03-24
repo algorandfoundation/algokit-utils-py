@@ -10,18 +10,6 @@ from algokit_utils.account import (
     get_or_create_kmd_wallet_account,
     get_sandbox_default_account,
 )
-from algokit_utils.app import (
-    DELETABLE_TEMPLATE_NAME,
-    NOTE_PREFIX,
-    UPDATABLE_TEMPLATE_NAME,
-    AppDeployMetaData,
-    AppLookup,
-    AppMetaData,
-    AppReference,
-    DeploymentFailedError,
-    get_creator_apps,
-    replace_template_variables,
-)
 from algokit_utils.application_client import (
     ABICallArgs,
     ABICallArgsDict,
@@ -51,6 +39,18 @@ from algokit_utils.application_specification import (
     MethodConfigDict,
     MethodHints,
     OnCompleteActionName,
+)
+from algokit_utils.deploy import (
+    DELETABLE_TEMPLATE_NAME,
+    NOTE_PREFIX,
+    UPDATABLE_TEMPLATE_NAME,
+    AppDeployMetaData,
+    AppLookup,
+    AppMetaData,
+    AppReference,
+    DeploymentFailedError,
+    get_creator_apps,
+    replace_template_variables,
 )
 from algokit_utils.logic_error import LogicError
 from algokit_utils.models import Account
