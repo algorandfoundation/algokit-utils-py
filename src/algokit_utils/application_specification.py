@@ -97,7 +97,7 @@ class MethodHints:
 
 
 def _encode_method_config(mc: MethodConfigDict) -> dict[str, str | None]:
-    return {k: v.name for k, v in mc.items() if v != CallConfig.NEVER}
+    return {k: mc[k].name for k in sorted(mc) if mc[k] != CallConfig.NEVER}
 
 
 def _decode_method_config(data: dict[OnCompleteActionName, Any]) -> MethodConfigDict:
