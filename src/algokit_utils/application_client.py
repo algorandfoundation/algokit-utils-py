@@ -433,7 +433,7 @@ class ApplicationClient:
                 **_delete_args.args,
                 parameters=_add_lease_parameter(common_parameters, _delete_args.lease),
             )
-            create_delete_response = self._execute_atc(atc)
+            create_delete_response = self.execute_atc(atc)
             create_response = _tr_from_atr(atc, create_delete_response, 0)
             delete_response = _tr_from_atr(atc, create_delete_response, 1)
             self._set_app_id_from_tx_id(create_response.tx_id)
@@ -1141,10 +1141,10 @@ class ApplicationClient:
         return self.app_spec.hints[sig]
 
     def _execute_atc_tr(self, atc: AtomicTransactionComposer) -> TransactionResponse:
-        result = self._execute_atc(atc)
+        result = self.execute_atc(atc)
         return _tr_from_atr(atc, result)
 
-    def _execute_atc(self, atc: AtomicTransactionComposer) -> AtomicTransactionResponse:
+    def execute_atc(self, atc: AtomicTransactionComposer) -> AtomicTransactionResponse:
         return execute_atc_with_logic_error(
             atc,
             self.algod_client,
