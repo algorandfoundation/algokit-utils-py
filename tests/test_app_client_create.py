@@ -1,3 +1,4 @@
+import pytest
 from algokit_utils import (
     ApplicationClient,
     ApplicationSpecification,
@@ -19,9 +20,11 @@ def test_abi_create(client_fixture: ApplicationClient) -> None:
     assert client_fixture.call("hello", name="test").return_value == "Hello ABI, test"
 
 
-def test_abi_create_args(client_fixture: ApplicationClient, app_spec: ApplicationSpecification) -> None:
-    create = next(m for m in app_spec.contract.methods if m.name == "create_args")
-    client_fixture.create(create, greeting="ahoy")
+@pytest.mark.parametrize("method", ["create_args", "create_args(string)void", True])
+def test_abi_create_args(
+    method: str | bool, client_fixture: ApplicationClient, app_spec: ApplicationSpecification
+) -> None:
+    client_fixture.create(method, greeting="ahoy")
 
     assert client_fixture.call("hello", name="test").return_value == "ahoy, test"
 

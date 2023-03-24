@@ -70,8 +70,6 @@ __all__ = [
     "CommonCallParametersDict",
     "OnCompleteCallParameters",
     "OnCompleteCallParametersDict",
-    "FullCallParameters",
-    "FullCallParametersDict",
     "DeployResponse",
     "OnUpdate",
     "OnSchemaBreak",
@@ -136,6 +134,9 @@ class OperationPerformed(Enum):
     Replace = 3
 
 
+# TODO: consider using prepare so signer, sender are only defined at app_client instantiation
+
+
 @dataclasses.dataclass(kw_only=True)
 class TransactionResponse:
     tx_id: str
@@ -167,20 +168,16 @@ class CommonCallParameters:
     suggested_params: transaction.SuggestedParams | None = None
     note: bytes | str | None = None
     lease: bytes | str | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class OnCompleteCallParameters(CommonCallParameters):
-    on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC
-
-
-@dataclasses.dataclass(kw_only=True)
-class FullCallParameters(OnCompleteCallParameters):
     accounts: list[str] | None = None
     foreign_apps: list[int] | None = None
     foreign_assets: list[int] | None = None
     boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
     rekey_to: str | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class OnCompleteCallParameters(CommonCallParameters):
+    on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC
 
 
 class CommonCallParametersDict(TypedDict, total=False):
@@ -691,11 +688,10 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         abi_method: Method | str | bool | None = None,
         *,
-        parameters: FullCallParameters | FullCallParametersDict | None = None,
+        parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **kwargs: Any,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
-
         _parameters = _convert_call_parameters(parameters)
         self._add_method_call(
             atc,
@@ -703,11 +699,6 @@ class ApplicationClient:
             abi_args=kwargs,
             parameters=_parameters,
             on_complete=_parameters.on_complete,
-            accounts=_parameters.accounts,
-            foreign_apps=_parameters.foreign_apps,
-            foreign_assets=_parameters.foreign_assets,
-            boxes=_parameters.boxes,
-            rekey_to=_parameters.rekey_to,
         )
 
     @overload
@@ -715,7 +706,7 @@ class ApplicationClient:
         self,
         abi_method: Method | str | Literal[True],
         *,
-        parameters: FullCallParameters | FullCallParametersDict | None = None,
+        parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **kwargs: Any,
     ) -> ABITransactionResponse:
         ...
@@ -725,7 +716,7 @@ class ApplicationClient:
         self,
         abi_method: Literal[False],
         *,
-        parameters: FullCallParameters | FullCallParametersDict | None = None,
+        parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **kwargs: Any,
     ) -> TransactionResponse:
         ...
@@ -734,7 +725,7 @@ class ApplicationClient:
         self,
         abi_method: Method | str | bool | None = None,
         *,
-        parameters: FullCallParameters | FullCallParametersDict | None = None,
+        parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **kwargs: Any,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with specified parameters"""
@@ -843,24 +834,28 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        app_args: list[bytes] | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=ClearState to atc"""
         return self._add_method_call(
             atc,
             parameters=parameters,
             on_complete=transaction.OnComplete.ClearStateOC,
+            app_args=app_args,
         )
 
     def clear_state(
         self,
         *,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        app_args: list[bytes] | None = None,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=ClearState"""
         atc = AtomicTransactionComposer()
         self.compose_clear_state(
             atc,
             parameters=parameters,
+            app_args=app_args,
         )
         return self._execute_atc_tr(atc)
 
@@ -1007,11 +1002,7 @@ class ApplicationClient:
         approval_program: bytes | None = None,
         clear_program: bytes | None = None,
         extra_pages: int | None = None,
-        accounts: list[str] | None = None,
-        foreign_apps: list[int] | None = None,
-        foreign_assets: list[int] | None = None,
-        boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None,
-        rekey_to: str | None = None,
+        app_args: list[bytes] | None = None,
         call_config: CallConfig = CallConfig.CALL,
     ) -> None:
         """Adds a transaction to the AtomicTransactionComposer passed"""
@@ -1022,9 +1013,9 @@ class ApplicationClient:
         method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self._resolve_signer_sender(parameters.signer, parameters.sender)
-        if boxes is not None:
+        if parameters.boxes is not None:
             # TODO: algosdk actually does this, but it's type hints say otherwise...
-            encoded_boxes = [(id_, algosdk.encoding.encode_as_bytes(name)) for id_, name in boxes]
+            encoded_boxes = [(id_, algosdk.encoding.encode_as_bytes(name)) for id_, name in parameters.boxes]
         else:
             encoded_boxes = None
 
@@ -1045,13 +1036,14 @@ class ApplicationClient:
                         global_schema=global_schema,
                         local_schema=local_schema,
                         extra_pages=extra_pages,
-                        accounts=accounts,
-                        foreign_apps=foreign_apps,
-                        foreign_assets=foreign_assets,
+                        accounts=parameters.accounts,
+                        foreign_apps=parameters.foreign_apps,
+                        foreign_assets=parameters.foreign_assets,
                         boxes=encoded_boxes,
                         note=parameters.note,
                         lease=encoded_lease,
-                        rekey_to=rekey_to,
+                        rekey_to=parameters.rekey_to,
+                        app_args=app_args,
                     ),
                     signer=signer,
                 )
@@ -1098,13 +1090,13 @@ class ApplicationClient:
                 approval_program=approval_program,
                 clear_program=clear_program,
                 extra_pages=extra_pages or 0,
-                accounts=accounts,
-                foreign_apps=foreign_apps,
-                foreign_assets=foreign_assets,
+                accounts=parameters.accounts,
+                foreign_apps=parameters.foreign_apps,
+                foreign_assets=parameters.foreign_assets,
                 boxes=encoded_boxes,
                 note=parameters.note.encode("utf-8") if isinstance(parameters.note, str) else parameters.note,
                 lease=encoded_lease,
-                rekey_to=rekey_to,
+                rekey_to=parameters.rekey_to,
             )
 
     def _method_matches(
@@ -1220,9 +1212,9 @@ def execute_atc_with_logic_error(
         raise ex
 
 
-def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> FullCallParameters:
+def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> OnCompleteCallParameters:
     _args = dataclasses.asdict(args) if isinstance(args, CommonCallParameters) else (args or {})
-    return FullCallParameters(**_args)
+    return OnCompleteCallParameters(**_args)
 
 
 def _convert_deploy_args(args: ABICallArgs | ABICallArgsDict | None) -> ABICallArgs:
