@@ -236,8 +236,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
     )
 
     response = app_client.call("hello", name="call_1")
-    assert response.abi_result
-    logger.info(f"Called hello: {response.abi_result.return_value}")
+    logger.info(f"Called hello: {response.return_value}")
 
     logger.info("Deploy V2 as immutable, deletable")
     app_client = deploy_fixture.deploy(
@@ -247,8 +246,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
     )
 
     response = app_client.call("hello", name="call_2")
-    assert response.abi_result
-    logger.info(f"Called hello: {response.abi_result.return_value}")
+    logger.info(f"Called hello: {response.return_value}")
 
     logger.info("Attempt to deploy V3 as updatable, deletable, it will fail because V2 was immutable")
     with pytest.raises(LogicError) as exc_info:
@@ -261,8 +259,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
 
     logger.error(f"LogicException: {exc_info.value.message}")
     response = app_client.call("hello", name="call_3")
-    assert response.abi_result
-    logger.info(f"Called hello: {response.abi_result.return_value}")
+    logger.info(f"Called hello: {response.return_value}")
 
     logger.info("2nd Attempt to deploy V3 as updatable, deletable, it will succeed as on_update=OnUpdate.DeleteApp")
     # deploy with allow_delete=True, so we can replace it
@@ -274,8 +271,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         allow_update=True,
     )
     response = app_client.call("hello", name="call_4")
-    assert response.abi_result
-    logger.info(f"Called hello: {response.abi_result.return_value}")
+    logger.info(f"Called hello: {response.return_value}")
     app_id = app_client.app_id
 
     app_client = ApplicationClient(
@@ -285,8 +281,7 @@ def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: 
         signer=deploy_fixture.creator,
     )
     response = app_client.call("hello", name="call_5")
-    assert response.abi_result
-    logger.info(f"Called hello: {response.abi_result.return_value}")
+    logger.info(f"Called hello: {response.return_value}")
 
     deploy_fixture.check_log_stability()
 

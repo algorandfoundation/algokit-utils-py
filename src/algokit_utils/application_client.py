@@ -153,7 +153,11 @@ class DeployResponse:
 
 @dataclasses.dataclass(kw_only=True)
 class ABITransactionResponse(TransactionResponse):
-    abi_result: ABIResult
+    raw_value: bytes
+    return_value: Any
+    decode_error: Exception | None
+    tx_info: dict
+    method: Method
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -763,7 +767,7 @@ class ApplicationClient:
                     raise Exception(f"Dryrun for readonly method failed: {msg}")
 
             method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-            return ABITransactionResponse(abi_result=method_results[0], tx_id=atc.tx_ids[0], confirmed_round=None)
+            return ABITransactionResponse(**method_results[0].__dict__, confirmed_round=None)
         return None
 
     def compose_opt_in(
@@ -884,9 +888,9 @@ class ApplicationClient:
 
     def resolve(self, to_resolve: DefaultArgumentDict) -> int | str | bytes:
         def _data_check(value: Any) -> int | str | bytes:
-            if isinstance(value, (str, bytes, bytes)):
+            if isinstance(value, (int, str, bytes)):
                 return value
-            raise ValueError("Unexpected type for constant data")
+            raise ValueError(f"Unexpected type for constant data: {value}")
 
         match to_resolve:
             case {"source": "constant", "data": data}:
@@ -901,7 +905,7 @@ class ApplicationClient:
             case {"source": "abi-method", "data": dict() as method_dict}:
                 method = Method.undictify(method_dict)
                 response = self.call(method)
-                assert isinstance(response, ABIResult)
+                assert isinstance(response, ABITransactionResponse)
                 return _data_check(response.return_value)
 
             case {"source": source}:
@@ -1396,8 +1400,7 @@ def _tr_from_atr(
             if index in atc.method_dict:
                 abi_index += 1
         return ABITransactionResponse(
-            tx_id=result.tx_ids[transaction_index],
-            abi_result=result.abi_results[abi_index],
+            **result.abi_results[abi_index].__dict__,
             confirmed_round=result.confirmed_round,
         )
     else:

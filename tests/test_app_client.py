@@ -14,26 +14,26 @@ from algosdk.transaction import OnComplete
 def test_bare_create(client_fixture: ApplicationClient) -> None:
     client_fixture.create(abi_method=False)
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello Bare, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello Bare, test"
 
 
 def test_abi_create(client_fixture: ApplicationClient) -> None:
     client_fixture.create("create")
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello ABI, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello ABI, test"
 
 
 def test_abi_create_args(client_fixture: ApplicationClient, app_spec: ApplicationSpecification) -> None:
     create = next(m for m in app_spec.contract.methods if m.name == "create_args")
     client_fixture.create(create, greeting="ahoy")
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "ahoy, test"
+    assert client_fixture.call("hello", name="test").return_value == "ahoy, test"
 
 
 def test_create_auto_find(client_fixture: ApplicationClient) -> None:
     client_fixture.create(parameters={"on_complete": OnComplete.OptInOC})
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Opt In, test"
+    assert client_fixture.call("hello", name="test").return_value == "Opt In, test"
 
 
 def test_abi_create_with_atc(client_fixture: ApplicationClient) -> None:
@@ -43,7 +43,7 @@ def test_abi_create_with_atc(client_fixture: ApplicationClient) -> None:
     create_result = atc.execute(client_fixture.algod_client, 4)
     client_fixture.app_id = get_app_id_from_tx_id(client_fixture.algod_client, create_result.tx_ids[0])
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello ABI, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello ABI, test"
 
 
 def test_bare_create_with_atc(client_fixture: ApplicationClient) -> None:
@@ -53,7 +53,7 @@ def test_bare_create_with_atc(client_fixture: ApplicationClient) -> None:
     create_result = atc.execute(client_fixture.algod_client, 4)
     client_fixture.app_id = get_app_id_from_tx_id(client_fixture.algod_client, create_result.tx_ids[0])
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello Bare, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello Bare, test"
 
 
 def test_abi_call_with_atc(client_fixture: ApplicationClient) -> None:
@@ -91,14 +91,14 @@ def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account)
         client_fixture.algod_client,
     )
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello ABI, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello ABI, test"
 
 
 def test_deploy_with_create_args(client_fixture: ApplicationClient, app_spec: ApplicationSpecification) -> None:
     create_args = next(m for m in app_spec.contract.methods if m.name == "create_args")
     client_fixture.deploy("v1", create_args=ABICallArgs(method=create_args, args={"greeting": "deployed"}))
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "deployed, test"
+    assert client_fixture.call("hello", name="test").return_value == "deployed, test"
 
 
 def test_deploy_with_bare_create(client_fixture: ApplicationClient) -> None:
@@ -109,4 +109,4 @@ def test_deploy_with_bare_create(client_fixture: ApplicationClient) -> None:
         ),
     )
 
-    assert client_fixture.call("hello", name="test").abi_result.return_value == "Hello Bare, test"
+    assert client_fixture.call("hello", name="test").return_value == "Hello Bare, test"
