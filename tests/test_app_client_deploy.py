@@ -1,5 +1,5 @@
 from algokit_utils import (
-    ABICallArgs,
+    ABICreateCallArgs,
     Account,
     ApplicationClient,
     ApplicationSpecification,
@@ -11,7 +11,7 @@ from algokit_utils import (
 def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account) -> None:
     client_fixture.deploy(
         "v1",
-        create_args=ABICallArgs(
+        create_args=ABICreateCallArgs(
             method="create",
         ),
     )
@@ -26,7 +26,7 @@ def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account)
 
 def test_deploy_with_create_args(client_fixture: ApplicationClient, app_spec: ApplicationSpecification) -> None:
     create_args = next(m for m in app_spec.contract.methods if m.name == "create_args")
-    client_fixture.deploy("v1", create_args=ABICallArgs(method=create_args, args={"greeting": "deployed"}))
+    client_fixture.deploy("v1", create_args=ABICreateCallArgs(method=create_args, args={"greeting": "deployed"}))
 
     assert client_fixture.call("hello", name="test").return_value == "deployed, test"
 
@@ -34,7 +34,7 @@ def test_deploy_with_create_args(client_fixture: ApplicationClient, app_spec: Ap
 def test_deploy_with_bare_create(client_fixture: ApplicationClient) -> None:
     client_fixture.deploy(
         "v1",
-        create_args=ABICallArgs(
+        create_args=ABICreateCallArgs(
             method=False,
         ),
     )

@@ -1,10 +1,10 @@
-from algokit_utils import ABICallArgs, Account, ApplicationClient, TransferParameters, transfer
+from algokit_utils import ABICreateCallArgs, Account, ApplicationClient, TransferParameters, transfer
 
 
 def test_transfer(client_fixture: ApplicationClient, creator: Account) -> None:
     client_fixture.deploy(
         "v1",
-        create_args=ABICallArgs(
+        create_args=ABICreateCallArgs(
             method="create",
         ),
     )

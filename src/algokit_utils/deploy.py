@@ -3,7 +3,8 @@ import dataclasses
 import json
 import logging
 import re
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
+from enum import Enum
 
 from algosdk import transaction
 from algosdk.logic import get_application_address
@@ -17,7 +18,7 @@ from algokit_utils.application_specification import (
     MethodConfigDict,
     OnCompleteActionName,
 )
-from algokit_utils.models import Account
+from algokit_utils.models import Account, TransactionResponse
 
 __all__ = [
     "UPDATABLE_TEMPLATE_NAME",
@@ -28,7 +29,12 @@ __all__ = [
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "DeployResponse",
+    "OnUpdate",
+    "OnSchemaBreak",
+    "OperationPerformed",
     "TemplateValueDict",
+    "check_app_and_deploy",
     "get_creator_apps",
     "replace_template_variables",
 ]
@@ -333,3 +339,107 @@ def get_call_config(method_config: MethodConfigDict, on_complete: transaction.On
             return get("close_out")
         case transaction.OnComplete.ClearStateOC:
             return get("clear_state")
+
+
+class OnUpdate(Enum):
+    Fail = 0
+    UpdateApp = 1
+    ReplaceApp = 2
+    # TODO: AppendApp
+
+
+class OnSchemaBreak(Enum):
+    Fail = 0
+    ReplaceApp = 2
+
+
+class OperationPerformed(Enum):
+    Nothing = 0
+    Create = 1
+    Update = 2
+    Replace = 3
+
+
+@dataclasses.dataclass(kw_only=True)
+class DeployResponse:
+    app: AppMetaData
+    create_response: TransactionResponse | None = None
+    delete_response: TransactionResponse | None = None
+    update_response: TransactionResponse | None = None
+    action_taken: OperationPerformed = OperationPerformed.Nothing
+
+
+def check_app_and_deploy(
+    app: AppMetaData,
+    app_changes: AppChanges,
+    on_schema_break: OnSchemaBreak,
+    on_update: OnUpdate,
+    update_app: Callable[[], DeployResponse],
+    create_and_delete_app: Callable[[], DeployResponse],
+) -> DeployResponse:
+    if app_changes.schema_breaking_change:
+        logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
+
+        if on_schema_break == OnSchemaBreak.Fail:
+            raise DeploymentFailedError(
+                "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
+                "If you want to try deleting and recreating the app then "
+                "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
+            )
+        if app.deletable:
+            logger.info(
+                "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
+            )
+        elif app.deletable is False:
+            logger.warning(
+                "App is not deletable but on_schema_break=ReplaceApp, "
+                "will attempt to delete app, delete will most likely fail"
+            )
+        else:
+            logger.warning(
+                "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
+            )
+        return create_and_delete_app()
+    elif app_changes.app_updated:
+        logger.info(f"Detected a TEAL update in app id {app.app_id}")
+
+        if on_update == OnUpdate.Fail:
+            raise DeploymentFailedError(
+                "Update detected and on_update=Fail, stopping deployment. "
+                "If you want to try updating the app then re-run with on_update=UpdateApp"
+            )
+        if app.updatable and on_update == OnUpdate.UpdateApp:
+            logger.info("App is updatable and on_update=UpdateApp, will update app")
+            return update_app()
+        elif app.updatable and on_update == OnUpdate.ReplaceApp:
+            logger.warning(
+                "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
+            )
+            return create_and_delete_app()
+        elif on_update == OnUpdate.ReplaceApp:
+            if app.updatable is False:
+                logger.warning(
+                    "App is not updatable and on_update=ReplaceApp, "
+                    "will attempt to create new app and delete old app"
+                )
+            else:
+                logger.warning(
+                    "Cannot determine if App is updatable and on_update=ReplaceApp, "
+                    "will attempt to create new app and delete old app"
+                )
+            return create_and_delete_app()
+        else:
+            if app.updatable is False:
+                logger.warning(
+                    "App is not updatable but on_update=UpdateApp, "
+                    "will attempt to update app, update will most likely fail"
+                )
+            else:
+                logger.warning(
+                    "Cannot determine if App is updatable and on_update=UpdateApp, " "will attempt to update app"
+                )
+            return update_app()
+
+    logger.info("No detected changes in app, nothing to do.")
+
+    return DeployResponse(app=app)

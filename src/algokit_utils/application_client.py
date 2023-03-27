@@ -3,7 +3,6 @@ import dataclasses
 import logging
 import re
 from collections.abc import Sequence
-from enum import Enum
 from math import ceil
 from typing import Any, Literal, TypedDict, cast, overload
 
@@ -30,8 +29,9 @@ from algosdk.v2client.indexer import IndexerClient
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
+from algokit_utils.deploy import check_app_and_deploy
 from algokit_utils.logic_error import LogicError, parse_logic_error
-from algokit_utils.models import Account
+from algokit_utils.models import ABITransactionResponse, Account, TransactionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,6 @@ ABIArgsDict = dict[str, ABIArgType]
 __all__ = [
     "ABICallArgs",
     "ABICallArgsDict",
-    "ABITransactionResponse",
     "ApplicationClient",
     "CommonCallParameters",
     "CommonCallParametersDict",
@@ -49,12 +48,7 @@ __all__ = [
     "OnCompleteCallParametersDict",
     "CreateCallParameters",
     "CreateCallParametersDict",
-    "DeployResponse",
-    "OnUpdate",
-    "OnSchemaBreak",
-    "OperationPerformed",
     "Program",
-    "TransactionResponse",
     "execute_atc_with_logic_error",
     "get_app_id_from_tx_id",
     "get_next_version",
@@ -82,62 +76,6 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICallArgs:
-    method: Method | str | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
-    lease: str | bytes | None = None
-
-
-class ABICallArgsDict(TypedDict, total=False):
-    method: Method | str | bool | None
-    args: ABIArgsDict
-    lease: str | bytes | None
-
-
-class OnUpdate(Enum):
-    Fail = 0
-    UpdateApp = 1
-    ReplaceApp = 2
-    # TODO: AppendApp
-
-
-class OnSchemaBreak(Enum):
-    Fail = 0
-    ReplaceApp = 2
-
-
-class OperationPerformed(Enum):
-    Nothing = 0
-    Create = 1
-    Update = 2
-    Replace = 3
-
-
-@dataclasses.dataclass(kw_only=True)
-class TransactionResponse:
-    tx_id: str
-    confirmed_round: int | None
-
-
-@dataclasses.dataclass(kw_only=True)
-class DeployResponse:
-    app: au_deploy.AppMetaData
-    create_response: TransactionResponse | None = None
-    delete_response: TransactionResponse | None = None
-    update_response: TransactionResponse | None = None
-    action_taken: OperationPerformed = OperationPerformed.Nothing
-
-
-@dataclasses.dataclass(kw_only=True)
-class ABITransactionResponse(TransactionResponse):
-    raw_value: bytes
-    return_value: Any
-    decode_error: Exception | None
-    tx_info: dict
-    method: Method
-
-
-@dataclasses.dataclass(kw_only=True)
 class CommonCallParameters:
     signer: TransactionSigner | None = None
     sender: str | None = None
@@ -153,7 +91,7 @@ class CommonCallParameters:
 
 @dataclasses.dataclass(kw_only=True)
 class OnCompleteCallParameters(CommonCallParameters):
-    on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC
+    on_complete: transaction.OnComplete | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -175,6 +113,42 @@ class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=Fa
 
 class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=False):
     extra_pages: int
+
+
+@dataclasses.dataclass(kw_only=True)
+class ABICallArgs:
+    method: Method | str | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+    suggested_params: transaction.SuggestedParams | None = None
+    lease: bytes | str | None = None
+    accounts: list[str] | None = None
+    foreign_apps: list[int] | None = None
+    foreign_assets: list[int] | None = None
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+    rekey_to: str | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class ABICreateCallArgs(ABICallArgs):
+    extra_pages: int | None = None
+    on_complete: transaction.OnComplete | None = None
+
+
+class ABICallArgsDict(TypedDict, total=False):
+    method: Method | str | bool
+    args: ABIArgsDict
+    suggested_params: transaction.SuggestedParams
+    lease: bytes | str
+    accounts: list[str]
+    foreign_apps: list[int]
+    foreign_assets: list[int]
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
+    rekey_to: str
+
+
+class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
+    extra_pages: int | None
+    on_complete: transaction.OnComplete
 
 
 class ApplicationClient:
@@ -297,7 +271,7 @@ class ApplicationClient:
         import copy
 
         new_client = copy.copy(self)
-        self._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
+        new_client._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
         return new_client
 
     def _prepare(
@@ -326,13 +300,48 @@ class ApplicationClient:
         sender: str | None = None,
         allow_update: bool | None = None,
         allow_delete: bool | None = None,
-        on_update: OnUpdate = OnUpdate.Fail,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        on_update: au_deploy.OnUpdate = au_deploy.OnUpdate.Fail,
+        on_schema_break: au_deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail,
         template_values: au_deploy.TemplateValueDict | None = None,
-        create_args: ABICallArgs | ABICallArgsDict | None = None,
+        create_args: ABICreateCallArgs | ABICreateCallArgsDict | None = None,
         update_args: ABICallArgs | ABICallArgsDict | None = None,
         delete_args: ABICallArgs | ABICallArgsDict | None = None,
-    ) -> DeployResponse:
+    ) -> au_deploy.DeployResponse:
+        before = self._approval_program, self._clear_program, self.sender, self.signer, self.app_id
+        try:
+            return self._deploy(
+                version,
+                signer=signer,
+                sender=sender,
+                allow_update=allow_update,
+                allow_delete=allow_delete,
+                on_update=on_update,
+                on_schema_break=on_schema_break,
+                template_values=template_values,
+                create_args=create_args,
+                update_args=update_args,
+                delete_args=delete_args,
+            )
+        except Exception as ex:
+            # undo any prepare changes if there was an error
+            self._approval_program, self._clear_program, self.sender, self.signer, self.app_id = before
+            raise ex from None
+
+    def _deploy(
+        self,
+        version: str | None,
+        *,
+        signer: TransactionSigner | None,
+        sender: str | None,
+        allow_update: bool | None,
+        allow_delete: bool | None,
+        on_update: au_deploy.OnUpdate,
+        on_schema_break: au_deploy.OnSchemaBreak,
+        template_values: au_deploy.TemplateValueDict | None,
+        create_args: ABICallArgs | ABICallArgsDict | None,
+        update_args: ABICallArgs | ABICallArgsDict | None,
+        delete_args: ABICallArgs | ABICallArgsDict | None,
+    ) -> au_deploy.DeployResponse:
         """Ensures app associated with app client's creator is present and up to date"""
         if self.app_id:
             raise au_deploy.DeploymentFailedError(
@@ -349,16 +358,11 @@ class ApplicationClient:
                 f"from the given creator address for this application client: {self._creator}"
             )
 
-        _create_args = _convert_deploy_args(create_args)
-        _update_args = _convert_deploy_args(update_args)
-        _delete_args = _convert_deploy_args(delete_args)
-
         # make a copy
         template_values = dict(template_values or {})
         au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
 
-        # TODO: how to undo this if deployment fails?!
-        self._prepare(self, template_values=template_values, sender=sender, signer=signer)
+        self._prepare(self, template_values=template_values)
         approval_program, clear_program = self._check_is_compiled()
 
         updatable = (
@@ -389,42 +393,90 @@ class ApplicationClient:
                 version = get_next_version(app.version)
         app_spec_note = au_deploy.AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
 
-        def create_metadata(
-            created_round: int,
-            updated_round: int | None = None,
-            original_metadata: au_deploy.AppDeployMetaData | None = None,
-        ) -> au_deploy.AppMetaData:
-            app_metadata = au_deploy.AppMetaData(
-                app_id=self.app_id,
-                app_address=self.app_address,
-                created_metadata=original_metadata or app_spec_note,
-                created_round=created_round,
-                updated_round=updated_round or created_round,
-                **app_spec_note.__dict__,
-                deleted=False,
-            )
-            return app_metadata
-
-        common_parameters = CommonCallParameters(note=app_spec_note.encode(), signer=signer, sender=sender)
-
-        def create_app() -> DeployResponse:
+        def create_app() -> au_deploy.DeployResponse:
             assert self.existing_deployments
+            # TODO: extra pages
+            method, abi_args, parameters = _convert_deploy_args(create_args, app_spec_note, signer, sender)
             create_response = self.create(
-                _create_args.method,
-                _add_lease_parameter(common_parameters, _create_args.lease),
-                **_create_args.args,
+                method,
+                parameters,
+                **abi_args,
             )
             logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
             assert create_response.confirmed_round is not None
-            app_metadata = create_metadata(create_response.confirmed_round)
+            app_metadata = _create_metadata(app_spec_note, self.app_id, create_response.confirmed_round)
             self.existing_deployments.apps[name] = app_metadata
-            return DeployResponse(
-                app=app_metadata, create_response=create_response, action_taken=OperationPerformed.Create
+            return au_deploy.DeployResponse(
+                app=app_metadata, create_response=create_response, action_taken=au_deploy.OperationPerformed.Create
             )
 
         if app.app_id == 0:
             logger.info(f"{name} not found in {self._creator} account, deploying app.")
             return create_app()
+
+        def create_and_delete_app() -> au_deploy.DeployResponse:
+            assert isinstance(app, au_deploy.AppMetaData)
+            assert self.existing_deployments
+
+            logger.info(f"Replacing {name} ({app.version}) with {name} ({version}) in {self._creator} account.")
+            atc = AtomicTransactionComposer()
+            create_method, create_abi_args, create_parameters = _convert_deploy_args(
+                create_args, app_spec_note, signer, sender
+            )
+            self.compose_create(
+                atc,
+                create_method,
+                create_parameters,
+                **create_abi_args,
+            )
+            delete_method, delete_abi_args, delete_parameters = _convert_deploy_args(
+                delete_args, app_spec_note, signer, sender
+            )
+            self.compose_delete(
+                atc,
+                delete_method,
+                delete_parameters,
+                **delete_abi_args,
+            )
+            create_delete_response = self.execute_atc(atc)
+            create_response = _tr_from_atr(atc, create_delete_response, 0)
+            delete_response = _tr_from_atr(atc, create_delete_response, 1)
+            self._set_app_id_from_tx_id(create_response.tx_id)
+            logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
+            logger.info(f"{name} ({app.version}) with app id {app.app_id}, deleted successfully.")
+
+            app_metadata = _create_metadata(app_spec_note, self.app_id, create_delete_response.confirmed_round)
+            self.existing_deployments.apps[name] = app_metadata
+
+            return au_deploy.DeployResponse(
+                app=app_metadata,
+                create_response=create_response,
+                delete_response=delete_response,
+                action_taken=au_deploy.OperationPerformed.Replace,
+            )
+
+        def update_app() -> au_deploy.DeployResponse:
+            assert on_update == au_deploy.OnUpdate.UpdateApp
+            assert isinstance(app, au_deploy.AppMetaData)
+            assert self.existing_deployments
+            logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
+            method, abi_args, parameters = _convert_deploy_args(update_args, app_spec_note, signer, sender)
+            update_response = self.update(
+                method,
+                parameters,
+                **abi_args,
+            )
+            app_metadata = _create_metadata(
+                app_spec_note,
+                self.app_id,
+                app.created_round,
+                updated_round=update_response.confirmed_round,
+                original_metadata=app.created_metadata,
+            )
+            self.existing_deployments.apps[name] = app_metadata
+            return au_deploy.DeployResponse(
+                app=app_metadata, update_response=update_response, action_taken=au_deploy.OperationPerformed.Update
+            )
 
         assert isinstance(app, au_deploy.AppMetaData)
         logger.debug(f"{name} found in {self._creator} account, with app id {app.app_id}, version={app.version}.")
@@ -438,124 +490,14 @@ class ApplicationClient:
             app_id=app.app_id,
         )
 
-        def create_and_delete_app() -> DeployResponse:
-            assert isinstance(app, au_deploy.AppMetaData)
-            assert self.existing_deployments
-            logger.info(f"Replacing {name} ({app.version}) with {name} ({version}) in {self._creator} account.")
-            atc = AtomicTransactionComposer()
-            self.compose_create(
-                atc,
-                _create_args.method,
-                _add_lease_parameter(common_parameters, _create_args.lease),
-                **_create_args.args,
-            )
-            self.compose_delete(
-                atc,
-                _delete_args.method,
-                _add_lease_parameter(common_parameters, _delete_args.lease),
-                **_delete_args.args,
-            )
-            create_delete_response = self.execute_atc(atc)
-            create_response = _tr_from_atr(atc, create_delete_response, 0)
-            delete_response = _tr_from_atr(atc, create_delete_response, 1)
-            self._set_app_id_from_tx_id(create_response.tx_id)
-            logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
-            logger.info(f"{name} ({app.version}) with app id {app.app_id}, deleted successfully.")
-
-            app_metadata = create_metadata(create_delete_response.confirmed_round)
-            self.existing_deployments.apps[name] = app_metadata
-
-            return DeployResponse(
-                app=app_metadata,
-                create_response=create_response,
-                delete_response=delete_response,
-                action_taken=OperationPerformed.Replace,
-            )
-
-        def update_app() -> DeployResponse:
-            assert on_update == OnUpdate.UpdateApp
-            assert isinstance(app, au_deploy.AppMetaData)
-            assert self.existing_deployments
-            logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
-            update_response = self.update(
-                _update_args.method,
-                _add_lease_parameter(common_parameters, lease=_update_args.lease),
-                **_update_args.args,
-            )
-            app_metadata = create_metadata(
-                app.created_round, updated_round=update_response.confirmed_round, original_metadata=app.created_metadata
-            )
-            self.existing_deployments.apps[name] = app_metadata
-            return DeployResponse(
-                app=app_metadata, update_response=update_response, action_taken=OperationPerformed.Update
-            )
-
-        if app_changes.schema_breaking_change:
-            logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
-
-            if on_schema_break == OnSchemaBreak.Fail:
-                raise au_deploy.DeploymentFailedError(
-                    "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
-                    "If you want to try deleting and recreating the app then "
-                    "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
-                )
-            if app.deletable:
-                logger.info(
-                    "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
-                )
-            elif app.deletable is False:
-                logger.warning(
-                    "App is not deletable but on_schema_break=ReplaceApp, "
-                    "will attempt to delete app, delete will most likely fail"
-                )
-            else:
-                logger.warning(
-                    "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
-                )
-            return create_and_delete_app()
-        elif app_changes.app_updated:
-            logger.info(f"Detected a TEAL update in app id {app.app_id}")
-
-            if on_update == OnUpdate.Fail:
-                raise au_deploy.DeploymentFailedError(
-                    "Update detected and on_update=Fail, stopping deployment. "
-                    "If you want to try updating the app then re-run with on_update=UpdateApp"
-                )
-            if app.updatable and on_update == OnUpdate.UpdateApp:
-                logger.info("App is updatable and on_update=UpdateApp, will update app")
-                return update_app()
-            elif app.updatable and on_update == OnUpdate.ReplaceApp:
-                logger.warning(
-                    "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
-                )
-                return create_and_delete_app()
-            elif on_update == OnUpdate.ReplaceApp:
-                if app.updatable is False:
-                    logger.warning(
-                        "App is not updatable and on_update=ReplaceApp, "
-                        "will attempt to create new app and delete old app"
-                    )
-                else:
-                    logger.warning(
-                        "Cannot determine if App is updatable and on_update=ReplaceApp, "
-                        "will attempt to create new app and delete old app"
-                    )
-                return create_and_delete_app()
-            else:
-                if app.updatable is False:
-                    logger.warning(
-                        "App is not updatable but on_update=UpdateApp, "
-                        "will attempt to update app, update will most likely fail"
-                    )
-                else:
-                    logger.warning(
-                        "Cannot determine if App is updatable and on_update=UpdateApp, " "will attempt to update app"
-                    )
-                return update_app()
-
-        logger.info("No detected changes in app, nothing to do.")
-
-        return DeployResponse(app=app)
+        return check_app_and_deploy(
+            app,
+            app_changes,
+            on_update=on_update,
+            on_schema_break=on_schema_break,
+            update_app=update_app,
+            create_and_delete_app=create_and_delete_app,
+        )
 
     def compose_create(
         self,
@@ -578,7 +520,7 @@ class ApplicationClient:
             app_id=0,
             abi_method=call_abi_method,
             abi_args=abi_kwargs,
-            on_complete=transaction_parameters.on_complete,
+            on_complete=transaction_parameters.on_complete or transaction.OnComplete.NoOpOC,
             call_config=au_spec.CallConfig.CREATE,
             parameters=transaction_parameters,
             approval_program=approval_program.raw_binary,
@@ -696,7 +638,7 @@ class ApplicationClient:
             abi_method=call_abi_method,
             abi_args=abi_kwargs,
             parameters=_parameters,
-            on_complete=_parameters.on_complete,
+            on_complete=_parameters.on_complete or transaction.OnComplete.NoOpOC,
         )
 
     @overload
@@ -733,7 +675,9 @@ class ApplicationClient:
             **abi_kwargs,
         )
 
-        method = self._resolve_method(call_abi_method, abi_kwargs, _parameters.on_complete)
+        method = self._resolve_method(
+            call_abi_method, abi_kwargs, _parameters.on_complete or transaction.OnComplete.NoOpOC
+        )
         # If its a read-only method, use dryrun (TODO: swap with simulate later?)
         if method:
             response = self._try_dry_run_call(method, atc)
@@ -1215,20 +1159,55 @@ def execute_atc_with_logic_error(
         raise ex
 
 
+def _create_metadata(
+    app_spec_note: au_deploy.AppDeployMetaData,
+    app_id: int,
+    created_round: int,
+    updated_round: int | None = None,
+    original_metadata: au_deploy.AppDeployMetaData | None = None,
+) -> au_deploy.AppMetaData:
+    app_metadata = au_deploy.AppMetaData(
+        app_id=app_id,
+        app_address=get_application_address(app_id),
+        created_metadata=original_metadata or app_spec_note,
+        created_round=created_round,
+        updated_round=updated_round or created_round,
+        **app_spec_note.__dict__,
+        deleted=False,
+    )
+    return app_metadata
+
+
 def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> CreateCallParameters:
     _args = dataclasses.asdict(args) if isinstance(args, CommonCallParameters) else (args or {})
     return CreateCallParameters(**_args)
 
 
-def _convert_deploy_args(args: ABICallArgs | ABICallArgsDict | None) -> ABICallArgs:
-    _args = dataclasses.asdict(args) if isinstance(args, ABICallArgs) else (args or {})
-    return ABICallArgs(**_args)
+def _convert_deploy_args(
+    _args: ABICallArgs | ABICallArgsDict | None,
+    note: au_deploy.AppDeployMetaData,
+    signer: TransactionSigner | None,
+    sender: str | None,
+) -> tuple[Method | str | bool | None, ABIArgsDict, CreateCallParameters]:
+    args = dataclasses.asdict(_args) if isinstance(_args, ABICallArgs) else (_args or {})
 
+    # return most derived type, unused parameters are ignored
+    parameters = CreateCallParameters(
+        note=note.encode(),
+        signer=signer,
+        sender=sender,
+        suggested_params=args.get("suggested_params"),
+        lease=args.get("lease"),
+        accounts=args.get("accounts"),
+        foreign_assets=args.get("foreign_assets"),
+        foreign_apps=args.get("foreign_apps"),
+        boxes=args.get("boxes"),
+        rekey_to=args.get("rekey_to"),
+        extra_pages=args.get("extra_pages"),
+        on_complete=args.get("on_complete"),
+    )
 
-def _add_lease_parameter(parameters: CommonCallParameters, lease: bytes | str | None) -> CreateCallParameters:
-    copy = CreateCallParameters(**dataclasses.asdict(parameters))
-    copy.lease = lease
-    return copy
+    return args.get("method"), args.get("args") or {}, parameters
 
 
 def _get_sender_from_signer(signer: TransactionSigner) -> str:
