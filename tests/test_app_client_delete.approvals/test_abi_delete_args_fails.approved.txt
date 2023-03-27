@@ -1,0 +1,12 @@
+Txn {txn} had error 'assert failed pc=581' at PC 581 and Source Line 337: 
+
+	frame_dig -1
+	extract 2 0
+	bytec_3 // "Yes"
+	==
+	// passes delete check
+	assert		<-- Error
+	intc 5 // deletable
+	// is deletable
+	assert
+	retsub

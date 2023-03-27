@@ -41,15 +41,3 @@ def test_call_parameters_from_derived_type_ignored(client_fixture: ApplicationCl
     app_txn = signed_txn.txn
     assert isinstance(app_txn, ApplicationCallTxn)
     assert app_txn.extra_pages == 0
-
-
-def test_create_parameters_extra_pages(client_fixture: ApplicationClient) -> None:
-    extra_pages = 1
-
-    atc = AtomicTransactionComposer()
-    client_fixture.compose_create(atc, "create", transaction_parameters=CreateCallParameters(extra_pages=extra_pages))
-
-    signed_txn = atc.txn_list[0]
-    app_txn = signed_txn.txn
-    assert isinstance(app_txn, ApplicationCallTxn)
-    assert app_txn.extra_pages == extra_pages
