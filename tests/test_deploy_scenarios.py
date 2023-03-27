@@ -13,11 +13,10 @@ from algokit_utils import (
     get_account,
     get_algod_client,
     get_indexer_client,
-    get_next_version,
     get_sandbox_default_account,
-    replace_template_variables,
 )
-from conftest import check_output_stability, get_specs, get_unique_name, read_spec
+
+from tests.conftest import check_output_stability, get_specs, get_unique_name, read_spec
 
 logger = logging.getLogger(__name__)
 
@@ -362,42 +361,3 @@ def test_deploy_with_update(
         logger.error(f"LogicException: {error.message}")
 
     deploy_fixture.check_log_stability()
-
-
-def test_template_substitution() -> None:
-    program = """
-test TMPL_INT // TMPL_INT
-test TMPL_INT
-no change
-test TMPL_STR // TMPL_STR
-TMPL_STR
-TMPL_STR // TMPL_INT
-TMPL_STR // foo //
-TMPL_STR // bar
-"""
-    result = replace_template_variables(program, {"INT": 123, "STR": "ABC"})
-    check_output_stability(result)
-
-
-@pytest.mark.parametrize(
-    ("current", "expected_next"),
-    [
-        ("1", "2"),
-        ("v1", "v2"),
-        ("v1-alpha", "v2-alpha"),
-        ("1.0", "1.1"),
-        ("v1.0", "v1.1"),
-        ("v1.0-alpha", "v1.1-alpha"),
-        ("1.0.0", "1.0.1"),
-        ("v1.0.0", "v1.0.1"),
-        ("v1.0.0-alpha", "v1.0.1-alpha"),
-    ],
-)
-def test_auto_version_increment(current: str, expected_next: str) -> None:
-    value = get_next_version(current)
-    assert value == expected_next
-
-
-def test_auto_version_increment_failure() -> None:
-    with pytest.raises(DeploymentFailedError):
-        get_next_version("teapot")

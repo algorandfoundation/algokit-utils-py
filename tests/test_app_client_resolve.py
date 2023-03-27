@@ -4,7 +4,8 @@ from algokit_utils import (
     DefaultArgumentDict,
 )
 from algosdk.v2client.algod import AlgodClient
-from conftest import read_spec
+
+from tests.conftest import read_spec
 
 
 def test_resolve(algod_client: AlgodClient, creator: Account) -> None:

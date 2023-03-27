@@ -102,12 +102,12 @@ def get_unique_name() -> str:
     return name
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def algod_client() -> AlgodClient:
     return get_algod_client()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def indexer_client() -> IndexerClient:
     return get_indexer_client()
 
@@ -119,7 +119,7 @@ def creator(algod_client: AlgodClient) -> Account:
     return creator
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def app_spec() -> ApplicationSpecification:
     app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
     return app_spec
