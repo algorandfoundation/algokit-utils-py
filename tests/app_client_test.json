@@ -16,7 +16,7 @@
             }
         },
         "update_greeting(string)void": {
-            "read_only": true,
+            "read_only": false,
             "call_config": {
                 "no_op": "CALL"
             }
