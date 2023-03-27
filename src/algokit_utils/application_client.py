@@ -771,7 +771,7 @@ class ApplicationClient:
         self,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         app_args: list[bytes] | None = None,
-    ) -> TransactionResponse | ABITransactionResponse:
+    ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=ClearState"""
         atc = AtomicTransactionComposer()
         self.compose_clear_state(

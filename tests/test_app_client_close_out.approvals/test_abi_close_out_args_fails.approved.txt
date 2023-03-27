@@ -1,0 +1,10 @@
+Txn {txn} had error 'assert failed pc=1004' at PC 1004 and Source Line 599: 
+
+	frame_dig -1
+	extract 2 0
+	bytec_2 // "Yes"
+	==
+	// passes close_out check
+	assert		<-- Error
+	intc_0 // 1
+	return

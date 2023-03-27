@@ -102,6 +102,14 @@ def get_unique_name() -> str:
     return name
 
 
+def is_opted_in(client_fixture: ApplicationClient) -> bool:
+    assert client_fixture.sender
+    account_info = client_fixture.algod_client.account_info(client_fixture.sender)
+    assert isinstance(account_info, dict)
+    apps_local_state = account_info["apps-local-state"]
+    return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
+
+
 @pytest.fixture(scope="session")
 def algod_client() -> AlgodClient:
     return get_algod_client()

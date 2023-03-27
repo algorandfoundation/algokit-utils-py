@@ -1,8 +1,8 @@
-Txn {txn} had error 'assert failed pc=581' at PC 581 and Source Line 337: 
+Txn {txn} had error 'assert failed pc=736' at PC 736 and Source Line 427: 
 
 	frame_dig -1
 	extract 2 0
-	bytec_3 // "Yes"
+	bytec_2 // "Yes"
 	==
 	// passes delete check
 	assert		<-- Error

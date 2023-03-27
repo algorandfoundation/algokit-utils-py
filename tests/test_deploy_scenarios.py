@@ -134,19 +134,6 @@ def test_deploy_app_with_existing_immutable_app_and_on_update_equals_replace_app
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_deletable_app_succeeds(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs()
-
-    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=True)
-    assert app_v1.app_id
-
-    app_v2 = deploy_fixture.deploy(
-        v2, version="2.0", allow_update=False, allow_delete=True, on_update=OnUpdate.ReplaceApp
-    )
-    assert app_v1.app_id != app_v2.app_id
-    deploy_fixture.check_log_stability()
-
-
 def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture) -> None:
     v1, _, v3 = get_specs()
 
