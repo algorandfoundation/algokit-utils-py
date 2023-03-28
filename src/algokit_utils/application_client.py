@@ -1,4 +1,5 @@
 import base64
+import copy
 import dataclasses
 import logging
 import re
@@ -87,6 +88,8 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 
 @dataclasses.dataclass(kw_only=True)
 class CommonCallParameters:
+    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+
     signer: TransactionSigner | None = None
     sender: str | None = None
     suggested_params: transaction.SuggestedParams | None = None
@@ -101,11 +104,15 @@ class CommonCallParameters:
 
 @dataclasses.dataclass(kw_only=True)
 class OnCompleteCallParameters(CommonCallParameters):
+    """Transaction parameters used when making any call to an Application"""
+
     on_complete: transaction.OnComplete | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
 class CreateCallParameters(OnCompleteCallParameters):
+    """Transaction parameters used when making a create call for Application"""
+
     extra_pages: int | None = None
 
 
@@ -127,6 +134,8 @@ class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=Fa
 
 @dataclasses.dataclass(kw_only=True)
 class ABICallArgs:
+    """Parameters used to update or delete an application when calling deploy()"""
+
     method: ABIMethod | bool | None = None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
     suggested_params: transaction.SuggestedParams | None = None
@@ -140,6 +149,8 @@ class ABICallArgs:
 
 @dataclasses.dataclass(kw_only=True)
 class ABICreateCallArgs(ABICallArgs):
+    """Parameters used to create an application when calling deploy()"""
+
     extra_pages: int | None = None
     on_complete: transaction.OnComplete | None = None
 
@@ -162,6 +173,8 @@ class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
 
 
 class ApplicationClient:
+    """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
+
     @overload
     def __init__(
         self,
@@ -280,8 +293,8 @@ class ApplicationClient:
         app_id: int | None = None,
         template_values: au_deploy.TemplateValueDict | None = None,
     ) -> "ApplicationClient":
-        import copy
-
+        """Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
+        Will also substitute provided template_values into the associated app_spec"""
         new_client = copy.copy(self)
         new_client._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
         return new_client
@@ -319,6 +332,15 @@ class ApplicationClient:
         update_args: ABICallArgs | ABICallArgsDict | None = None,
         delete_args: ABICallArgs | ABICallArgsDict | None = None,
     ) -> au_deploy.DeployResponse:
+        """Idempotently deploy (create, update/delete if changed) an app against the given name via the given creator
+        account, including deploy-time template placeholder substitutions. To understand the architecture decisions
+        behind this functionality please see
+        https://github.com/algorandfoundation/algokit-cli/blob/main/docs/architecture-decisions/2023-01-12_smart-contract-deployment.md
+        Note: if there is a breaking state schema change to an existing app (and `on_schema_break` is set to
+        'ReplaceApp' the existing app will be deleted and re-created.
+        Note: if there is an update (different TEAL code) to an existing app (and `on_update` is set to 'ReplaceApp')
+        the existing app will be deleted and re-created.
+        """
         before = self._approval_program, self._clear_program, self.sender, self.signer, self.app_id
         try:
             return self._deploy(
@@ -932,7 +954,7 @@ class ApplicationClient:
         return self._execute_atc_tr(atc)
 
     def get_global_state(self, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
-        """gets the global state info for the app id set"""
+        """Gets the global state info associated with app_id"""
         global_state = self.algod_client.application_info(self.app_id)
         assert isinstance(global_state, dict)
         return cast(
@@ -941,7 +963,7 @@ class ApplicationClient:
         )
 
     def get_local_state(self, account: str | None = None, *, raw: bool = False) -> dict[bytes | str, bytes | str | int]:
-        """gets the local state info for the app id set and the account specified"""
+        """Gets the local state info for associated app_id and account/sender"""
 
         if account is None:
             _, account = self._resolve_signer_sender(self.signer, self.sender)
@@ -954,6 +976,8 @@ class ApplicationClient:
         )
 
     def resolve(self, to_resolve: au_spec.DefaultArgumentDict) -> int | str | bytes:
+        """Resolves the default value for an ABI method, based on app_spec"""
+
         def _data_check(value: Any) -> int | str | bytes:
             if isinstance(value, int | str | bytes):
                 return value
@@ -1258,6 +1282,7 @@ def substitute_template_and_compile(
     app_spec: au_spec.ApplicationSpecification,
     template_values: au_deploy.TemplateValueDict,
 ) -> tuple[Program, Program]:
+    """Substitutes the provided template_values into app_spec and compiles"""
     template_values = dict(template_values or {})
     clear = au_deploy.replace_template_variables(app_spec.clear_program, template_values)
 
@@ -1298,6 +1323,8 @@ def execute_atc_with_logic_error(
     approval_program: str | None = None,
     approval_source_map: SourceMap | None = None,
 ) -> AtomicTransactionResponse:
+    """Calls execute on provided atc, but will parse any errors into a LogicError,
+    if approval_program and approval_source_map are specifed"""
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
