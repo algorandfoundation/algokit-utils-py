@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 from algokit_utils import (
     ApplicationClient,
@@ -5,6 +7,7 @@ from algokit_utils import (
     CreateCallParameters,
     get_account,
 )
+from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 from algosdk.transaction import ApplicationCallTxn
 from algosdk.v2client.algod import AlgodClient
@@ -22,12 +25,35 @@ def client_fixture(algod_client: AlgodClient, app_spec: ApplicationSpecification
     return client
 
 
+def test_app_client_from_app_spec_path(algod_client: AlgodClient) -> None:
+    client = ApplicationClient(algod_client, Path(__file__).parent / "app_client_test.json")
+
+    assert client.app_spec
+
+
 def test_abi_call_with_atc(client_fixture: ApplicationClient) -> None:
     atc = AtomicTransactionComposer()
     client_fixture.compose_call(atc, "hello", name="test")
     result = atc.execute(client_fixture.algod_client, 4)
 
     assert result.abi_results[0].return_value == "Hello ABI, test"
+
+
+class PretendSubroutine:
+    def __init__(self, method: Method):
+        self._method = method
+
+    def method_spec(self) -> Method:
+        return self._method
+
+
+def test_abi_call_with_method_spec(client_fixture: ApplicationClient) -> None:
+    hello = client_fixture.app_spec.contract.get_method_by_name("hello")
+    subroutine = PretendSubroutine(hello)
+
+    result = client_fixture.call(subroutine, name="test")
+
+    assert result.return_value == "Hello ABI, test"
 
 
 def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> None:
