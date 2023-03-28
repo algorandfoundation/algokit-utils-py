@@ -395,7 +395,7 @@ class ApplicationClient:
 
         def create_app() -> au_deploy.DeployResponse:
             assert self.existing_deployments
-            # TODO: extra pages
+
             method, abi_args, parameters = _convert_deploy_args(create_args, app_spec_note, signer, sender)
             create_response = self.create(
                 method,
@@ -530,6 +530,32 @@ class ApplicationClient:
             extra_pages=extra_pages,
         )
 
+    @overload
+    def create(
+        self,
+        call_abi_method: Literal[False],
+        transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
+    ) -> TransactionResponse:
+        ...
+
+    @overload
+    def create(
+        self,
+        call_abi_method: Method | str | Literal[True],
+        transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> ABITransactionResponse:
+        ...
+
+    @overload
+    def create(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
+        ...
+
     def create(
         self,
         call_abi_method: Method | str | bool | None = None,
@@ -571,6 +597,32 @@ class ApplicationClient:
             clear_program=clear_program.raw_binary,
         )
 
+    @overload
+    def update(
+        self,
+        call_abi_method: Method | str | Literal[True],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> ABITransactionResponse:
+        ...
+
+    @overload
+    def update(
+        self,
+        call_abi_method: Literal[False],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+    ) -> TransactionResponse:
+        ...
+
+    @overload
+    def update(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
+        ...
+
     def update(
         self,
         call_abi_method: Method | str | bool | None = None,
@@ -605,6 +657,32 @@ class ApplicationClient:
             parameters=transaction_parameters,
             on_complete=transaction.OnComplete.DeleteApplicationOC,
         )
+
+    @overload
+    def delete(
+        self,
+        call_abi_method: Method | str | Literal[True],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> ABITransactionResponse:
+        ...
+
+    @overload
+    def delete(
+        self,
+        call_abi_method: Literal[False],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+    ) -> TransactionResponse:
+        ...
+
+    @overload
+    def delete(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
+        ...
 
     def delete(
         self,
@@ -645,7 +723,7 @@ class ApplicationClient:
     def call(
         self,
         call_abi_method: Method | str | Literal[True],
-        transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
+        transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
         ...
@@ -654,9 +732,17 @@ class ApplicationClient:
     def call(
         self,
         call_abi_method: Literal[False],
-        transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
-        **abi_kwargs: ABIArgType,
+        transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
     ) -> TransactionResponse:
+        ...
+
+    @overload
+    def call(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
         ...
 
     def call(
@@ -703,6 +789,32 @@ class ApplicationClient:
             on_complete=transaction.OnComplete.OptInOC,
         )
 
+    @overload
+    def opt_in(
+        self,
+        call_abi_method: Method | str | Literal[True] = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        **abi_kwargs: ABIArgType,
+    ) -> ABITransactionResponse:
+        ...
+
+    @overload
+    def opt_in(
+        self,
+        call_abi_method: Literal[False] = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+    ) -> TransactionResponse:
+        ...
+
+    @overload
+    def opt_in(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
+        ...
+
     def opt_in(
         self,
         call_abi_method: Method | str | bool | None = None,
@@ -735,6 +847,32 @@ class ApplicationClient:
             parameters=transaction_parameters,
             on_complete=transaction.OnComplete.CloseOutOC,
         )
+
+    @overload
+    def close_out(
+        self,
+        call_abi_method: Method | str | Literal[True],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> ABITransactionResponse:
+        ...
+
+    @overload
+    def close_out(
+        self,
+        call_abi_method: Literal[False],
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+    ) -> TransactionResponse:
+        ...
+
+    @overload
+    def close_out(
+        self,
+        call_abi_method: Method | str | bool | None = ...,
+        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        **abi_kwargs: ABIArgType,
+    ) -> TransactionResponse | ABITransactionResponse:
+        ...
 
     def close_out(
         self,
