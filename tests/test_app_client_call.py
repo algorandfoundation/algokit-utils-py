@@ -1,13 +1,28 @@
+import pytest
 from algokit_utils import (
     ApplicationClient,
+    ApplicationSpecification,
     CreateCallParameters,
+    get_account,
 )
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 from algosdk.transaction import ApplicationCallTxn
+from algosdk.v2client.algod import AlgodClient
+
+from tests.conftest import get_unique_name
+
+
+@pytest.fixture(scope="module")
+def client_fixture(algod_client: AlgodClient, app_spec: ApplicationSpecification) -> ApplicationClient:
+    creator_name = get_unique_name()
+    creator = get_account(algod_client, creator_name)
+    client = ApplicationClient(algod_client, app_spec, signer=creator)
+    create_response = client.create("create")
+    assert create_response.tx_id
+    return client
 
 
 def test_abi_call_with_atc(client_fixture: ApplicationClient) -> None:
-    client_fixture.create("create")
     atc = AtomicTransactionComposer()
     client_fixture.compose_call(atc, "hello", name="test")
     result = atc.execute(client_fixture.algod_client, 4)
@@ -16,7 +31,6 @@ def test_abi_call_with_atc(client_fixture: ApplicationClient) -> None:
 
 
 def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> None:
-    client_fixture.create("create")
     atc = AtomicTransactionComposer()
     client_fixture.compose_call(atc, "hello", name="test")
     client_fixture.compose_call(atc, "hello", name="test2")

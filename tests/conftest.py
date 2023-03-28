@@ -67,7 +67,11 @@ def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
 
 
 def read_spec(
-    file_name: str, *, updatable: bool | None = None, deletable: bool | None = None
+    file_name: str,
+    *,
+    updatable: bool | None = None,
+    deletable: bool | None = None,
+    name: str | None = None,
 ) -> ApplicationSpecification:
     path = Path(__file__).parent / file_name
     spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
@@ -84,16 +88,20 @@ def read_spec(
         .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
         .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
     )
+    if name is not None:
+        spec.contract.name = name
     return spec
 
 
 def get_specs(
-    updatable: bool | None = None, deletable: bool | None = None
+    updatable: bool | None = None,
+    deletable: bool | None = None,
+    name: str | None = None,
 ) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
     specs = (
-        read_spec("app_v1.json", updatable=updatable, deletable=deletable),
-        read_spec("app_v2.json", updatable=updatable, deletable=deletable),
-        read_spec("app_v3.json", updatable=updatable, deletable=deletable),
+        read_spec("app_v1.json", updatable=updatable, deletable=deletable, name=name),
+        read_spec("app_v2.json", updatable=updatable, deletable=deletable, name=name),
+        read_spec("app_v3.json", updatable=updatable, deletable=deletable, name=name),
     )
     return specs
 
@@ -145,11 +153,3 @@ def funded_account(algod_client: AlgodClient) -> Account:
 def app_spec() -> ApplicationSpecification:
     app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
     return app_spec
-
-
-@pytest.fixture()
-def client_fixture(
-    algod_client: AlgodClient, indexer_client: IndexerClient, creator: Account, app_spec: ApplicationSpecification
-) -> ApplicationClient:
-    client = ApplicationClient(algod_client, app_spec, creator=creator, indexer_client=indexer_client)
-    return client

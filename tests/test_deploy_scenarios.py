@@ -4,6 +4,7 @@ from enum import Enum
 
 import pytest
 from algokit_utils import (
+    Account,
     ApplicationClient,
     ApplicationSpecification,
     DeploymentFailedError,
@@ -22,14 +23,22 @@ logger = logging.getLogger(__name__)
 
 
 class DeployFixture:
-    def __init__(self, caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest):
+    def __init__(
+        self,
+        caplog: pytest.LogCaptureFixture,
+        request: pytest.FixtureRequest,
+        creator_name: str,
+        creator: Account,
+        app_name: str,
+    ):
         self.app_ids: list[int] = []
         self.caplog = caplog
         self.request = request
         self.algod_client = get_algod_client()
         self.indexer_client = get_indexer_client()
-        self.creator_name = get_unique_name()
-        self.creator = get_account(self.algod_client, self.creator_name)
+        self.creator_name = creator_name
+        self.creator = creator
+        self.app_name = app_name
 
     def deploy(
         self,
@@ -55,10 +64,15 @@ class DeployFixture:
         self.app_ids.append(app_client.app_id)
         return app_client
 
-    def check_log_stability(self, suffix: str = "") -> None:
+    def check_log_stability(self, replacements: dict[str, str] | None = None, suffix: str = "") -> None:
+        if replacements is None:
+            replacements = {}
+        replacements[self.app_name] = "SampleApp"
         records = self.caplog.get_records("call")
         logs = "\n".join(f"{r.levelname}: {r.message}" for r in records)
         logs = self._normalize_logs(logs)
+        for find, replace in (replacements or {}).items():
+            logs = logs.replace(find, replace)
         check_output_stability(logs, test_name=self.request.node.name + suffix)
 
     def _normalize_logs(self, logs: str) -> str:
@@ -78,14 +92,31 @@ class DeployFixture:
                 break
 
 
-@pytest.fixture()
-def deploy_fixture(caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest) -> DeployFixture:
+@pytest.fixture(scope="module")
+def creator_name() -> str:
+    return get_unique_name()
+
+
+@pytest.fixture(scope="module")
+def creator(creator_name: str) -> Account:
+    return get_account(get_algod_client(), creator_name)
+
+
+@pytest.fixture
+def app_name() -> str:
+    return get_unique_name()
+
+
+@pytest.fixture
+def deploy_fixture(
+    caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest, creator_name: str, creator: Account, app_name: str
+) -> DeployFixture:
     caplog.set_level(logging.DEBUG)
-    return DeployFixture(caplog, request)
+    return DeployFixture(caplog, request, creator_name=creator_name, creator=creator, app_name=app_name)
 
 
-def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture) -> None:
-    v1, _, _ = get_specs()
+def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture, app_name: str) -> None:
+    v1, _, _ = get_specs(name=app_name)
 
     app = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
 
@@ -93,8 +124,8 @@ def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture)
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs()
+def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployFixture, app_name: str) -> None:
+    v1, v2, _ = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=True, allow_delete=False)
     assert app_v1.app_id
@@ -105,8 +136,8 @@ def test_deploy_app_with_existing_updatable_app_succeeds(deploy_fixture: DeployF
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs()
+def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixture, app_name: str) -> None:
+    v1, v2, _ = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
@@ -120,8 +151,9 @@ def test_deploy_app_with_existing_immutable_app_fails(deploy_fixture: DeployFixt
 
 def test_deploy_app_with_existing_immutable_app_and_on_update_equals_replace_app_succeeds(
     deploy_fixture: DeployFixture,
+    app_name: str,
 ) -> None:
-    v1, v2, _ = get_specs()
+    v1, v2, _ = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=True)
     assert app_v1.app_id
@@ -134,8 +166,8 @@ def test_deploy_app_with_existing_immutable_app_and_on_update_equals_replace_app
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture) -> None:
-    v1, _, v3 = get_specs()
+def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixture, app_name: str) -> None:
+    v1, _, v3 = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
@@ -146,8 +178,10 @@ def test_deploy_app_with_existing_permanent_app_fails(deploy_fixture: DeployFixt
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_immutable_app_cannot_determine_if_updatable(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs(updatable=False, deletable=False)
+def test_deploy_app_with_existing_immutable_app_cannot_determine_if_updatable(
+    deploy_fixture: DeployFixture, app_name: str
+) -> None:
+    v1, v2, _ = get_specs(updatable=False, deletable=False, name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1)
     assert app_v1.app_id
@@ -158,8 +192,10 @@ def test_deploy_app_with_existing_immutable_app_cannot_determine_if_updatable(de
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_app_with_existing_permanent_app_cannot_determine_if_deletable(deploy_fixture: DeployFixture) -> None:
-    v1, v2, _ = get_specs(updatable=False, deletable=False)
+def test_deploy_app_with_existing_permanent_app_cannot_determine_if_deletable(
+    deploy_fixture: DeployFixture, app_name: str
+) -> None:
+    v1, v2, _ = get_specs(updatable=False, deletable=False, name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1)
     assert app_v1.app_id
@@ -172,21 +208,25 @@ def test_deploy_app_with_existing_permanent_app_cannot_determine_if_deletable(de
 
 def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fails_and_doesnt_create_2nd_app(
     deploy_fixture: DeployFixture,
+    app_name: str,
 ) -> None:
-    v1, v2, _ = get_specs()
+    v1, v2, _ = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
 
-    with pytest.raises(LogicError) as error:
-        deploy_fixture.deploy(v2, version="3.0", allow_update=False, allow_delete=False, on_update=OnUpdate.ReplaceApp)
-    lookup_response = deploy_fixture.indexer_client.lookup_account_application_by_creator(
+    apps_before = deploy_fixture.indexer_client.lookup_account_application_by_creator(
         deploy_fixture.creator.address
     )  # type: ignore[no-untyped-call]
-    all_apps = lookup_response["applications"]
+
+    with pytest.raises(LogicError) as error:
+        deploy_fixture.deploy(v2, version="3.0", allow_update=False, allow_delete=False, on_update=OnUpdate.ReplaceApp)
+    apps_after = deploy_fixture.indexer_client.lookup_account_application_by_creator(
+        deploy_fixture.creator.address
+    )  # type: ignore[no-untyped-call]
 
     # ensure no other apps were created
-    assert len(all_apps) == 1
+    assert len(apps_before["applications"]) == len(apps_after["applications"])
 
     logger.error(f"DeploymentFailedError: {error.value.message}")
     deploy_fixture.check_log_stability()
@@ -194,8 +234,9 @@ def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fai
 
 def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_replace_app_fails(
     deploy_fixture: DeployFixture,
+    app_name: str,
 ) -> None:
-    v1, _, v3 = get_specs()
+    v1, _, v3 = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(v1, allow_update=False, allow_delete=False, version="1.0")
     assert app_v1.app_id
@@ -210,8 +251,8 @@ def test_deploy_app_with_existing_permanent_app_and_on_schema_break_equals_repla
     deploy_fixture.check_log_stability()
 
 
-def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: DeployFixture) -> None:
-    app_spec = read_spec("app_v1.json")
+def test_deploy_templated_app_with_changing_parameters_succeeds(deploy_fixture: DeployFixture, app_name: str) -> None:
+    app_spec = read_spec("app_v1.json", name=app_name)
 
     logger.info("Deploy V1 as updatable, deletable")
     app_client = deploy_fixture.deploy(
@@ -291,9 +332,9 @@ def test_deploy_with_schema_breaking_change(
     deletable: Deletable,
     updatable: Updatable,
     on_schema_break: OnSchemaBreak,
+    app_name: str,
 ) -> None:
-    v1 = read_spec("app_v1.json")
-    v3 = read_spec("app_v3.json")
+    v1, _, v3 = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(
         v1, version="1.0", allow_delete=deletable == Deletable.Yes, allow_update=updatable == Updatable.Yes
@@ -325,9 +366,9 @@ def test_deploy_with_update(
     deletable: Deletable,
     updatable: Updatable,
     on_update: OnUpdate,
+    app_name: str,
 ) -> None:
-    v1 = read_spec("app_v1.json")
-    v2 = read_spec("app_v2.json")
+    v1, v2, _ = get_specs(name=app_name)
 
     app_v1 = deploy_fixture.deploy(
         v1, version="1.0", allow_delete=deletable == Deletable.Yes, allow_update=updatable == Updatable.Yes

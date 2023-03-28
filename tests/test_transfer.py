@@ -6,7 +6,7 @@ from algosdk.v2client.algod import AlgodClient
 from tests.conftest import check_output_stability, get_unique_name
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="module")
 def to_account(kmd_client: KMDClient) -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 

@@ -4,26 +4,21 @@ from algokit_utils import (
     ApplicationClient,
     ApplicationSpecification,
     LogicError,
-    get_account,
 )
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from tests.conftest import check_output_stability, get_unique_name
-
-
-@pytest.fixture(scope="module")
-def creator(algod_client: AlgodClient) -> Account:
-    creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-    return creator
+from tests.conftest import check_output_stability
 
 
 @pytest.fixture
 def client_fixture(
-    algod_client: AlgodClient, indexer_client: IndexerClient, creator: Account, app_spec: ApplicationSpecification
+    algod_client: AlgodClient,
+    indexer_client: IndexerClient,
+    funded_account: Account,
+    app_spec: ApplicationSpecification,
 ) -> ApplicationClient:
-    client = ApplicationClient(algod_client, app_spec, creator=creator, indexer_client=indexer_client)
+    client = ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
     client.create("create")
     return client
 
