@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2023-03-28)
+### Feature
+* Allow broader types when specifying methods and app_spec in ApplicationClient ([#7](https://github.com/algorandfoundation/algokit-utils-py/issues/7)) ([`b73bb69`](https://github.com/algorandfoundation/algokit-utils-py/commit/b73bb69804a9652fcdb2354f3305e96934d834a4))
+* Make ABI call arguments kwargs instead of a dict ([#6](https://github.com/algorandfoundation/algokit-utils-py/issues/6)) ([`574b147`](https://github.com/algorandfoundation/algokit-utils-py/commit/574b14772acce6ae26e05765bf87d1f0dc9d906e))
+
 ## v0.1.3 (2023-03-23)
 ### Fix
 * Get_account now works if called a second time for the same account name ([`513dd4c`](https://github.com/algorandfoundation/algokit-utils-py/commit/513dd4c734211fa60d98e5d7b8d01b9aa6b3f830))
