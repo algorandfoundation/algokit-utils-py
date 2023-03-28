@@ -24,23 +24,30 @@ class AlgoClientConfig:
 
 
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
+    """Returns an algod SDK client using configuration from environment variables
+    ALGOD_SERVER, ALGOD_PORT and ALGOD_TOKEN"""
     config = config or _get_config_from_environment("ALGOD")
     headers = _get_headers(config)
     return AlgodClient(config.token, config.server, headers)
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
+    """Returns an indexer SDK client using configuration from environment variables
+    INDEXER_SERVER, INDEXER_PORT and INDEXER_TOKEN"""
     config = config or _get_config_from_environment("INDEXER")
     headers = _get_headers(config)
     return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
 def is_sandbox(client: AlgodClient) -> bool:
+    """Returns True if client genesis is devnet-v1 or sandnet-v1"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
+    """Returns and SDK KMDClient using the same address as provided AlgodClient, but on port specified by
+    KMD_PORT environment variable, or 4092 by default"""
     # We can only use Kmd on the Sandbox otherwise it's not exposed so this makes some assumptions
     # (e.g. same token and server as algod and port 4002 by default)
     port = os.getenv("KMD_PORT", "4002")

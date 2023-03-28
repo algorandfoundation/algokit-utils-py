@@ -131,6 +131,32 @@ def get_kmd_wallet_account(
 def get_account(
     client: AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None
 ) -> Account:
+    """Returns an Algorand account with private key loaded by convention based on the given name identifier.
+
+    ## Convention:
+
+    **Non-LocalNet:** will load os.environ['{name}_MNEMONIC'] as a mnemonic secret;
+    Be careful how the mnemonic is handled, never commit it into source control and ideally load it via a
+    secret storage service rather than the file system.
+
+    **LocalNet:** will load the account from a KMD wallet called {name} and if that wallet doesn't exist it will
+    create it and fund the account for you
+
+    This allows you to write code that will work seamlessly in production and local development (LocalNet) without
+    manual config locally (including when you reset the LocalNet).
+
+    @example Default
+
+    If you have a mnemonic secret loaded into `os.environ['ACCOUNT_MNEMONIC'] then you can call the following to get
+    that private key loaded into an account object:
+    ```python
+    account = await get_account('ACCOUNT', algod)
+    ```
+
+    If that code runs against LocalNet then a wallet called 'ACCOUNT' will automatically be created with an account
+    that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
+    """
+
     mnemonic_key = f"{name.upper()}_MNEMONIC"
     mnemonic = os.getenv(mnemonic_key)
     if mnemonic:
