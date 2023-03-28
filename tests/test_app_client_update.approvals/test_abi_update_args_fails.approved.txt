@@ -1,0 +1,12 @@
+Txn {txn} had error 'assert failed pc=673' at PC 673 and Source Line 379: 
+
+	frame_dig -1
+	extract 2 0
+	bytec_2 // "Yes"
+	==
+	// passes update check
+	assert		<-- Error
+	intc 4 // updatable
+	// is updatable
+	assert
+	bytec_0 // "greeting"

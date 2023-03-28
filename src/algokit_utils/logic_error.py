@@ -6,6 +6,7 @@ from algosdk.source_map import SourceMap as AlgoSourceMap
 
 __all__ = [
     "LogicError",
+    "parse_logic_error",
 ]
 
 LOGIC_ERROR = (

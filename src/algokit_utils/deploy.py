@@ -3,13 +3,22 @@ import dataclasses
 import json
 import logging
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Iterable, Mapping
+from enum import Enum
 
+from algosdk import transaction
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
+from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils.models import Account
+from algokit_utils.application_specification import (
+    ApplicationSpecification,
+    CallConfig,
+    MethodConfigDict,
+    OnCompleteActionName,
+)
+from algokit_utils.models import Account, TransactionResponse
 
 __all__ = [
     "UPDATABLE_TEMPLATE_NAME",
@@ -20,6 +29,12 @@ __all__ = [
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "DeployResponse",
+    "OnUpdate",
+    "OnSchemaBreak",
+    "OperationPerformed",
+    "TemplateValueDict",
+    "check_app_and_deploy",
     "get_creator_apps",
     "replace_template_variables",
 ]
@@ -129,9 +144,9 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 if t["application-transaction"]["application-id"] == 0 and t["sender"] == creator_address
             )
 
-            def sort_by_round(transaction: dict) -> tuple[int, int]:
-                confirmed = transaction["confirmed-round"]
-                offset = transaction["intra-round-offset"]
+            def sort_by_round(txn: dict) -> tuple[int, int]:
+                confirmed = txn["confirmed-round"]
+                offset = txn["intra-round-offset"]
                 return confirmed, offset
 
             transactions.sort(key=sort_by_round, reverse=True)
@@ -168,19 +183,51 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
     return AppLookup(creator_address, apps)
 
 
-# TODO: put these somewhere more useful
 def _state_schema(schema: dict[str, int]) -> StateSchema:
     return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
 
 
-def _schema_is_less(a: StateSchema, b: StateSchema) -> bool:
-    return bool(a.num_uints < b.num_uints or a.num_byte_slices < b.num_byte_slices)
+def _describe_schema_breaks(prefix: str, from_schema: StateSchema, to_schema: StateSchema) -> Iterable[str]:
+    if to_schema.num_uints > from_schema.num_uints:
+        yield f"{prefix} uints increased from {from_schema.num_uints} to {to_schema.num_uints}"
+    if to_schema.num_byte_slices > from_schema.num_byte_slices:
+        yield f"{prefix} byte slices increased from {from_schema.num_byte_slices} to {to_schema.num_byte_slices}"
 
 
-def _schema_str(global_schema: StateSchema, local_schema: StateSchema) -> str:
-    return (
-        f"Global: uints={global_schema.num_uints}, byte_slices={global_schema.num_byte_slices}, "
-        f"Local: uints={local_schema.num_uints}, byte_slices={local_schema.num_byte_slices}"
+@dataclasses.dataclass(kw_only=True)
+class AppChanges:
+    app_updated: bool
+    schema_breaking_change: bool
+    schema_change_description: str | None
+
+
+def check_for_app_changes(
+    algod_client: AlgodClient,
+    new_approval: bytes,
+    new_clear: bytes,
+    new_global_schema: StateSchema,
+    new_local_schema: StateSchema,
+    app_id: int,
+) -> AppChanges:
+    application_info = algod_client.application_info(app_id)
+    assert isinstance(application_info, dict)
+    application_create_params = application_info["params"]
+
+    current_approval = base64.b64decode(application_create_params["approval-program"])
+    current_clear = base64.b64decode(application_create_params["clear-state-program"])
+    current_global_schema = _state_schema(application_create_params["global-state-schema"])
+    current_local_schema = _state_schema(application_create_params["local-state-schema"])
+
+    app_updated = current_approval != new_approval or current_clear != new_clear
+
+    schema_changes: list[str] = []
+    schema_changes.extend(_describe_schema_breaks("Global", current_global_schema, new_global_schema))
+    schema_changes.extend(_describe_schema_breaks("Local", current_local_schema, new_local_schema))
+
+    return AppChanges(
+        app_updated=app_updated,
+        schema_breaking_change=bool(schema_changes),
+        schema_change_description=", ".join(schema_changes),
     )
 
 
@@ -203,7 +250,7 @@ def _replace_template_variable(program_lines: list[str], template_variable: str,
     return result, match_count
 
 
-def _add_deploy_template_variables(
+def add_deploy_template_variables(
     template_values: TemplateValueDict, allow_update: bool | None, allow_delete: bool | None
 ) -> None:
     if allow_update is not None:
@@ -217,7 +264,7 @@ def _strip_comments(program: str) -> str:
     return "\n".join(lines)
 
 
-def _check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
+def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
     approval_program = _strip_comments(approval_program)
     if UPDATABLE_TEMPLATE_NAME in approval_program and _UPDATABLE not in template_values:
         raise DeploymentFailedError(
@@ -259,3 +306,140 @@ def replace_template_variables(program: str, template_values: TemplateValueMappi
         program_lines, matches = _replace_template_variable(program_lines, template_variable_name, value)
 
     return "\n".join(program_lines)
+
+
+def has_template_vars(app_spec: ApplicationSpecification) -> bool:
+    return "TMPL_" in _strip_comments(app_spec.approval_program) or "TMPL_" in _strip_comments(app_spec.clear_program)
+
+
+def get_deploy_control(
+    app_spec: ApplicationSpecification, template_var: str, on_complete: transaction.OnComplete
+) -> bool | None:
+    if template_var not in _strip_comments(app_spec.approval_program):
+        return None
+    return get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
+        h for h in app_spec.hints.values() if get_call_config(h.call_config, on_complete) != CallConfig.NEVER
+    )
+
+
+def get_call_config(method_config: MethodConfigDict, on_complete: transaction.OnComplete) -> CallConfig:
+    def get(key: OnCompleteActionName) -> CallConfig:
+        return method_config.get(key, CallConfig.NEVER)
+
+    match on_complete:
+        case transaction.OnComplete.NoOpOC:
+            return get("no_op")
+        case transaction.OnComplete.UpdateApplicationOC:
+            return get("update_application")
+        case transaction.OnComplete.DeleteApplicationOC:
+            return get("delete_application")
+        case transaction.OnComplete.OptInOC:
+            return get("opt_in")
+        case transaction.OnComplete.CloseOutOC:
+            return get("close_out")
+        case transaction.OnComplete.ClearStateOC:
+            return get("clear_state")
+
+
+class OnUpdate(Enum):
+    Fail = 0
+    UpdateApp = 1
+    ReplaceApp = 2
+    # TODO: AppendApp
+
+
+class OnSchemaBreak(Enum):
+    Fail = 0
+    ReplaceApp = 2
+
+
+class OperationPerformed(Enum):
+    Nothing = 0
+    Create = 1
+    Update = 2
+    Replace = 3
+
+
+@dataclasses.dataclass(kw_only=True)
+class DeployResponse:
+    app: AppMetaData
+    create_response: TransactionResponse | None = None
+    delete_response: TransactionResponse | None = None
+    update_response: TransactionResponse | None = None
+    action_taken: OperationPerformed = OperationPerformed.Nothing
+
+
+def check_app_and_deploy(
+    app: AppMetaData,
+    app_changes: AppChanges,
+    on_schema_break: OnSchemaBreak,
+    on_update: OnUpdate,
+    update_app: Callable[[], DeployResponse],
+    create_and_delete_app: Callable[[], DeployResponse],
+) -> DeployResponse:
+    if app_changes.schema_breaking_change:
+        logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
+
+        if on_schema_break == OnSchemaBreak.Fail:
+            raise DeploymentFailedError(
+                "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
+                "If you want to try deleting and recreating the app then "
+                "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
+            )
+        if app.deletable:
+            logger.info(
+                "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
+            )
+        elif app.deletable is False:
+            logger.warning(
+                "App is not deletable but on_schema_break=ReplaceApp, "
+                "will attempt to delete app, delete will most likely fail"
+            )
+        else:
+            logger.warning(
+                "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
+            )
+        return create_and_delete_app()
+    elif app_changes.app_updated:
+        logger.info(f"Detected a TEAL update in app id {app.app_id}")
+
+        if on_update == OnUpdate.Fail:
+            raise DeploymentFailedError(
+                "Update detected and on_update=Fail, stopping deployment. "
+                "If you want to try updating the app then re-run with on_update=UpdateApp"
+            )
+        if app.updatable and on_update == OnUpdate.UpdateApp:
+            logger.info("App is updatable and on_update=UpdateApp, will update app")
+            return update_app()
+        elif app.updatable and on_update == OnUpdate.ReplaceApp:
+            logger.warning(
+                "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
+            )
+            return create_and_delete_app()
+        elif on_update == OnUpdate.ReplaceApp:
+            if app.updatable is False:
+                logger.warning(
+                    "App is not updatable and on_update=ReplaceApp, "
+                    "will attempt to create new app and delete old app"
+                )
+            else:
+                logger.warning(
+                    "Cannot determine if App is updatable and on_update=ReplaceApp, "
+                    "will attempt to create new app and delete old app"
+                )
+            return create_and_delete_app()
+        else:
+            if app.updatable is False:
+                logger.warning(
+                    "App is not updatable but on_update=UpdateApp, "
+                    "will attempt to update app, update will most likely fail"
+                )
+            else:
+                logger.warning(
+                    "Cannot determine if App is updatable and on_update=UpdateApp, " "will attempt to update app"
+                )
+            return update_app()
+
+    logger.info("No detected changes in app, nothing to do.")
+
+    return DeployResponse(app=app)

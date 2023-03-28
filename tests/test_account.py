@@ -1,6 +1,7 @@
 from algokit_utils import get_account
 from algosdk.v2client.algod import AlgodClient
-from conftest import get_unique_name
+
+from tests.conftest import get_unique_name
 
 
 def test_account_can_be_called_twice(algod_client: AlgodClient) -> None:
