@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2023-03-28)
+### Breaking
+* 1.0 release ([`ef8f280`](https://github.com/algorandfoundation/algokit-utils-py/commit/ef8f28053ce6ac7a03f85b312d249317e3537d3f))
+
+### Documentation
+* Add initial documentation for common functionality ([#8](https://github.com/algorandfoundation/algokit-utils-py/issues/8)) ([`ef8f280`](https://github.com/algorandfoundation/algokit-utils-py/commit/ef8f28053ce6ac7a03f85b312d249317e3537d3f))
+
 ## v0.2.0 (2023-03-28)
 ### Feature
 * Allow broader types when specifying methods and app_spec in ApplicationClient ([#7](https://github.com/algorandfoundation/algokit-utils-py/issues/7)) ([`b73bb69`](https://github.com/algorandfoundation/algokit-utils-py/commit/b73bb69804a9652fcdb2354f3305e96934d834a4))
