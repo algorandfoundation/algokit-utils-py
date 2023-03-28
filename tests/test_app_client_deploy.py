@@ -17,8 +17,8 @@ def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account)
     )
 
     transfer(
-        TransferParameters(from_account=creator, to_address=client_fixture.app_address, amount=100_000),
         client_fixture.algod_client,
+        TransferParameters(from_account=creator, to_address=client_fixture.app_address, micro_algos=100_000),
     )
 
     assert client_fixture.call("hello", name="test").return_value == "Hello ABI, test"

@@ -13,8 +13,10 @@ from algokit_utils import (
     get_account,
     get_algod_client,
     get_indexer_client,
+    get_kmd_client_from_algod_client,
     replace_template_variables,
 )
+from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 from dotenv import load_dotenv
@@ -116,12 +118,24 @@ def algod_client() -> AlgodClient:
 
 
 @pytest.fixture(scope="session")
+def kmd_client(algod_client: AlgodClient) -> KMDClient:
+    return get_kmd_client_from_algod_client(algod_client)
+
+
+@pytest.fixture(scope="session")
 def indexer_client() -> IndexerClient:
     return get_indexer_client()
 
 
 @pytest.fixture()
 def creator(algod_client: AlgodClient) -> Account:
+    creator_name = get_unique_name()
+    creator = get_account(algod_client, creator_name)
+    return creator
+
+
+@pytest.fixture(scope="session")
+def funded_account(algod_client: AlgodClient) -> Account:
     creator_name = get_unique_name()
     creator = get_account(algod_client, creator_name)
     return creator

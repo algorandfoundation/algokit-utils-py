@@ -31,11 +31,22 @@ def get_account_from_mnemonic(mnemonic: str) -> Account:
     return Account(private_key, address)
 
 
+def create_kmd_wallet_account(kmd_client: KMDClient, name: str) -> Account:
+    wallet_id = kmd_client.create_wallet(name, "")["id"]  # type: ignore[no-untyped-call]
+    wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")  # type: ignore[no-untyped-call]
+    kmd_client.generate_key(wallet_handle)  # type: ignore[no-untyped-call]
+
+    key_ids: list[str] = kmd_client.list_keys(wallet_handle)  # type: ignore[no-untyped-call]
+    account_key = key_ids[0]
+
+    private_account_key = kmd_client.export_key(wallet_handle, "", account_key)  # type: ignore[no-untyped-call]
+    return get_account_from_mnemonic(from_private_key(private_account_key))  # type: ignore[no-untyped-call]
+
+
 def get_or_create_kmd_wallet_account(
-    client: AlgodClient, name: str, fund_with: int | None, kmd_client: KMDClient | None = None
+    client: AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None
 ) -> Account:
     kmd_client = kmd_client or get_kmd_client_from_algod_client(client)
-    fund_with = 1000 if fund_with is None else fund_with
     account = get_kmd_wallet_account(client, kmd_client, name)
 
     if account:
@@ -43,29 +54,26 @@ def get_or_create_kmd_wallet_account(
         assert isinstance(account_info, dict)
         if account_info["amount"] > 0:
             return account
-        logger.debug(f"Found existing account in Sandbox with name '{name}'." f"But no funds in the account.")
+        logger.debug(f"Found existing account in Sandbox with name '{name}', but no funds in the account.")
     else:
-        wallet_id = kmd_client.create_wallet(name, "")["id"]  # type: ignore[no-untyped-call]
-        wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")  # type: ignore[no-untyped-call]
-        kmd_client.generate_key(wallet_handle)  # type: ignore[no-untyped-call]
+        account = create_kmd_wallet_account(kmd_client, name)
 
-        account = get_kmd_wallet_account(client, kmd_client, name)
-        assert account
         logger.debug(
             f"Couldn't find existing account in Sandbox with name '{name}'. "
             f"So created account {account.address} with keys stored in KMD."
         )
 
-    logger.debug(f"Funding account {account.address} with {fund_with} ALGOs")
+    logger.debug(f"Funding account {account.address} with {fund_with_algos} ALGOs")
 
-    transfer(
-        TransferParameters(
-            from_account=get_dispenser_account(client),
-            to_address=account.address,
-            amount=algos_to_microalgos(fund_with),  # type: ignore[no-untyped-call]
-        ),
-        client,
-    )
+    if fund_with_algos:
+        transfer(
+            client,
+            TransferParameters(
+                from_account=get_dispenser_account(client),
+                to_address=account.address,
+                micro_algos=algos_to_microalgos(fund_with_algos),  # type: ignore[no-untyped-call]
+            ),
+        )
 
     return account
 
@@ -121,7 +129,7 @@ def get_kmd_wallet_account(
 
 
 def get_account(
-    client: AlgodClient, name: str, fund_with: int | None = None, kmd_client: KMDClient | None = None
+    client: AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None
 ) -> Account:
     mnemonic_key = f"{name.upper()}_MNEMONIC"
     mnemonic = os.getenv(mnemonic_key)
@@ -129,7 +137,7 @@ def get_account(
         return get_account_from_mnemonic(mnemonic)
 
     if is_sandbox(client):
-        account = get_or_create_kmd_wallet_account(client, name, fund_with, kmd_client)
+        account = get_or_create_kmd_wallet_account(client, name, fund_with_algos, kmd_client)
         os.environ[mnemonic_key] = from_private_key(account.private_key)  # type: ignore[no-untyped-call]
         return account
 

@@ -3,6 +3,7 @@ from algokit_utils._transfer import (
     transfer,
 )
 from algokit_utils.account import (
+    create_kmd_wallet_account,
     get_account,
     get_account_from_mnemonic,
     get_dispenser_account,
@@ -65,6 +66,7 @@ from algokit_utils.network_clients import (
 )
 
 __all__ = [
+    "create_kmd_wallet_account",
     "get_account_from_mnemonic",
     "get_or_create_kmd_wallet_account",
     "get_sandbox_default_account",
