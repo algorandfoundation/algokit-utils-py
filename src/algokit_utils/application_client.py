@@ -2,8 +2,10 @@ import base64
 import dataclasses
 import logging
 import re
+import typing
 from collections.abc import Sequence
 from math import ceil
+from pathlib import Path
 from typing import Any, Literal, TypedDict, cast, overload
 
 import algosdk
@@ -54,6 +56,14 @@ __all__ = [
     "get_next_version",
     "num_extra_program_pages",
 ]
+
+
+class ABIReturnSubroutine(typing.Protocol):
+    def method_spec(self) -> Method:
+        ...
+
+
+ABIMethod: typing.TypeAlias = ABIReturnSubroutine | Method | str
 
 
 class Program:
@@ -117,7 +127,7 @@ class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=Fa
 
 @dataclasses.dataclass(kw_only=True)
 class ABICallArgs:
-    method: Method | str | bool | None = None
+    method: ABIMethod | bool | None = None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
     suggested_params: transaction.SuggestedParams | None = None
     lease: bytes | str | None = None
@@ -135,7 +145,7 @@ class ABICreateCallArgs(ABICallArgs):
 
 
 class ABICallArgsDict(TypedDict, total=False):
-    method: Method | str | bool
+    method: ABIMethod | bool
     args: ABIArgsDict
     suggested_params: transaction.SuggestedParams
     lease: bytes | str
@@ -156,7 +166,7 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        app_spec: au_spec.ApplicationSpecification,
+        app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
         signer: TransactionSigner | Account | None = None,
@@ -170,7 +180,7 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        app_spec: au_spec.ApplicationSpecification,
+        app_spec: au_spec.ApplicationSpecification | Path,
         *,
         creator: str | Account,
         indexer_client: IndexerClient | None = None,
@@ -185,7 +195,7 @@ class ApplicationClient:
     def __init__(
         self,
         algod_client: AlgodClient,
-        app_spec: au_spec.ApplicationSpecification,
+        app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
         creator: str | Account | None = None,
@@ -197,15 +207,17 @@ class ApplicationClient:
         template_values: au_deploy.TemplateValueDict | None = None,
     ):
         self.algod_client = algod_client
-        self.app_spec = app_spec
+        self.app_spec = (
+            au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec
+        )
         self._approval_program: Program | None
         self._clear_program: Program | None
 
         if template_values:
             self._approval_program, self._clear_program = substitute_template_and_compile(
-                self.algod_client, app_spec, template_values
+                self.algod_client, self.app_spec, template_values
             )
-        elif not au_deploy.has_template_vars(app_spec):
+        elif not au_deploy.has_template_vars(self.app_spec):
             self._approval_program = Program(self.app_spec.approval_program, self.algod_client)
             self._clear_program = Program(self.app_spec.clear_program, self.algod_client)
         else:  # can't compile programs yet
@@ -503,7 +515,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -541,7 +553,7 @@ class ApplicationClient:
     @overload
     def create(
         self,
-        call_abi_method: Method | str | Literal[True],
+        call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -550,7 +562,7 @@ class ApplicationClient:
     @overload
     def create(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -558,7 +570,7 @@ class ApplicationClient:
 
     def create(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -580,7 +592,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -600,7 +612,7 @@ class ApplicationClient:
     @overload
     def update(
         self,
-        call_abi_method: Method | str | Literal[True],
+        call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -617,7 +629,7 @@ class ApplicationClient:
     @overload
     def update(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -625,7 +637,7 @@ class ApplicationClient:
 
     def update(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -644,7 +656,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -661,7 +673,7 @@ class ApplicationClient:
     @overload
     def delete(
         self,
-        call_abi_method: Method | str | Literal[True],
+        call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -678,7 +690,7 @@ class ApplicationClient:
     @overload
     def delete(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -686,7 +698,7 @@ class ApplicationClient:
 
     def delete(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -705,7 +717,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -722,7 +734,7 @@ class ApplicationClient:
     @overload
     def call(
         self,
-        call_abi_method: Method | str | Literal[True],
+        call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -739,7 +751,7 @@ class ApplicationClient:
     @overload
     def call(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -747,7 +759,7 @@ class ApplicationClient:
 
     def call(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -776,7 +788,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -792,7 +804,7 @@ class ApplicationClient:
     @overload
     def opt_in(
         self,
-        call_abi_method: Method | str | Literal[True] = ...,
+        call_abi_method: ABIMethod | Literal[True] = ...,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -809,7 +821,7 @@ class ApplicationClient:
     @overload
     def opt_in(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -817,7 +829,7 @@ class ApplicationClient:
 
     def opt_in(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -835,7 +847,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
@@ -851,7 +863,7 @@ class ApplicationClient:
     @overload
     def close_out(
         self,
-        call_abi_method: Method | str | Literal[True],
+        call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
@@ -868,7 +880,7 @@ class ApplicationClient:
     @overload
     def close_out(
         self,
-        call_abi_method: Method | str | bool | None = ...,
+        call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -876,7 +888,7 @@ class ApplicationClient:
 
     def close_out(
         self,
-        call_abi_method: Method | str | bool | None = None,
+        call_abi_method: ABIMethod | bool | None = None,
         transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
@@ -943,7 +955,7 @@ class ApplicationClient:
 
     def resolve(self, to_resolve: au_spec.DefaultArgumentDict) -> int | str | bytes:
         def _data_check(value: Any) -> int | str | bytes:
-            if isinstance(value, (int, str, bytes)):
+            if isinstance(value, int | str | bytes):
                 return value
             raise ValueError(f"Unexpected type for constant data: {value}")
 
@@ -1017,7 +1029,7 @@ class ApplicationClient:
 
     def _resolve_method(
         self,
-        abi_method: Method | str | bool | None,
+        abi_method: ABIMethod | bool | None,
         args: ABIArgsDict | None,
         on_complete: transaction.OnComplete,
         call_config: au_spec.CallConfig = au_spec.CallConfig.CALL,
@@ -1036,6 +1048,8 @@ class ApplicationClient:
                     matches += abi_methods
                 if has_bare_config and abi_method is not True:
                     matches += [None]
+            case _:
+                return abi_method.method_spec()
 
         if len(matches) == 1:  # exact match
             return matches[0]
@@ -1059,7 +1073,7 @@ class ApplicationClient:
     def add_method_call(
         self,
         atc: AtomicTransactionComposer,
-        abi_method: Method | str | bool | None = None,
+        abi_method: ABIMethod | bool | None = None,
         abi_args: ABIArgsDict | None = None,
         app_id: int | None = None,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
@@ -1191,13 +1205,15 @@ class ApplicationClient:
             if self._method_matches(method, args, on_complete, call_config)
         ]
 
-    def _resolve_abi_method(self, method: Method | str) -> Method:
+    def _resolve_abi_method(self, method: ABIMethod) -> Method:
         if isinstance(method, str):
             try:
                 return next(iter(m for m in self.app_spec.contract.methods if m.get_signature() == method))
             except StopIteration:
                 pass
             return self.app_spec.contract.get_method_by_name(method)
+        elif hasattr(method, "method_spec"):
+            return method.method_spec()
         else:
             return method
 
@@ -1326,7 +1342,7 @@ def _convert_deploy_args(
     note: au_deploy.AppDeployMetaData,
     signer: TransactionSigner | None,
     sender: str | None,
-) -> tuple[Method | str | bool | None, ABIArgsDict, CreateCallParameters]:
+) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
     args = dataclasses.asdict(_args) if isinstance(_args, ABICallArgs) else (_args or {})
 
     # return most derived type, unused parameters are ignored
