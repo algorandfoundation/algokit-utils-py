@@ -332,14 +332,22 @@ class ApplicationClient:
         update_args: ABICallArgs | ABICallArgsDict | None = None,
         delete_args: ABICallArgs | ABICallArgsDict | None = None,
     ) -> au_deploy.DeployResponse:
-        """Idempotently deploy (create, update/delete if changed) an app against the given name via the given creator
-        account, including deploy-time template placeholder substitutions. To understand the architecture decisions
-        behind this functionality please see
-        https://github.com/algorandfoundation/algokit-cli/blob/main/docs/architecture-decisions/2023-01-12_smart-contract-deployment.md
-        Note: if there is a breaking state schema change to an existing app (and `on_schema_break` is set to
+        """Deploy an application and update client to reference it.
+
+        Idempotently deploy (create, update/delete if changed) an app against the given name via the given creator
+        account, including deploy-time template placeholder substitutions.
+        To understand the architecture decisions behind this functionality please see
+        <https://github.com/algorandfoundation/algokit-cli/blob/main/docs/architecture-decisions/2023-01-12_smart-contract-deployment.md>
+
+        ```{note}
+        If there is a breaking state schema change to an existing app (and `on_schema_break` is set to
         'ReplaceApp' the existing app will be deleted and re-created.
-        Note: if there is an update (different TEAL code) to an existing app (and `on_update` is set to 'ReplaceApp')
+        ```
+
+        ```{note}
+        If there is an update (different TEAL code) to an existing app (and `on_update` is set to 'ReplaceApp')
         the existing app will be deleted and re-created.
+        ```
         """
         before = self._approval_program, self._clear_program, self.sender, self.signer, self.app_id
         try:

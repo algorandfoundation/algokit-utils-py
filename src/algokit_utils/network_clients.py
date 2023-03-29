@@ -11,7 +11,7 @@ __all__ = [
     "get_algod_client",
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
-    "is_sandbox",
+    "is_localnet",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
@@ -39,7 +39,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
     return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
-def is_sandbox(client: AlgodClient) -> bool:
+def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is devnet-v1 or sandnet-v1"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
@@ -48,7 +48,7 @@ def is_sandbox(client: AlgodClient) -> bool:
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
     """Returns and SDK KMDClient using the same address as provided AlgodClient, but on port specified by
     KMD_PORT environment variable, or 4092 by default"""
-    # We can only use Kmd on the Sandbox otherwise it's not exposed so this makes some assumptions
+    # We can only use Kmd on the LocalNet otherwise it's not exposed so this makes some assumptions
     # (e.g. same token and server as algod and port 4002 by default)
     port = os.getenv("KMD_PORT", "4002")
     server = _replace_kmd_port(client.algod_address, port)

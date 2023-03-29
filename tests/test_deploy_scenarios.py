@@ -14,7 +14,7 @@ from algokit_utils import (
     get_account,
     get_algod_client,
     get_indexer_client,
-    get_sandbox_default_account,
+    get_localnet_default_account,
 )
 
 from tests.conftest import check_output_stability, get_specs, get_unique_name, read_spec
@@ -76,7 +76,7 @@ class DeployFixture:
         check_output_stability(logs, test_name=self.request.node.name + suffix)
 
     def _normalize_logs(self, logs: str) -> str:
-        dispenser = get_sandbox_default_account(self.algod_client)
+        dispenser = get_localnet_default_account(self.algod_client)
         logs = logs.replace(self.creator_name, "{creator}")
         logs = logs.replace(self.creator.address, "{creator_account}")
         logs = logs.replace(dispenser.address, "{dispenser_account}")
