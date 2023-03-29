@@ -8,8 +8,8 @@ from algokit_utils.account import (
     get_account_from_mnemonic,
     get_dispenser_account,
     get_kmd_wallet_account,
+    get_localnet_default_account,
     get_or_create_kmd_wallet_account,
-    get_sandbox_default_account,
 )
 from algokit_utils.application_client import (
     ABICallArgs,
@@ -62,14 +62,14 @@ from algokit_utils.network_clients import (
     get_algod_client,
     get_indexer_client,
     get_kmd_client_from_algod_client,
-    is_sandbox,
+    is_localnet,
 )
 
 __all__ = [
     "create_kmd_wallet_account",
     "get_account_from_mnemonic",
     "get_or_create_kmd_wallet_account",
-    "get_sandbox_default_account",
+    "get_localnet_default_account",
     "get_dispenser_account",
     "get_kmd_wallet_account",
     "get_account",
@@ -87,7 +87,6 @@ __all__ = [
     "ABICallArgsDict",
     "ABICreateCallArgs",
     "ABICreateCallArgsDict",
-    "ApplicationClient",
     "CommonCallParameters",
     "CommonCallParametersDict",
     "CreateCallParameters",
@@ -120,7 +119,7 @@ __all__ = [
     "get_algod_client",
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
-    "is_sandbox",
+    "is_localnet",
     "TransferParameters",
     "transfer",
 ]
