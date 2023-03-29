@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.1 (2023-03-29)
+### Fix
+* Deprecate is_sandbox and get_sandbox_default_account ([#10](https://github.com/algorandfoundation/algokit-utils-py/issues/10)) ([`ad23e57`](https://github.com/algorandfoundation/algokit-utils-py/commit/ad23e57c33fcf692d954f10be8b18b327ae69bd2))
+* Rename sandbox to localnet ([`ea43db2`](https://github.com/algorandfoundation/algokit-utils-py/commit/ea43db26000e282364549e739dabdb907468b657))
+
 ## v1.0.0 (2023-03-28)
 ### Breaking
 * 1.0 release ([`ef8f280`](https://github.com/algorandfoundation/algokit-utils-py/commit/ef8f28053ce6ac7a03f85b312d249317e3537d3f))
