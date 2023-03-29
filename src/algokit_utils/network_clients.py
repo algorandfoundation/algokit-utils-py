@@ -1,5 +1,6 @@
 import dataclasses
 import os
+import warnings
 from urllib import parse
 
 from algosdk.kmd import KMDClient
@@ -43,6 +44,11 @@ def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is devnet-v1 or sandnet-v1"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
+
+
+def is_sandbox(client: AlgodClient) -> bool:
+    warnings.warn("is_sandbox is deprecated, please use is_localnet instead", DeprecationWarning)
+    return is_localnet(client)
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
