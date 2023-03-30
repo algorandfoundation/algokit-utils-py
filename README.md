@@ -4,7 +4,7 @@ A set of core Algorand utilities written in Python and released via PyPi that ma
 
 The goal of this library is to provide intuitive, productive utility functions that make it easier, quicker and safer to build applications on Algorand. Largely these functions wrap the underlying Algorand SDK, but provide a higher level interface with sensible defaults and capabilities for common tasks.
 
-Note: If you prefer Typescript there's an equivalent [Typesript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
+Note: If you prefer TypeScript there's an equivalent [TypeScript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
 
 ## Install
 
