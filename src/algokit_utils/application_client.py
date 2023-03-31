@@ -40,12 +40,15 @@ logger = logging.getLogger(__name__)
 
 ABIArgType = Any
 ABIArgsDict = dict[str, ABIArgType]
+"""A dictionary `dict[str, Any]` representing ABI argument names and values"""
 
 __all__ = [
+    "ABIArgsDict",
     "ABICallArgs",
     "ABICallArgsDict",
     "ABICreateCallArgs",
     "ABICreateCallArgsDict",
+    "ABIMethod",
     "ApplicationClient",
     "CommonCallParameters",
     "CommonCallParametersDict",
@@ -67,6 +70,8 @@ class ABIReturnSubroutine(typing.Protocol):
 
 
 ABIMethod: typing.TypeAlias = ABIReturnSubroutine | Method | str
+"""Alias for {py:class}`pyteal.ABIReturnSubroutine`, {py:class}`algosdk.abi.method.Method` or a {py:class}`str` 
+representing an ABI method name or signature"""
 
 
 class Program:
@@ -85,6 +90,8 @@ class Program:
 
 
 def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
+    """Calculate minimum number of extra_pages required for provided approval and clear programs"""
+
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
@@ -119,6 +126,8 @@ class CreateCallParameters(OnCompleteCallParameters):
 
 
 class CommonCallParametersDict(TypedDict, total=False):
+    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+
     signer: TransactionSigner
     sender: str
     suggested_params: transaction.SuggestedParams
@@ -127,16 +136,21 @@ class CommonCallParametersDict(TypedDict, total=False):
 
 
 class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=False):
+    """Transaction parameters used when making any call to an Application"""
+
     on_complete: transaction.OnComplete
 
 
 class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=False):
+    """Transaction parameters used when making a create call for Application"""
+
     extra_pages: int
 
 
 @dataclasses.dataclass(kw_only=True)
 class ABICallArgs:
-    """Parameters used to update or delete an application when calling deploy()"""
+    """Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     method: ABIMethod | bool | None = None
     args: ABIArgsDict = dataclasses.field(default_factory=dict)
@@ -151,13 +165,16 @@ class ABICallArgs:
 
 @dataclasses.dataclass(kw_only=True)
 class ABICreateCallArgs(ABICallArgs):
-    """Parameters used to create an application when calling deploy()"""
+    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     extra_pages: int | None = None
     on_complete: transaction.OnComplete | None = None
 
 
 class ABICallArgsDict(TypedDict, total=False):
+    """Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
     method: ABIMethod | bool
     args: ABIArgsDict
     suggested_params: transaction.SuggestedParams
@@ -170,6 +187,8 @@ class ABICallArgsDict(TypedDict, total=False):
 
 
 class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
+    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
     extra_pages: int | None
     on_complete: transaction.OnComplete
 
@@ -187,7 +206,7 @@ class ApplicationClient:
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        template_values: au_deploy.TemplateValueDict | None = None,
+        template_values: au_deploy.TemplateValueMapping | None = None,
     ):
         ...
 
@@ -203,7 +222,7 @@ class ApplicationClient:
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        template_values: au_deploy.TemplateValueDict | None = None,
+        template_values: au_deploy.TemplateValueMapping | None = None,
     ):
         ...
 
@@ -219,8 +238,26 @@ class ApplicationClient:
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
-        template_values: au_deploy.TemplateValueDict | None = None,
+        template_values: au_deploy.TemplateValueMapping | None = None,
     ):
+        """ApplicationClient can be created with an app_id to interact with an existing application, alternatively
+        it can be created with a creator and indexer_client specified to find existing applications by name and creator.
+
+        :param AlgodClient algod_client: AlgoSDK algod client
+        :param ApplicationSpecification | Path app_spec: An Application Specification or the path to one
+        :param int app_id: The app_id of an existing application, to instead find the application by creator and name
+        use the creator and indexer_client parameters
+        :param str | Account creator: The address or Account of the app creator to resolve the app_id
+        :param IndexerClient indexer_client: AlgoSDK indexer client, only required if deploying or finding app_id by
+        creator and app name
+        :param AppLookup existing_deployments:
+        :param TransactionSigner | Account signer: Account or signer to use to sign transactions, if not specified and
+        creator was passed as an Account will use that.
+        :param str sender: Address to use as the sender for all transactions, will use the address associated with the
+        signer if not specified.
+        :param TemplateValueMapping template_values: Values to use for TMPL_* template variables, dictionary keys should
+        *NOT* include the TMPL_ prefix
+        """
         self.algod_client = algod_client
         self.app_spec = (
             au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec
@@ -296,7 +333,7 @@ class ApplicationClient:
         template_values: au_deploy.TemplateValueDict | None = None,
     ) -> "ApplicationClient":
         """Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
-        Will also substitute provided template_values into the associated app_spec"""
+        Will also substitute provided template_values into the associated app_spec in the copy"""
         new_client = copy.copy(self)
         new_client._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
         return new_client
@@ -329,7 +366,7 @@ class ApplicationClient:
         allow_delete: bool | None = None,
         on_update: au_deploy.OnUpdate = au_deploy.OnUpdate.Fail,
         on_schema_break: au_deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail,
-        template_values: au_deploy.TemplateValueDict | None = None,
+        template_values: au_deploy.TemplateValueMapping | None = None,
         create_args: ABICreateCallArgs | ABICreateCallArgsDict | None = None,
         update_args: ABICallArgs | ABICallArgsDict | None = None,
         delete_args: ABICallArgs | ABICallArgsDict | None = None,
@@ -350,6 +387,25 @@ class ApplicationClient:
         If there is an update (different TEAL code) to an existing app (and `on_update` is set to 'ReplaceApp')
         the existing app will be deleted and re-created.
         ```
+
+        :param str version: version to use when creating or updating app, if None version will be auto incremented
+        :param algosdk.atomic_transaction_composer.TransactionSigner signer: signer to use when deploying app
+        , if None uses self.signer
+        :param str sender: sender address to use when deploying app, if None uses self.sender
+        :param bool allow_delete: Used to set the `TMPL_DELETABLE` template variable to conditionally control if an app
+        can be deleted
+        :param bool allow_update: Used to set the `TMPL_DELETABLE` template variable to conditionally control if an app
+        can be updated
+        :param OnUpdate on_update: Determines what action to take if an application update is required
+        :param OnSchemaBreak on_schema_break: Determines what action to take if an application schema requirements
+        has increased beyond the current allocation
+        :param dict[str, int|str|bytes] template_values: Values to use for `TMPL_*` template variables, dictionary keys
+        should *NOT* include the TMPL_ prefix
+        :param ABICreateCallArgs create_args: Arguments used when creating an application
+        :param ABICallArgs | ABICallArgsDict update_args: Arguments used when updating an application
+        :param ABICallArgs | ABICallArgsDict delete_args: Arguments used when deleting an application
+        :return DeployResponse: details action taken and relevant transactions
+        :raises DeploymentError: If the deployment failed due
         """
         before = self._approval_program, self._clear_program, self.sender, self.signer, self.app_id
         try:
@@ -381,7 +437,7 @@ class ApplicationClient:
         allow_delete: bool | None,
         on_update: au_deploy.OnUpdate,
         on_schema_break: au_deploy.OnSchemaBreak,
-        template_values: au_deploy.TemplateValueDict | None,
+        template_values: au_deploy.TemplateValueMapping | None,
         create_args: ABICallArgs | ABICallArgsDict | None,
         update_args: ABICallArgs | ABICallArgsDict | None,
         delete_args: ABICallArgs | ABICallArgsDict | None,
@@ -1290,7 +1346,7 @@ class ApplicationClient:
 def substitute_template_and_compile(
     algod_client: AlgodClient,
     app_spec: au_spec.ApplicationSpecification,
-    template_values: au_deploy.TemplateValueDict,
+    template_values: au_deploy.TemplateValueMapping,
 ) -> tuple[Program, Program]:
     """Substitutes the provided template_values into app_spec and compiles"""
     template_values = dict(template_values or {})
@@ -1303,6 +1359,7 @@ def substitute_template_and_compile(
 
 
 def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
+    """Finds the app_id for provided transaction id"""
     result = algod_client.pending_transaction_info(tx_id)
     assert isinstance(result, dict)
     app_id = result["application-index"]
@@ -1311,6 +1368,21 @@ def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
 
 
 def get_next_version(current_version: str) -> str:
+    """Calculates the next version from `current_version`
+
+    Next version is calculated by finding a semver like
+    version string and incrementing the lower. This function is used by {py:meth}`ApplicationClient.deploy` when
+    a version is not specified, and is intended mostly for convenience during local development.
+
+    :params str current_version: An existing version string with a semver like version contained within it,
+    some valid inputs and incremented outputs:
+    `1` -> `2`
+    `1.0` -> `1.1`
+    `v1.1` -> `v1.2`
+    `v1.1-beta1` -> `v1.2-beta1`
+    `v1.2.3.4567` -> `v1.2.3.4568`
+    `v1.2.3.4567-alpha` -> `v1.2.3.4568-alpha`
+    :raises DeploymentFailedError: If `current_version` cannot be parsed"""
     pattern = re.compile(r"(?P<prefix>\w*)(?P<version>(?:\d+\.)*\d+)(?P<suffix>\w*)")
     match = pattern.match(current_version)
     if match:
@@ -1333,8 +1405,14 @@ def execute_atc_with_logic_error(
     approval_program: str | None = None,
     approval_source_map: SourceMap | None = None,
 ) -> AtomicTransactionResponse:
-    """Calls execute on provided atc, but will parse any errors into a LogicError,
-    if approval_program and approval_source_map are specifed"""
+    """Calls {py:meth}`AtomicTransactionComposer.execute` on provided `atc`, but will parse any errors
+    and raise a {py:class}`LogicError` if possible
+
+    ```{note}
+    `approval_program` and `approval_source_map` are required to be able to parse any errors into a
+    {py:class}`LogicError`
+    ```
+    """
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:

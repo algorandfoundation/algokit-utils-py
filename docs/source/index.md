@@ -7,7 +7,7 @@ caption: Contents
 ---
 
 usage
-apidocs/index
+apidocs/algokit_utils/algokit_utils
 ```
 
 # Indices and tables

@@ -5,6 +5,7 @@ import logging
 import re
 from collections.abc import Callable, Iterable, Mapping
 from enum import Enum
+from typing import TypeAlias
 
 from algosdk import transaction
 from algosdk.logic import get_application_address
@@ -34,6 +35,7 @@ __all__ = [
     "OnSchemaBreak",
     "OperationPerformed",
     "TemplateValueDict",
+    "TemplateValueMapping",
     "check_app_and_deploy",
     "get_creator_apps",
     "replace_template_variables",
@@ -45,15 +47,22 @@ DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT = 1000
 _UPDATABLE = "UPDATABLE"
 _DELETABLE = "DELETABLE"
 UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
+"""Template variable name used to control if a smart contract is updatable or not at deployment"""
 DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
-TemplateValue = int | str | bytes
-TemplateValueDict = dict[str, TemplateValue]
-TemplateValueMapping = Mapping[str, TemplateValue]
+"""Template variable name used to control if a smart contract is deletable or not at deployment"""
+TemplateValue: TypeAlias = int | str | bytes
+TemplateValueDict: TypeAlias = dict[str, TemplateValue]
+"""Dictionary of `dict[str, int | str | bytes]` representing template variable names and values"""
+TemplateValueMapping: TypeAlias = Mapping[str, TemplateValue]
+"""Mapping of `str` to `int | str | bytes` representing template variable names and values"""
 
-NOTE_PREFIX = "ALGOKIT_DEPLOYER:j"  # this prefix also makes the note ARC-2 compliant
-# when base64 encoding bytes, 3 bytes are stored in every 4 characters
-# assert the NOTE_PREFIX length is a multiple of 3, so we don't need to worry about the
-# padding/changing characters at the end
+NOTE_PREFIX = "ALGOKIT_DEPLOYER:j"
+"""ARC-0002 compliant note prefix for algokit_utils deployed applications"""
+# This prefix is also used to filter for parsable transaction notes in get_creator_apps.
+# However, as the note is base64 encoded first we need to consider it's base64 representation.
+# When base64 encoding bytes, 3 bytes are stored in every 4 characters.
+# So then we don't need to worry about the padding/changing characters of the prefix if it was followed by
+# additional characters, assert the NOTE_PREFIX length is a multiple of 3.
 assert len(NOTE_PREFIX) % 3 == 0
 
 
@@ -63,12 +72,20 @@ class DeploymentFailedError(Exception):
 
 @dataclasses.dataclass
 class AppReference:
+    """Information about an Algorand app"""
+
     app_id: int
     app_address: str
 
 
 @dataclasses.dataclass
 class AppDeployMetaData:
+    """Metadata about an application stored in a transaction note during creation.
+
+    The note is serialized as JSON and prefixed with {py:data}`NOTE_PREFIX` and stored in the transaction note field
+    as part of {py:meth}`ApplicationClient.deploy`
+    """
+
     name: str
     version: str
     deletable: bool | None
@@ -98,6 +115,8 @@ class AppDeployMetaData:
 
 @dataclasses.dataclass
 class AppMetaData(AppReference, AppDeployMetaData):
+    """Metadata about a deployed app"""
+
     created_round: int
     updated_round: int
     created_metadata: AppDeployMetaData
@@ -106,11 +125,20 @@ class AppMetaData(AppReference, AppDeployMetaData):
 
 @dataclasses.dataclass
 class AppLookup:
+    """Cache of {py:class}`AppMetaData` for a specific `creator`
+
+    Can be used as an argument to {py:class}`ApplicationClient` to reduce the number of calls when deploying multiple
+    apps or discovering multiple app_ids
+    """
+
     creator: str
     apps: dict[str, AppMetaData] = dataclasses.field(default_factory=dict)
 
 
 def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> AppLookup:
+    """Returns a mapping of Application names to {py:class}`AppMetaData` for all Applications created by specified
+    creator that have a transaction note containing {py:class}`AppDeployMetaData`
+    """
     apps: dict[str, AppMetaData] = {}
 
     creator_address = creator_account if isinstance(creator_account, str) else creator_account.address
@@ -289,6 +317,12 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
 
 
 def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
+    """Replaces `TMPL_*` variables in `program` with `template_values`
+
+    ```{note}
+    `template_values` keys should *NOT* be prefixed with `TMPL_`
+    ```
+    """
     program_lines = program.splitlines()
     for template_variable_name, template_value in template_values.items():
         match template_value:
@@ -342,26 +376,43 @@ def get_call_config(method_config: MethodConfigDict, on_complete: transaction.On
 
 
 class OnUpdate(Enum):
+    """Action to take if an Application has been updated"""
+
     Fail = 0
+    """Fail the deployment"""
     UpdateApp = 1
+    """Update the Application with the new approval and clear programs"""
     ReplaceApp = 2
+    """Create a new Application and delete the old Application in a single transaction"""
     # TODO: AppendApp
 
 
 class OnSchemaBreak(Enum):
+    """Action to take if an Application's schema has breaking changes"""
+
     Fail = 0
+    """Fail the deployment"""
     ReplaceApp = 2
+    """Create a new Application and delete the old Application in a single transaction"""
 
 
 class OperationPerformed(Enum):
+    """Describes the actions taken during deployment"""
+
     Nothing = 0
+    """An existing Application was found"""
     Create = 1
+    """No existing Application was found, created a new Application"""
     Update = 2
+    """An existing Application was found, but was out of date, updated to latest version"""
     Replace = 3
+    """An existing Application was found, but was out of date, created a new Application and deleted the original"""
 
 
 @dataclasses.dataclass(kw_only=True)
 class DeployResponse:
+    """Describes the action taken during deployment, related transactions and the {py:class}`AppMetaData`"""
+
     app: AppMetaData
     create_response: TransactionResponse | None = None
     delete_response: TransactionResponse | None = None

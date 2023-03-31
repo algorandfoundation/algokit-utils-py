@@ -1,3 +1,5 @@
+from sphinx.domains.python import PythonDomain
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -16,11 +18,19 @@ release = "1.0"
 
 extensions = [
     "sphinx.ext.githubpages",
+    "sphinx.ext.intersphinx",
     "myst_parser",
     "autodoc2",
 ]
 templates_path = ["_templates"]
 exclude_patterns = []
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "algosdk": ("https://py-algorand-sdk.readthedocs.io/en/latest", None),
+    "pyteal": ("https://pyteal.readthedocs.io/en/stable/", None),
+}
+# allows type aliases to be used as type references
+PythonDomain.object_types["data"].roles = ("data", "class", "obj")
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -53,10 +63,11 @@ autodoc2_docstring_parser_regexes = [
     (r".*", "myst"),
 ]
 autodoc2_hidden_objects = [
-    # "undoc",  # undocumented objects
+    "undoc",  # undocumented objects
     "dunder",  # double-underscore methods, e.g. __str__
     "private",  # single-underscore methods, e.g. _private
     "inherited",
 ]
 autodoc2_render_plugin = "myst"
 autodoc2_sort_names = True
+autodoc2_index_template = None
