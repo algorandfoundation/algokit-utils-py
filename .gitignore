@@ -168,3 +168,5 @@ cython_debug/
 .doctrees/
 # ignore auto-generated sources
 /docs/source/apidocs
+
+!docs/html
