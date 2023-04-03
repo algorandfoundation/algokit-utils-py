@@ -32,7 +32,7 @@ def test_transfer_max_fee_fails(algod_client: AlgodClient, to_account: Account, 
     requested_amount = 100_000
     max_fee = 123
 
-    with pytest.raises(Exception) as ex:
+    with pytest.raises(Exception, match="Cancelled transaction due to high network congestion fees") as ex:
         transfer(
             algod_client,
             TransferParameters(

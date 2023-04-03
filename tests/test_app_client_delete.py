@@ -11,7 +11,7 @@ from algosdk.v2client.indexer import IndexerClient
 from tests.conftest import check_output_stability
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_fixture(
     algod_client: AlgodClient,
     indexer_client: IndexerClient,

@@ -102,12 +102,12 @@ def creator(creator_name: str) -> Account:
     return get_account(get_algod_client(), creator_name)
 
 
-@pytest.fixture
+@pytest.fixture()
 def app_name() -> str:
     return get_unique_name()
 
 
-@pytest.fixture
+@pytest.fixture()
 def deploy_fixture(
     caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest, creator_name: str, creator: Account, app_name: str
 ) -> DeployFixture:

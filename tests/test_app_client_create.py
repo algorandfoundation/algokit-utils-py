@@ -54,7 +54,7 @@ def test_create_auto_find(client_fixture: ApplicationClient) -> None:
 
 
 def test_create_auto_find_ambiguous(client_fixture: ApplicationClient) -> None:
-    with pytest.raises(Exception) as ex:
+    with pytest.raises(Exception, match="Could not find an exact method to use") as ex:
         client_fixture.create()
     check_output_stability(str(ex.value))
 

@@ -35,8 +35,7 @@ build-backend = "poetry.core.masonry.api"
 # TODO: Copy the stuff
 [tool.ruff]
 line-length = 120
-select = ["E", "F", "ANN", "UP", "N", "C", "B", "A", "YTT", "W", "FBT", "Q", "RUF", "I"]
-# note: remove A003 once flake8-builtins: builtins-ignorelist supported and can ignore id
+select = ["E", "F", "ANN", "UP", "N", "C", "B", "A", "YTT", "W", "FBT", "Q", "RUF", "I", "PT"]
 ignore = ["ANN101", "ANN401", "C901", "A003"]
 # Exclude a variety of commonly ignored directories.
 exclude = [

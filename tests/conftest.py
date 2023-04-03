@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 
 
 @pytest.fixture(autouse=True, scope="session")
-def environment_fixture() -> None:
+def _environment_fixture() -> None:
     env_path = Path(__file__).parent / ".." / "example.env"
     load_dotenv(env_path)
 
