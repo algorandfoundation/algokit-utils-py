@@ -735,6 +735,15 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
+````{py:method} get_signer_sender(signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None) -> tuple[algosdk.atomic_transaction_composer.TransactionSigner | None, str | None]
+:canonical: algokit_utils.application_client.ApplicationClient.get_signer_sender
+
+```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.get_signer_sender
+:parser: myst
+```
+
+````
+
 ````{py:method} opt_in(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.opt_in
 

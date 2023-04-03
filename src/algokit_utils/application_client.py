@@ -344,10 +344,9 @@ class ApplicationClient:
         template_values: au_deploy.TemplateValueDict | None = None,
     ) -> None:
         target.app_id = self.app_id if app_id is None else app_id
-        if signer or sender:
-            target.signer, target.sender = target.resolve_signer_sender(
-                AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
-            )
+        target.signer, target.sender = target.get_signer_sender(
+            AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
+        )
         if template_values:
             target._approval_program, target._clear_program = substitute_template_and_compile(
                 target.algod_client, target.app_spec, template_values
@@ -1325,6 +1324,17 @@ class ApplicationClient:
     def _set_app_id_from_tx_id(self, tx_id: str) -> None:
         self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
 
+    def get_signer_sender(
+        self, signer: TransactionSigner | None = None, sender: str | None = None
+    ) -> tuple[TransactionSigner | None, str | None]:
+        """Return signer and sender, using default values on client if not specified
+
+        Will use provided values if given, otherwise will fall back to values defined on client.
+        If no sender is specified then will attempt to obtain sender from signer"""
+        resolved_signer = signer or self.signer
+        resolved_sender = sender or get_sender_from_signer(signer) or self.sender or get_sender_from_signer(self.signer)
+        return resolved_signer, resolved_sender
+
     def resolve_signer_sender(
         self, signer: TransactionSigner | None = None, sender: str | None = None
     ) -> tuple[TransactionSigner, str]:
@@ -1333,11 +1343,11 @@ class ApplicationClient:
         Will use provided values if given, otherwise will fall back to values defined on client.
         If no sender is specified then will attempt to obtain sender from signer
 
-        :raises Exception: If a signer or sender is not specified"""
-        resolved_signer = signer or self.signer
+        :raises ValueError: Raised if a signer or sender is not provided. See `get_signer_sender`
+        for variant with no exception"""
+        resolved_signer, resolved_sender = self.get_signer_sender(signer, sender)
         if not resolved_signer:
             raise ValueError("No signer provided")
-        resolved_sender = sender or get_sender_from_signer(signer) or self.sender or get_sender_from_signer(self.signer)
         if not resolved_sender:
             raise ValueError("No sender provided")
         return resolved_signer, resolved_sender
