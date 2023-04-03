@@ -1327,6 +1327,12 @@ class ApplicationClient:
     def resolve_signer_sender(
         self, signer: TransactionSigner | None = None, sender: str | None = None
     ) -> tuple[TransactionSigner, str]:
+        """Return signer and sender, using default values on client if not specified
+
+        Will use provided values if given, otherwise will fall back to values defined on client.
+        If no sender is specified then will attempt to obtain sender from signer
+
+        :raises Exception: If a signer or sender is not specified"""
         return self._resolve_signer_sender(signer, sender)
 
     # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
