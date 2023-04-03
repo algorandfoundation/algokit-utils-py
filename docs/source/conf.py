@@ -9,7 +9,7 @@ from sphinx.domains.python import PythonDomain
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "algokit-utils"
-copyright = "2023, Algorand Foundation"
+copyright = "2023, Algorand Foundation"  # noqa: A001
 author = "Algorand Foundation"
 release = "1.0"
 
