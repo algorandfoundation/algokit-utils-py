@@ -74,7 +74,7 @@ suppress-none-returning = true
 line-length = 120
 
 [tool.poe.tasks]
-docs = "sphinx-build docs/source docs/build"
+docs = "sphinx-build docs/source docs/html"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]
