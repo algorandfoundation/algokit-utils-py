@@ -34,6 +34,7 @@ from algokit_utils.application_client import (
 )
 from algokit_utils.application_specification import (
     ApplicationSpecification,
+    AppSpecStateDict,
     CallConfig,
     DefaultArgumentDict,
     DefaultArgumentType,
@@ -113,6 +114,7 @@ __all__ = [
     "get_app_id_from_tx_id",
     "get_next_version",
     "num_extra_program_pages",
+    "AppSpecStateDict",
     "ApplicationSpecification",
     "CallConfig",
     "DefaultArgumentDict",

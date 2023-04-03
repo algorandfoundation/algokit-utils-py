@@ -61,6 +61,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.AppLookup"><code class="docutils literal notranslate"><span class="pre">AppLookup</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.AppMetaData"><code class="docutils literal notranslate"><span class="pre">AppMetaData</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.AppReference"><code class="docutils literal notranslate"><span class="pre">AppReference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.AppSpecStateDict"><code class="docutils literal notranslate"><span class="pre">AppSpecStateDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.ApplicationClient"><code class="docutils literal notranslate"><span class="pre">ApplicationClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.ApplicationSpecification"><code class="docutils literal notranslate"><span class="pre">ApplicationSpecification</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CallConfig"><code class="docutils literal notranslate"><span class="pre">CallConfig</span></code></a></li>
@@ -315,28 +316,31 @@ creator that have a transaction note containing <a class="reference internal" hr
 <td><p>Alias for <a class="reference external" href="https://pyteal.readthedocs.io/en/stable/api.html#pyteal.ABIReturnSubroutine" title="(in PyTeal)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyteal.ABIReturnSubroutine</span></code></a>, <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/abi/method.html#algosdk.abi.method.Method" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.abi.method.Method</span></code></a> or a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>
 representing an ABI method name or signature</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.DELETABLE_TEMPLATE_NAME" title="algokit_utils.deploy.DELETABLE_TEMPLATE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DELETABLE_TEMPLATE_NAME</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.AppSpecStateDict" title="algokit_utils.application_specification.AppSpecStateDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppSpecStateDict</span></code></a></p></td>
+<td><p>Type defining Application Specification state entries</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.DELETABLE_TEMPLATE_NAME" title="algokit_utils.deploy.DELETABLE_TEMPLATE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DELETABLE_TEMPLATE_NAME</span></code></a></p></td>
 <td><p>Template variable name used to control if a smart contract is deletable or not at deployment</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.DefaultArgumentType" title="algokit_utils.application_specification.DefaultArgumentType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultArgumentType</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.DefaultArgumentType" title="algokit_utils.application_specification.DefaultArgumentType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultArgumentType</span></code></a></p></td>
 <td><p>Literal values describing the types of default argument sources</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.MethodConfigDict" title="algokit_utils.application_specification.MethodConfigDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodConfigDict</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.MethodConfigDict" title="algokit_utils.application_specification.MethodConfigDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodConfigDict</span></code></a></p></td>
 <td><p>Dictionary of <code class="docutils literal notranslate"><span class="pre">dict[OnCompletionActionName,</span> <span class="pre">CallConfig]</span></code> representing allowed actions for each on completion type</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.NOTE_PREFIX" title="algokit_utils.deploy.NOTE_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NOTE_PREFIX</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.NOTE_PREFIX" title="algokit_utils.deploy.NOTE_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NOTE_PREFIX</span></code></a></p></td>
 <td><p>ARC-0002 compliant note prefix for algokit_utils deployed applications</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteActionName" title="algokit_utils.application_specification.OnCompleteActionName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteActionName</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteActionName" title="algokit_utils.application_specification.OnCompleteActionName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteActionName</span></code></a></p></td>
 <td><p>String literals representing on completion transaction types</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TemplateValueDict" title="algokit_utils.deploy.TemplateValueDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TemplateValueDict</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TemplateValueDict" title="algokit_utils.deploy.TemplateValueDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TemplateValueDict</span></code></a></p></td>
 <td><p>Dictionary of <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">bytes]</span></code> representing template variable names and values</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TemplateValueMapping" title="algokit_utils.deploy.TemplateValueMapping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TemplateValueMapping</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TemplateValueMapping" title="algokit_utils.deploy.TemplateValueMapping"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TemplateValueMapping</span></code></a></p></td>
 <td><p>Mapping of <code class="docutils literal notranslate"><span class="pre">str</span></code> to <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">bytes</span></code> representing template variable names and values</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.UPDATABLE_TEMPLATE_NAME" title="algokit_utils.deploy.UPDATABLE_TEMPLATE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UPDATABLE_TEMPLATE_NAME</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.UPDATABLE_TEMPLATE_NAME" title="algokit_utils.deploy.UPDATABLE_TEMPLATE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UPDATABLE_TEMPLATE_NAME</span></code></a></p></td>
 <td><p>Template variable name used to control if a smart contract is updatable or not at deployment</p></td>
 </tr>
 </tbody>
@@ -488,6 +492,13 @@ apps or discovering multiple app_ids</p>
 <dt class="sig sig-object py" id="algokit_utils.AppReference">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">AppReference</span></span><a class="headerlink" href="#algokit_utils.AppReference" title="Permalink to this definition"></a></dt>
 <dd><p>Information about an Algorand app</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="algokit_utils.AppSpecStateDict">
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">AppSpecStateDict</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeAlias" title="(in Python v3.11)"><span class="pre">TypeAlias</span></a></em><a class="headerlink" href="#algokit_utils.AppSpecStateDict" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>Type defining Application Specification state entries</p>
 </dd></dl>
 
 <dl class="py class">

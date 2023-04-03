@@ -21,6 +21,7 @@ __all__ = [
 
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
+"""Type defining Application Specification state entries"""
 
 
 class CallConfig(IntFlag):
