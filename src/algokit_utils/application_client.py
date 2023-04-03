@@ -60,6 +60,7 @@ __all__ = [
     "execute_atc_with_logic_error",
     "get_app_id_from_tx_id",
     "get_next_version",
+    "get_sender_from_signer",
     "num_extra_program_pages",
 ]
 
@@ -1341,10 +1342,10 @@ class ApplicationClient:
     ) -> tuple[TransactionSigner, str]:
         resolved_signer = signer or self.signer
         if not resolved_signer:
-            raise Exception("No signer specified")
-        resolved_sender = sender or self.sender or _get_sender_from_signer(resolved_signer)
+            raise Exception("No signer provided")
+        resolved_sender = sender or self.sender or get_sender_from_signer(resolved_signer)
         if not resolved_sender:
-            raise Exception("No sender specified")
+            raise Exception("No sender provided")
         return resolved_signer, resolved_sender
 
 
@@ -1484,7 +1485,9 @@ def _convert_deploy_args(
     return args.get("method"), args.get("args") or {}, parameters
 
 
-def _get_sender_from_signer(signer: TransactionSigner | None) -> str | None:
+def get_sender_from_signer(signer: TransactionSigner | None) -> str | None:
+    """Returns the associated address of a signer, return None if no address found"""
+
     if isinstance(signer, AccountTransactionSigner):
         sender = address_from_private_key(signer.private_key)  # type: ignore[no-untyped-call]
         assert isinstance(sender, str)

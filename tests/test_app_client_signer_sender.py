@@ -42,8 +42,8 @@ override_signer = CustomSigner()
 default_sender = "default_sender"
 override_sender = "override_sender"
 sender_from_signer = address_from_private_key(fake_key)  # type: ignore[no-untyped-call]
-NoSenderError = "No sender specified"
-NoSignerError = "No signer specified"
+NoSenderError = "No sender provided"
+NoSignerError = "No signer provided"
 
 no_signer_sender = SignerSender()
 

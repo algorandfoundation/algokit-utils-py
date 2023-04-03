@@ -243,6 +243,11 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`get_sender_from_signer <algokit_utils.application_client.get_sender_from_signer>`
+  - ```{autodoc2-docstring} algokit_utils.application_client.get_sender_from_signer
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`is_localnet <algokit_utils.network_clients.is_localnet>`
   - ```{autodoc2-docstring} algokit_utils.network_clients.is_localnet
     :parser: myst
@@ -1488,6 +1493,14 @@ Bases: {py:obj}`enum.Enum`
 :canonical: algokit_utils.account.get_or_create_kmd_wallet_account
 
 ```{autodoc2-docstring} algokit_utils.account.get_or_create_kmd_wallet_account
+:parser: myst
+```
+````
+
+````{py:function} get_sender_from_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | None) -> str | None
+:canonical: algokit_utils.application_client.get_sender_from_signer
+
+```{autodoc2-docstring} algokit_utils.application_client.get_sender_from_signer
 :parser: myst
 ```
 ````

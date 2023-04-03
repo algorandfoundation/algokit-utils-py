@@ -30,6 +30,7 @@ from algokit_utils.application_client import (
     execute_atc_with_logic_error,
     get_app_id_from_tx_id,
     get_next_version,
+    get_sender_from_signer,
     num_extra_program_pages,
 )
 from algokit_utils.application_specification import (
@@ -113,6 +114,7 @@ __all__ = [
     "execute_atc_with_logic_error",
     "get_app_id_from_tx_id",
     "get_next_version",
+    "get_sender_from_signer",
     "num_extra_program_pages",
     "AppSpecStateDict",
     "ApplicationSpecification",
