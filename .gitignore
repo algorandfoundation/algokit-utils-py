@@ -164,12 +164,7 @@ cython_debug/
 # macOS
 .DS_Store
 
-# we use this file for quickly editing run/debug args, it shouldn't be committed
-/args.in
-
-# Received approval test files
-*.received.*
-
 #Sphinx
 .doctrees/
-docs/cli/temp.md
+# ignore auto-generated sources
+/docs/source/apidocs

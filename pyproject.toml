@@ -21,6 +21,12 @@ python-semantic-release = "*"
 pytest-cov = "*"
 pre-commit = "*"
 python-dotenv = "^1.0.0"
+sphinx = "^6.1.3"
+myst-parser = "^1.0.0"
+sphinx-copybutton = "^0.5.1"
+sphinx-rtd-theme = "^1.2.0"
+sphinx-autodoc2 = "^0.4.2"
+poethepoet = "^0.19.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -66,6 +72,9 @@ suppress-none-returning = true
 
 [tool.black]
 line-length = 120
+
+[tool.poe.tasks]
+docs = "sphinx-build docs/source docs/build"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

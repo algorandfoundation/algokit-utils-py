@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass(kw_only=True)
 class TransferParameters:
+    """Parameters for transferring µALGOs between accounts"""
+
     from_account: Account | AccountTransactionSigner
     """The account (with private key) or signer that will send the µALGOs"""
     to_address: str
@@ -50,6 +52,8 @@ def _check_fee(transaction: PaymentTxn, max_fee: int | None) -> None:
 
 
 def transfer(client: AlgodClient, parameters: TransferParameters) -> PaymentTxn:
+    """Transfer µALGOs between accounts"""
+
     suggested_params = parameters.suggested_params or client.suggested_params()
     from_account = parameters.from_account
     sender = address_from_private_key(from_account.private_key)  # type: ignore[no-untyped-call]

@@ -13,6 +13,7 @@ __all__ = [
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
     "is_localnet",
+    "is_sandbox",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
@@ -20,28 +21,35 @@ _PURE_STAKE_HOST = "purestake.io"
 
 @dataclasses.dataclass
 class AlgoClientConfig:
+    """Connection details for connecting to an {py:class}`algosdk.v2client.algod.AlgodClient` or
+    {py:class}`algosdk.v2client.indexer.IndexerClient`"""
+
     server: str
-    token: str = ""
+    """URL for the service e.g. `http://localhost:4001` or `https://testnet-api.algonode.cloud`"""
+    token: str
+    """API Token to authenticate with the service"""
 
 
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
-    """Returns an algod SDK client using configuration from environment variables
-    ALGOD_SERVER, ALGOD_PORT and ALGOD_TOKEN"""
+    """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
+
+    If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
     config = config or _get_config_from_environment("ALGOD")
     headers = _get_headers(config)
     return AlgodClient(config.token, config.server, headers)
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
-    """Returns an indexer SDK client using configuration from environment variables
-    INDEXER_SERVER, INDEXER_PORT and INDEXER_TOKEN"""
+    """Returns an {py:class}`algosdk.v2client.indexer.IndexerClient` from `config` or environment.
+
+    If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`"""
     config = config or _get_config_from_environment("INDEXER")
     headers = _get_headers(config)
     return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
 def is_localnet(client: AlgodClient) -> bool:
-    """Returns True if client genesis is devnet-v1 or sandnet-v1"""
+    """Returns True if client genesis is `devnet-v1` or `sandnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
 
@@ -52,8 +60,10 @@ def is_sandbox(client: AlgodClient) -> bool:
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
-    """Returns and SDK KMDClient using the same address as provided AlgodClient, but on port specified by
-    KMD_PORT environment variable, or 4092 by default"""
+    """Returns an {py:class}`algosdk.kmd.KMDClient` from supplied `client`
+
+    Will use the same address as provided `client` but on port specified by `KMD_PORT` environment variable,
+    or 4002 by default"""
     # We can only use Kmd on the LocalNet otherwise it's not exposed so this makes some assumptions
     # (e.g. same token and server as algod and port 4002 by default)
     port = os.getenv("KMD_PORT", "4002")

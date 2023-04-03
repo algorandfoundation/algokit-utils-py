@@ -17,7 +17,6 @@ __all__ = [
     "OnCompleteActionName",
     "MethodHints",
     "ApplicationSpecification",
-    "AppSpecStateDict",
 ]
 
 
@@ -25,10 +24,16 @@ AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 
 
 class CallConfig(IntFlag):
+    """Describes the type of calls a method can be used for based on {py:class}`algosdk.transaction.OnComplete` type"""
+
     NEVER = 0
+    """Never handle the specified on completion type"""
     CALL = 1
+    """Only handle the specified on completion type for application calls"""
     CREATE = 2
+    """Only handle the specified on completion type for application create calls"""
     ALL = 3
+    """Handle the specified on completion type for both create and normal application calls"""
 
 
 class StructArgDict(TypedDict):
@@ -39,8 +44,11 @@ class StructArgDict(TypedDict):
 OnCompleteActionName: TypeAlias = Literal[
     "no_op", "opt_in", "close_out", "clear_state", "update_application", "delete_application"
 ]
+"""String literals representing on completion transaction types"""
 MethodConfigDict: TypeAlias = dict[OnCompleteActionName, CallConfig]
+"""Dictionary of `dict[OnCompletionActionName, CallConfig]` representing allowed actions for each on completion type"""
 DefaultArgumentType: TypeAlias = Literal["abi-method", "local-state", "global-state", "constant"]
+"""Literal values describing the types of default argument sources"""
 
 
 class DefaultArgumentDict(TypedDict):
@@ -126,25 +134,12 @@ def _decode_state_schema(data: dict[str, int]) -> StateSchema:
     )
 
 
-# App Properties - Fixed part of app definition. i.e. on app spec, include in app note too?
-# Deletable - False, can't delete unless Can Delete is true
-#           - True, can delete if required
-# Updatable - False, can't update unless Can Update is true
-#           - True, can update if required
-#
-# Detected Changes (Upgrade, Schema Break) - Determined at deploy time, difference between source and target env
-# New       - App does not exist in specified Creator account
-# TEAL      - App exists, TEAL changed, but schema requirements the same (or less)
-# Schema    - App exists, schema requirements increased
-#
-# Deployment Flags (Can Delete, Can Update) - Different values per Environment
-# Local - Can Delete = True, Can Update = True
-# Dev/Test - Can Delete = True, Can Update = True. Warn if deleting or updating?
-# Main - Can Delete = False, Can Update = False
-
-
 @dataclasses.dataclass(kw_only=True)
 class ApplicationSpecification:
+    """ARC-0032 application specification
+
+    See <https://github.com/algorandfoundation/ARCs/pull/150>"""
+
     approval_program: str
     clear_program: str
     contract: Contract
