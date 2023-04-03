@@ -40,7 +40,12 @@ def test_resolve_signer_sender(
     app_client = ApplicationClient(algod_client, app_spec, signer=default_signer, sender=default_sender)
 
     expected_signer = override_signer or default_signer
-    expected_sender = override_sender or default_sender or get_sender_from_signer(expected_signer)
+    expected_sender = (
+        override_sender
+        or get_sender_from_signer(override_signer)
+        or default_sender
+        or get_sender_from_signer(default_signer)
+    )
 
     ctx: Any
     if expected_signer is None:

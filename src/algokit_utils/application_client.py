@@ -1337,7 +1337,7 @@ class ApplicationClient:
         resolved_signer = signer or self.signer
         if not resolved_signer:
             raise ValueError("No signer provided")
-        resolved_sender = sender or self.sender or get_sender_from_signer(resolved_signer)
+        resolved_sender = sender or get_sender_from_signer(signer) or self.sender or get_sender_from_signer(self.signer)
         if not resolved_sender:
             raise ValueError("No sender provided")
         return resolved_signer, resolved_sender
