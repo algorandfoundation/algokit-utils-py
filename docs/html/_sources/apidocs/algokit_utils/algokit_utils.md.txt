@@ -281,6 +281,11 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`AppSpecStateDict <algokit_utils.application_specification.AppSpecStateDict>`
+  - ```{autodoc2-docstring} algokit_utils.application_specification.AppSpecStateDict
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`DELETABLE_TEMPLATE_NAME <algokit_utils.deploy.DELETABLE_TEMPLATE_NAME>`
   - ```{autodoc2-docstring} algokit_utils.deploy.DELETABLE_TEMPLATE_NAME
     :parser: myst
@@ -550,6 +555,18 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 :canonical: algokit_utils.deploy.AppReference
 
 ```{autodoc2-docstring} algokit_utils.deploy.AppReference
+:parser: myst
+```
+
+````
+
+````{py:data} AppSpecStateDict
+:canonical: algokit_utils.application_specification.AppSpecStateDict
+:type: typing.TypeAlias
+:value: >
+   None
+
+```{autodoc2-docstring} algokit_utils.application_specification.AppSpecStateDict
 :parser: myst
 ```
 
