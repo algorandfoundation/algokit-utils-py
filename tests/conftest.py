@@ -113,8 +113,8 @@ def get_unique_name() -> str:
 
 
 def is_opted_in(client_fixture: ApplicationClient) -> bool:
-    assert client_fixture.sender
-    account_info = client_fixture.algod_client.account_info(client_fixture.sender)
+    _, sender = client_fixture.resolve_signer_sender()
+    account_info = client_fixture.algod_client.account_info(sender)
     assert isinstance(account_info, dict)
     apps_local_state = account_info["apps-local-state"]
     return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)

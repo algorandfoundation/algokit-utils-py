@@ -1325,13 +1325,13 @@ class ApplicationClient:
         self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
 
     def resolve_signer_sender(
-        self, signer: TransactionSigner | None, sender: str | None
+        self, signer: TransactionSigner | None = None, sender: str | None = None
     ) -> tuple[TransactionSigner, str]:
         return self._resolve_signer_sender(signer, sender)
 
     # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
     def _resolve_signer_sender(
-        self, signer: TransactionSigner | None, sender: str | None
+        self, signer: TransactionSigner | None = None, sender: str | None = None
     ) -> tuple[TransactionSigner, str]:
         resolved_signer = signer or self.signer
         if not resolved_signer:
