@@ -1336,10 +1336,10 @@ class ApplicationClient:
         :raises Exception: If a signer or sender is not specified"""
         resolved_signer = signer or self.signer
         if not resolved_signer:
-            raise Exception("No signer provided")
+            raise ValueError("No signer provided")
         resolved_sender = sender or self.sender or get_sender_from_signer(resolved_signer)
         if not resolved_sender:
-            raise Exception("No sender provided")
+            raise ValueError("No sender provided")
         return resolved_signer, resolved_sender
 
     # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
