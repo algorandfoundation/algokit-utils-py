@@ -166,4 +166,5 @@ cython_debug/
 
 #Sphinx
 .doctrees/
-
+# ignore auto-generated sources
+/docs/source/apidocs
