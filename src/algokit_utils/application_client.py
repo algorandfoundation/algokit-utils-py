@@ -1334,12 +1334,6 @@ class ApplicationClient:
         If no sender is specified then will attempt to obtain sender from signer
 
         :raises Exception: If a signer or sender is not specified"""
-        return self._resolve_signer_sender(signer, sender)
-
-    # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
-    def _resolve_signer_sender(
-        self, signer: TransactionSigner | None = None, sender: str | None = None
-    ) -> tuple[TransactionSigner, str]:
         resolved_signer = signer or self.signer
         if not resolved_signer:
             raise Exception("No signer provided")
@@ -1347,6 +1341,9 @@ class ApplicationClient:
         if not resolved_sender:
             raise Exception("No sender provided")
         return resolved_signer, resolved_sender
+
+    # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
+    _resolve_signer_sender = resolve_signer_sender
 
 
 def substitute_template_and_compile(
