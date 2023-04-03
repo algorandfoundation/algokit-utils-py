@@ -42,8 +42,6 @@ override_signer = CustomSigner()
 default_sender = "default_sender"
 override_sender = "override_sender"
 sender_from_signer = address_from_private_key(fake_key)  # type: ignore[no-untyped-call]
-NoSenderError = "No sender provided"
-NoSignerError = "No signer provided"
 
 no_signer_sender = SignerSender()
 
@@ -85,26 +83,18 @@ signer_with_address_and_associated_sender = SignerSender(signer=signer_with_addr
         (signer_with_address_default_sender, only_signer_with_address, signer_with_address_default_sender),
         (only_default_signer, override_signer_sender, override_signer_sender),
         (only_default_signer, only_override_sender, default_signer_override_sender),
-        (only_default_signer, only_override_signer, NoSenderError),
-        (only_default_signer, no_signer_sender, NoSenderError),
         (only_default_signer, signer_with_address_override_sender, signer_with_address_override_sender),
         (only_default_signer, only_signer_with_address, signer_with_address_and_associated_sender),
         (only_signer_with_address, override_signer_sender, override_signer_sender),
-        (only_signer_with_address, only_override_signer, NoSenderError),
         (only_signer_with_address, only_override_sender, signer_with_address_override_sender),
         (only_signer_with_address, no_signer_sender, signer_with_address_and_associated_sender),
         (only_signer_with_address, signer_with_address_override_sender, signer_with_address_override_sender),
         (only_signer_with_address, only_signer_with_address, signer_with_address_and_associated_sender),
         (only_default_sender, override_signer_sender, override_signer_sender),
-        (only_default_sender, only_override_sender, NoSignerError),
         (only_default_sender, only_override_signer, override_signer_default_sender),
-        (only_default_sender, no_signer_sender, NoSignerError),
         (only_default_sender, signer_with_address_override_sender, signer_with_address_override_sender),
         (only_default_sender, only_signer_with_address, signer_with_address_default_sender),
         (no_signer_sender, override_signer_sender, override_signer_sender),
-        (no_signer_sender, only_override_sender, NoSignerError),
-        (no_signer_sender, only_override_signer, NoSenderError),
-        (no_signer_sender, no_signer_sender, NoSignerError),
         (no_signer_sender, signer_with_address_override_sender, signer_with_address_override_sender),
         (no_signer_sender, only_signer_with_address, signer_with_address_and_associated_sender),
     ],
@@ -115,19 +105,44 @@ def test_resolve_signer_sender(
     app_spec: ApplicationSpecification,
     created_with: SignerSender,
     called_with: SignerSender,
-    expected: SignerSender | str,
+    expected: SignerSender,
 ) -> None:
     app_client = ApplicationClient(algod_client, app_spec, signer=created_with.signer, sender=created_with.sender)
 
-    try:
-        signer, sender = app_client.resolve_signer_sender(called_with.signer, called_with.sender)
-    except Exception as ex:
-        if isinstance(expected, str):
-            assert str(ex) == expected
-            return
-        else:
-            raise ex from None
+    signer, sender = app_client.resolve_signer_sender(called_with.signer, called_with.sender)
 
-    assert not isinstance(expected, str)
     assert signer == expected.signer
     assert sender == expected.sender
+
+
+NoSenderError = "No sender provided"
+NoSignerError = "No signer provided"
+
+
+@pytest.mark.parametrize(
+    ("created_with", "called_with", "expected"),
+    [
+        (only_default_signer, only_override_signer, NoSenderError),
+        (only_default_signer, no_signer_sender, NoSenderError),
+        (only_signer_with_address, only_override_signer, NoSenderError),
+        (only_default_sender, only_override_sender, NoSignerError),
+        (only_default_sender, no_signer_sender, NoSignerError),
+        (no_signer_sender, only_override_sender, NoSignerError),
+        (no_signer_sender, only_override_signer, NoSenderError),
+        (no_signer_sender, no_signer_sender, NoSignerError),
+    ],
+    ids=use_globals_name,
+)
+def test_resolve_signer_sender_failure(
+    algod_client: AlgodClient,
+    app_spec: ApplicationSpecification,
+    created_with: SignerSender,
+    called_with: SignerSender,
+    expected: str,
+) -> None:
+    app_client = ApplicationClient(algod_client, app_spec, signer=created_with.signer, sender=created_with.sender)
+
+    with pytest.raises(Exception) as ex:
+        app_client.resolve_signer_sender(called_with.signer, called_with.sender)
+
+    assert str(ex.value) == expected
