@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.2 (2023-04-04)
+### Fix
+* Handle non algosdk TransactionSigner implementations ([#14](https://github.com/algorandfoundation/algokit-utils-py/issues/14)) ([`25be642`](https://github.com/algorandfoundation/algokit-utils-py/commit/25be642466f1b02c3f95c60008670caf9812c3cd))
+* Readd AppSpecStateDict type definition to root namespace ([`231e4b8`](https://github.com/algorandfoundation/algokit-utils-py/commit/231e4b880ee154e3edff7425e18ae38cf305a9eb))
+
+### Documentation
+* Add .nojekyll ([`f597fbc`](https://github.com/algorandfoundation/algokit-utils-py/commit/f597fbcf86175af6df4d30220338dcee4f0a8b19))
+* Publish html version of docs ([#15](https://github.com/algorandfoundation/algokit-utils-py/issues/15)) ([`3e6c0c8`](https://github.com/algorandfoundation/algokit-utils-py/commit/3e6c0c8a44b384e276bd1301d038f2bd867f4727))
+* Document all public symbols ([#13](https://github.com/algorandfoundation/algokit-utils-py/issues/13)) ([`954b5e1`](https://github.com/algorandfoundation/algokit-utils-py/commit/954b5e19597ef21ee7f1dcc0e3aa7fca03cb5036))
+* Fix typo ([`cb92e08`](https://github.com/algorandfoundation/algokit-utils-py/commit/cb92e08feaa8af6da4ff78356e92674d0d0fe081))
+
 ## v1.0.1 (2023-03-29)
 ### Fix
 * Deprecate is_sandbox and get_sandbox_default_account ([#10](https://github.com/algorandfoundation/algokit-utils-py/issues/10)) ([`ad23e57`](https://github.com/algorandfoundation/algokit-utils-py/commit/ad23e57c33fcf692d954f10be8b18b327ae69bd2))
