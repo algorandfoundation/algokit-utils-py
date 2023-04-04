@@ -243,6 +243,11 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`get_sender_from_signer <algokit_utils.application_client.get_sender_from_signer>`
+  - ```{autodoc2-docstring} algokit_utils.application_client.get_sender_from_signer
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`is_localnet <algokit_utils.network_clients.is_localnet>`
   - ```{autodoc2-docstring} algokit_utils.network_clients.is_localnet
     :parser: myst
@@ -730,6 +735,15 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
+````{py:method} get_signer_sender(signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None) -> tuple[algosdk.atomic_transaction_composer.TransactionSigner | None, str | None]
+:canonical: algokit_utils.application_client.ApplicationClient.get_signer_sender
+
+```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.get_signer_sender
+:parser: myst
+```
+
+````
+
 ````{py:method} opt_in(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.opt_in
 
@@ -752,6 +766,15 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 :canonical: algokit_utils.application_client.ApplicationClient.resolve
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.resolve
+:parser: myst
+```
+
+````
+
+````{py:method} resolve_signer_sender(signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None) -> tuple[algosdk.atomic_transaction_composer.TransactionSigner, str]
+:canonical: algokit_utils.application_client.ApplicationClient.resolve_signer_sender
+
+```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.resolve_signer_sender
 :parser: myst
 ```
 
@@ -1479,6 +1502,14 @@ Bases: {py:obj}`enum.Enum`
 :canonical: algokit_utils.account.get_or_create_kmd_wallet_account
 
 ```{autodoc2-docstring} algokit_utils.account.get_or_create_kmd_wallet_account
+:parser: myst
+```
+````
+
+````{py:function} get_sender_from_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | None) -> str | None
+:canonical: algokit_utils.application_client.get_sender_from_signer
+
+```{autodoc2-docstring} algokit_utils.application_client.get_sender_from_signer
 :parser: myst
 ```
 ````

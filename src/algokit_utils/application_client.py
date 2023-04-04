@@ -60,6 +60,7 @@ __all__ = [
     "execute_atc_with_logic_error",
     "get_app_id_from_tx_id",
     "get_next_version",
+    "get_sender_from_signer",
     "num_extra_program_pages",
 ]
 
@@ -305,12 +306,8 @@ class ApplicationClient:
             self.signer = AccountTransactionSigner(creator.private_key)
         else:
             self.signer = None
-        if sender:
-            self.sender: str | None = sender
-        elif self.signer:
-            self.sender = _get_sender_from_signer(self.signer)
-        else:
-            self.sender = None
+
+        self.sender = sender
         self.suggested_params = suggested_params
 
     @property
@@ -347,10 +344,9 @@ class ApplicationClient:
         template_values: au_deploy.TemplateValueDict | None = None,
     ) -> None:
         target.app_id = self.app_id if app_id is None else app_id
-        if signer or sender:
-            target.signer, target.sender = target._resolve_signer_sender(
-                AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
-            )
+        target.signer, target.sender = target.get_signer_sender(
+            AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
+        )
         if template_values:
             target._approval_program, target._clear_program = substitute_template_and_compile(
                 target.algod_client, target.app_spec, template_values
@@ -447,7 +443,7 @@ class ApplicationClient:
             raise au_deploy.DeploymentFailedError(
                 f"Attempt to deploy app which already has an app index of {self.app_id}"
             )
-        signer, sender = self._resolve_signer_sender(signer, sender)
+        signer, sender = self.resolve_signer_sender(signer, sender)
         if not sender:
             raise au_deploy.DeploymentFailedError("No sender provided, unable to deploy app")
         if not self._creator:
@@ -1032,7 +1028,7 @@ class ApplicationClient:
         """Gets the local state info for associated app_id and account/sender"""
 
         if account is None:
-            _, account = self._resolve_signer_sender(self.signer, self.sender)
+            _, account = self.resolve_signer_sender(self.signer, self.sender)
 
         acct_state = self.algod_client.account_application_info(account, self.app_id)
         assert isinstance(acct_state, dict)
@@ -1056,7 +1052,7 @@ class ApplicationClient:
                 global_state = self.get_global_state(raw=True)
                 return global_state[key.encode()]
             case {"source": "local-state", "data": str() as key}:
-                _, sender = self._resolve_signer_sender(self.signer, self.sender)
+                _, sender = self.resolve_signer_sender(self.signer, self.sender)
                 acct_state = self.get_local_state(sender, raw=True)
                 return acct_state[key.encode()]
             case {"source": "abi-method", "data": dict() as method_dict}:
@@ -1183,7 +1179,7 @@ class ApplicationClient:
         parameters = _convert_call_parameters(parameters)
         method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
-        signer, sender = self._resolve_signer_sender(parameters.signer, parameters.sender)
+        signer, sender = self.resolve_signer_sender(parameters.signer, parameters.sender)
         if parameters.boxes is not None:
             # TODO: algosdk actually does this, but it's type hints say otherwise...
             encoded_boxes = [(id_, algosdk.encoding.encode_as_bytes(name)) for id_, name in parameters.boxes]
@@ -1328,19 +1324,36 @@ class ApplicationClient:
     def _set_app_id_from_tx_id(self, tx_id: str) -> None:
         self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
 
-    def _resolve_signer_sender(
-        self, signer: TransactionSigner | None, sender: str | None
-    ) -> tuple[TransactionSigner, str]:
+    def get_signer_sender(
+        self, signer: TransactionSigner | None = None, sender: str | None = None
+    ) -> tuple[TransactionSigner | None, str | None]:
+        """Return signer and sender, using default values on client if not specified
+
+        Will use provided values if given, otherwise will fall back to values defined on client.
+        If no sender is specified then will attempt to obtain sender from signer"""
         resolved_signer = signer or self.signer
-        if not resolved_signer:
-            raise Exception("No signer specified")
-        if sender is not None:
-            resolved_sender = sender
-        elif signer is None and self.sender is not None:
-            resolved_sender = self.sender
-        else:
-            resolved_sender = _get_sender_from_signer(resolved_signer)
+        resolved_sender = sender or get_sender_from_signer(signer) or self.sender or get_sender_from_signer(self.signer)
         return resolved_signer, resolved_sender
+
+    def resolve_signer_sender(
+        self, signer: TransactionSigner | None = None, sender: str | None = None
+    ) -> tuple[TransactionSigner, str]:
+        """Return signer and sender, using default values on client if not specified
+
+        Will use provided values if given, otherwise will fall back to values defined on client.
+        If no sender is specified then will attempt to obtain sender from signer
+
+        :raises ValueError: Raised if a signer or sender is not provided. See `get_signer_sender`
+        for variant with no exception"""
+        resolved_signer, resolved_sender = self.get_signer_sender(signer, sender)
+        if not resolved_signer:
+            raise ValueError("No signer provided")
+        if not resolved_sender:
+            raise ValueError("No sender provided")
+        return resolved_signer, resolved_sender
+
+    # TODO: remove private implementation, kept in the 1.0.2 release to not impact existing beaker 1.0 installs
+    _resolve_signer_sender = resolve_signer_sender
 
 
 def substitute_template_and_compile(
@@ -1479,7 +1492,9 @@ def _convert_deploy_args(
     return args.get("method"), args.get("args") or {}, parameters
 
 
-def _get_sender_from_signer(signer: TransactionSigner) -> str:
+def get_sender_from_signer(signer: TransactionSigner | None) -> str | None:
+    """Returns the associated address of a signer, return None if no address found"""
+
     if isinstance(signer, AccountTransactionSigner):
         sender = address_from_private_key(signer.private_key)  # type: ignore[no-untyped-call]
         assert isinstance(sender, str)
@@ -1490,8 +1505,7 @@ def _get_sender_from_signer(signer: TransactionSigner) -> str:
         return sender
     elif isinstance(signer, LogicSigTransactionSigner):
         return signer.lsig.address()
-    else:
-        raise Exception(f"Cannot determine sender from {signer}")
+    return None
 
 
 # TEMPORARY, use SDK one when available
