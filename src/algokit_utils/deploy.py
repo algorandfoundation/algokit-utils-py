@@ -287,13 +287,13 @@ def add_deploy_template_variables(
         template_values[_DELETABLE] = int(allow_delete)
 
 
-def _strip_comments(program: str) -> str:
-    lines = [x.split("//", maxsplit=1)[0] for x in program.splitlines()]
+def strip_comments(program: str) -> str:
+    lines = [line.split("//", maxsplit=1)[0] for line in program.splitlines()]
     return "\n".join(lines)
 
 
 def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
-    approval_program = _strip_comments(approval_program)
+    approval_program = strip_comments(approval_program)
     if UPDATABLE_TEMPLATE_NAME in approval_program and _UPDATABLE not in template_values:
         raise DeploymentFailedError(
             "allow_update must be specified if deploy time configuration of update is being used"
@@ -343,13 +343,13 @@ def replace_template_variables(program: str, template_values: TemplateValueMappi
 
 
 def has_template_vars(app_spec: ApplicationSpecification) -> bool:
-    return "TMPL_" in _strip_comments(app_spec.approval_program) or "TMPL_" in _strip_comments(app_spec.clear_program)
+    return "TMPL_" in strip_comments(app_spec.approval_program) or "TMPL_" in strip_comments(app_spec.clear_program)
 
 
 def get_deploy_control(
     app_spec: ApplicationSpecification, template_var: str, on_complete: transaction.OnComplete
 ) -> bool | None:
-    if template_var not in _strip_comments(app_spec.approval_program):
+    if template_var not in strip_comments(app_spec.approval_program):
         return None
     return get_call_config(app_spec.bare_call_config, on_complete) != CallConfig.NEVER or any(
         h for h in app_spec.hints.values() if get_call_config(h.call_config, on_complete) != CallConfig.NEVER

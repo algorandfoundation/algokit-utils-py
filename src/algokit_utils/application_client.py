@@ -84,7 +84,7 @@ class Program:
         source map for matching pc to line number
         """
         self.teal = program
-        result: dict = client.compile(self.teal, source_map=True)
+        result: dict = client.compile(au_deploy.strip_comments(self.teal), source_map=True)
         self.raw_binary = base64.b64decode(result["result"])
         self.binary_hash: str = result["hash"]
         self.source_map = SourceMap(result["sourcemap"])
