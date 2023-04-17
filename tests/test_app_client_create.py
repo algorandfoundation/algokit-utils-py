@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 from algokit_utils import (
     Account,
@@ -7,8 +9,8 @@ from algokit_utils import (
     get_account,
     get_app_id_from_tx_id,
 )
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionComposer
-from algosdk.transaction import ApplicationCallTxn, OnComplete
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionComposer, TransactionSigner
+from algosdk.transaction import ApplicationCallTxn, GenericSignedTransaction, OnComplete, Transaction
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
@@ -148,6 +150,26 @@ def test_create_parameters_signer(client_fixture: ApplicationClient) -> None:
     signed_txn = atc.txn_list[0]
     assert isinstance(signed_txn.signer, AccountTransactionSigner)
     assert signed_txn.signer.private_key == signer.private_key
+
+
+@dataclasses.dataclass
+class DataclassTransactionSigner(TransactionSigner):
+    def sign_transactions(self, txn_group: list[Transaction], indexes: list[int]) -> list[GenericSignedTransaction]:
+        return self.transaction_signer.sign_transactions(txn_group, indexes)
+
+    transaction_signer: TransactionSigner
+
+
+def test_create_parameters_dataclass_signer(client_fixture: ApplicationClient) -> None:
+    another_account_name = get_unique_name()
+    account = get_account(client_fixture.algod_client, another_account_name)
+    signer = DataclassTransactionSigner(AccountTransactionSigner(account.private_key))
+
+    atc = AtomicTransactionComposer()
+    client_fixture.compose_create(atc, "create", transaction_parameters=CreateCallParameters(signer=signer))
+
+    signed_txn = atc.txn_list[0]
+    assert isinstance(signed_txn.signer, DataclassTransactionSigner)
 
 
 def test_create_parameters_sender(client_fixture: ApplicationClient) -> None:
