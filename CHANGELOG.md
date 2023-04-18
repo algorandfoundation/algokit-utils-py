@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.3 (2023-04-18)
+### Fix
+* Strip comments before compiling to accomodate annotated teal ([#19](https://github.com/algorandfoundation/algokit-utils-py/issues/19)) ([`2bb9a56`](https://github.com/algorandfoundation/algokit-utils-py/commit/2bb9a569036e1847988a7b655d08cd9580fb2608))
+* Stop transaction parameters being converted to dict ([#18](https://github.com/algorandfoundation/algokit-utils-py/issues/18)) ([`8e753b5`](https://github.com/algorandfoundation/algokit-utils-py/commit/8e753b5af8af59e7ba901975d300f2b5dc249761))
+
 ## v1.0.2 (2023-04-04)
 ### Fix
 * Handle non algosdk TransactionSigner implementations ([#14](https://github.com/algorandfoundation/algokit-utils-py/issues/14)) ([`25be642`](https://github.com/algorandfoundation/algokit-utils-py/commit/25be642466f1b02c3f95c60008670caf9812c3cd))
