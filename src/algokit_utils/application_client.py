@@ -1461,7 +1461,7 @@ def _create_metadata(
 
 
 def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> CreateCallParameters:
-    _args = dataclasses.asdict(args) if isinstance(args, CommonCallParameters) else (args or {})
+    _args = args.__dict__ if isinstance(args, CommonCallParameters) else (args or {})
     return CreateCallParameters(**_args)
 
 
@@ -1471,7 +1471,7 @@ def _convert_deploy_args(
     signer: TransactionSigner | None,
     sender: str | None,
 ) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = dataclasses.asdict(_args) if isinstance(_args, ABICallArgs) else (_args or {})
+    args = _args.__dict__ if isinstance(_args, ABICallArgs) else (_args or {})
 
     # return most derived type, unused parameters are ignored
     parameters = CreateCallParameters(
