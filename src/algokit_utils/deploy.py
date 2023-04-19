@@ -3,15 +3,14 @@ import dataclasses
 import json
 import logging
 import re
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
 from algosdk import transaction
+from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils.application_specification import (
     ApplicationSpecification,
@@ -19,24 +18,42 @@ from algokit_utils.application_specification import (
     MethodConfigDict,
     OnCompleteActionName,
 )
-from algokit_utils.models import Account, TransactionResponse
+from algokit_utils.models import (
+    ABIArgsDict,
+    ABIMethod,
+    Account,
+    CreateCallParameters,
+    TransactionResponse,
+)
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
+
+    from algokit_utils.application_client import ApplicationClient
+
 
 __all__ = [
     "UPDATABLE_TEMPLATE_NAME",
     "DELETABLE_TEMPLATE_NAME",
     "NOTE_PREFIX",
+    "ABICallArgs",
+    "ABICreateCallArgs",
+    "ABICallArgsDict",
+    "ABICreateCallArgsDict",
     "DeploymentFailedError",
     "AppReference",
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "Deployer",
     "DeployResponse",
     "OnUpdate",
     "OnSchemaBreak",
     "OperationPerformed",
     "TemplateValueDict",
     "TemplateValueMapping",
-    "check_app_and_deploy",
+    "get_app_id_from_tx_id",
     "get_creator_apps",
     "replace_template_variables",
 ]
@@ -135,7 +152,23 @@ class AppLookup:
     apps: dict[str, AppMetaData] = dataclasses.field(default_factory=dict)
 
 
-def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> AppLookup:
+def _sort_by_round(txn: dict) -> tuple[int, int]:
+    confirmed = txn["confirmed-round"]
+    offset = txn["intra-round-offset"]
+    return confirmed, offset
+
+
+def _parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
+    if not metadata_b64:
+        return None
+    # noinspection PyBroadException
+    try:
+        return AppDeployMetaData.from_b64(metadata_b64)
+    except Exception:
+        return None
+
+
+def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -> AppLookup:
     """Returns a mapping of Application names to {py:class}`AppMetaData` for all Applications created by specified
     creator that have a transaction note containing {py:class}`AppDeployMetaData`
     """
@@ -172,26 +205,12 @@ def get_creator_apps(indexer: IndexerClient, creator_account: Account | str) -> 
                 if t["application-transaction"]["application-id"] == 0 and t["sender"] == creator_address
             )
 
-            def sort_by_round(txn: dict) -> tuple[int, int]:
-                confirmed = txn["confirmed-round"]
-                offset = txn["intra-round-offset"]
-                return confirmed, offset
-
-            transactions.sort(key=sort_by_round, reverse=True)
+            transactions.sort(key=_sort_by_round, reverse=True)
             latest_transaction = transactions[0]
             app_updated_at_round = latest_transaction["confirmed-round"]
 
-            def parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
-                if not metadata_b64:
-                    return None
-                # noinspection PyBroadException
-                try:
-                    return AppDeployMetaData.from_b64(metadata_b64)
-                except Exception:
-                    return None
-
-            create_metadata = parse_note(created_transaction.get("note"))
-            update_metadata = parse_note(latest_transaction.get("note"))
+            create_metadata = _parse_note(created_transaction.get("note"))
+            update_metadata = _parse_note(latest_transaction.get("note"))
 
             if create_metadata and create_metadata.name:
                 apps[create_metadata.name] = AppMetaData(
@@ -230,7 +249,8 @@ class AppChanges:
 
 
 def check_for_app_changes(
-    algod_client: AlgodClient,
+    algod_client: "AlgodClient",
+    *,
     new_approval: bytes,
     new_clear: bytes,
     new_global_schema: StateSchema,
@@ -420,55 +440,142 @@ class DeployResponse:
     action_taken: OperationPerformed = OperationPerformed.Nothing
 
 
-def check_app_and_deploy(
-    app: AppMetaData,
-    app_changes: AppChanges,
-    on_schema_break: OnSchemaBreak,
-    on_update: OnUpdate,
-    update_app: Callable[[], DeployResponse],
-    create_and_delete_app: Callable[[], DeployResponse],
-) -> DeployResponse:
-    if app_changes.schema_breaking_change:
-        logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
+@dataclasses.dataclass(kw_only=True)
+class ABICallArgs:
+    """Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-        if on_schema_break == OnSchemaBreak.Fail:
+    method: ABIMethod | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+    suggested_params: transaction.SuggestedParams | None = None
+    lease: bytes | str | None = None
+    accounts: list[str] | None = None
+    foreign_apps: list[int] | None = None
+    foreign_assets: list[int] | None = None
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+    rekey_to: str | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class ABICreateCallArgs(ABICallArgs):
+    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    extra_pages: int | None = None
+    on_complete: transaction.OnComplete | None = None
+
+
+class ABICallArgsDict(TypedDict, total=False):
+    """Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool
+    args: ABIArgsDict
+    suggested_params: transaction.SuggestedParams
+    lease: bytes | str
+    accounts: list[str]
+    foreign_apps: list[int]
+    foreign_assets: list[int]
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
+    rekey_to: str
+
+
+class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
+    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    extra_pages: int | None
+    on_complete: transaction.OnComplete
+
+
+@dataclasses.dataclass(kw_only=True)
+class Deployer:
+    app_client: "ApplicationClient"
+    creator: str
+    signer: TransactionSigner
+    sender: str
+    existing_app_metadata_or_reference: AppReference | AppMetaData
+    new_app_metadata: AppDeployMetaData
+    on_update: OnUpdate
+    on_schema_break: OnSchemaBreak
+    create_args: ABICreateCallArgs | ABICreateCallArgsDict | None
+    update_args: ABICallArgs | ABICallArgsDict | None
+    delete_args: ABICallArgs | ABICallArgsDict | None
+
+    def deploy(self) -> DeployResponse:
+        """Ensures app associated with app client's creator is present and up to date"""
+        assert self.app_client.approval
+        assert self.app_client.clear
+
+        if self.existing_app_metadata_or_reference.app_id == 0:
+            logger.info(f"{self.new_app_metadata.name} not found in {self.creator} account, deploying app.")
+            return self._create_app()
+
+        assert isinstance(self.existing_app_metadata_or_reference, AppMetaData)
+        logger.debug(
+            f"{self.existing_app_metadata_or_reference.name} found in {self.creator} account, "
+            f"with app id {self.existing_app_metadata_or_reference.app_id}, "
+            f"version={self.existing_app_metadata_or_reference.version}."
+        )
+
+        app_changes = check_for_app_changes(
+            self.app_client.algod_client,
+            new_approval=self.app_client.approval.raw_binary,
+            new_clear=self.app_client.clear.raw_binary,
+            new_global_schema=self.app_client.app_spec.global_state_schema,
+            new_local_schema=self.app_client.app_spec.local_state_schema,
+            app_id=self.existing_app_metadata_or_reference.app_id,
+        )
+
+        if app_changes.schema_breaking_change:
+            logger.warning(f"Detected a breaking app schema change: {app_changes.schema_change_description}")
+            return self._deploy_breaking_change()
+
+        if app_changes.app_updated:
+            logger.info(f"Detected a TEAL update in app id {self.existing_app_metadata_or_reference.app_id}")
+            return self._deploy_update()
+
+        logger.info("No detected changes in app, nothing to do.")
+        return DeployResponse(app=self.existing_app_metadata_or_reference)
+
+    def _deploy_breaking_change(self) -> DeployResponse:
+        assert isinstance(self.existing_app_metadata_or_reference, AppMetaData)
+        if self.on_schema_break == OnSchemaBreak.Fail:
             raise DeploymentFailedError(
                 "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
                 "If you want to try deleting and recreating the app then "
                 "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
             )
-        if app.deletable:
+        if self.existing_app_metadata_or_reference.deletable:
             logger.info(
                 "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
             )
-        elif app.deletable is False:
+        elif self.existing_app_metadata_or_reference.deletable is False:
             logger.warning(
                 "App is not deletable but on_schema_break=ReplaceApp, "
                 "will attempt to delete app, delete will most likely fail"
             )
         else:
             logger.warning(
-                "Cannot determine if App is deletable but on_schema_break=ReplaceApp, " "will attempt to delete app"
+                "Cannot determine if App is deletable but on_schema_break=ReplaceApp, will attempt to delete app"
             )
-        return create_and_delete_app()
-    elif app_changes.app_updated:
-        logger.info(f"Detected a TEAL update in app id {app.app_id}")
+        return self._create_and_delete_app()
 
-        if on_update == OnUpdate.Fail:
+    def _deploy_update(self) -> DeployResponse:
+        assert isinstance(self.existing_app_metadata_or_reference, AppMetaData)
+        if self.on_update == OnUpdate.Fail:
             raise DeploymentFailedError(
                 "Update detected and on_update=Fail, stopping deployment. "
                 "If you want to try updating the app then re-run with on_update=UpdateApp"
             )
-        if app.updatable and on_update == OnUpdate.UpdateApp:
+        if self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.UpdateApp:
             logger.info("App is updatable and on_update=UpdateApp, will update app")
-            return update_app()
-        elif app.updatable and on_update == OnUpdate.ReplaceApp:
+            return self._update_app()
+        elif self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.ReplaceApp:
             logger.warning(
                 "App is updatable but on_update=ReplaceApp, will attempt to create new app and delete old app"
             )
-            return create_and_delete_app()
-        elif on_update == OnUpdate.ReplaceApp:
-            if app.updatable is False:
+            return self._create_and_delete_app()
+        elif self.on_update == OnUpdate.ReplaceApp:
+            if self.existing_app_metadata_or_reference.updatable is False:
                 logger.warning(
                     "App is not updatable and on_update=ReplaceApp, "
                     "will attempt to create new app and delete old app"
@@ -478,19 +585,172 @@ def check_app_and_deploy(
                     "Cannot determine if App is updatable and on_update=ReplaceApp, "
                     "will attempt to create new app and delete old app"
                 )
-            return create_and_delete_app()
+            return self._create_and_delete_app()
         else:
-            if app.updatable is False:
+            if self.existing_app_metadata_or_reference.updatable is False:
                 logger.warning(
                     "App is not updatable but on_update=UpdateApp, "
                     "will attempt to update app, update will most likely fail"
                 )
             else:
                 logger.warning(
-                    "Cannot determine if App is updatable and on_update=UpdateApp, " "will attempt to update app"
+                    "Cannot determine if App is updatable and on_update=UpdateApp, will attempt to update app"
                 )
-            return update_app()
+            return self._update_app()
 
-    logger.info("No detected changes in app, nothing to do.")
+    def _create_app(self) -> DeployResponse:
+        assert self.app_client.existing_deployments
 
-    return DeployResponse(app=app)
+        method, abi_args, parameters = _convert_deploy_args(
+            self.create_args, self.new_app_metadata, self.signer, self.sender
+        )
+        create_response = self.app_client.create(
+            method,
+            parameters,
+            **abi_args,
+        )
+        logger.info(
+            f"{self.new_app_metadata.name} ({self.new_app_metadata.version}) deployed successfully, "
+            f"with app id {self.app_client.app_id}."
+        )
+        assert create_response.confirmed_round is not None
+        app_metadata = _create_metadata(self.new_app_metadata, self.app_client.app_id, create_response.confirmed_round)
+        self.app_client.existing_deployments.apps[self.new_app_metadata.name] = app_metadata
+        return DeployResponse(app=app_metadata, create_response=create_response, action_taken=OperationPerformed.Create)
+
+    def _create_and_delete_app(self) -> DeployResponse:
+        assert self.app_client.existing_deployments
+        assert isinstance(self.existing_app_metadata_or_reference, AppMetaData)
+
+        logger.info(
+            f"Replacing {self.existing_app_metadata_or_reference.name} "
+            f"({self.existing_app_metadata_or_reference.version}) with "
+            f"{self.new_app_metadata.name} ({self.new_app_metadata.version}) in {self.creator} account."
+        )
+        atc = AtomicTransactionComposer()
+        create_method, create_abi_args, create_parameters = _convert_deploy_args(
+            self.create_args, self.new_app_metadata, self.signer, self.sender
+        )
+        self.app_client.compose_create(
+            atc,
+            create_method,
+            create_parameters,
+            **create_abi_args,
+        )
+        delete_method, delete_abi_args, delete_parameters = _convert_deploy_args(
+            self.delete_args, self.new_app_metadata, self.signer, self.sender
+        )
+        self.app_client.compose_delete(
+            atc,
+            delete_method,
+            delete_parameters,
+            **delete_abi_args,
+        )
+        create_delete_response = self.app_client.execute_atc(atc)
+        create_response = TransactionResponse.from_atr(create_delete_response, 0)
+        delete_response = TransactionResponse.from_atr(create_delete_response, 1)
+        self.app_client.app_id = get_app_id_from_tx_id(self.app_client.algod_client, create_response.tx_id)
+        logger.info(
+            f"{self.new_app_metadata.name} ({self.new_app_metadata.version}) deployed successfully, "
+            f"with app id {self.app_client.app_id}."
+        )
+        logger.info(
+            f"{self.existing_app_metadata_or_reference.name} "
+            f"({self.existing_app_metadata_or_reference.version}) with app id "
+            f"{self.existing_app_metadata_or_reference.app_id}, deleted successfully."
+        )
+
+        app_metadata = _create_metadata(
+            self.new_app_metadata, self.app_client.app_id, create_delete_response.confirmed_round
+        )
+        self.app_client.existing_deployments.apps[self.new_app_metadata.name] = app_metadata
+
+        return DeployResponse(
+            app=app_metadata,
+            create_response=create_response,
+            delete_response=delete_response,
+            action_taken=OperationPerformed.Replace,
+        )
+
+    def _update_app(self) -> DeployResponse:
+        assert self.app_client.existing_deployments
+        assert isinstance(self.existing_app_metadata_or_reference, AppMetaData)
+
+        logger.info(
+            f"Updating {self.existing_app_metadata_or_reference.name} to {self.new_app_metadata.version} in "
+            f"{self.creator} account, with app id {self.existing_app_metadata_or_reference.app_id}"
+        )
+        method, abi_args, parameters = _convert_deploy_args(
+            self.update_args, self.new_app_metadata, self.signer, self.sender
+        )
+        update_response = self.app_client.update(
+            method,
+            parameters,
+            **abi_args,
+        )
+        app_metadata = _create_metadata(
+            self.new_app_metadata,
+            self.app_client.app_id,
+            self.existing_app_metadata_or_reference.created_round,
+            updated_round=update_response.confirmed_round,
+            original_metadata=self.existing_app_metadata_or_reference.created_metadata,
+        )
+        self.app_client.existing_deployments.apps[self.new_app_metadata.name] = app_metadata
+        return DeployResponse(app=app_metadata, update_response=update_response, action_taken=OperationPerformed.Update)
+
+
+def _create_metadata(
+    app_spec_note: AppDeployMetaData,
+    app_id: int,
+    created_round: int,
+    updated_round: int | None = None,
+    original_metadata: AppDeployMetaData | None = None,
+) -> AppMetaData:
+    return AppMetaData(
+        app_id=app_id,
+        app_address=get_application_address(app_id),
+        created_metadata=original_metadata or app_spec_note,
+        created_round=created_round,
+        updated_round=updated_round or created_round,
+        name=app_spec_note.name,
+        version=app_spec_note.version,
+        deletable=app_spec_note.deletable,
+        updatable=app_spec_note.updatable,
+        deleted=False,
+    )
+
+
+def _convert_deploy_args(
+    _args: ABICallArgs | ABICallArgsDict | None,
+    note: AppDeployMetaData,
+    signer: TransactionSigner | None,
+    sender: str | None,
+) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
+    args = _args.__dict__ if isinstance(_args, ABICallArgs) else (_args or {})
+
+    # return most derived type, unused parameters are ignored
+    parameters = CreateCallParameters(
+        note=note.encode(),
+        signer=signer,
+        sender=sender,
+        suggested_params=args.get("suggested_params"),
+        lease=args.get("lease"),
+        accounts=args.get("accounts"),
+        foreign_assets=args.get("foreign_assets"),
+        foreign_apps=args.get("foreign_apps"),
+        boxes=args.get("boxes"),
+        rekey_to=args.get("rekey_to"),
+        extra_pages=args.get("extra_pages"),
+        on_complete=args.get("on_complete"),
+    )
+
+    return args.get("method"), args.get("args") or {}, parameters
+
+
+def get_app_id_from_tx_id(algod_client: "AlgodClient", tx_id: str) -> int:
+    """Finds the app_id for provided transaction id"""
+    result = algod_client.pending_transaction_info(tx_id)
+    assert isinstance(result, dict)
+    app_id = result["application-index"]
+    assert isinstance(app_id, int)
+    return app_id

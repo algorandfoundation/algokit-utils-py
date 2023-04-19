@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pytest
 from algokit_utils import (
     ABICreateCallArgs,
@@ -7,21 +9,22 @@ from algokit_utils import (
     TransferParameters,
     transfer,
 )
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
 from tests.conftest import get_unique_name, read_spec
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture()
 def client_fixture(
-    algod_client: AlgodClient,
-    indexer_client: IndexerClient,
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
     funded_account: Account,
 ) -> ApplicationClient:
     app_spec = read_spec("app_client_test.json", deletable=True, updatable=True, name=get_unique_name())
-    client = ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
-    return client
+    return ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
 
 
 def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account) -> None:

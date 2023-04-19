@@ -1,6 +1,6 @@
 import base64
 import contextlib
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from algokit_utils import (
@@ -8,17 +8,19 @@ from algokit_utils import (
     ApplicationSpecification,
     get_sender_from_signer,
 )
-from algosdk import transaction
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
-from algosdk.transaction import GenericSignedTransaction
-from algosdk.v2client.algod import AlgodClient
+
+if TYPE_CHECKING:
+    from algosdk import transaction
+    from algosdk.transaction import GenericSignedTransaction
+    from algosdk.v2client.algod import AlgodClient
 
 
 class CustomSigner(TransactionSigner):
     def sign_transactions(
-        self, txn_group: list[transaction.Transaction], indexes: list[int]
-    ) -> list[GenericSignedTransaction]:
-        return []
+        self, txn_group: list["transaction.Transaction"], indexes: list[int]
+    ) -> list["GenericSignedTransaction"]:
+        raise NotImplementedError
 
 
 fake_key = base64.b64encode(b"a" * 64).decode("utf8")
@@ -29,7 +31,8 @@ fake_key = base64.b64encode(b"a" * 64).decode("utf8")
 @pytest.mark.parametrize("default_sender", ["default_sender", None])
 @pytest.mark.parametrize("default_signer", [CustomSigner(), AccountTransactionSigner(fake_key), None])
 def test_resolve_signer_sender(
-    algod_client: AlgodClient,
+    *,
+    algod_client: "AlgodClient",
     app_spec: ApplicationSpecification,
     default_signer: TransactionSigner | None,
     default_sender: str | None,

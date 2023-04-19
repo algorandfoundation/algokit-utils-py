@@ -1,14 +1,18 @@
+from typing import TYPE_CHECKING
+
 from algokit_utils import (
     Account,
     ApplicationClient,
     DefaultArgumentDict,
 )
-from algosdk.v2client.algod import AlgodClient
 
 from tests.conftest import read_spec
 
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
 
-def test_resolve(algod_client: AlgodClient, creator: Account) -> None:
+
+def test_resolve(algod_client: "AlgodClient", creator: Account) -> None:
     app_spec = read_spec("app_resolve.json")
     client_fixture = ApplicationClient(algod_client, app_spec, signer=creator)
     client_fixture.create()
@@ -36,7 +40,8 @@ def test_resolve(algod_client: AlgodClient, creator: Account) -> None:
         "source": "local-state",
         "data": "acct_state_val_int",
     }
-    assert client_fixture.resolve(local_state_int_default_argument) == 2
+    acct_state_val_int_value = 2  # defined in TEAL
+    assert client_fixture.resolve(local_state_int_default_argument) == acct_state_val_int_value
 
     local_state_byte_default_argument: DefaultArgumentDict = {
         "source": "local-state",

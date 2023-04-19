@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from algokit_utils import (
@@ -7,16 +8,18 @@ from algokit_utils import (
     CreateCallParameters,
     get_account,
 )
-from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 from algosdk.transaction import ApplicationCallTxn
-from algosdk.v2client.algod import AlgodClient
 
 from tests.conftest import get_unique_name
 
+if TYPE_CHECKING:
+    from algosdk.abi import Method
+    from algosdk.v2client.algod import AlgodClient
+
 
 @pytest.fixture(scope="module")
-def client_fixture(algod_client: AlgodClient, app_spec: ApplicationSpecification) -> ApplicationClient:
+def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecification) -> ApplicationClient:
     creator_name = get_unique_name()
     creator = get_account(algod_client, creator_name)
     client = ApplicationClient(algod_client, app_spec, signer=creator)
@@ -25,7 +28,7 @@ def client_fixture(algod_client: AlgodClient, app_spec: ApplicationSpecification
     return client
 
 
-def test_app_client_from_app_spec_path(algod_client: AlgodClient) -> None:
+def test_app_client_from_app_spec_path(algod_client: "AlgodClient") -> None:
     client = ApplicationClient(algod_client, Path(__file__).parent / "app_client_test.json")
 
     assert client.app_spec
@@ -40,10 +43,10 @@ def test_abi_call_with_atc(client_fixture: ApplicationClient) -> None:
 
 
 class PretendSubroutine:
-    def __init__(self, method: Method):
+    def __init__(self, method: "Method"):
         self._method = method
 
-    def method_spec(self) -> Method:
+    def method_spec(self) -> "Method":
         return self._method
 
 
