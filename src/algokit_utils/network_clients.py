@@ -55,7 +55,7 @@ def is_localnet(client: AlgodClient) -> bool:
 
 
 def is_sandbox(client: AlgodClient) -> bool:
-    warnings.warn("is_sandbox is deprecated, please use is_localnet instead", DeprecationWarning)
+    warnings.warn("is_sandbox is deprecated, please use is_localnet instead", DeprecationWarning, stacklevel=2)
     return is_localnet(client)
 
 

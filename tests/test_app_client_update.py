@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 import pytest
 from algokit_utils import (
     Account,
@@ -5,16 +7,18 @@ from algokit_utils import (
     ApplicationSpecification,
     LogicError,
 )
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
 from tests.conftest import check_output_stability
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(scope="module")
 def client_fixture(
-    algod_client: AlgodClient,
-    indexer_client: IndexerClient,
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
     app_spec: ApplicationSpecification,
     funded_account: Account,
 ) -> ApplicationClient:

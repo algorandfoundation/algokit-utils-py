@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 class DeployFixture:
     def __init__(
         self,
+        *,
         caplog: pytest.LogCaptureFixture,
         request: pytest.FixtureRequest,
         creator_name: str,
@@ -112,7 +113,7 @@ def deploy_fixture(
     caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest, creator_name: str, creator: Account, app_name: str
 ) -> DeployFixture:
     caplog.set_level(logging.DEBUG)
-    return DeployFixture(caplog, request, creator_name=creator_name, creator=creator, app_name=app_name)
+    return DeployFixture(caplog=caplog, request=request, creator_name=creator_name, creator=creator, app_name=app_name)
 
 
 def test_deploy_app_with_no_existing_app_succeeds(deploy_fixture: DeployFixture, app_name: str) -> None:

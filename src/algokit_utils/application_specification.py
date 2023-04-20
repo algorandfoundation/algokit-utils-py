@@ -17,6 +17,7 @@ __all__ = [
     "OnCompleteActionName",
     "MethodHints",
     "ApplicationSpecification",
+    "AppSpecStateDict",
 ]
 
 
@@ -62,7 +63,7 @@ class DefaultArgumentDict(TypedDict):
     data: int | str | bytes | MethodDict
 
 
-StateDict = TypedDict(  # noqa: UP013  # can't convert as "global" is a reserved keyword
+StateDict = TypedDict(  # need to use function-form of TypedDict here since "global" is a reserved keyword
     "StateDict", {"global": AppSpecStateDict, "local": AppSpecStateDict}
 )
 

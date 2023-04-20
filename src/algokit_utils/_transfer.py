@@ -1,13 +1,16 @@
 import dataclasses
 import logging
+from typing import TYPE_CHECKING
 
 import algosdk.transaction
 from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.transaction import PaymentTxn, SuggestedParams
-from algosdk.v2client.algod import AlgodClient
 
 from algokit_utils.models import Account
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
 
 __all__ = ["TransferParameters", "transfer"]
 logger = logging.getLogger(__name__)
@@ -30,7 +33,7 @@ class TransferParameters:
     fee_micro_algos: int | None = None
     """(optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call"""
     max_fee_micro_algos: int | None = None
-    """(optional)The maximum fee that you are happy to pay (default: unbounded) - 
+    """(optional)The maximum fee that you are happy to pay (default: unbounded) -
     if this is set it's possible the transaction could get rejected during network congestion"""
 
 
@@ -44,14 +47,14 @@ def _check_fee(transaction: PaymentTxn, max_fee: int | None) -> None:
                 f"Algorand suggested fees would cause this transaction to cost {transaction.fee} µALGOs. "
                 f"Cap for this transaction is {max_fee} µALGOs."
             )
-        elif transaction.fee > algosdk.constants.MIN_TXN_FEE:
+        if transaction.fee > algosdk.constants.MIN_TXN_FEE:
             logger.warning(
                 f"Algorand network congestion fees are in effect. "
                 f"This transaction will incur a fee of {transaction.fee} µALGOs."
             )
 
 
-def transfer(client: AlgodClient, parameters: TransferParameters) -> PaymentTxn:
+def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTxn:
     """Transfer µALGOs between accounts"""
 
     suggested_params = parameters.suggested_params or client.suggested_params()

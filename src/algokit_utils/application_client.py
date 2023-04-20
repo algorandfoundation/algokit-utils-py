@@ -1,13 +1,11 @@
 import base64
 import copy
-import dataclasses
 import logging
 import re
 import typing
-from collections.abc import Sequence
 from math import ceil
 from pathlib import Path
-from typing import Any, Literal, TypedDict, cast, overload
+from typing import Any, Literal, cast, overload
 
 import algosdk
 from algosdk import transaction
@@ -27,58 +25,51 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils.deploy import check_app_and_deploy
 from algokit_utils.logic_error import LogicError, parse_logic_error
-from algokit_utils.models import ABITransactionResponse, Account, TransactionResponse
+from algokit_utils.models import (
+    ABIArgsDict,
+    ABIArgType,
+    ABIMethod,
+    ABITransactionResponse,
+    Account,
+    CommonCallParameters,
+    CommonCallParametersDict,
+    CreateCallParameters,
+    CreateCallParametersDict,
+    OnCompleteCallParameters,
+    OnCompleteCallParametersDict,
+    TransactionResponse,
+)
+
+if typing.TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
+
 
 logger = logging.getLogger(__name__)
 
-ABIArgType = Any
-ABIArgsDict = dict[str, ABIArgType]
 """A dictionary `dict[str, Any]` representing ABI argument names and values"""
 
 __all__ = [
-    "ABIArgsDict",
-    "ABICallArgs",
-    "ABICallArgsDict",
-    "ABICreateCallArgs",
-    "ABICreateCallArgsDict",
-    "ABIMethod",
     "ApplicationClient",
-    "CommonCallParameters",
-    "CommonCallParametersDict",
-    "OnCompleteCallParameters",
-    "OnCompleteCallParametersDict",
-    "CreateCallParameters",
-    "CreateCallParametersDict",
     "Program",
     "execute_atc_with_logic_error",
-    "get_app_id_from_tx_id",
     "get_next_version",
     "get_sender_from_signer",
     "num_extra_program_pages",
 ]
 
-
-class ABIReturnSubroutine(typing.Protocol):
-    def method_spec(self) -> Method:
-        ...
-
-
-ABIMethod: typing.TypeAlias = ABIReturnSubroutine | Method | str
-"""Alias for {py:class}`pyteal.ABIReturnSubroutine`, {py:class}`algosdk.abi.method.Method` or a {py:class}`str` 
+"""Alias for {py:class}`pyteal.ABIReturnSubroutine`, {py:class}`algosdk.abi.method.Method` or a {py:class}`str`
 representing an ABI method name or signature"""
 
 
 class Program:
     """A compiled TEAL program"""
 
-    def __init__(self, program: str, client: AlgodClient):
+    def __init__(self, program: str, client: "AlgodClient"):
         """
         Fully compile the program source to binary and generate a
         source map for matching pc to line number
@@ -96,111 +87,13 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
-@dataclasses.dataclass(kw_only=True)
-class CommonCallParameters:
-    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
-
-    signer: TransactionSigner | None = None
-    sender: str | None = None
-    suggested_params: transaction.SuggestedParams | None = None
-    note: bytes | str | None = None
-    lease: bytes | str | None = None
-    accounts: list[str] | None = None
-    foreign_apps: list[int] | None = None
-    foreign_assets: list[int] | None = None
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
-    rekey_to: str | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class OnCompleteCallParameters(CommonCallParameters):
-    """Transaction parameters used when making any call to an Application"""
-
-    on_complete: transaction.OnComplete | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class CreateCallParameters(OnCompleteCallParameters):
-    """Transaction parameters used when making a create call for Application"""
-
-    extra_pages: int | None = None
-
-
-class CommonCallParametersDict(TypedDict, total=False):
-    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
-
-    signer: TransactionSigner
-    sender: str
-    suggested_params: transaction.SuggestedParams
-    note: bytes | str
-    lease: bytes | str
-
-
-class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=False):
-    """Transaction parameters used when making any call to an Application"""
-
-    on_complete: transaction.OnComplete
-
-
-class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=False):
-    """Transaction parameters used when making a create call for Application"""
-
-    extra_pages: int
-
-
-@dataclasses.dataclass(kw_only=True)
-class ABICallArgs:
-    """Parameters used to update or delete an application when calling
-    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
-
-    method: ABIMethod | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
-    suggested_params: transaction.SuggestedParams | None = None
-    lease: bytes | str | None = None
-    accounts: list[str] | None = None
-    foreign_apps: list[int] | None = None
-    foreign_assets: list[int] | None = None
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
-    rekey_to: str | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class ABICreateCallArgs(ABICallArgs):
-    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
-
-    extra_pages: int | None = None
-    on_complete: transaction.OnComplete | None = None
-
-
-class ABICallArgsDict(TypedDict, total=False):
-    """Parameters used to update or delete an application when calling
-    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
-
-    method: ABIMethod | bool
-    args: ABIArgsDict
-    suggested_params: transaction.SuggestedParams
-    lease: bytes | str
-    accounts: list[str]
-    foreign_apps: list[int]
-    foreign_assets: list[int]
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
-    rekey_to: str
-
-
-class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
-    """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
-
-    extra_pages: int | None
-    on_complete: transaction.OnComplete
-
-
 class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
     @overload
     def __init__(
         self,
-        algod_client: AlgodClient,
+        algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
@@ -214,11 +107,11 @@ class ApplicationClient:
     @overload
     def __init__(
         self,
-        algod_client: AlgodClient,
+        algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         creator: str | Account,
-        indexer_client: IndexerClient | None = None,
+        indexer_client: "IndexerClient | None" = None,
         existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -229,12 +122,12 @@ class ApplicationClient:
 
     def __init__(
         self,
-        algod_client: AlgodClient,
+        algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
         creator: str | Account | None = None,
-        indexer_client: IndexerClient | None = None,
+        indexer_client: "IndexerClient | None" = None,
         existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -331,13 +224,16 @@ class ApplicationClient:
     ) -> "ApplicationClient":
         """Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
         Will also substitute provided template_values into the associated app_spec in the copy"""
-        new_client = copy.copy(self)
-        new_client._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
+        new_client: "ApplicationClient" = copy.copy(self)
+        new_client._prepare(  # noqa: SLF001
+            new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values
+        )
         return new_client
 
     def _prepare(
         self,
         target: "ApplicationClient",
+        *,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
         app_id: int | None = None,
@@ -348,7 +244,7 @@ class ApplicationClient:
             AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
         )
         if template_values:
-            target._approval_program, target._clear_program = substitute_template_and_compile(
+            target._approval_program, target._clear_program = substitute_template_and_compile(  # noqa: SLF001
                 target.algod_client, target.app_spec, template_values
             )
 
@@ -363,9 +259,9 @@ class ApplicationClient:
         on_update: au_deploy.OnUpdate = au_deploy.OnUpdate.Fail,
         on_schema_break: au_deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail,
         template_values: au_deploy.TemplateValueMapping | None = None,
-        create_args: ABICreateCallArgs | ABICreateCallArgsDict | None = None,
-        update_args: ABICallArgs | ABICallArgsDict | None = None,
-        delete_args: ABICallArgs | ABICallArgsDict | None = None,
+        create_args: au_deploy.ABICreateCallArgs | au_deploy.ABICreateCallArgsDict | None = None,
+        update_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
+        delete_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
     ) -> au_deploy.DeployResponse:
         """Deploy an application and update client to reference it.
 
@@ -403,197 +299,47 @@ class ApplicationClient:
         :return DeployResponse: details action taken and relevant transactions
         :raises DeploymentError: If the deployment failed due
         """
-        before = self._approval_program, self._clear_program, self.sender, self.signer, self.app_id
-        try:
-            return self._deploy(
-                version,
-                signer=signer,
-                sender=sender,
-                allow_update=allow_update,
-                allow_delete=allow_delete,
-                on_update=on_update,
-                on_schema_break=on_schema_break,
-                template_values=template_values,
-                create_args=create_args,
-                update_args=update_args,
-                delete_args=delete_args,
-            )
-        except Exception as ex:
-            # undo any prepare changes if there was an error
-            self._approval_program, self._clear_program, self.sender, self.signer, self.app_id = before
-            raise ex from None
-
-    def _deploy(
-        self,
-        version: str | None,
-        *,
-        signer: TransactionSigner | None,
-        sender: str | None,
-        allow_update: bool | None,
-        allow_delete: bool | None,
-        on_update: au_deploy.OnUpdate,
-        on_schema_break: au_deploy.OnSchemaBreak,
-        template_values: au_deploy.TemplateValueMapping | None,
-        create_args: ABICallArgs | ABICallArgsDict | None,
-        update_args: ABICallArgs | ABICallArgsDict | None,
-        delete_args: ABICallArgs | ABICallArgsDict | None,
-    ) -> au_deploy.DeployResponse:
-        """Ensures app associated with app client's creator is present and up to date"""
+        # check inputs
         if self.app_id:
             raise au_deploy.DeploymentFailedError(
                 f"Attempt to deploy app which already has an app index of {self.app_id}"
             )
-        signer, sender = self.resolve_signer_sender(signer, sender)
-        if not sender:
-            raise au_deploy.DeploymentFailedError("No sender provided, unable to deploy app")
+        try:
+            resolved_signer, resolved_sender = self.resolve_signer_sender(signer, sender)
+        except ValueError as ex:
+            raise au_deploy.DeploymentFailedError(f"{ex}, unable to deploy app") from None
         if not self._creator:
             raise au_deploy.DeploymentFailedError("No creator provided, unable to deploy app")
-        if self._creator != sender:
+        if self._creator != resolved_sender:
             raise au_deploy.DeploymentFailedError(
-                f"Attempt to deploy contract with a sender address {sender} that differs "
+                f"Attempt to deploy contract with a sender address {resolved_sender} that differs "
                 f"from the given creator address for this application client: {self._creator}"
             )
 
-        # make a copy
+        # make a copy and prepare variables
         template_values = dict(template_values or {})
         au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
 
-        self._prepare(self, template_values=template_values)
-        approval_program, clear_program = self._check_is_compiled()
+        existing_app_metadata_or_reference = self._load_app_reference()
 
-        updatable = (
-            allow_update
-            if allow_update is not None
-            else au_deploy.get_deploy_control(
-                self.app_spec, au_deploy.UPDATABLE_TEMPLATE_NAME, transaction.OnComplete.UpdateApplicationOC
-            )
+        self._approval_program, self._clear_program = substitute_template_and_compile(
+            self.algod_client, self.app_spec, template_values
         )
-        deletable = (
-            allow_delete
-            if allow_delete is not None
-            else au_deploy.get_deploy_control(
-                self.app_spec, au_deploy.DELETABLE_TEMPLATE_NAME, transaction.OnComplete.DeleteApplicationOC
-            )
-        )
-
-        name = self.app_spec.contract.name
-
-        # TODO: allow resolve app id via environment variable
-        app = self._load_app_reference()
-
-        if version is None:
-            if app.app_id == 0:
-                version = "v1.0"
-            else:
-                assert isinstance(app, au_deploy.AppDeployMetaData)
-                version = get_next_version(app.version)
-        app_spec_note = au_deploy.AppDeployMetaData(name, version, updatable=updatable, deletable=deletable)
-
-        def create_app() -> au_deploy.DeployResponse:
-            assert self.existing_deployments
-
-            method, abi_args, parameters = _convert_deploy_args(create_args, app_spec_note, signer, sender)
-            create_response = self.create(
-                method,
-                parameters,
-                **abi_args,
-            )
-            logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
-            assert create_response.confirmed_round is not None
-            app_metadata = _create_metadata(app_spec_note, self.app_id, create_response.confirmed_round)
-            self.existing_deployments.apps[name] = app_metadata
-            return au_deploy.DeployResponse(
-                app=app_metadata, create_response=create_response, action_taken=au_deploy.OperationPerformed.Create
-            )
-
-        if app.app_id == 0:
-            logger.info(f"{name} not found in {self._creator} account, deploying app.")
-            return create_app()
-
-        def create_and_delete_app() -> au_deploy.DeployResponse:
-            assert isinstance(app, au_deploy.AppMetaData)
-            assert self.existing_deployments
-
-            logger.info(f"Replacing {name} ({app.version}) with {name} ({version}) in {self._creator} account.")
-            atc = AtomicTransactionComposer()
-            create_method, create_abi_args, create_parameters = _convert_deploy_args(
-                create_args, app_spec_note, signer, sender
-            )
-            self.compose_create(
-                atc,
-                create_method,
-                create_parameters,
-                **create_abi_args,
-            )
-            delete_method, delete_abi_args, delete_parameters = _convert_deploy_args(
-                delete_args, app_spec_note, signer, sender
-            )
-            self.compose_delete(
-                atc,
-                delete_method,
-                delete_parameters,
-                **delete_abi_args,
-            )
-            create_delete_response = self.execute_atc(atc)
-            create_response = _tr_from_atr(atc, create_delete_response, 0)
-            delete_response = _tr_from_atr(atc, create_delete_response, 1)
-            self._set_app_id_from_tx_id(create_response.tx_id)
-            logger.info(f"{name} ({version}) deployed successfully, with app id {self.app_id}.")
-            logger.info(f"{name} ({app.version}) with app id {app.app_id}, deleted successfully.")
-
-            app_metadata = _create_metadata(app_spec_note, self.app_id, create_delete_response.confirmed_round)
-            self.existing_deployments.apps[name] = app_metadata
-
-            return au_deploy.DeployResponse(
-                app=app_metadata,
-                create_response=create_response,
-                delete_response=delete_response,
-                action_taken=au_deploy.OperationPerformed.Replace,
-            )
-
-        def update_app() -> au_deploy.DeployResponse:
-            assert on_update == au_deploy.OnUpdate.UpdateApp
-            assert isinstance(app, au_deploy.AppMetaData)
-            assert self.existing_deployments
-            logger.info(f"Updating {name} to {version} in {self._creator} account, with app id {app.app_id}")
-            method, abi_args, parameters = _convert_deploy_args(update_args, app_spec_note, signer, sender)
-            update_response = self.update(
-                method,
-                parameters,
-                **abi_args,
-            )
-            app_metadata = _create_metadata(
-                app_spec_note,
-                self.app_id,
-                app.created_round,
-                updated_round=update_response.confirmed_round,
-                original_metadata=app.created_metadata,
-            )
-            self.existing_deployments.apps[name] = app_metadata
-            return au_deploy.DeployResponse(
-                app=app_metadata, update_response=update_response, action_taken=au_deploy.OperationPerformed.Update
-            )
-
-        assert isinstance(app, au_deploy.AppMetaData)
-        logger.debug(f"{name} found in {self._creator} account, with app id {app.app_id}, version={app.version}.")
-
-        app_changes = au_deploy.check_for_app_changes(
-            self.algod_client,
-            new_approval=approval_program.raw_binary,
-            new_clear=clear_program.raw_binary,
-            new_global_schema=self.app_spec.global_state_schema,
-            new_local_schema=self.app_spec.local_state_schema,
-            app_id=app.app_id,
-        )
-
-        return check_app_and_deploy(
-            app,
-            app_changes,
+        deployer = au_deploy.Deployer(
+            app_client=self,
+            creator=self._creator,
+            signer=resolved_signer,
+            sender=resolved_sender,
+            new_app_metadata=self._get_app_deploy_metadata(version, allow_update, allow_delete),
+            existing_app_metadata_or_reference=existing_app_metadata_or_reference,
             on_update=on_update,
             on_schema_break=on_schema_break,
-            update_app=update_app,
-            create_and_delete_app=create_and_delete_app,
+            create_args=create_args,
+            update_args=update_args,
+            delete_args=delete_args,
         )
+
+        return deployer.deploy()
 
     def compose_create(
         self,
@@ -669,7 +415,7 @@ class ApplicationClient:
             **abi_kwargs,
         )
         create_result = self._execute_atc_tr(atc)
-        self._set_app_id_from_tx_id(create_result.tx_id)
+        self.app_id = au_deploy.get_app_id_from_tx_id(self.algod_client, create_result.tx_id)
         return create_result
 
     def compose_update(
@@ -1040,7 +786,7 @@ class ApplicationClient:
     def resolve(self, to_resolve: au_spec.DefaultArgumentDict) -> int | str | bytes:
         """Resolves the default value for an ABI method, based on app_spec"""
 
-        def _data_check(value: Any) -> int | str | bytes:
+        def _data_check(value: object) -> int | str | bytes:
             if isinstance(value, int | str | bytes):
                 return value
             raise ValueError(f"Unexpected type for constant data: {value}")
@@ -1065,6 +811,36 @@ class ApplicationClient:
                 raise ValueError(f"Unrecognized default argument source: {source}")
             case _:
                 raise TypeError("Unable to interpret default argument specification")
+
+    def _get_app_deploy_metadata(
+        self, version: str | None, allow_update: bool | None, allow_delete: bool | None
+    ) -> au_deploy.AppDeployMetaData:
+        updatable = (
+            allow_update
+            if allow_update is not None
+            else au_deploy.get_deploy_control(
+                self.app_spec, au_deploy.UPDATABLE_TEMPLATE_NAME, transaction.OnComplete.UpdateApplicationOC
+            )
+        )
+        deletable = (
+            allow_delete
+            if allow_delete is not None
+            else au_deploy.get_deploy_control(
+                self.app_spec, au_deploy.DELETABLE_TEMPLATE_NAME, transaction.OnComplete.DeleteApplicationOC
+            )
+        )
+
+        app = self._load_app_reference()
+
+        if version is None:
+            if app.app_id == 0:
+                version = "v1.0"
+            else:
+                assert isinstance(app, au_deploy.AppDeployMetaData)
+                version = get_next_version(app.version)
+        return au_deploy.AppDeployMetaData(
+            self.app_spec.contract.name, version, updatable=updatable, deletable=deletable
+        )
 
     def _check_is_compiled(self) -> tuple[Program, Program]:
         if self._approval_program is None or self._clear_program is None:
@@ -1096,10 +872,11 @@ class ApplicationClient:
             assert self._indexer_client
             self.existing_deployments = au_deploy.get_creator_apps(self._indexer_client, self._creator)
 
-        if self.existing_deployments and self.app_id == 0:
+        if self.existing_deployments:
             app = self.existing_deployments.apps.get(self.app_spec.contract.name)
             if app:
-                self.app_id = app.app_id
+                if self.app_id == 0:
+                    self.app_id = app.app_id
                 return app
 
         return au_deploy.AppReference(self.app_id, self.app_address)
@@ -1160,6 +937,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         abi_method: ABIMethod | bool | None = None,
+        *,
         abi_args: ABIArgsDict | None = None,
         app_id: int | None = None,
         parameters: CommonCallParameters | CommonCallParametersDict | None = None,
@@ -1215,56 +993,60 @@ class ApplicationClient:
                     signer=signer,
                 )
             )
-        else:  # resolve ABI method args
-            hints = self._method_hints(method)
+            return
+        # resolve ABI method args
+        args = self._get_abi_method_args(abi_args, method)
+        atc.add_method_call(
+            app_id,
+            method,
+            sender,
+            sp,
+            signer,
+            method_args=args,
+            on_complete=on_complete,
+            local_schema=local_schema,
+            global_schema=global_schema,
+            approval_program=approval_program,
+            clear_program=clear_program,
+            extra_pages=extra_pages or 0,
+            accounts=parameters.accounts,
+            foreign_apps=parameters.foreign_apps,
+            foreign_assets=parameters.foreign_assets,
+            boxes=encoded_boxes,
+            note=parameters.note.encode("utf-8") if isinstance(parameters.note, str) else parameters.note,
+            lease=encoded_lease,
+            rekey_to=parameters.rekey_to,
+        )
 
-            args: list = []
-            # copy args so we don't mutate original
-            abi_args = dict(abi_args or {})
-            for method_arg in method.args:
-                name = method_arg.name
-                if name in abi_args:
-                    argument = abi_args.pop(name)
-                    if isinstance(argument, dict):
-                        if hints.structs is None or name not in hints.structs:
-                            raise Exception(f"Argument missing struct hint: {name}. Check argument name and type")
+    def _get_abi_method_args(self, abi_args: ABIArgsDict | None, method: Method) -> list:
+        args: list = []
+        hints = self._method_hints(method)
+        # copy args so we don't mutate original
+        abi_args = dict(abi_args or {})
+        for method_arg in method.args:
+            name = method_arg.name
+            if name in abi_args:
+                argument = abi_args.pop(name)
+                if isinstance(argument, dict):
+                    if hints.structs is None or name not in hints.structs:
+                        raise Exception(f"Argument missing struct hint: {name}. Check argument name and type")
 
-                        elements = hints.structs[name]["elements"]
+                    elements = hints.structs[name]["elements"]
 
-                        argument_tuple = tuple(argument[field_name] for field_name, field_type in elements)
-                        args.append(argument_tuple)
-                    else:
-                        args.append(argument)
-
-                elif hints.default_arguments is not None and name in hints.default_arguments:
-                    default_arg = hints.default_arguments[name]
-                    if default_arg is not None:
-                        args.append(self.resolve(default_arg))
+                    argument_tuple = tuple(argument[field_name] for field_name, field_type in elements)
+                    args.append(argument_tuple)
                 else:
-                    raise Exception(f"Unspecified argument: {name}")
-            if abi_args:
-                raise Exception(f"Unused arguments specified: {', '.join(abi_args)}")
-            atc.add_method_call(
-                app_id,
-                method,
-                sender,
-                sp,
-                signer,
-                method_args=args,
-                on_complete=on_complete,
-                local_schema=local_schema,
-                global_schema=global_schema,
-                approval_program=approval_program,
-                clear_program=clear_program,
-                extra_pages=extra_pages or 0,
-                accounts=parameters.accounts,
-                foreign_apps=parameters.foreign_apps,
-                foreign_assets=parameters.foreign_assets,
-                boxes=encoded_boxes,
-                note=parameters.note.encode("utf-8") if isinstance(parameters.note, str) else parameters.note,
-                lease=encoded_lease,
-                rekey_to=parameters.rekey_to,
-            )
+                    args.append(argument)
+
+            elif hints.default_arguments is not None and name in hints.default_arguments:
+                default_arg = hints.default_arguments[name]
+                if default_arg is not None:
+                    args.append(self.resolve(default_arg))
+            else:
+                raise Exception(f"Unspecified argument: {name}")
+        if abi_args:
+            raise Exception(f"Unused arguments specified: {', '.join(abi_args)}")
+        return args
 
     def _method_matches(
         self,
@@ -1311,7 +1093,7 @@ class ApplicationClient:
 
     def _execute_atc_tr(self, atc: AtomicTransactionComposer) -> TransactionResponse:
         result = self.execute_atc(atc)
-        return _tr_from_atr(atc, result)
+        return TransactionResponse.from_atr(result)
 
     def execute_atc(self, atc: AtomicTransactionComposer) -> AtomicTransactionResponse:
         return execute_atc_with_logic_error(
@@ -1320,9 +1102,6 @@ class ApplicationClient:
             approval_program=self.approval.teal if self.approval else self.app_spec.approval_program,
             approval_source_map=self._get_approval_source_map(),
         )
-
-    def _set_app_id_from_tx_id(self, tx_id: str) -> None:
-        self.app_id = get_app_id_from_tx_id(self.algod_client, tx_id)
 
     def get_signer_sender(
         self, signer: TransactionSigner | None = None, sender: str | None = None
@@ -1357,7 +1136,7 @@ class ApplicationClient:
 
 
 def substitute_template_and_compile(
-    algod_client: AlgodClient,
+    algod_client: "AlgodClient",
     app_spec: au_spec.ApplicationSpecification,
     template_values: au_deploy.TemplateValueMapping,
 ) -> tuple[Program, Program]:
@@ -1369,15 +1148,6 @@ def substitute_template_and_compile(
     approval = au_deploy.replace_template_variables(app_spec.approval_program, template_values)
 
     return Program(approval, algod_client), Program(clear, algod_client)
-
-
-def get_app_id_from_tx_id(algod_client: AlgodClient, tx_id: str) -> int:
-    """Finds the app_id for provided transaction id"""
-    result = algod_client.pending_transaction_info(tx_id)
-    assert isinstance(result, dict)
-    app_id = result["application-index"]
-    assert isinstance(app_id, int)
-    return app_id
 
 
 def get_next_version(current_version: str) -> str:
@@ -1413,7 +1183,7 @@ def get_next_version(current_version: str) -> str:
 
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
-    algod_client: AlgodClient,
+    algod_client: "AlgodClient",
     wait_rounds: int = 4,
     approval_program: str | None = None,
     approval_source_map: SourceMap | None = None,
@@ -1441,55 +1211,9 @@ def execute_atc_with_logic_error(
         raise ex
 
 
-def _create_metadata(
-    app_spec_note: au_deploy.AppDeployMetaData,
-    app_id: int,
-    created_round: int,
-    updated_round: int | None = None,
-    original_metadata: au_deploy.AppDeployMetaData | None = None,
-) -> au_deploy.AppMetaData:
-    app_metadata = au_deploy.AppMetaData(
-        app_id=app_id,
-        app_address=get_application_address(app_id),
-        created_metadata=original_metadata or app_spec_note,
-        created_round=created_round,
-        updated_round=updated_round or created_round,
-        **app_spec_note.__dict__,
-        deleted=False,
-    )
-    return app_metadata
-
-
 def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> CreateCallParameters:
     _args = args.__dict__ if isinstance(args, CommonCallParameters) else (args or {})
     return CreateCallParameters(**_args)
-
-
-def _convert_deploy_args(
-    _args: ABICallArgs | ABICallArgsDict | None,
-    note: au_deploy.AppDeployMetaData,
-    signer: TransactionSigner | None,
-    sender: str | None,
-) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = _args.__dict__ if isinstance(_args, ABICallArgs) else (_args or {})
-
-    # return most derived type, unused parameters are ignored
-    parameters = CreateCallParameters(
-        note=note.encode(),
-        signer=signer,
-        sender=sender,
-        suggested_params=args.get("suggested_params"),
-        lease=args.get("lease"),
-        accounts=args.get("accounts"),
-        foreign_assets=args.get("foreign_assets"),
-        foreign_apps=args.get("foreign_apps"),
-        boxes=args.get("boxes"),
-        rekey_to=args.get("rekey_to"),
-        extra_pages=args.get("extra_pages"),
-        on_complete=args.get("on_complete"),
-    )
-
-    return args.get("method"), args.get("args") or {}, parameters
 
 
 def get_sender_from_signer(signer: TransactionSigner | None) -> str | None:
@@ -1547,7 +1271,7 @@ def _parse_result(
             result = logs[-1]
             # Check that the first four bytes is the hash of "return"
             result_bytes = base64.b64decode(result)
-            if len(result_bytes) < 4 or result_bytes[:4] != ABI_RETURN_HASH:
+            if len(result_bytes) < len(ABI_RETURN_HASH) or result_bytes[: len(ABI_RETURN_HASH)] != ABI_RETURN_HASH:
                 raise Exception("no logs")
 
             raw_value = result_bytes[4:]
@@ -1614,23 +1338,3 @@ def _decode_state(state: list[dict[str, Any]], *, raw: bool = False) -> dict[str
 
         decoded_state[key] = val
     return decoded_state
-
-
-def _tr_from_atr(
-    atc: AtomicTransactionComposer, result: AtomicTransactionResponse, transaction_index: int = 0
-) -> TransactionResponse:
-    if result.abi_results and transaction_index in atc.method_dict:  # expecting an ABI result
-        abi_index = 0
-        # count how many of the earlier transactions were also ABI
-        for index in range(transaction_index):
-            if index in atc.method_dict:
-                abi_index += 1
-        return ABITransactionResponse(
-            **result.abi_results[abi_index].__dict__,
-            confirmed_round=result.confirmed_round,
-        )
-    else:
-        return TransactionResponse(
-            tx_id=result.tx_ids[transaction_index],
-            confirmed_round=result.confirmed_round,
-        )

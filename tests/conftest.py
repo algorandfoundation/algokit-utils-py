@@ -1,6 +1,7 @@
 import inspect
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 import pytest
@@ -16,10 +17,12 @@ from algokit_utils import (
     get_kmd_client_from_algod_client,
     replace_template_variables,
 )
-from algosdk.kmd import KMDClient
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 from dotenv import load_dotenv
+
+if TYPE_CHECKING:
+    from algosdk.kmd import KMDClient
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -98,12 +101,11 @@ def get_specs(
     deletable: bool | None = None,
     name: str | None = None,
 ) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
-    specs = (
+    return (
         read_spec("app_v1.json", updatable=updatable, deletable=deletable, name=name),
         read_spec("app_v2.json", updatable=updatable, deletable=deletable, name=name),
         read_spec("app_v3.json", updatable=updatable, deletable=deletable, name=name),
     )
-    return specs
 
 
 def get_unique_name() -> str:
@@ -121,35 +123,32 @@ def is_opted_in(client_fixture: ApplicationClient) -> bool:
 
 
 @pytest.fixture(scope="session")
-def algod_client() -> AlgodClient:
+def algod_client() -> "AlgodClient":
     return get_algod_client()
 
 
 @pytest.fixture(scope="session")
-def kmd_client(algod_client: AlgodClient) -> KMDClient:
+def kmd_client(algod_client: "AlgodClient") -> "KMDClient":
     return get_kmd_client_from_algod_client(algod_client)
 
 
 @pytest.fixture(scope="session")
-def indexer_client() -> IndexerClient:
+def indexer_client() -> "IndexerClient":
     return get_indexer_client()
 
 
 @pytest.fixture()
-def creator(algod_client: AlgodClient) -> Account:
+def creator(algod_client: "AlgodClient") -> Account:
     creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-    return creator
+    return get_account(algod_client, creator_name)
 
 
 @pytest.fixture(scope="session")
-def funded_account(algod_client: AlgodClient) -> Account:
+def funded_account(algod_client: "AlgodClient") -> Account:
     creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-    return creator
+    return get_account(algod_client, creator_name)
 
 
 @pytest.fixture(scope="session")
 def app_spec() -> ApplicationSpecification:
-    app_spec = read_spec("app_client_test.json", deletable=True, updatable=True)
-    return app_spec
+    return read_spec("app_client_test.json", deletable=True, updatable=True)

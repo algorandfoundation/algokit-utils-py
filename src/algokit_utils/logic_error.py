@@ -1,8 +1,9 @@
 import re
 from copy import copy
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
-from algosdk.source_map import SourceMap as AlgoSourceMap
+if TYPE_CHECKING:
+    from algosdk.source_map import SourceMap as AlgoSourceMap
 
 __all__ = [
     "LogicError",
@@ -38,9 +39,10 @@ def parse_logic_error(
 class LogicError(Exception):
     def __init__(
         self,
+        *,
         logic_error: Exception,
         program: str,
-        source_map: AlgoSourceMap,
+        source_map: "AlgoSourceMap",
         transaction_id: str,
         message: str,
         pc: int,

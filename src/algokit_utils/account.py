@@ -1,18 +1,21 @@
 import logging
 import os
 import warnings
-from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from algosdk.account import address_from_private_key
-from algosdk.kmd import KMDClient
 from algosdk.mnemonic import from_private_key, to_private_key
 from algosdk.util import algos_to_microalgos
-from algosdk.v2client.algod import AlgodClient
 
 from algokit_utils._transfer import TransferParameters, transfer
 from algokit_utils.models import Account
 from algokit_utils.network_clients import get_kmd_client_from_algod_client, is_localnet
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from algosdk.kmd import KMDClient
+    from algosdk.v2client.algod import AlgodClient
 
 __all__ = [
     "create_kmd_wallet_account",
@@ -26,16 +29,17 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+_DEFAULT_ACCOUNT_MINIMUM_BALANCE = 1_000_000_000
 
 
 def get_account_from_mnemonic(mnemonic: str) -> Account:
     """Convert a mnemonic (25 word passphrase) into an Account"""
     private_key = to_private_key(mnemonic)  # type: ignore[no-untyped-call]
     address = address_from_private_key(private_key)  # type: ignore[no-untyped-call]
-    return Account(private_key, address)
+    return Account(private_key=private_key, address=address)
 
 
-def create_kmd_wallet_account(kmd_client: KMDClient, name: str) -> Account:
+def create_kmd_wallet_account(kmd_client: "KMDClient", name: str) -> Account:
     """Creates a wallet with specified name"""
     wallet_id = kmd_client.create_wallet(name, "")["id"]  # type: ignore[no-untyped-call]
     wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")  # type: ignore[no-untyped-call]
@@ -49,7 +53,7 @@ def create_kmd_wallet_account(kmd_client: KMDClient, name: str) -> Account:
 
 
 def get_or_create_kmd_wallet_account(
-    client: AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None
+    client: "AlgodClient", name: str, fund_with_algos: float = 1000, kmd_client: "KMDClient | None" = None
 ) -> Account:
     """Returns a wallet with specified name, or creates one if not found"""
     kmd_client = kmd_client or get_kmd_client_from_algod_client(client)
@@ -85,17 +89,19 @@ def get_or_create_kmd_wallet_account(
 
 
 def _is_default_account(account: dict[str, Any]) -> bool:
-    return bool(account["status"] != "Offline" and account["amount"] > 1_000_000_000)
+    return bool(account["status"] != "Offline" and account["amount"] > _DEFAULT_ACCOUNT_MINIMUM_BALANCE)
 
 
-def get_sandbox_default_account(client: AlgodClient) -> Account:
+def get_sandbox_default_account(client: "AlgodClient") -> Account:
     warnings.warn(
-        "get_sandbox_default_account is deprecated, please use get_localnet_default_account instead", DeprecationWarning
+        "get_sandbox_default_account is deprecated, please use get_localnet_default_account instead",
+        DeprecationWarning,
+        stacklevel=2,
     )
     return get_localnet_default_account(client)
 
 
-def get_localnet_default_account(client: AlgodClient) -> Account:
+def get_localnet_default_account(client: "AlgodClient") -> Account:
     """Returns the default Account in a LocalNet instance"""
     if not is_localnet(client):
         raise Exception("Can't get a default account from non LocalNet network")
@@ -107,7 +113,7 @@ def get_localnet_default_account(client: AlgodClient) -> Account:
     return account
 
 
-def get_dispenser_account(client: AlgodClient) -> Account:
+def get_dispenser_account(client: "AlgodClient") -> Account:
     """Returns an Account based on DISPENSER_MNENOMIC environment variable or the default account on LocalNet"""
     if is_localnet(client):
         return get_localnet_default_account(client)
@@ -115,7 +121,10 @@ def get_dispenser_account(client: AlgodClient) -> Account:
 
 
 def get_kmd_wallet_account(
-    client: AlgodClient, kmd_client: KMDClient, name: str, predicate: Callable[[dict[str, Any]], bool] | None = None
+    client: "AlgodClient",
+    kmd_client: "KMDClient",
+    name: str,
+    predicate: "Callable[[dict[str, Any]], bool] | None" = None,
 ) -> Account | None:
     """Returns wallet matching specified name and predicate or None if not found"""
     wallets: list[dict] = kmd_client.list_wallets()  # type: ignore[no-untyped-call]
@@ -145,7 +154,7 @@ def get_kmd_wallet_account(
 
 
 def get_account(
-    client: AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None
+    client: "AlgodClient", name: str, fund_with_algos: float = 1000, kmd_client: "KMDClient | None" = None
 ) -> Account:
     """Returns an Algorand account with private key loaded by convention based on the given name identifier.
 

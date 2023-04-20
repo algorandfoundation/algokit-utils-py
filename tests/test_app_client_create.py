@@ -1,4 +1,5 @@
 import dataclasses
+from typing import TYPE_CHECKING
 
 import pytest
 from algokit_utils import (
@@ -11,21 +12,22 @@ from algokit_utils import (
 )
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionComposer, TransactionSigner
 from algosdk.transaction import ApplicationCallTxn, GenericSignedTransaction, OnComplete, Transaction
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
 from tests.conftest import check_output_stability, get_unique_name
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(scope="module")
 def client_fixture(
-    algod_client: AlgodClient,
-    indexer_client: IndexerClient,
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
     app_spec: ApplicationSpecification,
     funded_account: Account,
 ) -> ApplicationClient:
-    client = ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
-    return client
+    return ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
 
 
 def test_bare_create(client_fixture: ApplicationClient) -> None:
@@ -41,9 +43,7 @@ def test_abi_create(client_fixture: ApplicationClient) -> None:
 
 
 @pytest.mark.parametrize("method", ["create_args", "create_args(string)void", True])
-def test_abi_create_args(
-    method: str | bool, client_fixture: ApplicationClient, app_spec: ApplicationSpecification
-) -> None:
+def test_abi_create_args(method: str | bool, client_fixture: ApplicationClient) -> None:
     client_fixture.create(method, greeting="ahoy")
 
     assert client_fixture.call("hello", name="test").return_value == "ahoy, test"
