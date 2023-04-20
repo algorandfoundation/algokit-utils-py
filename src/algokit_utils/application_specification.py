@@ -63,7 +63,9 @@ class DefaultArgumentDict(TypedDict):
     data: int | str | bytes | MethodDict
 
 
-StateDict = TypedDict("StateDict", {"global": AppSpecStateDict, "local": AppSpecStateDict})
+StateDict = TypedDict(  # need to use function-form of TypedDict here since "global" is a reserved keyword
+    "StateDict", {"global": AppSpecStateDict, "local": AppSpecStateDict}
+)
 
 
 @dataclasses.dataclass(kw_only=True)
