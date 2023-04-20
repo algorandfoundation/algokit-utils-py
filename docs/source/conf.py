@@ -51,7 +51,6 @@ myst_enable_extensions = [
 autodoc2_packages = [
     {
         "path": "../../src/algokit_utils",
-        # "auto_mode": False,
     },
 ]
 autodoc2_skip_module_regexes = [r"algokit_utils\..*"]
