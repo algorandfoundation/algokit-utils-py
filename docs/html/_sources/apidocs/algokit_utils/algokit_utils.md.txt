@@ -20,23 +20,23 @@ orphan: true
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`ABICallArgs <algokit_utils.application_client.ABICallArgs>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABICallArgs
+* - {py:obj}`ABICallArgs <algokit_utils.deploy.ABICallArgs>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.ABICallArgs
     :parser: myst
     :summary:
     ```
-* - {py:obj}`ABICallArgsDict <algokit_utils.application_client.ABICallArgsDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABICallArgsDict
+* - {py:obj}`ABICallArgsDict <algokit_utils.deploy.ABICallArgsDict>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.ABICallArgsDict
     :parser: myst
     :summary:
     ```
-* - {py:obj}`ABICreateCallArgs <algokit_utils.application_client.ABICreateCallArgs>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABICreateCallArgs
+* - {py:obj}`ABICreateCallArgs <algokit_utils.deploy.ABICreateCallArgs>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgs
     :parser: myst
     :summary:
     ```
-* - {py:obj}`ABICreateCallArgsDict <algokit_utils.application_client.ABICreateCallArgsDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABICreateCallArgsDict
+* - {py:obj}`ABICreateCallArgsDict <algokit_utils.deploy.ABICreateCallArgsDict>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgsDict
     :parser: myst
     :summary:
     ```
@@ -90,23 +90,23 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`CommonCallParameters <algokit_utils.application_client.CommonCallParameters>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.CommonCallParameters
+* - {py:obj}`CommonCallParameters <algokit_utils.models.CommonCallParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.CommonCallParameters
     :parser: myst
     :summary:
     ```
-* - {py:obj}`CommonCallParametersDict <algokit_utils.application_client.CommonCallParametersDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.CommonCallParametersDict
+* - {py:obj}`CommonCallParametersDict <algokit_utils.models.CommonCallParametersDict>`
+  - ```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict
     :parser: myst
     :summary:
     ```
-* - {py:obj}`CreateCallParameters <algokit_utils.application_client.CreateCallParameters>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.CreateCallParameters
+* - {py:obj}`CreateCallParameters <algokit_utils.models.CreateCallParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.CreateCallParameters
     :parser: myst
     :summary:
     ```
-* - {py:obj}`CreateCallParametersDict <algokit_utils.application_client.CreateCallParametersDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.CreateCallParametersDict
+* - {py:obj}`CreateCallParametersDict <algokit_utils.models.CreateCallParametersDict>`
+  - ```{autodoc2-docstring} algokit_utils.models.CreateCallParametersDict
     :parser: myst
     :summary:
     ```
@@ -125,13 +125,13 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`OnCompleteCallParameters <algokit_utils.application_client.OnCompleteCallParameters>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.OnCompleteCallParameters
+* - {py:obj}`OnCompleteCallParameters <algokit_utils.models.OnCompleteCallParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParameters
     :parser: myst
     :summary:
     ```
-* - {py:obj}`OnCompleteCallParametersDict <algokit_utils.application_client.OnCompleteCallParametersDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.OnCompleteCallParametersDict
+* - {py:obj}`OnCompleteCallParametersDict <algokit_utils.models.OnCompleteCallParametersDict>`
+  - ```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParametersDict
     :parser: myst
     :summary:
     ```
@@ -198,8 +198,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`get_app_id_from_tx_id <algokit_utils.application_client.get_app_id_from_tx_id>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.get_app_id_from_tx_id
+* - {py:obj}`get_app_id_from_tx_id <algokit_utils.deploy.get_app_id_from_tx_id>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.get_app_id_from_tx_id
     :parser: myst
     :summary:
     ```
@@ -276,16 +276,6 @@ orphan: true
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`ABIArgsDict <algokit_utils.application_client.ABIArgsDict>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABIArgsDict
-    :parser: myst
-    :summary:
-    ```
-* - {py:obj}`ABIMethod <algokit_utils.application_client.ABIMethod>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.ABIMethod
-    :parser: myst
-    :summary:
-    ```
 * - {py:obj}`AppSpecStateDict <algokit_utils.application_specification.AppSpecStateDict>`
   - ```{autodoc2-docstring} algokit_utils.application_specification.AppSpecStateDict
     :parser: myst
@@ -335,80 +325,57 @@ orphan: true
 
 ### API
 
-````{py:data} ABIArgsDict
-:canonical: algokit_utils.application_client.ABIArgsDict
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils.application_client.ABIArgsDict
-:parser: myst
-```
-
-````
-
 ````{py:class} ABICallArgs
-:canonical: algokit_utils.application_client.ABICallArgs
+:canonical: algokit_utils.deploy.ABICallArgs
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICallArgs
+```{autodoc2-docstring} algokit_utils.deploy.ABICallArgs
 :parser: myst
 ```
 
 ````
 
 ````{py:class} ABICallArgsDict()
-:canonical: algokit_utils.application_client.ABICallArgsDict
+:canonical: algokit_utils.deploy.ABICallArgsDict
 
 Bases: {py:obj}`typing.TypedDict`
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICallArgsDict
+```{autodoc2-docstring} algokit_utils.deploy.ABICallArgsDict
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICallArgsDict.__init__
+```{autodoc2-docstring} algokit_utils.deploy.ABICallArgsDict.__init__
 :parser: myst
 ```
 
 ````
 
 ````{py:class} ABICreateCallArgs
-:canonical: algokit_utils.application_client.ABICreateCallArgs
+:canonical: algokit_utils.deploy.ABICreateCallArgs
 
-Bases: {py:obj}`algokit_utils.application_client.ABICallArgs`
+Bases: {py:obj}`algokit_utils.deploy.ABICallArgs`
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICreateCallArgs
+```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgs
 :parser: myst
 ```
 
 ````
 
 ````{py:class} ABICreateCallArgsDict()
-:canonical: algokit_utils.application_client.ABICreateCallArgsDict
+:canonical: algokit_utils.deploy.ABICreateCallArgsDict
 
-Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.application_client.ABICallArgsDict`
+Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.deploy.ABICallArgsDict`
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICreateCallArgsDict
+```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgsDict
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.ABICreateCallArgsDict.__init__
-:parser: myst
-```
-
-````
-
-````{py:data} ABIMethod
-:canonical: algokit_utils.application_client.ABIMethod
-:type: typing.TypeAlias
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils.application_client.ABIMethod
+```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgsDict.__init__
 :parser: myst
 ```
 
@@ -577,7 +544,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-`````{py:class} ApplicationClient(algod_client: algosdk.v2client.algod.AlgodClient, app_spec: algokit_utils.application_specification.ApplicationSpecification | pathlib.Path, *, app_id: int = 0, creator: str | algokit_utils.models.Account | None = None, indexer_client: algosdk.v2client.indexer.IndexerClient | None = None, existing_deployments: algokit_utils.deploy.AppLookup | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | algokit_utils.models.Account | None = None, sender: str | None = None, suggested_params: algosdk.transaction.SuggestedParams | None = None, template_values: algokit_utils.deploy.TemplateValueMapping | None = None)
+`````{py:class} ApplicationClient(algod_client: algosdk.v2client.algod.AlgodClient, app_spec: algokit_utils.application_specification.ApplicationSpecification | pathlib.Path, *, app_id: int = 0, creator: str | algokit_utils.models.Account | None = None, indexer_client: IndexerClient | None = None, existing_deployments: algokit_utils.deploy.AppLookup | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | algokit_utils.models.Account | None = None, sender: str | None = None, suggested_params: algosdk.transaction.SuggestedParams | None = None, template_values: algokit_utils.deploy.TemplateValueMapping | None = None)
 :canonical: algokit_utils.application_client.ApplicationClient
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient
@@ -591,7 +558,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 :parser: myst
 ```
 
-````{py:method} add_method_call(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, abi_args: algokit_utils.application_client.ABIArgsDict | None = None, app_id: int | None = None, parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, on_complete: algosdk.transaction.OnComplete = transaction.OnComplete.NoOpOC, local_schema: algosdk.transaction.StateSchema | None = None, global_schema: algosdk.transaction.StateSchema | None = None, approval_program: bytes | None = None, clear_program: bytes | None = None, extra_pages: int | None = None, app_args: list[bytes] | None = None, call_config: algokit_utils.application_specification.CallConfig = au_spec.CallConfig.CALL) -> None
+````{py:method} add_method_call(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, abi_method: algokit_utils.models.ABIMethod | bool | None = None, *, abi_args: algokit_utils.models.ABIArgsDict | None = None, app_id: int | None = None, parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, on_complete: algosdk.transaction.OnComplete = transaction.OnComplete.NoOpOC, local_schema: algosdk.transaction.StateSchema | None = None, global_schema: algosdk.transaction.StateSchema | None = None, approval_program: bytes | None = None, clear_program: bytes | None = None, extra_pages: int | None = None, app_args: list[bytes] | None = None, call_config: algokit_utils.application_specification.CallConfig = au_spec.CallConfig.CALL) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.add_method_call
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.add_method_call
@@ -600,7 +567,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} call(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.OnCompleteCallParameters | algokit_utils.application_client.OnCompleteCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} call(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.OnCompleteCallParameters | algokit_utils.models.OnCompleteCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.call
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.call
@@ -609,7 +576,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} clear_state(transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, app_args: list[bytes] | None = None) -> algokit_utils.models.TransactionResponse
+````{py:method} clear_state(transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, app_args: list[bytes] | None = None) -> algokit_utils.models.TransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.clear_state
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.clear_state
@@ -618,7 +585,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} close_out(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} close_out(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.close_out
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.close_out
@@ -627,7 +594,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_call(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.OnCompleteCallParameters | algokit_utils.application_client.OnCompleteCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_call(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.OnCompleteCallParameters | algokit_utils.models.OnCompleteCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_call
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_call
@@ -636,7 +603,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_clear_state(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, app_args: list[bytes] | None = None) -> None
+````{py:method} compose_clear_state(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, app_args: list[bytes] | None = None) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_clear_state
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_clear_state
@@ -645,7 +612,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_close_out(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_close_out(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_close_out
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_close_out
@@ -654,7 +621,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_create(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CreateCallParameters | algokit_utils.application_client.CreateCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_create(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CreateCallParameters | algokit_utils.models.CreateCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_create
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_create
@@ -663,7 +630,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_delete(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_delete(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_delete
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_delete
@@ -672,7 +639,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_opt_in(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_opt_in(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_opt_in
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_opt_in
@@ -681,7 +648,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} compose_update(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> None
+````{py:method} compose_update(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, /, call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> None
 :canonical: algokit_utils.application_client.ApplicationClient.compose_update
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.compose_update
@@ -690,7 +657,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} create(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CreateCallParameters | algokit_utils.application_client.CreateCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} create(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CreateCallParameters | algokit_utils.models.CreateCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.create
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.create
@@ -699,7 +666,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} delete(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} delete(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.delete
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.delete
@@ -708,7 +675,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} deploy(version: str | None = None, *, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None, allow_update: bool | None = None, allow_delete: bool | None = None, on_update: algokit_utils.deploy.OnUpdate = au_deploy.OnUpdate.Fail, on_schema_break: algokit_utils.deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, create_args: algokit_utils.application_client.ABICreateCallArgs | algokit_utils.application_client.ABICreateCallArgsDict | None = None, update_args: algokit_utils.application_client.ABICallArgs | algokit_utils.application_client.ABICallArgsDict | None = None, delete_args: algokit_utils.application_client.ABICallArgs | algokit_utils.application_client.ABICallArgsDict | None = None) -> algokit_utils.deploy.DeployResponse
+````{py:method} deploy(version: str | None = None, *, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None, allow_update: bool | None = None, allow_delete: bool | None = None, on_update: algokit_utils.deploy.OnUpdate = au_deploy.OnUpdate.Fail, on_schema_break: algokit_utils.deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, create_args: algokit_utils.deploy.ABICreateCallArgs | algokit_utils.deploy.ABICreateCallArgsDict | None = None, update_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | None = None, delete_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | None = None) -> algokit_utils.deploy.DeployResponse
 :canonical: algokit_utils.application_client.ApplicationClient.deploy
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.deploy
@@ -744,7 +711,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} opt_in(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} opt_in(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.opt_in
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.opt_in
@@ -780,7 +747,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} update(call_abi_method: algokit_utils.application_client.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.application_client.CommonCallParameters | algokit_utils.application_client.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.application_client.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
+````{py:method} update(call_abi_method: algokit_utils.models.ABIMethod | bool | None = None, transaction_parameters: algokit_utils.models.CommonCallParameters | algokit_utils.models.CommonCallParametersDict | None = None, **abi_kwargs: algokit_utils.models.ABIArgType) -> algokit_utils.models.TransactionResponse | algokit_utils.models.ABITransactionResponse
 :canonical: algokit_utils.application_client.ApplicationClient.update
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.update
@@ -872,56 +839,56 @@ Bases: {py:obj}`enum.IntFlag`
 `````
 
 ````{py:class} CommonCallParameters
-:canonical: algokit_utils.application_client.CommonCallParameters
+:canonical: algokit_utils.models.CommonCallParameters
 
-```{autodoc2-docstring} algokit_utils.application_client.CommonCallParameters
+```{autodoc2-docstring} algokit_utils.models.CommonCallParameters
 :parser: myst
 ```
 
 ````
 
 ````{py:class} CommonCallParametersDict()
-:canonical: algokit_utils.application_client.CommonCallParametersDict
+:canonical: algokit_utils.models.CommonCallParametersDict
 
 Bases: {py:obj}`typing.TypedDict`
 
-```{autodoc2-docstring} algokit_utils.application_client.CommonCallParametersDict
+```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.CommonCallParametersDict.__init__
+```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict.__init__
 :parser: myst
 ```
 
 ````
 
 ````{py:class} CreateCallParameters
-:canonical: algokit_utils.application_client.CreateCallParameters
+:canonical: algokit_utils.models.CreateCallParameters
 
-Bases: {py:obj}`algokit_utils.application_client.OnCompleteCallParameters`
+Bases: {py:obj}`algokit_utils.models.OnCompleteCallParameters`
 
-```{autodoc2-docstring} algokit_utils.application_client.CreateCallParameters
+```{autodoc2-docstring} algokit_utils.models.CreateCallParameters
 :parser: myst
 ```
 
 ````
 
 ````{py:class} CreateCallParametersDict()
-:canonical: algokit_utils.application_client.CreateCallParametersDict
+:canonical: algokit_utils.models.CreateCallParametersDict
 
-Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.application_client.OnCompleteCallParametersDict`
+Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.models.OnCompleteCallParametersDict`
 
-```{autodoc2-docstring} algokit_utils.application_client.CreateCallParametersDict
+```{autodoc2-docstring} algokit_utils.models.CreateCallParametersDict
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.CreateCallParametersDict.__init__
+```{autodoc2-docstring} algokit_utils.models.CreateCallParametersDict.__init__
 :parser: myst
 ```
 
@@ -984,7 +951,7 @@ Bases: {py:obj}`Exception`
 
 ```
 
-```{py:exception} LogicError(logic_error: Exception, program: str, source_map: algosdk.source_map.SourceMap, transaction_id: str, message: str, pc: int)
+```{py:exception} LogicError(*, logic_error: Exception, program: str, source_map: algosdk.source_map.SourceMap, transaction_id: str, message: str, pc: int)
 :canonical: algokit_utils.logic_error.LogicError
 
 Bases: {py:obj}`Exception`
@@ -1036,29 +1003,29 @@ Bases: {py:obj}`Exception`
 ````
 
 ````{py:class} OnCompleteCallParameters
-:canonical: algokit_utils.application_client.OnCompleteCallParameters
+:canonical: algokit_utils.models.OnCompleteCallParameters
 
-Bases: {py:obj}`algokit_utils.application_client.CommonCallParameters`
+Bases: {py:obj}`algokit_utils.models.CommonCallParameters`
 
-```{autodoc2-docstring} algokit_utils.application_client.OnCompleteCallParameters
+```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParameters
 :parser: myst
 ```
 
 ````
 
 ````{py:class} OnCompleteCallParametersDict()
-:canonical: algokit_utils.application_client.OnCompleteCallParametersDict
+:canonical: algokit_utils.models.OnCompleteCallParametersDict
 
-Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.application_client.CommonCallParametersDict`
+Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.models.CommonCallParametersDict`
 
-```{autodoc2-docstring} algokit_utils.application_client.OnCompleteCallParametersDict
+```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParametersDict
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.OnCompleteCallParametersDict.__init__
+```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParametersDict.__init__
 :parser: myst
 ```
 
@@ -1410,7 +1377,7 @@ Bases: {py:obj}`enum.Enum`
 ```
 ````
 
-````{py:function} get_account(client: algosdk.v2client.algod.AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: algosdk.kmd.KMDClient | None = None) -> algokit_utils.models.Account
+````{py:function} get_account(client: algosdk.v2client.algod.AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None) -> algokit_utils.models.Account
 :canonical: algokit_utils.account.get_account
 
 ```{autodoc2-docstring} algokit_utils.account.get_account
@@ -1435,9 +1402,9 @@ Bases: {py:obj}`enum.Enum`
 ````
 
 ````{py:function} get_app_id_from_tx_id(algod_client: algosdk.v2client.algod.AlgodClient, tx_id: str) -> int
-:canonical: algokit_utils.application_client.get_app_id_from_tx_id
+:canonical: algokit_utils.deploy.get_app_id_from_tx_id
 
-```{autodoc2-docstring} algokit_utils.application_client.get_app_id_from_tx_id
+```{autodoc2-docstring} algokit_utils.deploy.get_app_id_from_tx_id
 :parser: myst
 ```
 ````
@@ -1474,7 +1441,7 @@ Bases: {py:obj}`enum.Enum`
 ```
 ````
 
-````{py:function} get_kmd_wallet_account(client: algosdk.v2client.algod.AlgodClient, kmd_client: algosdk.kmd.KMDClient, name: str, predicate: collections.abc.Callable[[dict[str, typing.Any]], bool] | None = None) -> algokit_utils.models.Account | None
+````{py:function} get_kmd_wallet_account(client: algosdk.v2client.algod.AlgodClient, kmd_client: algosdk.kmd.KMDClient, name: str, predicate: Callable[[dict[str, Any]], bool] | None = None) -> algokit_utils.models.Account | None
 :canonical: algokit_utils.account.get_kmd_wallet_account
 
 ```{autodoc2-docstring} algokit_utils.account.get_kmd_wallet_account
@@ -1498,7 +1465,7 @@ Bases: {py:obj}`enum.Enum`
 ```
 ````
 
-````{py:function} get_or_create_kmd_wallet_account(client: algosdk.v2client.algod.AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: algosdk.kmd.KMDClient | None = None) -> algokit_utils.models.Account
+````{py:function} get_or_create_kmd_wallet_account(client: algosdk.v2client.algod.AlgodClient, name: str, fund_with_algos: float = 1000, kmd_client: KMDClient | None = None) -> algokit_utils.models.Account
 :canonical: algokit_utils.account.get_or_create_kmd_wallet_account
 
 ```{autodoc2-docstring} algokit_utils.account.get_or_create_kmd_wallet_account

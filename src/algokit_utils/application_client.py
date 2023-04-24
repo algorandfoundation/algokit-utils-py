@@ -286,7 +286,7 @@ class ApplicationClient:
         :param str sender: sender address to use when deploying app, if None uses self.sender
         :param bool allow_delete: Used to set the `TMPL_DELETABLE` template variable to conditionally control if an app
         can be deleted
-        :param bool allow_update: Used to set the `TMPL_DELETABLE` template variable to conditionally control if an app
+        :param bool allow_update: Used to set the `TMPL_UPDATABLE` template variable to conditionally control if an app
         can be updated
         :param OnUpdate on_update: Determines what action to take if an application update is required
         :param OnSchemaBreak on_schema_break: Determines what action to take if an application schema requirements
