@@ -1,7 +1,15 @@
 from typing import TYPE_CHECKING
 
 import pytest
-from algokit_utils import Account, TransferParameters, create_kmd_wallet_account, transfer
+from algokit_utils import (
+    Account,
+    EnsureBalanceParameters,
+    TransferParameters,
+    create_kmd_wallet_account,
+    ensure_funded,
+    transfer,
+)
+from algosdk.util import algos_to_microalgos
 
 from tests.conftest import check_output_stability, get_unique_name
 
@@ -10,7 +18,10 @@ if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
 
-@pytest.fixture(scope="module")
+MINIMUM_BALANCE = 100_000  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
+
+
+@pytest.fixture()
 def to_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 
@@ -64,3 +75,53 @@ def test_transfer_fee(algod_client: "AlgodClient", to_account: Account, funded_a
     )
 
     assert txn.fee == fee
+
+
+def test_ensure_funded(algod_client: "AlgodClient", to_account: Account, funded_account: Account) -> None:
+    parameters = EnsureBalanceParameters(
+        funding_source=funded_account,
+        account_to_fund=to_account,
+        min_spending_balance_micro_algos=1,
+    )
+    response = ensure_funded(algod_client, parameters)
+    assert response is not None
+
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == MINIMUM_BALANCE + 1
+
+
+def test_ensure_funded_correct_amount(
+    algod_client: "AlgodClient", to_account: Account, funded_account: Account
+) -> None:
+    parameters = EnsureBalanceParameters(
+        funding_source=funded_account,
+        account_to_fund=to_account,
+        min_spending_balance_micro_algos=1,
+    )
+    response = ensure_funded(algod_client, parameters)
+    assert response is not None
+
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == MINIMUM_BALANCE + 1
+
+
+def test_ensure_funded_respects_minimum_funding(
+    algod_client: "AlgodClient", to_account: Account, funded_account: Account
+) -> None:
+    parameters = EnsureBalanceParameters(
+        funding_source=funded_account,
+        account_to_fund=to_account,
+        min_spending_balance_micro_algos=1,
+        min_funding_increment_micro_algos=algos_to_microalgos(1),  # type: ignore[no-untyped-call]
+    )
+    response = ensure_funded(algod_client, parameters)
+    assert response is not None
+
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == algos_to_microalgos(1)  # type: ignore[no-untyped-call]

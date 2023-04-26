@@ -1,5 +1,7 @@
 from algokit_utils._transfer import (
+    EnsureBalanceParameters,
     TransferParameters,
+    ensure_funded,
     transfer,
 )
 from algokit_utils.account import (
@@ -138,6 +140,8 @@ __all__ = [
     "get_kmd_client_from_algod_client",
     "is_localnet",
     "is_sandbox",
+    "EnsureBalanceParameters",
     "TransferParameters",
+    "ensure_funded",
     "transfer",
 ]
