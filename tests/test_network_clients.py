@@ -1,3 +1,6 @@
+import os
+from unittest import mock
+
 from algokit_utils import (
     get_algod_client,
     get_algonode_config,
@@ -27,6 +30,28 @@ def test_purestake_headers() -> None:
 
     assert algod_client.headers == {"X-API-Key": DEFAULT_TOKEN}
     assert indexer_client.headers == {"X-API-Key": DEFAULT_TOKEN}
+
+
+def test_purestake_address() -> None:
+    algod_client = get_algod_client(get_purestake_config("testnet", "algod", DEFAULT_TOKEN))
+    indexer_client = get_indexer_client(get_purestake_config("testnet", "indexer", DEFAULT_TOKEN))
+
+    assert algod_client.algod_address == "https://testnet-algorand.api.purestake.io/ps2"
+    assert indexer_client.indexer_address == "https://testnet-algorand.api.purestake.io/idx2"
+
+
+@mock.patch.dict(
+    os.environ,
+    {
+        "ALGOD_SERVER": "https://testnet-algorand.api.purestake.io/ps2",
+        "ALGOD_PORT": "443",
+        "ALGOD_TOKEN": DEFAULT_TOKEN,
+    },
+)
+def test_environment_config() -> None:
+    algod_client = get_algod_client()
+
+    assert algod_client.algod_address == "https://testnet-algorand.api.purestake.io:443/ps2"
 
 
 def test_cloudnode_algod_headers() -> None:
