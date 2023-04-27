@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import warnings
+from typing import Literal
 from urllib import parse
 
 from algosdk.kmd import KMDClient
@@ -10,8 +11,11 @@ from algosdk.v2client.indexer import IndexerClient
 __all__ = [
     "AlgoClientConfig",
     "get_algod_client",
+    "get_algonode_config",
+    "get_default_localnet_config",
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
+    "get_purestake_config",
     "is_localnet",
     "is_sandbox",
 ]
@@ -30,12 +34,38 @@ class AlgoClientConfig:
     """API Token to authenticate with the service"""
 
 
+def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> AlgoClientConfig:
+    """Returns the client configuration to point to the default LocalNet"""
+    port = {"algod": 4001, "indexer": 8980, "kmd": 4002}[config]
+    return AlgoClientConfig(server=f"http://localhost:{port}", token="a" * 64)
+
+
+def get_algonode_config(
+    network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"], token: str
+) -> AlgoClientConfig:
+    client = "api" if config == "algod" else "idx"
+    return AlgoClientConfig(
+        server=f"https://{network}-{client}.algonode.cloud",
+        token=token,
+    )
+
+
+def get_purestake_config(
+    network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"], token: str
+) -> AlgoClientConfig:
+    client = "ps2" if config == "algod" else "idx2"
+    return AlgoClientConfig(
+        server=f"https://{network}-algorand.api.purestake.io/{client}",
+        token=token,
+    )
+
+
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
 
     If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
     config = config or _get_config_from_environment("ALGOD")
-    headers = _get_headers(config)
+    headers = _get_headers(config, "X-Algo-API-Token")
     return AlgodClient(config.token, config.server, headers)
 
 
@@ -44,7 +74,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
 
     If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`"""
     config = config or _get_config_from_environment("INDEXER")
-    headers = _get_headers(config)
+    headers = _get_headers(config, "X-Indexer-API-Token")
     return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
@@ -95,5 +125,6 @@ def _is_pure_stake_url(url: str) -> bool:
     return host.endswith(_PURE_STAKE_HOST)
 
 
-def _get_headers(config: AlgoClientConfig) -> dict[str, str] | None:
-    return {"X-API-TOKEN": config.token} if _is_pure_stake_url(config.server) else None
+def _get_headers(config: AlgoClientConfig, default_auth_header: str) -> dict[str, str] | None:
+    auth_header = "X-API-Key" if _is_pure_stake_url(config.server) else default_auth_header
+    return {auth_header: config.token}

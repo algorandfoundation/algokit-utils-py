@@ -70,8 +70,11 @@ from algokit_utils.models import (
 from algokit_utils.network_clients import (
     AlgoClientConfig,
     get_algod_client,
+    get_algonode_config,
+    get_default_localnet_config,
     get_indexer_client,
     get_kmd_client_from_algod_client,
+    get_purestake_config,
     is_localnet,
     is_sandbox,
 )
@@ -134,8 +137,11 @@ __all__ = [
     "TransactionResponse",
     "AlgoClientConfig",
     "get_algod_client",
+    "get_algonode_config",
+    "get_default_localnet_config",
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
+    "get_purestake_config",
     "is_localnet",
     "is_sandbox",
     "TransferParameters",
