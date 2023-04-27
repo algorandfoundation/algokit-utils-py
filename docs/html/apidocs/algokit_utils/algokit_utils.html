@@ -72,6 +72,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DefaultArgumentType"><code class="docutils literal notranslate"><span class="pre">DefaultArgumentType</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeployResponse"><code class="docutils literal notranslate"><span class="pre">DeployResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeploymentFailedError"><code class="docutils literal notranslate"><span class="pre">DeploymentFailedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters"><code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.LogicError"><code class="docutils literal notranslate"><span class="pre">LogicError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodConfigDict"><code class="docutils literal notranslate"><span class="pre">MethodConfigDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodHints"><code class="docutils literal notranslate"><span class="pre">MethodHints</span></code></a></li>
@@ -89,6 +90,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TransferParameters"><code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.UPDATABLE_TEMPLATE_NAME"><code class="docutils literal notranslate"><span class="pre">UPDATABLE_TEMPLATE_NAME</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.create_kmd_wallet_account"><code class="docutils literal notranslate"><span class="pre">create_kmd_wallet_account()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.ensure_funded"><code class="docutils literal notranslate"><span class="pre">ensure_funded()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.execute_atc_with_logic_error"><code class="docutils literal notranslate"><span class="pre">execute_atc_with_logic_error()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.get_account"><code class="docutils literal notranslate"><span class="pre">get_account()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.get_account_from_mnemonic"><code class="docutils literal notranslate"><span class="pre">get_account_from_mnemonic()</span></code></a></li>
@@ -211,31 +213,34 @@ be resolved prior to calling some target method</p></td>
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.DeployResponse" title="algokit_utils.deploy.DeployResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeployResponse</span></code></a></p></td>
 <td><p>Describes the action taken during deployment, related transactions and the <a class="reference internal" href="#algokit_utils.AppMetaData" title="algokit_utils.AppMetaData"><code class="xref py py-class docutils literal notranslate"><span class="pre">AppMetaData</span></code></a></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.MethodHints" title="algokit_utils.application_specification.MethodHints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodHints</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._transfer.EnsureBalanceParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></p></td>
+<td><p>Parameters for ensuring an account has a minimum number of µALGOs</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.MethodHints" title="algokit_utils.application_specification.MethodHints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodHints</span></code></a></p></td>
 <td><p>MethodHints provides hints to the caller about how to call the method</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParameters</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParameters</span></code></a></p></td>
 <td><p>Transaction parameters used when making any call to an Application</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParametersDict</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParametersDict</span></code></a></p></td>
 <td><p>Transaction parameters used when making any call to an Application</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnSchemaBreak" title="algokit_utils.deploy.OnSchemaBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnSchemaBreak</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnSchemaBreak" title="algokit_utils.deploy.OnSchemaBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnSchemaBreak</span></code></a></p></td>
 <td><p>Action to take if an Application’s schema has breaking changes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnUpdate" title="algokit_utils.deploy.OnUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnUpdate</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnUpdate" title="algokit_utils.deploy.OnUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnUpdate</span></code></a></p></td>
 <td><p>Action to take if an Application has been updated</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OperationPerformed" title="algokit_utils.deploy.OperationPerformed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OperationPerformed</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OperationPerformed" title="algokit_utils.deploy.OperationPerformed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OperationPerformed</span></code></a></p></td>
 <td><p>Describes the actions taken during deployment</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.Program" title="algokit_utils.application_client.Program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Program</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.Program" title="algokit_utils.application_client.Program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Program</span></code></a></p></td>
 <td><p>A compiled TEAL program</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransactionResponse" title="algokit_utils.models.TransactionResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionResponse</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TransactionResponse" title="algokit_utils.models.TransactionResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionResponse</span></code></a></p></td>
 <td><p>Response for a non ABI call</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TransferParameters" title="algokit_utils._transfer.TransferParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransferParameters</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransferParameters" title="algokit_utils._transfer.TransferParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransferParameters</span></code></a></p></td>
 <td><p>Parameters for transferring µALGOs between accounts</p></td>
 </tr>
 </tbody>
@@ -248,60 +253,65 @@ be resolved prior to calling some target method</p></td>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.create_kmd_wallet_account" title="algokit_utils.account.create_kmd_wallet_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_kmd_wallet_account</span></code></a></p></td>
 <td><p>Creates a wallet with specified name</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.execute_atc_with_logic_error" title="algokit_utils.application_client.execute_atc_with_logic_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute_atc_with_logic_error</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.ensure_funded" title="algokit_utils._transfer.ensure_funded"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ensure_funded</span></code></a></p></td>
+<td><p>Funds a given account using a funding source such that it has a certain amount of algos free to spend
+(accounting for ALGOs locked in minimum balance requirement)
+see <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.execute_atc_with_logic_error" title="algokit_utils.application_client.execute_atc_with_logic_error"><code class="xref py py-obj docutils literal notranslate"><span class="pre">execute_atc_with_logic_error</span></code></a></p></td>
 <td><p>Calls <code class="xref py py-meth docutils literal notranslate"><span class="pre">AtomicTransactionComposer.execute()</span></code> on provided <code class="docutils literal notranslate"><span class="pre">atc</span></code>, but will parse any errors
 and raise a <a class="reference internal" href="#algokit_utils.LogicError" title="algokit_utils.LogicError"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogicError</span></code></a> if possible</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_account" title="algokit_utils.account.get_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_account</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_account" title="algokit_utils.account.get_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_account</span></code></a></p></td>
 <td><p>Returns an Algorand account with private key loaded by convention based on the given name identifier.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_account_from_mnemonic" title="algokit_utils.account.get_account_from_mnemonic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_account_from_mnemonic</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_account_from_mnemonic" title="algokit_utils.account.get_account_from_mnemonic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_account_from_mnemonic</span></code></a></p></td>
 <td><p>Convert a mnemonic (25 word passphrase) into an Account</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_algod_client" title="algokit_utils.network_clients.get_algod_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_algod_client</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_algod_client" title="algokit_utils.network_clients.get_algod_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_algod_client</span></code></a></p></td>
 <td><p>Returns an <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.v2client.algod.AlgodClient</span></code></a> from <code class="docutils literal notranslate"><span class="pre">config</span></code> or environment</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_app_id_from_tx_id" title="algokit_utils.deploy.get_app_id_from_tx_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_app_id_from_tx_id</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_app_id_from_tx_id" title="algokit_utils.deploy.get_app_id_from_tx_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_app_id_from_tx_id</span></code></a></p></td>
 <td><p>Finds the app_id for provided transaction id</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_creator_apps" title="algokit_utils.deploy.get_creator_apps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_creator_apps</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_creator_apps" title="algokit_utils.deploy.get_creator_apps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_creator_apps</span></code></a></p></td>
 <td><p>Returns a mapping of Application names to <a class="reference internal" href="#algokit_utils.AppMetaData" title="algokit_utils.AppMetaData"><code class="xref py py-class docutils literal notranslate"><span class="pre">AppMetaData</span></code></a> for all Applications created by specified
 creator that have a transaction note containing <a class="reference internal" href="#algokit_utils.AppDeployMetaData" title="algokit_utils.AppDeployMetaData"><code class="xref py py-class docutils literal notranslate"><span class="pre">AppDeployMetaData</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_dispenser_account" title="algokit_utils.account.get_dispenser_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dispenser_account</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_dispenser_account" title="algokit_utils.account.get_dispenser_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_dispenser_account</span></code></a></p></td>
 <td><p>Returns an Account based on DISPENSER_MNENOMIC environment variable or the default account on LocalNet</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_indexer_client" title="algokit_utils.network_clients.get_indexer_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_indexer_client</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_indexer_client" title="algokit_utils.network_clients.get_indexer_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_indexer_client</span></code></a></p></td>
 <td><p>Returns an <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/indexer.html#algosdk.v2client.indexer.IndexerClient" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.v2client.indexer.IndexerClient</span></code></a> from <code class="docutils literal notranslate"><span class="pre">config</span></code> or environment.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_kmd_client_from_algod_client" title="algokit_utils.network_clients.get_kmd_client_from_algod_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_kmd_client_from_algod_client</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_kmd_client_from_algod_client" title="algokit_utils.network_clients.get_kmd_client_from_algod_client"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_kmd_client_from_algod_client</span></code></a></p></td>
 <td><p>Returns an <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.kmd.KMDClient</span></code></a> from supplied <code class="docutils literal notranslate"><span class="pre">client</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_kmd_wallet_account" title="algokit_utils.account.get_kmd_wallet_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_kmd_wallet_account</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_kmd_wallet_account" title="algokit_utils.account.get_kmd_wallet_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_kmd_wallet_account</span></code></a></p></td>
 <td><p>Returns wallet matching specified name and predicate or None if not found</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_localnet_default_account" title="algokit_utils.account.get_localnet_default_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_localnet_default_account</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_localnet_default_account" title="algokit_utils.account.get_localnet_default_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_localnet_default_account</span></code></a></p></td>
 <td><p>Returns the default Account in a LocalNet instance</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_next_version" title="algokit_utils.application_client.get_next_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_next_version</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_next_version" title="algokit_utils.application_client.get_next_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_next_version</span></code></a></p></td>
 <td><p>Calculates the next version from <code class="docutils literal notranslate"><span class="pre">current_version</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_or_create_kmd_wallet_account" title="algokit_utils.account.get_or_create_kmd_wallet_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_or_create_kmd_wallet_account</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_or_create_kmd_wallet_account" title="algokit_utils.account.get_or_create_kmd_wallet_account"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_or_create_kmd_wallet_account</span></code></a></p></td>
 <td><p>Returns a wallet with specified name, or creates one if not found</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.get_sender_from_signer" title="algokit_utils.application_client.get_sender_from_signer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sender_from_signer</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.get_sender_from_signer" title="algokit_utils.application_client.get_sender_from_signer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_sender_from_signer</span></code></a></p></td>
 <td><p>Returns the associated address of a signer, return None if no address found</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.is_localnet" title="algokit_utils.network_clients.is_localnet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_localnet</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.is_localnet" title="algokit_utils.network_clients.is_localnet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_localnet</span></code></a></p></td>
 <td><p>Returns True if client genesis is <code class="docutils literal notranslate"><span class="pre">devnet-v1</span></code> or <code class="docutils literal notranslate"><span class="pre">sandnet-v1</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.num_extra_program_pages" title="algokit_utils.application_client.num_extra_program_pages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_extra_program_pages</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.num_extra_program_pages" title="algokit_utils.application_client.num_extra_program_pages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_extra_program_pages</span></code></a></p></td>
 <td><p>Calculate minimum number of extra_pages required for provided approval and clear programs</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.replace_template_variables" title="algokit_utils.deploy.replace_template_variables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_template_variables</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.replace_template_variables" title="algokit_utils.deploy.replace_template_variables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_template_variables</span></code></a></p></td>
 <td><p>Replaces <code class="docutils literal notranslate"><span class="pre">TMPL_*</span></code> variables in <code class="docutils literal notranslate"><span class="pre">program</span></code> with <code class="docutils literal notranslate"><span class="pre">template_values</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.transfer" title="algokit_utils._transfer.transfer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.transfer" title="algokit_utils._transfer.transfer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer</span></code></a></p></td>
 <td><p>Transfer µALGOs between accounts</p></td>
 </tr>
 </tbody>
@@ -814,6 +824,71 @@ be resolved prior to calling some target method</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">EnsureBalanceParameters</span></span><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Parameters for ensuring an account has a minimum number of µALGOs</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.account_to_fund">
+<span class="sig-name descname"><span class="pre">account_to_fund</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.account_to_fund" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The account address that will receive the µALGOs</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.fee_micro_algos">
+<span class="sig-name descname"><span class="pre">fee_micro_algos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.fee_micro_algos" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>(optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.funding_source">
+<span class="sig-name descname"><span class="pre">funding_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.funding_source" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The account (with private key) or signer that will send the µALGOs</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.max_fee_micro_algos">
+<span class="sig-name descname"><span class="pre">max_fee_micro_algos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.max_fee_micro_algos" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>(optional)The maximum fee that you are happy to pay (default: unbounded) -
+if this is set it’s possible the transaction could get rejected during network congestion</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.min_funding_increment_micro_algos">
+<span class="sig-name descname"><span class="pre">min_funding_increment_micro_algos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.min_funding_increment_micro_algos" title="Permalink to this definition"></a></dt>
+<dd><p>0</p>
+<p>When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets
+called often on an active account)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.min_spending_balance_micro_algos">
+<span class="sig-name descname"><span class="pre">min_spending_balance_micro_algos</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.min_spending_balance_micro_algos" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The minimum balance of ALGOs that the account should have available to spend (i.e. on top of
+minimum balance requirement)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.note">
+<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.11)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.note" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The (optional) transaction note, default: “Funding account to meet minimum requirement</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.suggested_params">
+<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.suggested_params" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>(optional) transaction parameters</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="algokit_utils.LogicError">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">LogicError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><span class="pre">Exception</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">program</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.LogicError" title="Permalink to this definition"></a></dt>
@@ -1060,6 +1135,19 @@ if this is set it’s possible the transaction could get rejected during network
 <dt class="sig sig-object py" id="algokit_utils.create_kmd_wallet_account">
 <span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">create_kmd_wallet_account</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kmd_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient" title="(in algosdk)"><span class="pre">algosdk.kmd.KMDClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a></span></span><a class="headerlink" href="#algokit_utils.create_kmd_wallet_account" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a wallet with specified name</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="algokit_utils.ensure_funded">
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ensure_funded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._transfer.EnsureBalanceParameters"><span class="pre">algokit_utils._transfer.EnsureBalanceParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.PaymentTxn" title="(in algosdk)"><span class="pre">algosdk.transaction.PaymentTxn</span></a></span></span><a class="headerlink" href="#algokit_utils.ensure_funded" title="Permalink to this definition"></a></dt>
+<dd><p>Funds a given account using a funding source such that it has a certain amount of algos free to spend
+(accounting for ALGOs locked in minimum balance requirement)
+see <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a></p>
+<dl class="myst field-list simple">
+<dt class="field-odd">Return None | PaymentTxn<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None if balance was sufficient or the payment transaction used to increase the balance</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
