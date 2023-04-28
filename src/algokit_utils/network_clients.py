@@ -1,6 +1,5 @@
 import dataclasses
 import os
-import warnings
 from typing import Literal
 from urllib import parse
 
@@ -17,7 +16,6 @@ __all__ = [
     "get_kmd_client_from_algod_client",
     "get_purestake_config",
     "is_localnet",
-    "is_sandbox",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
@@ -82,11 +80,6 @@ def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `devnet-v1` or `sandnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1"]
-
-
-def is_sandbox(client: AlgodClient) -> bool:
-    warnings.warn("is_sandbox is deprecated, please use is_localnet instead", DeprecationWarning, stacklevel=2)
-    return is_localnet(client)
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:

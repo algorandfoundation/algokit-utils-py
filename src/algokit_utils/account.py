@@ -1,6 +1,5 @@
 import logging
 import os
-import warnings
 from typing import TYPE_CHECKING, Any
 
 from algosdk.account import address_from_private_key
@@ -25,7 +24,6 @@ __all__ = [
     "get_kmd_wallet_account",
     "get_localnet_default_account",
     "get_or_create_kmd_wallet_account",
-    "get_sandbox_default_account",
 ]
 
 logger = logging.getLogger(__name__)
@@ -90,15 +88,6 @@ def get_or_create_kmd_wallet_account(
 
 def _is_default_account(account: dict[str, Any]) -> bool:
     return bool(account["status"] != "Offline" and account["amount"] > _DEFAULT_ACCOUNT_MINIMUM_BALANCE)
-
-
-def get_sandbox_default_account(client: "AlgodClient") -> Account:
-    warnings.warn(
-        "get_sandbox_default_account is deprecated, please use get_localnet_default_account instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return get_localnet_default_account(client)
 
 
 def get_localnet_default_account(client: "AlgodClient") -> Account:
