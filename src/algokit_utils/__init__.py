@@ -1,7 +1,6 @@
+from algokit_utils._ensure_funded import EnsureBalanceParameters, ensure_funded
 from algokit_utils._transfer import (
-    EnsureBalanceParameters,
     TransferParameters,
-    ensure_funded,
     transfer,
 )
 from algokit_utils.account import (

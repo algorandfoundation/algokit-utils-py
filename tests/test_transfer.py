@@ -7,6 +7,7 @@ from algokit_utils import (
     TransferParameters,
     create_kmd_wallet_account,
     ensure_funded,
+    get_dispenser_account,
     transfer,
 )
 from algosdk.util import algos_to_microalgos
@@ -86,6 +87,22 @@ def test_ensure_funded(algod_client: "AlgodClient", to_account: Account, funded_
     response = ensure_funded(algod_client, parameters)
     assert response is not None
 
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == MINIMUM_BALANCE + 1
+
+
+def test_ensure_funded_uses_dispenser_by_default(algod_client: "AlgodClient", to_account: Account) -> None:
+    dispenser = get_dispenser_account(algod_client)
+    parameters = EnsureBalanceParameters(
+        account_to_fund=to_account,
+        min_spending_balance_micro_algos=1,
+    )
+    response = ensure_funded(algod_client, parameters)
+    assert response is not None
+
+    assert response.sender == dispenser.address
     to_account_info = algod_client.account_info(to_account.address)
     assert isinstance(to_account_info, dict)
     actual_amount = to_account_info.get("amount")
