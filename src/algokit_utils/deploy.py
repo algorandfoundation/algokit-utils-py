@@ -307,9 +307,30 @@ def add_deploy_template_variables(
         template_values[_DELETABLE] = int(allow_delete)
 
 
+def _strip_comment(line: str) -> str:
+    # the following makes the assumption that the only place // can occur in TEAL code is
+    # either an actual comment or inside a quoted string e.g. "//", this will need to be
+    # updated if this assumption is no longer correct
+    idx = 0
+    in_quotes = False
+    while idx < len(line):
+        match line[idx]:
+            case "/":
+                # only match if not in quotes and two sequential slashes
+                if not in_quotes and line.startswith("//", idx):
+                    return line[:idx]
+            case "\\":
+                if in_quotes:  # skip next character
+                    idx += 1
+            case '"':
+                in_quotes = not in_quotes
+        idx += 1
+
+    return line
+
+
 def strip_comments(program: str) -> str:
-    lines = [line.split("//", maxsplit=1)[0] for line in program.splitlines()]
-    return "\n".join(lines)
+    return "\n".join(_strip_comment(line) for line in program.splitlines())
 
 
 def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:

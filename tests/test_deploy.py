@@ -1,6 +1,7 @@
 from algokit_utils import (
     replace_template_variables,
 )
+from algokit_utils.deploy import strip_comments
 
 from tests.conftest import check_output_stability
 
@@ -17,4 +18,25 @@ TMPL_STR // foo //
 TMPL_STR // bar
 """
     result = replace_template_variables(program, {"INT": 123, "STR": "ABC"})
+    check_output_stability(result)
+
+
+def test_comment_stripping() -> None:
+    program = r"""
+//comment
+op arg //comment
+op "arg" //comment
+op "//" //comment
+op "  //comment  " //comment
+op "\" //" //comment
+op "// \" //" //comment
+op "" //comment
+//
+op 123
+op 123 // something
+op "" // more comments
+op "//" //op "//"
+op "//"
+"""
+    result = strip_comments(program)
     check_output_stability(result)
