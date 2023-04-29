@@ -2,7 +2,6 @@ import base64
 import dataclasses
 import json
 import logging
-import re
 from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
@@ -279,22 +278,34 @@ def check_for_app_changes(
     )
 
 
+def _is_valid_token_character(char: str) -> bool:
+    return char.isalnum() or char == "_"
+
+
 def _replace_template_variable(program_lines: list[str], template_variable: str, value: str) -> tuple[list[str], int]:
     result: list[str] = []
     match_count = 0
-    pattern = re.compile(rf"(\b)TMPL_{template_variable}(\b|$)")
-
-    def replacement(m: re.Match) -> str:
-        return f"{m.group(1)}{value}{m.group(2)}"
-
+    token = f"TMPL_{template_variable}"
+    token_idx_offset = len(value) - len(token)
     for line in program_lines:
-        code_comment = line.split("//", maxsplit=1)
-        code = code_comment[0]
-        new_line, matches = re.subn(pattern, replacement, code)
-        match_count += matches
-        if len(code_comment) > 1:
-            new_line = f"{new_line}//{code_comment[1]}"
-        result.append(new_line)
+        comment_idx = _find_unquoted_string(line, "//")
+        if comment_idx is None:
+            comment_idx = len(line)
+        code = line[:comment_idx]
+        comment = line[comment_idx:]
+        trailing_idx = 0
+        while True:
+            token_idx = _find_template_token(code, token, trailing_idx)
+            if token_idx is None:
+                break
+
+            trailing_idx = token_idx + len(token)
+            prefix = code[:token_idx]
+            suffix = code[trailing_idx:]
+            code = f"{prefix}{value}{suffix}"
+            match_count += 1
+            trailing_idx += token_idx_offset
+        result.append(code + comment)
     return result, match_count
 
 
@@ -307,45 +318,84 @@ def add_deploy_template_variables(
         template_values[_DELETABLE] = int(allow_delete)
 
 
-def _strip_comment(line: str) -> str:
-    # the following makes the assumption that the only place // can occur in TEAL code is
-    # either an actual comment or inside a quoted string e.g. "//", this will need to be
-    # updated if this assumption is no longer correct
-    idx = 0
+def _find_unquoted_string(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
+    """Find the first string within a line of TEAL. Only matches outside of quotes are returned.
+    Returns None if not found"""
+
+    if end < 0:
+        end = len(line)
+    idx = start
     in_quotes = False
-    while idx < len(line):
-        match line[idx]:
-            case "/":
-                # only match if not in quotes and two sequential slashes
-                if not in_quotes and line.startswith("//", idx):
-                    return line[:idx]
+    while idx < end:
+        current_char = line[idx]
+        match current_char:
             case "\\":
                 if in_quotes:  # skip next character
                     idx += 1
             case '"':
                 in_quotes = not in_quotes
+            case _:
+                # only match if not in quotes and string matches
+                if not in_quotes and line.startswith(token, idx):
+                    return idx
         idx += 1
+    return None
 
-    return line
+
+def _find_template_token(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
+    """Find the first template token within a line of TEAL. Only matches outside of quotes are returned.
+    Only full token matches are returned, i.e. TMPL_STR will not match against TMPL_STRING
+    Returns None if not found"""
+    if end < 0:
+        end = len(line)
+
+    idx = start
+    while idx < end:
+        token_idx = _find_unquoted_string(line, token, idx, end)
+        if token_idx is None:
+            break
+        trailing_idx = token_idx + len(token)
+        if (token_idx == 0 or not _is_valid_token_character(line[token_idx - 1])) and (  # word boundary at start
+            trailing_idx >= len(line) or not _is_valid_token_character(line[trailing_idx])  # word boundary at end
+        ):
+            return token_idx
+        idx = trailing_idx
+    return None
+
+
+def _strip_comment(line: str) -> str:
+    comment_idx = _find_unquoted_string(line, "//")
+    if comment_idx is None:
+        return line
+    return line[:comment_idx]
 
 
 def strip_comments(program: str) -> str:
     return "\n".join(_strip_comment(line) for line in program.splitlines())
 
 
+def _has_token(program_without_comments: str, token: str) -> bool:
+    for line in program_without_comments.splitlines():
+        token_idx = _find_template_token(line, token)
+        if token_idx is not None:
+            return True
+    return False
+
+
 def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
     approval_program = strip_comments(approval_program)
-    if UPDATABLE_TEMPLATE_NAME in approval_program and _UPDATABLE not in template_values:
+    if _has_token(approval_program, UPDATABLE_TEMPLATE_NAME) and _UPDATABLE not in template_values:
         raise DeploymentFailedError(
             "allow_update must be specified if deploy time configuration of update is being used"
         )
-    if DELETABLE_TEMPLATE_NAME in approval_program and _DELETABLE not in template_values:
+    if _has_token(approval_program, DELETABLE_TEMPLATE_NAME) and _DELETABLE not in template_values:
         raise DeploymentFailedError(
             "allow_delete must be specified if deploy time configuration of delete is being used"
         )
 
     for template_variable_name in template_values:
-        if template_variable_name not in approval_program:
+        tmpl_variable = f"TMPL_{template_variable_name}"
+        if not _has_token(approval_program, tmpl_variable):
             if template_variable_name == _UPDATABLE:
                 raise DeploymentFailedError(
                     "allow_update must only be specified if deploy time configuration of update is being used"
@@ -354,7 +404,7 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
                 raise DeploymentFailedError(
                     "allow_delete must only be specified if deploy time configuration of delete is being used"
                 )
-            logger.warning(f"{template_variable_name} not found in approval program, but variable was provided")
+            logger.warning(f"{tmpl_variable} not found in approval program, but variable was provided")
 
 
 def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
