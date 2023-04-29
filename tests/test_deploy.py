@@ -16,6 +16,18 @@ TMPL_STR
 TMPL_STR // TMPL_INT
 TMPL_STR // foo //
 TMPL_STR // bar
+test "TMPL_STR" // not replaced
+test "TMPL_STRING" // not replaced
+test TMPL_STRING // not replaced
+test TMPL_STRI // not replaced
+test TMPL_STR TMPL_INT TMPL_INT TMPL_STR // TMPL_STR TMPL_INT TMPL_INT TMPL_STR
+test TMPL_INT TMPL_STR TMPL_STRING "TMPL_INT TMPL_STR TMPL_STRING" //TMPL_INT TMPL_STR TMPL_STRING
+test TMPL_INT TMPL_INT TMPL_STRING TMPL_STRING TMPL_STRING TMPL_INT TMPL_STRING //keep
+TMPL_STR TMPL_STR TMPL_STR
+TMPL_STRING
+test NOTTMPL_STR // not replaced
+NOTTMPL_STR // not replaced
+TMPL_STR // replaced
 """
     result = replace_template_variables(program, {"INT": 123, "STR": "ABC"})
     check_output_stability(result)
