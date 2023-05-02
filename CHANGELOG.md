@@ -2,6 +2,23 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2023-05-02)
+### Feature
+* Make ensure_funded funding_source parameter optional ([`814661a`](https://github.com/algorandfoundation/algokit-utils-py/commit/814661ae77cb8fcd6ebe7898e134590fe76773d1))
+* Add ensure_funded method ([#24](https://github.com/algorandfoundation/algokit-utils-py/issues/24)) ([`e45fc46`](https://github.com/algorandfoundation/algokit-utils-py/commit/e45fc46ed4301ab0f17db1b30e0eae9f4f9ed247))
+
+### Fix
+* Handle quoted template variables ([`7cca4f0`](https://github.com/algorandfoundation/algokit-utils-py/commit/7cca4f0d3e62d5c8c797176c515f408699768492))
+* Update strip_comments to handle quotes ([`eaa77dd`](https://github.com/algorandfoundation/algokit-utils-py/commit/eaa77dd25c051989d5ba3c120a1e002e2465f432))
+* Remove deprecated/renamed functions ([`68f6155`](https://github.com/algorandfoundation/algokit-utils-py/commit/68f6155e439dbd39af665139813e999c53cfceac))
+* Correctly adjust port in client configs ([#27](https://github.com/algorandfoundation/algokit-utils-py/issues/27)) ([`89a0848`](https://github.com/algorandfoundation/algokit-utils-py/commit/89a0848f96adda9d3b3b9305799d737ccbc9b304))
+* Fix network client auth headers ([#26](https://github.com/algorandfoundation/algokit-utils-py/issues/26)) ([`6ba8792`](https://github.com/algorandfoundation/algokit-utils-py/commit/6ba8792f3652b465ed429d6043428859b52e008b))
+
+### Documentation
+* Regenerate docs ([`0cd0717`](https://github.com/algorandfoundation/algokit-utils-py/commit/0cd07171cbe3b906b4d5e4e20a8c61e17cc99761))
+* Add link to documentation ([#23](https://github.com/algorandfoundation/algokit-utils-py/issues/23)) ([`2fe6792`](https://github.com/algorandfoundation/algokit-utils-py/commit/2fe6792b565f00c623b5fff98b503525c7e428c7))
+* Fix typo in deploy docstring ([#22](https://github.com/algorandfoundation/algokit-utils-py/issues/22)) ([`1229ea4`](https://github.com/algorandfoundation/algokit-utils-py/commit/1229ea4b5194ba980fd194fc4801d81fa8e210e1))
+
 ## v1.0.3 (2023-04-18)
 ### Fix
 * Strip comments before compiling to accomodate annotated teal ([#19](https://github.com/algorandfoundation/algokit-utils-py/issues/19)) ([`2bb9a56`](https://github.com/algorandfoundation/algokit-utils-py/commit/2bb9a569036e1847988a7b655d08cd9580fb2608))
