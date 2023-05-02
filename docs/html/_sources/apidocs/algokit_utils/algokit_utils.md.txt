@@ -120,8 +120,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`EnsureBalanceParameters <algokit_utils._transfer.EnsureBalanceParameters>`
-  - ```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters
+* - {py:obj}`EnsureBalanceParameters <algokit_utils._ensure_funded.EnsureBalanceParameters>`
+  - ```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters
     :parser: myst
     :summary:
     ```
@@ -183,8 +183,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`ensure_funded <algokit_utils._transfer.ensure_funded>`
-  - ```{autodoc2-docstring} algokit_utils._transfer.ensure_funded
+* - {py:obj}`ensure_funded <algokit_utils._ensure_funded.ensure_funded>`
+  - ```{autodoc2-docstring} algokit_utils._ensure_funded.ensure_funded
     :parser: myst
     :summary:
     ```
@@ -215,6 +215,11 @@ orphan: true
     ```
 * - {py:obj}`get_creator_apps <algokit_utils.deploy.get_creator_apps>`
   - ```{autodoc2-docstring} algokit_utils.deploy.get_creator_apps
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`get_default_localnet_config <algokit_utils.network_clients.get_default_localnet_config>`
+  - ```{autodoc2-docstring} algokit_utils.network_clients.get_default_localnet_config
     :parser: myst
     :summary:
     ```
@@ -962,103 +967,103 @@ Bases: {py:obj}`Exception`
 ```
 
 `````{py:class} EnsureBalanceParameters
-:canonical: algokit_utils._transfer.EnsureBalanceParameters
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters
 :parser: myst
 ```
 
 ````{py:attribute} account_to_fund
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.account_to_fund
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.account_to_fund
 :type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | str
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.account_to_fund
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.account_to_fund
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} fee_micro_algos
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.fee_micro_algos
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.fee_micro_algos
 :type: int | None
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.fee_micro_algos
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.fee_micro_algos
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} funding_source
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.funding_source
-:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.funding_source
+:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | None
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.funding_source
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.funding_source
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} max_fee_micro_algos
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.max_fee_micro_algos
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.max_fee_micro_algos
 :type: int | None
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.max_fee_micro_algos
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.max_fee_micro_algos
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} min_funding_increment_micro_algos
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.min_funding_increment_micro_algos
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.min_funding_increment_micro_algos
 :type: int
 :value: >
    0
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.min_funding_increment_micro_algos
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.min_funding_increment_micro_algos
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} min_spending_balance_micro_algos
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.min_spending_balance_micro_algos
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.min_spending_balance_micro_algos
 :type: int
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.min_spending_balance_micro_algos
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.min_spending_balance_micro_algos
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} note
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.note
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.note
 :type: str | bytes | None
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.note
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.note
 :parser: myst
 ```
 
 ````
 
 ````{py:attribute} suggested_params
-:canonical: algokit_utils._transfer.EnsureBalanceParameters.suggested_params
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.suggested_params
 :type: algosdk.transaction.SuggestedParams | None
 :value: >
    None
 
-```{autodoc2-docstring} algokit_utils._transfer.EnsureBalanceParameters.suggested_params
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.suggested_params
 :parser: myst
 ```
 
@@ -1484,10 +1489,10 @@ Bases: {py:obj}`enum.Enum`
 ```
 ````
 
-````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._transfer.EnsureBalanceParameters) -> None | algosdk.transaction.PaymentTxn
-:canonical: algokit_utils._transfer.ensure_funded
+````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._ensure_funded.EnsureBalanceParameters) -> None | algosdk.transaction.PaymentTxn
+:canonical: algokit_utils._ensure_funded.ensure_funded
 
-```{autodoc2-docstring} algokit_utils._transfer.ensure_funded
+```{autodoc2-docstring} algokit_utils._ensure_funded.ensure_funded
 :parser: myst
 ```
 ````
@@ -1536,6 +1541,14 @@ Bases: {py:obj}`enum.Enum`
 :canonical: algokit_utils.deploy.get_creator_apps
 
 ```{autodoc2-docstring} algokit_utils.deploy.get_creator_apps
+:parser: myst
+```
+````
+
+````{py:function} get_default_localnet_config(config: typing.Literal[algod, indexer, kmd]) -> algokit_utils.network_clients.AlgoClientConfig
+:canonical: algokit_utils.network_clients.get_default_localnet_config
+
+```{autodoc2-docstring} algokit_utils.network_clients.get_default_localnet_config
 :parser: myst
 ```
 ````
