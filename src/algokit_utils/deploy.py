@@ -708,6 +708,7 @@ class Deployer:
             create_parameters,
             **create_abi_args,
         )
+        create_txn_index = len(atc.txn_list) - 1
         delete_method, delete_abi_args, delete_parameters = _convert_deploy_args(
             self.delete_args, self.new_app_metadata, self.signer, self.sender
         )
@@ -717,9 +718,10 @@ class Deployer:
             delete_parameters,
             **delete_abi_args,
         )
+        delete_txn_index = len(atc.txn_list) - 1
         create_delete_response = self.app_client.execute_atc(atc)
-        create_response = TransactionResponse.from_atr(create_delete_response, 0)
-        delete_response = TransactionResponse.from_atr(create_delete_response, 1)
+        create_response = TransactionResponse.from_atr(create_delete_response, create_txn_index)
+        delete_response = TransactionResponse.from_atr(create_delete_response, delete_txn_index)
         self.app_client.app_id = get_app_id_from_tx_id(self.app_client.algod_client, create_response.tx_id)
         logger.info(
             f"{self.new_app_metadata.name} ({self.new_app_metadata.version}) deployed successfully, "
