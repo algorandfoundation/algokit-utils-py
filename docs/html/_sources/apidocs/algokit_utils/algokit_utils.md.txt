@@ -1363,6 +1363,16 @@ Bases: {py:obj}`enum.Enum`
 
 ````
 
+````{py:method} from_atr(result: algosdk.atomic_transaction_composer.AtomicTransactionResponse, transaction_index: int = -1) -> algokit_utils.models.TransactionResponse
+:canonical: algokit_utils.models.TransactionResponse.from_atr
+:staticmethod:
+
+```{autodoc2-docstring} algokit_utils.models.TransactionResponse.from_atr
+:parser: myst
+```
+
+````
+
 ````{py:attribute} tx_id
 :canonical: algokit_utils.models.TransactionResponse.tx_id
 :type: str

@@ -25,7 +25,12 @@ class TransactionResponse:
     """Round transaction was confirmed, `None` if call was a from a dry-run"""
 
     @staticmethod
-    def from_atr(result: AtomicTransactionResponse, transaction_index: int = 0) -> "TransactionResponse":
+    def from_atr(result: AtomicTransactionResponse, transaction_index: int = -1) -> "TransactionResponse":
+        """Returns either an ABITransactionResponse or a TransactionResponse based on the type of the transaction
+        referred to by transaction_index
+        :param AtomicTransactionResponse result: Result containing one or more transactions
+        :param int transaction_index: Which transaction in the result to return, defaults to -1 (the last transaction)
+        """
         tx_id = result.tx_ids[transaction_index]
         abi_result = next((r for r in result.abi_results if r.tx_id == tx_id), None)
         if abi_result:
