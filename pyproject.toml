@@ -27,6 +27,7 @@ sphinx-copybutton = "^0.5.1"
 sphinx-rtd-theme = "^1.2.0"
 sphinx-autodoc2 = "^0.4.2"
 poethepoet = "^0.19.0"
+beaker-pyteal = "^1.0.0"
 
 [build-system]
 requires = ["poetry-core"]

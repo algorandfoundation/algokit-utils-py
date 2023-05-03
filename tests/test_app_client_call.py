@@ -3,13 +3,18 @@ from typing import TYPE_CHECKING
 
 import pytest
 from algokit_utils import (
+    Account,
     ApplicationClient,
     ApplicationSpecification,
     CreateCallParameters,
     get_account,
 )
-from algosdk.atomic_transaction_composer import AtomicTransactionComposer
-from algosdk.transaction import ApplicationCallTxn
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionComposer,
+    TransactionWithSigner,
+)
+from algosdk.transaction import ApplicationCallTxn, PaymentTxn
 
 from tests.conftest import get_unique_name
 
@@ -57,6 +62,23 @@ def test_abi_call_with_method_spec(client_fixture: ApplicationClient) -> None:
     result = client_fixture.call(subroutine, name="test")
 
     assert result.return_value == "Hello ABI, test"
+
+
+def test_abi_call_with_transaction_arg(client_fixture: ApplicationClient, funded_account: Account) -> None:
+    call_with_payment = client_fixture.app_spec.contract.get_method_by_name("call_with_payment")
+
+    payment = PaymentTxn(
+        sender=funded_account.address,
+        receiver=client_fixture.app_address,
+        amt=1_000_000,
+        note=b"Payment",
+        sp=client_fixture.algod_client.suggested_params(),
+    )  # type: ignore[no-untyped-call]
+    payment_with_signer = TransactionWithSigner(payment, AccountTransactionSigner(funded_account.private_key))
+
+    result = client_fixture.call(call_with_payment, payment=payment_with_signer)
+
+    assert result.return_value == "Payment Successful"
 
 
 def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> None:
