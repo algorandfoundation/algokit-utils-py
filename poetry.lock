@@ -200,6 +200,22 @@ files = [
 ]
 
 [[package]]
+name = "beaker-pyteal"
+version = "1.0.0"
+description = "A Framework for building PyTeal Applications"
+category = "dev"
+optional = false
+python-versions = ">=3.10,<4.0"
+files = [
+    {file = "beaker_pyteal-1.0.0-py3-none-any.whl", hash = "sha256:7e49a3bd026fc52f6637a859bb605fd6f214bcd1e6b5a3a8947cc5a574f85810"},
+]
+
+[package.dependencies]
+algokit-utils = ">=1.0.0,<2.0.0"
+py-algorand-sdk = ">=2.0.0"
+pyteal = ">=0.23.0,<0.24.0"
+
+[[package]]
 name = "black"
 version = "23.3.0"
 description = "The uncompromising code formatter."
@@ -654,6 +670,18 @@ python-versions = "*"
 files = [
     {file = "distlib-0.3.6-py2.py3-none-any.whl", hash = "sha256:f35c4b692542ca110de7ef0bea44d73981caeb34ca0b9b6b2e6d7790dda8f80e"},
     {file = "distlib-0.3.6.tar.gz", hash = "sha256:14bad2d9b04d3a36127ac97f30b12a19268f211063d8f8ee4f47108896e11b46"},
+]
+
+[[package]]
+name = "docstring-parser"
+version = "0.14.1"
+description = "Parse Python docstrings in reST, Google and Numpydoc format"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "docstring_parser-0.14.1-py3-none-any.whl", hash = "sha256:14ac6ec1f1ba6905c4d8cb90fd0bc55394f5678183752c90e44812bf28d7a515"},
+    {file = "docstring_parser-0.14.1.tar.gz", hash = "sha256:2c77522e31b7c88b1ab457a1f3c9ae38947ad719732260ba77ee8a3deb58622a"},
 ]
 
 [[package]]
@@ -1795,6 +1823,23 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pyteal"
+version = "0.23.0"
+description = "Algorand Smart Contracts in Python"
+category = "dev"
+optional = false
+python-versions = ">=3.10"
+files = [
+    {file = "pyteal-0.23.0-py3-none-any.whl", hash = "sha256:61eca22012552ad567ad7123e054dab14fb00606eeda7e26729631ca4844e56d"},
+    {file = "pyteal-0.23.0.tar.gz", hash = "sha256:58578db6ec951a00823e190e9610ae111ee1ac1b7d816ba12ccc917c1b53bf15"},
+]
+
+[package.dependencies]
+docstring-parser = "0.14.1"
+py-algorand-sdk = ">=2.0.0,<3.0.0"
+semantic-version = ">=2.9.0,<3.0.0"
+
+[[package]]
 name = "pytest"
 version = "7.2.2"
 description = "pytest: simple powerful testing with Python"
@@ -2117,6 +2162,22 @@ files = [
 [package.dependencies]
 cryptography = ">=2.0"
 jeepney = ">=0.6"
+
+[[package]]
+name = "semantic-version"
+version = "2.10.0"
+description = "A library implementing the 'SemVer' scheme."
+category = "dev"
+optional = false
+python-versions = ">=2.7"
+files = [
+    {file = "semantic_version-2.10.0-py2.py3-none-any.whl", hash = "sha256:de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177"},
+    {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
+]
+
+[package.extras]
+dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "flake8", "nose2", "readme-renderer (<25.0)", "tox", "wheel", "zest.releaser[recommended]"]
+doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "semver"
@@ -2752,4 +2813,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "70f826bb0a11cfcf37c60da56dd3a74d548127dbf3fd8cee90352690e001c4ed"
+content-hash = "81db46fef1530646081f17a238c3eb906cfda950baa2c2d8d44feba7d1c5130e"

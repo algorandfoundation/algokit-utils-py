@@ -19,6 +19,8 @@ from algokit_utils import (
 )
 from dotenv import load_dotenv
 
+from tests import app_client_test
+
 if TYPE_CHECKING:
     from algosdk.kmd import KMDClient
     from algosdk.v2client.algod import AlgodClient
@@ -151,4 +153,7 @@ def funded_account(algod_client: "AlgodClient") -> Account:
 
 @pytest.fixture(scope="session")
 def app_spec() -> ApplicationSpecification:
+    app_spec = app_client_test.app.build()
+    path = Path(__file__).parent / "app_client_test.json"
+    path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True)
