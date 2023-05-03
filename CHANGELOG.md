@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.1 (2023-05-03)
+### Fix
+* Return correct response when multiple transactions are in an ABI call ([#30](https://github.com/algorandfoundation/algokit-utils-py/issues/30)) ([`9c9aacf`](https://github.com/algorandfoundation/algokit-utils-py/commit/9c9aacf2836d982f14c94d81cf4da19de391225d))
+
 ## v1.1.0 (2023-05-02)
 ### Feature
 * Make ensure_funded funding_source parameter optional ([`814661a`](https://github.com/algorandfoundation/algokit-utils-py/commit/814661ae77cb8fcd6ebe7898e134590fe76773d1))
