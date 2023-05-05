@@ -45,6 +45,10 @@ __all__ = [
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "DeployCallArgs",
+    "DeployCreateCallArgs",
+    "DeployCallArgsDict",
+    "DeployCreateCallArgsDict",
     "Deployer",
     "DeployResponse",
     "OnUpdate",
@@ -512,12 +516,10 @@ class DeployResponse:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICallArgs:
+class DeployCallArgs:
     """Parameters used to update or delete an application when calling
     {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-    method: ABIMethod | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
     suggested_params: transaction.SuggestedParams | None = None
     lease: bytes | str | None = None
     accounts: list[str] | None = None
@@ -528,19 +530,34 @@ class ABICallArgs:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICreateCallArgs(ABICallArgs):
+class DeployCreateCallArgs(DeployCallArgs):
     """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     extra_pages: int | None = None
     on_complete: transaction.OnComplete | None = None
 
 
-class ABICallArgsDict(TypedDict, total=False):
+@dataclasses.dataclass(kw_only=True)
+class ABICallArgs(DeployCallArgs):
+    """ABI Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass(kw_only=True)
+class ABICreateCallArgs(DeployCreateCallArgs):
+    """ABI Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+
+
+class DeployCallArgsDict(TypedDict, total=False):
     """Parameters used to update or delete an application when calling
     {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-    method: ABIMethod | bool
-    args: ABIArgsDict
     suggested_params: transaction.SuggestedParams
     lease: bytes | str
     accounts: list[str]
@@ -550,11 +567,26 @@ class ABICallArgsDict(TypedDict, total=False):
     rekey_to: str
 
 
-class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
+class ABICallArgsDict(DeployCallArgsDict, TypedDict, total=False):
+    """ABI Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool
+    args: ABIArgsDict
+
+
+class DeployCreateCallArgsDict(DeployCallArgsDict, TypedDict, total=False):
     """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     extra_pages: int | None
     on_complete: transaction.OnComplete
+
+
+class ABICreateCallArgsDict(DeployCreateCallArgsDict, TypedDict, total=False):
+    """ABI Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool
+    args: ABIArgsDict
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -794,12 +826,12 @@ def _create_metadata(
 
 
 def _convert_deploy_args(
-    _args: ABICallArgs | ABICallArgsDict | None,
+    _args: DeployCallArgs | DeployCallArgsDict | None,
     note: AppDeployMetaData,
     signer: TransactionSigner | None,
     sender: str | None,
 ) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = _args.__dict__ if isinstance(_args, ABICallArgs) else (_args or {})
+    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else (_args or {})
 
     # return most derived type, unused parameters are ignored
     parameters = CreateCallParameters(
