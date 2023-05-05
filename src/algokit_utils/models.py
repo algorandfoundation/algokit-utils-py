@@ -1,11 +1,13 @@
 import dataclasses
 from collections.abc import Sequence
-from typing import Any, Protocol, TypeAlias, TypedDict
+from typing import Any, Generic, Protocol, TypeAlias, TypedDict, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionResponse, TransactionSigner
 from algosdk.encoding import decode_address
+
+ReturnType = TypeVar("ReturnType")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -66,12 +68,12 @@ class TransactionResponse:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABITransactionResponse(TransactionResponse):
+class ABITransactionResponse(TransactionResponse, Generic[ReturnType]):
     """Response for an ABI call"""
 
     raw_value: bytes
     """The raw response before ABI decoding"""
-    return_value: Any
+    return_value: ReturnType
     """Decoded ABI result"""
     decode_error: Exception | None
     """Details of error that occurred when attempting to decode raw_value"""
