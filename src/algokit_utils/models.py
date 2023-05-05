@@ -133,6 +133,11 @@ class CommonCallParametersDict(TypedDict, total=False):
     suggested_params: transaction.SuggestedParams
     note: bytes | str
     lease: bytes | str
+    accounts: list[str]
+    foreign_apps: list[int]
+    foreign_assets: list[int]
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
+    rekey_to: str
 
 
 class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=False):
