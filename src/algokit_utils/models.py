@@ -4,7 +4,12 @@ from typing import Any, Generic, Protocol, TypeAlias, TypedDict, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionResponse, TransactionSigner
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionResponse,
+    SimulateAtomicTransactionResponse,
+    TransactionSigner,
+)
 from algosdk.encoding import decode_address
 
 ReturnType = TypeVar("ReturnType")
@@ -42,7 +47,9 @@ class TransactionResponse:
     """Round transaction was confirmed, `None` if call was a from a dry-run"""
 
     @staticmethod
-    def from_atr(result: AtomicTransactionResponse, transaction_index: int = -1) -> "TransactionResponse":
+    def from_atr(
+        result: AtomicTransactionResponse | SimulateAtomicTransactionResponse, transaction_index: int = -1
+    ) -> "TransactionResponse":
         """Returns either an ABITransactionResponse or a TransactionResponse based on the type of the transaction
         referred to by transaction_index
         :param AtomicTransactionResponse result: Result containing one or more transactions
@@ -50,6 +57,7 @@ class TransactionResponse:
         """
         tx_id = result.tx_ids[transaction_index]
         abi_result = next((r for r in result.abi_results if r.tx_id == tx_id), None)
+        confirmed_round = None if isinstance(result, SimulateAtomicTransactionResponse) else result.confirmed_round
         if abi_result:
             return ABITransactionResponse(
                 tx_id=tx_id,
@@ -58,12 +66,12 @@ class TransactionResponse:
                 decode_error=abi_result.decode_error,
                 tx_info=abi_result.tx_info,
                 method=abi_result.method,
-                confirmed_round=result.confirmed_round,
+                confirmed_round=confirmed_round,
             )
         else:
             return TransactionResponse(
                 tx_id=tx_id,
-                confirmed_round=result.confirmed_round,
+                confirmed_round=confirmed_round,
             )
 
 

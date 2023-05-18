@@ -596,9 +596,8 @@ class ApplicationClient:
         method = self._resolve_method(
             call_abi_method, abi_kwargs, _parameters.on_complete or transaction.OnComplete.NoOpOC
         )
-        # If its a read-only method, use dryrun (TODO: swap with simulate later?)
         if method:
-            response = self._try_dry_run_call(method, atc)
+            response = self._try_simulate_call(method, atc)
             if response:
                 return response
 
@@ -839,18 +838,22 @@ class ApplicationClient:
             )
         return self._approval_program, self._clear_program
 
-    def _try_dry_run_call(self, method: Method, atc: AtomicTransactionComposer) -> ABITransactionResponse | None:
+    def _try_simulate_call(
+        self, method: Method, atc: AtomicTransactionComposer
+    ) -> ABITransactionResponse | TransactionResponse | None:
         hints = self._method_hints(method)
         if hints and hints.read_only:
-            dr_req = transaction.create_dryrun(self.algod_client, atc.gather_signatures())  # type: ignore[arg-type]
-            dr_result = self.algod_client.dryrun(dr_req)  # type: ignore[arg-type]
-            for txn in dr_result["txns"]:
-                if "app-call-messages" in txn and "REJECT" in txn["app-call-messages"]:
-                    msg = ", ".join(txn["app-call-messages"])
-                    raise Exception(f"Dryrun for readonly method failed: {msg}")
+            simulate_response = atc.simulate(self.algod_client)
+            if not simulate_response.would_succeed:
+                raise _try_convert_to_logic_error(
+                    simulate_response.failure_message,
+                    self.app_spec.approval_program,
+                    self._get_approval_source_map(),
+                ) or Exception(
+                    f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
+                )
 
-            method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-            return ABITransactionResponse(**method_results[0].__dict__, confirmed_round=None)
+            return TransactionResponse.from_atr(simulate_response)
         return None
 
     def _load_reference_and_check_app_id(self) -> None:
@@ -1089,7 +1092,7 @@ class ApplicationClient:
         return execute_atc_with_logic_error(
             atc,
             self.algod_client,
-            approval_program=self.approval.teal if self.approval else self.app_spec.approval_program,
+            approval_program=self.app_spec.approval_program,
             approval_source_map=self._get_approval_source_map(),
         )
 
@@ -1171,6 +1174,25 @@ def get_next_version(current_version: str) -> str:
     )
 
 
+def _try_convert_to_logic_error(
+    source_ex: Exception | str,
+    approval_program: str | None = None,
+    approval_source_map: SourceMap | None = None,
+) -> Exception | None:
+    if approval_source_map and approval_program:
+        source_ex_str = str(source_ex)
+        logic_error_data = parse_logic_error(source_ex_str)
+        if logic_error_data is not None:
+            return LogicError(
+                logic_error_str=source_ex_str,
+                logic_error=source_ex if isinstance(source_ex, Exception) else None,
+                program=approval_program,
+                source_map=approval_source_map,
+                **logic_error_data,
+            )
+    return None
+
+
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",
@@ -1189,15 +1211,9 @@ def execute_atc_with_logic_error(
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
-        if approval_source_map and approval_program:
-            logic_error_data = parse_logic_error(str(ex))
-            if logic_error_data is not None:
-                raise LogicError(
-                    logic_error=ex,
-                    program=approval_program,
-                    source_map=approval_source_map,
-                    **logic_error_data,
-                ) from ex
+        logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map)
+        if logic_error:
+            raise logic_error from ex
         raise ex
 
 

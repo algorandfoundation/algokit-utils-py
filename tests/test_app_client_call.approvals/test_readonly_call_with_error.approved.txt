@@ -1,12 +1,12 @@
-Txn {txn} had error 'assert failed pc=811' at PC 811 and Source Line 459: 
+Txn {txn} had error 'assert failed pc=856' at PC 856 and Source Line 489: 
 
-	intc_0 // 1
+	intc_1 // 1
 	return
-	readonly_0_l2:
-	intc_1 // 0
+	readonly_1_l2:
+	intc_0 // 0
 	// An error
 	assert		<-- Error
 	retsub
 	
 	// set_box
-	setbox_1:
+	setbox_2:
