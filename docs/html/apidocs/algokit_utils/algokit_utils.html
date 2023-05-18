@@ -436,6 +436,32 @@ creator that have a transaction note containing <a class="reference internal" hr
 <dt class="sig sig-object py" id="algokit_utils.Account">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">Account</span></span><a class="headerlink" href="#algokit_utils.Account" title="Permalink to this definition"></a></dt>
 <dd><p>Holds the private_key and address for an account</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.Account.address">
+<span class="sig-name descname"><span class="pre">address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.Account.address" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>Address for this account</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.Account.private_key">
+<span class="sig-name descname"><span class="pre">private_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.Account.private_key" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>Base64 encoded private key</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.Account.public_key">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">public_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.11)"><span class="pre">bytes</span></a></em><a class="headerlink" href="#algokit_utils.Account.public_key" title="Permalink to this definition"></a></dt>
+<dd><p>The public key for this account</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.Account.signer">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a></em><a class="headerlink" href="#algokit_utils.Account.signer" title="Permalink to this definition"></a></dt>
+<dd><p>An AccountTransactionSigner for this account</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
