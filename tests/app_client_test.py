@@ -1,10 +1,14 @@
+from typing import Literal
+
 import beaker
 import pyteal
+from beaker.lib.storage import BoxMapping
 
 
 class State:
     greeting = beaker.GlobalStateValue(pyteal.TealType.bytes)
     last = beaker.LocalStateValue(pyteal.TealType.bytes, default=pyteal.Bytes("unset"))
+    box = BoxMapping(pyteal.abi.StaticBytes[Literal[4]], pyteal.abi.String)
 
 
 app = beaker.Application("HelloWorldApp", state=State())
@@ -13,6 +17,26 @@ app = beaker.Application("HelloWorldApp", state=State())
 @app.external
 def version(*, output: pyteal.abi.Uint64) -> pyteal.Expr:
     return output.set(pyteal.Tmpl.Int("TMPL_VERSION"))
+
+
+@app.external(read_only=True)
+def readonly(error: pyteal.abi.Uint64) -> pyteal.Expr:
+    return pyteal.If(error.get(), pyteal.Assert(pyteal.Int(0), comment="An error"), pyteal.Approve())
+
+
+@app.external()
+def set_box(name: pyteal.abi.StaticBytes[Literal[4]], value: pyteal.abi.String) -> pyteal.Expr:
+    return app.state.box[name.get()].set(value.get())
+
+
+@app.external
+def get_box(name: pyteal.abi.StaticBytes[Literal[4]], *, output: pyteal.abi.String) -> pyteal.Expr:
+    return output.set(app.state.box[name.get()].get())
+
+
+@app.external(read_only=True)
+def get_box_readonly(name: pyteal.abi.StaticBytes[Literal[4]], *, output: pyteal.abi.String) -> pyteal.Expr:
+    return output.set(app.state.box[name.get()].get())
 
 
 @app.update(authorize=beaker.Authorize.only_creator())

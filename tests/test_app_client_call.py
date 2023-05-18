@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import algokit_utils
 import pytest
 from algokit_utils import (
     Account,
@@ -16,7 +17,7 @@ from algosdk.atomic_transaction_composer import (
 )
 from algosdk.transaction import ApplicationCallTxn, PaymentTxn
 
-from tests.conftest import get_unique_name
+from tests.conftest import check_output_stability, get_unique_name
 
 if TYPE_CHECKING:
     from algosdk.abi import Method
@@ -94,6 +95,7 @@ def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> 
 
 
 def test_call_parameters_from_derived_type_ignored(client_fixture: ApplicationClient) -> None:
+    client_fixture = client_fixture.prepare()  # make a copy
     parameters = CreateCallParameters(
         extra_pages=1,
     )
@@ -106,3 +108,76 @@ def test_call_parameters_from_derived_type_ignored(client_fixture: ApplicationCl
     app_txn = signed_txn.txn
     assert isinstance(app_txn, ApplicationCallTxn)
     assert app_txn.extra_pages == 0
+
+
+def test_call_with_box(client_fixture: ApplicationClient) -> None:
+    algokit_utils.ensure_funded(
+        client_fixture.algod_client,
+        algokit_utils.EnsureBalanceParameters(
+            account_to_fund=client_fixture.app_address,
+            min_spending_balance_micro_algos=200_000,
+            min_funding_increment_micro_algos=200_000,
+        ),
+    )
+    set_response = client_fixture.call(
+        "set_box",
+        algokit_utils.OnCompleteCallParameters(boxes=[(0, b"ssss")]),
+        name=b"ssss",
+        value="test",
+    )
+
+    assert set_response.confirmed_round
+
+    get_response = client_fixture.call(
+        "get_box",
+        algokit_utils.OnCompleteCallParameters(boxes=[(0, b"ssss")]),
+        name=b"ssss",
+    )
+
+    assert get_response.return_value == "test"
+
+
+def test_call_with_box_readonly(client_fixture: ApplicationClient) -> None:
+    algokit_utils.ensure_funded(
+        client_fixture.algod_client,
+        algokit_utils.EnsureBalanceParameters(
+            account_to_fund=client_fixture.app_address,
+            min_spending_balance_micro_algos=200_000,
+            min_funding_increment_micro_algos=200_000,
+        ),
+    )
+    set_response = client_fixture.call(
+        "set_box",
+        algokit_utils.OnCompleteCallParameters(boxes=[(0, b"ssss")]),
+        name=b"ssss",
+        value="test",
+    )
+
+    assert set_response.confirmed_round
+
+    get_response = client_fixture.call(
+        "get_box_readonly",
+        algokit_utils.OnCompleteCallParameters(boxes=[(0, b"ssss")]),
+        name=b"ssss",
+    )
+
+    assert get_response.return_value == "test"
+
+
+def test_readonly_call(client_fixture: ApplicationClient) -> None:
+    response = client_fixture.call(
+        "readonly",
+        error=0,
+    )
+
+    assert response.confirmed_round is None
+
+
+def test_readonly_call_with_error(client_fixture: ApplicationClient) -> None:
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "readonly",
+            error=1,
+        )
+
+    check_output_stability(str(ex.value).replace(ex.value.transaction_id, "{txn}"))

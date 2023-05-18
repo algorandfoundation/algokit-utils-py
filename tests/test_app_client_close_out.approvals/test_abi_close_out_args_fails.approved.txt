@@ -1,12 +1,12 @@
-Txn {txn} had error 'assert failed pc=1099' at PC 1099 and Source Line 660: 
+Txn {txn} had error 'assert failed pc=1341' at PC 1341 and Source Line 811: 
 
 	frame_dig -1
 	extract 2 0
-	bytec_3 // "Yes"
+	bytec 4 // "Yes"
 	==
 	// passes close_out check
 	assert		<-- Error
-	intc_0 // 1
+	intc_1 // 1
 	return
 	
 	// call_with_payment
