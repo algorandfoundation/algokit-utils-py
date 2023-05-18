@@ -530,6 +530,12 @@ class DeployCallArgs:
 
 
 @dataclasses.dataclass(kw_only=True)
+class ABICall:
+    method: ABIMethod | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass(kw_only=True)
 class DeployCreateCallArgs(DeployCallArgs):
     """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
@@ -538,20 +544,14 @@ class DeployCreateCallArgs(DeployCallArgs):
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICallArgs(DeployCallArgs):
+class ABICallArgs(DeployCallArgs, ABICall):
     """ABI Parameters used to update or delete an application when calling
     {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-    method: ABIMethod | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
-
 
 @dataclasses.dataclass(kw_only=True)
-class ABICreateCallArgs(DeployCreateCallArgs):
+class ABICreateCallArgs(DeployCreateCallArgs, ABICall):
     """ABI Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
-
-    method: ABIMethod | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
 
 
 class DeployCallArgsDict(TypedDict, total=False):
@@ -599,9 +599,9 @@ class Deployer:
     new_app_metadata: AppDeployMetaData
     on_update: OnUpdate
     on_schema_break: OnSchemaBreak
-    create_args: ABICreateCallArgs | ABICreateCallArgsDict | None
-    update_args: ABICallArgs | ABICallArgsDict | None
-    delete_args: ABICallArgs | ABICallArgsDict | None
+    create_args: ABICreateCallArgs | ABICreateCallArgsDict | DeployCreateCallArgs | None
+    update_args: ABICallArgs | ABICallArgsDict | DeployCallArgs | None
+    delete_args: ABICallArgs | ABICallArgsDict | DeployCallArgs | None
 
     def deploy(self) -> DeployResponse:
         """Ensures app associated with app client's creator is present and up to date"""

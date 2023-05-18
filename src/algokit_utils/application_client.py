@@ -259,9 +259,12 @@ class ApplicationClient:
         on_update: au_deploy.OnUpdate = au_deploy.OnUpdate.Fail,
         on_schema_break: au_deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail,
         template_values: au_deploy.TemplateValueMapping | None = None,
-        create_args: au_deploy.ABICreateCallArgs | au_deploy.ABICreateCallArgsDict | None = None,
-        update_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
-        delete_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
+        create_args: au_deploy.ABICreateCallArgs
+        | au_deploy.ABICreateCallArgsDict
+        | au_deploy.DeployCreateCallArgs
+        | None = None,
+        update_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | au_deploy.DeployCallArgs | None = None,
+        delete_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | au_deploy.DeployCallArgs | None = None,
     ) -> au_deploy.DeployResponse:
         """Deploy an application and update client to reference it.
 

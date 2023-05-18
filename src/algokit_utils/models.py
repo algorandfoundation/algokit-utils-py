@@ -96,18 +96,37 @@ ABIMethod: TypeAlias = ABIReturnSubroutine | Method | str
 
 
 @dataclasses.dataclass(kw_only=True)
-class CommonCallParameters:
-    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+class TransactionParameters:
+    """Transaction parameters that can be used on ABI and non-ABI calls"""
 
     signer: TransactionSigner | None = None
     sender: str | None = None
     suggested_params: transaction.SuggestedParams | None = None
     note: bytes | str | None = None
     lease: bytes | str | None = None
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class CreateTransactionParameters(TransactionParameters):
+    """Transaction parameters that can be used on ABI and non-ABI create calls"""
+
+    extra_pages: int | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class RawTransactionParameters(TransactionParameters):
+    """Transaction parameters that can be used on non-ABI calls"""
+
     accounts: list[str] | None = None
     foreign_apps: list[int] | None = None
     foreign_assets: list[int] | None = None
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class CommonCallParameters(RawTransactionParameters):
+    """Transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+
     rekey_to: str | None = None
 
 
