@@ -10,6 +10,11 @@ class State:
 app = beaker.Application("HelloWorldApp", state=State())
 
 
+@app.external
+def version(*, output: pyteal.abi.Uint64) -> pyteal.Expr:
+    return output.set(pyteal.Tmpl.Int("TMPL_VERSION"))
+
+
 @app.update(authorize=beaker.Authorize.only_creator())
 def update() -> pyteal.Expr:
     return pyteal.Seq(

@@ -77,11 +77,12 @@ def read_spec(
     updatable: bool | None = None,
     deletable: bool | None = None,
     name: str | None = None,
+    template_values: dict | None = None,
 ) -> ApplicationSpecification:
     path = Path(__file__).parent / file_name
     spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
 
-    template_variables = {}
+    template_variables = template_values or {}
     if updatable is not None:
         template_variables["UPDATABLE"] = int(updatable)
 
@@ -156,4 +157,4 @@ def app_spec() -> ApplicationSpecification:
     app_spec = app_client_test.app.build()
     path = Path(__file__).parent / "app_client_test.json"
     path.write_text(app_spec.to_json())
-    return read_spec("app_client_test.json", deletable=True, updatable=True)
+    return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})

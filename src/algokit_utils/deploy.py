@@ -2,6 +2,7 @@ import base64
 import dataclasses
 import json
 import logging
+import re
 from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
@@ -70,6 +71,7 @@ UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
 """Template variable name used to control if a smart contract is updatable or not at deployment"""
 DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
 """Template variable name used to control if a smart contract is deletable or not at deployment"""
+_TOKEN_PATTERN = re.compile(r"TMPL_[A-Z]+")
 TemplateValue: TypeAlias = int | str | bytes
 TemplateValueDict: TypeAlias = dict[str, TemplateValue]
 """Dictionary of `dict[str, int | str | bytes]` representing template variable names and values"""
@@ -386,6 +388,10 @@ def _has_token(program_without_comments: str, token: str) -> bool:
     return False
 
 
+def _find_tokens(stripped_approval_program: str) -> list[str]:
+    return _TOKEN_PATTERN.findall(stripped_approval_program)
+
+
 def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
     approval_program = strip_comments(approval_program)
     if _has_token(approval_program, UPDATABLE_TEMPLATE_NAME) and _UPDATABLE not in template_values:
@@ -396,6 +402,10 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
         raise DeploymentFailedError(
             "allow_delete must be specified if deploy time configuration of delete is being used"
         )
+    all_tokens = _find_tokens(approval_program)
+    missing_values = [token for token in all_tokens if token[len("TMPL_") :] not in template_values]
+    if missing_values:
+        raise DeploymentFailedError(f"The following template values were not provided: {', '.join(missing_values)}")
 
     for template_variable_name in template_values:
         tmpl_variable = f"TMPL_{template_variable_name}"

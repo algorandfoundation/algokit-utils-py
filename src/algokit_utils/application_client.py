@@ -156,20 +156,10 @@ class ApplicationClient:
         self.app_spec = (
             au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec
         )
-        self._approval_program: Program | None
-        self._clear_program: Program | None
+        self._approval_program: Program | None = None
+        self._clear_program: Program | None = None
 
-        if template_values:
-            self._approval_program, self._clear_program = substitute_template_and_compile(
-                self.algod_client, self.app_spec, template_values
-            )
-        elif not au_deploy.has_template_vars(self.app_spec):
-            self._approval_program = Program(self.app_spec.approval_program, self.algod_client)
-            self._clear_program = Program(self.app_spec.clear_program, self.algod_client)
-        else:  # can't compile programs yet
-            self._approval_program = None
-            self._clear_program = None
-
+        self.template_values: au_deploy.TemplateValueMapping = template_values or {}
         self.approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
         self._indexer_client = indexer_client
@@ -243,10 +233,7 @@ class ApplicationClient:
         target.signer, target.sender = target.get_signer_sender(
             AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
         )
-        if template_values:
-            target._approval_program, target._clear_program = substitute_template_and_compile(  # noqa: SLF001
-                target.algod_client, target.app_spec, template_values
-            )
+        target.template_values = self.template_values | (template_values or {})
 
     def deploy(
         self,
@@ -320,7 +307,7 @@ class ApplicationClient:
             )
 
         # make a copy and prepare variables
-        template_values = dict(template_values or {})
+        template_values = self.template_values | dict(template_values or {})
         au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
 
         existing_app_metadata_or_reference = self._load_app_reference()
@@ -847,8 +834,8 @@ class ApplicationClient:
 
     def _check_is_compiled(self) -> tuple[Program, Program]:
         if self._approval_program is None or self._clear_program is None:
-            raise Exception(
-                "Compiled programs are not available, please provide template_values before creating or updating"
+            self._approval_program, self._clear_program = substitute_template_and_compile(
+                self.algod_client, self.app_spec, self.template_values
             )
         return self._approval_program, self._clear_program
 

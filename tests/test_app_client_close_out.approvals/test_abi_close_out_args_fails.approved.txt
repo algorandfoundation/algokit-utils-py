@@ -1,4 +1,4 @@
-Txn {txn} had error 'assert failed pc=1054' at PC 1054 and Source Line 630: 
+Txn {txn} had error 'assert failed pc=1099' at PC 1099 and Source Line 660: 
 
 	frame_dig -1
 	extract 2 0

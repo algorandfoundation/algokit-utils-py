@@ -1,4 +1,4 @@
-Txn {txn} had error 'assert failed pc=723' at PC 723 and Source Line 410: 
+Txn {txn} had error 'assert failed pc=768' at PC 768 and Source Line 440: 
 
 	frame_dig -1
 	extract 2 0
