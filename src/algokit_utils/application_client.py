@@ -156,20 +156,10 @@ class ApplicationClient:
         self.app_spec = (
             au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec
         )
-        self._approval_program: Program | None
-        self._clear_program: Program | None
+        self._approval_program: Program | None = None
+        self._clear_program: Program | None = None
 
-        if template_values:
-            self._approval_program, self._clear_program = substitute_template_and_compile(
-                self.algod_client, self.app_spec, template_values
-            )
-        elif not au_deploy.has_template_vars(self.app_spec):
-            self._approval_program = Program(self.app_spec.approval_program, self.algod_client)
-            self._clear_program = Program(self.app_spec.clear_program, self.algod_client)
-        else:  # can't compile programs yet
-            self._approval_program = None
-            self._clear_program = None
-
+        self.template_values: au_deploy.TemplateValueMapping = template_values or {}
         self.approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
         self._indexer_client = indexer_client
@@ -243,10 +233,7 @@ class ApplicationClient:
         target.signer, target.sender = target.get_signer_sender(
             AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
         )
-        if template_values:
-            target._approval_program, target._clear_program = substitute_template_and_compile(  # noqa: SLF001
-                target.algod_client, target.app_spec, template_values
-            )
+        target.template_values = self.template_values | (template_values or {})
 
     def deploy(
         self,
@@ -259,9 +246,12 @@ class ApplicationClient:
         on_update: au_deploy.OnUpdate = au_deploy.OnUpdate.Fail,
         on_schema_break: au_deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail,
         template_values: au_deploy.TemplateValueMapping | None = None,
-        create_args: au_deploy.ABICreateCallArgs | au_deploy.ABICreateCallArgsDict | None = None,
-        update_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
-        delete_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | None = None,
+        create_args: au_deploy.ABICreateCallArgs
+        | au_deploy.ABICreateCallArgsDict
+        | au_deploy.DeployCreateCallArgs
+        | None = None,
+        update_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | au_deploy.DeployCallArgs | None = None,
+        delete_args: au_deploy.ABICallArgs | au_deploy.ABICallArgsDict | au_deploy.DeployCallArgs | None = None,
     ) -> au_deploy.DeployResponse:
         """Deploy an application and update client to reference it.
 
@@ -317,7 +307,7 @@ class ApplicationClient:
             )
 
         # make a copy and prepare variables
-        template_values = dict(template_values or {})
+        template_values = self.template_values | dict(template_values or {})
         au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
 
         existing_app_metadata_or_reference = self._load_app_reference()
@@ -606,9 +596,8 @@ class ApplicationClient:
         method = self._resolve_method(
             call_abi_method, abi_kwargs, _parameters.on_complete or transaction.OnComplete.NoOpOC
         )
-        # If its a read-only method, use dryrun (TODO: swap with simulate later?)
         if method:
-            response = self._try_dry_run_call(method, atc)
+            response = self._try_simulate_call(method, atc)
             if response:
                 return response
 
@@ -844,23 +833,27 @@ class ApplicationClient:
 
     def _check_is_compiled(self) -> tuple[Program, Program]:
         if self._approval_program is None or self._clear_program is None:
-            raise Exception(
-                "Compiled programs are not available, please provide template_values before creating or updating"
+            self._approval_program, self._clear_program = substitute_template_and_compile(
+                self.algod_client, self.app_spec, self.template_values
             )
         return self._approval_program, self._clear_program
 
-    def _try_dry_run_call(self, method: Method, atc: AtomicTransactionComposer) -> ABITransactionResponse | None:
+    def _try_simulate_call(
+        self, method: Method, atc: AtomicTransactionComposer
+    ) -> ABITransactionResponse | TransactionResponse | None:
         hints = self._method_hints(method)
         if hints and hints.read_only:
-            dr_req = transaction.create_dryrun(self.algod_client, atc.gather_signatures())  # type: ignore[arg-type]
-            dr_result = self.algod_client.dryrun(dr_req)  # type: ignore[arg-type]
-            for txn in dr_result["txns"]:
-                if "app-call-messages" in txn and "REJECT" in txn["app-call-messages"]:
-                    msg = ", ".join(txn["app-call-messages"])
-                    raise Exception(f"Dryrun for readonly method failed: {msg}")
+            simulate_response = atc.simulate(self.algod_client)
+            if not simulate_response.would_succeed:
+                raise _try_convert_to_logic_error(
+                    simulate_response.failure_message,
+                    self.app_spec.approval_program,
+                    self._get_approval_source_map(),
+                ) or Exception(
+                    f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
+                )
 
-            method_results = _parse_result({0: method}, dr_result["txns"], atc.tx_ids)
-            return ABITransactionResponse(**method_results[0].__dict__, confirmed_round=None)
+            return TransactionResponse.from_atr(simulate_response)
         return None
 
     def _load_reference_and_check_app_id(self) -> None:
@@ -1099,7 +1092,7 @@ class ApplicationClient:
         return execute_atc_with_logic_error(
             atc,
             self.algod_client,
-            approval_program=self.approval.teal if self.approval else self.app_spec.approval_program,
+            approval_program=self.app_spec.approval_program,
             approval_source_map=self._get_approval_source_map(),
         )
 
@@ -1181,6 +1174,25 @@ def get_next_version(current_version: str) -> str:
     )
 
 
+def _try_convert_to_logic_error(
+    source_ex: Exception | str,
+    approval_program: str | None = None,
+    approval_source_map: SourceMap | None = None,
+) -> Exception | None:
+    if approval_source_map and approval_program:
+        source_ex_str = str(source_ex)
+        logic_error_data = parse_logic_error(source_ex_str)
+        if logic_error_data is not None:
+            return LogicError(
+                logic_error_str=source_ex_str,
+                logic_error=source_ex if isinstance(source_ex, Exception) else None,
+                program=approval_program,
+                source_map=approval_source_map,
+                **logic_error_data,
+            )
+    return None
+
+
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",
@@ -1199,15 +1211,9 @@ def execute_atc_with_logic_error(
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
-        if approval_source_map and approval_program:
-            logic_error_data = parse_logic_error(str(ex))
-            if logic_error_data is not None:
-                raise LogicError(
-                    logic_error=ex,
-                    program=approval_program,
-                    source_map=approval_source_map,
-                    **logic_error_data,
-                ) from ex
+        logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map)
+        if logic_error:
+            raise logic_error from ex
         raise ex
 
 

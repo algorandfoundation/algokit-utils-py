@@ -2,6 +2,7 @@ import base64
 import dataclasses
 import json
 import logging
+import re
 from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
@@ -45,6 +46,10 @@ __all__ = [
     "AppDeployMetaData",
     "AppMetaData",
     "AppLookup",
+    "DeployCallArgs",
+    "DeployCreateCallArgs",
+    "DeployCallArgsDict",
+    "DeployCreateCallArgsDict",
     "Deployer",
     "DeployResponse",
     "OnUpdate",
@@ -66,6 +71,7 @@ UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
 """Template variable name used to control if a smart contract is updatable or not at deployment"""
 DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
 """Template variable name used to control if a smart contract is deletable or not at deployment"""
+_TOKEN_PATTERN = re.compile(r"TMPL_[A-Z]+")
 TemplateValue: TypeAlias = int | str | bytes
 TemplateValueDict: TypeAlias = dict[str, TemplateValue]
 """Dictionary of `dict[str, int | str | bytes]` representing template variable names and values"""
@@ -382,6 +388,10 @@ def _has_token(program_without_comments: str, token: str) -> bool:
     return False
 
 
+def _find_tokens(stripped_approval_program: str) -> list[str]:
+    return _TOKEN_PATTERN.findall(stripped_approval_program)
+
+
 def check_template_variables(approval_program: str, template_values: TemplateValueDict) -> None:
     approval_program = strip_comments(approval_program)
     if _has_token(approval_program, UPDATABLE_TEMPLATE_NAME) and _UPDATABLE not in template_values:
@@ -392,6 +402,10 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
         raise DeploymentFailedError(
             "allow_delete must be specified if deploy time configuration of delete is being used"
         )
+    all_tokens = _find_tokens(approval_program)
+    missing_values = [token for token in all_tokens if token[len("TMPL_") :] not in template_values]
+    if missing_values:
+        raise DeploymentFailedError(f"The following template values were not provided: {', '.join(missing_values)}")
 
     for template_variable_name in template_values:
         tmpl_variable = f"TMPL_{template_variable_name}"
@@ -512,12 +526,10 @@ class DeployResponse:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICallArgs:
+class DeployCallArgs:
     """Parameters used to update or delete an application when calling
     {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-    method: ABIMethod | bool | None = None
-    args: ABIArgsDict = dataclasses.field(default_factory=dict)
     suggested_params: transaction.SuggestedParams | None = None
     lease: bytes | str | None = None
     accounts: list[str] | None = None
@@ -528,19 +540,34 @@ class ABICallArgs:
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABICreateCallArgs(ABICallArgs):
+class ABICall:
+    method: ABIMethod | bool | None = None
+    args: ABIArgsDict = dataclasses.field(default_factory=dict)
+
+
+@dataclasses.dataclass(kw_only=True)
+class DeployCreateCallArgs(DeployCallArgs):
     """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     extra_pages: int | None = None
     on_complete: transaction.OnComplete | None = None
 
 
-class ABICallArgsDict(TypedDict, total=False):
+@dataclasses.dataclass(kw_only=True)
+class ABICallArgs(DeployCallArgs, ABICall):
+    """ABI Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+
+@dataclasses.dataclass(kw_only=True)
+class ABICreateCallArgs(DeployCreateCallArgs, ABICall):
+    """ABI Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+
+class DeployCallArgsDict(TypedDict, total=False):
     """Parameters used to update or delete an application when calling
     {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
-    method: ABIMethod | bool
-    args: ABIArgsDict
     suggested_params: transaction.SuggestedParams
     lease: bytes | str
     accounts: list[str]
@@ -550,11 +577,26 @@ class ABICallArgsDict(TypedDict, total=False):
     rekey_to: str
 
 
-class ABICreateCallArgsDict(TypedDict, ABICallArgsDict, total=False):
+class ABICallArgsDict(DeployCallArgsDict, TypedDict, total=False):
+    """ABI Parameters used to update or delete an application when calling
+    {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool
+    args: ABIArgsDict
+
+
+class DeployCreateCallArgsDict(DeployCallArgsDict, TypedDict, total=False):
     """Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
 
     extra_pages: int | None
     on_complete: transaction.OnComplete
+
+
+class ABICreateCallArgsDict(DeployCreateCallArgsDict, TypedDict, total=False):
+    """ABI Parameters used to create an application when calling {py:meth}`~algokit_utils.ApplicationClient.deploy`"""
+
+    method: ABIMethod | bool
+    args: ABIArgsDict
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -567,9 +609,9 @@ class Deployer:
     new_app_metadata: AppDeployMetaData
     on_update: OnUpdate
     on_schema_break: OnSchemaBreak
-    create_args: ABICreateCallArgs | ABICreateCallArgsDict | None
-    update_args: ABICallArgs | ABICallArgsDict | None
-    delete_args: ABICallArgs | ABICallArgsDict | None
+    create_args: ABICreateCallArgs | ABICreateCallArgsDict | DeployCreateCallArgs | None
+    update_args: ABICallArgs | ABICallArgsDict | DeployCallArgs | None
+    delete_args: ABICallArgs | ABICallArgsDict | DeployCallArgs | None
 
     def deploy(self) -> DeployResponse:
         """Ensures app associated with app client's creator is present and up to date"""
@@ -794,12 +836,12 @@ def _create_metadata(
 
 
 def _convert_deploy_args(
-    _args: ABICallArgs | ABICallArgsDict | None,
+    _args: DeployCallArgs | DeployCallArgsDict | None,
     note: AppDeployMetaData,
     signer: TransactionSigner | None,
     sender: str | None,
 ) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = _args.__dict__ if isinstance(_args, ABICallArgs) else (_args or {})
+    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else (_args or {})
 
     # return most derived type, unused parameters are ignored
     parameters = CreateCallParameters(

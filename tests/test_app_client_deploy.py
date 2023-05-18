@@ -23,7 +23,9 @@ def client_fixture(
     indexer_client: "IndexerClient",
     funded_account: Account,
 ) -> ApplicationClient:
-    app_spec = read_spec("app_client_test.json", deletable=True, updatable=True, name=get_unique_name())
+    app_spec = read_spec(
+        "app_client_test.json", deletable=True, updatable=True, name=get_unique_name(), template_values={"VERSION": 1}
+    )
     return ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
 
 

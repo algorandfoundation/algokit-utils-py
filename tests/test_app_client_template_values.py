@@ -1,0 +1,142 @@
+from typing import TYPE_CHECKING
+
+import algokit_utils
+import pytest
+
+from tests.conftest import get_unique_name, read_spec
+
+if TYPE_CHECKING:
+    from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.indexer import IndexerClient
+
+
+def test_create_with_all_template_values_on_initialize(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+        template_values={"VERSION": 1, "UPDATABLE": 1, "DELETABLE": 1},
+    )
+    client.create("create")
+
+    assert client.call("version").return_value == 1
+
+
+def test_create_with_some_template_values_on_initialize(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+        template_values={
+            "VERSION": 1,
+        },
+    )
+
+    with pytest.raises(
+        expected_exception=algokit_utils.DeploymentFailedError,
+        match=r"allow_update must be specified if deploy time configuration of update is being used",
+    ):
+        client.create("create")
+
+
+def test_deploy_with_some_template_values_on_initialize(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+        template_values={
+            "VERSION": 1,
+        },
+    )
+
+    client.deploy(allow_delete=True, allow_update=True, create_args=algokit_utils.ABICreateCallArgs(method="create"))
+    assert client.call("version").return_value == 1
+
+
+def test_deploy_with_overriden_template_values(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+        template_values={
+            "VERSION": 1,
+        },
+    )
+
+    new_version = 2
+    client.deploy(
+        allow_delete=True,
+        allow_update=True,
+        template_values={"VERSION": new_version},
+        create_args=algokit_utils.ABICreateCallArgs(method="create"),
+    )
+    assert client.call("version").return_value == new_version
+
+
+def test_deploy_with_no_initialize_template_values(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+    )
+
+    new_version = 3
+    client.deploy(
+        allow_delete=True,
+        allow_update=True,
+        template_values={"VERSION": new_version},
+        create_args=algokit_utils.ABICreateCallArgs(method="create"),
+    )
+    assert client.call("version").return_value == new_version
+
+
+def test_deploy_with_missing_template_values(
+    algod_client: "AlgodClient",
+    indexer_client: "IndexerClient",
+    funded_account: algokit_utils.Account,
+) -> None:
+    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    client = algokit_utils.ApplicationClient(
+        algod_client,
+        app_spec,
+        creator=funded_account,
+        indexer_client=indexer_client,
+    )
+
+    with pytest.raises(
+        expected_exception=algokit_utils.DeploymentFailedError,
+        match=r"The following template values were not provided: TMPL_VERSION",
+    ):
+        client.deploy(
+            allow_delete=True, allow_update=True, create_args=algokit_utils.ABICreateCallArgs(method="create")
+        )

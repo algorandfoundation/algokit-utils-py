@@ -110,8 +110,33 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`CreateTransactionParameters <algokit_utils.models.CreateTransactionParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.CreateTransactionParameters
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`DefaultArgumentDict <algokit_utils.application_specification.DefaultArgumentDict>`
   - ```{autodoc2-docstring} algokit_utils.application_specification.DefaultArgumentDict
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`DeployCallArgs <algokit_utils.deploy.DeployCallArgs>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgs
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`DeployCallArgsDict <algokit_utils.deploy.DeployCallArgsDict>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgsDict
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`DeployCreateCallArgs <algokit_utils.deploy.DeployCreateCallArgs>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgs
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`DeployCreateCallArgsDict <algokit_utils.deploy.DeployCreateCallArgsDict>`
+  - ```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgsDict
     :parser: myst
     :summary:
     ```
@@ -157,6 +182,16 @@ orphan: true
     ```
 * - {py:obj}`Program <algokit_utils.application_client.Program>`
   - ```{autodoc2-docstring} algokit_utils.application_client.Program
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`RawTransactionParameters <algokit_utils.models.RawTransactionParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.RawTransactionParameters
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`TransactionParameters <algokit_utils.models.TransactionParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.TransactionParameters
     :parser: myst
     :summary:
     ```
@@ -343,6 +378,8 @@ orphan: true
 ````{py:class} ABICallArgs
 :canonical: algokit_utils.deploy.ABICallArgs
 
+Bases: {py:obj}`algokit_utils.deploy.DeployCallArgs`, {py:obj}`algokit_utils.deploy.ABICall`
+
 ```{autodoc2-docstring} algokit_utils.deploy.ABICallArgs
 :parser: myst
 ```
@@ -352,7 +389,7 @@ orphan: true
 ````{py:class} ABICallArgsDict()
 :canonical: algokit_utils.deploy.ABICallArgsDict
 
-Bases: {py:obj}`typing.TypedDict`
+Bases: {py:obj}`algokit_utils.deploy.DeployCallArgsDict`, {py:obj}`typing.TypedDict`
 
 ```{autodoc2-docstring} algokit_utils.deploy.ABICallArgsDict
 :parser: myst
@@ -370,7 +407,7 @@ Bases: {py:obj}`typing.TypedDict`
 ````{py:class} ABICreateCallArgs
 :canonical: algokit_utils.deploy.ABICreateCallArgs
 
-Bases: {py:obj}`algokit_utils.deploy.ABICallArgs`
+Bases: {py:obj}`algokit_utils.deploy.DeployCreateCallArgs`, {py:obj}`algokit_utils.deploy.ABICall`
 
 ```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgs
 :parser: myst
@@ -381,7 +418,7 @@ Bases: {py:obj}`algokit_utils.deploy.ABICallArgs`
 ````{py:class} ABICreateCallArgsDict()
 :canonical: algokit_utils.deploy.ABICreateCallArgsDict
 
-Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.deploy.ABICallArgsDict`
+Bases: {py:obj}`algokit_utils.deploy.DeployCreateCallArgsDict`, {py:obj}`typing.TypedDict`
 
 ```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgsDict
 :parser: myst
@@ -399,7 +436,7 @@ Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.deploy.ABICallArgsDict
 `````{py:class} ABITransactionResponse
 :canonical: algokit_utils.models.ABITransactionResponse
 
-Bases: {py:obj}`algokit_utils.models.TransactionResponse`
+Bases: {py:obj}`algokit_utils.models.TransactionResponse`, {py:obj}`typing.Generic`\[{py:obj}`algokit_utils.models.ReturnType`\]
 
 ```{autodoc2-docstring} algokit_utils.models.ABITransactionResponse
 :parser: myst
@@ -443,7 +480,7 @@ Bases: {py:obj}`algokit_utils.models.TransactionResponse`
 
 ````{py:attribute} return_value
 :canonical: algokit_utils.models.ABITransactionResponse.return_value
-:type: typing.Any
+:type: algokit_utils.models.ReturnType
 :value: >
    None
 
@@ -734,7 +771,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-````{py:method} deploy(version: str | None = None, *, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None, allow_update: bool | None = None, allow_delete: bool | None = None, on_update: algokit_utils.deploy.OnUpdate = au_deploy.OnUpdate.Fail, on_schema_break: algokit_utils.deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, create_args: algokit_utils.deploy.ABICreateCallArgs | algokit_utils.deploy.ABICreateCallArgsDict | None = None, update_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | None = None, delete_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | None = None) -> algokit_utils.deploy.DeployResponse
+````{py:method} deploy(version: str | None = None, *, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, sender: str | None = None, allow_update: bool | None = None, allow_delete: bool | None = None, on_update: algokit_utils.deploy.OnUpdate = au_deploy.OnUpdate.Fail, on_schema_break: algokit_utils.deploy.OnSchemaBreak = au_deploy.OnSchemaBreak.Fail, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, create_args: algokit_utils.deploy.ABICreateCallArgs | algokit_utils.deploy.ABICreateCallArgsDict | algokit_utils.deploy.DeployCreateCallArgs | None = None, update_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | algokit_utils.deploy.DeployCallArgs | None = None, delete_args: algokit_utils.deploy.ABICallArgs | algokit_utils.deploy.ABICallArgsDict | algokit_utils.deploy.DeployCallArgs | None = None) -> algokit_utils.deploy.DeployResponse
 :canonical: algokit_utils.application_client.ApplicationClient.deploy
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.deploy
@@ -900,6 +937,8 @@ Bases: {py:obj}`enum.IntFlag`
 ````{py:class} CommonCallParameters
 :canonical: algokit_utils.models.CommonCallParameters
 
+Bases: {py:obj}`algokit_utils.models.RawTransactionParameters`
+
 ```{autodoc2-docstring} algokit_utils.models.CommonCallParameters
 :parser: myst
 ```
@@ -953,6 +992,17 @@ Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.models.OnCompleteCallP
 
 ````
 
+````{py:class} CreateTransactionParameters
+:canonical: algokit_utils.models.CreateTransactionParameters
+
+Bases: {py:obj}`algokit_utils.models.TransactionParameters`
+
+```{autodoc2-docstring} algokit_utils.models.CreateTransactionParameters
+:parser: myst
+```
+
+````
+
 ````{py:data} DELETABLE_TEMPLATE_NAME
 :canonical: algokit_utils.deploy.DELETABLE_TEMPLATE_NAME
 :value: >
@@ -989,6 +1039,62 @@ Bases: {py:obj}`typing.TypedDict`
    None
 
 ```{autodoc2-docstring} algokit_utils.application_specification.DefaultArgumentType
+:parser: myst
+```
+
+````
+
+````{py:class} DeployCallArgs
+:canonical: algokit_utils.deploy.DeployCallArgs
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgs
+:parser: myst
+```
+
+````
+
+````{py:class} DeployCallArgsDict()
+:canonical: algokit_utils.deploy.DeployCallArgsDict
+
+Bases: {py:obj}`typing.TypedDict`
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgsDict
+:parser: myst
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgsDict.__init__
+:parser: myst
+```
+
+````
+
+````{py:class} DeployCreateCallArgs
+:canonical: algokit_utils.deploy.DeployCreateCallArgs
+
+Bases: {py:obj}`algokit_utils.deploy.DeployCallArgs`
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgs
+:parser: myst
+```
+
+````
+
+````{py:class} DeployCreateCallArgsDict()
+:canonical: algokit_utils.deploy.DeployCreateCallArgsDict
+
+Bases: {py:obj}`algokit_utils.deploy.DeployCallArgsDict`, {py:obj}`typing.TypedDict`
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgsDict
+:parser: myst
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgsDict.__init__
 :parser: myst
 ```
 
@@ -1115,7 +1221,7 @@ Bases: {py:obj}`Exception`
 
 `````
 
-```{py:exception} LogicError(*, logic_error: Exception, program: str, source_map: algosdk.source_map.SourceMap, transaction_id: str, message: str, pc: int)
+```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: algosdk.source_map.SourceMap, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None)
 :canonical: algokit_utils.logic_error.LogicError
 
 Bases: {py:obj}`Exception`
@@ -1364,6 +1470,17 @@ Bases: {py:obj}`enum.Enum`
 
 ````
 
+````{py:class} RawTransactionParameters
+:canonical: algokit_utils.models.RawTransactionParameters
+
+Bases: {py:obj}`algokit_utils.models.TransactionParameters`
+
+```{autodoc2-docstring} algokit_utils.models.RawTransactionParameters
+:parser: myst
+```
+
+````
+
 ````{py:data} TemplateValueDict
 :canonical: algokit_utils.deploy.TemplateValueDict
 :type: typing.TypeAlias
@@ -1388,6 +1505,15 @@ Bases: {py:obj}`enum.Enum`
 
 ````
 
+````{py:class} TransactionParameters
+:canonical: algokit_utils.models.TransactionParameters
+
+```{autodoc2-docstring} algokit_utils.models.TransactionParameters
+:parser: myst
+```
+
+````
+
 `````{py:class} TransactionResponse
 :canonical: algokit_utils.models.TransactionResponse
 
@@ -1407,7 +1533,7 @@ Bases: {py:obj}`enum.Enum`
 
 ````
 
-````{py:method} from_atr(result: algosdk.atomic_transaction_composer.AtomicTransactionResponse, transaction_index: int = -1) -> algokit_utils.models.TransactionResponse
+````{py:method} from_atr(result: algosdk.atomic_transaction_composer.AtomicTransactionResponse | algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse, transaction_index: int = -1) -> algokit_utils.models.TransactionResponse
 :canonical: algokit_utils.models.TransactionResponse.from_atr
 :staticmethod:
 

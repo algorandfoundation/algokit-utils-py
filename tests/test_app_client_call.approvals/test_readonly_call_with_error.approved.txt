@@ -1,0 +1,12 @@
+Txn {txn} had error 'assert failed pc=856' at PC 856 and Source Line 489: 
+
+	intc_1 // 1
+	return
+	readonly_1_l2:
+	intc_0 // 0
+	// An error
+	assert		<-- Error
+	retsub
+	
+	// set_box
+	setbox_2:

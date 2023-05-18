@@ -1,11 +1,18 @@
 import dataclasses
 from collections.abc import Sequence
-from typing import Any, Protocol, TypeAlias, TypedDict
+from typing import Any, Generic, Protocol, TypeAlias, TypedDict, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionResponse, TransactionSigner
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionResponse,
+    SimulateAtomicTransactionResponse,
+    TransactionSigner,
+)
 from algosdk.encoding import decode_address
+
+ReturnType = TypeVar("ReturnType")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -40,7 +47,9 @@ class TransactionResponse:
     """Round transaction was confirmed, `None` if call was a from a dry-run"""
 
     @staticmethod
-    def from_atr(result: AtomicTransactionResponse, transaction_index: int = -1) -> "TransactionResponse":
+    def from_atr(
+        result: AtomicTransactionResponse | SimulateAtomicTransactionResponse, transaction_index: int = -1
+    ) -> "TransactionResponse":
         """Returns either an ABITransactionResponse or a TransactionResponse based on the type of the transaction
         referred to by transaction_index
         :param AtomicTransactionResponse result: Result containing one or more transactions
@@ -48,6 +57,7 @@ class TransactionResponse:
         """
         tx_id = result.tx_ids[transaction_index]
         abi_result = next((r for r in result.abi_results if r.tx_id == tx_id), None)
+        confirmed_round = None if isinstance(result, SimulateAtomicTransactionResponse) else result.confirmed_round
         if abi_result:
             return ABITransactionResponse(
                 tx_id=tx_id,
@@ -56,22 +66,22 @@ class TransactionResponse:
                 decode_error=abi_result.decode_error,
                 tx_info=abi_result.tx_info,
                 method=abi_result.method,
-                confirmed_round=result.confirmed_round,
+                confirmed_round=confirmed_round,
             )
         else:
             return TransactionResponse(
                 tx_id=tx_id,
-                confirmed_round=result.confirmed_round,
+                confirmed_round=confirmed_round,
             )
 
 
 @dataclasses.dataclass(kw_only=True)
-class ABITransactionResponse(TransactionResponse):
+class ABITransactionResponse(TransactionResponse, Generic[ReturnType]):
     """Response for an ABI call"""
 
     raw_value: bytes
     """The raw response before ABI decoding"""
-    return_value: Any
+    return_value: ReturnType
     """Decoded ABI result"""
     decode_error: Exception | None
     """Details of error that occurred when attempting to decode raw_value"""
@@ -94,18 +104,37 @@ ABIMethod: TypeAlias = ABIReturnSubroutine | Method | str
 
 
 @dataclasses.dataclass(kw_only=True)
-class CommonCallParameters:
-    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+class TransactionParameters:
+    """Transaction parameters that can be used on ABI and non-ABI calls"""
 
     signer: TransactionSigner | None = None
     sender: str | None = None
     suggested_params: transaction.SuggestedParams | None = None
     note: bytes | str | None = None
     lease: bytes | str | None = None
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class CreateTransactionParameters(TransactionParameters):
+    """Transaction parameters that can be used on ABI and non-ABI create calls"""
+
+    extra_pages: int | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class RawTransactionParameters(TransactionParameters):
+    """Transaction parameters that can be used on non-ABI calls"""
+
     accounts: list[str] | None = None
     foreign_apps: list[int] | None = None
     foreign_assets: list[int] | None = None
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+
+
+@dataclasses.dataclass(kw_only=True)
+class CommonCallParameters(RawTransactionParameters):
+    """Transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+
     rekey_to: str | None = None
 
 
@@ -131,6 +160,11 @@ class CommonCallParametersDict(TypedDict, total=False):
     suggested_params: transaction.SuggestedParams
     note: bytes | str
     lease: bytes | str
+    accounts: list[str]
+    foreign_apps: list[int]
+    foreign_assets: list[int]
+    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
+    rekey_to: str
 
 
 class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=False):

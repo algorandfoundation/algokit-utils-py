@@ -11,7 +11,7 @@ __all__ = [
 ]
 
 LOGIC_ERROR = (
-    "TransactionPool.Remember: transaction (?P<transaction_id>[A-Z0-9]+): "
+    ".*transaction (?P<transaction_id>[A-Z0-9]+): "
     "logic eval error: (?P<message>.*). Details: pc=(?P<pc>[0-9]+), opcodes=.*"
 )
 
@@ -40,15 +40,16 @@ class LogicError(Exception):
     def __init__(
         self,
         *,
-        logic_error: Exception,
+        logic_error_str: str,
         program: str,
         source_map: "AlgoSourceMap",
         transaction_id: str,
         message: str,
         pc: int,
+        logic_error: Exception | None = None,
     ):
         self.logic_error = logic_error
-        self.logic_error_str = str(logic_error)
+        self.logic_error_str = logic_error_str
         self.program = program
         self.source_map = source_map
         self.lines = program.split("\n")

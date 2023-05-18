@@ -1,12 +1,12 @@
-Txn {txn} had error 'assert failed pc=1014' at PC 1014 and Source Line 602: 
+Txn {txn} had error 'assert failed pc=1300' at PC 1300 and Source Line 783: 
 
 	frame_dig -1
 	extract 2 0
-	bytec_3 // "Yes"
+	bytec 4 // "Yes"
 	==
 	// passes opt_in check
 	assert		<-- Error
 	txn Sender
-	bytec_1 // "last"
+	bytec_3 // "last"
 	pushbytes 0x4f707420496e2041726773 // "Opt In Args"
 	app_local_put
