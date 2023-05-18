@@ -467,14 +467,58 @@ Bases: {py:obj}`algokit_utils.models.TransactionResponse`
 
 `````
 
-````{py:class} Account
+`````{py:class} Account
 :canonical: algokit_utils.models.Account
 
 ```{autodoc2-docstring} algokit_utils.models.Account
 :parser: myst
 ```
 
+````{py:attribute} address
+:canonical: algokit_utils.models.Account.address
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} algokit_utils.models.Account.address
+:parser: myst
+```
+
 ````
+
+````{py:attribute} private_key
+:canonical: algokit_utils.models.Account.private_key
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} algokit_utils.models.Account.private_key
+:parser: myst
+```
+
+````
+
+````{py:property} public_key
+:canonical: algokit_utils.models.Account.public_key
+:type: bytes
+
+```{autodoc2-docstring} algokit_utils.models.Account.public_key
+:parser: myst
+```
+
+````
+
+````{py:property} signer
+:canonical: algokit_utils.models.Account.signer
+:type: algosdk.atomic_transaction_composer.AccountTransactionSigner
+
+```{autodoc2-docstring} algokit_utils.models.Account.signer
+:parser: myst
+```
+
+````
+
+`````
 
 `````{py:class} AlgoClientConfig
 :canonical: algokit_utils.network_clients.AlgoClientConfig

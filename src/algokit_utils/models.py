@@ -4,7 +4,8 @@ from typing import Any, Protocol, TypeAlias, TypedDict
 
 from algosdk import transaction
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionResponse, TransactionSigner
+from algosdk.encoding import decode_address
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -12,7 +13,21 @@ class Account:
     """Holds the private_key and address for an account"""
 
     private_key: str
+    """Base64 encoded private key"""
     address: str
+    """Address for this account"""
+
+    @property
+    def public_key(self) -> bytes:
+        """The public key for this account"""
+        public_key = decode_address(self.address)  # type: ignore[no-untyped-call]
+        assert isinstance(public_key, bytes)
+        return public_key
+
+    @property
+    def signer(self) -> AccountTransactionSigner:
+        """An AccountTransactionSigner for this account"""
+        return AccountTransactionSigner(self.private_key)
 
 
 @dataclasses.dataclass(kw_only=True)
