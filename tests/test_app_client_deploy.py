@@ -23,10 +23,10 @@ def client_fixture(
     indexer_client: "IndexerClient",
     funded_account: Account,
 ) -> ApplicationClient:
-    app_spec = read_spec(
-        "app_client_test.json", deletable=True, updatable=True, name=get_unique_name(), template_values={"VERSION": 1}
+    app_spec = read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
+    return ApplicationClient(
+        algod_client, app_spec, creator=funded_account, indexer_client=indexer_client, app_name=get_unique_name()
     )
-    return ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
 
 
 def test_deploy_with_create(client_fixture: ApplicationClient, creator: Account) -> None:

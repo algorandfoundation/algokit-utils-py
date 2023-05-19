@@ -117,6 +117,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: au_deploy.TemplateValueMapping | None = None,
+        app_name: str | None = None,
     ):
         ...
 
@@ -133,6 +134,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: au_deploy.TemplateValueMapping | None = None,
+        app_name: str | None = None,
     ):
         """ApplicationClient can be created with an app_id to interact with an existing application, alternatively
         it can be created with a creator and indexer_client specified to find existing applications by name and creator.
@@ -151,11 +153,14 @@ class ApplicationClient:
         signer if not specified.
         :param TemplateValueMapping template_values: Values to use for TMPL_* template variables, dictionary keys should
         *NOT* include the TMPL_ prefix
+        :param str | None app_name: Name of application to use when deploying, defaults to name defined on the
+        Application Specification
         """
         self.algod_client = algod_client
         self.app_spec = (
             au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec
         )
+        self._app_name = app_name
         self._approval_program: Program | None = None
         self._clear_program: Program | None = None
 
@@ -192,6 +197,14 @@ class ApplicationClient:
 
         self.sender = sender
         self.suggested_params = suggested_params
+
+    @property
+    def app_name(self) -> str:
+        return self._app_name or self.app_spec.contract.name
+
+    @app_name.setter
+    def app_name(self, value: str) -> None:
+        self._app_name = value
 
     @property
     def app_address(self) -> str:
@@ -827,9 +840,7 @@ class ApplicationClient:
             else:
                 assert isinstance(app, au_deploy.AppDeployMetaData)
                 version = get_next_version(app.version)
-        return au_deploy.AppDeployMetaData(
-            self.app_spec.contract.name, version, updatable=updatable, deletable=deletable
-        )
+        return au_deploy.AppDeployMetaData(self.app_name, version, updatable=updatable, deletable=deletable)
 
     def _check_is_compiled(self) -> tuple[Program, Program]:
         if self._approval_program is None or self._clear_program is None:
@@ -866,7 +877,7 @@ class ApplicationClient:
             self.existing_deployments = au_deploy.get_creator_apps(self._indexer_client, self._creator)
 
         if self.existing_deployments:
-            app = self.existing_deployments.apps.get(self.app_spec.contract.name)
+            app = self.existing_deployments.apps.get(self.app_name)
             if app:
                 if self.app_id == 0:
                     self.app_id = app.app_id

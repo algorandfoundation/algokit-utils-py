@@ -15,13 +15,14 @@ def test_create_with_all_template_values_on_initialize(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
         creator=funded_account,
         indexer_client=indexer_client,
         template_values={"VERSION": 1, "UPDATABLE": 1, "DELETABLE": 1},
+        app_name=get_unique_name(),
     )
     client.create("create")
 
@@ -33,7 +34,7 @@ def test_create_with_some_template_values_on_initialize(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
@@ -42,6 +43,7 @@ def test_create_with_some_template_values_on_initialize(
         template_values={
             "VERSION": 1,
         },
+        app_name=get_unique_name(),
     )
 
     with pytest.raises(
@@ -56,7 +58,7 @@ def test_deploy_with_some_template_values_on_initialize(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
@@ -65,6 +67,7 @@ def test_deploy_with_some_template_values_on_initialize(
         template_values={
             "VERSION": 1,
         },
+        app_name=get_unique_name(),
     )
 
     client.deploy(allow_delete=True, allow_update=True, create_args=algokit_utils.ABICreateCallArgs(method="create"))
@@ -76,7 +79,7 @@ def test_deploy_with_overriden_template_values(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
@@ -85,6 +88,7 @@ def test_deploy_with_overriden_template_values(
         template_values={
             "VERSION": 1,
         },
+        app_name=get_unique_name(),
     )
 
     new_version = 2
@@ -102,12 +106,13 @@ def test_deploy_with_no_initialize_template_values(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
         creator=funded_account,
         indexer_client=indexer_client,
+        app_name=get_unique_name(),
     )
 
     new_version = 3
@@ -125,12 +130,13 @@ def test_deploy_with_missing_template_values(
     indexer_client: "IndexerClient",
     funded_account: algokit_utils.Account,
 ) -> None:
-    app_spec = read_spec("app_client_test.json", name=get_unique_name())
+    app_spec = read_spec("app_client_test.json")
     client = algokit_utils.ApplicationClient(
         algod_client,
         app_spec,
         creator=funded_account,
         indexer_client=indexer_client,
+        app_name=get_unique_name(),
     )
 
     with pytest.raises(

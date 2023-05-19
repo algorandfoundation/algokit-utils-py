@@ -76,7 +76,6 @@ def read_spec(
     *,
     updatable: bool | None = None,
     deletable: bool | None = None,
-    name: str | None = None,
     template_values: dict | None = None,
 ) -> ApplicationSpecification:
     path = Path(__file__).parent / file_name
@@ -94,20 +93,17 @@ def read_spec(
         .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
         .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
     )
-    if name is not None:
-        spec.contract.name = name
     return spec
 
 
 def get_specs(
     updatable: bool | None = None,
     deletable: bool | None = None,
-    name: str | None = None,
 ) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
     return (
-        read_spec("app_v1.json", updatable=updatable, deletable=deletable, name=name),
-        read_spec("app_v2.json", updatable=updatable, deletable=deletable, name=name),
-        read_spec("app_v3.json", updatable=updatable, deletable=deletable, name=name),
+        read_spec("app_v1.json", updatable=updatable, deletable=deletable),
+        read_spec("app_v2.json", updatable=updatable, deletable=deletable),
+        read_spec("app_v3.json", updatable=updatable, deletable=deletable),
     )
 
 
