@@ -640,7 +640,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
-`````{py:class} ApplicationClient(algod_client: algosdk.v2client.algod.AlgodClient, app_spec: algokit_utils.application_specification.ApplicationSpecification | pathlib.Path, *, app_id: int = 0, creator: str | algokit_utils.models.Account | None = None, indexer_client: IndexerClient | None = None, existing_deployments: algokit_utils.deploy.AppLookup | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | algokit_utils.models.Account | None = None, sender: str | None = None, suggested_params: algosdk.transaction.SuggestedParams | None = None, template_values: algokit_utils.deploy.TemplateValueMapping | None = None)
+`````{py:class} ApplicationClient(algod_client: algosdk.v2client.algod.AlgodClient, app_spec: algokit_utils.application_specification.ApplicationSpecification | pathlib.Path, *, app_id: int = 0, creator: str | algokit_utils.models.Account | None = None, indexer_client: IndexerClient | None = None, existing_deployments: algokit_utils.deploy.AppLookup | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | algokit_utils.models.Account | None = None, sender: str | None = None, suggested_params: algosdk.transaction.SuggestedParams | None = None, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, app_name: str | None = None)
 :canonical: algokit_utils.application_client.ApplicationClient
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient
