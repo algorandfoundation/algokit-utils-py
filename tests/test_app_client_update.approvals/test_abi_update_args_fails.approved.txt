@@ -1,4 +1,4 @@
-Txn {txn} had error 'assert failed pc=1010' at PC 1010 and Source Line 591: 
+Txn {txn} had error 'assert failed pc=897' at PC 897 and Source Line 527: 
 
 	frame_dig -1
 	extract 2 0
@@ -9,4 +9,4 @@ Txn {txn} had error 'assert failed pc=1010' at PC 1010 and Source Line 591:
 	intc 4 // updatable
 	// is updatable
 	assert
-	bytec_0 // "greeting"
+	bytec_1 // "greeting"
