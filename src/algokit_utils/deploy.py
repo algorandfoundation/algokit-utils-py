@@ -373,7 +373,7 @@ def _strip_comment(line: str) -> str:
     comment_idx = _find_unquoted_string(line, "//")
     if comment_idx is None:
         return line
-    return line[:comment_idx]
+    return line[:comment_idx].rstrip()
 
 
 def strip_comments(program: str) -> str:
