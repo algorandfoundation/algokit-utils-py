@@ -42,7 +42,7 @@ class LogicError(Exception):
         *,
         logic_error_str: str,
         program: str,
-        source_map: "AlgoSourceMap",
+        source_map: "AlgoSourceMap | None",
         transaction_id: str,
         message: str,
         pc: int,
@@ -57,18 +57,25 @@ class LogicError(Exception):
         self.message = message
         self.pc = pc
 
-        line = self.source_map.get_line_for_pc(self.pc)
-        self.line_no = line if line is not None else 0
+        self.line_no = self.source_map.get_line_for_pc(self.pc) if self.source_map else None
 
     def __str__(self) -> str:
         return (
-            f"Txn {self.transaction_id} had error '{self.message}' at PC {self.pc} and Source Line {self.line_no}: "
-            f"\n\n\t{self.trace()}"
+            f"Txn {self.transaction_id} had error '{self.message}' at PC {self.pc}"
+            + (":" if self.line_no is None else f" and Source Line {self.line_no}:")
+            + f"\n{self.trace()}"
         )
 
     def trace(self, lines: int = 5) -> str:
+        if self.line_no is None:
+            return """
+Could not determine TEAL source line for the error as no approval source map was provided, to receive a trace of the
+error please provide an approval SourceMap. Either by:
+    1.) Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
+    2.) Set approval_source_map from a previously compiled approval program"""
+
         program_lines = copy(self.lines)
         program_lines[self.line_no] += "\t\t<-- Error"
         lines_before = max(0, self.line_no - lines)
         lines_after = min(len(program_lines), self.line_no + lines)
-        return "\n\t".join(program_lines[lines_before:lines_after])
+        return "\n\t" + "\n\t".join(program_lines[lines_before:lines_after])
