@@ -162,10 +162,10 @@ class ApplicationClient:
         )
         self._app_name = app_name
         self._approval_program: Program | None = None
+        self._approval_source_map: SourceMap | None = None
         self._clear_program: Program | None = None
 
         self.template_values: au_deploy.TemplateValueMapping = template_values or {}
-        self.approval_source_map: SourceMap | None = None
         self.existing_deployments = existing_deployments
         self._indexer_client = indexer_client
         if creator is not None:
@@ -213,6 +213,18 @@ class ApplicationClient:
     @property
     def approval(self) -> Program | None:
         return self._approval_program
+
+    @property
+    def approval_source_map(self) -> SourceMap | None:
+        if self._approval_source_map:
+            return self._approval_source_map
+        if self._approval_program:
+            return self._approval_program.source_map
+        return None
+
+    @approval_source_map.setter
+    def approval_source_map(self, value: SourceMap) -> None:
+        self._approval_source_map = value
 
     @property
     def clear(self) -> Program | None:
@@ -610,9 +622,9 @@ class ApplicationClient:
             call_abi_method, abi_kwargs, _parameters.on_complete or transaction.OnComplete.NoOpOC
         )
         if method:
-            response = self._try_simulate_call(method, atc)
-            if response:
-                return response
+            hints = self._method_hints(method)
+            if hints and hints.read_only:
+                return self._simulate_readonly_call(method, atc)
 
         return self._execute_atc_tr(atc)
 
@@ -849,23 +861,20 @@ class ApplicationClient:
             )
         return self._approval_program, self._clear_program
 
-    def _try_simulate_call(
+    def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
-    ) -> ABITransactionResponse | TransactionResponse | None:
-        hints = self._method_hints(method)
-        if hints and hints.read_only:
-            simulate_response = atc.simulate(self.algod_client)
-            if not simulate_response.would_succeed:
-                raise _try_convert_to_logic_error(
-                    simulate_response.failure_message,
-                    self.app_spec.approval_program,
-                    self._get_approval_source_map(),
-                ) or Exception(
-                    f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
-                )
+    ) -> ABITransactionResponse | TransactionResponse:
+        simulate_response = atc.simulate(self.algod_client)
+        if simulate_response.failure_message:
+            raise _try_convert_to_logic_error(
+                simulate_response.failure_message,
+                self.app_spec.approval_program,
+                self._get_approval_source_map,
+            ) or Exception(
+                f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
+            )
 
-            return TransactionResponse.from_atr(simulate_response)
-        return None
+        return TransactionResponse.from_atr(simulate_response)
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
@@ -932,10 +941,14 @@ class ApplicationClient:
             )
 
     def _get_approval_source_map(self) -> SourceMap | None:
-        if self.approval:
-            return self.approval.source_map
+        if self.approval_source_map:
+            return self.approval_source_map
 
-        return self.approval_source_map
+        try:
+            approval, _ = self._check_is_compiled()
+        except au_deploy.DeploymentFailedError:
+            return None
+        return approval.source_map
 
     def add_method_call(
         self,
@@ -1104,7 +1117,7 @@ class ApplicationClient:
             atc,
             self.algod_client,
             approval_program=self.app_spec.approval_program,
-            approval_source_map=self._get_approval_source_map(),
+            approval_source_map=self._get_approval_source_map,
         )
 
     def get_signer_sender(
@@ -1187,29 +1200,29 @@ def get_next_version(current_version: str) -> str:
 
 def _try_convert_to_logic_error(
     source_ex: Exception | str,
-    approval_program: str | None = None,
-    approval_source_map: SourceMap | None = None,
+    approval_program: str,
+    approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
 ) -> Exception | None:
-    if approval_source_map and approval_program:
-        source_ex_str = str(source_ex)
-        logic_error_data = parse_logic_error(source_ex_str)
-        if logic_error_data is not None:
-            return LogicError(
-                logic_error_str=source_ex_str,
-                logic_error=source_ex if isinstance(source_ex, Exception) else None,
-                program=approval_program,
-                source_map=approval_source_map,
-                **logic_error_data,
-            )
+    source_ex_str = str(source_ex)
+    logic_error_data = parse_logic_error(source_ex_str)
+    if logic_error_data:
+        return LogicError(
+            logic_error_str=source_ex_str,
+            logic_error=source_ex if isinstance(source_ex, Exception) else None,
+            program=approval_program,
+            source_map=approval_source_map() if callable(approval_source_map) else approval_source_map,
+            **logic_error_data,
+        )
+
     return None
 
 
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",
+    approval_program: str,
     wait_rounds: int = 4,
-    approval_program: str | None = None,
-    approval_source_map: SourceMap | None = None,
+    approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
 ) -> AtomicTransactionResponse:
     """Calls {py:meth}`AtomicTransactionComposer.execute` on provided `atc`, but will parse any errors
     and raise a {py:class}`LogicError` if possible

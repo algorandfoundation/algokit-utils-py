@@ -1,4 +1,4 @@
-Txn {txn} had error 'assert failed pc=897' at PC 897 and Source Line 527: 
+Txn {txn} had error 'assert failed pc=897' at PC 897 and Source Line 527:
 
 	frame_dig -1
 	extract 2 0
