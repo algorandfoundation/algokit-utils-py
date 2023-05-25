@@ -1221,7 +1221,7 @@ Bases: {py:obj}`Exception`
 
 `````
 
-```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: algosdk.source_map.SourceMap, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None)
+```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None)
 :canonical: algokit_utils.logic_error.LogicError
 
 Bases: {py:obj}`Exception`
@@ -1677,7 +1677,7 @@ Bases: {py:obj}`algokit_utils.models.TransactionParameters`
 ```
 ````
 
-````{py:function} execute_atc_with_logic_error(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod_client: algosdk.v2client.algod.AlgodClient, wait_rounds: int = 4, approval_program: str | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None) -> algosdk.atomic_transaction_composer.AtomicTransactionResponse
+````{py:function} execute_atc_with_logic_error(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod_client: algosdk.v2client.algod.AlgodClient, approval_program: str, wait_rounds: int = 4, approval_source_map: algosdk.source_map.SourceMap | typing.Callable[[], algosdk.source_map.SourceMap | None] | None = None) -> algosdk.atomic_transaction_composer.AtomicTransactionResponse
 :canonical: algokit_utils.application_client.execute_atc_with_logic_error
 
 ```{autodoc2-docstring} algokit_utils.application_client.execute_atc_with_logic_error

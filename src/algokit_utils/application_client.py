@@ -312,7 +312,7 @@ class ApplicationClient:
         :param ABICallArgs | ABICallArgsDict update_args: Arguments used when updating an application
         :param ABICallArgs | ABICallArgsDict delete_args: Arguments used when deleting an application
         :return DeployResponse: details action taken and relevant transactions
-        :raises DeploymentError: If the deployment failed due
+        :raises DeploymentError: If the deployment failed
         """
         # check inputs
         if self.app_id:
