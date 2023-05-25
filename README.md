@@ -21,7 +21,7 @@ pip install algokit-utils
 
 ## Guiding principles
 
-This library follows the [Guiding Principles of AlgoKit](https://github.com/algorandfoundation/algokit-cli#guiding-principles).
+This library follows the [Guiding Principles of AlgoKit](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/algokit.md#guiding-principles).
 
 ## Contributing
 
