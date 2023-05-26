@@ -231,6 +231,31 @@ def test_readonly_call_with_error_with_new_client_provided_source_map(
     check_output_stability(str(ex.value).replace(ex.value.transaction_id, "{txn}"))
 
 
+def test_readonly_call_with_error_with_imported_source_map(
+    algod_client: "AlgodClient",
+    funded_account: Account,
+) -> None:
+    app_spec = Path(__file__).parent / "app_client_test.json"
+    client = ApplicationClient(
+        algod_client, app_spec, signer=funded_account, template_values={"VERSION": 1, "UPDATABLE": 1, "DELETABLE": 1}
+    )
+    create_response = client.create("create")
+    assert create_response.tx_id
+    source_map_export = client.export_source_map()
+    assert source_map_export
+
+    new_client = ApplicationClient(algod_client, app_spec, app_id=client.app_id, signer=funded_account)
+    new_client.import_source_map(source_map_export)
+
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        new_client.call(
+            "readonly",
+            error=1,
+        )
+
+    check_output_stability(str(ex.value).replace(ex.value.transaction_id, "{txn}"))
+
+
 def test_readonly_call_with_error_with_new_client_missing_source_map(
     algod_client: "AlgodClient",
     funded_account: Account,

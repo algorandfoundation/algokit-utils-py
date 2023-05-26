@@ -72,7 +72,8 @@ class LogicError(Exception):
 Could not determine TEAL source line for the error as no approval source map was provided, to receive a trace of the
 error please provide an approval SourceMap. Either by:
     1.) Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
-    2.) Set approval_source_map from a previously compiled approval program"""
+    2.) Set approval_source_map from a previously compiled approval program OR
+    3.) Import a previously exported source map using import_source_map"""
 
         program_lines = copy(self.lines)
         program_lines[self.line_no] += "\t\t<-- Error"
