@@ -1,5 +1,6 @@
 import base64
 import copy
+import json
 import logging
 import re
 import typing
@@ -949,6 +950,24 @@ class ApplicationClient:
         except au_deploy.DeploymentFailedError:
             return None
         return approval.source_map
+
+    def export_source_map(self) -> str | None:
+        """Export approval source map to JSON, can be later re-imported with `import_source_map`"""
+        source_map = self._get_approval_source_map()
+        if source_map:
+            return json.dumps(
+                {
+                    "version": source_map.version,
+                    "sources": source_map.sources,
+                    "mappings": source_map.mappings,
+                }
+            )
+        return None
+
+    def import_source_map(self, source_map_json: str) -> None:
+        """Import approval source from JSON exported by `export_source_map`"""
+        source_map = json.loads(source_map_json)
+        self._approval_source_map = SourceMap(source_map)
 
     def add_method_call(
         self,

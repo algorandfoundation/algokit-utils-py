@@ -780,6 +780,15 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 
 ````
 
+````{py:method} export_source_map() -> str | None
+:canonical: algokit_utils.application_client.ApplicationClient.export_source_map
+
+```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.export_source_map
+:parser: myst
+```
+
+````
+
 ````{py:method} get_global_state(*, raw: bool = False) -> dict[bytes | str, bytes | str | int]
 :canonical: algokit_utils.application_client.ApplicationClient.get_global_state
 
@@ -802,6 +811,15 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 :canonical: algokit_utils.application_client.ApplicationClient.get_signer_sender
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.get_signer_sender
+:parser: myst
+```
+
+````
+
+````{py:method} import_source_map(source_map_json: str) -> None
+:canonical: algokit_utils.application_client.ApplicationClient.import_source_map
+
+```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.import_source_map
 :parser: myst
 ```
 

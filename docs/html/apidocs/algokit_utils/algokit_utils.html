@@ -710,6 +710,12 @@ should <em>NOT</em> include the TMPL_ prefix</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.ApplicationClient.export_source_map">
+<span class="sig-name descname"><span class="pre">export_source_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.ApplicationClient.export_source_map" title="Permalink to this definition"></a></dt>
+<dd><p>Export approval source map to JSON, can be later re-imported with <code class="docutils literal notranslate"><span class="pre">import_source_map</span></code></p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="algokit_utils.ApplicationClient.get_global_state">
 <span class="sig-name descname"><span class="pre">get_global_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.11)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.11)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.ApplicationClient.get_global_state" title="Permalink to this definition"></a></dt>
 <dd><p>Gets the global state info associated with app_id</p>
@@ -727,6 +733,12 @@ should <em>NOT</em> include the TMPL_ prefix</p></li>
 <dd><p>Return signer and sender, using default values on client if not specified</p>
 <p>Will use provided values if given, otherwise will fall back to values defined on client.
 If no sender is specified then will attempt to obtain sender from signer</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.ApplicationClient.import_source_map">
+<span class="sig-name descname"><span class="pre">import_source_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_map_json</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.ApplicationClient.import_source_map" title="Permalink to this definition"></a></dt>
+<dd><p>Import approval source from JSON exported by <code class="docutils literal notranslate"><span class="pre">export_source_map</span></code></p>
 </dd></dl>
 
 <dl class="py method">
