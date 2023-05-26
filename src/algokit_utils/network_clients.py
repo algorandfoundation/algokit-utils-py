@@ -79,7 +79,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
 def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `devnet-v1` or `sandnet-v1`"""
     params = client.suggested_params()
-    return params.gen in ["devnet-v1", "sandnet-v1"]
+    return params.gen in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
