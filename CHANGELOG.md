@@ -2,6 +2,33 @@
 
 <!--next-version-placeholder-->
 
+## v1.2.0 (2023-06-06)
+
+### Feature
+
+* Add factory method to Account to create from a new account ([`1185097`](https://github.com/algorandfoundation/algokit-utils-py/commit/1185097e78a214b16e36ee67f03cf29b22555165))
+* Use official Algorand Docker images for LocalNet ([`0a2d176`](https://github.com/algorandfoundation/algokit-utils-py/commit/0a2d176ba9addec70078dcdfb1047369c9e82271))
+* Add import_source_map and export_source_map to ApplicationClient ([`ea7cbb7`](https://github.com/algorandfoundation/algokit-utils-py/commit/ea7cbb7e807e0a13bd8653915eeeb269dacfc208))
+* Allow specifying app_name when creating an ApplicationClient ([#36](https://github.com/algorandfoundation/algokit-utils-py/issues/36)) ([`6cef241`](https://github.com/algorandfoundation/algokit-utils-py/commit/6cef241aec51b6c386c6a53645d85fb9c816e01a))
+* Use simulate for readonly methods ([`723f2cd`](https://github.com/algorandfoundation/algokit-utils-py/commit/723f2cdfc0a15d4e0cd15633069c63bb9db57bb8))
+* Support partially providing template_values on client init ([`5cef97d`](https://github.com/algorandfoundation/algokit-utils-py/commit/5cef97d49110835b1cb708efe45befc1600549d9))
+* Add signer and public_key to Account ([#35](https://github.com/algorandfoundation/algokit-utils-py/issues/35)) ([`e21ba50`](https://github.com/algorandfoundation/algokit-utils-py/commit/e21ba50ff288cd321416b43f25059090a0b43f1b))
+
+### Fix
+
+* Add a compatibility shim for simulate 3.15 endpoints ([`0668358`](https://github.com/algorandfoundation/algokit-utils-py/commit/0668358353bb252bb4b65b13f632f38bd3c84a93))
+* Automatically provide an approval source_map where possible ([`9cc9972`](https://github.com/algorandfoundation/algokit-utils-py/commit/9cc9972be055be49ac679a4d63c8ca071da53616))
+* Also strip whitespace when stripping comments ([`f7e85c8`](https://github.com/algorandfoundation/algokit-utils-py/commit/f7e85c8ffa79f63af2ae073bf1858bbc5091ddee))
+* Add missing fields to CommonCallParametersDict ([`1167966`](https://github.com/algorandfoundation/algokit-utils-py/commit/11679667bec0f677f83ade8bec0188981e06b60b))
+
+### Documentation
+
+* Remove stale files ([`257a2bb`](https://github.com/algorandfoundation/algokit-utils-py/commit/257a2bb1fecca635bb77574b672a0cfad209a513))
+* Add handwritten documentation ([`65b87b6`](https://github.com/algorandfoundation/algokit-utils-py/commit/65b87b6669fd463eacc4ca218ee8aef0f2ea7c66))
+* Fix broken link ([`59207f2`](https://github.com/algorandfoundation/algokit-utils-py/commit/59207f2425740f5b31a07624abd8598a5d28821b))
+* Fix typo ([`f366c1e`](https://github.com/algorandfoundation/algokit-utils-py/commit/f366c1e51c284ed07344dcabb5169439e10e9acd))
+* Update docs ([`5f8356c`](https://github.com/algorandfoundation/algokit-utils-py/commit/5f8356c1b783e4043c5f8e2c5c8ee6b8f7e91b77))
+
 ## v1.1.1 (2023-05-03)
 ### Fix
 * Return correct response when multiple transactions are in an ABI call ([#30](https://github.com/algorandfoundation/algokit-utils-py/issues/30)) ([`9c9aacf`](https://github.com/algorandfoundation/algokit-utils-py/commit/9c9aacf2836d982f14c94d81cf4da19de391225d))
