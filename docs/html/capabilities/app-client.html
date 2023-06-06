@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App client &mdash; algokit-utils 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="App deployment" href="app-deploy.html" />
+    <link rel="prev" title="Client management" href="client.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            algokit-utils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="account.html">Account management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client.html">Client management</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">App client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design">Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-an-application-client">Creating an application client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#calling-methods-on-the-app">Calling methods on the app</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#specifying-which-method">Specifying which method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#abi-arguments">ABI arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transaction-parameters">Transaction Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#composing-calls">Composing calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reading-state">Reading state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handling-logic-errors-and-diagnosing-errors">Handling logic errors and diagnosing errors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="app-deploy.html">App deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transfer.html">Algo transfers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">algokit-utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">App client</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/capabilities/app-client.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="app-client">
+<h1>App client<a class="headerlink" href="#app-client" title="Permalink to this heading"></a></h1>
+<p>Application client that works with ARC-0032 application spec defined smart contracts (e.g. via Beaker).</p>
+<p>App client is a high productivity application client that works with ARC-0032 application spec defined smart contracts, which you can use to create, update, delete, deploy and call a smart contract and access state data for it.</p>
+<p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_app_client_call.py">automated tests</a>.</p>
+<section id="design">
+<h2>Design<a class="headerlink" href="#design" title="Permalink to this heading"></a></h2>
+<p>The design for the app client is based on a wrapper for parsing an <a class="reference external" href="https://github.com/algorandfoundation/ARCs/pull/150">ARC-0032</a> application spec and wrapping the <a class="reference internal" href="app-deploy.html"><span class="std std-doc">App deployment</span></a> functionality and corresponding <a class="reference internal" href="app-deploy.html#design"><span class="std std-ref">design</span></a>.</p>
+</section>
+<section id="creating-an-application-client">
+<h2>Creating an application client<a class="headerlink" href="#creating-an-application-client" title="Permalink to this heading"></a></h2>
+<p>There are two key ways of instantiating an ApplicationClient:</p>
+<ol class="arabic simple">
+<li><p>By app ID - When needing to call an existing app by app ID or unconditionally create a new app.
+The signature <code class="docutils literal notranslate"><span class="pre">ApplicationClient(algod_client,</span> <span class="pre">app_spec,</span> <span class="pre">app_id=...,</span> <span class="pre">...)</span></code> requires:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">algod_client</span></code>: An <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_spec</span></code>: An <code class="docutils literal notranslate"><span class="pre">ApplicationSpecification</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_id</span></code>: The app_id of an existing application, or 0 if creating a new app</p></li>
+</ul>
+</li>
+<li><p>By creator and app name - When needing to deploy or find an app associated with a specific creator account and app name.
+The signature <code class="docutils literal notranslate"><span class="pre">ApplicationClient(algod_client,</span> <span class="pre">app_spec,</span> <span class="pre">creator=...,</span> <span class="pre">indexer=...,</span> <span class="pre">app_lookup)</span></code> requires:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">algod_client</span></code>: An <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_spec</span></code>: An <code class="docutils literal notranslate"><span class="pre">ApplicationSpecification</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">creator</span></code>: The address or <code class="docutils literal notranslate"><span class="pre">Account</span></code> of the creator of the app for which to search for the deployed app under</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">indexer</span></code>:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_lookup</span></code>: Optional if an indexer is provided,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app_name</span></code>: An overridden name to identify the contract with, otherwise <code class="docutils literal notranslate"><span class="pre">contract.name</span></code> is used from the app spec</p></li>
+</ul>
+</li>
+</ol>
+<p>Both approaches also allow specifying the following parameters that will be used as defaults for all application calls:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">signer</span></code>: <code class="docutils literal notranslate"><span class="pre">TransactionSigner</span></code> to sign transactions with.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sender</span></code>: Address to use for transaction signing, will be derived from the signer if not provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggested_params</span></code>: Default <code class="docutils literal notranslate"><span class="pre">SuggestedParams</span></code> to use, will use current network suggested params by default</p></li>
+</ul>
+<p>Both approaches also allow specifying a mapping of template values via the <code class="docutils literal notranslate"><span class="pre">template_values</span></code> parameter, this will be used before compiling the application to replace any
+<code class="docutils literal notranslate"><span class="pre">TMPL_</span></code> variables that may be in the TEAL. The <code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> and <code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> variables used in some AlgoKit templates are handled by the <code class="docutils literal notranslate"><span class="pre">deploy</span></code> method, but should be included if
+using <code class="docutils literal notranslate"><span class="pre">create</span></code> or <code class="docutils literal notranslate"><span class="pre">update</span></code> directly.</p>
+</section>
+<section id="calling-methods-on-the-app">
+<h2>Calling methods on the app<a class="headerlink" href="#calling-methods-on-the-app" title="Permalink to this heading"></a></h2>
+<p>There are various methods available on <code class="docutils literal notranslate"><span class="pre">ApplicationClient</span></code> that can be used to call an app:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">call</span></code>: Used to call methods with an on complete action of <code class="docutils literal notranslate"><span class="pre">no_op</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create</span></code>: Used to create an instance of the app, by using an <code class="docutils literal notranslate"><span class="pre">app_id</span></code> of 0, includes the approval and clear programs in the call</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update</span></code>: Used to update an existing app, includes the approval and clear programs in the call, and is called with an on complete action of <code class="docutils literal notranslate"><span class="pre">update_application</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delete</span></code>: Used to remove an existing app, is called with an on complete action of <code class="docutils literal notranslate"><span class="pre">delete_application</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">opt_in</span></code>: Used to opt in to an existing app, is called with an on complete action of <code class="docutils literal notranslate"><span class="pre">opt_in</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">close_out</span></code>: Used to close out of an existing app, is called with an on complete action of <code class="docutils literal notranslate"><span class="pre">opt_in</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">clear_state</span></code>: Used to unconditionally close out from an app, calls the clear program of an app</p></li>
+</ul>
+<section id="specifying-which-method">
+<h3>Specifying which method<a class="headerlink" href="#specifying-which-method" title="Permalink to this heading"></a></h3>
+<p>All methods for calling an app that support ABI methods (everything except <code class="docutils literal notranslate"><span class="pre">clear_state</span></code>) take a parameter <code class="docutils literal notranslate"><span class="pre">call_abi_method</span></code> which can be used to specify which method to call.
+The method selected can be specified explicitly, or allow the client to infer the method where possible, supported values are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: The default value, when <code class="docutils literal notranslate"><span class="pre">None</span></code> is passed the client will attempt to find any ABI method or bare method that is compatible with the provided arguments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: Indicates that an ABI method should not be used, and instead a bare method call is made</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: Indicates that an ABI method should be used, and the client will attempt to find an ABI method that is compatible with the provided arguments</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code>: If a string is provided, it will be interpreted as either an ABI signature specifying a method, or as an ABI method name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">algosdk.abi.Method</span></code>: The specified ABI method will be called</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ABIReturnSubroutine</span></code>: Any type that has a <code class="docutils literal notranslate"><span class="pre">method_spec</span></code> function that returns an <code class="docutils literal notranslate"><span class="pre">algosd.abi.Method</span></code></p></li>
+</ul>
+</section>
+<section id="abi-arguments">
+<h3>ABI arguments<a class="headerlink" href="#abi-arguments" title="Permalink to this heading"></a></h3>
+<p>ABI arguments are passed as python keyword arguments e.g. to pass the ABI parameter <code class="docutils literal notranslate"><span class="pre">name</span></code> for the ABI method <code class="docutils literal notranslate"><span class="pre">hello</span></code> the following syntax is used <code class="docutils literal notranslate"><span class="pre">client.call(&quot;hello&quot;,</span> <span class="pre">name=&quot;world&quot;)</span></code></p>
+</section>
+<section id="transaction-parameters">
+<h3>Transaction Parameters<a class="headerlink" href="#transaction-parameters" title="Permalink to this heading"></a></h3>
+<p>All methods for calling an app take an optional <code class="docutils literal notranslate"><span class="pre">transaction_parameters</span></code> argument, with the following supported parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">signer</span></code>: The <code class="docutils literal notranslate"><span class="pre">TransactionSigner</span></code> to use on the call. This overrides any signer specified on the client</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sender</span></code>: The address of the sender to use on the call, must be able to be signed for by the <code class="docutils literal notranslate"><span class="pre">signer</span></code>. This overrides any sender specified on the client</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggested_params</span></code>: <code class="docutils literal notranslate"><span class="pre">SuggestedParams</span></code> to use on the call. This overrides any suggested_params specified on the client</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">note</span></code>: Note to include in the transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lease</span></code>: Lease parameter for the transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">boxes</span></code>: A sequence of boxes to use in the transaction, this is a list of (app_index, box_name) tuples <code class="docutils literal notranslate"><span class="pre">[(0,</span> <span class="pre">&quot;box_name&quot;),</span> <span class="pre">(0,</span> <span class="pre">...)]</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accounts</span></code>: Account references to include in the transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">foreign_apps</span></code>: Foreign apps to include in the transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">foreign_assets</span></code>: Foreign assets to include in the transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_complete</span></code>: The on complete action to use for the transaction, only available when using <code class="docutils literal notranslate"><span class="pre">call</span></code> or <code class="docutils literal notranslate"><span class="pre">create</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extra_pages</span></code>: Additional pages to allocate when calling <code class="docutils literal notranslate"><span class="pre">create</span></code>, by default a sufficient amount will be calculated based on the current approval and clear. This can be overridden, if more is required
+for a future update</p></li>
+</ul>
+<p>Parameters can be passed as one of the dataclasses <code class="docutils literal notranslate"><span class="pre">CommonCallParameters</span></code>, <code class="docutils literal notranslate"><span class="pre">OnCompleteCallParameters</span></code>, <code class="docutils literal notranslate"><span class="pre">CreateCallParameters</span></code> (exact type depends on method used)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">transaction_parameters</span><span class="o">=</span><span class="n">algokit_utils</span><span class="o">.</span><span class="n">OnCompleteCallParameters</span><span class="p">(</span><span class="n">signer</span><span class="o">=...</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Alternatively, parameters can be passed as a dictionary e.g.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">transaction_parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;signer&quot;</span><span class="p">:</span><span class="o">...</span><span class="p">})</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="composing-calls">
+<h2>Composing calls<a class="headerlink" href="#composing-calls" title="Permalink to this heading"></a></h2>
+<p>If multiple calls need to be made in a single transaction, the <code class="docutils literal notranslate"><span class="pre">compose_</span></code> method variants can be used. All these methods take an <code class="docutils literal notranslate"><span class="pre">AtomicTransactionComposer</span></code> as their first argument.
+Once all the calls have been added to the ATC, it can then be executed. For example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">algokit_utils</span> <span class="kn">import</span> <span class="n">ApplicationClient</span>
+<span class="kn">from</span> <span class="nn">algosdk.atomic_transaction_composer</span> <span class="kn">import</span> <span class="n">AtomicTransactionComposer</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">ApplicationClient</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">atc</span> <span class="o">=</span> <span class="n">AtomicTransactionComposer</span><span class="p">()</span>
+<span class="n">client</span><span class="o">.</span><span class="n">compose_call</span><span class="p">(</span><span class="n">atc</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;world&quot;</span><span class="p">)</span>
+<span class="o">...</span> <span class="c1"># additional compose calls</span>
+
+<span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">execute_atc</span><span class="p">(</span><span class="n">atc</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="reading-state">
+<h2>Reading state<a class="headerlink" href="#reading-state" title="Permalink to this heading"></a></h2>
+<p>There are various methods defined that let you read state from the smart contract app:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get_global_state</span></code> - Gets the current global state of the app</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_local_state</span></code> - Gets the current local state for the given account address</p></li>
+</ul>
+</section>
+<section id="handling-logic-errors-and-diagnosing-errors">
+<h2>Handling logic errors and diagnosing errors<a class="headerlink" href="#handling-logic-errors-and-diagnosing-errors" title="Permalink to this heading"></a></h2>
+<p>Often when calling a smart contract during development you will get logic errors that cause an exception to throw. This may be because of a failing assertion, a lack of fees,
+exhaustion of opcode budget, or any number of other reasons.</p>
+<p>When this occurs, you will generally get an error that looks something like: <code class="docutils literal notranslate"><span class="pre">TransactionPool.Remember:</span> <span class="pre">transaction</span> <span class="pre">{TRANSACTION_ID}:</span> <span class="pre">logic</span> <span class="pre">eval</span> <span class="pre">error:</span> <span class="pre">{ERROR_MESSAGE}.</span> <span class="pre">Details:</span> <span class="pre">pc={PROGRAM_COUNTER_VALUE},</span> <span class="pre">opcodes={LIST_OF_OP_CODES}</span></code>.</p>
+<p>The information in that error message can be parsed and when combined with the <a class="reference internal" href="app-deploy.html#compilation-and-template-substitution"><span class="std std-ref">source map from compilation</span></a> you can expose debugging
+information that makes it much easier to understand what’s happening.</p>
+<p>When an error is thrown then the resulting error that is re-thrown will be a <code class="docutils literal notranslate"><span class="pre">LogicError</span></code>, which has the following fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">logic_error</span></code>: Original exception</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">program</span></code>: Program source (if available)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_map</span></code>: Source map used (if available)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transaction_id</span></code>: Transaction ID of failing transaction</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message</span></code>: The error message</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">line_no</span></code>: The line number in the TEAL program that</p></li>
+</ul>
+<p>The function <code class="docutils literal notranslate"><span class="pre">trace()</span></code> will provide a formatted output of the surrounding TEAL where the error occurred.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The extended information will only show if the Application Client has a source map. This will occur if:</p>
+<p>1.) The ApplicationClient instance has already called, <code class="docutils literal notranslate"><span class="pre">create,</span> </code>update<code class="docutils literal notranslate"><span class="pre">or</span></code>deploy<code class="docutils literal notranslate"><span class="pre">OR</span> <span class="pre">2.)</span></code>template_values<code class="docutils literal notranslate"><span class="pre">are</span> <span class="pre">provided</span> <span class="pre">when</span> <span class="pre">creating</span> <span class="pre">the</span> <span class="pre">ApplicationClient,</span> <span class="pre">so</span> <span class="pre">a</span> <span class="pre">SourceMap</span> <span class="pre">can</span> <span class="pre">be</span> <span class="pre">obtained</span> <span class="pre">automatically</span> <span class="pre">OR</span> <span class="pre">3.)</span></code>approval_source_map<code class="docutils literal notranslate"><span class="pre">on</span></code>ApplicationClient<code class="docutils literal notranslate"><span class="pre">has</span> <span class="pre">been</span> <span class="pre">set</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">previously</span> <span class="pre">compiled</span> <span class="pre">approval</span> <span class="pre">program</span> <span class="pre">OR</span> <span class="pre">4.)</span> <span class="pre">A</span> <span class="pre">source</span> <span class="pre">map</span> <span class="pre">has</span> <span class="pre">been</span> <span class="pre">exported/imported</span> <span class="pre">using</span></code>export_source_map<code class="docutils literal notranslate"><span class="pre">/</span></code>import_source_map`”””</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="client.html" class="btn btn-neutral float-left" title="Client management" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="app-deploy.html" class="btn btn-neutral float-right" title="App deployment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Algorand Foundation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

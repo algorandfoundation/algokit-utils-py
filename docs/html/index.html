@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Usage" href="usage.html" /> 
+    <link rel="next" title="Account management" href="capabilities/account.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,7 +43,11 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/account.html">Account management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/client.html">Client management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/app-client.html">App client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/app-deploy.html">App deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/transfer.html">Algo transfers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -81,11 +85,38 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
 <p class="admonition-title">Note</p>
 <p>If you prefer TypeScript there’s an equivalent <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-ts">TypeScript utility library</a>.</p>
 </div>
+<p><a class="reference internal" href="#core-principles">Core principles</a> | <a class="reference internal" href="#installation">Installation</a> | <a class="reference internal" href="#usage">Usage</a> | <a class="reference internal" href="#capabilities">Capabilities</a> | <a class="reference internal" href="#reference-documentation">Reference docs</a></p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="usage.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/account.html">Account management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/account.html#account"><code class="docutils literal notranslate"><span class="pre">Account</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/client.html">Client management</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/client.html#network-configuration">Network configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/client.html#clients">Clients</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/app-client.html">App client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#design">Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#creating-an-application-client">Creating an application client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#calling-methods-on-the-app">Calling methods on the app</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#composing-calls">Composing calls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#reading-state">Reading state</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-client.html#handling-logic-errors-and-diagnosing-errors">Handling logic errors and diagnosing errors</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/app-deploy.html">App deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-deploy.html#design">Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-deploy.html#finding-apps-by-creator">Finding apps by creator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/app-deploy.html#deploying-an-application">Deploying an application</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/transfer.html">Algo transfers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/transfer.html#transferring-algos">Transferring Algos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/transfer.html#ensuring-minimum-algos">Ensuring minimum Algos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="capabilities/transfer.html#dispenser">Dispenser</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a><ul>
@@ -95,12 +126,74 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
 </ul>
 </div>
 </section>
+<section id="core-principles">
+<span id="id1"></span><h1>Core principles<a class="headerlink" href="#core-principles" title="Permalink to this heading"></a></h1>
+<p>This library is designed with the following principles:</p>
+<ul class="simple">
+<li><p><strong>Modularity</strong> - This library is a thin wrapper of modular building blocks over the Algorand SDK; the primitives from the underlying Algorand SDK are
+exposed and used wherever possible so you can opt-in to which parts of this library you want to use without having to use an all or nothing approach.</p></li>
+<li><p><strong>Type-safety</strong> - This library provides strong TypeScript support with effort put into creating types that provide good type safety and intellisense.</p></li>
+<li><p><strong>Productivity</strong> - This library is built to make solution developers highly productive; it has a number of mechanisms to make common code easier and terser to write</p></li>
+</ul>
+</section>
+<section id="installation">
+<span id="id2"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
+<p>This library can be installed from PyPi using pip or poetry, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">algokit</span><span class="o">-</span><span class="n">utils</span>
+<span class="n">poetry</span> <span class="n">add</span> <span class="n">algokit</span><span class="o">-</span><span class="n">utils</span>
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<span id="id3"></span><h1>Usage<a class="headerlink" href="#usage" title="Permalink to this heading"></a></h1>
+<p>To use this library simply include the following at the top of your file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">algokit_utils</span>
+</pre></div>
+</div>
+<p>Then you can use intellisense to auto-complete the various functions and types that are available by typing <code class="docutils literal notranslate"><span class="pre">algokit_utils.</span></code> in your favourite Integrated Development Environment (IDE),
+or you can refer to the <a class="reference internal" href="apidocs/algokit_utils/algokit_utils.html"><span class="std std-doc">reference documentation</span></a>.</p>
+<section id="types">
+<h2>Types<a class="headerlink" href="#types" title="Permalink to this heading"></a></h2>
+<p>The library contains extensive type hinting combined with a tool like MyPy this can help identify issues where incorrect types have been used, or used incorrectly.</p>
+</section>
+</section>
+<section id="capabilities">
+<span id="id4"></span><h1>Capabilities<a class="headerlink" href="#capabilities" title="Permalink to this heading"></a></h1>
+<p>The library helps you with the following capabilities:</p>
+<ul class="simple">
+<li><p>Core capabilities</p>
+<ul>
+<li><p><a class="reference internal" href="capabilities/client.html"><span class="std std-doc"><strong>Client management</strong></span></a> - Creation of algod, indexer and kmd clients against various networks resolved from environment or specified configuration</p></li>
+<li><p><a class="reference internal" href="capabilities/account.html"><span class="std std-doc"><strong>Account management</strong></span></a> - Creation and use of accounts including mnemonic, multisig, transaction signer, idempotent KMD accounts and environment variable injected</p></li>
+</ul>
+</li>
+<li><p>Higher-order use cases</p>
+<ul>
+<li><p><a class="reference internal" href="capabilities/app-client.html"><span class="std std-doc"><strong>ARC-0032 Application Spec client</strong></span></a> - Builds on top of the App management and App deployment capabilities to provide a high productivity application client that works with ARC-0032 application spec defined smart contracts (e.g. via Beaker)</p></li>
+<li><p><a class="reference internal" href="capabilities/app-deploy.html"><span class="std std-doc"><strong>App deployment</strong></span></a> - Idempotent (safely retryable) deployment of an app, including deploy-time immutability and permanence control and TEAL template substitution</p></li>
+<li><p><a class="reference internal" href="capabilities/transfer.html"><span class="std std-doc"><strong>Algo transfers</strong></span></a> - Ability to easily initiate algo transfers between accounts, including dispenser management and idempotent account funding</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="reference-documentation">
+<span id="id5"></span><h1>Reference documentation<a class="headerlink" href="#reference-documentation" title="Permalink to this heading"></a></h1>
+<p>We have <a class="reference internal" href="apidocs/algokit_utils/algokit_utils.html"><span class="std std-doc">auto-generated reference documentation for the code</span></a>.</p>
+</section>
+<section id="roadmap">
+<h1>Roadmap<a class="headerlink" href="#roadmap" title="Permalink to this heading"></a></h1>
+<p>This library will naturally evolve with any logical developer experience improvements needed to facilitate the <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli">AlgoKit</a> roadmap as it evolves.</p>
+<p>Likely future capability additions include:</p>
+<ul class="simple">
+<li><p>Typed application client</p></li>
+<li><p>Asset management</p></li>
+<li><p>Expanded indexer API wrapper support</p></li>
+</ul>
+</section>
 <section id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading"></a></h1>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </section>
 
@@ -108,7 +201,7 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="usage.html" class="btn btn-neutral float-right" title="Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="capabilities/account.html" class="btn btn-neutral float-right" title="Account management" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
