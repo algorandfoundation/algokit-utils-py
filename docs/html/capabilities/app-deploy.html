@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App deployment &mdash; algokit-utils 1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Algo transfers" href="transfer.html" />
+    <link rel="prev" title="App client" href="app-client.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            algokit-utils
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="account.html">Account management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="client.html">Client management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="app-client.html">App client</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">App deployment</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#design">Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finding-apps-by-creator">Finding apps by creator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#deploying-an-application">Deploying an application</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-parameters">Input parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#idempotency">Idempotency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compilation-and-template-substitution">Compilation and template substitution</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#return-value">Return value</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="transfer.html">Algo transfers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">algokit-utils</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">App deployment</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/capabilities/app-deploy.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="app-deployment">
+<h1>App deployment<a class="headerlink" href="#app-deployment" title="Permalink to this heading"></a></h1>
+<p>Idempotent (safely retryable) deployment of an app, including deploy-time immutability and permanence control and TEAL template substitution</p>
+<p>App deployment is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities,
+particularly <a class="reference internal" href="app-client.html"><span class="std std-doc">App management</span></a>. It allows you to idempotently (with safe retryability) deploy an app, including deploy-time immutability and permanence control and
+TEAL template substitution.</p>
+<p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_deploy_scenarios.py">automated tests</a>.</p>
+<section id="design">
+<span id="id1"></span><h2>Design<a class="headerlink" href="#design" title="Permalink to this heading"></a></h2>
+<p>The architecture design behind app deployment is articulated in an <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/architecture-decisions/2023-01-12_smart-contract-deployment.md">architecture decision record</a>.
+While the implementation will naturally evolve over time and diverge from this record, the principles and design goals behind the design are comprehensively explained.</p>
+<p>Namely, it described the concept of a smart contract development lifecycle:</p>
+<ol class="arabic simple">
+<li><p>Development</p>
+<ol class="arabic simple">
+<li><p><strong>Write</strong> smart contracts</p></li>
+<li><p><strong>Transpile</strong> smart contracts with development-time parameters (code configuration) to TEAL Templates</p></li>
+<li><p><strong>Verify</strong> the TEAL Templates maintain <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/articles/output_stability.md">output stability</a> and any other static code quality checks</p></li>
+</ol>
+</li>
+<li><p>Deployment</p>
+<ol class="arabic simple">
+<li><p><strong>Substitute</strong> deploy-time parameters into TEAL Templates to create final TEAL code</p></li>
+<li><p><strong>Compile</strong> the TEAL to create byte code using algod</p></li>
+<li><p><strong>Deploy</strong> the byte code to one or more Algorand networks (e.g. LocalNet, TestNet, MainNet) to create Deployed Application(s)</p></li>
+</ol>
+</li>
+<li><p>Runtime</p>
+<ol class="arabic simple">
+<li><p><strong>Validate</strong> the deployed app via automated testing of the smart contracts to provide confidence in their correctness</p></li>
+<li><p><strong>Call</strong> deployed smart contract with runtime parameters to utilise it</p></li>
+</ol>
+</li>
+</ol>
+<p><img alt="App deployment lifecycle" src="../_images/lifecycle.jpg" /></p>
+<p>The App deployment capability provided by AlgoKit Utils helps implement <strong>#2 Deployment</strong>.</p>
+<p>Furthermore, the implementation contains the following implementation characteristics per the original architecture design:</p>
+<ul class="simple">
+<li><p>Deploy-time parameters can be provided and substituted into a TEAL Template by convention (by replacing <code class="docutils literal notranslate"><span class="pre">TMPL_{KEY}</span></code>)</p></li>
+<li><p>Contracts can be built by any smart contract framework that supports <a class="reference external" href="https://arc.algorand.foundation/ARCs/arc-0032">ARC-0032</a> and
+<a class="reference external" href="https://arc.algorand.foundation/ARCs/arc-0004">ARC-0004</a> (<a class="reference external" href="https://beaker.algo.xyz/">Beaker</a> or otherwise), which also means the deployment language can be
+different to the development language e.g. you can deploy a Python smart contract with TypeScript for instance</p></li>
+<li><p>There is explicit control of the immutability (updatability / upgradeability) and permanence (deletability) of the smart contract, which can be varied per environment to allow for easier
+development and testing in non-MainNet environments (by replacing <code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> and <code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> at deploy-time by convention, if present)</p></li>
+<li><p>Contracts are resolvable by a string “name” for a given creator to allow automated determination of whether that contract had been deployed previously or not, but can also be resolved by ID
+instead</p></li>
+</ul>
+</section>
+<section id="finding-apps-by-creator">
+<h2>Finding apps by creator<a class="headerlink" href="#finding-apps-by-creator" title="Permalink to this heading"></a></h2>
+<p>There is a method <code class="docutils literal notranslate"><span class="pre">algokit.get_creator_apps(creatorAccount,</span> <span class="pre">indexer)</span></code>, which performs a series of indexer lookups that return all apps created by the given creator. These are indexed by the name it
+was deployed under if the creation transaction contained the following payload in the transaction note field:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>ALGOKIT_DEPLOYER:j{name:string, version:string, updatable?:boolean, deletable?:boolean}
+</pre></div>
+</div>
+<p>Any creation transactions or update transactions are then retrieved and processed in chronological order to result in an <code class="docutils literal notranslate"><span class="pre">AppLookup</span></code> object</p>
+<p>Given there are a number of indexer calls to retrieve this data it’s a non-trivial object to create, and it’s recommended that for the duration you are performing a single deployment
+you hold a value of it rather than recalculating it. Most AlgoKit Utils functions that need it will also take an optional value of it that will be used in preference to retrieving a
+fresh version.</p>
+</section>
+<section id="deploying-an-application">
+<h2>Deploying an application<a class="headerlink" href="#deploying-an-application" title="Permalink to this heading"></a></h2>
+<p>The method that performs the deployment logic is the instance method <code class="docutils literal notranslate"><span class="pre">ApplicationClient.deploy</span></code>. It performs an idempotent (safely retryable) deployment. It will detect if the app already
+exists and if it doesn’t it will create it. If the app does already exist then it will:</p>
+<ul class="simple">
+<li><p>Detect if the app has been updated (i.e. the logic has changed) and either fail or perform either an update or a replacement based on the deployment configuration.</p></li>
+<li><p>Detect if the app has a breaking schema change (i.e. more global or local storage is needed than was originally requested) and either fail or perform a replacement based on the
+deployment configuration.</p></li>
+</ul>
+<p>It will automatically add metadata to the transaction note of the create or update calls that indicates the name, version, updatability and deletability of the contract.
+This metadata works in concert with <code class="docutils literal notranslate"><span class="pre">get_creator_apps</span></code> to allow the app to be reliably retrieved against that creator in it’s currently deployed state.</p>
+<p><code class="docutils literal notranslate"><span class="pre">deploy</span></code> automatically executes <a class="reference internal" href="#compilation-and-template-substitution">template substitution</a> including deploy-time control of permanence and immutability.</p>
+<section id="input-parameters">
+<h3>Input parameters<a class="headerlink" href="#input-parameters" title="Permalink to this heading"></a></h3>
+<p>The following inputs are used when deploying an App</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code>: The version string for the app defined in app_spec, if not specified the version will automatically increment for existing apps that are updated, and set to 1.0 for new apps</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">signer</span></code>, <code class="docutils literal notranslate"><span class="pre">sender</span></code>: Optional signer and sender for deployment operations, sender must be the same as the creator specified</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allow_update</span></code>, <code class="docutils literal notranslate"><span class="pre">allow_delete</span></code>: Control the updatability and deletability of the app, used to populate <code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> and <code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> template values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_update</span></code>: Determines what should happen if an update to the smart contract is detected (e.g. the TEAL code has changed since last deployment)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">on_schema_break</span></code>: Determines what should happen if a breaking change to the schema is detected (e.g. if you need more global or local state that was previously requested when the contract was originally created)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_args</span></code>: Args to use if a create operation is performed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update_args</span></code>: Args to use if an update operation is performed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delete_args</span></code>: Args to use if a delete operation is performed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template_values</span></code>: Values to use for automatic substitution of <a class="reference internal" href="#design">deploy-time parameter values</a> is mapping of <code class="docutils literal notranslate"><span class="pre">key:</span> <span class="pre">value</span></code> that will result in <code class="docutils literal notranslate"><span class="pre">TMPL_{key}</span></code> being replaced with <code class="docutils literal notranslate"><span class="pre">value</span></code></p></li>
+</ul>
+</section>
+<section id="idempotency">
+<h3>Idempotency<a class="headerlink" href="#idempotency" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">deploy</span></code> is idempotent which means you can safely call it again multiple times, and it will only apply any changes it detects. If you call it again straight after calling it then it will
+do nothing. This also means it can be used to find an existing app based on the supplied creator and app_spec or name.</p>
+</section>
+<section id="compilation-and-template-substitution">
+<span id="id2"></span><h3>Compilation and template substitution<a class="headerlink" href="#compilation-and-template-substitution" title="Permalink to this heading"></a></h3>
+<p>When compiling TEAL template code, the capabilities described in the <a class="reference internal" href="#design">design above</a> are present, namely the ability to supply deploy-time parameters and the ability to control immutability and permanence of the smart contract at deploy-time.</p>
+<p>In order for a smart contract to be able to use this functionality, it must have a TEAL Template that contains the following:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TMPL_{key}</span></code> - Which can be replaced with a number or a string / byte array which wil be automatically hexadecimal encoded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> - Which will be replaced with a <code class="docutils literal notranslate"><span class="pre">1</span></code> if an app should be updatable and <code class="docutils literal notranslate"><span class="pre">0</span></code> if it shouldn’t (immutable)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> - Which will be replaced with a <code class="docutils literal notranslate"><span class="pre">1</span></code> if an app should be deletable and <code class="docutils literal notranslate"><span class="pre">0</span></code> if it shouldn’t (permanent)</p></li>
+</ul>
+<p>If you are building a smart contract using the <a class="reference external" href="https://github.com/algorandfoundation/algokit-beaker-default-template">beaker_production AlgoKit template</a> if provides a reference implementation out of the box for the deploy-time immutability and permanence control.</p>
+</section>
+<section id="return-value">
+<h3>Return value<a class="headerlink" href="#return-value" title="Permalink to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">deploy</span></code> returns a <code class="docutils literal notranslate"><span class="pre">DeployResponse</span></code> object, that describes the action taken.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">action_taken</span></code>: Describes what happened during deployment</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Create</span></code> - The smart contract app is created.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Update</span></code> - The smart contract app is updated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Replace</span></code> - The smart contract app was deleted and created again (in an atomic transaction)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Nothing</span></code> - Nothing was done since an existing up-to-date app was found</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_response</span></code>: If action taken was <code class="docutils literal notranslate"><span class="pre">Create</span></code> or <code class="docutils literal notranslate"><span class="pre">Replace</span></code>, the result of the create transaction. Can be a <code class="docutils literal notranslate"><span class="pre">TransactionResponse</span></code> or <code class="docutils literal notranslate"><span class="pre">ABITransactionResponse</span></code> depending on the method used</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">update_response</span></code>: If action taken was <code class="docutils literal notranslate"><span class="pre">Update</span></code>, the result of the update transaction. Can be a <code class="docutils literal notranslate"><span class="pre">TransactionResponse</span></code> or <code class="docutils literal notranslate"><span class="pre">ABITransactionResponse</span></code> depending on the method used</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delete_response</span></code>: If action taken was <code class="docutils literal notranslate"><span class="pre">Replace</span></code>, the result of the delete transaction. Can be a <code class="docutils literal notranslate"><span class="pre">TransactionResponse</span></code> or <code class="docutils literal notranslate"><span class="pre">ABITransactionResponse</span></code> depending on the method used</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">app</span></code>: An <code class="docutils literal notranslate"><span class="pre">AppMetaData</span></code> object, describing the final app state</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="app-client.html" class="btn btn-neutral float-left" title="App client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="transfer.html" class="btn btn-neutral float-right" title="Algo transfers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Algorand Foundation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
