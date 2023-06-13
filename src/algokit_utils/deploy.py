@@ -687,7 +687,7 @@ class Deployer:
                 "If you want to try updating the app then re-run with on_update=UpdateApp"
             )
         if self.on_update == OnUpdate.AppendApp:
-            logger.info("Schema break detected and on_schema_break=AppendApp, will attempt to create new app")
+            logger.info("Update detected and on_update=AppendApp, will attempt to create new app")
             return self._create_app()
         elif self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.UpdateApp:
             logger.info("App is updatable and on_update=UpdateApp, will update app")
