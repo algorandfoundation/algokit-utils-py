@@ -82,6 +82,18 @@ def is_localnet(client: AlgodClient) -> bool:
     return params.gen in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
+def is_mainnet(client: AlgodClient) -> bool:
+    """Returns True if client genesis is `mainnet-v1`"""
+    params = client.suggested_params()
+    return params.gen == "mainnet-v1"
+
+
+def is_testnet(client: AlgodClient) -> bool:
+    """Returns True if client genesis is `testnet-v1`"""
+    params = client.suggested_params()
+    return params.gen == "testnet-v1"
+
+
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from supplied `client`
 
