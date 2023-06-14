@@ -86,7 +86,7 @@ def is_mainnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `mainnet-v1`"""
     params = client.suggested_params()
     return bool(params.gen == "mainnet-v1")
-"just a dummy change"
+
 
 def is_testnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `testnet-v1`"""
