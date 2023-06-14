@@ -303,6 +303,16 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`is_mainnet <algokit_utils.network_clients.is_mainnet>`
+  - ```{autodoc2-docstring} algokit_utils.network_clients.is_mainnet
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`is_testnet <algokit_utils.network_clients.is_testnet>`
+  - ```{autodoc2-docstring} algokit_utils.network_clients.is_testnet
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`num_extra_program_pages <algokit_utils.application_client.num_extra_program_pages>`
   - ```{autodoc2-docstring} algokit_utils.application_client.num_extra_program_pages
     :parser: myst
@@ -1335,6 +1345,17 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
+````{py:attribute} AppendApp
+:canonical: algokit_utils.deploy.OnSchemaBreak.AppendApp
+:value: >
+   3
+
+```{autodoc2-docstring} algokit_utils.deploy.OnSchemaBreak.AppendApp
+:parser: myst
+```
+
+````
+
 ````{py:attribute} Fail
 :canonical: algokit_utils.deploy.OnSchemaBreak.Fail
 :value: >
@@ -1374,6 +1395,17 @@ Bases: {py:obj}`enum.Enum`
 ```{autodoc2-docstring} algokit_utils.deploy.OnUpdate.__init__
 :parser: myst
 ```
+
+````{py:attribute} AppendApp
+:canonical: algokit_utils.deploy.OnUpdate.AppendApp
+:value: >
+   3
+
+```{autodoc2-docstring} algokit_utils.deploy.OnUpdate.AppendApp
+:parser: myst
+```
+
+````
 
 ````{py:attribute} Fail
 :canonical: algokit_utils.deploy.OnUpdate.Fail
@@ -1819,6 +1851,22 @@ Bases: {py:obj}`algokit_utils.models.TransactionParameters`
 :canonical: algokit_utils.network_clients.is_localnet
 
 ```{autodoc2-docstring} algokit_utils.network_clients.is_localnet
+:parser: myst
+```
+````
+
+````{py:function} is_mainnet(client: algosdk.v2client.algod.AlgodClient) -> bool
+:canonical: algokit_utils.network_clients.is_mainnet
+
+```{autodoc2-docstring} algokit_utils.network_clients.is_mainnet
+:parser: myst
+```
+````
+
+````{py:function} is_testnet(client: algosdk.v2client.algod.AlgodClient) -> bool
+:canonical: algokit_utils.network_clients.is_testnet
+
+```{autodoc2-docstring} algokit_utils.network_clients.is_testnet
 :parser: myst
 ```
 ````

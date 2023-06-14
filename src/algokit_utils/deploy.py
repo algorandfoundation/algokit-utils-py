@@ -489,7 +489,8 @@ class OnUpdate(Enum):
     """Update the Application with the new approval and clear programs"""
     ReplaceApp = 2
     """Create a new Application and delete the old Application in a single transaction"""
-    # TODO: AppendApp
+    AppendApp = 3
+    """Create a new application"""
 
 
 class OnSchemaBreak(Enum):
@@ -499,6 +500,8 @@ class OnSchemaBreak(Enum):
     """Fail the deployment"""
     ReplaceApp = 2
     """Create a new Application and delete the old Application in a single transaction"""
+    AppendApp = 3
+    """Create a new Application"""
 
 
 class OperationPerformed(Enum):
@@ -657,6 +660,10 @@ class Deployer:
                 "If you want to try deleting and recreating the app then "
                 "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
             )
+        if self.on_schema_break == OnSchemaBreak.AppendApp:
+            logger.info("Schema break detected and on_schema_break=AppendApp, will attempt to create new app")
+            return self._create_app()
+
         if self.existing_app_metadata_or_reference.deletable:
             logger.info(
                 "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app"
@@ -679,7 +686,10 @@ class Deployer:
                 "Update detected and on_update=Fail, stopping deployment. "
                 "If you want to try updating the app then re-run with on_update=UpdateApp"
             )
-        if self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.UpdateApp:
+        if self.on_update == OnUpdate.AppendApp:
+            logger.info("Update detected and on_update=AppendApp, will attempt to create new app")
+            return self._create_app()
+        elif self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.UpdateApp:
             logger.info("App is updatable and on_update=UpdateApp, will update app")
             return self._update_app()
         elif self.existing_app_metadata_or_reference.updatable and self.on_update == OnUpdate.ReplaceApp:

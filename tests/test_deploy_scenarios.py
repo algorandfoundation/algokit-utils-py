@@ -384,3 +384,47 @@ def test_deploy_with_update(
         logger.error(f"LogicException: {error.message}")
 
     deploy_fixture.check_log_stability()
+
+
+def test_deploy_with_schema_breaking_change_append(deploy_fixture: DeployFixture) -> None:
+    v1, _, v3 = get_specs()
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_delete=False, allow_update=False)
+    assert app_v1.app_id
+
+    try:
+        deploy_fixture.deploy(
+            v3,
+            version="2.0",
+            allow_delete=False,
+            allow_update=False,
+            on_schema_break=OnSchemaBreak.AppendApp,
+        )
+    except DeploymentFailedError as error:
+        logger.error(f"DeploymentFailedError: {error}")
+    except LogicError as error:
+        logger.error(f"LogicException: {error.message}")
+
+    deploy_fixture.check_log_stability()
+
+
+def test_deploy_with_update_append(deploy_fixture: DeployFixture) -> None:
+    v1, v2, _ = get_specs()
+
+    app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_delete=False, allow_update=False)
+    assert app_v1.app_id
+
+    try:
+        deploy_fixture.deploy(
+            v2,
+            version="2.0",
+            allow_delete=False,
+            allow_update=False,
+            on_update=OnUpdate.AppendApp,
+        )
+    except DeploymentFailedError as error:
+        logger.error(f"DeploymentFailedError: {error}")
+    except LogicError as error:
+        logger.error(f"LogicException: {error.message}")
+
+    deploy_fixture.check_log_stability()

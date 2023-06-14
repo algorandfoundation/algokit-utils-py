@@ -83,6 +83,8 @@ from algokit_utils.network_clients import (
     get_kmd_client_from_algod_client,
     get_purestake_config,
     is_localnet,
+    is_mainnet,
+    is_testnet,
 )
 
 __all__ = [
@@ -155,6 +157,8 @@ __all__ = [
     "get_kmd_client_from_algod_client",
     "get_purestake_config",
     "is_localnet",
+    "is_mainnet",
+    "is_testnet",
     "EnsureBalanceParameters",
     "TransferParameters",
     "ensure_funded",

@@ -16,6 +16,8 @@ __all__ = [
     "get_kmd_client_from_algod_client",
     "get_purestake_config",
     "is_localnet",
+    "is_mainnet",
+    "is_testnet",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
@@ -80,6 +82,18 @@ def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `devnet-v1` or `sandnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
+
+
+def is_mainnet(client: AlgodClient) -> bool:
+    """Returns True if client genesis is `mainnet-v1`"""
+    params = client.suggested_params()
+    return bool(params.gen == "mainnet-v1")
+
+
+def is_testnet(client: AlgodClient) -> bool:
+    """Returns True if client genesis is `testnet-v1`"""
+    params = client.suggested_params()
+    return bool(params.gen == "testnet-v1")
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
