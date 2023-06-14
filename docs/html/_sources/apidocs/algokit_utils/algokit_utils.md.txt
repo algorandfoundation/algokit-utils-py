@@ -1335,6 +1335,17 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
+````{py:attribute} AppendApp
+:canonical: algokit_utils.deploy.OnSchemaBreak.AppendApp
+:value: >
+   3
+
+```{autodoc2-docstring} algokit_utils.deploy.OnSchemaBreak.AppendApp
+:parser: myst
+```
+
+````
+
 ````{py:attribute} Fail
 :canonical: algokit_utils.deploy.OnSchemaBreak.Fail
 :value: >
@@ -1374,6 +1385,17 @@ Bases: {py:obj}`enum.Enum`
 ```{autodoc2-docstring} algokit_utils.deploy.OnUpdate.__init__
 :parser: myst
 ```
+
+````{py:attribute} AppendApp
+:canonical: algokit_utils.deploy.OnUpdate.AppendApp
+:value: >
+   3
+
+```{autodoc2-docstring} algokit_utils.deploy.OnUpdate.AppendApp
+:parser: myst
+```
+
+````
 
 ````{py:attribute} Fail
 :canonical: algokit_utils.deploy.OnUpdate.Fail
