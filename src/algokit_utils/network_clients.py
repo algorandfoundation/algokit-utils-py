@@ -16,6 +16,8 @@ __all__ = [
     "get_kmd_client_from_algod_client",
     "get_purestake_config",
     "is_localnet",
+    "is_mainnet",
+    "is_testnet",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
