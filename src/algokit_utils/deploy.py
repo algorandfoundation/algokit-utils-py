@@ -501,7 +501,7 @@ class OnSchemaBreak(Enum):
     ReplaceApp = 2
     """Create a new Application and delete the old Application in a single transaction"""
     AppendApp = 3
-    """Append the new schema to the Application"""
+    """Create a new Application"""
 
 
 class OperationPerformed(Enum):
