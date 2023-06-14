@@ -386,10 +386,7 @@ def test_deploy_with_update(
     deploy_fixture.check_log_stability()
 
 
-@pytest.mark.parametrize("on_schema_break", [OnSchemaBreak.AppendApp])
-def test_deploy_with_schema_breaking_change_append_in_mainnet(
-    deploy_fixture: DeployFixture, on_schema_break: OnSchemaBreak
-) -> None:
+def test_deploy_with_schema_breaking_change_append(deploy_fixture: DeployFixture) -> None:
     v1, _, v3 = get_specs()
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_delete=False, allow_update=False)
@@ -401,7 +398,7 @@ def test_deploy_with_schema_breaking_change_append_in_mainnet(
             version="2.0",
             allow_delete=False,
             allow_update=False,
-            on_schema_break=on_schema_break,
+            on_schema_break=OnSchemaBreak.AppendApp,
         )
     except DeploymentFailedError as error:
         logger.error(f"DeploymentFailedError: {error}")
@@ -411,8 +408,7 @@ def test_deploy_with_schema_breaking_change_append_in_mainnet(
     deploy_fixture.check_log_stability()
 
 
-@pytest.mark.parametrize("on_update", [OnUpdate.AppendApp])
-def test_deploy_with_update_append_in_mainnet(deploy_fixture: DeployFixture, on_update: OnUpdate) -> None:
+def test_deploy_with_update_append(deploy_fixture: DeployFixture) -> None:
     v1, v2, _ = get_specs()
 
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_delete=False, allow_update=False)
@@ -424,7 +420,7 @@ def test_deploy_with_update_append_in_mainnet(deploy_fixture: DeployFixture, on_
             version="2.0",
             allow_delete=False,
             allow_update=False,
-            on_update=on_update,
+            on_update=OnUpdate.AppendApp,
         )
     except DeploymentFailedError as error:
         logger.error(f"DeploymentFailedError: {error}")
