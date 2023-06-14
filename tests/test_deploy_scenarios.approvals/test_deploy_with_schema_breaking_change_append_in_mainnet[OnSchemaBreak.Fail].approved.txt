@@ -2,5 +2,4 @@ INFO: SampleApp not found in {creator_account} account, deploying app.
 INFO: SampleApp (1.0) deployed successfully, with app id {app0}.
 DEBUG: SampleApp found in {creator_account} account, with app id {app0}, version=1.0.
 WARNING: Detected a breaking app schema change: Global uints increased from 0 to 1
-INFO: Schema break detected and on_schema_break=AppendApp, will attempt to create new app
-INFO: SampleApp (2.0) deployed successfully, with app id {app1}.
+ERROR: DeploymentFailedError: Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. If you want to try deleting and recreating the app then re-run with on_schema_break=OnSchemaBreak.ReplaceApp
