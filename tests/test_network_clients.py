@@ -17,6 +17,17 @@ def test_localnet_algod() -> None:
     health_response = algod_client.health()
     assert health_response is None
 
+def test_mainnet_algod() -> None:
+    algod_client = get_algod_client(get_algonode_config("mainnet", "algod", token=DEFAULT_TOKEN))
+    health_response = algod_client.health()
+    assert health_response is None
+
+
+def test_testnet_algod() -> None:
+    algod_client = get_algod_client(get_algonode_config("testnet", "algod", token=DEFAULT_TOKEN))
+    health_response = algod_client.health()
+    assert health_response is None
+
 
 def test_localnet_indexer() -> None:
     indexer_client = get_indexer_client(get_default_localnet_config("indexer"))
