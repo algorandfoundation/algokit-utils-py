@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.0 (2023-06-20)
+
+### Feature
+
+* Deployment support for testnet and mainnet ([#45](https://github.com/algorandfoundation/algokit-utils-py/issues/45)) ([`3c4c378`](https://github.com/algorandfoundation/algokit-utils-py/commit/3c4c378af7a300132db2696e3d5b8cb11519bb0d))
+
 ## v1.2.0 (2023-06-06)
 
 ### Feature
