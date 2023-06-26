@@ -40,12 +40,12 @@ from algokit_utils.models import (
     ABIMethod,
     ABITransactionResponse,
     Account,
-    CommonCallParameters,
-    CommonCallParametersDict,
     CreateCallParameters,
     CreateCallParametersDict,
     OnCompleteCallParameters,
     OnCompleteCallParametersDict,
+    TransactionParameters,
+    TransactionParametersDict,
     TransactionResponse,
 )
 
@@ -372,7 +372,7 @@ class ApplicationClient:
     ) -> None:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
         approval_program, clear_program = self._check_is_compiled()
-        transaction_parameters = _convert_call_parameters(transaction_parameters)
+        transaction_parameters = _convert_transaction_parameters(transaction_parameters)
 
         extra_pages = transaction_parameters.extra_pages or num_extra_program_pages(
             approval_program.raw_binary, clear_program.raw_binary
@@ -444,7 +444,7 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         /,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with on_complete=UpdateApplication to atc"""
@@ -464,7 +464,7 @@ class ApplicationClient:
     def update(
         self,
         call_abi_method: ABIMethod | Literal[True],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
         ...
@@ -473,7 +473,7 @@ class ApplicationClient:
     def update(
         self,
         call_abi_method: Literal[False],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
     ) -> TransactionResponse:
         ...
 
@@ -481,7 +481,7 @@ class ApplicationClient:
     def update(
         self,
         call_abi_method: ABIMethod | bool | None = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         ...
@@ -489,7 +489,7 @@ class ApplicationClient:
     def update(
         self,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=UpdateApplication"""
@@ -508,7 +508,7 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         /,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with on_complete=DeleteApplication to atc"""
@@ -525,7 +525,7 @@ class ApplicationClient:
     def delete(
         self,
         call_abi_method: ABIMethod | Literal[True],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
         ...
@@ -534,7 +534,7 @@ class ApplicationClient:
     def delete(
         self,
         call_abi_method: Literal[False],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
     ) -> TransactionResponse:
         ...
 
@@ -542,7 +542,7 @@ class ApplicationClient:
     def delete(
         self,
         call_abi_method: ABIMethod | bool | None = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         ...
@@ -550,7 +550,7 @@ class ApplicationClient:
     def delete(
         self,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=DeleteApplication"""
@@ -573,7 +573,7 @@ class ApplicationClient:
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
-        _parameters = _convert_call_parameters(transaction_parameters)
+        _parameters = _convert_transaction_parameters(transaction_parameters)
         self.add_method_call(
             atc,
             abi_method=call_abi_method,
@@ -616,7 +616,7 @@ class ApplicationClient:
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with specified parameters"""
         atc = AtomicTransactionComposer()
-        _parameters = _convert_call_parameters(transaction_parameters)
+        _parameters = _convert_transaction_parameters(transaction_parameters)
         self.compose_call(
             atc,
             call_abi_method=call_abi_method,
@@ -639,7 +639,7 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         /,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with on_complete=OptIn to atc"""
@@ -655,7 +655,7 @@ class ApplicationClient:
     def opt_in(
         self,
         call_abi_method: ABIMethod | Literal[True] = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
         ...
@@ -664,7 +664,7 @@ class ApplicationClient:
     def opt_in(
         self,
         call_abi_method: Literal[False] = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
     ) -> TransactionResponse:
         ...
 
@@ -672,7 +672,7 @@ class ApplicationClient:
     def opt_in(
         self,
         call_abi_method: ABIMethod | bool | None = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         ...
@@ -680,7 +680,7 @@ class ApplicationClient:
     def opt_in(
         self,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=OptIn"""
@@ -698,7 +698,7 @@ class ApplicationClient:
         atc: AtomicTransactionComposer,
         /,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with on_complete=CloseOut to ac"""
@@ -714,7 +714,7 @@ class ApplicationClient:
     def close_out(
         self,
         call_abi_method: ABIMethod | Literal[True],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> ABITransactionResponse:
         ...
@@ -723,7 +723,7 @@ class ApplicationClient:
     def close_out(
         self,
         call_abi_method: Literal[False],
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
     ) -> TransactionResponse:
         ...
 
@@ -731,7 +731,7 @@ class ApplicationClient:
     def close_out(
         self,
         call_abi_method: ABIMethod | bool | None = ...,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = ...,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         ...
@@ -739,7 +739,7 @@ class ApplicationClient:
     def close_out(
         self,
         call_abi_method: ABIMethod | bool | None = None,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with on_complete=CloseOut"""
@@ -756,7 +756,7 @@ class ApplicationClient:
         self,
         atc: AtomicTransactionComposer,
         /,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         app_args: list[bytes] | None = None,
     ) -> None:
         """Adds a signed transaction with on_complete=ClearState to atc"""
@@ -769,7 +769,7 @@ class ApplicationClient:
 
     def clear_state(
         self,
-        transaction_parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         app_args: list[bytes] | None = None,
     ) -> TransactionResponse:
         """Submits a signed transaction with on_complete=ClearState"""
@@ -999,7 +999,7 @@ class ApplicationClient:
         *,
         abi_args: ABIArgsDict | None = None,
         app_id: int | None = None,
-        parameters: CommonCallParameters | CommonCallParametersDict | None = None,
+        parameters: TransactionParameters | TransactionParametersDict | None = None,
         on_complete: transaction.OnComplete = transaction.OnComplete.NoOpOC,
         local_schema: transaction.StateSchema | None = None,
         global_schema: transaction.StateSchema | None = None,
@@ -1013,7 +1013,7 @@ class ApplicationClient:
         if app_id is None:
             self._load_reference_and_check_app_id()
             app_id = self.app_id
-        parameters = _convert_call_parameters(parameters)
+        parameters = _convert_transaction_parameters(parameters)
         method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self.resolve_signer_sender(parameters.signer, parameters.sender)
@@ -1283,8 +1283,10 @@ def execute_atc_with_logic_error(
         raise ex
 
 
-def _convert_call_parameters(args: CommonCallParameters | CommonCallParametersDict | None) -> CreateCallParameters:
-    _args = args.__dict__ if isinstance(args, CommonCallParameters) else (args or {})
+def _convert_transaction_parameters(
+    args: TransactionParameters | TransactionParametersDict | None,
+) -> CreateCallParameters:
+    _args = args.__dict__ if isinstance(args, TransactionParameters) else (args or {})
     return CreateCallParameters(**_args)
 
 
