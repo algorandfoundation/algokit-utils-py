@@ -90,6 +90,16 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`CommonCallParameters <algokit_utils.models.CommonCallParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.CommonCallParameters
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`CommonCallParametersDict <algokit_utils.models.CommonCallParametersDict>`
+  - ```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`CreateCallParameters <algokit_utils.models.CreateCallParameters>`
   - ```{autodoc2-docstring} algokit_utils.models.CreateCallParameters
     :parser: myst
@@ -172,6 +182,11 @@ orphan: true
     ```
 * - {py:obj}`Program <algokit_utils.application_client.Program>`
   - ```{autodoc2-docstring} algokit_utils.application_client.Program
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`RawTransactionParameters <algokit_utils.models.RawTransactionParameters>`
+  - ```{autodoc2-docstring} algokit_utils.models.RawTransactionParameters
     :parser: myst
     :summary:
     ```
@@ -947,6 +962,35 @@ Bases: {py:obj}`enum.IntFlag`
 
 `````
 
+````{py:class} CommonCallParameters
+:canonical: algokit_utils.models.CommonCallParameters
+
+Bases: {py:obj}`algokit_utils.models.TransactionParameters`
+
+```{autodoc2-docstring} algokit_utils.models.CommonCallParameters
+:parser: myst
+```
+
+````
+
+````{py:class} CommonCallParametersDict()
+:canonical: algokit_utils.models.CommonCallParametersDict
+
+Bases: {py:obj}`algokit_utils.models.TransactionParametersDict`
+
+```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict
+:parser: myst
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} algokit_utils.models.CommonCallParametersDict.__init__
+:parser: myst
+```
+
+````
+
 ````{py:class} CreateCallParameters
 :canonical: algokit_utils.models.CreateCallParameters
 
@@ -1471,6 +1515,17 @@ Bases: {py:obj}`enum.Enum`
 ```
 
 ```{autodoc2-docstring} algokit_utils.application_client.Program.__init__
+:parser: myst
+```
+
+````
+
+````{py:class} RawTransactionParameters
+:canonical: algokit_utils.models.RawTransactionParameters
+
+Bases: {py:obj}`algokit_utils.models.TransactionParameters`
+
+```{autodoc2-docstring} algokit_utils.models.RawTransactionParameters
 :parser: myst
 ```
 

@@ -69,6 +69,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.ApplicationClient"><code class="docutils literal notranslate"><span class="pre">ApplicationClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.ApplicationSpecification"><code class="docutils literal notranslate"><span class="pre">ApplicationSpecification</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CallConfig"><code class="docutils literal notranslate"><span class="pre">CallConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CommonCallParameters"><code class="docutils literal notranslate"><span class="pre">CommonCallParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CommonCallParametersDict"><code class="docutils literal notranslate"><span class="pre">CommonCallParametersDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CreateCallParameters"><code class="docutils literal notranslate"><span class="pre">CreateCallParameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CreateCallParametersDict"><code class="docutils literal notranslate"><span class="pre">CreateCallParametersDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.CreateTransactionParameters"><code class="docutils literal notranslate"><span class="pre">CreateTransactionParameters</span></code></a></li>
@@ -93,6 +95,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.OnUpdate"><code class="docutils literal notranslate"><span class="pre">OnUpdate</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.OperationPerformed"><code class="docutils literal notranslate"><span class="pre">OperationPerformed</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.Program"><code class="docutils literal notranslate"><span class="pre">Program</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.RawTransactionParameters"><code class="docutils literal notranslate"><span class="pre">RawTransactionParameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TemplateValueDict"><code class="docutils literal notranslate"><span class="pre">TemplateValueDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TemplateValueMapping"><code class="docutils literal notranslate"><span class="pre">TemplateValueMapping</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TransactionParameters"><code class="docutils literal notranslate"><span class="pre">TransactionParameters</span></code></a></li>
@@ -207,6 +210,12 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.CallConfig" title="algokit_utils.application_specification.CallConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CallConfig</span></code></a></p></td>
 <td><p>Describes the type of calls a method can be used for based on <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.OnComplete" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.transaction.OnComplete</span></code></a> type</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.CommonCallParameters" title="algokit_utils.models.CommonCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonCallParameters</span></code></a></p></td>
+<td><p>Deprecated, use TransactionParameters instead</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.CommonCallParametersDict" title="algokit_utils.models.CommonCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonCallParametersDict</span></code></a></p></td>
+<td><p>Deprecated, use TransactionParametersDict instead</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.CreateCallParameters" title="algokit_utils.models.CreateCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CreateCallParameters</span></code></a></p></td>
 <td><p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.create/compose_create methods</p></td>
@@ -265,13 +274,16 @@ ApplicationClient.call/compose_call methods</p></td>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.Program" title="algokit_utils.application_client.Program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Program</span></code></a></p></td>
 <td><p>A compiled TEAL program</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionParameters</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.RawTransactionParameters" title="algokit_utils.models.RawTransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RawTransactionParameters</span></code></a></p></td>
+<td><p>Deprecated, use TransactionParameters instead</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionParameters</span></code></a></p></td>
 <td><p>Additional parameters that can be included in a transaction</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TransactionResponse" title="algokit_utils.models.TransactionResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionResponse</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransactionResponse" title="algokit_utils.models.TransactionResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionResponse</span></code></a></p></td>
 <td><p>Response for a non ABI call</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransferParameters" title="algokit_utils._transfer.TransferParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransferParameters</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TransferParameters" title="algokit_utils._transfer.TransferParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransferParameters</span></code></a></p></td>
 <td><p>Parameters for transferring µALGOs between accounts</p></td>
 </tr>
 </tbody>
@@ -839,6 +851,22 @@ directory(optional): path to the directory where the artifacts should be written
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.CommonCallParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CommonCallParameters</span></span><a class="headerlink" href="#algokit_utils.CommonCallParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParameters</span></code></a></p>
+<p>Deprecated, use TransactionParameters instead</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.CommonCallParametersDict">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CommonCallParametersDict</span></span><a class="headerlink" href="#algokit_utils.CommonCallParametersDict" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParametersDict</span></code></p>
+<p>Deprecated, use TransactionParametersDict instead</p>
+<p class="rubric">Initialization</p>
+<p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.CreateCallParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CreateCallParameters</span></span><a class="headerlink" href="#algokit_utils.CreateCallParameters" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.OnCompleteCallParameters</span></code></a></p>
@@ -1157,6 +1185,13 @@ ApplicationClient.call/compose_call methods</p>
 <p class="rubric">Initialization</p>
 <p>Fully compile the program source to binary and generate a
 source map for matching pc to line number</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.RawTransactionParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">RawTransactionParameters</span></span><a class="headerlink" href="#algokit_utils.RawTransactionParameters" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParameters</span></code></a></p>
+<p>Deprecated, use TransactionParameters instead</p>
 </dd></dl>
 
 <dl class="py data">
