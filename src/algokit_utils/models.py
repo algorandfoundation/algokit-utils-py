@@ -12,6 +12,21 @@ from algosdk.atomic_transaction_composer import (
     TransactionSigner,
 )
 from algosdk.encoding import decode_address
+from deprecated import deprecated
+
+__all__ = [
+    "ABIArgsDict",
+    "ABIMethod",
+    "ABITransactionResponse",
+    "Account",
+    "CreateCallParameters",
+    "CreateCallParametersDict",
+    "CreateTransactionParameters",
+    "OnCompleteCallParameters",
+    "OnCompleteCallParametersDict",
+    "TransactionParameters",
+    "TransactionResponse",
+]
 
 ReturnType = TypeVar("ReturnType")
 
@@ -115,75 +130,104 @@ ABIMethod: TypeAlias = ABIReturnSubroutine | Method | str
 
 @dataclasses.dataclass(kw_only=True)
 class TransactionParameters:
-    """Transaction parameters that can be used on ABI and non-ABI calls"""
+    """Additional parameters that can be included in a transaction"""
 
     signer: TransactionSigner | None = None
+    """Signer to use when signing this transaction"""
     sender: str | None = None
+    """Sender of this transaction"""
     suggested_params: transaction.SuggestedParams | None = None
+    """SuggestedParams to use for this transaction"""
     note: bytes | str | None = None
+    """Note for this transaction"""
     lease: bytes | str | None = None
+    """Lease value for this transaction"""
     boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
+    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
+    accounts: list[str] | None = None
+    """Accounts to include in transaction"""
+    foreign_apps: list[int] | None = None
+    """List of foreign apps (by app id) to include in transaction"""
+    foreign_assets: list[int] | None = None
+    """List of foreign assets (by asset id) to include in transaction"""
+    rekey_to: str | None = None
+    """Address to rekey to"""
 
 
+# CreateTransactionParameters is used by algokit-client-generator clients
 @dataclasses.dataclass(kw_only=True)
 class CreateTransactionParameters(TransactionParameters):
-    """Transaction parameters that can be used on ABI and non-ABI create calls"""
+    """Additional parameters that can be included in a transaction when calling a create method"""
 
     extra_pages: int | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
-class RawTransactionParameters(TransactionParameters):
-    """Transaction parameters that can be used on non-ABI calls"""
-
-    accounts: list[str] | None = None
-    foreign_apps: list[int] | None = None
-    foreign_assets: list[int] | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class CommonCallParameters(RawTransactionParameters):
-    """Transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
-
-    rekey_to: str | None = None
-
-
-@dataclasses.dataclass(kw_only=True)
-class OnCompleteCallParameters(CommonCallParameters):
-    """Transaction parameters used when making any call to an Application"""
+class OnCompleteCallParameters(TransactionParameters):
+    """Additional parameters that can be included in a transaction when using the
+    ApplicationClient.call/compose_call methods"""
 
     on_complete: transaction.OnComplete | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
 class CreateCallParameters(OnCompleteCallParameters):
-    """Transaction parameters used when making a create call for Application"""
+    """Additional parameters that can be included in a transaction when using the
+    ApplicationClient.create/compose_create methods"""
 
     extra_pages: int | None = None
 
 
-class CommonCallParametersDict(TypedDict, total=False):
-    """Common transaction parameters used when making update, delete, opt_in, close_out or clear_state calls"""
+class TransactionParametersDict(TypedDict, total=False):
+    """Additional parameters that can be included in a transaction"""
 
     signer: TransactionSigner
+    """Signer to use when signing this transaction"""
     sender: str
+    """Sender of this transaction"""
     suggested_params: transaction.SuggestedParams
+    """SuggestedParams to use for this transaction"""
     note: bytes | str
+    """Note for this transaction"""
     lease: bytes | str
-    accounts: list[str]
-    foreign_apps: list[int]
-    foreign_assets: list[int]
+    """Lease value for this transaction"""
     boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
+    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
+    accounts: list[str]
+    """Accounts to include in transaction"""
+    foreign_apps: list[int]
+    """List of foreign apps (by app id) to include in transaction"""
+    foreign_assets: list[int]
+    """List of foreign assets (by asset id) to include in transaction"""
     rekey_to: str
+    """Address to rekey to"""
 
 
-class OnCompleteCallParametersDict(TypedDict, CommonCallParametersDict, total=False):
-    """Transaction parameters used when making any call to an Application"""
+class OnCompleteCallParametersDict(TypedDict, TransactionParametersDict, total=False):
+    """Additional parameters that can be included in a transaction when using the
+    ApplicationClient.call/compose_call methods"""
 
     on_complete: transaction.OnComplete
 
 
 class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=False):
-    """Transaction parameters used when making a create call for Application"""
+    """Additional parameters that can be included in a transaction when using the
+    ApplicationClient.create/compose_create methods"""
 
     extra_pages: int
+
+
+# Pre 1.3.1 backwards compatibility
+@deprecated(reason="Use TransactionParameters instead", version="1.3.1")
+class RawTransactionParameters(TransactionParameters):
+    """Deprecated, use TransactionParameters instead"""
+
+
+@deprecated(reason="Use TransactionParameters instead", version="1.3.1")
+class CommonCallParameters(TransactionParameters):
+    """Deprecated, use TransactionParameters instead"""
+
+
+@deprecated(reason="Use TransactionParametersDict instead", version="1.3.1")
+class CommonCallParametersDict(TransactionParametersDict):
+    """Deprecated, use TransactionParametersDict instead"""
