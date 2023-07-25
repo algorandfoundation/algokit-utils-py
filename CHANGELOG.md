@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.3.1 (2023-07-25)
+
+### Fix
+
+* Add missing transaction parameters to CreateTransactionParameters ([#46](https://github.com/algorandfoundation/algokit-utils-py/issues/46)) ([`bd938b1`](https://github.com/algorandfoundation/algokit-utils-py/commit/bd938b159e2f8655e3e270e7499cf11c2cf02b21))
+
 ## v1.3.0 (2023-06-20)
 
 ### Feature
