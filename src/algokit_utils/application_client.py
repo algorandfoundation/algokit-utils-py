@@ -32,7 +32,6 @@ from algosdk.source_map import SourceMap
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils._simulate_315_compat import simulate_atc_315
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
     ABIArgsDict,
@@ -169,7 +168,6 @@ class ApplicationClient:
         self._approval_program: Program | None = None
         self._approval_source_map: SourceMap | None = None
         self._clear_program: Program | None = None
-        self._use_simulate_315 = False  # flag to determine if old simulate 3.15 encoding should be used
 
         self.template_values: au_deploy.TemplateValueMapping = template_values or {}
         self.existing_deployments = existing_deployments
@@ -883,21 +881,9 @@ class ApplicationClient:
         return TransactionResponse.from_atr(simulate_response)
 
     def _simulate_atc(self, atc: AtomicTransactionComposer) -> SimulateAtomicTransactionResponse:
-        # TODO: remove this once 3.16 is in mainnet
-        # there was a breaking change in algod 3.16 to the simulate endpoint
-        # attempt to transparently handle this by calling the endpoint with the old behaviour if
-        # 3.15 is detected
-        if self._use_simulate_315:
-            return simulate_atc_315(atc, self.algod_client)
         try:
             return atc.simulate(self.algod_client)
         except AlgodHTTPError as ex:
-            if ex.code == HTTPStatus.BAD_REQUEST.value and (
-                "msgpack decode error [pos 12]: no matching struct field found when decoding stream map with key "
-                "txn-groups" in ex.args
-            ):
-                self._use_simulate_315 = True
-                return simulate_atc_315(atc, self.algod_client)
             raise ex
 
     def _load_reference_and_check_app_id(self) -> None:
