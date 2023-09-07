@@ -868,7 +868,7 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = self._simulate_atc(atc)
+        simulate_response = atc.simulate(self.algod_client)
         if simulate_response.failure_message:
             raise _try_convert_to_logic_error(
                 simulate_response.failure_message,
@@ -879,12 +879,6 @@ class ApplicationClient:
             )
 
         return TransactionResponse.from_atr(simulate_response)
-
-    def _simulate_atc(self, atc: AtomicTransactionComposer) -> SimulateAtomicTransactionResponse:
-        try:
-            return atc.simulate(self.algod_client)
-        except AlgodHTTPError as ex:
-            raise ex
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
