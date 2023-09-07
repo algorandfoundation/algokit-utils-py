@@ -4,7 +4,6 @@ import json
 import logging
 import re
 import typing
-from http import HTTPStatus
 from math import ceil
 from pathlib import Path
 from typing import Any, Literal, cast, overload
@@ -21,7 +20,6 @@ from algosdk.atomic_transaction_composer import (
     AtomicTransactionResponse,
     LogicSigTransactionSigner,
     MultisigTransactionSigner,
-    SimulateAtomicTransactionResponse,
     TransactionSigner,
     TransactionWithSigner,
 )
@@ -868,7 +866,10 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = atc.simulate(self.algod_client)
+        try:
+            simulate_response = atc.simulate(self.algod_client)
+        except AlgodHTTPError as ex:
+            raise ex
         if simulate_response.failure_message:
             raise _try_convert_to_logic_error(
                 simulate_response.failure_message,
