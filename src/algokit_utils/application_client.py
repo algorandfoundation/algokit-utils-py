@@ -30,6 +30,7 @@ from algosdk.source_map import SourceMap
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
+from algokit_utils.config import UpdatableConfig
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
     ABIArgsDict,
@@ -52,6 +53,8 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+config = UpdatableConfig()
+config.configure(debug=True)
 
 """A dictionary `dict[str, Any]` representing ABI argument names and values"""
 
@@ -1259,8 +1262,10 @@ def execute_atc_with_logic_error(
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
         logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map)
-        if logic_error:
-            raise logic_error from ex
+        if logic_error and config.debug:
+            simulate_response = atc.simulate(algod_client)
+            if simulate_response.failure_message:
+                raise logic_error from ex
         raise ex
 
 
