@@ -19,6 +19,7 @@ from algokit_utils import (
 )
 from dotenv import load_dotenv
 
+from algokit_utils.config import config
 from tests import app_client_test
 
 if TYPE_CHECKING:
@@ -154,3 +155,9 @@ def app_spec() -> ApplicationSpecification:
     path = Path(__file__).parent / "app_client_test.json"
     path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
+
+
+@pytest.fixture(autouse=True, scope="session")
+def debug_mode() -> None:
+    config.configure(debug=True)
+

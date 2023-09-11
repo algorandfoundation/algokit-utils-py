@@ -30,7 +30,7 @@ from algosdk.source_map import SourceMap
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils.config import UpdatableConfig
+from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
     ABIArgsDict,
@@ -53,8 +53,7 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
-config = UpdatableConfig()
-config.configure(debug=True)
+
 
 """A dictionary `dict[str, Any]` representing ABI argument names and values"""
 

@@ -20,3 +20,6 @@ class UpdatableConfig:
     def configure(self, *, debug: bool) -> None:
         if debug is not None:
             self._debug = debug
+
+
+config = UpdatableConfig()
