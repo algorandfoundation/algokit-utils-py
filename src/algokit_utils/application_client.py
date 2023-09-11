@@ -24,7 +24,6 @@ from algosdk.atomic_transaction_composer import (
     TransactionWithSigner,
 )
 from algosdk.constants import APP_PAGE_MAX_SIZE
-from algosdk.error import AlgodHTTPError
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
 
@@ -1261,7 +1260,11 @@ def execute_atc_with_logic_error(
         if logic_error and config.debug:
             simulate_response = atc.simulate(algod_client)
             if simulate_response.failure_message:
-                raise logic_error from ex
+                raise _try_convert_to_logic_error(
+                    simulate_response.failure_message,
+                    approval_program,
+                    approval_source_map,
+                ) or Exception(f"Simulate failed: {simulate_response.failure_message}") from ex
         raise ex
 
 
