@@ -17,9 +17,9 @@ from algokit_utils import (
     get_kmd_client_from_algod_client,
     replace_template_variables,
 )
+from algokit_utils.config import config
 from dotenv import load_dotenv
 
-from algokit_utils.config import config
 from tests import app_client_test
 
 if TYPE_CHECKING:
@@ -158,6 +158,5 @@ def app_spec() -> ApplicationSpecification:
 
 
 @pytest.fixture(autouse=True, scope="session")
-def debug_mode() -> None:
+def _debug_mode() -> None:
     config.configure(debug=True)
-
