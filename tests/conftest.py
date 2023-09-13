@@ -157,6 +157,8 @@ def app_spec() -> ApplicationSpecification:
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
 
 
+# This fixture is automatically applied to all tests in the session to enable debug mode.
+# If you need to run a test without debug mode, you can manually set config.configure(debug=False) within the test.
 @pytest.fixture(autouse=True, scope="session")
 def _debug_mode() -> None:
     config.configure(debug=True)
