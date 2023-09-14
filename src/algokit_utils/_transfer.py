@@ -37,7 +37,7 @@ class TransferParametersBase:
 
 @dataclasses.dataclass(kw_only=True)
 class TransferParameters(TransferParametersBase):
-    # """Parameters for transferring µALGOs between accounts"""
+    """Parameters for transferring µALGOs between accounts"""
 
     micro_algos: int
 
@@ -46,12 +46,10 @@ class TransferParameters(TransferParametersBase):
 class TransferAssetParameters(TransferParametersBase):
     """Parameters for transferring µALGOs between accounts"""
 
-    index: int
+    asset_id: int
     """The asset id that will be transfered"""
-    amt: int
+    amount: int
     """The amount to send"""
-    suggested_params: SuggestedParams | None = None
-    """(optional) transaction parameters"""
 
 
 def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) -> None:
@@ -97,9 +95,9 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
         receiver=parameters.to_address,
         close_assets_to=None,
         # revocation_target= clawbackFrom ? getSenderAddress(clawbackFrom) : undefined,
-        amt=parameters.amt,
+        amt=parameters.amount,
         note=parameters.note,
-        index=parameters.index,
+        index=parameters.asset_id,
         rekey_to=None,
     )  # type: ignore[no-untyped-call]
 
