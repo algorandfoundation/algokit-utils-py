@@ -83,7 +83,7 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
         sp=suggested_params,
     )  # type: ignore[no-untyped-call]
 
-    result = send_transaction(client=client, transaction=transaction, parameters=parameters)
+    result = _send_transaction(client=client, transaction=transaction, parameters=parameters)
     assert isinstance(result, PaymentTxn)
     return result
 
@@ -101,12 +101,12 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
         rekey_to=None,
     )  # type: ignore[no-untyped-call]
 
-    result = send_transaction(client=client, transaction=xfer_txn, parameters=parameters)
+    result = _send_transaction(client=client, transaction=xfer_txn, parameters=parameters)
     assert isinstance(result, AssetTransferTxn)
     return result
 
 
-def send_transaction(
+def _send_transaction(
     client: "AlgodClient",
     transaction: PaymentTxn | AssetTransferTxn,
     parameters: TransferAssetParameters | TransferParameters,
