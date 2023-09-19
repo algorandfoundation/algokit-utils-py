@@ -1663,13 +1663,13 @@ virtualenv = ">=20.10.0"
 
 [[package]]
 name = "py-algorand-sdk"
-version = "2.2.0"
+version = "2.4.0"
 description = "Algorand SDK in Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "py-algorand-sdk-2.2.0.tar.gz", hash = "sha256:50044aed40c5e0319a48d7f4fbc3cdbc3246703c10dd2ceebc06b546cddd8186"},
-    {file = "py_algorand_sdk-2.2.0-py3-none-any.whl", hash = "sha256:a17cad8fb97d401522cf2dc415ef48e2ac4bf7bfa68ef1849e704bc800aa28e5"},
+    {file = "py-algorand-sdk-2.4.0.tar.gz", hash = "sha256:92fd321ffbb449fc8138b45f12b81fd7fb4958cc1405939f1567fba6f41969a1"},
+    {file = "py_algorand_sdk-2.4.0-py3-none-any.whl", hash = "sha256:a5dbc8d16d67479cf3af8cf9a245c5f1aeb228e01b7252f81169ed38dcce015e"},
 ]
 
 [package.dependencies]
@@ -2753,4 +2753,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7e408024f836b99d8049311d338c6cb2cbc4973c3389218292df2103d53af618"
+content-hash = "8e68cb991a47bae277ebe1b394cdfa0c1902e8ead5c477a245313ebb9274a9ae"

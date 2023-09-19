@@ -26,6 +26,8 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
+from algosdk.transaction import SignedTransaction
+from algosdk.v2client.models import SimulateTraceConfig, SimulateRequest, SimulateRequestTransactionGroup
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
@@ -879,6 +881,14 @@ class ApplicationClient:
 
         return TransactionResponse.from_atr(simulate_response)
 
+    def _simulate_response(self, atc: AtomicTransactionComposer, algod_client) -> None:
+        trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
+        unsigned_txn_groups = atc.build_group()
+        txn_group = SimulateRequestTransactionGroup(txns=unsigned_txn_groups)
+        simulate_request = SimulateRequest(txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config)
+        simulate_response = atc.simulate(algod_client, simulate_request)
+
+
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
         self._check_app_id()
@@ -1258,6 +1268,17 @@ def execute_atc_with_logic_error(
     except Exception as ex:
         logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map)
         if logic_error and config.debug:
+            # trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
+            # simulate_request = SimulateRequest(txn_groups=[], allow_more_logs=True, exec_trace_config=trace_config)
+            # simulate_response = atc.simulate(algod_client, simulate_request)
+            # e = []
+            # if simulate_response.failure_message:
+            #     for _ in simulate_response.tx_ids:
+            #         e.append(simulate_response.exec_trace_config)
+            #         e.append(simulate_response.abi_results)
+            #         e.append(simulate_response.failure_message)
+            #     raise e or Exception("\n".join(e)) from ex
+
             simulate_response = atc.simulate(algod_client)
             if simulate_response.failure_message:
                 raise _try_convert_to_logic_error(
