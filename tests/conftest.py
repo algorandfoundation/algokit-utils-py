@@ -24,7 +24,6 @@ from algokit_utils import (
     replace_template_variables,
     transfer_asset,
 )
-from algosdk.util import algos_to_microalgos
 from dotenv import load_dotenv
 
 from tests import app_client_test
