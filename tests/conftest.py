@@ -1,9 +1,12 @@
 import inspect
+import math
+import random
 import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
+import algosdk.transaction
 import pytest
 from algokit_utils import (
     DELETABLE_TEMPLATE_NAME,
@@ -11,12 +14,17 @@ from algokit_utils import (
     Account,
     ApplicationClient,
     ApplicationSpecification,
+    EnsureBalanceParameters,
+    TransferAssetParameters,
+    ensure_funded,
     get_account,
     get_algod_client,
     get_indexer_client,
     get_kmd_client_from_algod_client,
     replace_template_variables,
+    transfer_asset,
 )
+from algosdk.util import algos_to_microalgos
 from dotenv import load_dotenv
 
 from tests import app_client_test
@@ -154,3 +162,63 @@ def app_spec() -> ApplicationSpecification:
     path = Path(__file__).parent / "app_client_test.json"
     path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
+
+
+def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int | None) -> int:
+    if total is None:
+        total = math.floor(random.random() * 100) + 20
+
+    decimals = 0
+    asset_name = f"ASA ${math.floor(random.random() * 100) + 1}_${math.floor(random.random() * 100) + 1}_${total}"
+
+    params = algod_client.suggested_params()
+
+    txn = algosdk.transaction.AssetConfigTxn(
+        sender=sender.address,
+        sp=params,
+        total=total * 10**decimals,
+        decimals=decimals,
+        default_frozen=False,
+        unit_name="",
+        asset_name=asset_name,
+        manager=sender.address,
+        reserve=sender.address,
+        freeze=sender.address,
+        clawback=sender.address,
+        url="https://path/to/my/asset/details",
+        metadata_hash=None,
+        note=None,
+        lease=None,
+        rekey_to=None,
+    )
+
+    signed_transaction = txn.sign(sender.private_key)  # type: ignore[no-untyped-call]
+    algod_client.send_transaction(signed_transaction)
+    ptx = algod_client.pending_transaction_info(txn.get_txid())
+
+    return ptx["asset-index"]
+
+
+def opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
+    transfer_asset(
+        algod_client,
+        TransferAssetParameters(
+            from_account=account,
+            to_address=account.address,
+            asset_id=asset_id,
+            amount=0,
+            note=f"Opt in asset id ${asset_id}",
+        ),
+    )
+
+
+def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
+    ensure_funded(
+        algod_client,
+        EnsureBalanceParameters(
+            account_to_fund=account,
+            min_spending_balance_micro_algos=300000,
+            min_funding_increment_micro_algos=1,
+        ),
+    )
+    opt_in(algod_client=algod_client, account=account, asset_id=asset_id)

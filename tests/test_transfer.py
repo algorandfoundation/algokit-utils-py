@@ -1,18 +1,21 @@
 from typing import TYPE_CHECKING
 
+import algosdk
 import pytest
 from algokit_utils import (
     Account,
     EnsureBalanceParameters,
+    TransferAssetParameters,
     TransferParameters,
     create_kmd_wallet_account,
     ensure_funded,
     get_dispenser_account,
     transfer,
+    transfer_asset,
 )
 from algosdk.util import algos_to_microalgos
 
-from tests.conftest import check_output_stability, get_unique_name
+from tests.conftest import assure_funds_and_opt_in, check_output_stability, generate_test_asset, get_unique_name
 
 if TYPE_CHECKING:
     from algosdk.kmd import KMDClient
@@ -24,6 +27,11 @@ MINIMUM_BALANCE = 100_000  # see https://developer.algorand.org/docs/get-details
 
 @pytest.fixture()
 def to_account(kmd_client: "KMDClient") -> Account:
+    return create_kmd_wallet_account(kmd_client, get_unique_name())
+
+
+@pytest.fixture()
+def clawback_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 
 
@@ -81,172 +89,109 @@ def test_transfer_algo_fee(algod_client: "AlgodClient", to_account: Account, fun
 def test_transfer_asa_receiver_not_optin(
     algod_client: "AlgodClient", to_account: Account, funded_account: Account
 ) -> None:
-    transfer_asset()
+    dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
+    with pytest.raises(algosdk.error.AlgodHTTPError, match="receiver error: must optin"):
+        transfer_asset(
+            algod_client,
+            TransferAssetParameters(
+                from_account=funded_account,
+                to_address=to_account.address,
+                asset_id=dummy_asset_id,
+                amount=5,
+                note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+            ),
+        )
 
 
-#     const { algod, testAccount } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
+def test_transfer_asa_asset_doesnt_exist(
+    algod_client: "AlgodClient", to_account: Account, funded_account: Account
+) -> None:
+    dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
+    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
 
-#     try {
-#       await algokit.transferAsset(
-#         {
-#           from: testAccount,
-#           to: secondAccount.addr,
-#           assetID: dummyAssetID,
-#           amount: 5,
-#           note: `Transfer 5 assets wit id ${dummyAssetID}`,
-#         },
-#         algod,
-#       )
-#     } catch (e: unknown) {
-#       expect((e as Error).name).toEqual('URLTokenBaseHTTPError')
-#       expect((e as Error).message).toContain('receiver error: must optin')
-#     }
-#   }, 10e6)
+    with pytest.raises(algosdk.error.AlgodHTTPError, match="asset 1 missing from"):
+        transfer_asset(
+            algod_client,
+            TransferAssetParameters(
+                from_account=funded_account,
+                to_address=to_account.address,
+                asset_id=1,
+                amount=5,
+                note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+            ),
+        )
 
-#   test('Transfer ASA, sender is not opted in', async () => {
-#     const { algod, testAccount, kmd } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
 
-#     await assureFundsAndOptIn(algod, secondAccount, dummyAssetID, kmd)
+def test_transfer_asa_asset_is_transfered(
+    algod_client: "AlgodClient", to_account: Account, funded_account: Account
+) -> None:
+    dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
+    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
 
-#     try {
-#       await algokit.transferAsset(
-#         {
-#           from: testAccount,
-#           to: secondAccount.addr,
-#           assetID: dummyAssetID,
-#           amount: 5,
-#           note: `Transfer 5 assets wit id ${dummyAssetID}`,
-#         },
-#         algod,
-#       )
-#     } catch (e: unknown) {
-#       expect((e as Error).name).toEqual('URLTokenBaseHTTPError')
-#       expect((e as Error).message).toContain('sender error: must optin')
-#     }
-#   }, 10e6)
+    transfer_asset(
+        algod_client,
+        TransferAssetParameters(
+            from_account=funded_account,
+            to_address=to_account.address,
+            asset_id=dummy_asset_id,
+            amount=5,
+            note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+        ),
+    )
 
-#   test('Transfer ASA, asset doesnt exist', async () => {
-#     const { algod, testAccount, kmd } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
+    to_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    assert isinstance(to_account_info, dict)
+    assert to_account_info["asset-holding"]["amount"] == 5  # noqa: PLR2004
 
-#     await assureFundsAndOptIn(algod, secondAccount, dummyAssetID, kmd)
-#     await optIn(algod, testAccount, dummyAssetID)
-#     try {
-#       await algokit.transferAsset(
-#         {
-#           from: testAccount,
-#           to: secondAccount.addr,
-#           assetID: 1,
-#           amount: 5,
-#           note: `Transfer asset with wrong id`,
-#         },
-#         algod,
-#       )
-#     } catch (e: unknown) {
-#       expect((e as Error).name).toEqual('URLTokenBaseHTTPError')
-#       expect((e as Error).message).toContain('asset 1 missing from')
-#     }
-#   }, 10e6)
+    funded_account_info = algod_client.account_asset_info(funded_account.address, dummy_asset_id)
+    assert isinstance(funded_account_info, dict)
+    assert funded_account_info["asset-holding"]["amount"] == 95  # noqa: PLR2004
 
-#   test('Transfer ASA, without sending', async () => {
-#     const { algod, testAccount, kmd } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
 
-#     await assureFundsAndOptIn(algod, secondAccount, dummyAssetID, kmd)
-#     await optIn(algod, testAccount, dummyAssetID)
-#     const response = await algokit.transferAsset(
-#       {
-#         from: testAccount,
-#         to: secondAccount.addr,
-#         assetID: 1,
-#         amount: 5,
-#         note: `Transfer asset with wrong id`,
-#         skipSending: true,
-#       },
-#       algod,
-#     )
+def test_transfer_asa_asset_is_transfered_from_revocation_target(
+    algod_client: "AlgodClient", to_account: Account, clawback_account: Account, funded_account: Account
+) -> None:
+    dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
+    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
+    assure_funds_and_opt_in(algod_client=algod_client, account=clawback_account, asset_id=dummy_asset_id)
 
-#     expect(response.transaction).toBeDefined()
-#     expect(response.confirmation).toBeUndefined()
-#   }, 10e6)
+    transfer_asset(
+        algod_client,
+        TransferAssetParameters(
+            from_account=funded_account,
+            to_address=clawback_account.address,
+            asset_id=dummy_asset_id,
+            amount=5,
+            note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+        ),
+    )
 
-#   test('Transfer ASA, asset is transfered to another account', async () => {
-#     const { algod, testAccount, kmd } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
+    clawback_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    assert isinstance(clawback_account_info, dict)
+    assert clawback_account_info["asset-holding"]["amount"] == 5  # noqa: PLR2004
 
-#     await assureFundsAndOptIn(algod, secondAccount, dummyAssetID, kmd)
-#     await optIn(algod, testAccount, dummyAssetID)
+    transfer_asset(
+        algod_client,
+        TransferAssetParameters(
+            from_account=funded_account,
+            to_address=to_account.address,
+            asset_id=dummy_asset_id,
+            amount=5,
+            note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+        ),
+    )
 
-#     await algokit.transferAsset(
-#       {
-#         from: testAccount,
-#         to: secondAccount.addr,
-#         assetID: dummyAssetID,
-#         amount: 5,
-#         note: `Transfer 5 assets wit id ${dummyAssetID}`,
-#       },
-#       algod,
-#     )
+    to_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    assert isinstance(to_account_info, dict)
+    assert to_account_info["asset-holding"]["amount"] == 5  # noqa: PLR2004
 
-#     const secondAccountInfo = await algod.accountAssetInformation(secondAccount.addr, dummyAssetID).do()
-#     expect(secondAccountInfo['asset-holding']['amount']).toBe(5)
+    clawback_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    assert isinstance(clawback_account_info, dict)
+    assert clawback_account_info["asset-holding"]["amount"] == 0
 
-#     const testAccountInfo = await algod.accountAssetInformation(testAccount.addr, dummyAssetID).do()
-#     expect(testAccountInfo['asset-holding']['amount']).toBe(95)
-#   }, 10e6)
-
-#   test('Transfer ASA, asset is transfered to another account from revocationTarget', async () => {
-#     const { algod, testAccount, kmd } = localnet.context
-#     const dummyAssetID = await generateTestAsset(algod, testAccount, 100)
-#     const secondAccount = algosdk.generateAccount()
-#     const clawbackAccount = algosdk.generateAccount()
-
-#     await assureFundsAndOptIn(algod, secondAccount, dummyAssetID, kmd)
-#     await assureFundsAndOptIn(algod, clawbackAccount, dummyAssetID, kmd)
-#     await optIn(algod, testAccount, dummyAssetID)
-
-#     await algokit.transferAsset(
-#       {
-#         from: testAccount,
-#         to: clawbackAccount.addr,
-#         assetID: dummyAssetID,
-#         amount: 5,
-#         note: `Transfer 5 assets wit id ${dummyAssetID}`,
-#       },
-#       algod,
-#     )
-
-#     const clawbackFromInfo = await algod.accountAssetInformation(clawbackAccount.addr, dummyAssetID).do()
-#     expect(clawbackFromInfo['asset-holding']['amount']).toBe(5)
-
-#     await algokit.transferAsset(
-#       {
-#         from: testAccount,
-#         to: secondAccount.addr,
-#         assetID: dummyAssetID,
-#         amount: 5,
-#         note: `Transfer 5 assets wit id ${dummyAssetID}`,
-#         clawbackFrom: clawbackAccount,
-#       },
-#       algod,
-#     )
-
-#     const secondAccountInfo = await algod.accountAssetInformation(secondAccount.addr, dummyAssetID).do()
-#     expect(secondAccountInfo['asset-holding']['amount']).toBe(5)
-
-#     const clawbackAccountInfo = await algod.accountAssetInformation(clawbackAccount.addr, dummyAssetID).do()
-#     expect(clawbackAccountInfo['asset-holding']['amount']).toBe(0)
-
-#     const testAccountInfo = await algod.accountAssetInformation(testAccount.addr, dummyAssetID).do()
-#     expect(testAccountInfo['asset-holding']['amount']).toBe(95)
-#   }, 10e6)
+    funded_account_info = algod_client.account_asset_info(funded_account.address, dummy_asset_id)
+    assert isinstance(funded_account_info, dict)
+    assert funded_account_info["asset-holding"]["amount"] == 95  # noqa: PLR2004
 
 
 def test_ensure_funded(algod_client: "AlgodClient", to_account: Account, funded_account: Account) -> None:

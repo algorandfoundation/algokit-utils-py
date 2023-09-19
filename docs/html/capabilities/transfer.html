@@ -51,6 +51,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Algo transfers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#transferring-algos">Transferring Algos</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ensuring-minimum-algos">Ensuring minimum Algos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transfering-assets">Transfering Assets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dispenser">Dispenser</a></li>
 </ul>
 </li>
@@ -109,6 +110,17 @@ The function to facilitate this is <code class="docutils literal notranslate"><s
 </ul>
 <p>The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it’s more than the
 <code class="docutils literal notranslate"><span class="pre">min_spending_balance_micro_algos</span></code> and if so then it will send the difference, or the <code class="docutils literal notranslate"><span class="pre">min_funding_increment_micro_algos</span></code> if that is specified.</p>
+</section>
+<section id="transfering-assets">
+<h2>Transfering Assets<a class="headerlink" href="#transfering-assets" title="Permalink to this heading"></a></h2>
+<p>The key function to facilitate asset transfers is <code class="docutils literal notranslate"><span class="pre">transfer_asset(algod_client,</span> <span class="pre">transfer_parameters)</span></code>, which returns a <code class="docutils literal notranslate"><span class="pre">AssetTransferTxn</span></code> and takes a <code class="docutils literal notranslate"><span class="pre">TransferAssetParameters</span></code>:</p>
+<p>The following fields on <code class="docutils literal notranslate"><span class="pre">TransferAssetParameters</span></code> are required to transfer assets:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">from_account</span></code>: The account or signer that will send the ALGOs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to_address</span></code>: The address of the account that will receive the ALGOs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">assetID</span></code>: The asset id that will be transfered</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">amount</span></code>: The amount to send as the smallest divisible unit value</p></li>
+</ul>
 </section>
 <section id="dispenser">
 <h2>Dispenser<a class="headerlink" href="#dispenser" title="Permalink to this heading"></a></h2>

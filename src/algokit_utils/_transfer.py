@@ -12,7 +12,7 @@ from algokit_utils.models import Account
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
-__all__ = ["TransferParameters", "transfer"]
+__all__ = ["TransferParameters", "transfer", "TransferAssetParameters", "transfer_asset"]
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +44,15 @@ class TransferParameters(TransferParametersBase):
 
 @dataclasses.dataclass(kw_only=True)
 class TransferAssetParameters(TransferParametersBase):
-    """Parameters for transferring µALGOs between accounts"""
+    """Parameters for transferring assets between accounts"""
 
     asset_id: int
     """The asset id that will be transfered"""
     amount: int
     """The amount to send"""
+    clawback_from: Account | str | None = None
+    """An address of a target account from which to perform a clawback operation. Please note, in such cases
+    senderAccount must be equal to clawback field on ASA metadata."""
 
 
 def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) -> None:
@@ -89,12 +92,14 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
 
 
 def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -> AssetTransferTxn:
+    sender = address_from_private_key(parameters.from_account.private_key)  # type: ignore[no-untyped-call]
+    suggested_params = parameters.suggested_params or client.suggested_params()
     xfer_txn = AssetTransferTxn(
-        sp=client.suggested_params(),
-        sender=parameters.from_account,
+        sp=suggested_params,
+        sender=sender,
         receiver=parameters.to_address,
         close_assets_to=None,
-        # revocation_target= clawbackFrom ? getSenderAddress(clawbackFrom) : undefined,
+        revocation_target=parameters.clawback_from,
         amt=parameters.amount,
         note=parameters.note,
         index=parameters.asset_id,
