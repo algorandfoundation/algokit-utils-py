@@ -136,6 +136,7 @@ When an error is thrown then the resulting error that is re-thrown will be a `Lo
 * `transaction_id`: Transaction ID of failing transaction
 * `message`: The error message
 * `line_no`: The line number in the TEAL program that
+* `traces`: A list of Trace objects providing additional insights on simulation when debug mode is active.
 
 The function `trace()` will provide a formatted output of the surrounding TEAL where the error occurred.
 
@@ -146,4 +147,11 @@ The extended information will only show if the Application Client has a source m
 2.) `template_values` are provided when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
 3.) `approval_source_map` on `ApplicationClient` has been set from a previously compiled approval program OR
 4.) A source map has been exported/imported using `export_source_map`/`import_source_map`"""
+```
+
+### Debug Mode and traces Field
+When debug mode is active, the LogicError will contain a field named traces. This field will include raw simulate execution traces, providing a detailed account of the transaction simulation. These traces are crucial for diagnosing complex issues and are automatically included in all application client calls when debug mode is active.
+
+```{note}
+Remember to enable debug mode (`config.debug = True`) to include raw simulate execution traces in the `LogicError`.
 ```
