@@ -18,21 +18,26 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass(kw_only=True)
 class TransferParametersBase:
-    """Parameters for transferring µALGOs between accounts"""
+    """Parameters for transferring µALGOs between accounts
+
+    Args:
+        from_account (Account | AccountTransactionSigner): The account (with private key) or signer that will send
+            the µALGOs
+        to_address (str): The account address that will receive the µALGOs
+        suggested_params (SuggestedParams | None): (optional) transaction parameters
+        note (str | bytes | None): (optional) transaction note
+        fee_micro_algos (int | None): (optional) The flat fee you want to pay, useful for covering extra fees in a
+            transaction group or app call
+        max_fee_micro_algos (int | None): (optional) The maximum fee that you are happy to pay (default: unbounded)
+            - if this is set it's possible the transaction could get rejected during network congestion
+    """
 
     from_account: Account | AccountTransactionSigner
-    """The account (with private key) or signer that will send the µALGOs"""
     to_address: str
-    """The account address that will receive the µALGOs"""
     suggested_params: SuggestedParams | None = None
-    """(optional) transaction parameters"""
     note: str | bytes | None = None
-    """(optional) transaction note"""
     fee_micro_algos: int | None = None
-    """(optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call"""
     max_fee_micro_algos: int | None = None
-    """(optional) The maximum fee that you are happy to pay (default: unbounded) -
-    if this is set it's possible the transaction could get rejected during network congestion"""
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -44,15 +49,18 @@ class TransferParameters(TransferParametersBase):
 
 @dataclasses.dataclass(kw_only=True)
 class TransferAssetParameters(TransferParametersBase):
-    """Parameters for transferring assets between accounts"""
+    """Parameters for transferring assets between accounts
+
+    Args:
+       asset_id (int): The asset id that will be transfered
+       amount (int): The amount to send
+       clawback_from (str | None): An address of a target account from which to perform a clawback operation. Please
+           note, in such cases senderAccount must be equal to clawback field on ASA metadata.
+    """
 
     asset_id: int
-    """The asset id that will be transfered"""
     amount: int
-    """The amount to send"""
-    clawback_from: Account | str | None = None
-    """An address of a target account from which to perform a clawback operation. Please note, in such cases
-    senderAccount must be equal to clawback field on ASA metadata."""
+    clawback_from: str | None = None
 
 
 def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) -> None:

@@ -166,7 +166,7 @@ def test_transfer_asa_asset_is_transfered_from_revocation_target(
         ),
     )
 
-    clawback_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    clawback_account_info = algod_client.account_asset_info(clawback_account.address, dummy_asset_id)
     assert isinstance(clawback_account_info, dict)
     assert clawback_account_info["asset-holding"]["amount"] == 5  # noqa: PLR2004
 
@@ -175,6 +175,7 @@ def test_transfer_asa_asset_is_transfered_from_revocation_target(
         TransferAssetParameters(
             from_account=funded_account,
             to_address=to_account.address,
+            clawback_from=clawback_account.address,
             asset_id=dummy_asset_id,
             amount=5,
             note=f"Transfer 5 assets wit id ${dummy_asset_id}",
@@ -185,7 +186,7 @@ def test_transfer_asa_asset_is_transfered_from_revocation_target(
     assert isinstance(to_account_info, dict)
     assert to_account_info["asset-holding"]["amount"] == 5  # noqa: PLR2004
 
-    clawback_account_info = algod_client.account_asset_info(to_account.address, dummy_asset_id)
+    clawback_account_info = algod_client.account_asset_info(clawback_account.address, dummy_asset_id)
     assert isinstance(clawback_account_info, dict)
     assert clawback_account_info["asset-holding"]["amount"] == 0
 

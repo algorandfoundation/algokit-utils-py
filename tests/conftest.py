@@ -189,13 +189,16 @@ def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int
         note=None,
         lease=None,
         rekey_to=None,
-    )
+    )  # type: ignore[no-untyped-call]
 
     signed_transaction = txn.sign(sender.private_key)  # type: ignore[no-untyped-call]
     algod_client.send_transaction(signed_transaction)
-    ptx = algod_client.pending_transaction_info(txn.get_txid())
+    ptx = algod_client.pending_transaction_info(txn.get_txid())  # type: ignore[no-untyped-call]
 
-    return ptx["asset-index"]
+    if isinstance(ptx, dict) and "asset-index" in ptx and isinstance(ptx["asset-index"], int):
+        return ptx["asset-index"]
+    else:
+        raise ValueError("Unexpected response from pending_transaction_info")
 
 
 def opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
