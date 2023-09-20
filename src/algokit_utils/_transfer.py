@@ -83,18 +83,19 @@ def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) 
 def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTxn:
     """Transfer µALGOs between accounts"""
 
-    suggested_params = parameters.suggested_params or client.suggested_params()
-    from_account = parameters.from_account
+    params = parameters
+    params.suggested_params = parameters.suggested_params or client.suggested_params()
+    from_account = params.from_account
     sender = address_from_private_key(from_account.private_key)  # type: ignore[no-untyped-call]
     transaction = PaymentTxn(
         sender=sender,
-        receiver=parameters.to_address,
-        amt=parameters.micro_algos,
-        note=parameters.note.encode("utf-8") if isinstance(parameters.note, str) else parameters.note,
-        sp=suggested_params,
+        receiver=params.to_address,
+        amt=params.micro_algos,
+        note=params.note.encode("utf-8") if isinstance(params.note, str) else params.note,
+        sp=params.suggested_params,
     )  # type: ignore[no-untyped-call]
 
-    result = _send_transaction(client=client, transaction=transaction, parameters=parameters)
+    result = _send_transaction(client=client, transaction=transaction, parameters=params)
     assert isinstance(result, PaymentTxn)
     return result
 
