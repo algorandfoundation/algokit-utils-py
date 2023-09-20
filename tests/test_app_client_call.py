@@ -10,6 +10,7 @@ from algokit_utils import (
     CreateCallParameters,
     get_account,
 )
+from algokit_utils.config import config
 from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
     AtomicTransactionComposer,
@@ -276,3 +277,23 @@ def test_readonly_call_with_error_with_new_client_missing_source_map(
         )
 
     check_output_stability(str(ex.value).replace(ex.value.transaction_id, "{txn}"))
+
+
+def test_readonly_call_with_error_debug_mode_disabled(client_fixture: ApplicationClient) -> None:
+    config.configure(debug=False)
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "readonly",
+            error=1,
+        )
+    assert ex.value.traces is None
+    config.configure(debug=True)
+
+
+def test_readonly_call_with_error_debug_mode_enabled(client_fixture: ApplicationClient) -> None:
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "readonly",
+            error=1,
+        )
+    assert ex.value.traces is not None

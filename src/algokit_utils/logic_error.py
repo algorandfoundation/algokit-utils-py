@@ -47,6 +47,7 @@ class LogicError(Exception):
         message: str,
         pc: int,
         logic_error: Exception | None = None,
+        traces: list | None = None,
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str
@@ -56,6 +57,7 @@ class LogicError(Exception):
         self.transaction_id = transaction_id
         self.message = message
         self.pc = pc
+        self.traces = traces
 
         self.line_no = self.source_map.get_line_for_pc(self.pc) if self.source_map else None
 

@@ -870,12 +870,16 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = atc.simulate(self.algod_client)
+        simulate_response = _simulate_response(atc, self.algod_client)
+        traces = None
+        if config.debug:
+            traces = _create_simulate_traces(simulate_response)
         if simulate_response.failure_message:
             raise _try_convert_to_logic_error(
                 simulate_response.failure_message,
                 self.app_spec.approval_program,
                 self._get_approval_source_map,
+                traces,
             ) or Exception(
                 f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
             )
@@ -1226,6 +1230,7 @@ def _try_convert_to_logic_error(
     source_ex: Exception | str,
     approval_program: str,
     approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
+    simulate_traces: list | None = None,
 ) -> Exception | None:
     source_ex_str = str(source_ex)
     logic_error_data = parse_logic_error(source_ex_str)
@@ -1236,6 +1241,7 @@ def _try_convert_to_logic_error(
             program=approval_program,
             source_map=approval_source_map() if callable(approval_source_map) else approval_source_map,
             **logic_error_data,
+            traces=simulate_traces,
         )
 
     return None
@@ -1259,21 +1265,43 @@ def execute_atc_with_logic_error(
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
-        _try_convert_to_logic_error(ex, approval_program, approval_source_map)
         if config.debug:
-            simulate_response = _simulate_response(atc, algod_client)
-            ex.traces = []
-            if simulate_response.failed_at:
-                ex.traces.append(
-                    {
-                        "trace": simulate_response.exec_trace_config,
-                        "messege": simulate_response.failure_message,
-                    }
-                )
+            simulate = _simulate_response(atc, algod_client)
+            traces = _create_simulate_traces(simulate)
+        else:
+            traces = None
+            logger.info("An error occurred while executing the transaction.")
+            logger.info("To see more details, enable debug mode by setting config.debug = True ")
+
+        logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map, traces)
+        if logic_error:
+            raise logic_error from ex
         raise ex
 
 
-def _simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
+def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[dict[str, Any]]:
+    traces = []
+    if hasattr(simulate, "simulate_response") and hasattr(simulate, "failed_at") and simulate.failed_at:
+        for txn_group in simulate.simulate_response["txn-groups"]:
+            app_budget_added = txn_group.get("app-budget-added", None)
+            app_budget_consumed = txn_group.get("app-budget-consumed", None)
+            failure_message = txn_group.get("failure-message", None)
+            txn_result = txn_group.get("txn-results", [{}])[0]
+            exec_trace = txn_result.get("exec-trace", {})
+            traces.append(
+                {
+                    "app-budget-added": app_budget_added,
+                    "app-budget-consumed": app_budget_consumed,
+                    "failure-message": failure_message,
+                    "exec-trace": exec_trace,
+                }
+            )
+    return traces
+
+
+def _simulate_response(
+    atc: AtomicTransactionComposer, algod_client: "AlgodClient"
+) -> SimulateAtomicTransactionResponse:
     unsigned_txn_groups = atc.build_group()
     empty_signer = EmptySigner()
     txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
