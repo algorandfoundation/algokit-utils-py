@@ -101,21 +101,25 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
 
 
 def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -> AssetTransferTxn:
+    """Transfer assets between accounts"""
+
+    params = parameters
+    params.suggested_params = parameters.suggested_params or client.suggested_params()
     sender = address_from_private_key(parameters.from_account.private_key)  # type: ignore[no-untyped-call]
     suggested_params = parameters.suggested_params or client.suggested_params()
     xfer_txn = AssetTransferTxn(
         sp=suggested_params,
         sender=sender,
-        receiver=parameters.to_address,
+        receiver=params.to_address,
         close_assets_to=None,
-        revocation_target=parameters.clawback_from,
-        amt=parameters.amount,
-        note=parameters.note,
-        index=parameters.asset_id,
+        revocation_target=params.clawback_from,
+        amt=params.amount,
+        note=params.note,
+        index=params.asset_id,
         rekey_to=None,
     )  # type: ignore[no-untyped-call]
 
-    result = _send_transaction(client=client, transaction=xfer_txn, parameters=parameters)
+    result = _send_transaction(client=client, transaction=xfer_txn, parameters=params)
     assert isinstance(result, AssetTransferTxn)
     return result
 

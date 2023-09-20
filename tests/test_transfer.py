@@ -195,6 +195,26 @@ def test_transfer_asa_asset_is_transfered_from_revocation_target(
     assert funded_account_info["asset-holding"]["amount"] == 95  # noqa: PLR2004
 
 
+def test_transfer_asset_max_fee_fails(
+    algod_client: "AlgodClient", to_account: Account, funded_account: Account
+) -> None:
+    dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
+    with pytest.raises(Exception, match="Cancelled transaction due to high network congestion fees") as ex:
+        transfer_asset(
+            algod_client,
+            TransferAssetParameters(
+                from_account=funded_account,
+                to_address=to_account.address,
+                asset_id=dummy_asset_id,
+                amount=5,
+                note=f"Transfer 5 assets wit id ${dummy_asset_id}",
+                max_fee_micro_algos=123,
+            ),
+        )
+
+    check_output_stability(str(ex.value))
+
+
 def test_ensure_funded(algod_client: "AlgodClient", to_account: Account, funded_account: Account) -> None:
     parameters = EnsureBalanceParameters(
         funding_source=funded_account,
