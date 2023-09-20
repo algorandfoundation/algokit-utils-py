@@ -11,9 +11,9 @@ The key function to facilitate Algo transfers is `algokit.transfer(algod_client,
 
 The following fields on `TransferParameters` are required to transfer ALGOs:
 
-- `from_account`: The account or signer that will send the ALGOs
-- `to_address`: The address of the account that will receive the ALGOs
-- `micro_algos`: The amount of micro ALGOs to send
+-   `from_account`: The account or signer that will send the ALGOs
+-   `to_address`: The address of the account that will receive the ALGOs
+-   `micro_algos`: The amount of micro ALGOs to send
 
 ## Ensuring minimum Algos
 
@@ -22,10 +22,10 @@ The function to facilitate this is `ensure_funded(algod, parameters)`, which tak
 
 The following fields on `EnsureBalanceParameters` are required to ensure minimum ALGOs:
 
-- `account_to_fund`: The account address that will receive the ALGOs
-- `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement)
-- `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account)
-- `funding_source`: The account or signer that will send the ALGOs, if not set will use `get_dispenser_account`
+-   `account_to_fund`: The account address that will receive the ALGOs
+-   `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement)
+-   `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account)
+-   `funding_source`: The account or signer that will send the ALGOs, if not set will use `get_dispenser_account`
 
 The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it's more than the
 `min_spending_balance_micro_algos` and if so then it will send the difference, or the `min_funding_increment_micro_algos` if that is specified.
@@ -36,10 +36,10 @@ The key function to facilitate asset transfers is `transfer_asset(algod_client, 
 
 The following fields on `TransferAssetParameters` are required to transfer assets:
 
-- `from_account`: The account or signer that will send the ALGOs
-- `to_address`: The address of the account that will receive the ALGOs
-- `assetID`: The asset id that will be transfered
-- `amount`: The amount to send as the smallest divisible unit value
+-   `from_account`: The account or signer that will send the ALGOs
+-   `to_address`: The address of the account that will receive the ALGOs
+-   `asset_id`: The asset id that will be transfered
+-   `amount`: The amount to send as the smallest divisible unit value
 
 ## Dispenser
 

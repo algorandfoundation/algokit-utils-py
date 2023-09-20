@@ -318,6 +318,11 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`transfer_asset <algokit_utils._transfer.transfer_asset>`
+  - ```{autodoc2-docstring} algokit_utils._transfer.transfer_asset
+    :parser: myst
+    :summary:
+    ```
 ````
 
 ### Data
@@ -1677,7 +1682,7 @@ Bases: {py:obj}`enum.Enum`
 
 `````
 
-`````{py:class} TransferAssetParameters
+````{py:class} TransferAssetParameters
 :canonical: algokit_utils._transfer.TransferAssetParameters
 
 Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
@@ -1686,43 +1691,7 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 :parser: myst
 ```
 
-````{py:attribute} amount
-:canonical: algokit_utils._transfer.TransferAssetParameters.amount
-:type: int
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils._transfer.TransferAssetParameters.amount
-:parser: myst
-```
-
 ````
-
-````{py:attribute} asset_id
-:canonical: algokit_utils._transfer.TransferAssetParameters.asset_id
-:type: int
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils._transfer.TransferAssetParameters.asset_id
-:parser: myst
-```
-
-````
-
-````{py:attribute} clawback_from
-:canonical: algokit_utils._transfer.TransferAssetParameters.clawback_from
-:type: algokit_utils.models.Account | str | None
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils._transfer.TransferAssetParameters.clawback_from
-:parser: myst
-```
-
-````
-
-`````
 
 ````{py:class} TransferParameters
 :canonical: algokit_utils._transfer.TransferParameters
@@ -1926,6 +1895,14 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 :canonical: algokit_utils._transfer.transfer
 
 ```{autodoc2-docstring} algokit_utils._transfer.transfer
+:parser: myst
+```
+````
+
+````{py:function} transfer_asset(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._transfer.TransferAssetParameters) -> algosdk.transaction.AssetTransferTxn
+:canonical: algokit_utils._transfer.transfer_asset
+
+```{autodoc2-docstring} algokit_utils._transfer.transfer_asset
 :parser: myst
 ```
 ````

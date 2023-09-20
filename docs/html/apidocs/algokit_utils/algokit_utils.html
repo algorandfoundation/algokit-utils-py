@@ -123,6 +123,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.num_extra_program_pages"><code class="docutils literal notranslate"><span class="pre">num_extra_program_pages()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.replace_template_variables"><code class="docutils literal notranslate"><span class="pre">replace_template_variables()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.transfer"><code class="docutils literal notranslate"><span class="pre">transfer()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.transfer_asset"><code class="docutils literal notranslate"><span class="pre">transfer_asset()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -357,6 +358,9 @@ creator that have a transaction note containing <a class="reference internal" hr
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.transfer" title="algokit_utils._transfer.transfer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer</span></code></a></p></td>
 <td><p>Transfer µALGOs between accounts</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.transfer_asset" title="algokit_utils._transfer.transfer_asset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer_asset</span></code></a></p></td>
+<td><p>Transfer assets between accounts</p></td>
 </tr>
 </tbody>
 </table>
@@ -1293,28 +1297,11 @@ referred to by transaction_index</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">TransferAssetParameters</span></span><a class="headerlink" href="#algokit_utils.TransferAssetParameters" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils._transfer.TransferParametersBase</span></code></p>
 <p>Parameters for transferring assets between accounts</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.TransferAssetParameters.amount">
-<span class="sig-name descname"><span class="pre">amount</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><a class="headerlink" href="#algokit_utils.TransferAssetParameters.amount" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>The amount to send</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.TransferAssetParameters.asset_id">
-<span class="sig-name descname"><span class="pre">asset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></em><a class="headerlink" href="#algokit_utils.TransferAssetParameters.asset_id" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>The asset id that will be transfered</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.TransferAssetParameters.clawback_from">
-<span class="sig-name descname"><span class="pre">clawback_from</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.TransferAssetParameters.clawback_from" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>An address of a target account from which to perform a clawback operation. Please note, in such cases
-senderAccount must be equal to clawback field on ASA metadata.</p>
-</dd></dl>
-
+<p>Args:
+asset_id (int): The asset id that will be transfered
+amount (int): The amount to send
+clawback_from (str | None): An address of a target account from which to perform a clawback operation. Please
+note, in such cases senderAccount must be equal to clawback field on ASA metadata.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1527,6 +1514,12 @@ some valid inputs and incremented outputs:
 <dt class="sig sig-object py" id="algokit_utils.transfer">
 <span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">transfer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.TransferParameters" title="algokit_utils._transfer.TransferParameters"><span class="pre">algokit_utils._transfer.TransferParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.PaymentTxn" title="(in algosdk)"><span class="pre">algosdk.transaction.PaymentTxn</span></a></span></span><a class="headerlink" href="#algokit_utils.transfer" title="Permalink to this definition"></a></dt>
 <dd><p>Transfer µALGOs between accounts</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="algokit_utils.transfer_asset">
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">transfer_asset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.TransferAssetParameters" title="algokit_utils._transfer.TransferAssetParameters"><span class="pre">algokit_utils._transfer.TransferAssetParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.AssetTransferTxn" title="(in algosdk)"><span class="pre">algosdk.transaction.AssetTransferTxn</span></a></span></span><a class="headerlink" href="#algokit_utils.transfer_asset" title="Permalink to this definition"></a></dt>
+<dd><p>Transfer assets between accounts</p>
 </dd></dl>
 
 </section>
