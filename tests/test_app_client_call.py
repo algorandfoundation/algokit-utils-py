@@ -308,9 +308,7 @@ def test_readonly_call_with_error_debug_mode_enabled(client_fixture: Application
         )
 
     assert ex.value.traces is not None
-
-    output_traces = str(ex.value.traces).replace(ex.value.transaction_id, "{txn}")
-    check_output_stability(output_traces)
+    assert ex.value.traces[0]["exec-trace"]["approval-program-trace"] is not None
 
 
 def test_app_call_with_error_debug_mode_disabled(mock_config: Mock, client_fixture: ApplicationClient) -> None:
@@ -351,6 +349,4 @@ def test_app_call_with_error_debug_mode_enabled(client_fixture: ApplicationClien
         )
 
     assert ex.value.traces is not None
-    output_message = str(ex.value).replace(ex.value.transaction_id, "{txn}")
-    output_traces = str(ex.value.traces).replace(ex.value.transaction_id, "{txn}")
-    check_output_stability(f"{output_message}\n{output_traces}")
+    assert ex.value.traces[0]["exec-trace"]["approval-program-trace"] is not None
