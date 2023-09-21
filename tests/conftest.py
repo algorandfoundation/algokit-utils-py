@@ -17,7 +17,6 @@ from algokit_utils import (
     get_kmd_client_from_algod_client,
     replace_template_variables,
 )
-from algokit_utils.config import config
 from dotenv import load_dotenv
 
 from tests import app_client_test
@@ -155,10 +154,3 @@ def app_spec() -> ApplicationSpecification:
     path = Path(__file__).parent / "app_client_test.json"
     path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
-
-
-# This fixture is automatically applied to all tests in the session to enable debug mode.
-# If you need to run a test without debug mode, you can manually set config.configure(debug=False) within the test.
-@pytest.fixture(autouse=True, scope="session")
-def _debug_mode() -> None:
-    config.configure(debug=True)

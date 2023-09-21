@@ -1,0 +1,13 @@
+Txn {txn} had error 'invalid Box reference 0x73737373' at PC 750 and Source Line 432:
+
+	
+	// set_box
+	setbox_2:
+	proto 2 0
+	frame_dig -2
+	box_del		<-- Error
+	pop
+	frame_dig -2
+	frame_dig -1
+	extract 2 0
+[{'app-budget-added': 700, 'app-budget-consumed': 40, 'failure-message': 'transaction {txn}: logic eval error: invalid Box reference 0x73737373. Details: pc=750, opcodes=proto 2 0; frame_dig -2; box_del', 'exec-trace': {'approval-program-hash': 'CO2ug98Zk0183ssuNBqmgNSpbfJmsAugNMWZsxZjjc0=', 'approval-program-trace': [{'pc': 1}, {'pc': 9}, {'pc': 38, 'stack-additions': [{'type': 2, 'uint': 3}]}, {'pc': 40, 'stack-additions': [{'type': 2}]}, {'pc': 41, 'stack-additions': [{'type': 2}], 'stack-pop-count': 2}, {'pc': 42, 'stack-pop-count': 1}, {'pc': 45, 'stack-additions': [{'bytes': 'pLSiMA==', 'type': 1}]}, {'pc': 48, 'stack-additions': [{'bytes': 'Gdaxhg==', 'type': 1}]}, {'pc': 54, 'stack-additions': [{'type': 2}], 'stack-pop-count': 2}, {'pc': 55, 'stack-pop-count': 1}, {'pc': 58, 'stack-additions': [{'bytes': 'pLSiMA==', 'type': 1}]}, {'pc': 61, 'stack-additions': [{'bytes': 'U71hhg==', 'type': 1}]}, {'pc': 67, 'stack-additions': [{'type': 2}], 'stack-pop-count': 2}, {'pc': 68, 'stack-pop-count': 1}, {'pc': 71, 'stack-additions': [{'bytes': 'pLSiMA==', 'type': 1}]}, {'pc': 74, 'stack-additions': [{'bytes': 'pLSiMA==', 'type': 1}]}, {'pc': 80, 'stack-additions': [{'type': 2, 'uint': 1}], 'stack-pop-count': 2}, {'pc': 81, 'stack-pop-count': 1}, {'pc': 591, 'stack-additions': [{'type': 2}]}, {'pc': 593, 'stack-additions': [{'type': 2}]}, {'pc': 594, 'stack-additions': [{'type': 2, 'uint': 1}], 'stack-pop-count': 2}, {'pc': 595, 'stack-additions': [{'type': 2, 'uint': 3405}]}, {'pc': 597, 'stack-additions': [{'type': 2}]}, {'pc': 598, 'stack-additions': [{'type': 2, 'uint': 1}], 'stack-pop-count': 2}, {'pc': 599, 'stack-additions': [{'type': 2, 'uint': 1}], 'stack-pop-count': 2}, {'pc': 600, 'stack-pop-count': 1}, {'pc': 601}, {'pc': 1299}, {'pc': 1302, 'stack-additions': [{'type': 1}]}, {'pc': 1303, 'stack-additions': [{'type': 1}, {'type': 1}], 'stack-pop-count': 1}, {'pc': 1304, 'stack-additions': [{'bytes': 'c3Nzcw==', 'type': 1}]}, {'pc': 1307, 'stack-additions': [{'bytes': 'c3Nzcw==', 'type': 1}, {'type': 1}], 'stack-pop-count': 3}, {'pc': 1309, 'stack-additions': [{'bytes': 'AAR0ZXN0', 'type': 1}]}, {'pc': 1312, 'stack-additions': [{'bytes': 'AAR0ZXN0', 'type': 1}], 'stack-pop-count': 2}, {'pc': 1314, 'stack-additions': [{'bytes': 'c3Nzcw==', 'type': 1}]}, {'pc': 1316, 'stack-additions': [{'bytes': 'AAR0ZXN0', 'type': 1}]}, {'pc': 1318}, {'pc': 745}, {'pc': 748, 'stack-additions': [{'bytes': 'c3Nzcw==', 'type': 1}]}, {'pc': 750, 'stack-pop-count': 1}]}}]
