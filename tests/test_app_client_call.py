@@ -1,5 +1,7 @@
+from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import Mock, patch
 
 import algokit_utils
 import pytest
@@ -32,6 +34,15 @@ def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecificati
     create_response = client.create("create")
     assert create_response.tx_id
     return client
+
+
+# This fixture is automatically applied to all application call tests.
+# If you need to run a test without debug mode, you can reference this mock within the test and disable it explicitly.
+@pytest.fixture(autouse=True)
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        yield mock_config
 
 
 def test_app_client_from_app_spec_path(algod_client: "AlgodClient") -> None:
@@ -276,3 +287,66 @@ def test_readonly_call_with_error_with_new_client_missing_source_map(
         )
 
     check_output_stability(str(ex.value).replace(ex.value.transaction_id, "{txn}"))
+
+
+def test_readonly_call_with_error_debug_mode_disabled(mock_config: Mock, client_fixture: ApplicationClient) -> None:
+    mock_config.debug = False
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "readonly",
+            error=1,
+        )
+    assert ex.value.traces is None
+    mock_config.debug = True
+
+
+def test_readonly_call_with_error_debug_mode_enabled(client_fixture: ApplicationClient) -> None:
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "readonly",
+            error=1,
+        )
+
+    assert ex.value.traces is not None
+    assert ex.value.traces[0]["exec-trace"]["approval-program-trace"] is not None
+
+
+def test_app_call_with_error_debug_mode_disabled(mock_config: Mock, client_fixture: ApplicationClient) -> None:
+    mock_config.debug = False
+    algokit_utils.ensure_funded(
+        client_fixture.algod_client,
+        algokit_utils.EnsureBalanceParameters(
+            account_to_fund=client_fixture.app_address,
+            min_spending_balance_micro_algos=200_000,
+            min_funding_increment_micro_algos=200_000,
+        ),
+    )
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "set_box",
+            name=b"ssss",
+            value="test",
+        )
+
+    assert ex.value.traces is None
+    mock_config.debug = True
+
+
+def test_app_call_with_error_debug_mode_enabled(client_fixture: ApplicationClient) -> None:
+    algokit_utils.ensure_funded(
+        client_fixture.algod_client,
+        algokit_utils.EnsureBalanceParameters(
+            account_to_fund=client_fixture.app_address,
+            min_spending_balance_micro_algos=200_000,
+            min_funding_increment_micro_algos=200_000,
+        ),
+    )
+    with pytest.raises(algokit_utils.LogicError) as ex:
+        client_fixture.call(
+            "set_box",
+            name=b"ssss",
+            value="test",
+        )
+
+    assert ex.value.traces is not None
+    assert ex.value.traces[0]["exec-trace"]["approval-program-trace"] is not None

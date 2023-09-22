@@ -4,7 +4,6 @@ import json
 import logging
 import re
 import typing
-from http import HTTPStatus
 from math import ceil
 from pathlib import Path
 from typing import Any, Literal, cast, overload
@@ -19,6 +18,7 @@ from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
     AtomicTransactionComposer,
     AtomicTransactionResponse,
+    EmptySigner,
     LogicSigTransactionSigner,
     MultisigTransactionSigner,
     SimulateAtomicTransactionResponse,
@@ -26,13 +26,13 @@ from algosdk.atomic_transaction_composer import (
     TransactionWithSigner,
 )
 from algosdk.constants import APP_PAGE_MAX_SIZE
-from algosdk.error import AlgodHTTPError
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
+from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils._simulate_315_compat import simulate_atc_315
+from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
     ABIArgsDict,
@@ -55,6 +55,7 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+
 
 """A dictionary `dict[str, Any]` representing ABI argument names and values"""
 
@@ -169,7 +170,6 @@ class ApplicationClient:
         self._approval_program: Program | None = None
         self._approval_source_map: SourceMap | None = None
         self._clear_program: Program | None = None
-        self._use_simulate_315 = False  # flag to determine if old simulate 3.15 encoding should be used
 
         self.template_values: au_deploy.TemplateValueMapping = template_values or {}
         self.existing_deployments = existing_deployments
@@ -870,35 +870,21 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = self._simulate_atc(atc)
+        simulate_response = _simulate_response(atc, self.algod_client)
+        traces = None
+        if config.debug:
+            traces = _create_simulate_traces(simulate_response)
         if simulate_response.failure_message:
             raise _try_convert_to_logic_error(
                 simulate_response.failure_message,
                 self.app_spec.approval_program,
                 self._get_approval_source_map,
+                traces,
             ) or Exception(
                 f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
             )
 
         return TransactionResponse.from_atr(simulate_response)
-
-    def _simulate_atc(self, atc: AtomicTransactionComposer) -> SimulateAtomicTransactionResponse:
-        # TODO: remove this once 3.16 is in mainnet
-        # there was a breaking change in algod 3.16 to the simulate endpoint
-        # attempt to transparently handle this by calling the endpoint with the old behaviour if
-        # 3.15 is detected
-        if self._use_simulate_315:
-            return simulate_atc_315(atc, self.algod_client)
-        try:
-            return atc.simulate(self.algod_client)
-        except AlgodHTTPError as ex:
-            if ex.code == HTTPStatus.BAD_REQUEST.value and (
-                "msgpack decode error [pos 12]: no matching struct field found when decoding stream map with key "
-                "txn-groups" in ex.args
-            ):
-                self._use_simulate_315 = True
-                return simulate_atc_315(atc, self.algod_client)
-            raise ex
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
@@ -1244,6 +1230,7 @@ def _try_convert_to_logic_error(
     source_ex: Exception | str,
     approval_program: str,
     approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
+    simulate_traces: list | None = None,
 ) -> Exception | None:
     source_ex_str = str(source_ex)
     logic_error_data = parse_logic_error(source_ex_str)
@@ -1254,6 +1241,7 @@ def _try_convert_to_logic_error(
             program=approval_program,
             source_map=approval_source_map() if callable(approval_source_map) else approval_source_map,
             **logic_error_data,
+            traces=simulate_traces,
         )
 
     return None
@@ -1277,10 +1265,54 @@ def execute_atc_with_logic_error(
     try:
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
-        logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map)
+        if config.debug:
+            simulate = _simulate_response(atc, algod_client)
+            traces = _create_simulate_traces(simulate)
+        else:
+            traces = None
+            logger.info("An error occurred while executing the transaction.")
+            logger.info("To see more details, enable debug mode by setting config.debug = True ")
+
+        logic_error = _try_convert_to_logic_error(ex, approval_program, approval_source_map, traces)
         if logic_error:
             raise logic_error from ex
         raise ex
+
+
+def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[dict[str, Any]]:
+    traces = []
+    if hasattr(simulate, "simulate_response") and hasattr(simulate, "failed_at") and simulate.failed_at:
+        for txn_group in simulate.simulate_response["txn-groups"]:
+            app_budget_added = txn_group.get("app-budget-added", None)
+            app_budget_consumed = txn_group.get("app-budget-consumed", None)
+            failure_message = txn_group.get("failure-message", None)
+            txn_result = txn_group.get("txn-results", [{}])[0]
+            exec_trace = txn_result.get("exec-trace", {})
+            traces.append(
+                {
+                    "app-budget-added": app_budget_added,
+                    "app-budget-consumed": app_budget_consumed,
+                    "failure-message": failure_message,
+                    "exec-trace": exec_trace,
+                }
+            )
+    return traces
+
+
+def _simulate_response(
+    atc: AtomicTransactionComposer, algod_client: "AlgodClient"
+) -> SimulateAtomicTransactionResponse:
+    unsigned_txn_groups = atc.build_group()
+    empty_signer = EmptySigner()
+    txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
+    fake_signed_transactions = empty_signer.sign_transactions(txn_list, [])
+    txn_group = [SimulateRequestTransactionGroup(txns=fake_signed_transactions)]
+    trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
+
+    simulate_request = SimulateRequest(
+        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
+    )
+    return atc.simulate(algod_client, simulate_request)
 
 
 def _convert_transaction_parameters(

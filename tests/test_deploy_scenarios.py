@@ -1,6 +1,8 @@
 import logging
 import re
+from collections.abc import Generator
 from enum import Enum
+from unittest.mock import Mock, patch
 
 import pytest
 from algokit_utils import (
@@ -20,6 +22,15 @@ from algokit_utils import (
 from tests.conftest import check_output_stability, get_specs, get_unique_name, read_spec
 
 logger = logging.getLogger(__name__)
+
+
+# This fixture is automatically applied to all application deployment tests.
+# If you need to run a test without debug mode, you can reference this mock within the test and disable it explicitly.
+@pytest.fixture(autouse=True)
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        yield mock_config
 
 
 class DeployFixture:
