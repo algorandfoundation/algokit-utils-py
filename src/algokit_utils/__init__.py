@@ -1,8 +1,5 @@
 from algokit_utils._ensure_funded import EnsureBalanceParameters, ensure_funded
-from algokit_utils._transfer import (
-    TransferParameters,
-    transfer,
-)
+from algokit_utils._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
 from algokit_utils.account import (
     create_kmd_wallet_account,
     get_account,
@@ -160,4 +157,6 @@ __all__ = [
     "TransferParameters",
     "ensure_funded",
     "transfer",
+    "TransferAssetParameters",
+    "transfer_asset",
 ]
