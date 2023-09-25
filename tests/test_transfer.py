@@ -14,7 +14,7 @@ from algokit_utils import (
     transfer,
     transfer_asset,
 )
-from algokit_utils._dispenser_api import DispenserApiConfig, DispenserApiErrorCode
+from algokit_utils._dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
 from algosdk.util import algos_to_microalgos
 from pytest_httpx import HTTPXMock
@@ -341,7 +341,7 @@ def test_ensure_funded_testnet_api_bad_response(
                 400,
                 request=httpx.Request("POST", f"{DispenserApiConfig.BASE_URL}/fund"),
                 json={
-                    "code": DispenserApiErrorCode.FUND_LIMIT_EXCEEDED,
+                    "code": "fund_limit_exceeded",
                     "limit": 10_000_000,
                     "resetsAt": "2023-09-19T10:07:34.024Z",
                 },
@@ -360,5 +360,5 @@ def test_ensure_funded_testnet_api_bad_response(
         use_dispenser_api=True,
     )
 
-    with pytest.raises(Exception, match="Limit exceeded"):
+    with pytest.raises(Exception, match="fund_limit_exceeded"):
         ensure_funded(algod_client, parameters)

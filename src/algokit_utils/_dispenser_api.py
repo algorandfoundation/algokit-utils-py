@@ -2,7 +2,6 @@ import contextlib
 import enum
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
 
 import httpx
 
@@ -11,21 +10,6 @@ logger = logging.getLogger(__name__)
 
 class DispenserApiConfig:
     BASE_URL = "https://api.dispenser.algorandfoundation.tools"
-
-
-class DispenserApiErrorCode:
-    DISPENSER_OUT_OF_FUNDS = "dispenser_out_of_funds"
-    FORBIDDEN = "forbidden"
-    FUND_LIMIT_EXCEEDED = "fund_limit_exceeded"
-    DISPENSER_ERROR = "dispenser_error"
-    MISSING_PARAMETERS = "missing_params"
-    AUTHORIZATION_ERROR = "authorization_error"
-    REPUTATION_REFRESH_FAILED = "reputation_refresh_failed"
-    TXN_EXPIRED = "txn_expired"
-    TXN_INVALID = "txn_invalid"
-    TXN_ALREADY_PROCESSED = "txn_already_processed"
-    INVALID_ASSET = "invalid_asset"
-    UNEXPECTED_ERROR = "unexpected_error"
 
 
 class DispenserAssetName(enum.IntEnum):
@@ -48,12 +32,6 @@ DISPENSER_ASSETS = {
 }
 DISPENSER_REQUEST_TIMEOUT = 15
 DISPENSER_ACCESS_TOKEN_KEY = "ALGOKIT_DISPENSER_ACCESS_TOKEN"
-
-
-def _get_hours_until_reset(resets_at: str) -> float:
-    now_utc = datetime.now(timezone.utc)
-    reset_date = datetime.strptime(resets_at, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
-    return round((reset_date - now_utc).total_seconds() / 3600, 1)
 
 
 def _process_dispenser_request(
@@ -86,12 +64,8 @@ def _process_dispenser_request(
         with contextlib.suppress(Exception):
             error_response = err.response.json()
 
-        if error_response and error_response.get("code") == DispenserApiErrorCode.FUND_LIMIT_EXCEEDED:
-            hours_until_reset = _get_hours_until_reset(error_response.get("resetsAt"))
-            error_message = (
-                "Limit exceeded. "
-                f"Try again in ~{hours_until_reset} hours if your request doesn't exceed the daily limit."
-            )
+        if error_response and error_response.get("code"):
+            error_message = error_response.get("code")
 
         elif err.response.status_code == httpx.codes.BAD_REQUEST:
             error_message = err.response.json()["message"]
