@@ -57,7 +57,10 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#composing-calls">Composing calls</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#reading-state">Reading state</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#handling-logic-errors-and-diagnosing-errors">Handling logic errors and diagnosing errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handling-logic-errors-and-diagnosing-errors">Handling logic errors and diagnosing errors</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#debug-mode-and-traces-field">Debug Mode and traces Field</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="app-deploy.html">App deployment</a></li>
@@ -227,6 +230,7 @@ information that makes it much easier to understand what’s happening.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">transaction_id</span></code>: Transaction ID of failing transaction</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">message</span></code>: The error message</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">line_no</span></code>: The line number in the TEAL program that</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">traces</span></code>: A list of Trace objects providing additional insights on simulation when debug mode is active.</p></li>
 </ul>
 <p>The function <code class="docutils literal notranslate"><span class="pre">trace()</span></code> will provide a formatted output of the surrounding TEAL where the error occurred.</p>
 <div class="admonition note">
@@ -234,6 +238,14 @@ information that makes it much easier to understand what’s happening.</p>
 <p>The extended information will only show if the Application Client has a source map. This will occur if:</p>
 <p>1.) The ApplicationClient instance has already called, <code class="docutils literal notranslate"><span class="pre">create,</span> </code>update<code class="docutils literal notranslate"><span class="pre">or</span></code>deploy<code class="docutils literal notranslate"><span class="pre">OR</span> <span class="pre">2.)</span></code>template_values<code class="docutils literal notranslate"><span class="pre">are</span> <span class="pre">provided</span> <span class="pre">when</span> <span class="pre">creating</span> <span class="pre">the</span> <span class="pre">ApplicationClient,</span> <span class="pre">so</span> <span class="pre">a</span> <span class="pre">SourceMap</span> <span class="pre">can</span> <span class="pre">be</span> <span class="pre">obtained</span> <span class="pre">automatically</span> <span class="pre">OR</span> <span class="pre">3.)</span></code>approval_source_map<code class="docutils literal notranslate"><span class="pre">on</span></code>ApplicationClient<code class="docutils literal notranslate"><span class="pre">has</span> <span class="pre">been</span> <span class="pre">set</span> <span class="pre">from</span> <span class="pre">a</span> <span class="pre">previously</span> <span class="pre">compiled</span> <span class="pre">approval</span> <span class="pre">program</span> <span class="pre">OR</span> <span class="pre">4.)</span> <span class="pre">A</span> <span class="pre">source</span> <span class="pre">map</span> <span class="pre">has</span> <span class="pre">been</span> <span class="pre">exported/imported</span> <span class="pre">using</span></code>export_source_map<code class="docutils literal notranslate"><span class="pre">/</span></code>import_source_map`”””</p>
 </div>
+<section id="debug-mode-and-traces-field">
+<h3>Debug Mode and traces Field<a class="headerlink" href="#debug-mode-and-traces-field" title="Permalink to this heading"></a></h3>
+<p>When debug mode is active, the LogicError will contain a field named traces. This field will include raw simulate execution traces, providing a detailed account of the transaction simulation. These traces are crucial for diagnosing complex issues and are automatically included in all application client calls when debug mode is active.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Remember to enable debug mode (<code class="docutils literal notranslate"><span class="pre">config.debug</span> <span class="pre">=</span> <span class="pre">True</span></code>) to include raw simulate execution traces in the <code class="docutils literal notranslate"><span class="pre">LogicError</span></code>.</p>
+</div>
+</section>
 </section>
 </section>
 

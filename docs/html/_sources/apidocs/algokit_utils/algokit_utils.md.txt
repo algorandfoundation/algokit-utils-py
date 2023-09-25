@@ -1213,9 +1213,21 @@ Bases: {py:obj}`Exception`
 
 ````
 
+````{py:attribute} use_dispenser_api
+:canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.use_dispenser_api
+:type: bool
+:value: >
+   False
+
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters.use_dispenser_api
+:parser: myst
+```
+
+````
+
 `````
 
-```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None)
+```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list | None = None)
 :canonical: algokit_utils.logic_error.LogicError
 
 Bases: {py:obj}`Exception`
@@ -1723,7 +1735,7 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 ```
 ````
 
-````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._ensure_funded.EnsureBalanceParameters) -> None | algosdk.transaction.PaymentTxn
+````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._ensure_funded.EnsureBalanceParameters) -> algosdk.transaction.PaymentTxn | str | None
 :canonical: algokit_utils._ensure_funded.ensure_funded
 
 ```{autodoc2-docstring} algokit_utils._ensure_funded.ensure_funded
