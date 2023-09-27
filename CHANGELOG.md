@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.4.0 (2023-09-27)
+
+### Feature
+
+* Transfer asset from one account to another ([#49](https://github.com/algorandfoundation/algokit-utils-py/issues/49)) ([`9ca867e`](https://github.com/algorandfoundation/algokit-utils-py/commit/9ca867e43809ba9511a0e6d0bc454628c94e6ea7))
+
+### Fix
+
+* Adding simulate transaction with traces of debug mode ([#48](https://github.com/algorandfoundation/algokit-utils-py/issues/48)) ([`b735587`](https://github.com/algorandfoundation/algokit-utils-py/commit/b735587850cfe879b88a061c657bc26a1ffe7fbd))
+
 ## v1.3.1 (2023-07-25)
 
 ### Fix
