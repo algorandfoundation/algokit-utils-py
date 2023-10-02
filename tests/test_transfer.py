@@ -5,7 +5,9 @@ import httpx
 import pytest
 from algokit_utils import (
     Account,
+    DispenserApiTestnetClient,
     EnsureBalanceParameters,
+    EnsureFundedResponse,
     TransferAssetParameters,
     TransferParameters,
     create_kmd_wallet_account,
@@ -14,7 +16,7 @@ from algokit_utils import (
     transfer,
     transfer_asset,
 )
-from algokit_utils._dispenser_api import DispenserApiConfig
+from algokit_utils.dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
 from algosdk.util import algos_to_microalgos
 from pytest_httpx import HTTPXMock
@@ -243,9 +245,12 @@ def test_ensure_funded_uses_dispenser_by_default(algod_client: "AlgodClient", to
     )
     response = ensure_funded(algod_client, parameters)
     assert response is not None
-    assert isinstance(response, algosdk.transaction.PaymentTxn)
+    assert isinstance(response, EnsureFundedResponse)
 
-    assert response.sender == dispenser.address
+    txn_info = algod_client.pending_transaction_info(response.transaction_id)
+    assert isinstance(txn_info, dict)
+    assert txn_info["txn"]["txn"]["snd"] == dispenser.address
+
     to_account_info = algod_client.account_info(to_account.address)
     assert isinstance(to_account_info, dict)
     actual_amount = to_account_info.get("amount")
@@ -288,7 +293,7 @@ def test_ensure_funded_respects_minimum_funding(
 
 
 def test_ensure_funded_testnet_api_success(
-    to_account: Account, funded_account: Account, monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock
+    to_account: Account, monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock
 ) -> None:
     monkeypatch.setenv(
         "ALGOKIT_DISPENSER_ACCESS_TOKEN",
@@ -302,32 +307,20 @@ def test_ensure_funded_testnet_api_success(
 
     algod_client = get_algod_client(get_algonode_config("testnet", "algod", DEFAULT_TOKEN))
 
+    dispenser_client = DispenserApiTestnetClient()
     parameters = EnsureBalanceParameters(
-        funding_source=funded_account,
+        funding_source=dispenser_client,
         account_to_fund=to_account,
         min_spending_balance_micro_algos=1,
-        use_dispenser_api=True,
     )
     response = ensure_funded(algod_client, parameters)
-    assert response == "dummy_tx_id"
-
-
-def test_ensure_funded_testnet_api_missing_token(to_account: Account, funded_account: Account) -> None:
-    algod_client = get_algod_client(get_algonode_config("testnet", "algod", DEFAULT_TOKEN))
-
-    parameters = EnsureBalanceParameters(
-        funding_source=funded_account,
-        account_to_fund=to_account,
-        min_spending_balance_micro_algos=1,
-        use_dispenser_api=True,
-    )
-
-    with pytest.raises(Exception, match="Can't use dispenser API to fund account"):
-        ensure_funded(algod_client, parameters)
+    assert response is not None
+    assert response.transaction_id == "dummy_tx_id"
+    assert response.amount == 1
 
 
 def test_ensure_funded_testnet_api_bad_response(
-    to_account: Account, funded_account: Account, monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock
+    to_account: Account, monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock
 ) -> None:
     monkeypatch.setenv(
         "ALGOKIT_DISPENSER_ACCESS_TOKEN",
@@ -353,11 +346,11 @@ def test_ensure_funded_testnet_api_bad_response(
 
     algod_client = get_algod_client(get_algonode_config("testnet", "algod", DEFAULT_TOKEN))
 
+    dispenser_client = DispenserApiTestnetClient()
     parameters = EnsureBalanceParameters(
-        funding_source=funded_account,
+        funding_source=dispenser_client,
         account_to_fund=to_account,
         min_spending_balance_micro_algos=1,
-        use_dispenser_api=True,
     )
 
     with pytest.raises(Exception, match="fund_limit_exceeded"):

@@ -1,14 +1,16 @@
-import os
 from dataclasses import dataclass
 
 from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
-from algosdk.transaction import PaymentTxn, SuggestedParams
+from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 
-from algokit_utils._dispenser_api import DISPENSER_ACCESS_TOKEN_KEY, DispenserAssetName, process_dispenser_fund_request
 from algokit_utils._transfer import TransferParameters, transfer
 from algokit_utils.account import get_dispenser_account
+from algokit_utils.dispenser_api import (
+    DispenserApiTestnetClient,
+    DispenserAssetName,
+)
 from algokit_utils.models import Account
 from algokit_utils.network_clients import is_testnet
 
@@ -28,9 +30,10 @@ class EnsureBalanceParameters:
     """When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets
     called often on an active account)"""
 
-    funding_source: Account | AccountTransactionSigner | None = None
+    funding_source: Account | AccountTransactionSigner | DispenserApiTestnetClient | None = None
     """The account (with private key) or signer that will send the µALGOs,
-    will use `get_dispenser_account` by default"""
+    will use `get_dispenser_account` by default. Alternatively you can pass string literal value `testnet-dispenser-api`
+    to use the [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md)."""
 
     suggested_params: SuggestedParams | None = None
     """(optional) transaction parameters"""
@@ -45,8 +48,15 @@ class EnsureBalanceParameters:
     """(optional)The maximum fee that you are happy to pay (default: unbounded) -
     if this is set it's possible the transaction could get rejected during network congestion"""
 
-    use_dispenser_api: bool = False
-    """If True, will use the dispenser API to fund the account if it's on TestNet"""
+
+@dataclass(kw_only=True)
+class EnsureFundedResponse:
+    """Response for ensuring an account has a minimum number of µALGOs"""
+
+    """The transaction ID of the funding transaction"""
+    transaction_id: str
+    """The amount of µALGOs that were funded"""
+    amount: int
 
 
 def _get_address_to_fund(parameters: EnsureBalanceParameters) -> str:
@@ -72,29 +82,24 @@ def _calculate_fund_amount(
         return None
 
 
-def _fund_using_dispenser_api(address_to_fund: str, fund_amount_micro_algos: int) -> str | None:
-    ci_access_token = os.environ.get(DISPENSER_ACCESS_TOKEN_KEY)
-
-    if not ci_access_token:
-        raise Exception(
-            f"Can't use dispenser API to fund account {address_to_fund} "
-            "via AlgoKit TestNet Dispenser API because "
-            f"environment variable {DISPENSER_ACCESS_TOKEN_KEY} is not set"
-        )
-
-    return process_dispenser_fund_request(
-        address=address_to_fund,
-        amount=fund_amount_micro_algos,
-        asset_id=DispenserAssetName.ALGO,
-        auth_token=ci_access_token,
+def _fund_using_dispenser_api(
+    dispenser_client: DispenserApiTestnetClient, address_to_fund: str, fund_amount_micro_algos: int
+) -> EnsureFundedResponse | None:
+    response = dispenser_client.fund(
+        address=address_to_fund, amount=fund_amount_micro_algos, asset_id=DispenserAssetName.ALGO
     )
+
+    return EnsureFundedResponse(transaction_id=response.tx_id, amount=response.amount)
 
 
 def _fund_using_transfer(
     client: AlgodClient, parameters: EnsureBalanceParameters, address_to_fund: str, fund_amount_micro_algos: int
-) -> PaymentTxn:
+) -> EnsureFundedResponse:
+    if isinstance(parameters.funding_source, DispenserApiTestnetClient):
+        raise Exception(f"Invalid funding source: {parameters.funding_source}")
+
     funding_source = parameters.funding_source or get_dispenser_account(client)
-    return transfer(
+    response = transfer(
         client,
         TransferParameters(
             from_account=funding_source,
@@ -106,12 +111,14 @@ def _fund_using_transfer(
             fee_micro_algos=parameters.fee_micro_algos,
         ),
     )
+    transaction_id = response.get_txid()  # type: ignore[no-untyped-call]
+    return EnsureFundedResponse(transaction_id=transaction_id, amount=response.amt)
 
 
 def ensure_funded(
     client: AlgodClient,
     parameters: EnsureBalanceParameters,
-) -> PaymentTxn | str | None:
+) -> EnsureFundedResponse | None:
     """
     Funds a given account using a funding source such that it has a certain amount of algos free to spend
     (accounting for ALGOs locked in minimum balance requirement)
@@ -136,8 +143,8 @@ def ensure_funded(
     fund_amount_micro_algos = _calculate_fund_amount(parameters, current_spending_balance_micro_algos)
 
     if fund_amount_micro_algos is not None:
-        if is_testnet(client) and parameters.use_dispenser_api:
-            return _fund_using_dispenser_api(address_to_fund, fund_amount_micro_algos)
+        if is_testnet(client) and isinstance(parameters.funding_source, DispenserApiTestnetClient):
+            return _fund_using_dispenser_api(parameters.funding_source, address_to_fund, fund_amount_micro_algos)
         else:
             return _fund_using_transfer(client, parameters, address_to_fund, fund_amount_micro_algos)
 
