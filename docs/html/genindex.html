@@ -46,6 +46,7 @@
 <li class="toctree-l1"><a class="reference internal" href="capabilities/app-client.html">App client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="capabilities/app-deploy.html">App deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="capabilities/transfer.html">Algo transfers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="capabilities/dispenser-client.html">Dispenser Client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -239,6 +240,8 @@
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.DeployResponse">DeployResponse (class in algokit_utils)</a>
 </li>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.DispenserApiTestnetClient">DispenserApiTestnetClient (class in algokit_utils)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -248,6 +251,8 @@
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.ensure_funded">ensure_funded() (in module algokit_utils)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureBalanceParameters">EnsureBalanceParameters (class in algokit_utils)</a>
+</li>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureFundedResponse">EnsureFundedResponse (class in algokit_utils)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -271,13 +276,15 @@
       </ul></li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureBalanceParameters.fee_micro_algos">fee_micro_algos (algokit_utils.EnsureBalanceParameters attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionParameters.foreign_apps">foreign_apps (algokit_utils.TransactionParameters attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionParameters.foreign_assets">foreign_assets (algokit_utils.TransactionParameters attribute)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionResponse.from_atr">from_atr() (algokit_utils.TransactionResponse static method)</a>
+</li>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.DispenserApiTestnetClient.fund">fund() (algokit_utils.DispenserApiTestnetClient method)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureBalanceParameters.funding_source">funding_source (algokit_utils.EnsureBalanceParameters attribute)</a>
 </li>
@@ -349,6 +356,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.DispenserApiTestnetClient.limit">limit() (algokit_utils.DispenserApiTestnetClient method)</a>
+</li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.LogicError">LogicError</a>
 </li>
   </ul></td>
@@ -446,6 +455,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.ABITransactionResponse.raw_value">raw_value (algokit_utils.ABITransactionResponse attribute)</a>
 </li>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.DispenserApiTestnetClient.refund">refund() (algokit_utils.DispenserApiTestnetClient method)</a>
+</li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionParameters.rekey_to">rekey_to (algokit_utils.TransactionParameters attribute)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.OperationPerformed.Replace">Replace (algokit_utils.OperationPerformed attribute)</a>
@@ -502,6 +513,8 @@
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.AlgoClientConfig.token">token (algokit_utils.AlgoClientConfig attribute)</a>
 </li>
+      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureFundedResponse.transaction_id">transaction_id (algokit_utils.EnsureFundedResponse attribute)</a>
+</li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionParameters">TransactionParameters (class in algokit_utils)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.TransactionResponse">TransactionResponse (class in algokit_utils)</a>
@@ -535,8 +548,6 @@
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.ApplicationClient.update">update() (algokit_utils.ApplicationClient method)</a>
 </li>
       <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.OnUpdate.UpdateApp">UpdateApp (algokit_utils.OnUpdate attribute)</a>
-</li>
-      <li><a href="apidocs/algokit_utils/algokit_utils.html#algokit_utils.EnsureBalanceParameters.use_dispenser_api">use_dispenser_api (algokit_utils.EnsureBalanceParameters attribute)</a>
 </li>
   </ul></td>
 </tr></table>

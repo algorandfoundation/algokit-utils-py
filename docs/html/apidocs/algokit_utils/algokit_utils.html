@@ -81,7 +81,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeployCreateCallArgsDict"><code class="docutils literal notranslate"><span class="pre">DeployCreateCallArgsDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeployResponse"><code class="docutils literal notranslate"><span class="pre">DeployResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeploymentFailedError"><code class="docutils literal notranslate"><span class="pre">DeploymentFailedError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DispenserApiTestnetClient"><code class="docutils literal notranslate"><span class="pre">DispenserApiTestnetClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters"><code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.EnsureFundedResponse"><code class="docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.LogicError"><code class="docutils literal notranslate"><span class="pre">LogicError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodConfigDict"><code class="docutils literal notranslate"><span class="pre">MethodConfigDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodHints"><code class="docutils literal notranslate"><span class="pre">MethodHints</span></code></a></li>
@@ -241,8 +243,18 @@ be resolved prior to calling some target method</p></td>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.DeployResponse" title="algokit_utils.deploy.DeployResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeployResponse</span></code></a></p></td>
 <td><p>Describes the action taken during deployment, related transactions and the <a class="reference internal" href="#algokit_utils.AppMetaData" title="algokit_utils.AppMetaData"><code class="xref py py-class docutils literal notranslate"><span class="pre">AppMetaData</span></code></a></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.DispenserApiTestnetClient" title="algokit_utils.dispenser_api.DispenserApiTestnetClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DispenserApiTestnetClient</span></code></a></p></td>
+<td><p>Client for interacting with the <a class="reference external" href="https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md">AlgoKit TestNet Dispenser API</a>.
+To get started create a new access token via <code class="docutils literal notranslate"><span class="pre">algokit</span> <span class="pre">dispenser</span> <span class="pre">login</span> <span class="pre">--ci</span></code>
+and pass it to the client constructor as <code class="docutils literal notranslate"><span class="pre">auth_token</span></code>.
+Alternatively set the access token as environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code>,
+and it will be auto loaded. If both are set, the constructor argument takes precedence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></p></td>
 <td><p>Parameters for ensuring an account has a minimum number of µALGOs</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.EnsureFundedResponse" title="algokit_utils._ensure_funded.EnsureFundedResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code></a></p></td>
+<td><p>Response for ensuring an account has a minimum number of µALGOs</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.MethodHints" title="algokit_utils.application_specification.MethodHints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodHints</span></code></a></p></td>
 <td><p>MethodHints provides hints to the caller about how to call the method</p></td>
@@ -941,6 +953,36 @@ be resolved prior to calling some target method</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.DispenserApiTestnetClient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">DispenserApiTestnetClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DISPENSER_REQUEST_TIMEOUT</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.DispenserApiTestnetClient" title="Permalink to this definition"></a></dt>
+<dd><p>Client for interacting with the <a class="reference external" href="https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md">AlgoKit TestNet Dispenser API</a>.
+To get started create a new access token via <code class="docutils literal notranslate"><span class="pre">algokit</span> <span class="pre">dispenser</span> <span class="pre">login</span> <span class="pre">--ci</span></code>
+and pass it to the client constructor as <code class="docutils literal notranslate"><span class="pre">auth_token</span></code>.
+Alternatively set the access token as environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code>,
+and it will be auto loaded. If both are set, the constructor argument takes precedence.</p>
+<p>Default request timeout is 15 seconds. Modify by passing <code class="docutils literal notranslate"><span class="pre">request_timeout</span></code> to the constructor.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.DispenserApiTestnetClient.fund">
+<span class="sig-name descname"><span class="pre">fund</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.dispenser_api.DispenserFundResponse</span></span></span><a class="headerlink" href="#algokit_utils.DispenserApiTestnetClient.fund" title="Permalink to this definition"></a></dt>
+<dd><p>Fund an account with Algos from the dispenser API</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.DispenserApiTestnetClient.limit">
+<span class="sig-name descname"><span class="pre">limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.dispenser_api.DispenserLimitResponse</span></span></span><a class="headerlink" href="#algokit_utils.DispenserApiTestnetClient.limit" title="Permalink to this definition"></a></dt>
+<dd><p>Get current limit for an account with Algos from the dispenser API</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.DispenserApiTestnetClient.refund">
+<span class="sig-name descname"><span class="pre">refund</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refund_txn_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.DispenserApiTestnetClient.refund" title="Permalink to this definition"></a></dt>
+<dd><p>Register a refund for a transaction with the dispenser API</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">EnsureBalanceParameters</span></span><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters" title="Permalink to this definition"></a></dt>
 <dd><p>Parameters for ensuring an account has a minimum number of µALGOs</p>
@@ -960,10 +1002,11 @@ be resolved prior to calling some target method</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.funding_source">
-<span class="sig-name descname"><span class="pre">funding_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.funding_source" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">funding_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.DispenserApiTestnetClient" title="algokit_utils.dispenser_api.DispenserApiTestnetClient"><span class="pre">algokit_utils.dispenser_api.DispenserApiTestnetClient</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.funding_source" title="Permalink to this definition"></a></dt>
 <dd><p>None</p>
 <p>The account (with private key) or signer that will send the µALGOs,
-will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code> by default</p>
+will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code> by default. Alternatively you can pass an instance of []<code class="docutils literal notranslate"><span class="pre">DispenserApiTestnetClient</span></code>](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md)
+which will allow you to interact with <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md">AlgoKit TestNet Dispenser API</a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1004,11 +1047,17 @@ minimum balance requirement)</p>
 <p>(optional) transaction parameters</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.EnsureFundedResponse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">EnsureFundedResponse</span></span><a class="headerlink" href="#algokit_utils.EnsureFundedResponse" title="Permalink to this definition"></a></dt>
+<dd><p>Response for ensuring an account has a minimum number of µALGOs</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.use_dispenser_api">
-<span class="sig-name descname"><span class="pre">use_dispenser_api</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.use_dispenser_api" title="Permalink to this definition"></a></dt>
-<dd><p>False</p>
-<p>If True, will use the dispenser API to fund the account if it’s on TestNet</p>
+<dt class="sig sig-object py" id="algokit_utils.EnsureFundedResponse.transaction_id">
+<span class="sig-name descname"><span class="pre">transaction_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.EnsureFundedResponse.transaction_id" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The amount of µALGOs that were funded</p>
 </dd></dl>
 
 </dd></dl>
@@ -1333,7 +1382,7 @@ note, in such cases senderAccount must be equal to clawback field on ASA metadat
 
 <dl class="py function">
 <dt class="sig sig-object py" id="algokit_utils.ensure_funded">
-<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ensure_funded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><span class="pre">algokit_utils._ensure_funded.EnsureBalanceParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.PaymentTxn" title="(in algosdk)"><span class="pre">algosdk.transaction.PaymentTxn</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.ensure_funded" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ensure_funded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><span class="pre">algokit_utils._ensure_funded.EnsureBalanceParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.EnsureFundedResponse" title="algokit_utils._ensure_funded.EnsureFundedResponse"><span class="pre">algokit_utils._ensure_funded.EnsureFundedResponse</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.ensure_funded" title="Permalink to this definition"></a></dt>
 <dd><p>Funds a given account using a funding source such that it has a certain amount of algos free to spend
 (accounting for ALGOs locked in minimum balance requirement)
 see <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a></p>

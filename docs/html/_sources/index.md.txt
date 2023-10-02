@@ -1,9 +1,9 @@
 # AlgoKit Python Utilities
 
-A set of core Algorand utilities written in Python and released via PyPi that make it easier to build solutions on Algorand. 
+A set of core Algorand utilities written in Python and released via PyPi that make it easier to build solutions on Algorand.
 This project is part of [AlgoKit](https://github.com/algorandfoundation/algokit-cli).
 
-The goal of this library is to provide intuitive, productive utility functions that make it easier, quicker and safer to build applications on Algorand. 
+The goal of this library is to provide intuitive, productive utility functions that make it easier, quicker and safer to build applications on Algorand.
 Largely these functions wrap the underlying Algorand SDK, but provide a higher level interface with sensible defaults and capabilities for common tasks.
 
 ```{note}
@@ -23,20 +23,23 @@ capabilities/client
 capabilities/app-client
 capabilities/app-deploy
 capabilities/transfer
+capabilities/dispenser-client
 apidocs/algokit_utils/algokit_utils
 ```
 
 (core-principles)=
+
 # Core principles
 
 This library is designed with the following principles:
 
-* **Modularity** - This library is a thin wrapper of modular building blocks over the Algorand SDK; the primitives from the underlying Algorand SDK are 
+- **Modularity** - This library is a thin wrapper of modular building blocks over the Algorand SDK; the primitives from the underlying Algorand SDK are
   exposed and used wherever possible so you can opt-in to which parts of this library you want to use without having to use an all or nothing approach.
-* **Type-safety** - This library provides strong TypeScript support with effort put into creating types that provide good type safety and intellisense.
-* **Productivity** - This library is built to make solution developers highly productive; it has a number of mechanisms to make common code easier and terser to write
+- **Type-safety** - This library provides strong TypeScript support with effort put into creating types that provide good type safety and intellisense.
+- **Productivity** - This library is built to make solution developers highly productive; it has a number of mechanisms to make common code easier and terser to write
 
 (installation)=
+
 # Installation
 
 This library can be installed from PyPi using pip or poetry, e.g.:
@@ -47,6 +50,7 @@ poetry add algokit-utils
 ```
 
 (usage)=
+
 # Usage
 
 To use this library simply include the following at the top of your file:
@@ -55,7 +59,7 @@ To use this library simply include the following at the top of your file:
 import algokit_utils
 ```
 
-Then you can use intellisense to auto-complete the various functions and types that are available by typing `algokit_utils.` in your favourite Integrated Development Environment (IDE), 
+Then you can use intellisense to auto-complete the various functions and types that are available by typing `algokit_utils.` in your favourite Integrated Development Environment (IDE),
 or you can refer to the [reference documentation](apidocs/algokit_utils/algokit_utils.md).
 
 ## Types
@@ -63,6 +67,7 @@ or you can refer to the [reference documentation](apidocs/algokit_utils/algokit_
 The library contains extensive type hinting combined with a tool like MyPy this can help identify issues where incorrect types have been used, or used incorrectly.
 
 (capabilities)=
+
 # Capabilities
 
 The library helps you with the following capabilities:
@@ -76,6 +81,7 @@ The library helps you with the following capabilities:
   - [**Algo transfers**](capabilities/transfer.md) - Ability to easily initiate algo transfers between accounts, including dispenser management and idempotent account funding
 
 (reference-documentation)=
+
 # Reference documentation
 
 We have [auto-generated reference documentation for the code](apidocs/algokit_utils/algokit_utils.md).
@@ -92,4 +98,4 @@ Likely future capability additions include:
 
 # Indices and tables
 
-* {ref}`genindex`
+- {ref}`genindex`
