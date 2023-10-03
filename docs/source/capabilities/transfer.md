@@ -7,7 +7,7 @@ To see some usage examples check out the [automated tests](https://github.com/al
 
 ## Transferring Algos
 
-The key function to facilitate Algo transfers is `algokit.transfer(algod_client, transfer_parameters)`, which returns the underlying `PaymentTxn` and takes a `TransferParameters`
+The key function to facilitate Algo transfers is `algokit.transfer(algod_client, transfer_parameters)`, which returns the underlying `EnsureFundedResponse` and takes a `TransferParameters`
 
 The following fields on `TransferParameters` are required to transfer ALGOs:
 

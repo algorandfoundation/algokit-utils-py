@@ -32,7 +32,7 @@ class EnsureBalanceParameters:
 
     funding_source: Account | AccountTransactionSigner | DispenserApiTestnetClient | None = None
     """The account (with private key) or signer that will send the µALGOs,
-    will use `get_dispenser_account` by default. Alternatively you can pass an instance of []`DispenserApiTestnetClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md)
+    will use `get_dispenser_account` by default. Alternatively you can pass an instance of [`DispenserApiTestnetClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md)
     which will allow you to interact with [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md)."""
 
     suggested_params: SuggestedParams | None = None

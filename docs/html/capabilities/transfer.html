@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="algokit_utils" href="../apidocs/algokit_utils/algokit_utils.html" />
+    <link rel="next" title="TestNet Dispenser Client" href="dispenser-client.html" />
     <link rel="prev" title="App deployment" href="app-deploy.html" /> 
 </head>
 
@@ -55,6 +55,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#dispenser">Dispenser</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="dispenser-client.html">TestNet Dispenser Client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -89,7 +90,7 @@ idempotent account funding.</p>
 <p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_transfer.py">automated tests</a>.</p>
 <section id="transferring-algos">
 <h2>Transferring Algos<a class="headerlink" href="#transferring-algos" title="Permalink to this heading"></a></h2>
-<p>The key function to facilitate Algo transfers is <code class="docutils literal notranslate"><span class="pre">algokit.transfer(algod_client,</span> <span class="pre">transfer_parameters)</span></code>, which returns the underlying <code class="docutils literal notranslate"><span class="pre">PaymentTxn</span></code> and takes a <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code></p>
+<p>The key function to facilitate Algo transfers is <code class="docutils literal notranslate"><span class="pre">algokit.transfer(algod_client,</span> <span class="pre">transfer_parameters)</span></code>, which returns the underlying <code class="docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code> and takes a <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code></p>
 <p>The following fields on <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code> are required to transfer ALGOs:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">from_account</span></code>: The account or signer that will send the ALGOs</p></li>
@@ -144,7 +145,7 @@ variable <code class="docutils literal notranslate"><span class="pre">DISPENSER_
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="app-deploy.html" class="btn btn-neutral float-left" title="App deployment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../apidocs/algokit_utils/algokit_utils.html" class="btn btn-neutral float-right" title="algokit_utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dispenser-client.html" class="btn btn-neutral float-right" title="TestNet Dispenser Client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
