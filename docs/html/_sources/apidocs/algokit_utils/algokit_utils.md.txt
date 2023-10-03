@@ -135,8 +135,18 @@ orphan: true
     :parser: myst
     :summary:
     ```
+* - {py:obj}`DispenserApiTestnetClient <algokit_utils.dispenser_api.DispenserApiTestnetClient>`
+  - ```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient
+    :parser: myst
+    :summary:
+    ```
 * - {py:obj}`EnsureBalanceParameters <algokit_utils._ensure_funded.EnsureBalanceParameters>`
   - ```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureBalanceParameters
+    :parser: myst
+    :summary:
+    ```
+* - {py:obj}`EnsureFundedResponse <algokit_utils._ensure_funded.EnsureFundedResponse>`
+  - ```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureFundedResponse
     :parser: myst
     :summary:
     ```
@@ -1110,6 +1120,49 @@ Bases: {py:obj}`Exception`
 
 ```
 
+`````{py:class} DispenserApiTestnetClient(auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT)
+:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient
+
+```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient
+:parser: myst
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.__init__
+:parser: myst
+```
+
+````{py:method} fund(address: str, amount: int, asset_id: int) -> algokit_utils.dispenser_api.DispenserFundResponse
+:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.fund
+
+```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.fund
+:parser: myst
+```
+
+````
+
+````{py:method} limit(address: str) -> algokit_utils.dispenser_api.DispenserLimitResponse
+:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.limit
+
+```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.limit
+:parser: myst
+```
+
+````
+
+````{py:method} refund(refund_txn_id: str) -> None
+:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.refund
+
+```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.refund
+:parser: myst
+```
+
+````
+
+`````
+
 `````{py:class} EnsureBalanceParameters
 :canonical: algokit_utils._ensure_funded.EnsureBalanceParameters
 
@@ -1143,7 +1196,7 @@ Bases: {py:obj}`Exception`
 
 ````{py:attribute} funding_source
 :canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.funding_source
-:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | None
+:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | algokit_utils.dispenser_api.DispenserApiTestnetClient | None
 :value: >
    None
 
@@ -1215,7 +1268,28 @@ Bases: {py:obj}`Exception`
 
 `````
 
-```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None)
+`````{py:class} EnsureFundedResponse
+:canonical: algokit_utils._ensure_funded.EnsureFundedResponse
+
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureFundedResponse
+:parser: myst
+```
+
+````{py:attribute} transaction_id
+:canonical: algokit_utils._ensure_funded.EnsureFundedResponse.transaction_id
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} algokit_utils._ensure_funded.EnsureFundedResponse.transaction_id
+:parser: myst
+```
+
+````
+
+`````
+
+```{py:exception} LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list | None = None)
 :canonical: algokit_utils.logic_error.LogicError
 
 Bases: {py:obj}`Exception`
@@ -1723,7 +1797,7 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 ```
 ````
 
-````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._ensure_funded.EnsureBalanceParameters) -> None | algosdk.transaction.PaymentTxn
+````{py:function} ensure_funded(client: algosdk.v2client.algod.AlgodClient, parameters: algokit_utils._ensure_funded.EnsureBalanceParameters) -> algokit_utils._ensure_funded.EnsureFundedResponse | None
 :canonical: algokit_utils._ensure_funded.ensure_funded
 
 ```{autodoc2-docstring} algokit_utils._ensure_funded.ensure_funded

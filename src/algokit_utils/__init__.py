@@ -1,4 +1,8 @@
-from algokit_utils._ensure_funded import EnsureBalanceParameters, ensure_funded
+from algokit_utils._ensure_funded import (
+    EnsureBalanceParameters,
+    EnsureFundedResponse,
+    ensure_funded,
+)
 from algokit_utils._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
 from algokit_utils.account import (
     create_kmd_wallet_account,
@@ -53,6 +57,13 @@ from algokit_utils.deploy import (
     get_app_id_from_tx_id,
     get_creator_apps,
     replace_template_variables,
+)
+from algokit_utils.dispenser_api import (
+    DISPENSER_ACCESS_TOKEN_KEY,
+    DISPENSER_REQUEST_TIMEOUT,
+    DispenserApiTestnetClient,
+    DispenserFundResponse,
+    DispenserLimitResponse,
 )
 from algokit_utils.logic_error import LogicError
 from algokit_utils.models import (
@@ -153,7 +164,13 @@ __all__ = [
     "is_localnet",
     "is_mainnet",
     "is_testnet",
+    "DispenserApiTestnetClient",
+    "DispenserFundResponse",
+    "DispenserLimitResponse",
+    "DISPENSER_ACCESS_TOKEN_KEY",
+    "DISPENSER_REQUEST_TIMEOUT",
     "EnsureBalanceParameters",
+    "EnsureFundedResponse",
     "TransferParameters",
     "ensure_funded",
     "transfer",
