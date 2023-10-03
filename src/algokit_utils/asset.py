@@ -1,9 +1,13 @@
+import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
 from algokit_utils import Account, TransferAssetParameters, transfer_asset
+
+__all__ = ["opt_in"]
+logger = logging.getLogger(__name__)
 
 
 def opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
