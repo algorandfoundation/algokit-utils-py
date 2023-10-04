@@ -20,8 +20,8 @@ from algokit_utils import (
     get_algod_client,
     get_indexer_client,
     get_kmd_client_from_algod_client,
-    replace_template_variables,
     opt_in,
+    replace_template_variables,
 )
 from dotenv import load_dotenv
 
