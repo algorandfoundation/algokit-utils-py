@@ -21,8 +21,8 @@ from algokit_utils import (
     get_indexer_client,
     get_kmd_client_from_algod_client,
     replace_template_variables,
+    opt_in,
 )
-from algokit_utils.asset import opt_in
 from dotenv import load_dotenv
 
 from tests import app_client_test
