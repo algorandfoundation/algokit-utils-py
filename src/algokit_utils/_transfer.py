@@ -61,6 +61,7 @@ class TransferAssetParameters(TransferParametersBase):
     asset_id: int
     amount: int
     clawback_from: str | None = None
+    close_assets_to: Account | str | None = None
 
 
 def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) -> None:
@@ -111,7 +112,7 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
         sp=suggested_params,
         sender=sender,
         receiver=params.to_address,
-        close_assets_to=None,
+        close_assets_to=params.close_assets_to,
         revocation_target=params.clawback_from,
         amt=params.amount,
         note=params.note,
