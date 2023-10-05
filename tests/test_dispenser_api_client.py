@@ -52,7 +52,7 @@ class TestDispenserApiTestnetClient:
         )
         dispenser_client = DispenserApiTestnetClient("dummy_auth_token")
         address = "dummy_address"
-        response = dispenser_client.limit(address)
+        response = dispenser_client.get_limit(address)
         assert response.amount == amount
 
     def test_dispenser_api_init(self) -> None:
