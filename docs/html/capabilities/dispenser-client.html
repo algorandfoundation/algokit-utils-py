@@ -129,11 +129,11 @@
 </section>
 <section id="getting-current-limit">
 <h2>Getting Current Limit<a class="headerlink" href="#getting-current-limit" title="Permalink to this heading"></a></h2>
-<p>To get the current limit for an account with Algos from the dispenser API, use the <code class="docutils literal notranslate"><span class="pre">limit</span></code> method. This method requires the account address.</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="s2">&quot;account_address&quot;</span><span class="p">)</span>
+<p>To get the current limit for an account with Algos from the dispenser API, use the <code class="docutils literal notranslate"><span class="pre">get_limit</span></code> method. This method requires the account address.</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_limit</span><span class="p">(</span><span class="n">address</span><span class="o">=</span><span class="s2">&quot;account_address&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">limit</span></code> method returns a <code class="docutils literal notranslate"><span class="pre">LimitResponse</span></code> object, which contains the current limit amount.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">get_limit</span></code> method returns a <code class="docutils literal notranslate"><span class="pre">LimitResponse</span></code> object, which contains the current limit amount.</p>
 </section>
 <section id="error-handling">
 <h2>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this heading"></a></h2>

@@ -47,13 +47,13 @@ client.refund(refund_txn_id="transaction_id")
 
 ## Getting Current Limit
 
-To get the current limit for an account with Algos from the dispenser API, use the `limit` method. This method requires the account address.
+To get the current limit for an account with Algos from the dispenser API, use the `get_limit` method. This method requires the account address.
 
 ```py
-response = client.limit(address="account_address")
+response = client.get_limit(address="account_address")
 ```
 
-The `limit` method returns a `LimitResponse` object, which contains the current limit amount.
+The `get_limit` method returns a `LimitResponse` object, which contains the current limit amount.
 
 ## Error Handling
 

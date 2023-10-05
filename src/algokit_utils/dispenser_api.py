@@ -156,7 +156,7 @@ class DispenserApiTestnetClient:
             logger.exception(f"Error issuing refund for txn_id {refund_txn_id}: {err}")
             raise err
 
-    def limit(
+    def get_limit(
         self,
         address: str,
     ) -> DispenserLimitResponse:
