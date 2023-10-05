@@ -5,9 +5,9 @@ import httpx
 import pytest
 from algokit_utils import (
     Account,
-    DispenserApiTestnetClient,
     EnsureBalanceParameters,
     EnsureFundedResponse,
+    TestNetDispenserApiClient,
     TransferAssetParameters,
     TransferParameters,
     create_kmd_wallet_account,
@@ -307,7 +307,7 @@ def test_ensure_funded_testnet_api_success(
 
     algod_client = get_algod_client(get_algonode_config("testnet", "algod", DEFAULT_TOKEN))
 
-    dispenser_client = DispenserApiTestnetClient()
+    dispenser_client = TestNetDispenserApiClient()
     parameters = EnsureBalanceParameters(
         funding_source=dispenser_client,
         account_to_fund=to_account,
@@ -346,7 +346,7 @@ def test_ensure_funded_testnet_api_bad_response(
 
     algod_client = get_algod_client(get_algonode_config("testnet", "algod", DEFAULT_TOKEN))
 
-    dispenser_client = DispenserApiTestnetClient()
+    dispenser_client = TestNetDispenserApiClient()
     parameters = EnsureBalanceParameters(
         funding_source=dispenser_client,
         account_to_fund=to_account,

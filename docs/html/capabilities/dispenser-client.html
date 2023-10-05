@@ -95,17 +95,17 @@
 <li><p>Set the token as an environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code> (see <a class="reference external" href="https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md#error-handling">docs</a> on how to obtain the token).</p></li>
 </ol>
 <p>If both methods are used, the constructor argument takes precedence.</p>
-<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">algokit_utils</span> <span class="kn">import</span> <span class="n">DispenserApiTestnetClient</span>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">algokit_utils</span> <span class="kn">import</span> <span class="n">TestNetDispenserApiClient</span>
 
 <span class="c1"># Using constructor argument</span>
 
-<span class="n">client</span> <span class="o">=</span> <span class="n">DispenserApiTestnetClient</span><span class="p">(</span><span class="n">auth_token</span><span class="o">=</span><span class="s2">&quot;your_auth_token&quot;</span><span class="p">)</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">TestNetDispenserApiClient</span><span class="p">(</span><span class="n">auth_token</span><span class="o">=</span><span class="s2">&quot;your_auth_token&quot;</span><span class="p">)</span>
 
 <span class="c1"># Using environment variable</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ALGOKIT_DISPENSER_ACCESS_TOKEN&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;your_auth_token&quot;</span>
-<span class="n">client</span> <span class="o">=</span> <span class="n">DispenserApiTestnetClient</span><span class="p">()</span>
+<span class="n">client</span> <span class="o">=</span> <span class="n">TestNetDispenserApiClient</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>

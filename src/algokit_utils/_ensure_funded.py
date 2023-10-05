@@ -8,8 +8,8 @@ from algosdk.v2client.algod import AlgodClient
 from algokit_utils._transfer import TransferParameters, transfer
 from algokit_utils.account import get_dispenser_account
 from algokit_utils.dispenser_api import (
-    DispenserApiTestnetClient,
     DispenserAssetName,
+    TestNetDispenserApiClient,
 )
 from algokit_utils.models import Account
 from algokit_utils.network_clients import is_testnet
@@ -30,9 +30,9 @@ class EnsureBalanceParameters:
     """When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets
     called often on an active account)"""
 
-    funding_source: Account | AccountTransactionSigner | DispenserApiTestnetClient | None = None
+    funding_source: Account | AccountTransactionSigner | TestNetDispenserApiClient | None = None
     """The account (with private key) or signer that will send the µALGOs,
-    will use `get_dispenser_account` by default. Alternatively you can pass an instance of [`DispenserApiTestnetClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md)
+    will use `get_dispenser_account` by default. Alternatively you can pass an instance of [`TestNetDispenserApiClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md)
     which will allow you to interact with [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md)."""
 
     suggested_params: SuggestedParams | None = None
@@ -83,7 +83,7 @@ def _calculate_fund_amount(
 
 
 def _fund_using_dispenser_api(
-    dispenser_client: DispenserApiTestnetClient, address_to_fund: str, fund_amount_micro_algos: int
+    dispenser_client: TestNetDispenserApiClient, address_to_fund: str, fund_amount_micro_algos: int
 ) -> EnsureFundedResponse | None:
     response = dispenser_client.fund(
         address=address_to_fund, amount=fund_amount_micro_algos, asset_id=DispenserAssetName.ALGO
@@ -95,7 +95,7 @@ def _fund_using_dispenser_api(
 def _fund_using_transfer(
     client: AlgodClient, parameters: EnsureBalanceParameters, address_to_fund: str, fund_amount_micro_algos: int
 ) -> EnsureFundedResponse:
-    if isinstance(parameters.funding_source, DispenserApiTestnetClient):
+    if isinstance(parameters.funding_source, TestNetDispenserApiClient):
         raise Exception(f"Invalid funding source: {parameters.funding_source}")
 
     funding_source = parameters.funding_source or get_dispenser_account(client)
@@ -143,7 +143,7 @@ def ensure_funded(
     fund_amount_micro_algos = _calculate_fund_amount(parameters, current_spending_balance_micro_algos)
 
     if fund_amount_micro_algos is not None:
-        if is_testnet(client) and isinstance(parameters.funding_source, DispenserApiTestnetClient):
+        if is_testnet(client) and isinstance(parameters.funding_source, TestNetDispenserApiClient):
             return _fund_using_dispenser_api(parameters.funding_source, address_to_fund, fund_amount_micro_algos)
         else:
             return _fund_using_transfer(client, parameters, address_to_fund, fund_amount_micro_algos)

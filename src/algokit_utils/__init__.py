@@ -61,9 +61,9 @@ from algokit_utils.deploy import (
 from algokit_utils.dispenser_api import (
     DISPENSER_ACCESS_TOKEN_KEY,
     DISPENSER_REQUEST_TIMEOUT,
-    DispenserApiTestnetClient,
     DispenserFundResponse,
     DispenserLimitResponse,
+    TestNetDispenserApiClient,
 )
 from algokit_utils.logic_error import LogicError
 from algokit_utils.models import (
@@ -164,7 +164,7 @@ __all__ = [
     "is_localnet",
     "is_mainnet",
     "is_testnet",
-    "DispenserApiTestnetClient",
+    "TestNetDispenserApiClient",
     "DispenserFundResponse",
     "DispenserLimitResponse",
     "DISPENSER_ACCESS_TOKEN_KEY",

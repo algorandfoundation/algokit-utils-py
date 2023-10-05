@@ -46,7 +46,7 @@ DISPENSER_REQUEST_TIMEOUT = 15
 DISPENSER_ACCESS_TOKEN_KEY = "ALGOKIT_DISPENSER_ACCESS_TOKEN"
 
 
-class DispenserApiTestnetClient:
+class TestNetDispenserApiClient:
     """
     Client for interacting with the [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md).
     To get started create a new access token via `algokit dispenser login --ci`
