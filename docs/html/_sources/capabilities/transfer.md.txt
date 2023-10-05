@@ -25,7 +25,7 @@ The following fields on `EnsureBalanceParameters` are required to ensure minimum
 -   `account_to_fund`: The account address that will receive the ALGOs. This can be an `Account` instance, an `AccountTransactionSigner` instance, or a string.
 -   `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement).
 -   `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account). Default is 0.
--   `funding_source`: The account (with private key) or signer that will send the ALGOs. If not set, it will use `get_dispenser_account`. This can be an `Account` instance, an `AccountTransactionSigner` instance, [`DispenserApiTestnetClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md) instance, or None.
+-   `funding_source`: The account (with private key) or signer that will send the ALGOs. If not set, it will use `get_dispenser_account`. This can be an `Account` instance, an `AccountTransactionSigner` instance, [`TestNetDispenserApiClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md) instance, or None.
 -   `suggested_params`: (optional) Transaction parameters, an instance of `SuggestedParams`.
 -   `note`: (optional) The transaction note, default is "Funding account to meet minimum requirement".
 -   `fee_micro_algos`: (optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call.

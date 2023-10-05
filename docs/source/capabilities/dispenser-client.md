@@ -12,17 +12,17 @@ To create a Dispenser Client, you need to provide an authorization token. This c
 If both methods are used, the constructor argument takes precedence.
 
 ```py
-from algokit_utils import DispenserApiTestnetClient
+from algokit_utils import TestNetDispenserApiClient
 
 # Using constructor argument
 
-client = DispenserApiTestnetClient(auth_token="your_auth_token")
+client = TestNetDispenserApiClient(auth_token="your_auth_token")
 
 # Using environment variable
 
 import os
 os.environ["ALGOKIT_DISPENSER_ACCESS_TOKEN"] = "your_auth_token"
-client = DispenserApiTestnetClient()
+client = TestNetDispenserApiClient()
 ```
 
 ## Funding an Account

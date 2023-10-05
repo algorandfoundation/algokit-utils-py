@@ -4,8 +4,8 @@ import pytest
 from algokit_utils.dispenser_api import (
     DISPENSER_ASSETS,
     DispenserApiConfig,
-    DispenserApiTestnetClient,
     DispenserAssetName,
+    TestNetDispenserApiClient,
 )
 from pytest_httpx import HTTPXMock
 
@@ -18,7 +18,7 @@ class TestDispenserApiTestnetClient:
             method="POST",
             json=mock_response,
         )
-        dispenser_client = DispenserApiTestnetClient(auth_token="dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient(auth_token="dummy_auth_token")
         address = "dummy_address"
         amount = 1
         asset_id = DispenserAssetName.ALGO
@@ -32,7 +32,7 @@ class TestDispenserApiTestnetClient:
             method="POST",
             json={},
         )
-        dispenser_client = DispenserApiTestnetClient(auth_token="dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient(auth_token="dummy_auth_token")
         refund_txn_id = "dummy_txn_id"
         dispenser_client.refund(refund_txn_id)
         assert len(httpx_mock.get_requests()) == 1
@@ -50,7 +50,7 @@ class TestDispenserApiTestnetClient:
             method="GET",
             json=mock_response,
         )
-        dispenser_client = DispenserApiTestnetClient("dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient("dummy_auth_token")
         address = "dummy_address"
         response = dispenser_client.get_limit(address)
         assert response.amount == amount
@@ -60,16 +60,16 @@ class TestDispenserApiTestnetClient:
             Exception,
             match="Can't init AlgoKit TestNet Dispenser API client because neither environment variable",
         ):
-            DispenserApiTestnetClient()
+            TestNetDispenserApiClient()
 
     def test_dispenser_api_init_with_ci_(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("ALGOKIT_DISPENSER_ACCESS_TOKEN", "test_value")
 
-        client = DispenserApiTestnetClient()
+        client = TestNetDispenserApiClient()
         assert client.auth_token == "test_value"
 
     def test_dispenser_api_init_with_ci_and_arg(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("ALGOKIT_DISPENSER_ACCESS_TOKEN", "test_value")
 
-        client = DispenserApiTestnetClient("test_value_2")
+        client = TestNetDispenserApiClient("test_value_2")
         assert client.auth_token == "test_value_2"

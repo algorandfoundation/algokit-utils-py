@@ -11,9 +11,9 @@ The key function to facilitate Algo transfers is `algokit.transfer(algod_client,
 
 The following fields on `TransferParameters` are required to transfer ALGOs:
 
--   `from_account`: The account or signer that will send the ALGOs
--   `to_address`: The address of the account that will receive the ALGOs
--   `micro_algos`: The amount of micro ALGOs to send
+- `from_account`: The account or signer that will send the ALGOs
+- `to_address`: The address of the account that will receive the ALGOs
+- `micro_algos`: The amount of micro ALGOs to send
 
 ## Ensuring minimum Algos
 
@@ -22,14 +22,14 @@ The function to facilitate this is `ensure_funded(client, parameters)`, which ta
 
 The following fields on `EnsureBalanceParameters` are required to ensure minimum ALGOs:
 
--   `account_to_fund`: The account address that will receive the ALGOs. This can be an `Account` instance, an `AccountTransactionSigner` instance, or a string.
--   `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement).
--   `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account). Default is 0.
--   `funding_source`: The account (with private key) or signer that will send the ALGOs. If not set, it will use `get_dispenser_account`. This can be an `Account` instance, an `AccountTransactionSigner` instance, [`DispenserApiTestnetClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md) instance, or None.
--   `suggested_params`: (optional) Transaction parameters, an instance of `SuggestedParams`.
--   `note`: (optional) The transaction note, default is "Funding account to meet minimum requirement".
--   `fee_micro_algos`: (optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call.
--   `max_fee_micro_algos`: (optional) The maximum fee that you are happy to pay (default: unbounded). If this is set it's possible the transaction could get rejected during network congestion.
+- `account_to_fund`: The account address that will receive the ALGOs. This can be an `Account` instance, an `AccountTransactionSigner` instance, or a string.
+- `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement).
+- `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account). Default is 0.
+- `funding_source`: The account (with private key) or signer that will send the ALGOs. If not set, it will use `get_dispenser_account`. This can be an `Account` instance, an `AccountTransactionSigner` instance, [`TestNetDispenserApiClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md) instance, or None.
+- `suggested_params`: (optional) Transaction parameters, an instance of `SuggestedParams`.
+- `note`: (optional) The transaction note, default is "Funding account to meet minimum requirement".
+- `fee_micro_algos`: (optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call.
+- `max_fee_micro_algos`: (optional) The maximum fee that you are happy to pay (default: unbounded). If this is set it's possible the transaction could get rejected during network congestion.
 
 The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it's more than the `min_spending_balance_micro_algos`. If so, it will send the difference, or the `min_funding_increment_micro_algos` if that is specified. If the account is on TestNet and `use_dispenser_api` is True, the [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md) will be used to fund the account.
 
@@ -41,10 +41,10 @@ The key function to facilitate asset transfers is `transfer_asset(algod_client, 
 
 The following fields on `TransferAssetParameters` are required to transfer assets:
 
--   `from_account`: The account or signer that will send the ALGOs
--   `to_address`: The address of the account that will receive the ALGOs
--   `asset_id`: The asset id that will be transfered
--   `amount`: The amount to send as the smallest divisible unit value
+- `from_account`: The account or signer that will send the ALGOs
+- `to_address`: The address of the account that will receive the ALGOs
+- `asset_id`: The asset id that will be transfered
+- `amount`: The amount to send as the smallest divisible unit value
 
 ## Dispenser
 

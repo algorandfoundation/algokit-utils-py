@@ -135,8 +135,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`DispenserApiTestnetClient <algokit_utils.dispenser_api.DispenserApiTestnetClient>`
-  - ```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient
+* - {py:obj}`TestNetDispenserApiClient <algokit_utils.dispenser_api.TestNetDispenserApiClient>`
+  - ```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient
     :parser: myst
     :summary:
     ```
@@ -1120,42 +1120,42 @@ Bases: {py:obj}`Exception`
 
 ```
 
-`````{py:class} DispenserApiTestnetClient(auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT)
-:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient
+`````{py:class} TestNetDispenserApiClient(auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT)
+:canonical: algokit_utils.dispenser_api.TestNetDispenserApiClient
 
-```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient
+```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.__init__
+```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient.__init__
 :parser: myst
 ```
 
 ````{py:method} fund(address: str, amount: int, asset_id: int) -> algokit_utils.dispenser_api.DispenserFundResponse
-:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.fund
+:canonical: algokit_utils.dispenser_api.TestNetDispenserApiClient.fund
 
-```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.fund
+```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient.fund
 :parser: myst
 ```
 
 ````
 
 ````{py:method} get_limit(address: str) -> algokit_utils.dispenser_api.DispenserLimitResponse
-:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.get_limit
+:canonical: algokit_utils.dispenser_api.TestNetDispenserApiClient.get_limit
 
-```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.get_limit
+```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient.get_limit
 :parser: myst
 ```
 
 ````
 
 ````{py:method} refund(refund_txn_id: str) -> None
-:canonical: algokit_utils.dispenser_api.DispenserApiTestnetClient.refund
+:canonical: algokit_utils.dispenser_api.TestNetDispenserApiClient.refund
 
-```{autodoc2-docstring} algokit_utils.dispenser_api.DispenserApiTestnetClient.refund
+```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient.refund
 :parser: myst
 ```
 
@@ -1196,7 +1196,7 @@ Bases: {py:obj}`Exception`
 
 ````{py:attribute} funding_source
 :canonical: algokit_utils._ensure_funded.EnsureBalanceParameters.funding_source
-:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | algokit_utils.dispenser_api.DispenserApiTestnetClient | None
+:type: algokit_utils.models.Account | algosdk.atomic_transaction_composer.AccountTransactionSigner | algokit_utils.dispenser_api.TestNetDispenserApiClient | None
 :value: >
    None
 
