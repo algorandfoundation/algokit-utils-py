@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.0 (2023-10-05)
+
+### Feature
+
+* Adding support for interacting with dispenser api on testnet via ensure_funded; api client class ([#51](https://github.com/algorandfoundation/algokit-utils-py/issues/51)) ([`4f1f057`](https://github.com/algorandfoundation/algokit-utils-py/commit/4f1f05744b824ab7d29b55cad0d153dcd573aa63))
+
+### Breaking
+
+* Adding new client class for interacting with TestNet Dispenser API; Changing output type of ensure_funded method ([`4f1f057`](https://github.com/algorandfoundation/algokit-utils-py/commit/4f1f05744b824ab7d29b55cad0d153dcd573aa63))
+
 ## v1.4.0 (2023-09-27)
 
 ### Feature
