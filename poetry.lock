@@ -213,12 +213,12 @@ dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [[package]]
 name = "beaker-pyteal"
-version = "1.1.0b1"
+version = "1.1.1"
 description = "A Framework for building PyTeal Applications"
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "beaker_pyteal-1.1.0b1-py3-none-any.whl", hash = "sha256:a6295ca134063c745a6258d382c0c67bb3b9a83954dc5447ba4f1162f8210ea4"},
+    {file = "beaker_pyteal-1.1.1-py3-none-any.whl", hash = "sha256:a85a4568213acbd097cd70d8acd71d0e7187b71a4dc5c1fd9760ae8c1433571e"},
 ]
 
 [package.dependencies]
@@ -2869,4 +2869,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "cc889abcf1c43885cbf6a743b388cfea566ed659bc26d72ae2554aa0ba64d4cb"
+content-hash = "bb25aa69b959ab71a0cf9606a3b8d370c5eb0a0af6f98b3c53622d4faa85860b"
