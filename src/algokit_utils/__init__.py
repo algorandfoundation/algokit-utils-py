@@ -80,6 +80,7 @@ from algokit_utils.models import (
     OnCompleteCallParametersDict,
     RawTransactionParameters,  # noqa: ignore[F401]
     TransactionParameters,
+    TransactionParametersDict,
     TransactionResponse,
 )
 from algokit_utils.network_clients import (
@@ -129,6 +130,7 @@ __all__ = [
     "OnCompleteCallParameters",
     "OnCompleteCallParametersDict",
     "TransactionParameters",
+    "TransactionParametersDict",
     "ApplicationClient",
     "DeployResponse",
     "OnUpdate",
