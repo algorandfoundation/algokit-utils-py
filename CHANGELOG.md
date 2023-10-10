@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.1 (2023-10-10)
+
+### Fix
+
+* Adding missing TransactionParametersDict export ([#54](https://github.com/algorandfoundation/algokit-utils-py/issues/54)) ([`732528e`](https://github.com/algorandfoundation/algokit-utils-py/commit/732528ef76a81e0f2b9630709340fd3047e3192a))
+
 ## v2.0.0 (2023-10-05)
 
 ### Feature
