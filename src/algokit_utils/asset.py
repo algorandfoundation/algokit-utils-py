@@ -1,39 +1,124 @@
 import logging
 from typing import TYPE_CHECKING
 
+from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
+from algosdk.transaction import AssetTransferTxn
+
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
-from algokit_utils import TransferAssetParameters, transfer_asset
 from algokit_utils.models import Account
 
-__all__ = ["opt_in"]
+__all__ = ["opt_in", "opt_out"]
 logger = logging.getLogger(__name__)
+MAX_GROUP_SIZE = 16
 
 
-def opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
-    transfer_asset(
-        algod_client,
-        TransferAssetParameters(
-            from_account=account,
-            to_address=account.address,
-            asset_id=asset_id,
-            amount=0,
-            note=f"Opt in asset id ${asset_id}",
-        ),
-    )
+def ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
+    invalid_asset_ids = []
+    for asset_id in asset_ids:
+        try:
+            account_asset_info = algod_client.account_asset_info(account.address, asset_id)
+            if account_asset_info["amount"] != 0:
+                logger.debug(f"Asset {asset_id} balance is not zero")
+                invalid_asset_ids.append(asset_id)
+        except Exception:
+            logger.debug(f"Account ${account.address} does not have asset ${asset_id}")
+            invalid_asset_ids.append(asset_id)
+
+    if not invalid_asset_ids:
+        raise ValueError(
+            f" Assets {invalid_asset_ids} cannot be opted out. Ensure that they are valid and that the "
+            f"account has previously opted into them."
+        )
 
 
-def opt_out(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
-    asset = algod_client.account_asset_info(account.address, asset_id)
-    transfer_asset(
-        algod_client,
-        TransferAssetParameters(
-            from_account=account,
-            to_address=account.address,
-            asset_id=asset_id,
-            amount=0,
-            note=f"Opt in asset id ${asset_id}",
-            close_assets_to=asset["params"]["creator"],  # type: ignore
-        ),
-    )
+def ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
+    invalid_asset_ids = []
+    for asset_id in asset_ids:
+        try:
+            account_info = algod_client.account_info(account.address)
+            if asset_id in account_info["assets"]:
+                logger.debug(f"Asset {asset_id} is already opted in for account {account.address}")
+                invalid_asset_ids.append(asset_id)
+        except Exception:
+            logger.debug("Unable to get account info. Account address supplied does not exist")
+            invalid_asset_ids.append(asset_id)
+
+    if not invalid_asset_ids:
+        raise ValueError(
+            f" Assets {invalid_asset_ids} cannot be opted in. Ensure that they are valid and that the "
+            f"account has not previously opted into them."
+        )
+
+
+def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
+    ensure_asset_first_optin(algod_client, account, asset_ids)
+    suggested_params = algod_client.suggested_params()
+    result = {}
+    for i in range(0, len(asset_ids), MAX_GROUP_SIZE):
+        atc = AtomicTransactionComposer()
+        chunk = asset_ids[i : i + MAX_GROUP_SIZE]
+        for asset_id in chunk:
+            algod_client.asset_info(asset_id)
+            xfer_txn = AssetTransferTxn(
+                sp=suggested_params,
+                sender=account.address,
+                receiver=account.address,
+                close_assets_to=None,
+                revocation_target=None,
+                amt=0,
+                note=f"opt in asset id ${asset_id}",
+                index=asset_id,
+                rekey_to=None,
+            )  # type: ignore[no-untyped-call]
+
+            transaction_with_signer = TransactionWithSigner(
+                txn=xfer_txn,
+                signer=account.signer,
+            )
+            atc.add_transaction(transaction_with_signer)
+        atc.execute(algod_client, 4)
+
+        for index, asset_id in enumerate(chunk):
+            result[asset_id] = atc.tx_ids[index]
+
+    return result
+
+
+def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
+    """
+    Opt out from a list of Algorand Standard Assets (ASAs) by transferring them back to their creators.
+    """
+    ensure_asset_balance(algod_client, account, asset_ids)
+    suggested_params = algod_client.suggested_params()
+    result = {}
+    for i in range(0, len(asset_ids), MAX_GROUP_SIZE):
+        atc = AtomicTransactionComposer()
+        chunk = asset_ids[i : i + MAX_GROUP_SIZE]
+        for asset_id in chunk:
+            asset = algod_client.asset_info(asset_id)
+            asset_creator = asset["params"]["creator"]
+            xfer_txn = AssetTransferTxn(
+                sp=suggested_params,
+                sender=account.address,
+                receiver=account.address,
+                close_assets_to=asset_creator,
+                revocation_target=None,
+                amt=0,
+                note=f"opt out asset id ${asset_id}",
+                index=asset_id,
+                rekey_to=None,
+            )  # type: ignore[no-untyped-call]
+
+            transaction_with_signer = TransactionWithSigner(
+                txn=xfer_txn,
+                signer=account.signer,
+            )
+            atc.add_transaction(transaction_with_signer)
+        atc.execute(algod_client, 4)
+
+        for index, asset_id in enumerate(chunk):
+            result[asset_id] = atc.tx_ids[index]
+
+    return result

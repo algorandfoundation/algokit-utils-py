@@ -209,4 +209,4 @@ def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset
             min_funding_increment_micro_algos=1,
         ),
     )
-    opt_in(algod_client=algod_client, account=account, asset_id=asset_id)
+    opt_in(algod_client=algod_client, account=account, asset_ids=[asset_id])
