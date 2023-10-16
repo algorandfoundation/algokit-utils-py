@@ -61,7 +61,6 @@ class TransferAssetParameters(TransferParametersBase):
     asset_id: int
     amount: int
     clawback_from: str | None = None
-    close_assets_to: Account | str | None = None
 
 
 def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) -> None:
