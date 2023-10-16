@@ -57,7 +57,10 @@ def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, ass
 
 def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
     """
-    Opt-in to a list of assets on the Algorand blockchain.
+    Opt-in to a list of assets on the Algorand blockchain. Before an account can receive a specific asset,
+    it must `opt-in` to receive it. An opt-in transaction places an asset holding of 0 into the account and increases
+    its minimum balance by [100,000 microAlgos](https://developer.algorand.org/docs/get-details/asa/#assets-overview).
+
     Args:
         algod_client (AlgodClient): An instance of the AlgodClient class from the algosdk library.
         account (Account): An instance of the Account class representing the account that wants to opt-in to the assets.
@@ -102,6 +105,10 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
 def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
     """
     Opt out from a list of Algorand Standard Assets (ASAs) by transferring them back to their creators.
+    The account also recovers the Minimum Balance Requirement for the asset (100,000 microAlgos)
+    The `optOut` function manages the opt-out process, permitting the account to discontinue holding a group of assets.
+
+    It's essential to note that an account can only opt_out of an asset if its balance of that asset is zero.
 
     Args:
         algod_client (AlgodClient): An instance of the AlgodClient class from the `algosdk` library.
