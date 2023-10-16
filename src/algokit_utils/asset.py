@@ -2,6 +2,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
+from algosdk.constants import TX_GROUP_LIMIT
 from algosdk.transaction import AssetTransferTxn
 
 if TYPE_CHECKING:
@@ -11,15 +12,14 @@ from algokit_utils.models import Account
 
 __all__ = ["opt_in", "opt_out"]
 logger = logging.getLogger(__name__)
-MAX_GROUP_SIZE = 16
 
 
-def ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
+def _ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
     invalid_asset_ids = []
     for asset_id in asset_ids:
         try:
             account_asset_info = algod_client.account_asset_info(account.address, asset_id)
-            if account_asset_info["amount"] != 0:
+            if account_asset_info["amount"] != 0:  # type: ignore  # noqa: PGH003
                 logger.debug(f"Asset {asset_id} balance is not zero")
                 invalid_asset_ids.append(asset_id)
         except Exception:
@@ -29,16 +29,16 @@ def ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_id
     if not invalid_asset_ids:
         raise ValueError(
             f" Assets {invalid_asset_ids} cannot be opted out. Ensure that they are valid and that the "
-            f"account has previously opted into them."
+            "account has previously opted into them."
         )
 
 
-def ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
+def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
     invalid_asset_ids = []
     for asset_id in asset_ids:
         try:
             account_info = algod_client.account_info(account.address)
-            if asset_id in account_info["assets"]:
+            if asset_id in account_info["assets"]:  # type: ignore  # noqa: PGH003
                 logger.debug(f"Asset {asset_id} is already opted in for account {account.address}")
                 invalid_asset_ids.append(asset_id)
         except Exception:
@@ -48,17 +48,27 @@ def ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, asse
     if not invalid_asset_ids:
         raise ValueError(
             f" Assets {invalid_asset_ids} cannot be opted in. Ensure that they are valid and that the "
-            f"account has not previously opted into them."
+            "account has not previously opted into them."
         )
 
 
 def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
-    ensure_asset_first_optin(algod_client, account, asset_ids)
+    """
+    Opt-in to a list of assets on the Algorand blockchain.
+    Args:
+        algod_client (AlgodClient): An instance of the AlgodClient class from the algosdk library.
+        account (Account): An instance of the Account class representing the account that wants to opt-in to the assets.
+        asset_ids (list[int]): A list of integers representing the asset IDs to opt-in to.
+    Returns:
+        dict[int, str]: A dictionary where the keys are the asset IDs and the values
+        are the transaction IDs for opting-in to each asset.
+    """
+    _ensure_asset_first_optin(algod_client, account, asset_ids)
     suggested_params = algod_client.suggested_params()
     result = {}
-    for i in range(0, len(asset_ids), MAX_GROUP_SIZE):
+    for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
         atc = AtomicTransactionComposer()
-        chunk = asset_ids[i : i + MAX_GROUP_SIZE]
+        chunk = asset_ids[i : i + TX_GROUP_LIMIT]
         for asset_id in chunk:
             algod_client.asset_info(asset_id)
             xfer_txn = AssetTransferTxn(
@@ -89,16 +99,25 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
 def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
     """
     Opt out from a list of Algorand Standard Assets (ASAs) by transferring them back to their creators.
+
+    Args:
+        algod_client (AlgodClient): An instance of the AlgodClient class from the `algosdk` library.
+        account (Account): An instance of the Account class that holds the private key and address for an account.
+        asset_ids (list[int]): A list of integers representing the asset IDs of the ASAs to opt out from.
+    Returns:
+        dict[int, str]: A dictionary where the keys are the asset IDs and the values are the transaction IDs of
+        the executed transactions.
+
     """
-    ensure_asset_balance(algod_client, account, asset_ids)
+    _ensure_asset_balance(algod_client, account, asset_ids)
     suggested_params = algod_client.suggested_params()
     result = {}
-    for i in range(0, len(asset_ids), MAX_GROUP_SIZE):
+    for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
         atc = AtomicTransactionComposer()
-        chunk = asset_ids[i : i + MAX_GROUP_SIZE]
+        chunk = asset_ids[i : i + TX_GROUP_LIMIT]
         for asset_id in chunk:
             asset = algod_client.asset_info(asset_id)
-            asset_creator = asset["params"]["creator"]
+            asset_creator = asset["params"]["creator"]  # type: ignore  # noqa: PGH003
             xfer_txn = AssetTransferTxn(
                 sp=suggested_params,
                 sender=account.address,

@@ -27,7 +27,7 @@ from algokit_utils.application_specification import (
     MethodHints,
     OnCompleteActionName,
 )
-from algokit_utils.asset import opt_in
+from algokit_utils.asset import opt_in, opt_out
 from algokit_utils.deploy import (
     DELETABLE_TEMPLATE_NAME,
     NOTE_PREFIX,
@@ -161,4 +161,5 @@ __all__ = [
     "TransferAssetParameters",
     "transfer_asset",
     "opt_in",
+    "opt_out",
 ]
