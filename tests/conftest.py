@@ -200,7 +200,7 @@ def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int
         raise ValueError("Unexpected response from pending_transaction_info")
 
 
-def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
+def assure_funds(algod_client: "AlgodClient", account: Account) -> None:
     ensure_funded(
         algod_client,
         EnsureBalanceParameters(
@@ -209,4 +209,3 @@ def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset
             min_funding_increment_micro_algos=1,
         ),
     )
-    opt_in(algod_client=algod_client, account=account, asset_ids=[asset_id])

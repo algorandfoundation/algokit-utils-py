@@ -19,7 +19,7 @@ def _ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_i
     for asset_id in asset_ids:
         try:
             account_asset_info = algod_client.account_asset_info(account.address, asset_id)
-            if account_asset_info["amount"] != 0:  # type: ignore  # noqa: PGH003
+            if account_asset_info["asset-holding"]["amount"] != 0:  # type: ignore  # noqa: PGH003
                 logger.debug(f"Asset {asset_id} balance is not zero")
                 invalid_asset_ids.append(asset_id)
         except Exception:
@@ -28,8 +28,8 @@ def _ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_i
 
     if len(invalid_asset_ids) > 0:
         raise ValueError(
-            f" Assets {invalid_asset_ids} cannot be opted out. Ensure that they are valid and that the "
-            "account has previously opted into them."
+            f" Assets {invalid_asset_ids} cannot be opted out. Ensure that their amount is zero and that the account "
+            "has previously opted into them."
         )
 
 
@@ -38,7 +38,8 @@ def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, ass
     for asset_id in asset_ids:
         try:
             account_info = algod_client.account_info(account.address)
-            if asset_id in account_info["assets"]:  # type: ignore  # noqa: PGH003
+            asset_exists_in_account_info = any(asset["asset-id"] == asset_id for asset in account_info["assets"])
+            if asset_exists_in_account_info:
                 logger.debug(f"Asset {asset_id} is already opted in for account {account.address}")
                 invalid_asset_ids.append(asset_id)
         except Exception:
@@ -68,9 +69,9 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
     result = {}
     for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
         atc = AtomicTransactionComposer()
-        chunk = asset_ids[i : i + TX_GROUP_LIMIT]
+        chunk = asset_ids[i: i + TX_GROUP_LIMIT]
         for asset_id in chunk:
-            algod_client.asset_info(asset_id)
+            asset = algod_client.asset_info(asset_id)
             xfer_txn = AssetTransferTxn(
                 sp=suggested_params,
                 sender=account.address,
@@ -79,7 +80,7 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
                 revocation_target=None,
                 amt=0,
                 note=f"opt in asset id ${asset_id}",
-                index=asset_id,
+                index=asset["index"],
                 rekey_to=None,
             )  # type: ignore[no-untyped-call]
 
@@ -126,7 +127,7 @@ def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int])
                 revocation_target=None,
                 amt=0,
                 note=f"opt out asset id ${asset_id}",
-                index=asset_id,
+                index=asset["index"],
                 rekey_to=None,
             )  # type: ignore[no-untyped-call]
 
