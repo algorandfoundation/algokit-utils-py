@@ -38,7 +38,9 @@ def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, ass
     for asset_id in asset_ids:
         try:
             account_info = algod_client.account_info(account.address)
-            asset_exists_in_account_info = any(asset["asset-id"] == asset_id for asset in account_info["assets"])
+            asset_exists_in_account_info = any(
+                asset["asset-id"] == asset_id for asset in account_info["assets"]  # type: ignore  # noqa: PGH003
+            )
             if asset_exists_in_account_info:
                 logger.debug(f"Asset {asset_id} is already opted in for account {account.address}")
                 invalid_asset_ids.append(asset_id)
@@ -69,7 +71,7 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
     result = {}
     for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
         atc = AtomicTransactionComposer()
-        chunk = asset_ids[i: i + TX_GROUP_LIMIT]
+        chunk = asset_ids[i : i + TX_GROUP_LIMIT]
         for asset_id in chunk:
             asset = algod_client.asset_info(asset_id)
             xfer_txn = AssetTransferTxn(
@@ -80,9 +82,9 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
                 revocation_target=None,
                 amt=0,
                 note=f"opt in asset id ${asset_id}",
-                index=asset["index"],
+                index=asset["index"],  # type: ignore  # noqa: PGH003
                 rekey_to=None,
-            )  # type: ignore[no-untyped-call]
+            )
 
             transaction_with_signer = TransactionWithSigner(
                 txn=xfer_txn,
@@ -127,9 +129,9 @@ def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int])
                 revocation_target=None,
                 amt=0,
                 note=f"opt out asset id ${asset_id}",
-                index=asset["index"],
+                index=asset["index"],  # type: ignore  # noqa: PGH003
                 rekey_to=None,
-            )  # type: ignore[no-untyped-call]
+            )
 
             transaction_with_signer = TransactionWithSigner(
                 txn=xfer_txn,

@@ -13,16 +13,16 @@ from algokit_utils import (
     create_kmd_wallet_account,
     ensure_funded,
     get_dispenser_account,
+    opt_in,
     transfer,
-    transfer_asset, opt_in,
+    transfer_asset,
 )
 from algokit_utils.dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
 from algosdk.util import algos_to_microalgos
 from pytest_httpx import HTTPXMock
 
-from tests.conftest import check_output_stability, generate_test_asset, get_unique_name, \
-    assure_funds
+from tests.conftest import assure_funds, check_output_stability, generate_test_asset, get_unique_name
 from tests.test_network_clients import DEFAULT_TOKEN
 
 if TYPE_CHECKING:
