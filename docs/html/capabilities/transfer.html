@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="algokit_utils" href="../apidocs/algokit_utils/algokit_utils.html" />
+    <link rel="next" title="TestNet Dispenser Client" href="dispenser-client.html" />
     <link rel="prev" title="App deployment" href="app-deploy.html" /> 
 </head>
 
@@ -55,6 +55,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#dispenser">Dispenser</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="dispenser-client.html">TestNet Dispenser Client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -89,7 +90,7 @@ idempotent account funding.</p>
 <p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_transfer.py">automated tests</a>.</p>
 <section id="transferring-algos">
 <h2>Transferring Algos<a class="headerlink" href="#transferring-algos" title="Permalink to this heading"></a></h2>
-<p>The key function to facilitate Algo transfers is <code class="docutils literal notranslate"><span class="pre">algokit.transfer(algod_client,</span> <span class="pre">transfer_parameters)</span></code>, which returns the underlying <code class="docutils literal notranslate"><span class="pre">PaymentTxn</span></code> and takes a <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code></p>
+<p>The key function to facilitate Algo transfers is <code class="docutils literal notranslate"><span class="pre">algokit.transfer(algod_client,</span> <span class="pre">transfer_parameters)</span></code>, which returns the underlying <code class="docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code> and takes a <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code></p>
 <p>The following fields on <code class="docutils literal notranslate"><span class="pre">TransferParameters</span></code> are required to transfer ALGOs:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">from_account</span></code>: The account or signer that will send the ALGOs</p></li>
@@ -100,16 +101,22 @@ idempotent account funding.</p>
 <section id="ensuring-minimum-algos">
 <h2>Ensuring minimum Algos<a class="headerlink" href="#ensuring-minimum-algos" title="Permalink to this heading"></a></h2>
 <p>The ability to automatically fund an account to have a minimum amount of disposable ALGOs to spend is incredibly useful for automation and deployment scripts.
-The function to facilitate this is <code class="docutils literal notranslate"><span class="pre">ensure_funded(algod,</span> <span class="pre">parameters)</span></code>, which takes a <code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code> and returns the underlying <code class="docutils literal notranslate"><span class="pre">PaymentTxn</span></code> if a payment was made, or None otherwise</p>
+The function to facilitate this is <code class="docutils literal notranslate"><span class="pre">ensure_funded(client,</span> <span class="pre">parameters)</span></code>, which takes an <code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code> instance and returns the underlying <code class="docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code> if a payment was made, a string if the dispenser API was used, or None otherwise.</p>
 <p>The following fields on <code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code> are required to ensure minimum ALGOs:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">account_to_fund</span></code>: The account address that will receive the ALGOs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_spending_balance_micro_algos</span></code>: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">min_funding_increment_micro_algos</span></code>: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">funding_source</span></code>: The account or signer that will send the ALGOs, if not set will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">account_to_fund</span></code>: The account address that will receive the ALGOs. This can be an <code class="docutils literal notranslate"><span class="pre">Account</span></code> instance, an <code class="docutils literal notranslate"><span class="pre">AccountTransactionSigner</span></code> instance, or a string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_spending_balance_micro_algos</span></code>: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">min_funding_increment_micro_algos</span></code>: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account). Default is 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">funding_source</span></code>: The account (with private key) or signer that will send the ALGOs. If not set, it will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code>. This can be an <code class="docutils literal notranslate"><span class="pre">Account</span></code> instance, an <code class="docutils literal notranslate"><span class="pre">AccountTransactionSigner</span></code> instance, <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md"><code class="docutils literal notranslate"><span class="pre">TestNetDispenserApiClient</span></code></a> instance, or None.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggested_params</span></code>: (optional) Transaction parameters, an instance of <code class="docutils literal notranslate"><span class="pre">SuggestedParams</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">note</span></code>: (optional) The transaction note, default is “Funding account to meet minimum requirement”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fee_micro_algos</span></code>: (optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_fee_micro_algos</span></code>: (optional) The maximum fee that you are happy to pay (default: unbounded). If this is set it’s possible the transaction could get rejected during network congestion.</p></li>
 </ul>
-<p>The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it’s more than the
-<code class="docutils literal notranslate"><span class="pre">min_spending_balance_micro_algos</span></code> and if so then it will send the difference, or the <code class="docutils literal notranslate"><span class="pre">min_funding_increment_micro_algos</span></code> if that is specified.</p>
+<p>The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it’s more than the <code class="docutils literal notranslate"><span class="pre">min_spending_balance_micro_algos</span></code>. If so, it will send the difference, or the <code class="docutils literal notranslate"><span class="pre">min_funding_increment_micro_algos</span></code> if that is specified. If the account is on TestNet and <code class="docutils literal notranslate"><span class="pre">use_dispenser_api</span></code> is True, the <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md">AlgoKit TestNet Dispenser API</a> will be used to fund the account.</p>
+<blockquote>
+<div><p>Please note, if you are attempting to fund via Dispenser API, make sure to set <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code> environment variable prior to invoking <code class="docutils literal notranslate"><span class="pre">ensure_funded</span></code>. To generate the token refer to <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md#login">AlgoKit CLI documentation</a></p>
+</div></blockquote>
 </section>
 <section id="transfering-assets">
 <h2>Transfering Assets<a class="headerlink" href="#transfering-assets" title="Permalink to this heading"></a></h2>
@@ -129,6 +136,7 @@ The function to facilitate this is <code class="docutils literal notranslate"><s
 <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md">LocalNet</a>, the dispenser account can be automatically determined using the
 <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/kmd">Kmd API</a>. When running against other networks like TestNet or MainNet the mnemonic of the dispenser account can be provided via environment
 variable <code class="docutils literal notranslate"><span class="pre">DISPENSER_MNEMONIC</span></code></p>
+<p>Please note that this does not refer to the <a class="reference internal" href="dispenser-client.html"><span class="std std-doc">AlgoKit TestNet Dispenser API</span></a> which is a separate abstraction that can be used to fund accounts on TestNet via dedicated API service.</p>
 </section>
 </section>
 
@@ -137,7 +145,7 @@ variable <code class="docutils literal notranslate"><span class="pre">DISPENSER_
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="app-deploy.html" class="btn btn-neutral float-left" title="App deployment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../apidocs/algokit_utils/algokit_utils.html" class="btn btn-neutral float-right" title="algokit_utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="dispenser-client.html" class="btn btn-neutral float-right" title="TestNet Dispenser Client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

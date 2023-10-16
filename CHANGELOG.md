@@ -2,6 +2,32 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.1 (2023-10-10)
+
+### Fix
+
+* Adding missing TransactionParametersDict export ([#54](https://github.com/algorandfoundation/algokit-utils-py/issues/54)) ([`732528e`](https://github.com/algorandfoundation/algokit-utils-py/commit/732528ef76a81e0f2b9630709340fd3047e3192a))
+
+## v2.0.0 (2023-10-05)
+
+### Feature
+
+* Adding support for interacting with dispenser api on testnet via ensure_funded; api client class ([#51](https://github.com/algorandfoundation/algokit-utils-py/issues/51)) ([`4f1f057`](https://github.com/algorandfoundation/algokit-utils-py/commit/4f1f05744b824ab7d29b55cad0d153dcd573aa63))
+
+### Breaking
+
+* Adding new client class for interacting with TestNet Dispenser API; Changing output type of ensure_funded method ([`4f1f057`](https://github.com/algorandfoundation/algokit-utils-py/commit/4f1f05744b824ab7d29b55cad0d153dcd573aa63))
+
+## v1.4.0 (2023-09-27)
+
+### Feature
+
+* Transfer asset from one account to another ([#49](https://github.com/algorandfoundation/algokit-utils-py/issues/49)) ([`9ca867e`](https://github.com/algorandfoundation/algokit-utils-py/commit/9ca867e43809ba9511a0e6d0bc454628c94e6ea7))
+
+### Fix
+
+* Adding simulate transaction with traces of debug mode ([#48](https://github.com/algorandfoundation/algokit-utils-py/issues/48)) ([`b735587`](https://github.com/algorandfoundation/algokit-utils-py/commit/b735587850cfe879b88a061c657bc26a1ffe7fbd))
+
 ## v1.3.1 (2023-07-25)
 
 ### Fix

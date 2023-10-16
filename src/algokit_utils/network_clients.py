@@ -87,13 +87,13 @@ def is_localnet(client: AlgodClient) -> bool:
 def is_mainnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `mainnet-v1`"""
     params = client.suggested_params()
-    return bool(params.gen == "mainnet-v1")
+    return params.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"]
 
 
 def is_testnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `testnet-v1`"""
     params = client.suggested_params()
-    return bool(params.gen == "testnet-v1")
+    return params.gen in ["testnet-v1.0", "testnet-v1", "testnet"]
 
 
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:

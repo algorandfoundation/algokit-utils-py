@@ -1,4 +1,8 @@
-from algokit_utils._ensure_funded import EnsureBalanceParameters, ensure_funded
+from algokit_utils._ensure_funded import (
+    EnsureBalanceParameters,
+    EnsureFundedResponse,
+    ensure_funded,
+)
 from algokit_utils._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
 from algokit_utils.account import (
     create_kmd_wallet_account,
@@ -55,6 +59,13 @@ from algokit_utils.deploy import (
     get_creator_apps,
     replace_template_variables,
 )
+from algokit_utils.dispenser_api import (
+    DISPENSER_ACCESS_TOKEN_KEY,
+    DISPENSER_REQUEST_TIMEOUT,
+    DispenserFundResponse,
+    DispenserLimitResponse,
+    TestNetDispenserApiClient,
+)
 from algokit_utils.logic_error import LogicError
 from algokit_utils.models import (
     ABIArgsDict,
@@ -70,6 +81,7 @@ from algokit_utils.models import (
     OnCompleteCallParametersDict,
     RawTransactionParameters,  # noqa: ignore[F401]
     TransactionParameters,
+    TransactionParametersDict,
     TransactionResponse,
 )
 from algokit_utils.network_clients import (
@@ -119,6 +131,7 @@ __all__ = [
     "OnCompleteCallParameters",
     "OnCompleteCallParametersDict",
     "TransactionParameters",
+    "TransactionParametersDict",
     "ApplicationClient",
     "DeployResponse",
     "OnUpdate",
@@ -154,7 +167,13 @@ __all__ = [
     "is_localnet",
     "is_mainnet",
     "is_testnet",
+    "TestNetDispenserApiClient",
+    "DispenserFundResponse",
+    "DispenserLimitResponse",
+    "DISPENSER_ACCESS_TOKEN_KEY",
+    "DISPENSER_REQUEST_TIMEOUT",
     "EnsureBalanceParameters",
+    "EnsureFundedResponse",
     "TransferParameters",
     "ensure_funded",
     "transfer",

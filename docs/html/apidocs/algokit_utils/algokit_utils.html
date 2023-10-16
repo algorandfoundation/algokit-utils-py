@@ -19,7 +19,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="prev" title="Algo transfers" href="../../capabilities/transfer.html" /> 
+    <link rel="prev" title="TestNet Dispenser Client" href="../../capabilities/dispenser-client.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../capabilities/app-client.html">App client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../capabilities/app-deploy.html">App deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../capabilities/transfer.html">Algo transfers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../capabilities/dispenser-client.html">TestNet Dispenser Client</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#package-contents">Package Contents</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#classes">Classes</a></li>
@@ -82,6 +83,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeployResponse"><code class="docutils literal notranslate"><span class="pre">DeployResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.DeploymentFailedError"><code class="docutils literal notranslate"><span class="pre">DeploymentFailedError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters"><code class="docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.EnsureFundedResponse"><code class="docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.LogicError"><code class="docutils literal notranslate"><span class="pre">LogicError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodConfigDict"><code class="docutils literal notranslate"><span class="pre">MethodConfigDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.MethodHints"><code class="docutils literal notranslate"><span class="pre">MethodHints</span></code></a></li>
@@ -95,6 +97,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.Program"><code class="docutils literal notranslate"><span class="pre">Program</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TemplateValueDict"><code class="docutils literal notranslate"><span class="pre">TemplateValueDict</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TemplateValueMapping"><code class="docutils literal notranslate"><span class="pre">TemplateValueMapping</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TestNetDispenserApiClient"><code class="docutils literal notranslate"><span class="pre">TestNetDispenserApiClient</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TransactionParameters"><code class="docutils literal notranslate"><span class="pre">TransactionParameters</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TransactionResponse"><code class="docutils literal notranslate"><span class="pre">TransactionResponse</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#algokit_utils.TransferAssetParameters"><code class="docutils literal notranslate"><span class="pre">TransferAssetParameters</span></code></a></li>
@@ -244,28 +247,38 @@ be resolved prior to calling some target method</p></td>
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureBalanceParameters</span></code></a></p></td>
 <td><p>Parameters for ensuring an account has a minimum number of µALGOs</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.MethodHints" title="algokit_utils.application_specification.MethodHints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodHints</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.EnsureFundedResponse" title="algokit_utils._ensure_funded.EnsureFundedResponse"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EnsureFundedResponse</span></code></a></p></td>
+<td><p>Response for ensuring an account has a minimum number of µALGOs</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.MethodHints" title="algokit_utils.application_specification.MethodHints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodHints</span></code></a></p></td>
 <td><p>MethodHints provides hints to the caller about how to call the method</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParameters</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParameters</span></code></a></p></td>
 <td><p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParametersDict</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnCompleteCallParametersDict</span></code></a></p></td>
 <td><p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnSchemaBreak" title="algokit_utils.deploy.OnSchemaBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnSchemaBreak</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnSchemaBreak" title="algokit_utils.deploy.OnSchemaBreak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnSchemaBreak</span></code></a></p></td>
 <td><p>Action to take if an Application’s schema has breaking changes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OnUpdate" title="algokit_utils.deploy.OnUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnUpdate</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OnUpdate" title="algokit_utils.deploy.OnUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OnUpdate</span></code></a></p></td>
 <td><p>Action to take if an Application has been updated</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.OperationPerformed" title="algokit_utils.deploy.OperationPerformed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OperationPerformed</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.OperationPerformed" title="algokit_utils.deploy.OperationPerformed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OperationPerformed</span></code></a></p></td>
 <td><p>Describes the actions taken during deployment</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.Program" title="algokit_utils.application_client.Program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Program</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.Program" title="algokit_utils.application_client.Program"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Program</span></code></a></p></td>
 <td><p>A compiled TEAL program</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.TestNetDispenserApiClient" title="algokit_utils.dispenser_api.TestNetDispenserApiClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestNetDispenserApiClient</span></code></a></p></td>
+<td><p>Client for interacting with the <a class="reference external" href="https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md">AlgoKit TestNet Dispenser API</a>.
+To get started create a new access token via <code class="docutils literal notranslate"><span class="pre">algokit</span> <span class="pre">dispenser</span> <span class="pre">login</span> <span class="pre">--ci</span></code>
+and pass it to the client constructor as <code class="docutils literal notranslate"><span class="pre">auth_token</span></code>.
+Alternatively set the access token as environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code>,
+and it will be auto loaded. If both are set, the constructor argument takes precedence.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransactionParameters</span></code></a></p></td>
 <td><p>Additional parameters that can be included in a transaction</p></td>
@@ -960,10 +973,11 @@ be resolved prior to calling some target method</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.EnsureBalanceParameters.funding_source">
-<span class="sig-name descname"><span class="pre">funding_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.funding_source" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">funding_source</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AccountTransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AccountTransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.TestNetDispenserApiClient" title="algokit_utils.dispenser_api.TestNetDispenserApiClient"><span class="pre">algokit_utils.dispenser_api.TestNetDispenserApiClient</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.EnsureBalanceParameters.funding_source" title="Permalink to this definition"></a></dt>
 <dd><p>None</p>
 <p>The account (with private key) or signer that will send the µALGOs,
-will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code> by default</p>
+will use <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code> by default. Alternatively you can pass an instance of <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md"><code class="docutils literal notranslate"><span class="pre">TestNetDispenserApiClient</span></code></a>
+which will allow you to interact with <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md">AlgoKit TestNet Dispenser API</a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1006,9 +1020,22 @@ minimum balance requirement)</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.EnsureFundedResponse">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">EnsureFundedResponse</span></span><a class="headerlink" href="#algokit_utils.EnsureFundedResponse" title="Permalink to this definition"></a></dt>
+<dd><p>Response for ensuring an account has a minimum number of µALGOs</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.EnsureFundedResponse.transaction_id">
+<span class="sig-name descname"><span class="pre">transaction_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.EnsureFundedResponse.transaction_id" title="Permalink to this definition"></a></dt>
+<dd><p>None</p>
+<p>The amount of µALGOs that were funded</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="algokit_utils.LogicError">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">LogicError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_error_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">program</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AlgoSourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><span class="pre">Exception</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.LogicError" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">LogicError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_error_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">program</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AlgoSourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transaction_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">logic_error</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><span class="pre">Exception</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.LogicError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.11)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
 </dd></dl>
 
@@ -1182,6 +1209,36 @@ source map for matching pc to line number</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.TestNetDispenserApiClient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">TestNetDispenserApiClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DISPENSER_REQUEST_TIMEOUT</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.TestNetDispenserApiClient" title="Permalink to this definition"></a></dt>
+<dd><p>Client for interacting with the <a class="reference external" href="https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md">AlgoKit TestNet Dispenser API</a>.
+To get started create a new access token via <code class="docutils literal notranslate"><span class="pre">algokit</span> <span class="pre">dispenser</span> <span class="pre">login</span> <span class="pre">--ci</span></code>
+and pass it to the client constructor as <code class="docutils literal notranslate"><span class="pre">auth_token</span></code>.
+Alternatively set the access token as environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code>,
+and it will be auto loaded. If both are set, the constructor argument takes precedence.</p>
+<p>Default request timeout is 15 seconds. Modify by passing <code class="docutils literal notranslate"><span class="pre">request_timeout</span></code> to the constructor.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.TestNetDispenserApiClient.fund">
+<span class="sig-name descname"><span class="pre">fund</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.dispenser_api.DispenserFundResponse</span></span></span><a class="headerlink" href="#algokit_utils.TestNetDispenserApiClient.fund" title="Permalink to this definition"></a></dt>
+<dd><p>Fund an account with Algos from the dispenser API</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.TestNetDispenserApiClient.get_limit">
+<span class="sig-name descname"><span class="pre">get_limit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.dispenser_api.DispenserLimitResponse</span></span></span><a class="headerlink" href="#algokit_utils.TestNetDispenserApiClient.get_limit" title="Permalink to this definition"></a></dt>
+<dd><p>Get current limit for an account with Algos from the dispenser API</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.TestNetDispenserApiClient.refund">
+<span class="sig-name descname"><span class="pre">refund</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refund_txn_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.TestNetDispenserApiClient.refund" title="Permalink to this definition"></a></dt>
+<dd><p>Register a refund for a transaction with the dispenser API</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.TransactionParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">TransactionParameters</span></span><a class="headerlink" href="#algokit_utils.TransactionParameters" title="Permalink to this definition"></a></dt>
 <dd><p>Additional parameters that can be included in a transaction</p>
@@ -1326,15 +1383,17 @@ note, in such cases senderAccount must be equal to clawback field on ASA metadat
 
 <dl class="py function">
 <dt class="sig sig-object py" id="algokit_utils.ensure_funded">
-<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ensure_funded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><span class="pre">algokit_utils._ensure_funded.EnsureBalanceParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.PaymentTxn" title="(in algosdk)"><span class="pre">algosdk.transaction.PaymentTxn</span></a></span></span><a class="headerlink" href="#algokit_utils.ensure_funded" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ensure_funded</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.EnsureBalanceParameters" title="algokit_utils._ensure_funded.EnsureBalanceParameters"><span class="pre">algokit_utils._ensure_funded.EnsureBalanceParameters</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.EnsureFundedResponse" title="algokit_utils._ensure_funded.EnsureFundedResponse"><span class="pre">algokit_utils._ensure_funded.EnsureFundedResponse</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.ensure_funded" title="Permalink to this definition"></a></dt>
 <dd><p>Funds a given account using a funding source such that it has a certain amount of algos free to spend
 (accounting for ALGOs locked in minimum balance requirement)
 see <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a></p>
-<dl class="myst field-list simple">
-<dt class="field-odd">Return None | PaymentTxn<span class="colon">:</span></dt>
-<dd class="field-odd"><p>None if balance was sufficient or the payment transaction used to increase the balance</p>
-</dd>
-</dl>
+<p>Args:
+client (AlgodClient): An instance of the AlgodClient class from the AlgoSDK library.
+parameters (EnsureBalanceParameters): An instance of the EnsureBalanceParameters class that
+specifies the account to fund and the minimum spending balance.</p>
+<p>Returns:
+PaymentTxn | str | None: If funds are needed, the function returns a payment transaction or a
+string indicating that the dispenser API was used. If no funds are needed, the function returns None.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1530,7 +1589,7 @@ some valid inputs and incremented outputs:
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../../capabilities/transfer.html" class="btn btn-neutral float-left" title="Algo transfers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../capabilities/dispenser-client.html" class="btn btn-neutral float-left" title="TestNet Dispenser Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
