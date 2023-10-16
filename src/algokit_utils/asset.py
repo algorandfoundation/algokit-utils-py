@@ -26,7 +26,7 @@ def _ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_i
             logger.debug(f"Account ${account.address} does not have asset ${asset_id}")
             invalid_asset_ids.append(asset_id)
 
-    if not invalid_asset_ids:
+    if len(invalid_asset_ids) > 0:
         raise ValueError(
             f" Assets {invalid_asset_ids} cannot be opted out. Ensure that they are valid and that the "
             "account has previously opted into them."
@@ -45,7 +45,7 @@ def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, ass
             logger.debug("Unable to get account info. Account address supplied does not exist")
             invalid_asset_ids.append(asset_id)
 
-    if not invalid_asset_ids:
+    if len(invalid_asset_ids) > 0:
         raise ValueError(
             f" Assets {invalid_asset_ids} cannot be opted in. Ensure that they are valid and that the "
             "account has not previously opted into them."
