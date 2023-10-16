@@ -112,7 +112,7 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
         sp=suggested_params,
         sender=sender,
         receiver=params.to_address,
-        close_assets_to=params.close_assets_to,
+        close_assets_to=None,
         revocation_target=params.clawback_from,
         amt=params.amount,
         note=params.note,
