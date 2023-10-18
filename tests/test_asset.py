@@ -56,7 +56,7 @@ def test_opt_in_assets_to_account_second_attempt_failed(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f" Assets {[dummy_asset_id]} cannot be opted in. Ensure that they are valid and "
+            f"Assets {[dummy_asset_id]} cannot be opted in. Ensure that they are valid and "
             "that the account has not previously opted into them."
         ),
     ):
@@ -143,7 +143,7 @@ def test_opt_out_of_not_opted_in_asset_failed(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f" Assets {[dummy_asset_id]} cannot be opted out. Ensure that their amount is zero "
+            f"Assets {[dummy_asset_id]} cannot be opted out. Ensure that their amount is zero "
             "and that the account has previously opted into them."
         ),
     ):
@@ -173,7 +173,7 @@ def test_opt_out_of_non_zero_balance_asset_failed(
     with pytest.raises(
         ValueError,
         match=re.escape(
-            f" Assets {[dummy_asset_id]} cannot be opted out. Ensure that their amount is zero "
+            f"Assets {[dummy_asset_id]} cannot be opted out. Ensure that their amount is zero "
             "and that the account has previously opted into them."
         ),
     ):

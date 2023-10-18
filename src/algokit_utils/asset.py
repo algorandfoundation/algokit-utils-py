@@ -8,51 +8,64 @@ from algosdk.transaction import AssetTransferTxn
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
+from enum import Enum, auto
+
 from algokit_utils.models import Account
 
 __all__ = ["opt_in", "opt_out"]
 logger = logging.getLogger(__name__)
 
 
-def _ensure_asset_balance(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
+class ValidationType(Enum):
+    OPTIN = auto()
+    OPTOUT = auto()
+
+
+def _ensure_account_is_valid(algod_client: "AlgodClient", account: Account) -> None:
+    try:
+        algod_client.account_info(account.address)
+    except Exception as err:
+        error_message = f"Account address{account.address}  does not exist"
+        logger.debug(error_message)
+        raise err
+
+
+def _ensure_asset_balance_conditions(
+    algod_client: "AlgodClient", account: Account, asset_ids: list, validation_type: ValidationType
+) -> None:
     invalid_asset_ids = []
+    account_info = algod_client.account_info(account.address)
+    account_assets = account_info.get("assets", [])  # type: ignore  # noqa: PGH003
     for asset_id in asset_ids:
-        try:
-            account_asset_info = algod_client.account_asset_info(account.address, asset_id)
-            if account_asset_info["asset-holding"]["amount"] != 0:  # type: ignore  # noqa: PGH003
-                logger.debug(f"Asset {asset_id} balance is not zero")
-                invalid_asset_ids.append(asset_id)
-        except Exception:
-            logger.debug(f"Account ${account.address} does not have asset ${asset_id}")
-            invalid_asset_ids.append(asset_id)
-
-    if len(invalid_asset_ids) > 0:
-        raise ValueError(
-            f" Assets {invalid_asset_ids} cannot be opted out. Ensure that their amount is zero and that the account "
-            "has previously opted into them."
-        )
-
-
-def _ensure_asset_first_optin(algod_client: "AlgodClient", account: Account, asset_ids: list) -> None:
-    invalid_asset_ids = []
-    for asset_id in asset_ids:
-        try:
-            account_info = algod_client.account_info(account.address)
-            asset_exists_in_account_info = any(
-                asset["asset-id"] == asset_id for asset in account_info["assets"]  # type: ignore  # noqa: PGH003
-            )
+        asset_exists_in_account_info = any(asset["asset-id"] == asset_id for asset in account_assets)
+        if validation_type == ValidationType.OPTIN:
             if asset_exists_in_account_info:
                 logger.debug(f"Asset {asset_id} is already opted in for account {account.address}")
                 invalid_asset_ids.append(asset_id)
-        except Exception:
-            logger.debug("Unable to get account info. Account address supplied does not exist")
-            invalid_asset_ids.append(asset_id)
+
+        elif validation_type == ValidationType.OPTOUT:
+            if not account_assets or not asset_exists_in_account_info:
+                logger.debug(f"Account {account.address} does not have asset {asset_id}")
+                invalid_asset_ids.append(asset_id)
+            else:
+                asset_balance = next((asset["amount"] for asset in account_assets if asset["asset-id"] == asset_id), 0)
+                if asset_balance != 0:
+                    logger.debug(f"Asset {asset_id} balance is not zero")
+                    invalid_asset_ids.append(asset_id)
 
     if len(invalid_asset_ids) > 0:
-        raise ValueError(
-            f" Assets {invalid_asset_ids} cannot be opted in. Ensure that they are valid and that the "
-            "account has not previously opted into them."
+        action = "opted out" if validation_type == ValidationType.OPTOUT else "opted in"
+        condition_message = (
+            "their amount is zero and that the account has"
+            if validation_type == ValidationType.OPTOUT
+            else "they are valid and that the account has not"
         )
+
+        error_message = (
+            f"Assets {invalid_asset_ids} cannot be {action}. Ensure that "
+            f"{condition_message} previously opted into them."
+        )
+        raise ValueError(error_message)
 
 
 def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
@@ -69,7 +82,8 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
         dict[int, str]: A dictionary where the keys are the asset IDs and the values
         are the transaction IDs for opting-in to each asset.
     """
-    _ensure_asset_first_optin(algod_client, account, asset_ids)
+    _ensure_account_is_valid(algod_client, account)
+    _ensure_asset_balance_conditions(algod_client, account, asset_ids, ValidationType.OPTIN)
     suggested_params = algod_client.suggested_params()
     result = {}
     for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
@@ -119,7 +133,8 @@ def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int])
         the executed transactions.
 
     """
-    _ensure_asset_balance(algod_client, account, asset_ids)
+    _ensure_account_is_valid(algod_client, account)
+    _ensure_asset_balance_conditions(algod_client, account, asset_ids, ValidationType.OPTOUT)
     suggested_params = algod_client.suggested_params()
     result = {}
     for i in range(0, len(asset_ids), TX_GROUP_LIMIT):
