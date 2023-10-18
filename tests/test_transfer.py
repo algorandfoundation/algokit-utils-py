@@ -13,6 +13,7 @@ from algokit_utils import (
     create_kmd_wallet_account,
     ensure_funded,
     get_dispenser_account,
+    opt_in,
     transfer,
     transfer_asset,
 )
@@ -21,7 +22,7 @@ from algokit_utils.network_clients import get_algod_client, get_algonode_config
 from algosdk.util import algos_to_microalgos
 from pytest_httpx import HTTPXMock
 
-from tests.conftest import assure_funds_and_opt_in, check_output_stability, generate_test_asset, get_unique_name
+from tests.conftest import assure_funds, check_output_stability, generate_test_asset, get_unique_name
 from tests.test_network_clients import DEFAULT_TOKEN
 
 if TYPE_CHECKING:
@@ -114,7 +115,8 @@ def test_transfer_asa_asset_doesnt_exist(
     algod_client: "AlgodClient", to_account: Account, funded_account: Account
 ) -> None:
     dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
-    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
+    assure_funds(algod_client=algod_client, account=to_account)
+    opt_in(algod_client=algod_client, account=to_account, asset_ids=[dummy_asset_id])
 
     with pytest.raises(algosdk.error.AlgodHTTPError, match="asset 1 missing from"):
         transfer_asset(
@@ -133,8 +135,8 @@ def test_transfer_asa_asset_is_transfered(
     algod_client: "AlgodClient", to_account: Account, funded_account: Account
 ) -> None:
     dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
-    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
-
+    assure_funds(algod_client=algod_client, account=to_account)
+    opt_in(algod_client=algod_client, account=to_account, asset_ids=[dummy_asset_id])
     transfer_asset(
         algod_client,
         TransferAssetParameters(
@@ -159,8 +161,11 @@ def test_transfer_asa_asset_is_transfered_from_revocation_target(
     algod_client: "AlgodClient", to_account: Account, clawback_account: Account, funded_account: Account
 ) -> None:
     dummy_asset_id = generate_test_asset(algod_client, funded_account, 100)
-    assure_funds_and_opt_in(algod_client=algod_client, account=to_account, asset_id=dummy_asset_id)
-    assure_funds_and_opt_in(algod_client=algod_client, account=clawback_account, asset_id=dummy_asset_id)
+    assure_funds(algod_client=algod_client, account=to_account)
+    opt_in(algod_client=algod_client, account=to_account, asset_ids=[dummy_asset_id])
+
+    assure_funds(algod_client=algod_client, account=clawback_account)
+    opt_in(algod_client=algod_client, account=clawback_account, asset_ids=[dummy_asset_id])
 
     transfer_asset(
         algod_client,

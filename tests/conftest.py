@@ -15,14 +15,12 @@ from algokit_utils import (
     ApplicationClient,
     ApplicationSpecification,
     EnsureBalanceParameters,
-    TransferAssetParameters,
     ensure_funded,
     get_account,
     get_algod_client,
     get_indexer_client,
     get_kmd_client_from_algod_client,
     replace_template_variables,
-    transfer_asset,
 )
 from dotenv import load_dotenv
 
@@ -201,20 +199,7 @@ def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int
         raise ValueError("Unexpected response from pending_transaction_info")
 
 
-def opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
-    transfer_asset(
-        algod_client,
-        TransferAssetParameters(
-            from_account=account,
-            to_address=account.address,
-            asset_id=asset_id,
-            amount=0,
-            note=f"Opt in asset id ${asset_id}",
-        ),
-    )
-
-
-def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset_id: int) -> None:
+def assure_funds(algod_client: "AlgodClient", account: Account) -> None:
     ensure_funded(
         algod_client,
         EnsureBalanceParameters(
@@ -223,4 +208,3 @@ def assure_funds_and_opt_in(algod_client: "AlgodClient", account: Account, asset
             min_funding_increment_micro_algos=1,
         ),
     )
-    opt_in(algod_client=algod_client, account=account, asset_id=asset_id)
