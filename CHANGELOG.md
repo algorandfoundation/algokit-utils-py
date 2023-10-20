@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.0 (2023-10-20)
+
+### Feature
+
+* Task opt in and opt out ([#55](https://github.com/algorandfoundation/algokit-utils-py/issues/55)) ([`3cf9238`](https://github.com/algorandfoundation/algokit-utils-py/commit/3cf92383bbbe45851f1819ae6723c39aec86b935))
+
 ## v2.0.1 (2023-10-10)
 
 ### Fix
