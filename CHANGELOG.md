@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.1 (2023-10-31)
+
+### Fix
+
+* Handle TMPL_ variables with an underscore ([`367ffce`](https://github.com/algorandfoundation/algokit-utils-py/commit/367ffceef92674cee2f808b7b921bbbf12e94169))
+
 ## v2.1.0 (2023-10-20)
 
 ### Feature
