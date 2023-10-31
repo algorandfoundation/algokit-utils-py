@@ -71,7 +71,7 @@ UPDATABLE_TEMPLATE_NAME = f"TMPL_{_UPDATABLE}"
 """Template variable name used to control if a smart contract is updatable or not at deployment"""
 DELETABLE_TEMPLATE_NAME = f"TMPL_{_DELETABLE}"
 """Template variable name used to control if a smart contract is deletable or not at deployment"""
-_TOKEN_PATTERN = re.compile(r"TMPL_[A-Z]+")
+_TOKEN_PATTERN = re.compile(r"TMPL_[A-Z_]+")
 TemplateValue: TypeAlias = int | str | bytes
 TemplateValueDict: TypeAlias = dict[str, TemplateValue]
 """Dictionary of `dict[str, int | str | bytes]` representing template variable names and values"""
