@@ -4,6 +4,7 @@ import json
 import logging
 import re
 import typing
+from datetime import datetime, timezone
 from math import ceil
 from pathlib import Path
 from typing import Any, Literal, cast, overload
@@ -32,6 +33,7 @@ from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionG
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
+from algokit_utils._debug_utils import persist_sourcemaps
 from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
@@ -346,6 +348,15 @@ class ApplicationClient:
         self._approval_program, self._clear_program = substitute_template_and_compile(
             self.algod_client, self.app_spec, template_values
         )
+
+        if config.debug:
+            persist_sourcemaps(
+                approval=self._approval_program.teal,
+                clear=self._clear_program.teal,
+                app_name=self.app_name,
+                client=self.algod_client,
+            )
+
         deployer = au_deploy.Deployer(
             app_client=self,
             creator=self._creator,
@@ -865,6 +876,15 @@ class ApplicationClient:
             self._approval_program, self._clear_program = substitute_template_and_compile(
                 self.algod_client, self.app_spec, self.template_values
             )
+
+        if config.debug:
+            persist_sourcemaps(
+                approval=self._approval_program.teal,
+                clear=self._clear_program.teal,
+                app_name=self.app_name,
+                client=self.algod_client,
+            )
+
         return self._approval_program, self._clear_program
 
     def _simulate_readonly_call(
@@ -1192,7 +1212,9 @@ def substitute_template_and_compile(
     au_deploy.check_template_variables(app_spec.approval_program, template_values)
     approval = au_deploy.replace_template_variables(app_spec.approval_program, template_values)
 
-    return Program(approval, algod_client), Program(clear, algod_client)
+    approval_app, clear_app = Program(approval, algod_client), Program(clear, algod_client)
+
+    return approval_app, clear_app
 
 
 def get_next_version(current_version: str) -> str:
@@ -1277,6 +1299,29 @@ def execute_atc_with_logic_error(
         if logic_error:
             raise logic_error from ex
         raise ex
+    finally:
+        if config.debug:
+            if not config.project_root:
+                logger.warning(
+                    "No project root specified, unable to save simulated traces. "
+                    "To save simulated traces, set config.project_root to a directory or execute "
+                    "from an algokit project."
+                )
+            elif config.trace_all:
+                atc_to_simulate = atc.clone()
+                for txn_with_sign in atc_to_simulate.txn_list:
+                    sp = algod_client.suggested_params()
+                    txn_with_sign.txn.first_valid_round = sp.first
+                    txn_with_sign.txn.last_valid_round = sp.last
+                    txn_with_sign.txn.genesis_hash = sp.gh
+                simulate = _simulate_response(atc_to_simulate, algod_client)
+                output_file = (
+                    config.project_root
+                    / "debug_traces"
+                    / f'{datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")}.avm.trace'
+                )
+                output_file.parent.mkdir(parents=True, exist_ok=True)
+                output_file.write_text(json.dumps(simulate.simulate_response, indent=2))
 
 
 def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[dict[str, Any]]:
