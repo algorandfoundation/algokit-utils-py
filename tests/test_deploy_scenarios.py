@@ -110,7 +110,7 @@ class DeployFixture:
 
             # With v3 indexer a small delay is needed
             # not to exhaust attempts before target round is reached
-            time.sleep(0.5)
+            time.sleep(0.1)
 
 
 @pytest.fixture(scope="module")
