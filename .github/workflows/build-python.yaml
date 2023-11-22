@@ -3,44 +3,44 @@ name: Build, Test and Publish Python
 on: [workflow_call]
 
 jobs:
-  build-python:
-    strategy:
-      matrix:
-        os: ["ubuntu-latest" ]
-        python: ["3.10"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
+    build-python:
+        strategy:
+            matrix:
+                os: ["ubuntu-latest"]
+                python: ["3.10"]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Checkout source code
+              uses: actions/checkout@v3
 
-      - name: Install poetry
-        run: pipx install poetry
+            - name: Install poetry
+              run: pipx install poetry
 
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-          cache: "poetry"
+            - name: Set up Python ${{ matrix.python }}
+              uses: actions/setup-python@v4
+              with:
+                  python-version: ${{ matrix.python }}
+                  cache: "poetry"
 
-      - name: Install dependencies
-        run: poetry install --no-interaction
+            - name: Install dependencies
+              run: poetry install --no-interaction
 
-      - name: pytest + coverage
-        shell: bash
-        run: |
-          set -o pipefail
-          pipx install algokit
-          algokit localnet start
-          poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
-          algokit localnet stop
+            - name: pytest + coverage
+              shell: bash
+              run: |
+                  set -o pipefail
+                  pipx install https://github.com/algorandfoundation/algokit-cli/releases/download/v1.7.0-beta.1/algokit-1.7.0b1-py3-none-any.whl
+                  algokit localnet start
+                  poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+                  algokit localnet stop
 
-      - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
-        if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
-        uses: MishaKav/pytest-coverage-comment@main
-        continue-on-error: true # forks fail to add a comment, so continue any way
-        with:
-          pytest-coverage-path: ./pytest-coverage.txt
-          junitxml-path: ./pytest-junit.xml
+            - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
+              if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
+              uses: MishaKav/pytest-coverage-comment@main
+              continue-on-error: true # forks fail to add a comment, so continue any way
+              with:
+                  pytest-coverage-path: ./pytest-coverage.txt
+                  junitxml-path: ./pytest-junit.xml
 
-      - name: Build Wheel
-        run: poetry build --format wheel
+            - name: Build Wheel
+              run: poetry build --format wheel
