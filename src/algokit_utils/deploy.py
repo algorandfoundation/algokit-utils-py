@@ -253,7 +253,7 @@ class AppChanges:
     schema_change_description: str | None
 
 
-def check_for_app_changes(
+def check_for_app_changes(  # noqa: PLR0913
     algod_client: "AlgodClient",
     *,
     new_approval: bytes,

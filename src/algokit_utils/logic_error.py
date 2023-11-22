@@ -37,7 +37,7 @@ def parse_logic_error(
 
 
 class LogicError(Exception):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         logic_error_str: str,
