@@ -4,7 +4,6 @@ import json
 import logging
 import re
 import typing
-from datetime import datetime, timezone
 from math import ceil
 from pathlib import Path
 from typing import Any, Literal, cast, overload
@@ -19,7 +18,6 @@ from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
     AtomicTransactionComposer,
     AtomicTransactionResponse,
-    EmptySigner,
     LogicSigTransactionSigner,
     MultisigTransactionSigner,
     SimulateAtomicTransactionResponse,
@@ -29,11 +27,15 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
-from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils._debug_utils import PersistSourceMapInput, persist_sourcemaps
+from algokit_utils._debug_utils import (
+    PersistSourceMapInput,
+    persist_sourcemaps,
+    simulate_and_persist_response,
+    simulate_response,
+)
 from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
@@ -349,7 +351,7 @@ class ApplicationClient:
             self.algod_client, self.app_spec, template_values
         )
 
-        if config.debug:
+        if config.debug and config.project_root:
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
@@ -359,6 +361,7 @@ class ApplicationClient:
                         teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
                     ),
                 ],
+                project_root=config.project_root,
                 client=self.algod_client,
             )
 
@@ -882,7 +885,7 @@ class ApplicationClient:
                 self.algod_client, self.app_spec, self.template_values
             )
 
-        if config.debug:
+        if config.debug and config.project_root:
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
@@ -892,6 +895,7 @@ class ApplicationClient:
                         teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
                     ),
                 ],
+                project_root=config.project_root,
                 client=self.algod_client,
             )
 
@@ -900,21 +904,19 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = _simulate_response(atc, self.algod_client)
+        response = simulate_response(atc, self.algod_client)
         traces = None
         if config.debug:
-            traces = _create_simulate_traces(simulate_response)
-        if simulate_response.failure_message:
+            traces = _create_simulate_traces(response)
+        if response.failure_message:
             raise _try_convert_to_logic_error(
-                simulate_response.failure_message,
+                response.failure_message,
                 self.app_spec.approval_program,
                 self._get_approval_source_map,
                 traces,
-            ) or Exception(
-                f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
-            )
+            ) or Exception(f"Simulate failed for readonly method {method.get_signature()}: {response.failure_message}")
 
-        return TransactionResponse.from_atr(simulate_response)
+        return TransactionResponse.from_atr(response)
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
@@ -1295,10 +1297,13 @@ def execute_atc_with_logic_error(
     ```
     """
     try:
+        if config.debug and config.project_root and config.trace_all:
+            simulate_and_persist_response(atc, config.project_root, algod_client)
+
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
         if config.debug:
-            simulate = _simulate_response(atc, algod_client)
+            simulate = simulate_response(atc, algod_client)
             traces = _create_simulate_traces(simulate)
         else:
             traces = None
@@ -1309,29 +1314,6 @@ def execute_atc_with_logic_error(
         if logic_error:
             raise logic_error from ex
         raise ex
-    finally:
-        if config.debug:
-            if not config.project_root:
-                logger.warning(
-                    "No project root specified, unable to save simulated traces. "
-                    "To save simulated traces, set config.project_root to a directory or execute "
-                    "from an algokit project."
-                )
-            elif config.trace_all:
-                atc_to_simulate = atc.clone()
-                for txn_with_sign in atc_to_simulate.txn_list:
-                    sp = algod_client.suggested_params()
-                    txn_with_sign.txn.first_valid_round = sp.first
-                    txn_with_sign.txn.last_valid_round = sp.last
-                    txn_with_sign.txn.genesis_hash = sp.gh
-                simulate = _simulate_response(atc_to_simulate, algod_client)
-                output_file = (
-                    config.project_root
-                    / "debug_traces"
-                    / f'{datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")}.avm.trace'
-                )
-                output_file.parent.mkdir(parents=True, exist_ok=True)
-                output_file.write_text(json.dumps(simulate.simulate_response, indent=2))
 
 
 def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[dict[str, Any]]:
@@ -1352,22 +1334,6 @@ def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list
                 }
             )
     return traces
-
-
-def _simulate_response(
-    atc: AtomicTransactionComposer, algod_client: "AlgodClient"
-) -> SimulateAtomicTransactionResponse:
-    unsigned_txn_groups = atc.build_group()
-    empty_signer = EmptySigner()
-    txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
-    fake_signed_transactions = empty_signer.sign_transactions(txn_list, [])
-    txn_group = [SimulateRequestTransactionGroup(txns=fake_signed_transactions)]
-    trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
-
-    simulate_request = SimulateRequest(
-        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
-    )
-    return atc.simulate(algod_client, simulate_request)
 
 
 def _convert_transaction_parameters(

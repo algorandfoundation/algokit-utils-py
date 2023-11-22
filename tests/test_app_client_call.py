@@ -1,6 +1,7 @@
+from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import algokit_utils
 import pytest
@@ -33,6 +34,16 @@ def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecificati
     create_response = client.create("create")
     assert create_response.tx_id
     return client
+
+
+# This fixture is automatically applied to all application call tests.
+# If you need to run a test without debug mode, you can reference this mock within the test and disable it explicitly.
+@pytest.fixture(autouse=True)
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        mock_config.project_root = None
+        yield mock_config
 
 
 def test_app_client_from_app_spec_path(algod_client: "AlgodClient") -> None:
