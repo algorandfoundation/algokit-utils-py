@@ -33,7 +33,7 @@ from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionG
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils._debug_utils import persist_sourcemaps
+from algokit_utils._debug_utils import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
@@ -351,9 +351,14 @@ class ApplicationClient:
 
         if config.debug:
             persist_sourcemaps(
-                approval=self._approval_program.teal,
-                clear=self._clear_program.teal,
-                app_name=self.app_name,
+                sources=[
+                    PersistSourceMapInput(
+                        teal=self._approval_program.teal, app_name=self.app_name, file_name="approval.teal"
+                    ),
+                    PersistSourceMapInput(
+                        teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
+                    ),
+                ],
                 client=self.algod_client,
             )
 
@@ -879,9 +884,14 @@ class ApplicationClient:
 
         if config.debug:
             persist_sourcemaps(
-                approval=self._approval_program.teal,
-                clear=self._clear_program.teal,
-                app_name=self.app_name,
+                sources=[
+                    PersistSourceMapInput(
+                        teal=self._approval_program.teal, app_name=self.app_name, file_name="approval.teal"
+                    ),
+                    PersistSourceMapInput(
+                        teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
+                    ),
+                ],
                 client=self.algod_client,
             )
 

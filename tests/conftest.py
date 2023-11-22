@@ -2,8 +2,10 @@ import inspect
 import math
 import random
 import subprocess
+from collections.abc import Generator
 from pathlib import Path
 from typing import TYPE_CHECKING
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
 import algosdk.transaction
@@ -160,6 +162,15 @@ def app_spec() -> ApplicationSpecification:
     path = Path(__file__).parent / "app_client_test.json"
     path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
+
+
+# This fixture is automatically applied to all application call tests.
+# If you need to run a test without debug mode, you can reference this mock within the test and disable it explicitly.
+@pytest.fixture(autouse=True)
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        yield mock_config
 
 
 def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int | None) -> int:

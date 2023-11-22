@@ -2,7 +2,7 @@ import base64
 import json
 import logging
 import typing
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from algosdk.encoding import checksum
@@ -14,93 +14,99 @@ from algokit_utils.config import config
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
-
 logger = logging.getLogger(__name__)
+
+ALGOKIT_DIR = ".algokit"
+DEBUGGER_DIR = "sourcemaps"
+SOURCES_FILE = "avm.sources"
 
 
 @dataclass
-class AVMDebuggerSourceMap:
-    location: str
-    program_hash: str
+class AVMDebuggerSourceMapEntry:
+    location: str = field(metadata={"json": "sourcemap-location"})
+    program_hash: str = field(metadata={"json": "hash"})
 
-    # write to string that exports to json
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, AVMDebuggerSourceMapEntry):
+            return self.location == other.location and self.program_hash == other.program_hash
+        return False
+
     def __str__(self) -> str:
         return json.dumps({"sourcemap-location": self.location, "hash": self.program_hash})
 
 
-def _upsert_debug_sourcemap(sourcemap: AVMDebuggerSourceMap) -> None:
-    # load files from repository root directory
+@dataclass
+class AVMDebuggerSourceMap:
+    txn_group_sources: list[AVMDebuggerSourceMapEntry] = field(metadata={"json": "txn-group-sources"})
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "AVMDebuggerSourceMap":
+        return cls(txn_group_sources=[AVMDebuggerSourceMapEntry(**item) for item in data.get("txn_group_sources", [])])
+
+    def __str__(self) -> str:
+        return json.dumps(asdict(self))
+
+
+@dataclass
+class PersistSourceMapInput:
+    file_name: str
+    teal: str
+    app_name: str
+
+
+def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
+    sources_path = project_root / ALGOKIT_DIR / DEBUGGER_DIR / SOURCES_FILE
+    if not sources_path.exists():
+        return AVMDebuggerSourceMap(txn_group_sources=[])
+
+    with sources_path.open() as f:
+        return AVMDebuggerSourceMap.from_dict(json.load(f))
+
+
+def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry]) -> None:
     if not config.project_root:
-        logger.warning(
-            f"Project root is not specified by user, skipping persisting sourcemaps \
-                       for {sourcemap.program_hash}"
-        )
+        logger.warning("Project root not specified; skipping sourcemap persistence")
         return
 
-    sources_path = Path(str(config.project_root)) / ".algokit" / "debugger" / "sources.json"
+    sources_path = Path(str(config.project_root)) / ALGOKIT_DIR / DEBUGGER_DIR / SOURCES_FILE
+    sources = _load_or_create_sources(sources_path)
 
-    # check if exists
-    if not sources_path.exists():
-        # create empty file with empty json content, if folders don't exist, create them too
-        sources_path.parent.mkdir(parents=True, exist_ok=True)
-        sources_path.write_text('{"txn-group-sources": []}')
+    for sourcemap in sourcemaps:
+        if sourcemap not in sources.txn_group_sources:
+            sources.txn_group_sources.append(sourcemap)
 
-    # load json
-    try:
-        sources = json.loads(sources_path.read_text())
-    except Exception:
-        sources = {"txn-group-sources": []}
-
-    for source in sources["txn-group-sources"]:
-        # if file not exists, remove from list
-        if not Path(source["sourcemap-location"]).exists():
-            sources["txn-group-sources"].remove(source)
-
-    # add new source unless already exists
-    if not any(
-        source["sourcemap-location"] == sourcemap.location and source["hash"] == sourcemap.program_hash
-        for source in sources["txn-group-sources"]
-    ):
-        sources["txn-group-sources"].append({"sourcemap-location": sourcemap.location, "hash": sourcemap.program_hash})
-        # write back to file
-        sources_path.write_text(json.dumps(sources))
+    with sources_path.open("w") as f:
+        json.dump(sources, f)
 
 
 def _build_avm_sourcemap(
     teal_content: str, app_name: str, file_name: str, output_path: Path, client: "AlgodClient"
-) -> AVMDebuggerSourceMap:
-    result: dict = client.compile(deploy.strip_comments(teal_content), source_map=True)
-    raw_binary = base64.b64decode(result["result"])
-    program_hash = base64.b64encode(checksum(raw_binary)).decode()  # type: ignore[no-untyped-call]
+) -> AVMDebuggerSourceMapEntry:
+    file_name = f"{file_name}.teal" if not file_name.endswith(".teal") else file_name
+    result = client.compile(deploy.strip_comments(teal_content), source_map=True)
+    program_hash = base64.b64encode(
+        checksum(base64.b64decode(result["result"]))  # type: ignore[no-untyped-call]
+    ).decode()
     source_map = SourceMap(result["sourcemap"]).__dict__
-
     source_map["sources"] = [file_name]
 
-    # write source_map to file
-    source_map_filename = f'{file_name.replace(".teal", "")}.tok.map'
-    output = output_path / ".algokit" / "debugger" / app_name
-    source_map_output = output / source_map_filename
+    output_dir = output_path / ALGOKIT_DIR / DEBUGGER_DIR / app_name
+    source_map_output = output_dir / f'{file_name.replace(".teal", "")}.tok.map'
     source_map_output.parent.mkdir(parents=True, exist_ok=True)
     source_map_output.write_text(json.dumps(source_map))
-    source_output = output / file_name
-    source_output.write_text(teal_content)
+    (output_dir / file_name).write_text(teal_content)
 
-    # reload sources
-    return AVMDebuggerSourceMap(str(source_map_output), program_hash)
+    return AVMDebuggerSourceMapEntry(str(source_map_output), program_hash)
 
 
-def persist_sourcemaps(approval: str, clear: str, app_name: str, client: "AlgodClient") -> None:
+def persist_sourcemaps(sources: list[PersistSourceMapInput], client: "AlgodClient") -> None:
     if not config.project_root:
-        logger.warning(
-            f"Project root is not specified by user, skipping persisting approval and clear\
-                        sourcemaps for {app_name}"
-        )
+        logger.warning("Project root not specified; skipping persisting sourcemaps")
         return
 
-    sources = [
-        _build_avm_sourcemap(approval, app_name, "approval.teal", config.project_root, client),
-        _build_avm_sourcemap(clear, app_name, "clear.teal", config.project_root, client),
+    sourcemaps = [
+        _build_avm_sourcemap(source.teal, source.app_name, source.file_name, config.project_root, client)
+        for source in sources
     ]
 
-    for source in sources:
-        _upsert_debug_sourcemap(source)
+    _upsert_debug_sourcemaps(sourcemaps)

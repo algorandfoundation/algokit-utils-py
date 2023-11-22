@@ -1,3 +1,7 @@
+from algokit_utils._debug_utils import (
+    PersistSourceMapInput,
+    persist_sourcemaps,
+)
 from algokit_utils._ensure_funded import (
     EnsureBalanceParameters,
     EnsureFundedResponse,
@@ -181,4 +185,6 @@ __all__ = [
     "transfer_asset",
     "opt_in",
     "opt_out",
+    "persist_sourcemaps",
+    "PersistSourceMapInput",
 ]

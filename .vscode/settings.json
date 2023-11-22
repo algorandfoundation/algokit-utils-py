@@ -54,9 +54,10 @@
     ]
   },
 
-  // PowerShell
-  "[powershell]": {
-    "editor.defaultFormatter": "ms-vscode.powershell"
-  },
-  "powershell.codeFormatting.preset": "Stroustrup"
+    // PowerShell
+    "[powershell]": {
+        "editor.defaultFormatter": "ms-vscode.powershell"
+    },
+    "powershell.codeFormatting.preset": "Stroustrup",
+    "python.testing.pytestArgs": ["."]
 }
