@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 from collections.abc import Generator
 from enum import Enum
 from unittest.mock import Mock, patch
@@ -103,8 +104,13 @@ class DeployFixture:
     def _wait_for_indexer_round(self, round_target: int, max_attempts: int = 100) -> None:
         for _attempts in range(max_attempts):
             health = self.indexer_client.health()  # type: ignore[no-untyped-call]
+
             if health["round"] >= round_target:
                 break
+
+            # With v3 indexer a small delay is needed
+            # not to exhaust attempts before target round is reached
+            time.sleep(0.1)
 
 
 @pytest.fixture(scope="module")
