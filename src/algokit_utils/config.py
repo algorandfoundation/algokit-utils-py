@@ -25,7 +25,7 @@ class UpdatableConfig:
         self._debug: bool = False
         self._project_root: Path | None = None
         self._trace_all: bool = False
-        self._trace_buffer_size_mb: int = 512  # megabytes
+        self._trace_buffer_size_mb: int | float = 256  # megabytes
         self._max_search_depth: int = 10
         self._configure_project_root()
 
@@ -69,7 +69,7 @@ class UpdatableConfig:
         debug: bool,
         project_root: Path | None = None,
         trace_all: bool = False,
-        trace_buffer_size_mb: int = 512,
+        trace_buffer_size_mb: int | float = 256,
         max_search_depth: int = 10,
     ) -> None:
         """

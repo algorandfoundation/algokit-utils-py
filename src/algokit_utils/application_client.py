@@ -649,6 +649,9 @@ class ApplicationClient:
         if method:
             hints = self._method_hints(method)
             if hints and hints.read_only:
+                if config.debug and config.project_root and config.trace_all:
+                    simulate_and_persist_response(atc, config.project_root, self.algod_client)
+
                 return self._simulate_readonly_call(method, atc)
 
         return self._execute_atc_tr(atc)

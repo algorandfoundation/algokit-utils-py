@@ -1,6 +1,7 @@
 from algokit_utils._debug_utils import (
     PersistSourceMapInput,
     persist_sourcemaps,
+    simulate_and_persist_response,
 )
 from algokit_utils._ensure_funded import (
     EnsureBalanceParameters,
@@ -187,4 +188,5 @@ __all__ = [
     "opt_out",
     "persist_sourcemaps",
     "PersistSourceMapInput",
+    "simulate_and_persist_response",
 ]

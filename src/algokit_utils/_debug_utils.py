@@ -23,10 +23,12 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 ALGOKIT_DIR = ".algokit"
-DEBUGGER_DIR = "sourcemaps"
-SOURCES_FILE = "avm.sources"
+DEBUGGER_DIR = "sources"
+SOURCES_FILE = "sources.avm.json"
 TRACES_FILE_EXT = ".avm.trace"
 DEBUG_TRACES_DIR = "debug_traces"
+TEAL_FILE_EXT = ".teal"
+TEAL_SOURCEMAP_EXT = ".teal.map"
 
 
 @dataclass
@@ -83,15 +85,23 @@ def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry], projec
     for sourcemap in sourcemaps:
         if sourcemap not in sources.txn_group_sources:
             sources.txn_group_sources.append(sourcemap)
+        else:
+            index = sources.txn_group_sources.index(sourcemap)
+            sources.txn_group_sources[index] = sourcemap
 
     with sources_path.open("w") as f:
         json.dump(sources.to_dict(), f)
 
 
+def _write_to_file(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content)
+
+
 def _build_avm_sourcemap(
     teal_content: str, app_name: str, file_name: str, output_path: Path, client: "AlgodClient"
 ) -> AVMDebuggerSourceMapEntry:
-    file_name = f"{file_name}.teal" if not file_name.endswith(".teal") else file_name
+    file_name = f"{file_name}{TEAL_FILE_EXT}" if not file_name.endswith(TEAL_FILE_EXT) else file_name
     result = client.compile(deploy.strip_comments(teal_content), source_map=True)
     program_hash = base64.b64encode(
         checksum(base64.b64decode(result["result"]))  # type: ignore[no-untyped-call]
@@ -99,13 +109,13 @@ def _build_avm_sourcemap(
     source_map = SourceMap(result["sourcemap"]).__dict__
     source_map["sources"] = [file_name]
 
-    output_dir = output_path / ALGOKIT_DIR / DEBUGGER_DIR / app_name
-    source_map_output = output_dir / f'{file_name.replace(".teal", "")}.tok.map'
-    source_map_output.parent.mkdir(parents=True, exist_ok=True)
-    source_map_output.write_text(json.dumps(source_map))
-    (output_dir / file_name).write_text(teal_content)
+    output_dir_path = output_path / ALGOKIT_DIR / DEBUGGER_DIR / app_name
+    source_map_output_path = output_dir_path / f'{file_name.replace(TEAL_FILE_EXT, "")}{TEAL_SOURCEMAP_EXT}'
+    teal_output_path = output_dir_path / file_name
+    _write_to_file(source_map_output_path, json.dumps(source_map))
+    _write_to_file(teal_output_path, teal_content)
 
-    return AVMDebuggerSourceMapEntry(str(source_map_output), program_hash)
+    return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
 def persist_sourcemaps(
@@ -113,6 +123,15 @@ def persist_sourcemaps(
     project_root: Path,
     client: "AlgodClient",
 ) -> None:
+    """
+    Persist the sourcemaps for the given sources as AVM Debugger compliant artifacts.
+
+    Args:
+        sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
+        project_root (Path): The root directory of the project.
+        client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
+    """
+
     sourcemaps = [
         _build_avm_sourcemap(source.teal, source.app_name, source.file_name, project_root, client) for source in sources
     ]
@@ -121,6 +140,17 @@ def persist_sourcemaps(
 
 
 def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
+    """
+    Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
+
+    Args:
+        atc (AtomicTransactionComposer): An AtomicTransactionComposer object.
+        algod_client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
+
+    Returns:
+        SimulateAtomicTransactionResponse: The simulated response.
+    """
+
     unsigned_txn_groups = atc.build_group()
     empty_signer = EmptySigner()
     txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
@@ -135,26 +165,48 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
 
 
 def simulate_and_persist_response(
-    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient"
+    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: int | float = 256
 ) -> None:
+    """
+    Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
+    and persists the simulation response to an AVM Debugger compliant JSON file.
+
+    :param atc: An `AtomicTransactionComposer` object representing the atomic transactions to be
+    simulated and persisted.
+    :param project_root: A `Path` object representing the root directory of the project.
+    :param algod_client: An `AlgodClient` object representing the Algorand client.
+    :param buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256mb.
+    :return: None
+    """
+
     atc_to_simulate = atc.clone()
+    sp = algod_client.suggested_params()
+
     for txn_with_sign in atc_to_simulate.txn_list:
-        sp = algod_client.suggested_params()
         txn_with_sign.txn.first_valid_round = sp.first
         txn_with_sign.txn.last_valid_round = sp.last
         txn_with_sign.txn.genesis_hash = sp.gh
+
     response = simulate_response(atc_to_simulate, algod_client)
-    txn_types = [
-        txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"]
-        for txn_result in response.simulate_response["txn-groups"]
-    ]
+    txn_results = response.simulate_response["txn-groups"]
+
+    txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]
     txn_types_count = {txn_type: txn_types.count(txn_type) for txn_type in set(txn_types)}
     txn_types_str = "_".join([f"{count}#{txn_type}" for txn_type, count in txn_types_count.items()])
+
     last_round = response.simulate_response["last-round"]
-    output_file = (
-        project_root
-        / DEBUG_TRACES_DIR
-        / f'{datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")}_lr{last_round}_{txn_types_str}{TRACES_FILE_EXT}'
-    )
+    timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
+    output_file = project_root / DEBUG_TRACES_DIR / f"{timestamp}_lr{last_round}_{txn_types_str}{TRACES_FILE_EXT}"
+
     output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # cleanup old files if buffer size is exceeded
+    total_size = sum(f.stat().st_size for f in output_file.parent.glob("*") if f.is_file())
+    if total_size > buffer_size_mb * 1024 * 1024:  # 100 MB
+        sorted_files = sorted(output_file.parent.glob("*"), key=lambda p: p.stat().st_mtime)
+        while total_size > buffer_size_mb * 1024 * 1024:
+            oldest_file = sorted_files.pop(0)
+            total_size -= oldest_file.stat().st_size
+            oldest_file.unlink()
+
     output_file.write_text(json.dumps(response.simulate_response, indent=2))
