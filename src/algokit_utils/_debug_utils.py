@@ -23,12 +23,12 @@ if typing.TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 ALGOKIT_DIR = ".algokit"
-DEBUGGER_DIR = "sources"
+SOURCES_DIR = "sources"
 SOURCES_FILE = "sources.avm.json"
 TRACES_FILE_EXT = ".trace.avm.json"
 DEBUG_TRACES_DIR = "debug_traces"
 TEAL_FILE_EXT = ".teal"
-TEAL_SOURCEMAP_EXT = ".tok.map"
+TEAL_SOURCEMAP_EXT = ".teal.tok.map"
 
 
 @dataclass
@@ -70,7 +70,7 @@ class PersistSourceMapInput:
 
 
 def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
-    sources_path = project_root / ALGOKIT_DIR / DEBUGGER_DIR / SOURCES_FILE
+    sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
     if not sources_path.exists():
         return AVMDebuggerSourceMap(txn_group_sources=[])
 
@@ -79,7 +79,7 @@ def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
 
 
 def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry], project_root: Path) -> None:
-    sources_path = project_root / ALGOKIT_DIR / DEBUGGER_DIR / SOURCES_FILE
+    sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
     sources = _load_or_create_sources(sources_path)
 
     for sourcemap in sourcemaps:
@@ -109,7 +109,7 @@ def _build_avm_sourcemap(
     source_map = SourceMap(result["sourcemap"]).__dict__
     source_map["sources"] = [file_name]
 
-    output_dir_path = output_path / ALGOKIT_DIR / DEBUGGER_DIR / app_name
+    output_dir_path = output_path / ALGOKIT_DIR / SOURCES_DIR / app_name
     source_map_output_path = output_dir_path / f'{file_name.replace(TEAL_FILE_EXT, "")}{TEAL_SOURCEMAP_EXT}'
     teal_output_path = output_dir_path / file_name
     _write_to_file(source_map_output_path, json.dumps(source_map))
