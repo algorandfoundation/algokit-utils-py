@@ -104,8 +104,10 @@ int 1
     assert (sourcemap_file_path).exists()
     assert not (app_output_path / "approval.teal").exists()
     assert (app_output_path / "approval.teal.tok.map").exists()
+    assert json.loads((app_output_path / "approval.teal.tok.map").read_text())["sources"] == []
     assert not (app_output_path / "clear.teal").exists()
     assert (app_output_path / "clear.teal.tok.map").exists()
+    assert json.loads((app_output_path / "clear.teal.tok.map").read_text())["sources"] == []
 
     result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
     for item in result.txn_group_sources:

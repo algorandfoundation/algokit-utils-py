@@ -141,7 +141,7 @@ def _build_avm_sourcemap(
         checksum(base64.b64decode(result["result"]))  # type: ignore[no-untyped-call]
     ).decode()
     source_map = SourceMap(result["sourcemap"]).__dict__
-    source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"]
+    source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
 
     output_dir_path = output_path / ALGOKIT_DIR / SOURCES_DIR / app_name
     source_map_output_path = output_dir_path / f"{file_name}{TEAL_SOURCEMAP_EXT}"
