@@ -64,9 +64,22 @@ class AVMDebuggerSourceMap:
 
 @dataclass
 class PersistSourceMapInput:
-    file_name: str
     teal: str
     app_name: str
+    _file_name: str = field(repr=False)
+
+    def __init__(self, teal: str, app_name: str, file_name: str):
+        self.teal = teal
+        self.app_name = app_name
+        self.file_name = file_name
+
+    @property
+    def file_name(self) -> str:
+        return self._file_name
+
+    @file_name.setter
+    def file_name(self, value: str) -> None:
+        self._file_name = value.replace(".teal", "") if value.endswith(".teal") else value
 
 
 def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
@@ -79,15 +92,31 @@ def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
 
 
 def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry], project_root: Path) -> None:
+    """
+    This function updates or inserts debug sourcemaps. If path in the sourcemap during iteration leads to non
+    existing file, removes it. Otherwise upserts.
+
+    Args:
+        sourcemaps (list[AVMDebuggerSourceMapEntry]): A list of AVMDebuggerSourceMapEntry objects.
+        project_root (Path): The root directory of the project.
+
+    Returns:
+        None
+    """
+
     sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
     sources = _load_or_create_sources(sources_path)
 
     for sourcemap in sourcemaps:
-        if sourcemap not in sources.txn_group_sources:
-            sources.txn_group_sources.append(sourcemap)
-        else:
-            index = sources.txn_group_sources.index(sourcemap)
-            sources.txn_group_sources[index] = sourcemap
+        source_file_path = Path(sourcemap.location)
+        if not source_file_path.exists() and sourcemap in sources.txn_group_sources:
+            sources.txn_group_sources.remove(sourcemap)
+        elif source_file_path.exists():
+            if sourcemap not in sources.txn_group_sources:
+                sources.txn_group_sources.append(sourcemap)
+            else:
+                index = sources.txn_group_sources.index(sourcemap)
+                sources.txn_group_sources[index] = sourcemap
 
     with sources_path.open("w") as f:
         json.dump(sources.to_dict(), f)
@@ -99,9 +128,14 @@ def _write_to_file(path: Path, content: str) -> None:
 
 
 def _build_avm_sourcemap(
-    teal_content: str, app_name: str, file_name: str, output_path: Path, client: "AlgodClient"
+    *,
+    teal_content: str,
+    app_name: str,
+    file_name: str,
+    output_path: Path,
+    client: "AlgodClient",
+    with_sources: bool = True,
 ) -> AVMDebuggerSourceMapEntry:
-    file_name = f"{file_name}{TEAL_FILE_EXT}" if not file_name.endswith(TEAL_FILE_EXT) else file_name
     result = client.compile(deploy.strip_comments(teal_content), source_map=True)
     program_hash = base64.b64encode(
         checksum(base64.b64decode(result["result"]))  # type: ignore[no-untyped-call]
@@ -110,30 +144,39 @@ def _build_avm_sourcemap(
     source_map["sources"] = [file_name]
 
     output_dir_path = output_path / ALGOKIT_DIR / SOURCES_DIR / app_name
-    source_map_output_path = output_dir_path / f'{file_name.replace(TEAL_FILE_EXT, "")}{TEAL_SOURCEMAP_EXT}'
-    teal_output_path = output_dir_path / file_name
+    source_map_output_path = output_dir_path / f"{file_name}{TEAL_SOURCEMAP_EXT}"
+    teal_output_path = output_dir_path / f"{file_name}{TEAL_FILE_EXT}"
     _write_to_file(source_map_output_path, json.dumps(source_map))
-    _write_to_file(teal_output_path, teal_content)
+
+    if with_sources:
+        _write_to_file(teal_output_path, teal_content)
 
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
 def persist_sourcemaps(
-    sources: list[PersistSourceMapInput],
-    project_root: Path,
-    client: "AlgodClient",
+    *, sources: list[PersistSourceMapInput], project_root: Path, client: "AlgodClient", with_sources: bool = True
 ) -> None:
     """
     Persist the sourcemaps for the given sources as AVM Debugger compliant artifacts.
-
     Args:
         sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
         project_root (Path): The root directory of the project.
         client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
+        with_sources (bool): If True, it will dump teal source files along with sourcemaps.
+        Default is True, as needed by AVM debugger.
     """
 
     sourcemaps = [
-        _build_avm_sourcemap(source.teal, source.app_name, source.file_name, project_root, client) for source in sources
+        _build_avm_sourcemap(
+            teal_content=source.teal,
+            app_name=source.app_name,
+            file_name=source.file_name,
+            output_path=project_root,
+            client=client,
+            with_sources=with_sources,
+        )
+        for source in sources
     ]
 
     _upsert_debug_sourcemaps(sourcemaps, project_root)

@@ -77,6 +77,42 @@ int 1
         assert item.location != "dummy"
 
 
+def test_build_teal_sourcemaps_without_sources(
+    algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    cwd = tmp_path_factory.mktemp("cwd")
+
+    approval = """
+#pragma version 6
+int 1
+"""
+    clear = """
+#pragma version 6
+int 1
+"""
+    sources = [
+        PersistSourceMapInput(teal=approval, app_name="cool_app", file_name="approval.teal"),
+        PersistSourceMapInput(teal=clear, app_name="cool_app", file_name="clear"),
+    ]
+
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client, with_sources=False)
+
+    root_path = cwd / ".algokit" / "sources"
+    sourcemap_file_path = root_path / "sources.avm.json"
+    app_output_path = root_path / "cool_app"
+
+    assert (sourcemap_file_path).exists()
+    assert not (app_output_path / "approval.teal").exists()
+    assert (app_output_path / "approval.teal.tok.map").exists()
+    assert not (app_output_path / "clear.teal").exists()
+    assert (app_output_path / "clear.teal.tok.map").exists()
+
+    result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
+    for item in result.txn_group_sources:
+        item.location = "dummy"
+    check_output_stability(json.dumps(result.to_dict()))
+
+
 def test_simulate_and_persist_response_via_app_call(
     tmp_path_factory: pytest.TempPathFactory,
     client_fixture: ApplicationClient,
