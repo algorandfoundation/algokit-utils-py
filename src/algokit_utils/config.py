@@ -63,13 +63,13 @@ class UpdatableConfig:
         finally:
             self._debug = original_debug
 
-    def configure(
+    def configure(  # noqa: PLR0913
         self,
         *,
         debug: bool,
         project_root: Path | None = None,
         trace_all: bool = False,
-        trace_buffer_size_mb: int | float = 256,
+        trace_buffer_size_mb: float = 256,
         max_search_depth: int = 10,
     ) -> None:
         """
@@ -85,7 +85,7 @@ class UpdatableConfig:
             project_root (Path | None, optional): The path to the project root directory. Defaults to None.
             trace_all (bool, optional): Indicates whether to trace all operations. Defaults to False. Which implies that
                 only the operations that are failed will be traced by default.
-            trace_buffer_size_mb (int, optional): The size of the trace buffer in megabytes. Defaults to 512mb.
+            trace_buffer_size_mb (float, optional): The size of the trace buffer in megabytes. Defaults to 512mb.
             max_search_depth (int, optional): The maximum depth to search for a specific file. Defaults to 10.
 
         Returns:

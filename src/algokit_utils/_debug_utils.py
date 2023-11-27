@@ -127,7 +127,7 @@ def _write_to_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def _build_avm_sourcemap(
+def _build_avm_sourcemap(  # noqa: PLR0913
     *,
     teal_content: str,
     app_name: str,
@@ -208,7 +208,7 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
 
 
 def simulate_and_persist_response(
-    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: int | float = 256
+    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: float = 256
 ) -> None:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
@@ -221,7 +221,6 @@ def simulate_and_persist_response(
     :param buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256mb.
     :return: None
     """
-
     atc_to_simulate = atc.clone()
     sp = algod_client.suggested_params()
 
