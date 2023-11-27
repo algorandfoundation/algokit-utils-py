@@ -30,7 +30,7 @@ fake_key = base64.b64encode(b"a" * 64).decode("utf8")
 @pytest.mark.parametrize("override_signer", [CustomSigner(), AccountTransactionSigner(fake_key), None])
 @pytest.mark.parametrize("default_sender", ["default_sender", None])
 @pytest.mark.parametrize("default_signer", [CustomSigner(), AccountTransactionSigner(fake_key), None])
-def test_resolve_signer_sender(
+def test_resolve_signer_sender(  # noqa: PLR0913
     *,
     algod_client: "AlgodClient",
     app_spec: ApplicationSpecification,

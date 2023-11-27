@@ -52,7 +52,7 @@ class DeployFixture:
         self.creator = creator
         self.app_name = get_unique_name()
 
-    def deploy(
+    def deploy(  # noqa: PLR0913
         self,
         app_spec: ApplicationSpecification,
         *,
@@ -98,8 +98,7 @@ class DeployFixture:
         logs = logs.replace(dispenser.address, "{dispenser_account}")
         for index, app_id in enumerate(self.app_ids):
             logs = logs.replace(f"app id {app_id}", f"app id {{app{index}}}")
-        logs = re.sub(r"app id \d+", r"{appN_failed}", logs)
-        return logs
+        return re.sub(r"app id \d+", r"{appN_failed}", logs)
 
     def _wait_for_indexer_round(self, round_target: int, max_attempts: int = 100) -> None:
         for _attempts in range(max_attempts):
@@ -230,15 +229,11 @@ def test_deploy_app_with_existing_permanent_app_on_update_equals_replace_app_fai
     app_v1 = deploy_fixture.deploy(v1, version="1.0", allow_update=False, allow_delete=False)
     assert app_v1.app_id
 
-    apps_before = deploy_fixture.indexer_client.lookup_account_application_by_creator(
-        deploy_fixture.creator.address
-    )  # type: ignore[no-untyped-call]
+    apps_before = deploy_fixture.indexer_client.lookup_account_application_by_creator(deploy_fixture.creator.address)  # type: ignore[no-untyped-call]
 
     with pytest.raises(LogicError) as error:
         deploy_fixture.deploy(v2, version="3.0", allow_update=False, allow_delete=False, on_update=OnUpdate.ReplaceApp)
-    apps_after = deploy_fixture.indexer_client.lookup_account_application_by_creator(
-        deploy_fixture.creator.address
-    )  # type: ignore[no-untyped-call]
+    apps_after = deploy_fixture.indexer_client.lookup_account_application_by_creator(deploy_fixture.creator.address)  # type: ignore[no-untyped-call]
 
     # ensure no other apps were created
     assert len(apps_before["applications"]) == len(apps_after["applications"])

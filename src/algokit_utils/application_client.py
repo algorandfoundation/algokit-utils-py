@@ -97,7 +97,7 @@ class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
     @overload
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
@@ -111,7 +111,7 @@ class ApplicationClient:
         ...
 
     @overload
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
@@ -127,7 +127,7 @@ class ApplicationClient:
     ):
         ...
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
@@ -251,7 +251,7 @@ class ApplicationClient:
         )
         return new_client
 
-    def _prepare(
+    def _prepare(  # noqa: PLR0913
         self,
         target: "ApplicationClient",
         *,
@@ -266,7 +266,7 @@ class ApplicationClient:
         )
         target.template_values = self.template_values | (template_values or {})
 
-    def deploy(
+    def deploy(  # noqa: PLR0913
         self,
         version: str | None = None,
         *,
@@ -978,7 +978,7 @@ class ApplicationClient:
         source_map = json.loads(source_map_json)
         self._approval_source_map = SourceMap(source_map)
 
-    def add_method_call(
+    def add_method_call(  # noqa: PLR0913
         self,
         atc: AtomicTransactionComposer,
         abi_method: ABIMethod | bool | None = None,

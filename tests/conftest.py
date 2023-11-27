@@ -64,6 +64,7 @@ def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        check=False,
     )
     # first fail if there are any changes to already committed files, you must manually add them in that case
     assert git_diff.returncode == 0, git_diff.stdout
