@@ -202,7 +202,7 @@ def simulate_and_persist_response(
 
     # cleanup old files if buffer size is exceeded
     total_size = sum(f.stat().st_size for f in output_file.parent.glob("*") if f.is_file())
-    if total_size > buffer_size_mb * 1024 * 1024:  # 100 MB
+    if total_size > buffer_size_mb * 1024 * 1024:
         sorted_files = sorted(output_file.parent.glob("*"), key=lambda p: p.stat().st_mtime)
         while total_size > buffer_size_mb * 1024 * 1024:
             oldest_file = sorted_files.pop(0)
