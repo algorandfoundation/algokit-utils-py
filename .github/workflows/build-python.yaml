@@ -6,8 +6,8 @@ jobs:
   build-python:
     strategy:
       matrix:
-        os: ["ubuntu-latest", "windows-latest"]
-        python: ["3.10"]
+        os: ["ubuntu-latest"]
+        python: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout source code
