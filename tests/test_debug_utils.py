@@ -40,11 +40,11 @@ def test_build_teal_sourcemaps(algod_client: "AlgodClient", tmp_path_factory: py
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
-#pragma version 6
+#pragma version 9
 int 1
 """
     clear = """
-#pragma version 6
+#pragma version 9
 int 1
 """
     sources = [
@@ -83,11 +83,11 @@ def test_build_teal_sourcemaps_without_sources(
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
-#pragma version 6
+#pragma version 9
 int 1
 """
     clear = """
-#pragma version 6
+#pragma version 9
 int 1
 """
     sources = [

@@ -363,6 +363,7 @@ class ApplicationClient:
                 ],
                 project_root=config.project_root,
                 client=self.algod_client,
+                with_sources=True,
             )
 
         deployer = au_deploy.Deployer(
@@ -900,6 +901,7 @@ class ApplicationClient:
                 ],
                 project_root=config.project_root,
                 client=self.algod_client,
+                with_sources=True,
             )
 
         return self._approval_program, self._clear_program
