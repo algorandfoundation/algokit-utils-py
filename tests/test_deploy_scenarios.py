@@ -34,6 +34,7 @@ def mock_config(tmp_path_factory: pytest.TempPathFactory) -> Generator[Mock, Non
         cwd = tmp_path_factory.mktemp("cwd")
         mock_config.project_root = cwd
         mock_config.trace_all = True
+        mock_config.trace_buffer_size_mb = 256
         yield mock_config
 
 

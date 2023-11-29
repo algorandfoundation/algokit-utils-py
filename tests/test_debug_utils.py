@@ -123,6 +123,7 @@ def test_simulate_and_persist_response_via_app_call(
     mock_config = mocker.patch("algokit_utils.application_client.config")
     mock_config.debug = True
     mock_config.trace_all = True
+    mock_config.trace_buffer_size_mb = 256
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
 
