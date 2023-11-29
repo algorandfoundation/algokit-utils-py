@@ -651,7 +651,9 @@ class ApplicationClient:
             hints = self._method_hints(method)
             if hints and hints.read_only:
                 if config.debug and config.project_root and config.trace_all:
-                    simulate_and_persist_response(atc, config.project_root, self.algod_client)
+                    simulate_and_persist_response(
+                        atc, config.project_root, self.algod_client, config.trace_buffer_size_mb
+                    )
 
                 return self._simulate_readonly_call(method, atc)
 
@@ -1303,12 +1305,21 @@ def execute_atc_with_logic_error(
     """
     try:
         if config.debug and config.project_root and config.trace_all:
-            simulate_and_persist_response(atc, config.project_root, algod_client)
+            simulate_and_persist_response(atc, config.project_root, algod_client, config.trace_buffer_size_mb)
 
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
         if config.debug:
-            simulate = simulate_response(atc, algod_client)
+            simulate = None
+            if config.project_root and not config.trace_all:
+                # if trace_all is enabled, we already have the traces executed above
+                # hence we only need to simulate if trace_all is disabled and
+                # project_root is set
+                simulate = simulate_and_persist_response(
+                    atc, config.project_root, algod_client, config.trace_buffer_size_mb
+                )
+            else:
+                simulate = simulate_response(atc, algod_client)
             traces = _create_simulate_traces(simulate)
         else:
             traces = None

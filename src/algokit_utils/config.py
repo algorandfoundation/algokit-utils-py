@@ -54,6 +54,11 @@ class UpdatableConfig:
         """Indicates whether to store simulation traces for all operations."""
         return self._trace_all
 
+    @property
+    def trace_buffer_size_mb(self) -> int | float:
+        """Returns the size of the trace buffer in megabytes."""
+        return self._trace_buffer_size_mb
+
     def with_debug(self, func: Callable[[], str | None]) -> None:
         """Executes a function with debug mode temporarily enabled."""
         original_debug = self._debug

@@ -209,7 +209,7 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
 
 def simulate_and_persist_response(
     atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: float = 256
-) -> None:
+) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
     and persists the simulation response to an AVM Debugger compliant JSON file.
@@ -220,6 +220,9 @@ def simulate_and_persist_response(
     :param algod_client: An `AlgodClient` object representing the Algorand client.
     :param buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256mb.
     :return: None
+
+    Returns:
+        SimulateAtomicTransactionResponse: The simulated response after persisting it for AVM Debugger consumption.
     """
     atc_to_simulate = atc.clone()
     sp = algod_client.suggested_params()
@@ -252,3 +255,4 @@ def simulate_and_persist_response(
             oldest_file.unlink()
 
     output_file.write_text(json.dumps(response.simulate_response, indent=2))
+    return response
