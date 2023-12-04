@@ -12,10 +12,9 @@ from algosdk.atomic_transaction_composer import (
     SimulateAtomicTransactionResponse,
 )
 from algosdk.encoding import checksum
-from algosdk.source_map import SourceMap
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
-from algokit_utils import deploy
+from algokit_utils.common import Program
 
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -64,22 +63,40 @@ class AVMDebuggerSourceMap:
 
 @dataclass
 class PersistSourceMapInput:
-    teal: str
-    app_name: str
-    _file_name: str = field(repr=False)
-
-    def __init__(self, teal: str, app_name: str, file_name: str):
-        self.teal = teal
+    def __init__(
+        self, app_name: str, file_name: str, raw_teal: str | None = None, compiled_teal: Program | None = None
+    ):
+        self.compiled_teal = compiled_teal
         self.app_name = app_name
-        self.file_name = file_name
+        self._raw_teal = raw_teal
+        self._file_name = self.strip_teal_extension(file_name)
+
+    @classmethod
+    def from_raw_teal(cls, raw_teal: str, app_name: str, file_name: str) -> "PersistSourceMapInput":
+        return cls(app_name, file_name, raw_teal=raw_teal)
+
+    @classmethod
+    def from_compiled_teal(cls, compiled_teal: Program, app_name: str, file_name: str) -> "PersistSourceMapInput":
+        return cls(app_name, file_name, compiled_teal=compiled_teal)
+
+    @property
+    def raw_teal(self) -> str:
+        if self._raw_teal:
+            return self._raw_teal
+        elif self.compiled_teal:
+            return self.compiled_teal.teal
+        else:
+            raise ValueError("No teal content found")
 
     @property
     def file_name(self) -> str:
         return self._file_name
 
-    @file_name.setter
-    def file_name(self, value: str) -> None:
-        self._file_name = value.replace(".teal", "") if value.endswith(".teal") else value
+    @staticmethod
+    def strip_teal_extension(file_name: str) -> str:
+        if file_name.endswith(".teal"):
+            return file_name[:-5]
+        return file_name
 
 
 def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
@@ -129,18 +146,22 @@ def _write_to_file(path: Path, content: str) -> None:
 
 def _build_avm_sourcemap(  # noqa: PLR0913
     *,
-    teal_content: str,
     app_name: str,
     file_name: str,
     output_path: Path,
     client: "AlgodClient",
+    raw_teal: str | None = None,
+    compiled_teal: Program | None = None,
     with_sources: bool = True,
 ) -> AVMDebuggerSourceMapEntry:
-    result = client.compile(deploy.strip_comments(teal_content), source_map=True)
+    if not raw_teal and not compiled_teal:
+        raise ValueError("Either raw teal or compiled teal must be provided")
+
+    result = compiled_teal if compiled_teal else Program(str(raw_teal), client=client)
     program_hash = base64.b64encode(
-        checksum(base64.b64decode(result["result"]))  # type: ignore[no-untyped-call]
+        checksum(result.raw_binary)  # type: ignore[no-untyped-call]
     ).decode()
-    source_map = SourceMap(result["sourcemap"]).__dict__
+    source_map = result.source_map.__dict__
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
 
     output_dir_path = output_path / ALGOKIT_DIR / SOURCES_DIR / app_name
@@ -149,7 +170,7 @@ def _build_avm_sourcemap(  # noqa: PLR0913
     _write_to_file(source_map_output_path, json.dumps(source_map))
 
     if with_sources:
-        _write_to_file(teal_output_path, teal_content)
+        _write_to_file(teal_output_path, result.teal)
 
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
@@ -169,7 +190,8 @@ def persist_sourcemaps(
 
     sourcemaps = [
         _build_avm_sourcemap(
-            teal_content=source.teal,
+            raw_teal=source.raw_teal,
+            compiled_teal=source.compiled_teal,
             app_name=source.app_name,
             file_name=source.file_name,
             output_path=project_root,

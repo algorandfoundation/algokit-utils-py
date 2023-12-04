@@ -175,8 +175,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`Program <algokit_utils.application_client.Program>`
-  - ```{autodoc2-docstring} algokit_utils.application_client.Program
+* - {py:obj}`Program <algokit_utils.common.Program>`
+  - ```{autodoc2-docstring} algokit_utils.common.Program
     :parser: myst
     :summary:
     ```
@@ -333,8 +333,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`persist_sourcemaps <algokit_utils._debug_utils.persist_sourcemaps>`
-  - ```{autodoc2-docstring} algokit_utils._debug_utils.persist_sourcemaps
+* - {py:obj}`persist_sourcemaps <algokit_utils._debugging.persist_sourcemaps>`
+  - ```{autodoc2-docstring} algokit_utils._debugging.persist_sourcemaps
     :parser: myst
     :summary:
     ```
@@ -343,8 +343,8 @@ orphan: true
     :parser: myst
     :summary:
     ```
-* - {py:obj}`simulate_and_persist_response <algokit_utils._debug_utils.simulate_and_persist_response>`
-  - ```{autodoc2-docstring} algokit_utils._debug_utils.simulate_and_persist_response
+* - {py:obj}`simulate_and_persist_response <algokit_utils._debugging.simulate_and_persist_response>`
+  - ```{autodoc2-docstring} algokit_utils._debugging.simulate_and_persist_response
     :parser: myst
     :summary:
     ```
@@ -1527,16 +1527,16 @@ Bases: {py:obj}`enum.Enum`
 `````
 
 ````{py:class} Program(program: str, client: algosdk.v2client.algod.AlgodClient)
-:canonical: algokit_utils.application_client.Program
+:canonical: algokit_utils.common.Program
 
-```{autodoc2-docstring} algokit_utils.application_client.Program
+```{autodoc2-docstring} algokit_utils.common.Program
 :parser: myst
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} algokit_utils.application_client.Program.__init__
+```{autodoc2-docstring} algokit_utils.common.Program.__init__
 :parser: myst
 ```
 
@@ -2136,10 +2136,10 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 ```
 ````
 
-````{py:function} persist_sourcemaps(sources: list[algokit_utils._debug_utils.PersistSourceMapInput], project_root: pathlib.Path, client: algosdk.v2client.algod.AlgodClient) -> None
-:canonical: algokit_utils._debug_utils.persist_sourcemaps
+````{py:function} persist_sourcemaps(*, sources: list[algokit_utils._debugging.PersistSourceMapInput], project_root: pathlib.Path, client: algosdk.v2client.algod.AlgodClient, with_sources: bool = True) -> None
+:canonical: algokit_utils._debugging.persist_sourcemaps
 
-```{autodoc2-docstring} algokit_utils._debug_utils.persist_sourcemaps
+```{autodoc2-docstring} algokit_utils._debugging.persist_sourcemaps
 :parser: myst
 ```
 ````
@@ -2152,10 +2152,10 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 ```
 ````
 
-````{py:function} simulate_and_persist_response(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, project_root: pathlib.Path, algod_client: algosdk.v2client.algod.AlgodClient, buffer_size_mb: int | float = 256) -> None
-:canonical: algokit_utils._debug_utils.simulate_and_persist_response
+````{py:function} simulate_and_persist_response(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, project_root: pathlib.Path, algod_client: algosdk.v2client.algod.AlgodClient, buffer_size_mb: float = 256) -> algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse
+:canonical: algokit_utils._debugging.simulate_and_persist_response
 
-```{autodoc2-docstring} algokit_utils._debug_utils.simulate_and_persist_response
+```{autodoc2-docstring} algokit_utils._debugging.simulate_and_persist_response
 :parser: myst
 ```
 ````

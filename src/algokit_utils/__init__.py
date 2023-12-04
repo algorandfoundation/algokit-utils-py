@@ -1,13 +1,5 @@
-from algokit_utils._debug_utils import (
-    PersistSourceMapInput,
-    persist_sourcemaps,
-    simulate_and_persist_response,
-)
-from algokit_utils._ensure_funded import (
-    EnsureBalanceParameters,
-    EnsureFundedResponse,
-    ensure_funded,
-)
+from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps, simulate_and_persist_response
+from algokit_utils._ensure_funded import EnsureBalanceParameters, EnsureFundedResponse, ensure_funded
 from algokit_utils._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
 from algokit_utils.account import (
     create_kmd_wallet_account,
@@ -20,7 +12,6 @@ from algokit_utils.account import (
 )
 from algokit_utils.application_client import (
     ApplicationClient,
-    Program,
     execute_atc_with_logic_error,
     get_next_version,
     get_sender_from_signer,
@@ -37,6 +28,7 @@ from algokit_utils.application_specification import (
     OnCompleteActionName,
 )
 from algokit_utils.asset import opt_in, opt_out
+from algokit_utils.common import Program
 from algokit_utils.deploy import (
     DELETABLE_TEMPLATE_NAME,
     NOTE_PREFIX,

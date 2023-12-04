@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
-from algokit_utils._debug_utils import (
+from algokit_utils._debugging import (
     AVMDebuggerSourceMap,
     PersistSourceMapInput,
     persist_sourcemaps,
@@ -12,6 +12,7 @@ from algokit_utils._debug_utils import (
 from algokit_utils.account import get_account
 from algokit_utils.application_client import ApplicationClient
 from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils.common import Program
 from algokit_utils.models import Account
 from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
@@ -48,8 +49,8 @@ int 1
 int 1
 """
     sources = [
-        PersistSourceMapInput(teal=approval, app_name="cool_app", file_name="approval.teal"),
-        PersistSourceMapInput(teal=clear, app_name="cool_app", file_name="clear"),
+        PersistSourceMapInput(raw_teal=approval, app_name="cool_app", file_name="approval.teal"),
+        PersistSourceMapInput(raw_teal=clear, app_name="cool_app", file_name="clear"),
     ]
 
     persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client)
@@ -90,9 +91,11 @@ int 1
 #pragma version 9
 int 1
 """
+    compiled_approval = Program(approval, algod_client)
+    compiled_clear = Program(clear, algod_client)
     sources = [
-        PersistSourceMapInput(teal=approval, app_name="cool_app", file_name="approval.teal"),
-        PersistSourceMapInput(teal=clear, app_name="cool_app", file_name="clear"),
+        PersistSourceMapInput(compiled_teal=compiled_approval, app_name="cool_app", file_name="approval.teal"),
+        PersistSourceMapInput(compiled_teal=compiled_clear, app_name="cool_app", file_name="clear"),
     ]
 
     persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client, with_sources=False)

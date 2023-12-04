@@ -30,12 +30,13 @@ from algosdk.source_map import SourceMap
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
-from algokit_utils._debug_utils import (
+from algokit_utils._debugging import (
     PersistSourceMapInput,
     persist_sourcemaps,
     simulate_and_persist_response,
     simulate_response,
 )
+from algokit_utils.common import Program
 from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
@@ -65,7 +66,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "ApplicationClient",
-    "Program",
     "execute_atc_with_logic_error",
     "get_next_version",
     "get_sender_from_signer",
@@ -74,21 +74,6 @@ __all__ = [
 
 """Alias for {py:class}`pyteal.ABIReturnSubroutine`, {py:class}`algosdk.abi.method.Method` or a {py:class}`str`
 representing an ABI method name or signature"""
-
-
-class Program:
-    """A compiled TEAL program"""
-
-    def __init__(self, program: str, client: "AlgodClient"):
-        """
-        Fully compile the program source to binary and generate a
-        source map for matching pc to line number
-        """
-        self.teal = program
-        result: dict = client.compile(au_deploy.strip_comments(self.teal), source_map=True)
-        self.raw_binary = base64.b64decode(result["result"])
-        self.binary_hash: str = result["hash"]
-        self.source_map = SourceMap(result["sourcemap"])
 
 
 def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
@@ -355,10 +340,10 @@ class ApplicationClient:
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
-                        teal=self._approval_program.teal, app_name=self.app_name, file_name="approval.teal"
+                        compiled_teal=self._approval_program, app_name=self.app_name, file_name="approval.teal"
                     ),
                     PersistSourceMapInput(
-                        teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
+                        compiled_teal=self._clear_program, app_name=self.app_name, file_name="clear.teal"
                     ),
                 ],
                 project_root=config.project_root,
@@ -895,10 +880,10 @@ class ApplicationClient:
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
-                        teal=self._approval_program.teal, app_name=self.app_name, file_name="approval.teal"
+                        compiled_teal=self._approval_program, app_name=self.app_name, file_name="approval.teal"
                     ),
                     PersistSourceMapInput(
-                        teal=self._clear_program.teal, app_name=self.app_name, file_name="clear.teal"
+                        compiled_teal=self._clear_program, app_name=self.app_name, file_name="clear.teal"
                     ),
                 ],
                 project_root=config.project_root,
