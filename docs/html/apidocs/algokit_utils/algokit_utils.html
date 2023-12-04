@@ -385,20 +385,20 @@ The account also recovers the Minimum Balance Requirement for the asset (100,000
 The <code class="docutils literal notranslate"><span class="pre">optOut</span></code> function manages the opt-out process, permitting the account to discontinue holding a group of assets.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.persist_sourcemaps" title="algokit_utils._debugging.persist_sourcemaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">persist_sourcemaps</span></code></a></p></td>
-<td><p>Persist the sourcemaps for the given sources as AVM Debugger compliant artifacts.
+<td><p>Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
 Args:
 sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
 project_root (Path): The root directory of the project.
 client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
 with_sources (bool): If True, it will dump teal source files along with sourcemaps.
-Default is True, as needed by AVM debugger.</p></td>
+Default is True, as needed by an AlgoKit AVM debugger.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.replace_template_variables" title="algokit_utils.deploy.replace_template_variables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_template_variables</span></code></a></p></td>
 <td><p>Replaces <code class="docutils literal notranslate"><span class="pre">TMPL_*</span></code> variables in <code class="docutils literal notranslate"><span class="pre">program</span></code> with <code class="docutils literal notranslate"><span class="pre">template_values</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.simulate_and_persist_response" title="algokit_utils._debugging.simulate_and_persist_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_and_persist_response</span></code></a></p></td>
 <td><p>Simulates the atomic transactions using the provided <code class="docutils literal notranslate"><span class="pre">AtomicTransactionComposer</span></code> object and <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code> object,
-and persists the simulation response to an AVM Debugger compliant JSON file.</p></td>
+and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.transfer" title="algokit_utils._transfer.transfer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transfer</span></code></a></p></td>
 <td><p>Transfer µALGOs between accounts</p></td>
@@ -1703,13 +1703,13 @@ the executed transactions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="algokit_utils.persist_sourcemaps">
 <span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">persist_sourcemaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">algokit_utils._debugging.PersistSourceMapInput</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_sources</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#algokit_utils.persist_sourcemaps" title="Permalink to this definition"></a></dt>
-<dd><p>Persist the sourcemaps for the given sources as AVM Debugger compliant artifacts.
+<dd><p>Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
 Args:
 sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
 project_root (Path): The root directory of the project.
 client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
 with_sources (bool): If True, it will dump teal source files along with sourcemaps.
-Default is True, as needed by AVM debugger.</p>
+Default is True, as needed by an AlgoKit AVM debugger.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1726,7 +1726,7 @@ Default is True, as needed by AVM debugger.</p>
 <dt class="sig sig-object py" id="algokit_utils.simulate_and_persist_response">
 <span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">simulate_and_persist_response</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.AtomicTransactionComposer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">algod_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffer_size_mb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">256</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse</span></a></span></span><a class="headerlink" href="#algokit_utils.simulate_and_persist_response" title="Permalink to this definition"></a></dt>
 <dd><p>Simulates the atomic transactions using the provided <code class="docutils literal notranslate"><span class="pre">AtomicTransactionComposer</span></code> object and <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code> object,
-and persists the simulation response to an AVM Debugger compliant JSON file.</p>
+and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.</p>
 <dl class="myst field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1742,7 +1742,8 @@ simulated and persisted.</p></li>
 </dd>
 </dl>
 <p>Returns:
-SimulateAtomicTransactionResponse: The simulated response after persisting it for AVM Debugger consumption.</p>
+SimulateAtomicTransactionResponse: The simulated response after persisting it
+for AlgoKit AVM Debugger consumption.</p>
 </dd></dl>
 
 <dl class="py function">
