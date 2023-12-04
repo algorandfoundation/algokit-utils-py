@@ -179,13 +179,13 @@ def persist_sourcemaps(
     *, sources: list[PersistSourceMapInput], project_root: Path, client: "AlgodClient", with_sources: bool = True
 ) -> None:
     """
-    Persist the sourcemaps for the given sources as AVM Debugger compliant artifacts.
+    Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
     Args:
         sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
         project_root (Path): The root directory of the project.
         client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
         with_sources (bool): If True, it will dump teal source files along with sourcemaps.
-        Default is True, as needed by AVM debugger.
+        Default is True, as needed by an AlgoKit AVM debugger.
     """
 
     sourcemaps = [
@@ -234,7 +234,7 @@ def simulate_and_persist_response(
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
-    and persists the simulation response to an AVM Debugger compliant JSON file.
+    and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
 
     :param atc: An `AtomicTransactionComposer` object representing the atomic transactions to be
     simulated and persisted.
@@ -244,7 +244,8 @@ def simulate_and_persist_response(
     :return: None
 
     Returns:
-        SimulateAtomicTransactionResponse: The simulated response after persisting it for AVM Debugger consumption.
+        SimulateAtomicTransactionResponse: The simulated response after persisting it
+        for AlgoKit AVM Debugger consumption.
     """
     atc_to_simulate = atc.clone()
     sp = algod_client.suggested_params()
