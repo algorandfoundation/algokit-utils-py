@@ -103,6 +103,20 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">persist_sourcemaps</span></code>: This method persists the sourcemaps for the given sources as AVM Debugger compliant artifacts. It takes a list of <code class="docutils literal notranslate"><span class="pre">PersistSourceMapInput</span></code> objects, a <code class="docutils literal notranslate"><span class="pre">Path</span></code> object representing the root directory of the project, an <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code> object for interacting with the Algorand blockchain, and a boolean indicating whether to dump teal source files along with sourcemaps.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">simulate_and_persist_response</span></code>: This method simulates the atomic transactions using the provided <code class="docutils literal notranslate"><span class="pre">AtomicTransactionComposer</span></code> object and <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code> object, and persists the simulation response to an AVM Debugger compliant JSON file. It takes an <code class="docutils literal notranslate"><span class="pre">AtomicTransactionComposer</span></code> object representing the atomic transactions to be simulated and persisted, a <code class="docutils literal notranslate"><span class="pre">Path</span></code> object representing the root directory of the project, an <code class="docutils literal notranslate"><span class="pre">AlgodClient</span></code> object representing the Algorand client, and a float representing the size of the trace buffer in megabytes.</p></li>
 </ul>
+<section id="trace-filename-format">
+<h3>Trace filename format<a class="headerlink" href="#trace-filename-format" title="Permalink to this heading"></a></h3>
+<p>The trace files are named in a specific format to provide useful information about the transactions they contain. The format is as follows:</p>
+<div class="highlight-ts notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span><span class="si">${</span><span class="nx">timestamp</span><span class="si">}</span><span class="sb">_lr</span><span class="si">${</span><span class="nx">last_round</span><span class="si">}</span><span class="sb">_</span><span class="si">${</span><span class="nx">transaction_types</span><span class="si">}</span><span class="sb">.trace.avm.json`</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: The time when the trace file was created, in ISO 8601 format, with colons and periods removed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">last_round</span></code>: The last round when the simulation was performed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transaction_types</span></code>: A string representing the types and counts of transactions in the atomic group. Each transaction type is represented as <code class="docutils literal notranslate"><span class="pre">${count}#${type}</span></code>, and different transaction types are separated by underscores.</p></li>
+</ul>
+<p>For example, a trace file might be named <code class="docutils literal notranslate"><span class="pre">20220301T123456Z_lr1000_2#pay_1#axfer.trace.avm.json</span></code>, indicating that the trace file was created at <code class="docutils literal notranslate"><span class="pre">2022-03-01T12:34:56Z</span></code>, the last round was <code class="docutils literal notranslate"><span class="pre">1000</span></code>, and the atomic group contained 2 payment transactions and 1 asset transfer transaction.</p>
+</section>
 </section>
 </section>
 
