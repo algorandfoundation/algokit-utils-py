@@ -99,8 +99,7 @@ class PersistSourceMapInput:
         return file_name
 
 
-def _load_or_create_sources(project_root: Path) -> AVMDebuggerSourceMap:
-    sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
+def _load_or_create_sources(sources_path: Path) -> AVMDebuggerSourceMap:
     if not sources_path.exists():
         return AVMDebuggerSourceMap(txn_group_sources=[])
 
