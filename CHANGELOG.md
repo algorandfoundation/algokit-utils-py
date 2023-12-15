@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.2.0 (2023-12-15)
+
+### Feature
+
+* Debugger related helpers and utils ([#61](https://github.com/algorandfoundation/algokit-utils-py/issues/61)) ([`9e856e4`](https://github.com/algorandfoundation/algokit-utils-py/commit/9e856e456cdc91d5f91d49f45220fcccc9be7553))
+
 ## v2.1.2 (2023-11-22)
 
 
