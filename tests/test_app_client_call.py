@@ -42,6 +42,7 @@ def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecificati
 def mock_config() -> Generator[Mock, None, None]:
     with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
         mock_config.debug = True
+        mock_config.project_root = None
         yield mock_config
 
 

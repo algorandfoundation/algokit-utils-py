@@ -28,9 +28,13 @@ logger = logging.getLogger(__name__)
 # This fixture is automatically applied to all application deployment tests.
 # If you need to run a test without debug mode, you can reference this mock within the test and disable it explicitly.
 @pytest.fixture(autouse=True)
-def mock_config() -> Generator[Mock, None, None]:
+def mock_config(tmp_path_factory: pytest.TempPathFactory) -> Generator[Mock, None, None]:
     with patch("algokit_utils.application_client.config", new_callable=Mock) as mock_config:
         mock_config.debug = True
+        cwd = tmp_path_factory.mktemp("cwd")
+        mock_config.project_root = cwd
+        mock_config.trace_all = True
+        mock_config.trace_buffer_size_mb = 256
         yield mock_config
 
 

@@ -18,7 +18,6 @@ from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
     AtomicTransactionComposer,
     AtomicTransactionResponse,
-    EmptySigner,
     LogicSigTransactionSigner,
     MultisigTransactionSigner,
     SimulateAtomicTransactionResponse,
@@ -28,10 +27,16 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
-from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
 import algokit_utils.application_specification as au_spec
 import algokit_utils.deploy as au_deploy
+from algokit_utils._debugging import (
+    PersistSourceMapInput,
+    persist_sourcemaps,
+    simulate_and_persist_response,
+    simulate_response,
+)
+from algokit_utils.common import Program
 from algokit_utils.config import config
 from algokit_utils.logic_error import LogicError, parse_logic_error
 from algokit_utils.models import (
@@ -61,7 +66,6 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     "ApplicationClient",
-    "Program",
     "execute_atc_with_logic_error",
     "get_next_version",
     "get_sender_from_signer",
@@ -70,21 +74,6 @@ __all__ = [
 
 """Alias for {py:class}`pyteal.ABIReturnSubroutine`, {py:class}`algosdk.abi.method.Method` or a {py:class}`str`
 representing an ABI method name or signature"""
-
-
-class Program:
-    """A compiled TEAL program"""
-
-    def __init__(self, program: str, client: "AlgodClient"):
-        """
-        Fully compile the program source to binary and generate a
-        source map for matching pc to line number
-        """
-        self.teal = program
-        result: dict = client.compile(au_deploy.strip_comments(self.teal), source_map=True)
-        self.raw_binary = base64.b64decode(result["result"])
-        self.binary_hash: str = result["hash"]
-        self.source_map = SourceMap(result["sourcemap"])
 
 
 def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
@@ -346,6 +335,22 @@ class ApplicationClient:
         self._approval_program, self._clear_program = substitute_template_and_compile(
             self.algod_client, self.app_spec, template_values
         )
+
+        if config.debug and config.project_root:
+            persist_sourcemaps(
+                sources=[
+                    PersistSourceMapInput(
+                        compiled_teal=self._approval_program, app_name=self.app_name, file_name="approval.teal"
+                    ),
+                    PersistSourceMapInput(
+                        compiled_teal=self._clear_program, app_name=self.app_name, file_name="clear.teal"
+                    ),
+                ],
+                project_root=config.project_root,
+                client=self.algod_client,
+                with_sources=True,
+            )
+
         deployer = au_deploy.Deployer(
             app_client=self,
             creator=self._creator,
@@ -630,6 +635,11 @@ class ApplicationClient:
         if method:
             hints = self._method_hints(method)
             if hints and hints.read_only:
+                if config.debug and config.project_root and config.trace_all:
+                    simulate_and_persist_response(
+                        atc, config.project_root, self.algod_client, config.trace_buffer_size_mb
+                    )
+
                 return self._simulate_readonly_call(method, atc)
 
         return self._execute_atc_tr(atc)
@@ -865,26 +875,40 @@ class ApplicationClient:
             self._approval_program, self._clear_program = substitute_template_and_compile(
                 self.algod_client, self.app_spec, self.template_values
             )
+
+        if config.debug and config.project_root:
+            persist_sourcemaps(
+                sources=[
+                    PersistSourceMapInput(
+                        compiled_teal=self._approval_program, app_name=self.app_name, file_name="approval.teal"
+                    ),
+                    PersistSourceMapInput(
+                        compiled_teal=self._clear_program, app_name=self.app_name, file_name="clear.teal"
+                    ),
+                ],
+                project_root=config.project_root,
+                client=self.algod_client,
+                with_sources=True,
+            )
+
         return self._approval_program, self._clear_program
 
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
-        simulate_response = _simulate_response(atc, self.algod_client)
+        response = simulate_response(atc, self.algod_client)
         traces = None
         if config.debug:
-            traces = _create_simulate_traces(simulate_response)
-        if simulate_response.failure_message:
+            traces = _create_simulate_traces(response)
+        if response.failure_message:
             raise _try_convert_to_logic_error(
-                simulate_response.failure_message,
+                response.failure_message,
                 self.app_spec.approval_program,
                 self._get_approval_source_map,
                 traces,
-            ) or Exception(
-                f"Simulate failed for readonly method {method.get_signature()}: {simulate_response.failure_message}"
-            )
+            ) or Exception(f"Simulate failed for readonly method {method.get_signature()}: {response.failure_message}")
 
-        return TransactionResponse.from_atr(simulate_response)
+        return TransactionResponse.from_atr(response)
 
     def _load_reference_and_check_app_id(self) -> None:
         self._load_app_reference()
@@ -1192,7 +1216,9 @@ def substitute_template_and_compile(
     au_deploy.check_template_variables(app_spec.approval_program, template_values)
     approval = au_deploy.replace_template_variables(app_spec.approval_program, template_values)
 
-    return Program(approval, algod_client), Program(clear, algod_client)
+    approval_app, clear_app = Program(approval, algod_client), Program(clear, algod_client)
+
+    return approval_app, clear_app
 
 
 def get_next_version(current_version: str) -> str:
@@ -1263,10 +1289,22 @@ def execute_atc_with_logic_error(
     ```
     """
     try:
+        if config.debug and config.project_root and config.trace_all:
+            simulate_and_persist_response(atc, config.project_root, algod_client, config.trace_buffer_size_mb)
+
         return atc.execute(algod_client, wait_rounds=wait_rounds)
     except Exception as ex:
         if config.debug:
-            simulate = _simulate_response(atc, algod_client)
+            simulate = None
+            if config.project_root and not config.trace_all:
+                # if trace_all is enabled, we already have the traces executed above
+                # hence we only need to simulate if trace_all is disabled and
+                # project_root is set
+                simulate = simulate_and_persist_response(
+                    atc, config.project_root, algod_client, config.trace_buffer_size_mb
+                )
+            else:
+                simulate = simulate_response(atc, algod_client)
             traces = _create_simulate_traces(simulate)
         else:
             traces = None
@@ -1297,22 +1335,6 @@ def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list
                 }
             )
     return traces
-
-
-def _simulate_response(
-    atc: AtomicTransactionComposer, algod_client: "AlgodClient"
-) -> SimulateAtomicTransactionResponse:
-    unsigned_txn_groups = atc.build_group()
-    empty_signer = EmptySigner()
-    txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
-    fake_signed_transactions = empty_signer.sign_transactions(txn_list, [])
-    txn_group = [SimulateRequestTransactionGroup(txns=fake_signed_transactions)]
-    trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
-
-    simulate_request = SimulateRequest(
-        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
-    )
-    return atc.simulate(algod_client, simulate_request)
 
 
 def _convert_transaction_parameters(
