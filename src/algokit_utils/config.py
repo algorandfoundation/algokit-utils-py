@@ -33,7 +33,7 @@ class UpdatableConfig:
         """Configures the project root by searching for a specific file within a depth limit."""
         current_path = Path(__file__).resolve()
         for _ in range(self._max_search_depth):
-            logger.info(f"Searching in: {current_path}")
+            logger.debug(f"Searching in: {current_path}")
             if (current_path / ALGOKIT_CONFIG_FILENAME).exists():
                 self._project_root = current_path
                 break
