@@ -253,7 +253,7 @@ class ApplicationClient:
         target.signer, target.sender = target.get_signer_sender(
             AccountTransactionSigner(signer.private_key) if isinstance(signer, Account) else signer, sender
         )
-        target.template_values = self.template_values | (template_values or {})
+        target.template_values = {**self.template_values, **(template_values or {})}
 
     def deploy(  # noqa: PLR0913
         self,
@@ -327,7 +327,7 @@ class ApplicationClient:
             )
 
         # make a copy and prepare variables
-        template_values = self.template_values | dict(template_values or {})
+        template_values = {**self.template_values, **(template_values or {})}
         au_deploy.add_deploy_template_variables(template_values, allow_update=allow_update, allow_delete=allow_delete)
 
         existing_app_metadata_or_reference = self._load_app_reference()
