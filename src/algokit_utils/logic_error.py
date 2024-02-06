@@ -11,8 +11,7 @@ __all__ = [
 ]
 
 LOGIC_ERROR = (
-    ".*transaction (?P<transaction_id>[A-Z0-9]+): "
-    "logic eval error: (?P<message>.*). Details: pc=(?P<pc>[0-9]+), opcodes=.*"
+    ".*transaction (?P<transaction_id>[A-Z0-9]+): logic eval error: (?P<message>.*). Details: .*pc=(?P<pc>[0-9]+).*"
 )
 
 
