@@ -86,7 +86,7 @@ class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
     @overload
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
@@ -100,7 +100,7 @@ class ApplicationClient:
         ...
 
     @overload
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         algod_client: "AlgodClient",
         app_spec: au_spec.ApplicationSpecification | Path,
