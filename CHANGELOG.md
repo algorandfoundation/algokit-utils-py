@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v2.2.1 (2024-02-06)
+
+### Fix
+
+* Handle updated LogicError format in algod 3.22 ([#68](https://github.com/algorandfoundation/algokit-utils-py/issues/68)) ([`bcbaadd`](https://github.com/algorandfoundation/algokit-utils-py/commit/bcbaadd1c0b7bd5230b4b7167f4408e70ab4963a))
+* Disable verbose logging level in config.py; only visible on debug log level now ([#62](https://github.com/algorandfoundation/algokit-utils-py/issues/62)) ([`10d1400`](https://github.com/algorandfoundation/algokit-utils-py/commit/10d1400c55203dc910b8a849e492695a1410552b))
+
 ## v2.2.0 (2023-12-15)
 
 ### Feature
