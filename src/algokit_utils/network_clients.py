@@ -34,6 +34,12 @@ class AlgoClientConfig:
     """API Token to authenticate with the service"""
 
 
+@dataclasses.dataclass
+class AlgoClientConfigs:
+    algod_config: AlgoClientConfig
+    indexer_config: AlgoClientConfig
+    kmd_config: AlgoClientConfig
+
 def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> AlgoClientConfig:
     """Returns the client configuration to point to the default LocalNet"""
     port = {"algod": 4001, "indexer": 8980, "kmd": 4002}[config]
@@ -67,6 +73,13 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     config = config or _get_config_from_environment("ALGOD")
     headers = _get_headers(config, "X-Algo-API-Token")
     return AlgodClient(config.token, config.server, headers)
+
+def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
+    """Returns an {py:class}`algosdk.kmd.KMDClient` from `config` or environment
+
+    If no configuration provided will use environment variables `KMD_SERVER`, `KMD_PORT` and `KMD_TOKEN`"""
+    config = config or _get_config_from_environment("KMD")
+    return KMDClient(config.token, config.server)
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
