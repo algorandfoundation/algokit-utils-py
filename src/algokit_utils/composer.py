@@ -755,3 +755,37 @@ class AlgokitComposer:
             return [TransactionWithSigner(txn=key_reg, signer=signer)]
         else:
             raise ValueError(f'Unsupported txn type: {txn.type}')
+        
+    def build_group(self):
+        suggested_params = self.get_suggested_params()
+
+        txn_with_signers = []
+
+        for txn in self.txns:
+            txn_with_signers.extend(self._build_txn(txn, suggested_params))
+
+        for ts in txn_with_signers:
+            self.atc.add_transaction(ts)
+
+        method_calls = {}
+
+        for i, ts in enumerate(txn_with_signers):
+            method = self.txn_method_map.get(ts.txn.txID())
+            if method:
+                method_calls[i] = method
+
+        self.atc.method_dict = method_calls
+
+        return self.atc.build_group()
+
+    def execute(self, *, max_rounds_to_wait: int | None):
+        group = self.build_group()
+
+        wait_rounds = max_rounds_to_wait
+
+        if wait_rounds is None:
+            last_round = max(txn.txn.last_valid_round for txn in group)
+            first_round = self.get_suggested_params().first
+            wait_rounds = last_round - first_round
+
+        return self.atc.execute(client=self.algod, wait_rounds=wait_rounds)
