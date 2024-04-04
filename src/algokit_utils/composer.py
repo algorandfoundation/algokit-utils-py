@@ -778,7 +778,7 @@ class AlgokitComposer:
 
         return self.atc.build_group()
 
-    def execute(self, *, max_rounds_to_wait: int | None):
+    def execute(self, *, max_rounds_to_wait: int | None = None):
         group = self.build_group()
 
         wait_rounds = max_rounds_to_wait
