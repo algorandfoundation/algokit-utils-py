@@ -61,24 +61,13 @@ class PayTxnParams(CommonTxnParams, _RequiredPayTxnParams):
     """
     close_remainder_to: Optional[str] = None
 
+@dataclass
+class _RequiredAssetCreateParams(SenderParam):
+    total: int
 
-class AssetCreateParams(CommonTxnParams):
-    def __init__(
-        self,
-        total: int,
-        decimals: Optional[int] = None,
-        default_frozen: Optional[bool] = None,
-        manager: Optional[str] = None,
-        reserve: Optional[str] = None,
-        freeze: Optional[str] = None,
-        clawback: Optional[str] = None,
-        unit_name: Optional[str] = None,
-        asset_name: Optional[str] = None,
-        url: Optional[str] = None,
-        metadata_hash: Optional[bytes] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
+    """
         Asset creation parameters.
 
         :param total: The total amount of the smallest divisible unit to create.
@@ -93,31 +82,25 @@ class AssetCreateParams(CommonTxnParams):
         :param url: The metadata URL for the asset.
         :param metadata_hash: Hash of the metadata contained in the metadata URL.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.total = total
-        self.decimals = decimals
-        self.default_frozen = default_frozen
-        self.manager = manager
-        self.reserve = reserve
-        self.freeze = freeze
-        self.clawback = clawback
-        self.unit_name = unit_name
-        self.asset_name = asset_name
-        self.url = url
-        self.metadata_hash = metadata_hash
+    """
+    decimals: Optional[int] = None
+    default_frozen: Optional[bool] = None
+    manager: Optional[str] = None
+    reserve: Optional[str] = None
+    freeze: Optional[str] = None
+    clawback: Optional[str] = None
+    unit_name: Optional[str] = None
+    asset_name: Optional[str] = None
+    url: Optional[str] = None
+    metadata_hash: Optional[bytes] = None
 
-class AssetConfigParams(CommonTxnParams):
-    def __init__(
-        self,
-        asset_id: int,
-        manager: Optional[str] = None,
-        reserve: Optional[str] = None,
-        freeze: Optional[str] = None,
-        clawback: Optional[str] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredAssetConfigParams(SenderParam):
+    asset_id: int
+
+@dataclass
+class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
+    """
         Asset configuration parameters.
 
         :param asset_id: ID of the asset.
@@ -126,62 +109,56 @@ class AssetConfigParams(CommonTxnParams):
         :param freeze: The address that can freeze the asset in any account. Freezing will be permanently disabled if undefined or an empty string.
         :param clawback: The address that can clawback the asset from any account. Clawback will be permanently disabled if undefined or an empty string.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.asset_id = asset_id
-        self.manager = manager
-        self.reserve = reserve
-        self.freeze = freeze
-        self.clawback = clawback
+    """
+    manager: Optional[str] = None
+    reserve: Optional[str] = None
+    freeze: Optional[str] = None
+    clawback: Optional[str] = None
 
-class AssetFreezeParams(CommonTxnParams):
-    def __init__(
-        self,
-        asset_id: int,
-        account: str,
-        frozen: bool,
-        **kwargs,
-    ):
-        """
+
+@dataclass
+class _RequiredAssetFreezeParams(SenderParam):
+    asset_id: int
+    account: str
+    frozen: bool
+
+@dataclass
+class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
+    """
         Asset freeze parameters.
 
         :param asset_id: The ID of the asset.
         :param account: The account to freeze or unfreeze.
         :param frozen: Whether the assets in the account should be frozen.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.asset_id = asset_id
-        self.account = account
-        self.frozen = frozen
+    """
+    pass
 
-class AssetDestroyParams(CommonTxnParams):
-    def __init__(
-        self,
-        asset_id: int,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredAssetDestroyParams(SenderParam):
+    asset_id: int
+
+@dataclass
+class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
+    """
         Asset destruction parameters.
 
         :param asset_id: ID of the asset.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.asset_id = asset_id
+    """
+    pass
 
-class OnlineKeyRegParams(CommonTxnParams):
-    def __init__(
-        self,
-        vote_key: bytes,
-        selection_key: bytes,
-        vote_first: int,
-        vote_last: int,
-        vote_key_dilution: int,
-        state_proof_key: Optional[bytes] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredOnlineKeyRegParams:
+    vote_key: bytes
+    selection_key: bytes
+    vote_first: int
+    vote_last: int
+    vote_key_dilution: int
+
+@dataclass
+class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
+    """
         Online key registration parameters.
 
         :param vote_key: The root participation public key.
@@ -191,26 +168,18 @@ class OnlineKeyRegParams(CommonTxnParams):
         :param vote_key_dilution: This is the dilution for the 2-level participation key. It determines the interval (number of rounds) for generating new ephemeral keys.
         :param state_proof_key: The 64 byte state proof public key commitment.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.vote_key = vote_key
-        self.selection_key = selection_key
-        self.vote_first = vote_first
-        self.vote_last = vote_last
-        self.vote_key_dilution = vote_key_dilution
-        self.state_proof_key = state_proof_key
+    """
+    state_proof_key: Optional[bytes] = None
 
-class AssetTransferParams(CommonTxnParams):
-    def __init__(
-        self,
-        asset_id: int,
-        amount: int,
-        receiver: str,
-        clawback_target: Optional[str] = None,
-        close_asset_to: Optional[str] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredAssetTransferParams(SenderParam):
+    asset_id: int
+    amount: int
+    receiver: str
+
+@dataclass
+class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
+    """
         Asset transfer parameters.
 
         :param asset_id: ID of the asset.
@@ -219,46 +188,27 @@ class AssetTransferParams(CommonTxnParams):
         :param clawback_target: The account to take the asset from.
         :param close_asset_to: The account to close the asset to.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.asset_id = asset_id
-        self.amount = amount
-        self.receiver = receiver
-        self.clawback_target = clawback_target
-        self.close_asset_to = close_asset_to
+    """
+    clawback_target: Optional[str] = None
+    close_asset_to: Optional[str] = None
 
-class AssetOptInParams(CommonTxnParams):
-    def __init__(
-        self,
-        asset_id: int,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredAssetOptInParams(SenderParam):
+    asset_id: int
+
+@dataclass
+class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
+    """
         Asset opt-in parameters.
 
         :param asset_id: ID of the asset.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.asset_id = asset_id
+    """
+    pass
 
+@dataclass
 class AppCallParams(CommonTxnParams):
-    def __init__(
-        self,
-        on_complete: Optional[OnComplete] = None,
-        app_id: Optional[int] = None,
-        approval_program: Optional[bytes] = None,
-        clear_program: Optional[bytes] = None,
-        schema: Optional[Dict[str, int]] = None,
-        args: Optional[List[bytes]] = None,
-        account_references: Optional[List[str]] = None,
-        app_references: Optional[List[int]] = None,
-        asset_references: Optional[List[int]] = None,
-        extra_pages: Optional[int] = None,
-        box_references: Optional[List[BoxReference]] = None,
-        **kwargs,
-    ):
-        """
+    """
         Application call parameters.
 
         :param on_complete: The OnComplete action.
@@ -273,41 +223,35 @@ class AppCallParams(CommonTxnParams):
         :param extra_pages: Number of extra pages required for the programs.
         :param box_references: Box references.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.on_complete = on_complete
-        self.app_id = app_id
-        self.approval_program = approval_program
-        self.clear_program = clear_program
-        self.schema = schema
-        self.args = args
-        self.account_references = account_references
-        self.app_references = app_references
-        self.asset_references = asset_references
-        self.extra_pages = extra_pages
-        self.box_references = box_references
+    """
+    on_complete: Optional[OnComplete] = None
+    app_id: Optional[int] = None
+    approval_program: Optional[bytes] = None
+    clear_program: Optional[bytes] = None
+    schema: Optional[Dict[str, int]] = None
+    args: Optional[List[bytes]] = None
+    account_references: Optional[List[str]] = None
+    app_references: Optional[List[int]] = None
+    asset_references: Optional[List[int]] = None
+    extra_pages: Optional[int] = None
+    box_references: Optional[List[BoxReference]] = None
 
-class MethodCallParams(CommonTxnParams):
-    def __init__(
-        self,
-        app_id: int,
-        method: Method,
-        args: Optional[List[Union[ABIType, 'Transaction']]] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredMethodCallParams:
+    app_id: int
+    method: Method
+
+@dataclass
+class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
+    """
         Method call parameters.
 
         :param app_id: ID of the application.
         :param method: The ABI method to call.
         :param args: Arguments to the ABI method.
         :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
-        """
-        super().__init__(**kwargs)
-        self.app_id = app_id
-        self.method = method
-        self.args = args
-
+    """
+    args: Optional[List[Union[ABIType, 'Transaction']]] = None
 
 Transaction = Union[
     PayTxnParams,
