@@ -149,7 +149,7 @@ class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
     pass
 
 @dataclass
-class _RequiredOnlineKeyRegParams:
+class _RequiredOnlineKeyRegParams(SenderParam):
     vote_key: bytes
     selection_key: bytes
     vote_first: int
@@ -207,7 +207,7 @@ class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
     pass
 
 @dataclass
-class AppCallParams(CommonTxnParams):
+class AppCallParams(CommonTxnParams, SenderParam):
     """
         Application call parameters.
 
@@ -237,7 +237,7 @@ class AppCallParams(CommonTxnParams):
     box_references: Optional[List[BoxReference]] = None
 
 @dataclass
-class _RequiredMethodCallParams:
+class _RequiredMethodCallParams(SenderParam):
     app_id: int
     method: Method
 
