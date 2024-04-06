@@ -5,10 +5,9 @@ from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils import (DISPENSER_REQUEST_TIMEOUT,
-                           TestNetDispenserApiClient, get_algod_client,
-                           get_indexer_client)
-from algokit_utils.network_clients import AlgoClientConfigs, get_kmd_client
+from .dispenser_api import TestNetDispenserApiClient
+from .network_clients import (AlgoClientConfigs, get_algod_client,
+                              get_indexer_client, get_kmd_client)
 
 
 class AlgoSdkClients:
@@ -66,7 +65,7 @@ class ClientManager:
             raise ValueError("Attempt to use Kmd client in AlgoKit instance with no Kmd configured")
         return self._kmd
 
-    def get_testnet_dispenser(self, auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT) -> Any:
+    def get_testnet_dispenser(self, auth_token: str | None = None, request_timeout: int | None = None) -> Any:
         """
         Returns a TestNet Dispenser API client.
         Refer to [docs](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md) on guidance to obtain an access token.
@@ -78,4 +77,7 @@ class ClientManager:
         Returns:
             An instance of the TestNetDispenserApiClient class.
         """
-        return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
+        if request_timeout:
+            return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
+        
+        return TestNetDispenserApiClient(auth_token=auth_token)

@@ -12,25 +12,15 @@ from algosdk.v2client.algod import AlgodClient
 
 AlgoAmount = int
 
+@dataclass 
+class SenderParam:
+    sender: str
+
+@dataclass
 class CommonTxnParams:
-    def __init__(
-        self,
-        sender: str,
-        signer: Optional[TransactionSigner] = None,
-        rekey_to: Optional[str] = None,
-        note: Optional[bytes] = None,
-        lease: Optional[bytes] = None,
-        static_fee: Optional[AlgoAmount] = None,
-        extra_fee: Optional[AlgoAmount] = None,
-        max_fee: Optional[AlgoAmount] = None,
-        validity_window: Optional[int] = None,
-        first_valid_round: Optional[int] = None,
-        last_valid_round: Optional[int] = None,
-    ):
-        """
+    """
         Common transaction parameters.
 
-        :param sender: The address sending the transaction.
         :param signer: The function used to sign transactions.
         :param rekey_to: Change the signing key of the sender to the given address.
         :param note: Note to attach to the transaction.
@@ -41,39 +31,36 @@ class CommonTxnParams:
         :param validity_window: How many rounds the transaction should be valid for.
         :param first_valid_round: Set the first round this transaction is valid. If left undefined, the value from algod will be used. Only set this when you intentionally want this to be some time in the future.
         :param last_valid_round: The last round this transaction is valid. It is recommended to use validity_window instead.
-        """
-        self.sender = sender
-        self.signer = signer
-        self.rekey_to = rekey_to
-        self.note = note
-        self.lease = lease
-        self.static_fee = static_fee
-        self.extra_fee = extra_fee
-        self.max_fee = max_fee
-        self.validity_window = validity_window
-        self.first_valid_round = first_valid_round
-        self.last_valid_round = last_valid_round
+    """
+    signer: Optional[TransactionSigner] = None
+    rekey_to: Optional[str] = None
+    note: Optional[bytes] = None
+    lease: Optional[bytes] = None
+    static_fee: Optional[AlgoAmount] = None
+    extra_fee: Optional[AlgoAmount] = None
+    max_fee: Optional[AlgoAmount] = None
+    validity_window: Optional[int] = None
+    first_valid_round: Optional[int] = None
+    last_valid_round: Optional[int] = None
 
-class PayTxnParams(CommonTxnParams):
-    def __init__(
-        self,
-        receiver: str,
-        amount: AlgoAmount,
-        close_remainder_to: Optional[str] = None,
-        **kwargs,
-    ):
-        """
+@dataclass
+class _RequiredPayTxnParams(SenderParam):
+    receiver: str
+    amount: AlgoAmount
+
+
+@dataclass
+class PayTxnParams(CommonTxnParams, _RequiredPayTxnParams):
+    """
         Payment transaction parameters.
 
         :param receiver: The account that will receive the ALGO.
         :param amount: Amount to send.
         :param close_remainder_to: If given, close the sender account and send the remaining balance to this address.
         :param kwargs: Additional keyword arguments to pass to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.receiver = receiver
-        self.amount = amount
-        self.close_remainder_to = close_remainder_to
+    """
+    close_remainder_to: Optional[str] = None
+
 
 class AssetCreateParams(CommonTxnParams):
     def __init__(
@@ -759,7 +746,7 @@ class AlgokitComposer:
     def build_group(self):
         suggested_params = self.get_suggested_params()
 
-        txn_with_signers = []
+        txn_with_signers: List[TransactionWithSigner] = []
 
         for txn in self.txns:
             txn_with_signers.extend(self._build_txn(txn, suggested_params))
@@ -770,7 +757,7 @@ class AlgokitComposer:
         method_calls = {}
 
         for i, ts in enumerate(txn_with_signers):
-            method = self.txn_method_map.get(ts.txn.txID())
+            method = self.txn_method_map.get(ts.txn.get_txid())
             if method:
                 method_calls[i] = method
 
