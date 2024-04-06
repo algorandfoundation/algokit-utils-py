@@ -1,6 +1,6 @@
 import dataclasses
 import os
-from typing import Literal
+from typing import Literal, Union
 from urllib import parse
 
 from algosdk.kmd import KMDClient
@@ -38,7 +38,7 @@ class AlgoClientConfig:
 class AlgoClientConfigs:
     algod_config: AlgoClientConfig
     indexer_config: AlgoClientConfig
-    kmd_config: AlgoClientConfig
+    kmd_config: Union[AlgoClientConfig, None]
 
 def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> AlgoClientConfig:
     """Returns the client configuration to point to the default LocalNet"""

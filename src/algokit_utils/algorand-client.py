@@ -1,7 +1,8 @@
+import copy
+import time
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
-import algosdk
 from algosdk.atomic_transaction_composer import (AtomicTransactionResponse,
                                                  TransactionSigner)
 from algosdk.transaction import (SuggestedParams, Transaction,
@@ -14,6 +15,9 @@ from .composer import (AlgokitComposer, AppCallParams, AssetConfigParams,
                        AssetFreezeParams, AssetOptInParams,
                        AssetTransferParams, MethodCallParams,
                        OnlineKeyRegParams, PayTxnParams)
+from .network_clients import (AlgoClientConfigs, get_algod_client,
+                              get_algonode_config, get_default_localnet_config,
+                              get_indexer_client, get_kmd_client)
 
 
 @dataclass
@@ -47,7 +51,7 @@ class AlgorandClientTransactionMethods:
 class AlgorandClient:
     """A client that brokers easy access to Algorand functionality."""
 
-    def __init__(self, config: Union[AlgoConfig, AlgoSdkClients]):
+    def __init__(self, config: Union[AlgoClientConfigs, AlgoSdkClients]):
         self._client_manager: ClientManager = ClientManager(config)
         self._account_manager: AccountManager = AccountManager(self._client_manager)
 
@@ -121,12 +125,12 @@ class AlgorandClient:
         if self._cached_suggested_params and (
             self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
         ):
-            return self._cached_suggested_params.copy()
+            return copy.deepcopy(self._cached_suggested_params)
 
         self._cached_suggested_params = self._client_manager.algod.suggested_params()
         self._cached_suggested_params_expiry = time.time() + self._cached_suggested_params_timeout
 
-        return self._cached_suggested_params.copy()
+        return copy.deepcopy(self._cached_suggested_params)
 
     @property
     def client(self) -> ClientManager:
@@ -188,11 +192,11 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            {
-                "algod_config": get_default_local_net_config("algod"),
-                "indexer_config": get_default_local_net_config("indexer"),
-                "kmd_config": get_default_local_net_config("kmd"),
-            }
+            AlgoClientConfigs(
+                algod_config = get_default_localnet_config("algod"),
+                indexer_config = get_default_localnet_config("indexer"),
+                kmd_config = get_default_localnet_config("kmd"),
+            )
         )
 
     @staticmethod
@@ -203,11 +207,11 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            {
-                "algod_config": get_algo_node_config("testnet", "algod"),
-                "indexer_config": get_algo_node_config("testnet", "indexer"),
-                "kmd_config": None,
-            }
+            AlgoClientConfigs(
+                algod_config = get_algonode_config("testnet", "algod", ""),
+                indexer_config = get_algonode_config("testnet", "indexer", ""),
+                kmd_config = None,
+            )
         )
 
     @staticmethod
@@ -218,11 +222,11 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            {
-                "algod_config": get_algo_node_config("mainnet", "algod"),
-                "indexer_config": get_algo_node_config("mainnet", "indexer"),
-                "kmd_config": None,
-            }
+            AlgoClientConfigs(
+                algod_config = get_algonode_config("mainnet", "algod", ""),
+                indexer_config = get_algonode_config("mainnet", "indexer", ""),
+                kmd_config = None,
+            )
         )
 
     @staticmethod
@@ -246,10 +250,14 @@ class AlgorandClient:
 
         :return: The `AlgorandClient`
         """
-        return AlgorandClient(get_config_from_env_or_defaults())
+        return AlgorandClient(AlgoSdkClients(
+            algod=get_algod_client(),
+            kmd=get_kmd_client(),
+            indexer=get_indexer_client(),
+        ))
 
     @staticmethod
-    def from_config(config: AlgoConfig) -> "AlgorandClient":
+    def from_config(config: AlgoClientConfigs) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` from the given config.
 
