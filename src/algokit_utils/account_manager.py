@@ -9,7 +9,7 @@ from algosdk.v2client.algod import AlgodResponseType
 
 from .account import (get_dispenser_account, get_kmd_wallet_account,
                       get_localnet_default_account)
-from .client_manager import ClientManager
+from .beta.client_manager import ClientManager
 
 
 @dataclass

@@ -12,7 +12,6 @@ from algokit_utils.account import (create_kmd_wallet_account, get_account,
                                    get_kmd_wallet_account,
                                    get_localnet_default_account,
                                    get_or_create_kmd_wallet_account)
-from algokit_utils.algorand_client import AlgorandClient
 from algokit_utils.application_client import (ApplicationClient,
                                               execute_atc_with_logic_error,
                                               get_next_version,
@@ -27,6 +26,7 @@ from algokit_utils.application_specification import (ApplicationSpecification,
                                                      MethodHints,
                                                      OnCompleteActionName)
 from algokit_utils.asset import opt_in, opt_out
+from algokit_utils.beta.algorand_client import AlgorandClient
 from algokit_utils.common import Program
 from algokit_utils.deploy import (DELETABLE_TEMPLATE_NAME, NOTE_PREFIX,
                                   UPDATABLE_TEMPLATE_NAME, ABICallArgs,

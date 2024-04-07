@@ -1,7 +1,7 @@
 import pytest
 
 from algokit_utils import Account
-from algokit_utils.algorand_client import AlgorandClient, PayParams
+from algokit_utils.beta.algorand_client import AlgorandClient, PayParams
 
 
 @pytest.fixture
