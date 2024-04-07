@@ -10,7 +10,6 @@ from algosdk.box_reference import BoxReference
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 
-AlgoAmount = int
 
 @dataclass 
 class SenderParam:
@@ -36,9 +35,9 @@ class CommonTxnParams:
     rekey_to: Optional[str] = None
     note: Optional[bytes] = None
     lease: Optional[bytes] = None
-    static_fee: Optional[AlgoAmount] = None
-    extra_fee: Optional[AlgoAmount] = None
-    max_fee: Optional[AlgoAmount] = None
+    static_fee: Optional[int] = None
+    extra_fee: Optional[int] = None
+    max_fee: Optional[int] = None
     validity_window: Optional[int] = None
     first_valid_round: Optional[int] = None
     last_valid_round: Optional[int] = None
@@ -46,7 +45,7 @@ class CommonTxnParams:
 @dataclass
 class _RequiredPayTxnParams(SenderParam):
     receiver: str
-    amount: AlgoAmount
+    amount: int
 
 
 @dataclass
