@@ -50,7 +50,7 @@ class _RequiredPayTxnParams(SenderParam):
 
 
 @dataclass
-class PayTxnParams(CommonTxnParams, _RequiredPayTxnParams):
+class PayParams(CommonTxnParams, _RequiredPayTxnParams):
     """
         Payment transaction parameters.
 
@@ -251,10 +251,10 @@ class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
         :param args: Arguments to the ABI method.
         :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
     """
-    args: Optional[List[Union[ABIType, 'Transaction']]] = None
+    args: Optional[List[Union[ABIType, 'TxnParams']]] = None
 
-Transaction = Union[
-    PayTxnParams,
+TxnParams = Union[
+    PayParams,
     AssetCreateParams,
     AssetConfigParams,
     AssetFreezeParams,
@@ -266,78 +266,13 @@ Transaction = Union[
     MethodCallParams,
 ]
 
-@dataclass
-class PayTxn(PayTxnParams):
-    type: str = 'pay'
-
-@dataclass
-class AssetCreateTxn(AssetCreateParams):
-    type: str = 'assetCreate'
-
-@dataclass
-class AssetConfigTxn(AssetConfigParams):
-    type: str = 'assetConfig'
-
-@dataclass
-class AssetFreezeTxn(AssetFreezeParams):
-    type: str = 'assetFreeze'
-
-@dataclass
-class AssetDestroyTxn(AssetDestroyParams):
-    type: str = 'assetDestroy'
-
-@dataclass
-class AssetTransferTxn(AssetTransferParams):
-    type: str = 'assetTransfer'
-
-@dataclass
-class AssetOptInTxn(AssetOptInParams):
-    type: str = 'assetOptIn'
-
-@dataclass
-class AppCallTxn(AppCallParams):
-    type: str = 'appCall'
-
-@dataclass
-class OnlineKeyRegTxn(OnlineKeyRegParams):
-    type: str = 'keyReg'
-
-@dataclass
-class TxnWithSigner:
-    txn: TransactionWithSigner
-    type: str = 'txnWithSigner'
-
-@dataclass
-class ATCTxn:
-    atc: AtomicTransactionComposer
-    type: str = 'atc'
-
-@dataclass
-class MethodCallTxn(MethodCallParams):
-    type: str = 'methodCall'
-
-Txn = Union[
-    PayTxn,
-    AssetCreateTxn,
-    AssetConfigTxn,
-    AssetFreezeTxn,
-    AssetDestroyTxn,
-    AssetTransferTxn,
-    AssetOptInTxn,
-    AppCallTxn,
-    OnlineKeyRegTxn,
-    TxnWithSigner,
-    ATCTxn,
-    MethodCallTxn,
-]
-
 class AlgokitComposer:
     """
     A class for composing and managing Algorand transactions using the Algosdk library.
 
     Attributes:
         txn_method_map (dict[str, algosdk.abi.Method]): A dictionary that maps transaction IDs to their corresponding ABI methods.
-        txns (List[Txn]): A list of transactions that have not yet been composed.
+        txns (List[Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer]]): A list of transactions that have not yet been composed.
         atc (AtomicTransactionComposer): An instance of AtomicTransactionComposer used to compose transactions.
         algod (AlgodClient): The AlgodClient instance used by the composer for suggested params.
         get_suggested_params (Callable[[], algosdk.future.transaction.SuggestedParams]): A function that returns suggested parameters for transactions.
@@ -362,7 +297,7 @@ class AlgokitComposer:
             default_validity_window (Optional[int], optional): The default validity window for transactions. If not provided, it defaults to 10. Defaults to None.
         """
         self.txn_method_map: dict[str, algosdk.abi.Method] = {}
-        self.txns: List[Txn] = []
+        self.txns: List[Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer]] = []
         self.atc: AtomicTransactionComposer = AtomicTransactionComposer()
         self.algod: AlgodClient = algod
         self.default_get_send_params = lambda: self.algod.suggested_params()
@@ -370,48 +305,48 @@ class AlgokitComposer:
         self.get_signer: Callable[[str], TransactionSigner] = get_signer
         self.default_validity_window: int = default_validity_window or 10
 
-    def add_payment(self, params: PayTxnParams) -> 'AlgokitComposer':
-        self.txns.append(PayTxn(**params.__dict__))
+    def add_payment(self, params: PayParams) -> 'AlgokitComposer':
+        self.txns.append(PayParams(**params.__dict__))
         return self
 
     def add_asset_create(self, params: AssetCreateParams) -> 'AlgokitComposer':
-        self.txns.append(AssetCreateTxn(**params.__dict__))
+        self.txns.append(AssetCreateParams(**params.__dict__))
         return self
 
     def add_asset_config(self, params: AssetConfigParams) -> 'AlgokitComposer':
-        self.txns.append(AssetConfigTxn(**params.__dict__))
+        self.txns.append(AssetConfigParams(**params.__dict__))
         return self
 
     def add_asset_freeze(self, params: AssetFreezeParams) -> 'AlgokitComposer':
-        self.txns.append(AssetFreezeTxn(**params.__dict__))
+        self.txns.append(AssetFreezeParams(**params.__dict__))
         return self
 
     def add_asset_destroy(self, params: AssetDestroyParams) -> 'AlgokitComposer':
-        self.txns.append(AssetDestroyTxn(**params.__dict__))
+        self.txns.append(AssetDestroyParams(**params.__dict__))
         return self
 
     def add_asset_transfer(self, params: AssetTransferParams) -> 'AlgokitComposer':
-        self.txns.append(AssetTransferTxn(**params.__dict__))
+        self.txns.append(AssetTransferParams(**params.__dict__))
         return self
 
     def add_asset_opt_in(self, params: AssetOptInParams) -> 'AlgokitComposer':
-        self.txns.append(AssetOptInTxn(**params.__dict__))
+        self.txns.append(AssetOptInParams(**params.__dict__))
         return self
 
     def add_app_call(self, params: AppCallParams) -> 'AlgokitComposer':
-        self.txns.append(AppCallTxn(**params.__dict__))
+        self.txns.append(AppCallParams(**params.__dict__))
         return self
 
     def add_online_key_reg(self, params: OnlineKeyRegParams) -> 'AlgokitComposer':
-        self.txns.append(OnlineKeyRegTxn(**params.__dict__))
+        self.txns.append(OnlineKeyRegParams(**params.__dict__))
         return self
 
     def add_atc(self, atc: AtomicTransactionComposer) -> 'AlgokitComposer':
-        self.txns.append(ATCTxn(atc=atc))
+        self.txns.append(atc)
         return self
 
     def add_method_call(self, params: MethodCallParams) -> 'AlgokitComposer':
-        self.txns.append(MethodCallTxn(**params.__dict__))
+        self.txns.append(MethodCallParams(**params.__dict__))
         return self
     
     def _build_atc(self, atc: AtomicTransactionComposer) -> List[TransactionWithSigner]:
@@ -457,7 +392,7 @@ class AlgokitComposer:
 
         return txn
     
-    def _build_payment(self, params: PayTxnParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_payment(self, params: PayParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.PaymentTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -596,28 +531,28 @@ class AlgokitComposer:
 
                 if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
                     txn: Optional[algosdk.transaction.Transaction] = None
-                    if isinstance(arg, MethodCallTxn):
+                    if isinstance(arg, MethodCallParams):
                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
                         method_args.extend(temp_txn_with_signers)
                         arg_offset += len(temp_txn_with_signers) - 1
                         continue
-                    elif isinstance(arg, AppCallTxn):
+                    elif isinstance(arg, AppCallParams):
                         txn = self._build_app_call(arg, suggested_params)
-                    elif isinstance(arg, PayTxn):
+                    elif isinstance(arg, PayParams):
                         txn = self._build_payment(arg, suggested_params)
-                    elif isinstance(arg, AssetOptInTxn):
+                    elif isinstance(arg, AssetOptInParams):
                         txn = self._build_asset_transfer(AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params)
-                    elif isinstance(arg, AssetCreateTxn):
+                    elif isinstance(arg, AssetCreateParams):
                         txn = self._build_asset_create(arg, suggested_params)
-                    elif isinstance(arg, AssetConfigTxn):
+                    elif isinstance(arg, AssetConfigParams):
                         txn = self._build_asset_config(arg, suggested_params)
-                    elif isinstance(arg, AssetDestroyTxn):
+                    elif isinstance(arg, AssetDestroyParams):
                         txn = self._build_asset_destroy(arg, suggested_params)
-                    elif isinstance(arg, AssetFreezeTxn):
+                    elif isinstance(arg, AssetFreezeParams):
                         txn = self._build_asset_freeze(arg, suggested_params)
-                    elif isinstance(arg, AssetTransferTxn):
+                    elif isinstance(arg, AssetTransferParams):
                         txn = self._build_asset_transfer(arg, suggested_params)
-                    elif isinstance(arg, OnlineKeyRegTxn):
+                    elif isinstance(arg, OnlineKeyRegParams):
                         txn = self._build_key_reg(arg, suggested_params)
                     else:
                         raise ValueError(f'Unsupported method arg transaction type: {arg}')
@@ -645,43 +580,43 @@ class AlgokitComposer:
         return self._build_atc(method_atc)
     
 
-    def _build_txn(self, txn: Txn, suggested_params: algosdk.transaction.SuggestedParams) -> List[TransactionWithSigner]:
-        if isinstance(txn, TxnWithSigner):
-            return [txn.txn]
+    def _build_txn(self, txn: Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer], suggested_params: algosdk.transaction.SuggestedParams) -> List[TransactionWithSigner]:
+        if isinstance(txn, TransactionWithSigner):
+            return [txn]
 
-        if isinstance(txn, ATCTxn):
-            return self._build_atc(cast(ATCTxn, txn).atc)
+        if isinstance(txn, AtomicTransactionComposer):
+            return self._build_atc(txn)
 
-        if isinstance(txn, MethodCallTxn):
+        if isinstance(txn, MethodCallParams):
             return self._build_method_call(txn, suggested_params)
 
         signer = txn.signer or self.get_signer(txn.sender)
 
-        if isinstance(txn, PayTxn):
+        if isinstance(txn, PayParams):
             payment = self._build_payment(txn, suggested_params)
             return [TransactionWithSigner(txn=payment, signer=signer)]
-        elif isinstance(txn, AssetCreateTxn):
+        elif isinstance(txn, AssetCreateParams):
             asset_create = self._build_asset_create(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_create, signer=signer)]
-        elif isinstance(txn, AppCallTxn):
+        elif isinstance(txn, AppCallParams):
             app_call = self._build_app_call(txn, suggested_params)
             return [TransactionWithSigner(txn=app_call, signer=signer)]
-        elif isinstance(txn, AssetConfigTxn):
+        elif isinstance(txn, AssetConfigParams):
             asset_config = self._build_asset_config(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_config, signer=signer)]
-        elif isinstance(txn, AssetDestroyTxn):
+        elif isinstance(txn, AssetDestroyParams):
             asset_destroy = self._build_asset_destroy(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_destroy, signer=signer)]
-        elif isinstance(txn, AssetFreezeTxn):
+        elif isinstance(txn, AssetFreezeParams):
             asset_freeze = self._build_asset_freeze(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_freeze, signer=signer)]
-        elif isinstance(txn, AssetTransferTxn):
+        elif isinstance(txn, AssetTransferParams):
             asset_transfer = self._build_asset_transfer(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
-        elif isinstance(txn, AssetOptInTxn):
+        elif isinstance(txn, AssetOptInParams):
             asset_transfer = self._build_asset_transfer(AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params)
             return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
-        elif isinstance(txn, OnlineKeyRegTxn):
+        elif isinstance(txn, OnlineKeyRegParams):
             key_reg = self._build_key_reg(txn, suggested_params)
             return [TransactionWithSigner(txn=key_reg, signer=signer)]
         else:

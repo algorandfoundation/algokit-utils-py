@@ -14,7 +14,7 @@ from .composer import (AlgokitComposer, AppCallParams, AssetConfigParams,
                        AssetCreateParams, AssetDestroyParams,
                        AssetFreezeParams, AssetOptInParams,
                        AssetTransferParams, MethodCallParams,
-                       OnlineKeyRegParams, PayTxnParams)
+                       OnlineKeyRegParams, PayParams)
 from .network_clients import (AlgoClientConfigs, get_algod_client,
                               get_algonode_config, get_default_localnet_config,
                               get_indexer_client, get_kmd_client)
@@ -22,7 +22,7 @@ from .network_clients import (AlgoClientConfigs, get_algod_client,
 
 @dataclass
 class AlgorandClientSendMethods:
-    payment: Callable[[PayTxnParams], Dict[str, Any]]
+    payment: Callable[[PayParams], Dict[str, Any]]
     asset_create: Callable[[AssetCreateParams], Dict[str, Any]]
     asset_config: Callable[[AssetConfigParams], Dict[str, Any]] 
     asset_freeze: Callable[[AssetFreezeParams], Dict[str, Any]]
@@ -35,7 +35,7 @@ class AlgorandClientSendMethods:
 
 @dataclass
 class AlgorandClientTransactionMethods:
-    payment: Callable[[PayTxnParams], Transaction]
+    payment: Callable[[PayParams], Transaction]
     asset_create: Callable[[AssetCreateParams], Transaction]
     asset_config: Callable[[AssetConfigParams], Transaction]
     asset_freeze: Callable[[AssetFreezeParams], Transaction]
