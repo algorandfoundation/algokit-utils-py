@@ -26,7 +26,6 @@ from algokit_utils.application_specification import (ApplicationSpecification,
                                                      MethodHints,
                                                      OnCompleteActionName)
 from algokit_utils.asset import opt_in, opt_out
-from algokit_utils.beta.algorand_client import AlgorandClient
 from algokit_utils.common import Program
 from algokit_utils.deploy import (DELETABLE_TEMPLATE_NAME, NOTE_PREFIX,
                                   UPDATABLE_TEMPLATE_NAME, ABICallArgs,
@@ -155,5 +154,4 @@ __all__ = [
     "persist_sourcemaps",
     "PersistSourceMapInput",
     "simulate_and_persist_response",
-    "AlgorandClient"
 ]
