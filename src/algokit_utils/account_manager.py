@@ -12,8 +12,8 @@ from .beta.client_manager import ClientManager
 
 
 @dataclass
-class AddrAndSigner:
-    addr: str
+class AddressAndSigner:
+    address: str
     signer: TransactionSigner
 
 class AccountManager:
@@ -105,7 +105,7 @@ class AccountManager:
         name: str,
         predicate: Optional[Callable[[Dict[str, Any]], bool]] = None,
         sender: Optional[str] = None,
-    ) -> AddrAndSigner:
+    ) -> AddressAndSigner:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet (identified by name).
 
@@ -126,7 +126,7 @@ class AccountManager:
             raise ValueError(f"Unable to find KMD account {name}{' with predicate' if predicate else ''}")
     
         self.set_signer(account.address, account.signer)
-        return AddrAndSigner(addr=account.address, signer=account.signer)
+        return AddressAndSigner(address=account.address, signer=account.signer)
 
     # TODO
     # def multisig(
@@ -151,7 +151,7 @@ class AccountManager:
     #     """
     #     return self.signer_account(multisig_account(multisig_params, signing_accounts))
 
-    def random(self) -> AddrAndSigner:
+    def random(self) -> AddressAndSigner:
         """
         Tracks and returns a new, random Algorand account with secret key loaded.
 
@@ -165,9 +165,9 @@ class AccountManager:
 
         self.set_signer(addr, signer)
 
-        return AddrAndSigner(addr=addr, signer=signer)
+        return AddressAndSigner(address=addr, signer=signer)
 
-    def dispenser(self) -> AddrAndSigner:
+    def dispenser(self) -> AddressAndSigner:
         """
         Returns an account (with private key loaded) that can act as a dispenser.
 
@@ -183,9 +183,9 @@ class AccountManager:
 
         self.set_signer(acct.address, acct.signer)
 
-        return AddrAndSigner(addr=acct.address, signer=acct.signer)
+        return AddressAndSigner(address=acct.address, signer=acct.signer)
     
-    def localnet_dispenser(self) -> AddrAndSigner:
+    def localnet_dispenser(self) -> AddressAndSigner:
         """
         Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts).
 
@@ -196,4 +196,4 @@ class AccountManager:
         """
         acct = get_localnet_default_account(self._client_manager.algod)
         self.set_signer(acct.address, acct.signer)
-        return AddrAndSigner(addr=acct.address, signer=acct.signer)
+        return AddressAndSigner(address=acct.address, signer=acct.signer)
