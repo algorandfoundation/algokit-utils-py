@@ -417,6 +417,7 @@ class AlgokitComposer:
             url=params.url,
             metadata_hash=params.metadata_hash,
             decimals=params.decimals or 0,
+            strict_empty_address_check=False,
         )
 
         return self._common_txn_build_step(params, txn, suggested_params)
