@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union, cast
 
 import algosdk
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import (AccountTransactionSigner,
                                                  TransactionSigner)
-from algosdk.v2client.algod import AlgodResponseType
 
 from .account import (get_dispenser_account, get_kmd_wallet_account,
                       get_localnet_default_account)
@@ -66,7 +65,7 @@ class AccountManager:
         return signer
 
 
-    def get_information(self, sender: str) -> AlgodResponseType:
+    def get_information(self, sender: str) -> Dict[str, Any]:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
@@ -79,7 +78,7 @@ class AccountManager:
         :param sender: The address of the sender/account to look up
         :return: The account information
         """
-        return self._client_manager.algod.account_info(sender)
+        return cast(Dict[str, Any], self._client_manager.algod.account_info(sender))
 
     def get_asset_information(self, sender: str, asset_id: int):
         return self._client_manager.algod.account_asset_info(sender, asset_id)
