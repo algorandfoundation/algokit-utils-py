@@ -250,7 +250,7 @@ class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
         :param args: Arguments to the ABI method.
         :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
     """
-    args: Optional[List[Union[ABIType, 'TxnParams']]] = None
+    args: Optional[List] = None
 
 TxnParams = Union[
     PayParams,
