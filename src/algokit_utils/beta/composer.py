@@ -15,12 +15,12 @@ from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 
 
-@dataclass
+@dataclass(frozen=True)
 class SenderParam:
     sender: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class CommonTxnParams:
     """
         Common transaction parameters.
@@ -48,13 +48,13 @@ class CommonTxnParams:
     last_valid_round: int | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredPayTxnParams(SenderParam):
     receiver: str
     amount: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class PayParams(CommonTxnParams, _RequiredPayTxnParams):
     """
         Payment transaction parameters.
@@ -66,12 +66,12 @@ class PayParams(CommonTxnParams, _RequiredPayTxnParams):
     close_remainder_to: str | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetCreateParams(SenderParam):
     total: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
     """
         Asset creation parameters.
@@ -100,12 +100,12 @@ class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
     metadata_hash: bytes | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetConfigParams(SenderParam):
     asset_id: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
     """
         Asset configuration parameters.
@@ -122,14 +122,14 @@ class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
     clawback: str | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetFreezeParams(SenderParam):
     asset_id: int
     account: str
     frozen: bool
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
     """
         Asset freeze parameters.
@@ -140,12 +140,12 @@ class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
     """
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetDestroyParams(SenderParam):
     asset_id: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
     """
         Asset destruction parameters.
@@ -154,7 +154,7 @@ class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
     """
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredOnlineKeyRegParams(SenderParam):
     vote_key: str
     selection_key: str
@@ -163,7 +163,7 @@ class _RequiredOnlineKeyRegParams(SenderParam):
     vote_key_dilution: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
     """
         Online key registration parameters.
@@ -178,14 +178,14 @@ class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
     state_proof_key: bytes | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetTransferParams(SenderParam):
     asset_id: int
     amount: int
     receiver: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
     """
         Asset transfer parameters.
@@ -200,12 +200,12 @@ class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
     close_asset_to: str | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredAssetOptInParams(SenderParam):
     asset_id: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
     """
         Asset opt-in parameters.
@@ -214,7 +214,7 @@ class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
     """
 
 
-@dataclass
+@dataclass(frozen=True)
 class AppCallParams(CommonTxnParams, SenderParam):
     """
         Application call parameters.
@@ -244,13 +244,13 @@ class AppCallParams(CommonTxnParams, SenderParam):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class _RequiredMethodCallParams(SenderParam):
     app_id: int
     method: Method
 
 
-@dataclass
+@dataclass(frozen=True)
 class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
     """
         Method call parameters.
@@ -315,39 +315,39 @@ class AlgokitComposer:
         self.default_validity_window: int = default_validity_window or 10
 
     def add_payment(self, params: PayParams) -> 'AlgokitComposer':
-        self.txns.append(PayParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_create(self, params: AssetCreateParams) -> 'AlgokitComposer':
-        self.txns.append(AssetCreateParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_config(self, params: AssetConfigParams) -> 'AlgokitComposer':
-        self.txns.append(AssetConfigParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_freeze(self, params: AssetFreezeParams) -> 'AlgokitComposer':
-        self.txns.append(AssetFreezeParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_destroy(self, params: AssetDestroyParams) -> 'AlgokitComposer':
-        self.txns.append(AssetDestroyParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_transfer(self, params: AssetTransferParams) -> 'AlgokitComposer':
-        self.txns.append(AssetTransferParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_asset_opt_in(self, params: AssetOptInParams) -> 'AlgokitComposer':
-        self.txns.append(AssetOptInParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_app_call(self, params: AppCallParams) -> 'AlgokitComposer':
-        self.txns.append(AppCallParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_online_key_reg(self, params: OnlineKeyRegParams) -> 'AlgokitComposer':
-        self.txns.append(OnlineKeyRegParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def add_atc(self, atc: AtomicTransactionComposer) -> 'AlgokitComposer':
@@ -355,7 +355,7 @@ class AlgokitComposer:
         return self
 
     def add_method_call(self, params: MethodCallParams) -> 'AlgokitComposer':
-        self.txns.append(MethodCallParams(**params.__dict__))
+        self.txns.append(params)
         return self
 
     def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSigner]:
