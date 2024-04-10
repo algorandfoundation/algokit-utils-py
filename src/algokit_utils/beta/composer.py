@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Union, Any
+from typing import Any, Union
 
 import algosdk
 from algosdk.abi import Method
@@ -552,37 +552,38 @@ class AlgokitComposer:
 
         if params.args:
             for i, arg in enumerate(params.args):
-                if self.is_abi_value(arg):
+                if self._is_abi_value(arg):
                     method_args.append(arg)
                     continue
 
                 if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
-                    if isinstance(arg, MethodCallParams):
-                        temp_txn_with_signers = self._build_method_call(arg, suggested_params)
-                        method_args.extend(temp_txn_with_signers)
-                        arg_offset += len(temp_txn_with_signers) - 1
-                        continue
-                    elif isinstance(arg, AppCallParams):
-                        txn = self._build_app_call(arg, suggested_params)
-                    elif isinstance(arg, PayParams):
-                        txn = self._build_payment(arg, suggested_params)
-                    elif isinstance(arg, AssetOptInParams):
-                        txn = self._build_asset_transfer(
-                            AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params)
-                    elif isinstance(arg, AssetCreateParams):
-                        txn = self._build_asset_create(arg, suggested_params)
-                    elif isinstance(arg, AssetConfigParams):
-                        txn = self._build_asset_config(arg, suggested_params)
-                    elif isinstance(arg, AssetDestroyParams):
-                        txn = self._build_asset_destroy(arg, suggested_params)
-                    elif isinstance(arg, AssetFreezeParams):
-                        txn = self._build_asset_freeze(arg, suggested_params)
-                    elif isinstance(arg, AssetTransferParams):
-                        txn = self._build_asset_transfer(arg, suggested_params)
-                    elif isinstance(arg, OnlineKeyRegParams):
-                        txn = self._build_key_reg(arg, suggested_params)
-                    else:
-                        raise ValueError(f'Unsupported method arg transaction type: {arg}')
+                    match arg:
+                        case MethodCallParams():
+                            temp_txn_with_signers = self._build_method_call(arg, suggested_params)
+                            method_args.extend(temp_txn_with_signers)
+                            arg_offset += len(temp_txn_with_signers) - 1
+                            continue
+                        case AppCallParams():
+                            txn = self._build_app_call(arg, suggested_params)
+                        case PayParams():
+                            txn = self._build_payment(arg, suggested_params)
+                        case AssetOptInParams():
+                            txn = self._build_asset_transfer(
+                                AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params)
+                        case AssetCreateParams():
+                            txn = self._build_asset_create(arg, suggested_params)
+                        case AssetConfigParams():
+                            txn = self._build_asset_config(arg, suggested_params)
+                        case AssetDestroyParams():
+                            txn = self._build_asset_destroy(arg, suggested_params)
+                        case AssetFreezeParams():
+                            txn = self._build_asset_freeze(arg, suggested_params)
+                        case AssetTransferParams():
+                            txn = self._build_asset_transfer(arg, suggested_params)
+                        case OnlineKeyRegParams():
+                            txn = self._build_key_reg(arg, suggested_params)
+                        case _:
+                            raise ValueError(f'Unsupported method arg transaction type: {arg}')
 
                     method_args.append(
                         TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
