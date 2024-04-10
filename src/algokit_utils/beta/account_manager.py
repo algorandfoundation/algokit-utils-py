@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 from algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 from algosdk.account import generate_account
@@ -28,7 +28,7 @@ class AccountManager:
         self._accounts = dict[str, TransactionSigner]()
         self._default_signer: TransactionSigner | None = None
 
-    def set_default_signer(self, signer: TransactionSigner) -> "AccountManager":
+    def set_default_signer(self, signer: TransactionSigner) -> Self:
         """
         Sets the default signer to use if no other signer is specified.
 
@@ -38,7 +38,7 @@ class AccountManager:
         self._default_signer = signer
         return self
 
-    def set_signer(self, sender: str, signer: TransactionSigner) -> "AccountManager":
+    def set_signer(self, sender: str, signer: TransactionSigner) -> Self:
         """
         Tracks the given account for later signing.
 

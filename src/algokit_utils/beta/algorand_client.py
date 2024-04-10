@@ -2,7 +2,7 @@ import copy
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 from algokit_utils.beta.account_manager import AccountManager
 from algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
@@ -78,7 +78,7 @@ class AlgorandClient:
             "tx_id": results.tx_ids[0]
         }
 
-    def set_default_validity_window(self, validity_window: int) -> "AlgorandClient":
+    def set_default_validity_window(self, validity_window: int) -> Self:
         """
         Sets the default validity window for transactions.
 
@@ -88,7 +88,7 @@ class AlgorandClient:
         self._default_validity_window = validity_window
         return self
 
-    def set_default_signer(self, signer: TransactionSigner) -> "AlgorandClient":
+    def set_default_signer(self, signer: TransactionSigner) -> Self:
         """
         Sets the default signer to use if no other signer is specified.
 
@@ -98,7 +98,7 @@ class AlgorandClient:
         self._account_manager.set_default_signer(signer)
         return self
 
-    def set_signer(self, sender: str, signer: TransactionSigner) -> "AlgorandClient":
+    def set_signer(self, sender: str, signer: TransactionSigner) -> Self:
         """
         Tracks the given account for later signing.
 
@@ -109,7 +109,7 @@ class AlgorandClient:
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_suggested_params(self, suggested_params: SuggestedParams, until: float | None = None) -> "AlgorandClient":
+    def set_suggested_params(self, suggested_params: SuggestedParams, until: float | None = None) -> Self:
         """
         Sets a cache value to use for suggested params.
 
@@ -121,7 +121,7 @@ class AlgorandClient:
         self._cached_suggested_params_expiry = until or time.time() + self._cached_suggested_params_timeout
         return self
 
-    def set_suggested_params_timeout(self, timeout: int) -> "AlgorandClient":
+    def set_suggested_params_timeout(self, timeout: int) -> Self:
         """
         Sets the timeout for caching suggested params.
 
@@ -204,7 +204,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def default_local_net() -> "AlgorandClient":
+    def default_local_net() -> Self:
         """
         Returns an `AlgorandClient` pointing at default LocalNet ports and API token.
 
@@ -219,7 +219,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def test_net() -> "AlgorandClient":
+    def test_net() -> Self:
         """
         Returns an `AlgorandClient` pointing at TestNet using AlgoNode.
 
@@ -234,7 +234,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def main_net() -> "AlgorandClient":
+    def main_net() -> Self:
         """
         Returns an `AlgorandClient` pointing at MainNet using AlgoNode.
 
@@ -249,7 +249,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def from_clients(clients: AlgoSdkClients) -> "AlgorandClient":
+    def from_clients(clients: AlgoSdkClients) -> Self:
         """
         Returns an `AlgorandClient` pointing to the given client(s).
 
@@ -259,7 +259,7 @@ class AlgorandClient:
         return AlgorandClient(clients)
 
     @staticmethod
-    def from_environment() -> "AlgorandClient":
+    def from_environment() -> Self:
         """
         Returns an `AlgorandClient` loading the configuration from environment variables.
 
@@ -276,7 +276,7 @@ class AlgorandClient:
         ))
 
     @staticmethod
-    def from_config(config: AlgoClientConfigs) -> "AlgorandClient":
+    def from_config(config: AlgoClientConfigs) -> Self:
         """
         Returns an `AlgorandClient` from the given config.
 
