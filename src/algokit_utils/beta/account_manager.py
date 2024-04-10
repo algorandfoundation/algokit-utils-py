@@ -25,7 +25,7 @@ class AccountManager:
         :param client_manager: The ClientManager client to use for algod and kmd clients
         """
         self._client_manager = client_manager
-        self._accounts: dict[str, TransactionSigner] = {}
+        self._accounts = dict[str, TransactionSigner]()
         self._default_signer: TransactionSigner | None = None
 
     def set_default_signer(self, signer: TransactionSigner) -> "AccountManager":
