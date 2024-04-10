@@ -1,13 +1,11 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional, Union, cast
+from typing import Any, Optional, cast
 
-import algosdk
 from algosdk.account import generate_account
-from algosdk.atomic_transaction_composer import (AccountTransactionSigner,
-                                                 TransactionSigner)
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 
-from .account import (get_dispenser_account, get_kmd_wallet_account,
-                      get_localnet_default_account)
+from .account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 from .beta.client_manager import ClientManager
 
 
@@ -26,7 +24,7 @@ class AccountManager:
         :param client_manager: The ClientManager client to use for algod and kmd clients
         """
         self._client_manager = client_manager
-        self._accounts: Dict[str, TransactionSigner] = {}
+        self._accounts: dict[str, TransactionSigner] = {}
         self._default_signer: Optional[TransactionSigner] = None
 
     def set_default_signer(self, signer: TransactionSigner) -> "AccountManager":
@@ -65,7 +63,7 @@ class AccountManager:
         return signer
 
 
-    def get_information(self, sender: str) -> Dict[str, Any]:
+    def get_information(self, sender: str) -> dict[str, Any]:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
@@ -78,7 +76,7 @@ class AccountManager:
         :param sender: The address of the sender/account to look up
         :return: The account information
         """
-        return cast(Dict[str, Any], self._client_manager.algod.account_info(sender))
+        return cast(dict[str, Any], self._client_manager.algod.account_info(sender))
 
     def get_asset_information(self, sender: str, asset_id: int):
         return self._client_manager.algod.account_asset_info(sender, asset_id)
@@ -103,7 +101,7 @@ class AccountManager:
     def from_kmd(
         self,
         name: str,
-        predicate: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        predicate: Optional[Callable[[dict[str, Any]], bool]] = None,
         sender: Optional[str] = None,
     ) -> AddressAndSigner:
         """
@@ -124,7 +122,7 @@ class AccountManager:
         )
         if not account:
             raise ValueError(f"Unable to find KMD account {name}{' with predicate' if predicate else ''}")
-    
+
         self.set_signer(account.address, account.signer)
         return AddressAndSigner(address=account.address, signer=account.signer)
 
@@ -184,7 +182,7 @@ class AccountManager:
         self.set_signer(acct.address, acct.signer)
 
         return AddressAndSigner(address=acct.address, signer=acct.signer)
-    
+
     def localnet_dispenser(self) -> AddressAndSigner:
         """
         Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts).

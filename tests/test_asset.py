@@ -2,10 +2,14 @@ import re
 from typing import TYPE_CHECKING
 
 import pytest
-
-from algokit_utils import (Account, EnsureBalanceParameters,
-                           TransferAssetParameters, create_kmd_wallet_account,
-                           ensure_funded, transfer_asset)
+from algokit_utils import (
+    Account,
+    EnsureBalanceParameters,
+    TransferAssetParameters,
+    create_kmd_wallet_account,
+    ensure_funded,
+    transfer_asset,
+)
 from algokit_utils.asset import opt_in, opt_out
 
 if TYPE_CHECKING:

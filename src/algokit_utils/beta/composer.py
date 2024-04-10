@@ -1,17 +1,16 @@
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Union, cast
+from typing import Optional, Union
 
 import algosdk
-from algosdk.abi import ABIType, Method
-from algosdk.atomic_transaction_composer import (AtomicTransactionComposer,
-                                                 TransactionSigner,
-                                                 TransactionWithSigner)
+from algosdk.abi import Method
+from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner, TransactionWithSigner
 from algosdk.box_reference import BoxReference
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 
 
-@dataclass 
+@dataclass
 class SenderParam:
     sender: str
 
@@ -131,7 +130,6 @@ class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
         :param frozen: Whether the assets in the account should be frozen.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    pass
 
 @dataclass
 class _RequiredAssetDestroyParams(SenderParam):
@@ -145,7 +143,6 @@ class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
         :param asset_id: ID of the asset.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    pass
 
 @dataclass
 class _RequiredOnlineKeyRegParams(SenderParam):
@@ -203,7 +200,6 @@ class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
         :param asset_id: ID of the asset.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    pass
 
 @dataclass
 class AppCallParams(CommonTxnParams, SenderParam):
@@ -227,13 +223,13 @@ class AppCallParams(CommonTxnParams, SenderParam):
     app_id: Optional[int] = None
     approval_program: Optional[bytes] = None
     clear_program: Optional[bytes] = None
-    schema: Optional[Dict[str, int]] = None
-    args: Optional[List[bytes]] = None
-    account_references: Optional[List[str]] = None
-    app_references: Optional[List[int]] = None
-    asset_references: Optional[List[int]] = None
+    schema: Optional[dict[str, int]] = None
+    args: Optional[list[bytes]] = None
+    account_references: Optional[list[str]] = None
+    app_references: Optional[list[int]] = None
+    asset_references: Optional[list[int]] = None
     extra_pages: Optional[int] = None
-    box_references: Optional[List[BoxReference]] = None
+    box_references: Optional[list[BoxReference]] = None
 
 @dataclass
 class _RequiredMethodCallParams(SenderParam):
@@ -250,7 +246,7 @@ class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
         :param args: Arguments to the ABI method.
         :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
     """
-    args: Optional[List] = None
+    args: Optional[list] = None
 
 TxnParams = Union[
     PayParams,
@@ -296,7 +292,7 @@ class AlgokitComposer:
             default_validity_window (Optional[int], optional): The default validity window for transactions. If not provided, it defaults to 10. Defaults to None.
         """
         self.txn_method_map: dict[str, algosdk.abi.Method] = {}
-        self.txns: List[Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer]] = []
+        self.txns: list[Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer]] = []
         self.atc: AtomicTransactionComposer = AtomicTransactionComposer()
         self.algod: AlgodClient = algod
         self.default_get_send_params = lambda: self.algod.suggested_params()
@@ -347,8 +343,8 @@ class AlgokitComposer:
     def add_method_call(self, params: MethodCallParams) -> 'AlgokitComposer':
         self.txns.append(MethodCallParams(**params.__dict__))
         return self
-    
-    def _build_atc(self, atc: AtomicTransactionComposer) -> List[TransactionWithSigner]:
+
+    def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSigner]:
         group = atc.build_group()
 
         for ts in group:
@@ -359,7 +355,7 @@ class AlgokitComposer:
             self.txn_method_map[group[-1].txn.get_txid()] = method
 
         return group
-    
+
     def _common_txn_build_step(self, params: CommonTxnParams, txn: algosdk.transaction.Transaction, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         if params.lease:
             txn.lease = params.lease
@@ -390,7 +386,7 @@ class AlgokitComposer:
             raise ValueError(f'Transaction fee {txn.fee} is greater than max_fee {params.max_fee}')
 
         return txn
-    
+
     def _build_payment(self, params: PayParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.PaymentTxn(
             sender=params.sender,
@@ -511,9 +507,9 @@ class AlgokitComposer:
         )
 
         return self._common_txn_build_step(params, txn, suggested_params)
-        
 
-    def _build_method_call(self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams) -> List[TransactionWithSigner]:
+
+    def _build_method_call(self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
         method_args = []
         arg_offset = 0
 
@@ -558,7 +554,7 @@ class AlgokitComposer:
                         raise ValueError(f'Unsupported method arg transaction type: {arg}')
 
                     method_args.append(TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender)))
-                        
+
                     continue
 
                 raise ValueError(f'Unsupported method arg: {arg}')
@@ -578,9 +574,9 @@ class AlgokitComposer:
         )
 
         return self._build_atc(method_atc)
-    
 
-    def _build_txn(self, txn: Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer], suggested_params: algosdk.transaction.SuggestedParams) -> List[TransactionWithSigner]:
+
+    def _build_txn(self, txn: Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer], suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
         if isinstance(txn, TransactionWithSigner):
             return [txn]
 
@@ -621,11 +617,11 @@ class AlgokitComposer:
             return [TransactionWithSigner(txn=key_reg, signer=signer)]
         else:
             raise ValueError(f'Unsupported txn type: {txn.type}')
-        
+
     def build_group(self):
         suggested_params = self.get_suggested_params()
 
-        txn_with_signers: List[TransactionWithSigner] = []
+        txn_with_signers: list[TransactionWithSigner] = []
 
         for txn in self.txns:
             txn_with_signers.extend(self._build_txn(txn, suggested_params))

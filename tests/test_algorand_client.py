@@ -2,50 +2,52 @@ import json
 from pathlib import Path
 
 import pytest
+from algokit_utils import Account, ApplicationClient
+from algokit_utils.account_manager import AddressAndSigner
+from algokit_utils.beta.algorand_client import (
+    AlgorandClient,
+    AssetCreateParams,
+    AssetOptInParams,
+    MethodCallParams,
+    PayParams,
+)
 from algosdk.abi import Contract
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
 
-from algokit_utils import Account, ApplicationClient
-from algokit_utils.account_manager import AddressAndSigner
-from algokit_utils.beta.algorand_client import (AlgorandClient,
-                                                AssetCreateParams,
-                                                AssetOptInParams,
-                                                MethodCallParams, PayParams)
 
-
-@pytest.fixture
+@pytest.fixture()
 def algorand(funded_account: Account) -> AlgorandClient:
     client = AlgorandClient.default_local_net()
     client.set_signer(sender=funded_account.address, signer=funded_account.signer)
     return client
 
-@pytest.fixture
+@pytest.fixture()
 def alice(algorand: AlgorandClient, funded_account: Account) -> AddressAndSigner:
     acct = algorand.account.random()
     algorand.send.payment(PayParams(
         sender=funded_account.address,
         receiver=acct.address,
         amount=1_000_000
-    ))   
+    ))
     return acct
 
-@pytest.fixture
+@pytest.fixture()
 def bob(algorand: AlgorandClient, funded_account: Account) -> AddressAndSigner:
     acct = algorand.account.random()
     algorand.send.payment(PayParams(
         sender=funded_account.address,
         receiver=acct.address,
         amount=1_000_000
-    ))   
+    ))
     return acct
 
-@pytest.fixture
+@pytest.fixture()
 def app_client(algorand: AlgorandClient, alice: AddressAndSigner) -> ApplicationClient:
     client = ApplicationClient(algorand.client.algod, Path(__file__).parent / "app_algorand_client.json", sender=alice.address, signer=alice.signer)
     client.create(call_abi_method='createApplication')
     return client
 
-@pytest.fixture
+@pytest.fixture()
 def contract():
     with open(Path(__file__).parent / "app_algorand_client.json") as f:
         return Contract.from_json(json.dumps(json.load(f)['contract']))

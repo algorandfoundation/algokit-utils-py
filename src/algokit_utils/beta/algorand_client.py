@@ -1,38 +1,49 @@
 import copy
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
-from algosdk.atomic_transaction_composer import (AtomicTransactionResponse,
-                                                 TransactionSigner)
-from algosdk.transaction import (SuggestedParams, Transaction,
-                                 wait_for_confirmation)
+from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
+from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
 
 from ..account_manager import AccountManager
-from ..network_clients import (AlgoClientConfigs, get_algod_client,
-                               get_algonode_config,
-                               get_default_localnet_config, get_indexer_client,
-                               get_kmd_client)
+from ..network_clients import (
+    AlgoClientConfigs,
+    get_algod_client,
+    get_algonode_config,
+    get_default_localnet_config,
+    get_indexer_client,
+    get_kmd_client,
+)
 from .client_manager import AlgoSdkClients, ClientManager
-from .composer import (AlgokitComposer, AppCallParams, AssetConfigParams,
-                       AssetCreateParams, AssetDestroyParams,
-                       AssetFreezeParams, AssetOptInParams,
-                       AssetTransferParams, MethodCallParams,
-                       OnlineKeyRegParams, PayParams)
+from .composer import (
+    AlgokitComposer,
+    AppCallParams,
+    AssetConfigParams,
+    AssetCreateParams,
+    AssetDestroyParams,
+    AssetFreezeParams,
+    AssetOptInParams,
+    AssetTransferParams,
+    MethodCallParams,
+    OnlineKeyRegParams,
+    PayParams,
+)
 
 
 @dataclass
 class AlgorandClientSendMethods:
-    payment: Callable[[PayParams], Dict[str, Any]]
-    asset_create: Callable[[AssetCreateParams], Dict[str, Any]]
-    asset_config: Callable[[AssetConfigParams], Dict[str, Any]] 
-    asset_freeze: Callable[[AssetFreezeParams], Dict[str, Any]]
-    asset_destroy: Callable[[AssetDestroyParams], Dict[str, Any]]
-    asset_transfer: Callable[[AssetTransferParams], Dict[str, Any]]
-    app_call: Callable[[AppCallParams], Dict[str, Any]]
-    online_key_reg: Callable[[OnlineKeyRegParams], Dict[str, Any]]
-    method_call: Callable[[MethodCallParams], Dict[str, Any]]
-    asset_opt_in: Callable[[AssetOptInParams], Dict[str, Any]]
+    payment: Callable[[PayParams], dict[str, Any]]
+    asset_create: Callable[[AssetCreateParams], dict[str, Any]]
+    asset_config: Callable[[AssetConfigParams], dict[str, Any]]
+    asset_freeze: Callable[[AssetFreezeParams], dict[str, Any]]
+    asset_destroy: Callable[[AssetDestroyParams], dict[str, Any]]
+    asset_transfer: Callable[[AssetTransferParams], dict[str, Any]]
+    app_call: Callable[[AppCallParams], dict[str, Any]]
+    online_key_reg: Callable[[OnlineKeyRegParams], dict[str, Any]]
+    method_call: Callable[[MethodCallParams], dict[str, Any]]
+    asset_opt_in: Callable[[AssetOptInParams], dict[str, Any]]
 
 @dataclass
 class AlgorandClientTransactionMethods:
@@ -44,7 +55,7 @@ class AlgorandClientTransactionMethods:
     asset_transfer: Callable[[AssetTransferParams], Transaction]
     app_call: Callable[[AppCallParams], Transaction]
     online_key_reg: Callable[[OnlineKeyRegParams], Transaction]
-    method_call: Callable[[MethodCallParams], List[Transaction]]
+    method_call: Callable[[MethodCallParams], list[Transaction]]
     asset_opt_in: Callable[[AssetOptInParams], Transaction]
 
 
@@ -62,7 +73,7 @@ class AlgorandClient:
 
         self._default_validity_window: int = 10
 
-    def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> Dict[str, Any]:
+    def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> dict[str, Any]:
         return {
             "confirmation": wait_for_confirmation(self._client_manager.algod, results.tx_ids[0]),
             "tx_id": results.tx_ids[0]
@@ -158,13 +169,13 @@ class AlgorandClient:
         return AlgorandClientSendMethods(
             payment = lambda params : self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
             asset_create = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_create(params).execute()),
-            asset_config = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_config(params).execute()), 
-            asset_freeze = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_freeze(params).execute()), 
-            asset_destroy = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_destroy(params).execute()), 
-            asset_transfer = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_transfer(params).execute()), 
-            app_call = lambda params : self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()), 
-            online_key_reg = lambda params : self._unwrap_single_send_result(self.new_group().add_online_key_reg(params).execute()), 
-            method_call = lambda params : self._unwrap_single_send_result(self.new_group().add_method_call(params).execute()), 
+            asset_config = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_config(params).execute()),
+            asset_freeze = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_freeze(params).execute()),
+            asset_destroy = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_destroy(params).execute()),
+            asset_transfer = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_transfer(params).execute()),
+            app_call = lambda params : self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()),
+            online_key_reg = lambda params : self._unwrap_single_send_result(self.new_group().add_online_key_reg(params).execute()),
+            method_call = lambda params : self._unwrap_single_send_result(self.new_group().add_method_call(params).execute()),
             asset_opt_in = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_opt_in(params).execute())
             )
 

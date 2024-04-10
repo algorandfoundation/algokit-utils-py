@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 import algosdk
 from algosdk.kmd import KMDClient
@@ -6,8 +6,7 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 from ..dispenser_api import TestNetDispenserApiClient
-from ..network_clients import (AlgoClientConfigs, get_algod_client,
-                               get_indexer_client, get_kmd_client)
+from ..network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
 
 
 class AlgoSdkClients:
@@ -79,5 +78,5 @@ class ClientManager:
         """
         if request_timeout:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
-        
+
         return TestNetDispenserApiClient(auth_token=auth_token)
