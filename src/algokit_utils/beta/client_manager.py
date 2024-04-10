@@ -1,12 +1,11 @@
-from typing import Any
 
 import algosdk
 from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from ..dispenser_api import TestNetDispenserApiClient
-from ..network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
+from src.algokit_utils.dispenser_api import TestNetDispenserApiClient
+from src.algokit_utils.network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
 
 
 class AlgoSdkClients:
@@ -19,10 +18,12 @@ class AlgoSdkClients:
         kmd (Optional[KMDClient]): Optional KMD client, see https://developer.algorand.org/docs/rest-apis/kmd/
     """
 
-    def __init__(self, algod: algosdk.v2client.algod.AlgodClient, indexer: IndexerClient | None = None, kmd: KMDClient | None = None):
+    def __init__(self, algod: algosdk.v2client.algod.AlgodClient, indexer: IndexerClient | None = None,
+                 kmd: KMDClient | None = None):
         self.algod = algod
         self.indexer = indexer
         self.kmd = kmd
+
 
 class ClientManager:
     """
@@ -38,7 +39,8 @@ class ClientManager:
         elif isinstance(clients_or_configs, AlgoClientConfigs):
             _clients = AlgoSdkClients(
                 algod=get_algod_client(clients_or_configs.algod_config),
-                indexer=get_indexer_client(clients_or_configs.indexer_config) if clients_or_configs.indexer_config else None,
+                indexer=get_indexer_client(
+                    clients_or_configs.indexer_config) if clients_or_configs.indexer_config else None,
                 kmd=get_kmd_client(clients_or_configs.kmd_config) if clients_or_configs.kmd_config else None,
             )
         self._algod = _clients.algod
@@ -64,18 +66,11 @@ class ClientManager:
             raise ValueError("Attempt to use Kmd client in AlgoKit instance with no Kmd configured")
         return self._kmd
 
-    def get_testnet_dispenser(self, auth_token: str | None = None, request_timeout: int | None = None) -> Any:
-        """
-        Returns a TestNet Dispenser API client.
-        Refer to [docs](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md) on guidance to obtain an access token.
-
-        Args:
-            params (Optional[TestNetDispenserApiClientParams]): An object containing parameters for the TestNetDispenserApiClient class.
-                Or None if you want the client to load the access token from the environment variable `ALGOKIT_DISPENSER_ACCESS_TOKEN`.
-
-        Returns:
-            An instance of the TestNetDispenserApiClient class.
-        """
+    def get_testnet_dispenser(
+        self,
+        auth_token: str | None = None,
+        request_timeout: int | None = None
+    ) -> TestNetDispenserApiClient:
         if request_timeout:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
 

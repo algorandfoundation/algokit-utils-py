@@ -1,10 +1,15 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Any
 
 import algosdk
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner, TransactionWithSigner
+from algosdk.atomic_transaction_composer import (
+    AtomicTransactionComposer,
+    AtomicTransactionResponse,
+    TransactionSigner,
+    TransactionWithSigner,
+)
 from algosdk.box_reference import BoxReference
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
@@ -13,6 +18,7 @@ from algosdk.v2client.algod import AlgodClient
 @dataclass
 class SenderParam:
     sender: str
+
 
 @dataclass
 class CommonTxnParams:
@@ -41,6 +47,7 @@ class CommonTxnParams:
     first_valid_round: int | None = None
     last_valid_round: int | None = None
 
+
 @dataclass
 class _RequiredPayTxnParams(SenderParam):
     receiver: str
@@ -55,13 +62,14 @@ class PayParams(CommonTxnParams, _RequiredPayTxnParams):
         :param receiver: The account that will receive the ALGO.
         :param amount: Amount to send.
         :param close_remainder_to: If given, close the sender account and send the remaining balance to this address.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     close_remainder_to: str | None = None
+
 
 @dataclass
 class _RequiredAssetCreateParams(SenderParam):
     total: int
+
 
 @dataclass
 class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
@@ -79,7 +87,6 @@ class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
         :param asset_name: The full name of the asset.
         :param url: The metadata URL for the asset.
         :param metadata_hash: Hash of the metadata contained in the metadata URL.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     decimals: int | None = None
     default_frozen: bool | None = None
@@ -92,9 +99,11 @@ class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
     url: str | None = None
     metadata_hash: bytes | None = None
 
+
 @dataclass
 class _RequiredAssetConfigParams(SenderParam):
     asset_id: int
+
 
 @dataclass
 class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
@@ -106,7 +115,6 @@ class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
         :param reserve: The address that holds the uncirculated supply.
         :param freeze: The address that can freeze the asset in any account. Freezing will be permanently disabled if undefined or an empty string.
         :param clawback: The address that can clawback the asset from any account. Clawback will be permanently disabled if undefined or an empty string.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     manager: str | None = None
     reserve: str | None = None
@@ -120,6 +128,7 @@ class _RequiredAssetFreezeParams(SenderParam):
     account: str
     frozen: bool
 
+
 @dataclass
 class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
     """
@@ -128,12 +137,13 @@ class AssetFreezeParams(CommonTxnParams, _RequiredAssetFreezeParams):
         :param asset_id: The ID of the asset.
         :param account: The account to freeze or unfreeze.
         :param frozen: Whether the assets in the account should be frozen.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
+
 
 @dataclass
 class _RequiredAssetDestroyParams(SenderParam):
     asset_id: int
+
 
 @dataclass
 class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
@@ -141,16 +151,17 @@ class AssetDestroyParams(CommonTxnParams, _RequiredAssetDestroyParams):
         Asset destruction parameters.
 
         :param asset_id: ID of the asset.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
+
 
 @dataclass
 class _RequiredOnlineKeyRegParams(SenderParam):
-    vote_key: bytes
-    selection_key: bytes
+    vote_key: str
+    selection_key: str
     vote_first: int
     vote_last: int
     vote_key_dilution: int
+
 
 @dataclass
 class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
@@ -163,15 +174,16 @@ class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
         :param vote_last: The last round that the participation key is valid. Not to be confused with the `last_valid` round of the keyreg transaction.
         :param vote_key_dilution: This is the dilution for the 2-level participation key. It determines the interval (number of rounds) for generating new ephemeral keys.
         :param state_proof_key: The 64 byte state proof public key commitment.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     state_proof_key: bytes | None = None
+
 
 @dataclass
 class _RequiredAssetTransferParams(SenderParam):
     asset_id: int
     amount: int
     receiver: str
+
 
 @dataclass
 class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
@@ -183,14 +195,15 @@ class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
         :param receiver: The account to send the asset to.
         :param clawback_target: The account to take the asset from.
         :param close_asset_to: The account to close the asset to.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     clawback_target: str | None = None
     close_asset_to: str | None = None
 
+
 @dataclass
 class _RequiredAssetOptInParams(SenderParam):
     asset_id: int
+
 
 @dataclass
 class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
@@ -198,8 +211,8 @@ class AssetOptInParams(CommonTxnParams, _RequiredAssetOptInParams):
         Asset opt-in parameters.
 
         :param asset_id: ID of the asset.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
+
 
 @dataclass
 class AppCallParams(CommonTxnParams, SenderParam):
@@ -217,7 +230,6 @@ class AppCallParams(CommonTxnParams, SenderParam):
         :param asset_references: Asset references.
         :param extra_pages: Number of extra pages required for the programs.
         :param box_references: Box references.
-        :param kwargs: Additional keyword arguments to pass to the parent class.
     """
     on_complete: OnComplete | None = None
     app_id: int | None = None
@@ -231,10 +243,12 @@ class AppCallParams(CommonTxnParams, SenderParam):
     extra_pages: int | None = None
     box_references: list[BoxReference] | None = None
 
+
 @dataclass
 class _RequiredMethodCallParams(SenderParam):
     app_id: int
     method: Method
+
 
 @dataclass
 class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
@@ -244,11 +258,11 @@ class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
         :param app_id: ID of the application.
         :param method: The ABI method to call.
         :param args: Arguments to the ABI method.
-        :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
     """
     args: list | None = None
 
-TxnParams = Union[
+
+TxnParams = Union[  # noqa: UP007
     PayParams,
     AssetCreateParams,
     AssetConfigParams,
@@ -276,11 +290,11 @@ class AlgokitComposer:
     """
 
     def __init__(
-        self,
-        algod: AlgodClient,
-        get_signer: Callable[[str], TransactionSigner],
-        get_suggested_params: Callable[[], algosdk.transaction.SuggestedParams] | None = None,
-        default_validity_window: int | None = None,
+            self,
+            algod: AlgodClient,
+            get_signer: Callable[[str], TransactionSigner],
+            get_suggested_params: Callable[[], algosdk.transaction.SuggestedParams] | None = None,
+            default_validity_window: int | None = None,
     ):
         """
         Initialize an instance of the AlgokitComposer class.
@@ -356,7 +370,12 @@ class AlgokitComposer:
 
         return group
 
-    def _common_txn_build_step(self, params: CommonTxnParams, txn: algosdk.transaction.Transaction, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _common_txn_build_step(
+            self,
+            params: CommonTxnParams,
+            txn: algosdk.transaction.Transaction,
+            suggested_params: algosdk.transaction.SuggestedParams
+    ) -> algosdk.transaction.Transaction:
         if params.lease:
             txn.lease = params.lease
         if params.rekey_to:
@@ -387,7 +406,8 @@ class AlgokitComposer:
 
         return txn
 
-    def _build_payment(self, params: PayParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_payment(self, params: PayParams,
+                       suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.PaymentTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -398,7 +418,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_asset_create(self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_asset_create(self, params: AssetCreateParams,
+                            suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.AssetConfigTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -418,7 +439,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_app_call(self, params: AppCallParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_app_call(self, params: AppCallParams,
+                        suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         sdk_params = {
             'sender': params.sender,
             'sp': suggested_params,
@@ -431,8 +453,12 @@ class AlgokitComposer:
             'foreign_apps': params.app_references,
             'foreign_assets': params.asset_references,
             'extra_pages': params.extra_pages,
-            'local_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("local_uints") or 0, num_byte_slices=params.schema.get("local_byte_slices") or 0) if params.schema else None,
-            'global_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("global_uints") or 0, num_byte_slices=params.schema.get("global_byte_slices") or 0) if params.schema else None,
+            'local_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("local_uints") or 0,
+                                                            num_byte_slices=params.schema.get(
+                                                                "local_byte_slices") or 0) if params.schema else None,
+            'global_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("global_uints") or 0,
+                                                             num_byte_slices=params.schema.get(
+                                                                 "global_byte_slices") or 0) if params.schema else None,
         }
 
         if not params.app_id:
@@ -445,7 +471,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_asset_config(self, params: AssetConfigParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_asset_config(self, params: AssetConfigParams,
+                            suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.AssetConfigTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -459,7 +486,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_asset_destroy(self, params: AssetDestroyParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_asset_destroy(self, params: AssetDestroyParams,
+                             suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.AssetDestroyTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -468,7 +496,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_asset_freeze(self, params: AssetFreezeParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_asset_freeze(self, params: AssetFreezeParams,
+                            suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.AssetFreezeTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -479,7 +508,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_asset_transfer(self, params: AssetTransferParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_asset_transfer(self, params: AssetTransferParams,
+                              suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.AssetTransferTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -492,7 +522,8 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _build_key_reg(self, params: OnlineKeyRegParams, suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
+    def _build_key_reg(self, params: OnlineKeyRegParams,
+                       suggested_params: algosdk.transaction.SuggestedParams) -> algosdk.transaction.Transaction:
         txn = algosdk.transaction.KeyregTxn(
             sender=params.sender,
             sp=suggested_params,
@@ -508,25 +539,24 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
+    def _is_abi_value(self, x: Any) -> bool:
+        if isinstance(x, list):
+            return len(x) == 0 or all(self._is_abi_value(item) for item in x)
 
-    def _build_method_call(self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
+        return isinstance(x, bool | int | float | str | bytes)
+
+    def _build_method_call(self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams) -> \
+            list[TransactionWithSigner]:
         method_args = []
         arg_offset = 0
 
-        def is_abi_value(x) -> bool:
-            if isinstance(x, list):
-                return len(x) == 0 or all(is_abi_value(item) for item in x)
-
-            return isinstance(x, bool | int | float | str | bytes)
-
         if params.args:
             for i, arg in enumerate(params.args):
-                if is_abi_value(arg):
+                if self.is_abi_value(arg):
                     method_args.append(arg)
                     continue
 
                 if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
-                    txn: algosdk.transaction.Transaction | None = None
                     if isinstance(arg, MethodCallParams):
                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
                         method_args.extend(temp_txn_with_signers)
@@ -537,7 +567,8 @@ class AlgokitComposer:
                     elif isinstance(arg, PayParams):
                         txn = self._build_payment(arg, suggested_params)
                     elif isinstance(arg, AssetOptInParams):
-                        txn = self._build_asset_transfer(AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params)
+                        txn = self._build_asset_transfer(
+                            AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params)
                     elif isinstance(arg, AssetCreateParams):
                         txn = self._build_asset_create(arg, suggested_params)
                     elif isinstance(arg, AssetConfigParams):
@@ -553,7 +584,9 @@ class AlgokitComposer:
                     else:
                         raise ValueError(f'Unsupported method arg transaction type: {arg}')
 
-                    method_args.append(TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender)))
+                    method_args.append(
+                        TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
+                    )
 
                     continue
 
@@ -575,8 +608,8 @@ class AlgokitComposer:
 
         return self._build_atc(method_atc)
 
-
-    def _build_txn(self, txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer, suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
+    def _build_txn(self, txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
+                   suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
         if isinstance(txn, TransactionWithSigner):
             return [txn]
 
@@ -610,15 +643,16 @@ class AlgokitComposer:
             asset_transfer = self._build_asset_transfer(txn, suggested_params)
             return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
         elif isinstance(txn, AssetOptInParams):
-            asset_transfer = self._build_asset_transfer(AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params)
+            asset_transfer = self._build_asset_transfer(
+                AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params)
             return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
         elif isinstance(txn, OnlineKeyRegParams):
             key_reg = self._build_key_reg(txn, suggested_params)
             return [TransactionWithSigner(txn=key_reg, signer=signer)]
         else:
-            raise ValueError(f'Unsupported txn type: {txn.type}')
+            raise ValueError(f'Unsupported txn: {txn}')
 
-    def build_group(self):
+    def build_group(self) -> list[TransactionWithSigner]:
         suggested_params = self.get_suggested_params()
 
         txn_with_signers: list[TransactionWithSigner] = []
@@ -640,7 +674,7 @@ class AlgokitComposer:
 
         return self.atc.build_group()
 
-    def execute(self, *, max_rounds_to_wait: int | None = None):
+    def execute(self, *, max_rounds_to_wait: int | None = None) -> AtomicTransactionResponse:
         group = self.build_group()
 
         wait_rounds = max_rounds_to_wait

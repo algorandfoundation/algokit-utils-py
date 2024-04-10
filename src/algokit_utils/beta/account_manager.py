@@ -5,7 +5,8 @@ from typing import Any, cast
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 
-from ..account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
+from src.algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
+
 from .client_manager import ClientManager
 
 
@@ -13,6 +14,7 @@ from .client_manager import ClientManager
 class AddressAndSigner:
     address: str
     signer: TransactionSigner
+
 
 class AccountManager:
     """Creates and keeps track of signing accounts against sending addresses."""
@@ -62,7 +64,6 @@ class AccountManager:
             raise ValueError(f"No signer found for address {sender}")
         return signer
 
-
     def get_information(self, sender: str) -> dict[str, Any]:
         """
         Returns the given sender account's current status, balance and spendable amounts.
@@ -78,7 +79,7 @@ class AccountManager:
         """
         return cast(dict[str, Any], self._client_manager.algod.account_info(sender))
 
-    def get_asset_information(self, sender: str, asset_id: int):
+    def get_asset_information(self, sender: str, asset_id: int) -> dict[str, Any]:
         return self._client_manager.algod.account_asset_info(sender, asset_id)
 
     # TODO
@@ -99,10 +100,9 @@ class AccountManager:
     #     return self.signer_account(rekeyed_account(account, sender) if sender else account)
 
     def from_kmd(
-        self,
-        name: str,
-        predicate: Callable[[dict[str, Any]], bool] | None = None,
-        sender: str | None = None,
+            self,
+            name: str,
+            predicate: Callable[[dict[str, Any]], bool] | None = None,
     ) -> AddressAndSigner:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet (identified by name).
@@ -114,7 +114,6 @@ class AccountManager:
 
         :param name: The name of the wallet to retrieve an account from
         :param predicate: An optional filter to use to find the account (otherwise it will return a random account from the wallet)
-        :param sender: The optional sender address to use this signer for (aka a rekeyed account)
         :return: The account
         """
         account = get_kmd_wallet_account(

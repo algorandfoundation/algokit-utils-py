@@ -18,6 +18,8 @@ __all__ = [
     "is_localnet",
     "is_mainnet",
     "is_testnet",
+    "AlgoClientConfigs",
+    "get_kmd_client"
 ]
 
 _PURE_STAKE_HOST = "purestake.io"

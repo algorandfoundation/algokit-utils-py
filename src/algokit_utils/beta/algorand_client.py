@@ -7,17 +7,9 @@ from typing import Any
 from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
 from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
 
-from ..network_clients import (
-    AlgoClientConfigs,
-    get_algod_client,
-    get_algonode_config,
-    get_default_localnet_config,
-    get_indexer_client,
-    get_kmd_client,
-)
-from .account_manager import AccountManager
-from .client_manager import AlgoSdkClients, ClientManager
-from .composer import (
+from src.algokit_utils.beta.account_manager import AccountManager
+from src.algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
+from src.algokit_utils.beta.composer import (
     AlgokitComposer,
     AppCallParams,
     AssetConfigParams,
@@ -29,6 +21,14 @@ from .composer import (
     MethodCallParams,
     OnlineKeyRegParams,
     PayParams,
+)
+from src.algokit_utils.network_clients import (
+    AlgoClientConfigs,
+    get_algod_client,
+    get_algonode_config,
+    get_default_localnet_config,
+    get_indexer_client,
+    get_kmd_client,
 )
 
 
@@ -45,6 +45,7 @@ class AlgorandClientSendMethods:
     method_call: Callable[[MethodCallParams], dict[str, Any]]
     asset_opt_in: Callable[[AssetOptInParams], dict[str, Any]]
 
+
 @dataclass
 class AlgorandClientTransactionMethods:
     payment: Callable[[PayParams], Transaction]
@@ -57,7 +58,6 @@ class AlgorandClientTransactionMethods:
     online_key_reg: Callable[[OnlineKeyRegParams], Transaction]
     method_call: Callable[[MethodCallParams], list[Transaction]]
     asset_opt_in: Callable[[AssetOptInParams], Transaction]
-
 
 
 class AlgorandClient:
@@ -135,7 +135,7 @@ class AlgorandClient:
     def get_suggested_params(self) -> SuggestedParams:
         """Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)"""
         if self._cached_suggested_params and (
-            self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
+                self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
         ):
             return copy.deepcopy(self._cached_suggested_params)
 
@@ -167,33 +167,41 @@ class AlgorandClient:
     def send(self) -> AlgorandClientSendMethods:
         """Methods for sending a transaction"""
         return AlgorandClientSendMethods(
-            payment = lambda params : self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
-            asset_create = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_create(params).execute()),
-            asset_config = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_config(params).execute()),
-            asset_freeze = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_freeze(params).execute()),
-            asset_destroy = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_destroy(params).execute()),
-            asset_transfer = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_transfer(params).execute()),
-            app_call = lambda params : self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()),
-            online_key_reg = lambda params : self._unwrap_single_send_result(self.new_group().add_online_key_reg(params).execute()),
-            method_call = lambda params : self._unwrap_single_send_result(self.new_group().add_method_call(params).execute()),
-            asset_opt_in = lambda params : self._unwrap_single_send_result(self.new_group().add_asset_opt_in(params).execute())
-            )
+            payment=lambda params: self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
+            asset_create=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_create(params).execute()),
+            asset_config=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_config(params).execute()),
+            asset_freeze=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_freeze(params).execute()),
+            asset_destroy=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_destroy(params).execute()),
+            asset_transfer=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_transfer(params).execute()),
+            app_call=lambda params: self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()),
+            online_key_reg=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_online_key_reg(params).execute()),
+            method_call=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_method_call(params).execute()),
+            asset_opt_in=lambda params: self._unwrap_single_send_result(
+                self.new_group().add_asset_opt_in(params).execute())
+        )
 
     @property
     def transactions(self) -> AlgorandClientTransactionMethods:
         """Methods for building transactions"""
 
         return AlgorandClientTransactionMethods(
-            payment = lambda params : self.new_group().add_payment(params).build_group()[0].txn,
-            asset_create = lambda params : self.new_group().add_asset_create(params).build_group()[0].txn,
-            asset_config = lambda params : self.new_group().add_asset_config(params).build_group()[0].txn,
-            asset_freeze = lambda params : self.new_group().add_asset_freeze(params).build_group()[0].txn,
-            asset_destroy = lambda params : self.new_group().add_asset_destroy(params).build_group()[0].txn,
-            asset_transfer = lambda params : self.new_group().add_asset_transfer(params).build_group()[0].txn,
-            app_call = lambda params : self.new_group().add_app_call(params).build_group()[0].txn,
-            online_key_reg = lambda params : self.new_group().add_online_key_reg(params).build_group()[0].txn,
-            method_call = lambda params : [txn.txn for txn in self.new_group().add_method_call(params).build_group()],
-            asset_opt_in = lambda params : self.new_group().add_asset_opt_in(params).build_group()[0].txn
+            payment=lambda params: self.new_group().add_payment(params).build_group()[0].txn,
+            asset_create=lambda params: self.new_group().add_asset_create(params).build_group()[0].txn,
+            asset_config=lambda params: self.new_group().add_asset_config(params).build_group()[0].txn,
+            asset_freeze=lambda params: self.new_group().add_asset_freeze(params).build_group()[0].txn,
+            asset_destroy=lambda params: self.new_group().add_asset_destroy(params).build_group()[0].txn,
+            asset_transfer=lambda params: self.new_group().add_asset_transfer(params).build_group()[0].txn,
+            app_call=lambda params: self.new_group().add_app_call(params).build_group()[0].txn,
+            online_key_reg=lambda params: self.new_group().add_online_key_reg(params).build_group()[0].txn,
+            method_call=lambda params: [txn.txn for txn in self.new_group().add_method_call(params).build_group()],
+            asset_opt_in=lambda params: self.new_group().add_asset_opt_in(params).build_group()[0].txn
         )
 
     @staticmethod
@@ -205,9 +213,9 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config = get_default_localnet_config("algod"),
-                indexer_config = get_default_localnet_config("indexer"),
-                kmd_config = get_default_localnet_config("kmd"),
+                algod_config=get_default_localnet_config("algod"),
+                indexer_config=get_default_localnet_config("indexer"),
+                kmd_config=get_default_localnet_config("kmd"),
             )
         )
 
@@ -220,9 +228,9 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config = get_algonode_config("testnet", "algod", ""),
-                indexer_config = get_algonode_config("testnet", "indexer", ""),
-                kmd_config = None,
+                algod_config=get_algonode_config("testnet", "algod", ""),
+                indexer_config=get_algonode_config("testnet", "indexer", ""),
+                kmd_config=None,
             )
         )
 
@@ -235,9 +243,9 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config = get_algonode_config("mainnet", "algod", ""),
-                indexer_config = get_algonode_config("mainnet", "indexer", ""),
-                kmd_config = None,
+                algod_config=get_algonode_config("mainnet", "algod", ""),
+                indexer_config=get_algonode_config("mainnet", "indexer", ""),
+                kmd_config=None,
             )
         )
 
