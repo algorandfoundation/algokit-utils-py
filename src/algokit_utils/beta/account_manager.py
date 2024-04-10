@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
@@ -77,7 +77,9 @@ class AccountManager:
         :param sender: The address of the sender/account to look up
         :return: The account information
         """
-        return cast(dict[str, Any], self._client_manager.algod.account_info(sender))
+        info = self._client_manager.algod.account_info(sender)
+        assert isinstance(info, dict)
+        return info
 
     def get_asset_information(self, sender: str, asset_id: int) -> dict[str, Any]:
         return self._client_manager.algod.account_asset_info(sender, asset_id)
