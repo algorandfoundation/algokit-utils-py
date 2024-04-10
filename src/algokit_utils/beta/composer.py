@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Union
 
 import algosdk
 from algosdk.abi import Method
@@ -30,16 +30,16 @@ class CommonTxnParams:
         :param first_valid_round: Set the first round this transaction is valid. If left undefined, the value from algod will be used. Only set this when you intentionally want this to be some time in the future.
         :param last_valid_round: The last round this transaction is valid. It is recommended to use validity_window instead.
     """
-    signer: Optional[TransactionSigner] = None
-    rekey_to: Optional[str] = None
-    note: Optional[bytes] = None
-    lease: Optional[bytes] = None
-    static_fee: Optional[int] = None
-    extra_fee: Optional[int] = None
-    max_fee: Optional[int] = None
-    validity_window: Optional[int] = None
-    first_valid_round: Optional[int] = None
-    last_valid_round: Optional[int] = None
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: int | None = None
+    extra_fee: int | None = None
+    max_fee: int | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
 
 @dataclass
 class _RequiredPayTxnParams(SenderParam):
@@ -57,7 +57,7 @@ class PayParams(CommonTxnParams, _RequiredPayTxnParams):
         :param close_remainder_to: If given, close the sender account and send the remaining balance to this address.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    close_remainder_to: Optional[str] = None
+    close_remainder_to: str | None = None
 
 @dataclass
 class _RequiredAssetCreateParams(SenderParam):
@@ -81,16 +81,16 @@ class AssetCreateParams(CommonTxnParams, _RequiredAssetCreateParams):
         :param metadata_hash: Hash of the metadata contained in the metadata URL.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    decimals: Optional[int] = None
-    default_frozen: Optional[bool] = None
-    manager: Optional[str] = None
-    reserve: Optional[str] = None
-    freeze: Optional[str] = None
-    clawback: Optional[str] = None
-    unit_name: Optional[str] = None
-    asset_name: Optional[str] = None
-    url: Optional[str] = None
-    metadata_hash: Optional[bytes] = None
+    decimals: int | None = None
+    default_frozen: bool | None = None
+    manager: str | None = None
+    reserve: str | None = None
+    freeze: str | None = None
+    clawback: str | None = None
+    unit_name: str | None = None
+    asset_name: str | None = None
+    url: str | None = None
+    metadata_hash: bytes | None = None
 
 @dataclass
 class _RequiredAssetConfigParams(SenderParam):
@@ -108,10 +108,10 @@ class AssetConfigParams(CommonTxnParams, _RequiredAssetConfigParams):
         :param clawback: The address that can clawback the asset from any account. Clawback will be permanently disabled if undefined or an empty string.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    manager: Optional[str] = None
-    reserve: Optional[str] = None
-    freeze: Optional[str] = None
-    clawback: Optional[str] = None
+    manager: str | None = None
+    reserve: str | None = None
+    freeze: str | None = None
+    clawback: str | None = None
 
 
 @dataclass
@@ -165,7 +165,7 @@ class OnlineKeyRegParams(CommonTxnParams, _RequiredOnlineKeyRegParams):
         :param state_proof_key: The 64 byte state proof public key commitment.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    state_proof_key: Optional[bytes] = None
+    state_proof_key: bytes | None = None
 
 @dataclass
 class _RequiredAssetTransferParams(SenderParam):
@@ -185,8 +185,8 @@ class AssetTransferParams(CommonTxnParams, _RequiredAssetTransferParams):
         :param close_asset_to: The account to close the asset to.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    clawback_target: Optional[str] = None
-    close_asset_to: Optional[str] = None
+    clawback_target: str | None = None
+    close_asset_to: str | None = None
 
 @dataclass
 class _RequiredAssetOptInParams(SenderParam):
@@ -219,17 +219,17 @@ class AppCallParams(CommonTxnParams, SenderParam):
         :param box_references: Box references.
         :param kwargs: Additional keyword arguments to pass to the parent class.
     """
-    on_complete: Optional[OnComplete] = None
-    app_id: Optional[int] = None
-    approval_program: Optional[bytes] = None
-    clear_program: Optional[bytes] = None
-    schema: Optional[dict[str, int]] = None
-    args: Optional[list[bytes]] = None
-    account_references: Optional[list[str]] = None
-    app_references: Optional[list[int]] = None
-    asset_references: Optional[list[int]] = None
-    extra_pages: Optional[int] = None
-    box_references: Optional[list[BoxReference]] = None
+    on_complete: OnComplete | None = None
+    app_id: int | None = None
+    approval_program: bytes | None = None
+    clear_program: bytes | None = None
+    schema: dict[str, int] | None = None
+    args: list[bytes] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    extra_pages: int | None = None
+    box_references: list[BoxReference] | None = None
 
 @dataclass
 class _RequiredMethodCallParams(SenderParam):
@@ -246,7 +246,7 @@ class MethodCallParams(CommonTxnParams, _RequiredMethodCallParams):
         :param args: Arguments to the ABI method.
         :param kwargs: Additional keyword arguments to pass to the parent class and AppCallParams.
     """
-    args: Optional[list] = None
+    args: list | None = None
 
 TxnParams = Union[
     PayParams,
@@ -279,8 +279,8 @@ class AlgokitComposer:
         self,
         algod: AlgodClient,
         get_signer: Callable[[str], TransactionSigner],
-        get_suggested_params: Optional[Callable[[], algosdk.transaction.SuggestedParams]] = None,
-        default_validity_window: Optional[int] = None,
+        get_suggested_params: Callable[[], algosdk.transaction.SuggestedParams] | None = None,
+        default_validity_window: int | None = None,
     ):
         """
         Initialize an instance of the AlgokitComposer class.
@@ -292,7 +292,7 @@ class AlgokitComposer:
             default_validity_window (Optional[int], optional): The default validity window for transactions. If not provided, it defaults to 10. Defaults to None.
         """
         self.txn_method_map: dict[str, algosdk.abi.Method] = {}
-        self.txns: list[Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer]] = []
+        self.txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
         self.atc: AtomicTransactionComposer = AtomicTransactionComposer()
         self.algod: AlgodClient = algod
         self.default_get_send_params = lambda: self.algod.suggested_params()
@@ -517,7 +517,7 @@ class AlgokitComposer:
             if isinstance(x, list):
                 return len(x) == 0 or all(is_abi_value(item) for item in x)
 
-            return isinstance(x, (bool, int, float, str, bytes))
+            return isinstance(x, bool | int | float | str | bytes)
 
         if params.args:
             for i, arg in enumerate(params.args):
@@ -526,7 +526,7 @@ class AlgokitComposer:
                     continue
 
                 if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
-                    txn: Optional[algosdk.transaction.Transaction] = None
+                    txn: algosdk.transaction.Transaction | None = None
                     if isinstance(arg, MethodCallParams):
                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
                         method_args.extend(temp_txn_with_signers)
@@ -576,7 +576,7 @@ class AlgokitComposer:
         return self._build_atc(method_atc)
 
 
-    def _build_txn(self, txn: Union[TransactionWithSigner, TxnParams, AtomicTransactionComposer], suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
+    def _build_txn(self, txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer, suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
         if isinstance(txn, TransactionWithSigner):
             return [txn]
 

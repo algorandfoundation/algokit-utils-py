@@ -66,7 +66,7 @@ def test_send_payment(algorand: AlgorandClient, alice: AddressAndSigner, bob: Ad
     alice_post_balance = algorand.account.get_information(alice.address)['amount']
     bob_post_balance = algorand.account.get_information(bob.address)['amount']
 
-    assert result['confirmation'] != None
+    assert result['confirmation'] is not None
     assert alice_post_balance == alice_pre_balance - 1000 - amount
     assert bob_post_balance == bob_pre_balance + amount
 
@@ -86,7 +86,7 @@ def test_asset_opt_in(algorand: AlgorandClient, alice: AddressAndSigner, bob: Ad
 
     result = algorand.send.asset_opt_in(AssetOptInParams(sender=bob.address, asset_id=asset_index))
 
-    assert algorand.account.get_asset_information(bob.address, asset_index) != None
+    assert algorand.account.get_asset_information(bob.address, asset_index) is not None
 
 def test_add_atc(algorand: AlgorandClient, app_client: ApplicationClient, alice: AddressAndSigner):
     atc = AtomicTransactionComposer()

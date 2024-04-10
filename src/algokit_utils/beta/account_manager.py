@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
@@ -25,7 +25,7 @@ class AccountManager:
         """
         self._client_manager = client_manager
         self._accounts: dict[str, TransactionSigner] = {}
-        self._default_signer: Optional[TransactionSigner] = None
+        self._default_signer: TransactionSigner | None = None
 
     def set_default_signer(self, signer: TransactionSigner) -> "AccountManager":
         """
@@ -101,8 +101,8 @@ class AccountManager:
     def from_kmd(
         self,
         name: str,
-        predicate: Optional[Callable[[dict[str, Any]], bool]] = None,
-        sender: Optional[str] = None,
+        predicate: Callable[[dict[str, Any]], bool] | None = None,
+        sender: str | None = None,
     ) -> AddressAndSigner:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet (identified by name).

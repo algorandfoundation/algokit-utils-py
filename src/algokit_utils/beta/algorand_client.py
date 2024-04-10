@@ -2,7 +2,7 @@ import copy
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any
 
 from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
 from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
@@ -63,12 +63,12 @@ class AlgorandClientTransactionMethods:
 class AlgorandClient:
     """A client that brokers easy access to Algorand functionality."""
 
-    def __init__(self, config: Union[AlgoClientConfigs, AlgoSdkClients]):
+    def __init__(self, config: AlgoClientConfigs | AlgoSdkClients):
         self._client_manager: ClientManager = ClientManager(config)
         self._account_manager: AccountManager = AccountManager(self._client_manager)
 
-        self._cached_suggested_params: Optional[SuggestedParams] = None
-        self._cached_suggested_params_expiry: Optional[float] = None
+        self._cached_suggested_params: SuggestedParams | None = None
+        self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
 
         self._default_validity_window: int = 10
@@ -110,7 +110,7 @@ class AlgorandClient:
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_suggested_params(self, suggested_params: SuggestedParams, until: Optional[float] = None) -> "AlgorandClient":
+    def set_suggested_params(self, suggested_params: SuggestedParams, until: float | None = None) -> "AlgorandClient":
         """
         Sets a cache value to use for suggested params.
 

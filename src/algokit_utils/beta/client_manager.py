@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any
 
 import algosdk
 from algosdk.kmd import KMDClient
@@ -19,7 +19,7 @@ class AlgoSdkClients:
         kmd (Optional[KMDClient]): Optional KMD client, see https://developer.algorand.org/docs/rest-apis/kmd/
     """
 
-    def __init__(self, algod: algosdk.v2client.algod.AlgodClient, indexer: Optional[IndexerClient] = None, kmd: Optional[KMDClient] = None):
+    def __init__(self, algod: algosdk.v2client.algod.AlgodClient, indexer: IndexerClient | None = None, kmd: KMDClient | None = None):
         self.algod = algod
         self.indexer = indexer
         self.kmd = kmd
@@ -32,7 +32,7 @@ class ClientManager:
         clients_or_config (Union[AlgoConfig, AlgoSdkClients]): algosdk clients or config for interacting with the official Algorand APIs.
     """
 
-    def __init__(self, clients_or_configs: Union[AlgoClientConfigs, AlgoSdkClients]):
+    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
         elif isinstance(clients_or_configs, AlgoClientConfigs):
