@@ -7,7 +7,6 @@ from typing import Any, Optional, Union
 from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
 from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
 
-from ..account_manager import AccountManager
 from ..network_clients import (
     AlgoClientConfigs,
     get_algod_client,
@@ -16,6 +15,7 @@ from ..network_clients import (
     get_indexer_client,
     get_kmd_client,
 )
+from .account_manager import AccountManager
 from .client_manager import AlgoSdkClients, ClientManager
 from .composer import (
     AlgokitComposer,

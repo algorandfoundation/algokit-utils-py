@@ -5,8 +5,8 @@ from typing import Any, Optional, cast
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 
-from .account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
-from .beta.client_manager import ClientManager
+from ..account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
+from .client_manager import ClientManager
 
 
 @dataclass
