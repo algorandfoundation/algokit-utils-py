@@ -453,12 +453,14 @@ class AlgokitComposer:
             'foreign_apps': params.app_references,
             'foreign_assets': params.asset_references,
             'extra_pages': params.extra_pages,
-            'local_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("local_uints") or 0,
-                                                            num_byte_slices=params.schema.get(
-                                                                "local_byte_slices") or 0) if params.schema else None,
-            'global_schema': algosdk.transaction.StateSchema(num_uints=params.schema.get("global_uints") or 0,
-                                                             num_byte_slices=params.schema.get(
-                                                                 "global_byte_slices") or 0) if params.schema else None,
+            'local_schema': algosdk.transaction.StateSchema(
+                num_uints=params.schema.get("local_uints", 0),
+                num_byte_slices=params.schema.get("local_byte_slices", 0)
+            ) if params.schema else None,
+            'global_schema': algosdk.transaction.StateSchema(
+                num_uints=params.schema.get("global_uints", 0),
+                num_byte_slices=params.schema.get("global_byte_slices", 0)
+            ) if params.schema else None,
         }
 
         if not params.app_id:
