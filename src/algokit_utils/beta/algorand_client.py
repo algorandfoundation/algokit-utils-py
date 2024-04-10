@@ -4,12 +4,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
-from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
-
-from src.algokit_utils.beta.account_manager import AccountManager
-from src.algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
-from src.algokit_utils.beta.composer import (
+from algokit_utils.beta.account_manager import AccountManager
+from algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
+from algokit_utils.beta.composer import (
     AlgokitComposer,
     AppCallParams,
     AssetConfigParams,
@@ -22,7 +19,7 @@ from src.algokit_utils.beta.composer import (
     OnlineKeyRegParams,
     PayParams,
 )
-from src.algokit_utils.network_clients import (
+from algokit_utils.network_clients import (
     AlgoClientConfigs,
     get_algod_client,
     get_algonode_config,
@@ -30,6 +27,8 @@ from src.algokit_utils.network_clients import (
     get_indexer_client,
     get_kmd_client,
 )
+from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
+from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
 
 
 @dataclass

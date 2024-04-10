@@ -1,11 +1,10 @@
 
 import algosdk
+from algokit_utils.dispenser_api import TestNetDispenserApiClient
+from algokit_utils.network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
 from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
-
-from src.algokit_utils.dispenser_api import TestNetDispenserApiClient
-from src.algokit_utils.network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
 
 
 class AlgoSdkClients:

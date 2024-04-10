@@ -2,10 +2,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
-
-from src.algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 
 from .client_manager import ClientManager
 
