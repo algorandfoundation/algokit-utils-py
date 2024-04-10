@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Union
 
 import algosdk
 from algosdk.abi import Method
@@ -539,7 +539,7 @@ class AlgokitComposer:
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
-    def _is_abi_value(self, x: Any) -> bool:
+    def _is_abi_value(self, x: bool | float | str | bytes | list | TxnParams) -> bool:
         if isinstance(x, list):
             return len(x) == 0 or all(self._is_abi_value(item) for item in x)
 
@@ -609,49 +609,49 @@ class AlgokitComposer:
 
         return self._build_atc(method_atc)
 
-    def _build_txn(self, txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
+    def _build_txn(self, txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,  # noqa: PLR0911
                    suggested_params: algosdk.transaction.SuggestedParams) -> list[TransactionWithSigner]:
-        if isinstance(txn, TransactionWithSigner):
-            return [txn]
-
-        if isinstance(txn, AtomicTransactionComposer):
-            return self._build_atc(txn)
-
-        if isinstance(txn, MethodCallParams):
-            return self._build_method_call(txn, suggested_params)
+        match txn:
+            case TransactionWithSigner():
+                return [txn]
+            case AtomicTransactionComposer():
+                return self._build_atc(txn)
+            case MethodCallParams():
+                return self._build_method_call(txn, suggested_params)
 
         signer = txn.signer or self.get_signer(txn.sender)
 
-        if isinstance(txn, PayParams):
-            payment = self._build_payment(txn, suggested_params)
-            return [TransactionWithSigner(txn=payment, signer=signer)]
-        elif isinstance(txn, AssetCreateParams):
-            asset_create = self._build_asset_create(txn, suggested_params)
-            return [TransactionWithSigner(txn=asset_create, signer=signer)]
-        elif isinstance(txn, AppCallParams):
-            app_call = self._build_app_call(txn, suggested_params)
-            return [TransactionWithSigner(txn=app_call, signer=signer)]
-        elif isinstance(txn, AssetConfigParams):
-            asset_config = self._build_asset_config(txn, suggested_params)
-            return [TransactionWithSigner(txn=asset_config, signer=signer)]
-        elif isinstance(txn, AssetDestroyParams):
-            asset_destroy = self._build_asset_destroy(txn, suggested_params)
-            return [TransactionWithSigner(txn=asset_destroy, signer=signer)]
-        elif isinstance(txn, AssetFreezeParams):
-            asset_freeze = self._build_asset_freeze(txn, suggested_params)
-            return [TransactionWithSigner(txn=asset_freeze, signer=signer)]
-        elif isinstance(txn, AssetTransferParams):
-            asset_transfer = self._build_asset_transfer(txn, suggested_params)
-            return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
-        elif isinstance(txn, AssetOptInParams):
-            asset_transfer = self._build_asset_transfer(
-                AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params)
-            return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
-        elif isinstance(txn, OnlineKeyRegParams):
-            key_reg = self._build_key_reg(txn, suggested_params)
-            return [TransactionWithSigner(txn=key_reg, signer=signer)]
-        else:
-            raise ValueError(f'Unsupported txn: {txn}')
+        match txn:
+            case PayParams():
+                payment = self._build_payment(txn, suggested_params)
+                return [TransactionWithSigner(txn=payment, signer=signer)]
+            case AssetCreateParams():
+                asset_create = self._build_asset_create(txn, suggested_params)
+                return [TransactionWithSigner(txn=asset_create, signer=signer)]
+            case AppCallParams():
+                app_call = self._build_app_call(txn, suggested_params)
+                return [TransactionWithSigner(txn=app_call, signer=signer)]
+            case AssetConfigParams():
+                asset_config = self._build_asset_config(txn, suggested_params)
+                return [TransactionWithSigner(txn=asset_config, signer=signer)]
+            case AssetDestroyParams():
+                asset_destroy = self._build_asset_destroy(txn, suggested_params)
+                return [TransactionWithSigner(txn=asset_destroy, signer=signer)]
+            case AssetFreezeParams():
+                asset_freeze = self._build_asset_freeze(txn, suggested_params)
+                return [TransactionWithSigner(txn=asset_freeze, signer=signer)]
+            case AssetTransferParams():
+                asset_transfer = self._build_asset_transfer(txn, suggested_params)
+                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+            case AssetOptInParams():
+                asset_transfer = self._build_asset_transfer(
+                    AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params)
+                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+            case OnlineKeyRegParams():
+                key_reg = self._build_key_reg(txn, suggested_params)
+                return [TransactionWithSigner(txn=key_reg, signer=signer)]
+            case _:
+                raise ValueError(f'Unsupported txn: {txn}')
 
     def build_group(self) -> list[TransactionWithSigner]:
         suggested_params = self.get_suggested_params()
