@@ -16,11 +16,11 @@ class AddressAndSigner:
 
 
 class AccountManager:
-    """Creates and keeps track of signing accounts against sending addresses."""
+    """Creates and keeps track of addresses and signers"""
 
     def __init__(self, client_manager: ClientManager):
         """
-        Create a new account creator.
+        Create a new account manager.
 
         :param client_manager: The ClientManager client to use for algod and kmd clients
         """

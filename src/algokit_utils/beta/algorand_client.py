@@ -33,6 +33,9 @@ from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmat
 
 @dataclass
 class AlgorandClientSendMethods:
+    """
+    Methods used to send a transaction to the network and wait for confirmation
+    """
     payment: Callable[[PayParams], dict[str, Any]]
     asset_create: Callable[[AssetCreateParams], dict[str, Any]]
     asset_config: Callable[[AssetConfigParams], dict[str, Any]]
@@ -47,6 +50,9 @@ class AlgorandClientSendMethods:
 
 @dataclass
 class AlgorandClientTransactionMethods:
+    """
+    Methods used to form a transaction without signing or sending to the network
+    """
     payment: Callable[[PayParams], Transaction]
     asset_create: Callable[[AssetCreateParams], Transaction]
     asset_config: Callable[[AssetConfigParams], Transaction]
@@ -164,7 +170,7 @@ class AlgorandClient:
 
     @property
     def send(self) -> AlgorandClientSendMethods:
-        """Methods for sending a transaction"""
+        """Methods for sending a transaction and waiting for confirmation"""
         return AlgorandClientSendMethods(
             payment=lambda params: self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
             asset_create=lambda params: self._unwrap_single_send_result(
