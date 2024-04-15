@@ -635,7 +635,7 @@ class AlgokitComposer:
 
     def _build_txn(
         self,
-        txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,  # noqa: PLR0911
+        txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
         suggested_params: algosdk.transaction.SuggestedParams,
     ) -> list[TransactionWithSigner]:
         match txn:
