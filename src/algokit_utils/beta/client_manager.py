@@ -1,4 +1,3 @@
-
 import algosdk
 from algokit_utils.dispenser_api import TestNetDispenserApiClient
 from algokit_utils.network_clients import AlgoClientConfigs, get_algod_client, get_indexer_client, get_kmd_client
@@ -17,8 +16,12 @@ class AlgoSdkClients:
         kmd (Optional[KMDClient]): Optional KMD client, see https://developer.algorand.org/docs/rest-apis/kmd/
     """
 
-    def __init__(self, algod: algosdk.v2client.algod.AlgodClient, indexer: IndexerClient | None = None,
-                 kmd: KMDClient | None = None):
+    def __init__(
+        self,
+        algod: algosdk.v2client.algod.AlgodClient,
+        indexer: IndexerClient | None = None,
+        kmd: KMDClient | None = None,
+    ):
         self.algod = algod
         self.indexer = indexer
         self.kmd = kmd
@@ -38,8 +41,9 @@ class ClientManager:
         elif isinstance(clients_or_configs, AlgoClientConfigs):
             _clients = AlgoSdkClients(
                 algod=get_algod_client(clients_or_configs.algod_config),
-                indexer=get_indexer_client(
-                    clients_or_configs.indexer_config) if clients_or_configs.indexer_config else None,
+                indexer=get_indexer_client(clients_or_configs.indexer_config)
+                if clients_or_configs.indexer_config
+                else None,
                 kmd=get_kmd_client(clients_or_configs.kmd_config) if clients_or_configs.kmd_config else None,
             )
         self._algod = _clients.algod
@@ -66,9 +70,7 @@ class ClientManager:
         return self._kmd
 
     def get_testnet_dispenser(
-        self,
-        auth_token: str | None = None,
-        request_timeout: int | None = None
+        self, auth_token: str | None = None, request_timeout: int | None = None
     ) -> TestNetDispenserApiClient:
         if request_timeout:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)

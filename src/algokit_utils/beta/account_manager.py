@@ -101,9 +101,9 @@ class AccountManager:
     #     return self.signer_account(rekeyed_account(account, sender) if sender else account)
 
     def from_kmd(
-            self,
-            name: str,
-            predicate: Callable[[dict[str, Any]], bool] | None = None,
+        self,
+        name: str,
+        predicate: Callable[[dict[str, Any]], bool] | None = None,
     ) -> AddressAndSigner:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet (identified by name).

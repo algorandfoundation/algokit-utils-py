@@ -36,6 +36,7 @@ class AlgorandClientSendMethods:
     """
     Methods used to send a transaction to the network and wait for confirmation
     """
+
     payment: Callable[[PayParams], dict[str, Any]]
     asset_create: Callable[[AssetCreateParams], dict[str, Any]]
     asset_config: Callable[[AssetConfigParams], dict[str, Any]]
@@ -53,6 +54,7 @@ class AlgorandClientTransactionMethods:
     """
     Methods used to form a transaction without signing or sending to the network
     """
+
     payment: Callable[[PayParams], Transaction]
     asset_create: Callable[[AssetCreateParams], Transaction]
     asset_config: Callable[[AssetConfigParams], Transaction]
@@ -81,7 +83,7 @@ class AlgorandClient:
     def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> dict[str, Any]:
         return {
             "confirmation": wait_for_confirmation(self._client_manager.algod, results.tx_ids[0]),
-            "tx_id": results.tx_ids[0]
+            "tx_id": results.tx_ids[0],
         }
 
     def set_default_validity_window(self, validity_window: int) -> Self:
@@ -140,7 +142,7 @@ class AlgorandClient:
     def get_suggested_params(self) -> SuggestedParams:
         """Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)"""
         if self._cached_suggested_params and (
-                self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
+            self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
         ):
             return copy.deepcopy(self._cached_suggested_params)
 
@@ -174,22 +176,30 @@ class AlgorandClient:
         return AlgorandClientSendMethods(
             payment=lambda params: self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
             asset_create=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_create(params).execute()),
+                self.new_group().add_asset_create(params).execute()
+            ),
             asset_config=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_config(params).execute()),
+                self.new_group().add_asset_config(params).execute()
+            ),
             asset_freeze=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_freeze(params).execute()),
+                self.new_group().add_asset_freeze(params).execute()
+            ),
             asset_destroy=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_destroy(params).execute()),
+                self.new_group().add_asset_destroy(params).execute()
+            ),
             asset_transfer=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_transfer(params).execute()),
+                self.new_group().add_asset_transfer(params).execute()
+            ),
             app_call=lambda params: self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()),
             online_key_reg=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_online_key_reg(params).execute()),
+                self.new_group().add_online_key_reg(params).execute()
+            ),
             method_call=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_method_call(params).execute()),
+                self.new_group().add_method_call(params).execute()
+            ),
             asset_opt_in=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_opt_in(params).execute())
+                self.new_group().add_asset_opt_in(params).execute()
+            ),
         )
 
     @property
@@ -206,7 +216,7 @@ class AlgorandClient:
             app_call=lambda params: self.new_group().add_app_call(params).build_group()[0].txn,
             online_key_reg=lambda params: self.new_group().add_online_key_reg(params).build_group()[0].txn,
             method_call=lambda params: [txn.txn for txn in self.new_group().add_method_call(params).build_group()],
-            asset_opt_in=lambda params: self.new_group().add_asset_opt_in(params).build_group()[0].txn
+            asset_opt_in=lambda params: self.new_group().add_asset_opt_in(params).build_group()[0].txn,
         )
 
     @staticmethod
@@ -275,11 +285,13 @@ class AlgorandClient:
 
         :return: The `AlgorandClient`
         """
-        return AlgorandClient(AlgoSdkClients(
-            algod=get_algod_client(),
-            kmd=get_kmd_client(),
-            indexer=get_indexer_client(),
-        ))
+        return AlgorandClient(
+            AlgoSdkClients(
+                algod=get_algod_client(),
+                kmd=get_kmd_client(),
+                indexer=get_indexer_client(),
+            )
+        )
 
     @staticmethod
     def from_config(config: AlgoClientConfigs) -> Self:

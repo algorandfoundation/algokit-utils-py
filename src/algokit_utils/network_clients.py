@@ -19,7 +19,7 @@ __all__ = [
     "is_mainnet",
     "is_testnet",
     "AlgoClientConfigs",
-    "get_kmd_client"
+    "get_kmd_client",
 ]
 
 _PURE_STAKE_HOST = "purestake.io"
@@ -41,6 +41,7 @@ class AlgoClientConfigs:
     algod_config: AlgoClientConfig
     indexer_config: AlgoClientConfig
     kmd_config: AlgoClientConfig | None
+
 
 def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> AlgoClientConfig:
     """Returns the client configuration to point to the default LocalNet"""
@@ -75,6 +76,7 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     config = config or _get_config_from_environment("ALGOD")
     headers = _get_headers(config, "X-Algo-API-Token")
     return AlgodClient(config.token, config.server, headers)
+
 
 def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from `config` or environment
