@@ -31,17 +31,6 @@ from algosdk.atomic_transaction_composer import AtomicTransactionResponse, Trans
 from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
 from typing_extensions import Self
 
-    # payment: Callable[[PayParams], Transaction]
-    # asset_create: Callable[[AssetCreateParams], Transaction]
-    # asset_config: Callable[[AssetConfigParams], Transaction]
-    # asset_freeze: Callable[[AssetFreezeParams], Transaction]
-    # asset_destroy: Callable[[AssetDestroyParams], Transaction]
-    # asset_transfer: Callable[[AssetTransferParams], Transaction]
-    # app_call: Callable[[AppCallParams], Transaction]
-    # online_key_reg: Callable[[OnlineKeyRegParams], Transaction]
-    # method_call: Callable[[MethodCallParams], list[Transaction]]
-    # asset_opt_in: Callable[[AssetOptInParams], Transaction]
-
 __all__ = [
     "AlgorandClient",
     "AssetCreateParams",
@@ -53,8 +42,9 @@ __all__ = [
     "AssetDestroyParams",
     "AppCallParams",
     "OnlineKeyRegParams",
-    "AssetTransferParams"
+    "AssetTransferParams",
 ]
+
 
 @dataclass
 class AlgorandClientSendMethods:
