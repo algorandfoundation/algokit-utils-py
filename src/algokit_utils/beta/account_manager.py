@@ -1,10 +1,11 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Any
 
 from algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
+from typing_extensions import Self
 
 from .client_manager import ClientManager
 
@@ -81,7 +82,9 @@ class AccountManager:
         return info
 
     def get_asset_information(self, sender: str, asset_id: int) -> dict[str, Any]:
-        return self._client_manager.algod.account_asset_info(sender, asset_id)
+        info = self._client_manager.algod.account_asset_info(sender, asset_id)
+        assert isinstance(info, dict)
+        return info
 
     # TODO
     # def from_mnemonic(self, mnemonic_secret: str, sender: Optional[str] = None) -> AddrAndSigner:

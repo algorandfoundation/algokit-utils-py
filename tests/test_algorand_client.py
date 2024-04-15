@@ -54,7 +54,7 @@ def contract() -> Contract:
         return Contract.from_json(json.dumps(json.load(f)["contract"]))
 
 
-def test_send_payment(algorand: AlgorandClient, alice: AddressAndSigner, bob: AddressAndSigner):
+def test_send_payment(algorand: AlgorandClient, alice: AddressAndSigner, bob: AddressAndSigner) -> None:
     amount = 100_000
 
     alice_pre_balance = algorand.account.get_information(alice.address)["amount"]
@@ -68,7 +68,7 @@ def test_send_payment(algorand: AlgorandClient, alice: AddressAndSigner, bob: Ad
     assert bob_post_balance == bob_pre_balance + amount
 
 
-def test_send_asset_create(algorand: AlgorandClient, alice: AddressAndSigner):
+def test_send_asset_create(algorand: AlgorandClient, alice: AddressAndSigner) -> None:
     total = 100
 
     result = algorand.send.asset_create(AssetCreateParams(sender=alice.address, total=total))
@@ -77,7 +77,7 @@ def test_send_asset_create(algorand: AlgorandClient, alice: AddressAndSigner):
     assert asset_index > 0
 
 
-def test_asset_opt_in(algorand: AlgorandClient, alice: AddressAndSigner, bob: AddressAndSigner):
+def test_asset_opt_in(algorand: AlgorandClient, alice: AddressAndSigner, bob: AddressAndSigner) -> None:
     total = 100
 
     result = algorand.send.asset_create(AssetCreateParams(sender=alice.address, total=total))
@@ -91,7 +91,7 @@ def test_asset_opt_in(algorand: AlgorandClient, alice: AddressAndSigner, bob: Ad
 DO_MATH_VALUE = 3
 
 
-def test_add_atc(algorand: AlgorandClient, app_client: ApplicationClient, alice: AddressAndSigner):
+def test_add_atc(algorand: AlgorandClient, app_client: ApplicationClient, alice: AddressAndSigner) -> None:
     atc = AtomicTransactionComposer()
     app_client.compose_call(atc, call_abi_method="doMath", a=1, b=2, operation="sum")
 
@@ -106,7 +106,7 @@ def test_add_atc(algorand: AlgorandClient, app_client: ApplicationClient, alice:
 
 def test_add_method_call(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
-):
+) -> None:
     result = (
         algorand.new_group()
         .add_payment(PayParams(sender=alice.address, amount=0, receiver=alice.address))
@@ -125,7 +125,7 @@ def test_add_method_call(
 
 def test_add_method_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
-):
+) -> None:
     pay_arg = PayParams(sender=alice.address, receiver=alice.address, amount=1)
     result = (
         algorand.new_group()
@@ -145,7 +145,7 @@ def test_add_method_with_txn_arg(
 
 def test_add_method_call_with_method_call_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
-):
+) -> None:
     hello_world_call = MethodCallParams(
         method=contract.get_method_by_name("helloWorld"), sender=alice.address, app_id=app_client.app_id
     )
@@ -167,7 +167,7 @@ def test_add_method_call_with_method_call_arg(
 
 def test_add_method_call_with_method_call_arg_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
-):
+) -> None:
     pay_arg = PayParams(sender=alice.address, receiver=alice.address, amount=1)
     txn_arg_call = MethodCallParams(
         method=contract.get_method_by_name("txnArg"), sender=alice.address, app_id=app_client.app_id, args=[pay_arg]
@@ -190,7 +190,7 @@ def test_add_method_call_with_method_call_arg_with_txn_arg(
 
 def test_add_method_call_with_two_method_call_args_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
-):
+) -> None:
     pay_arg_1 = PayParams(sender=alice.address, receiver=alice.address, amount=1)
     txn_arg_call_1 = MethodCallParams(
         method=contract.get_method_by_name("txnArg"),

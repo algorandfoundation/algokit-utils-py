@@ -2,7 +2,7 @@ import copy
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Any
 
 from algokit_utils.beta.account_manager import AccountManager
 from algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
@@ -29,7 +29,32 @@ from algokit_utils.network_clients import (
 )
 from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
 from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmation
+from typing_extensions import Self
 
+    # payment: Callable[[PayParams], Transaction]
+    # asset_create: Callable[[AssetCreateParams], Transaction]
+    # asset_config: Callable[[AssetConfigParams], Transaction]
+    # asset_freeze: Callable[[AssetFreezeParams], Transaction]
+    # asset_destroy: Callable[[AssetDestroyParams], Transaction]
+    # asset_transfer: Callable[[AssetTransferParams], Transaction]
+    # app_call: Callable[[AppCallParams], Transaction]
+    # online_key_reg: Callable[[OnlineKeyRegParams], Transaction]
+    # method_call: Callable[[MethodCallParams], list[Transaction]]
+    # asset_opt_in: Callable[[AssetOptInParams], Transaction]
+
+__all__ = [
+    "AlgorandClient",
+    "AssetCreateParams",
+    "AssetOptInParams",
+    "MethodCallParams",
+    "PayParams",
+    "AssetFreezeParams",
+    "AssetConfigParams",
+    "AssetDestroyParams",
+    "AppCallParams",
+    "OnlineKeyRegParams",
+    "AssetTransferParams"
+]
 
 @dataclass
 class AlgorandClientSendMethods:
@@ -220,7 +245,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def default_local_net() -> Self:
+    def default_local_net() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at default LocalNet ports and API token.
 
@@ -235,7 +260,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def test_net() -> Self:
+    def test_net() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at TestNet using AlgoNode.
 
@@ -250,7 +275,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def main_net() -> Self:
+    def main_net() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at MainNet using AlgoNode.
 
@@ -265,7 +290,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def from_clients(clients: AlgoSdkClients) -> Self:
+    def from_clients(clients: AlgoSdkClients) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing to the given client(s).
 
@@ -275,7 +300,7 @@ class AlgorandClient:
         return AlgorandClient(clients)
 
     @staticmethod
-    def from_environment() -> Self:
+    def from_environment() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` loading the configuration from environment variables.
 
@@ -294,7 +319,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def from_config(config: AlgoClientConfigs) -> Self:
+    def from_config(config: AlgoClientConfigs) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` from the given config.
 
