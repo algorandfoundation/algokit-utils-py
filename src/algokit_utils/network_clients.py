@@ -83,7 +83,7 @@ def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
 
     If no configuration provided will use environment variables `KMD_SERVER`, `KMD_PORT` and `KMD_TOKEN`"""
     config = config or _get_config_from_environment("KMD")
-    return KMDClient(config.token, config.server)
+    return KMDClient(config.token, config.server) # type: ignore[no-untyped-call]
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
