@@ -375,7 +375,7 @@ class AlgokitComposer:
 
         method = atc.method_dict.get(len(group) - 1)
         if method:
-            self.txn_method_map[group[-1].txn.get_txid()] = method # type: ignore[no-untyped-call]
+            self.txn_method_map[group[-1].txn.get_txid()] = method  # type: ignore[no-untyped-call]
 
         return group
 
@@ -388,7 +388,7 @@ class AlgokitComposer:
         if params.lease:
             txn.lease = params.lease
         if params.rekey_to:
-            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to) # type: ignore[no-untyped-call]
+            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to)  # type: ignore[no-untyped-call]
         if params.note:
             txn.note = params.note
 
@@ -406,7 +406,7 @@ class AlgokitComposer:
         if params.static_fee is not None:
             txn.fee = params.static_fee
         else:
-            txn.fee = txn.estimate_size() * suggested_params.fee or algosdk.constants.min_txn_fee # type: ignore[no-untyped-call]
+            txn.fee = txn.estimate_size() * suggested_params.fee or algosdk.constants.min_txn_fee  # type: ignore[no-untyped-call]
             if params.extra_fee:
                 txn.fee += params.extra_fee
 
@@ -424,7 +424,7 @@ class AlgokitComposer:
             receiver=params.receiver,
             amt=params.amount,
             close_remainder_to=params.close_remainder_to,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -446,7 +446,7 @@ class AlgokitComposer:
             metadata_hash=params.metadata_hash,
             decimals=params.decimals or 0,
             strict_empty_address_check=False,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -467,13 +467,13 @@ class AlgokitComposer:
             "extra_pages": params.extra_pages,
             "local_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("local_uints", 0), num_byte_slices=params.schema.get("local_byte_slices", 0)
-            ) # type: ignore[no-untyped-call]
+            )  # type: ignore[no-untyped-call]
             if params.schema
             else None,
             "global_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("global_uints", 0),
                 num_byte_slices=params.schema.get("global_byte_slices", 0),
-            ) # type: ignore[no-untyped-call]
+            )  # type: ignore[no-untyped-call]
             if params.schema
             else None,
         }
@@ -482,9 +482,9 @@ class AlgokitComposer:
             if params.approval_program is None or params.clear_program is None:
                 raise ValueError("approval_program and clear_program are required for application creation")
 
-            txn = algosdk.transaction.ApplicationCreateTxn(**sdk_params) # type: ignore[no-untyped-call]
+            txn = algosdk.transaction.ApplicationCreateTxn(**sdk_params)  # type: ignore[no-untyped-call]
         else:
-            txn = algosdk.transaction.ApplicationCallTxn(**sdk_params) # type: ignore[assignment,no-untyped-call]
+            txn = algosdk.transaction.ApplicationCallTxn(**sdk_params)  # type: ignore[assignment,no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -500,7 +500,7 @@ class AlgokitComposer:
             freeze=params.freeze,
             clawback=params.clawback,
             strict_empty_address_check=False,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -511,7 +511,7 @@ class AlgokitComposer:
             sender=params.sender,
             sp=suggested_params,
             index=params.asset_id,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -524,7 +524,7 @@ class AlgokitComposer:
             index=params.asset_id,
             target=params.account,
             new_freeze_state=params.frozen,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -539,7 +539,7 @@ class AlgokitComposer:
             index=params.asset_id,
             close_assets_to=params.close_asset_to,
             revocation_target=params.clawback_target,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -557,7 +557,7 @@ class AlgokitComposer:
             rekey_to=params.rekey_to,
             nonpart=False,
             sprfkey=params.state_proof_key,
-        ) # type: ignore[no-untyped-call]
+        )  # type: ignore[no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -695,7 +695,7 @@ class AlgokitComposer:
         method_calls = {}
 
         for i, ts in enumerate(txn_with_signers):
-            method = self.txn_method_map.get(ts.txn.get_txid()) # type: ignore[no-untyped-call]
+            method = self.txn_method_map.get(ts.txn.get_txid())  # type: ignore[no-untyped-call]
             if method:
                 method_calls[i] = method
 
