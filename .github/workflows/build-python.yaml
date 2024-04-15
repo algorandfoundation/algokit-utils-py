@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pipx install algokit
+          pipx install algokit --python $(which python)
           algokit localnet start
           poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
           algokit localnet stop
