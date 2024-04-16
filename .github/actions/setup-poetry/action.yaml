@@ -11,18 +11,18 @@ runs:
         pip install poetry
       shell: bash
 
-    # pip install --user pipx
-    # pipx ensurepath
-    # NOTE: Above currently causes a faulty behaviour in pipx where
+    # NOTE: Below commands currently causes a faulty behaviour in pipx where
     # preinstalled pipx on github worker has shared venv instantiated via python 3.10
     # however 2 of the above commands are supposed to reinstall pipx and use python version
     # specified in setup-python, however shared venv still uses 3.10 hence algokit fails on
     # pkgutil.ImpImporter module not found error.
     # To be approached as given until further clarified on corresponding issues on pipx repo.
+    # ------
+    # pip install --user pipx
+    # pipx ensurepath
+    # ------
     - if: ${{ runner.os != 'macOS' || runner.arch != 'ARM64' }}
       run: |
-        pip install pipx
-        pipx ensurepath
         pipx install poetry ${{ runner.os == 'macOS' && '--python "$Python_ROOT_DIR/bin/python"' || '' }}
       shell: bash
 
