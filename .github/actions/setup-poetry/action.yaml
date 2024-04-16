@@ -21,9 +21,8 @@ runs:
     # To be approached as given until further clarified on corresponding issues on pipx repo.
     - if: ${{ runner.os != 'macOS' || runner.arch != 'ARM64' }}
       run: |
-        pip install --user pipx
+        pip install pipx
         pipx ensurepath
-        pipx reinstall-all
         pipx install poetry ${{ runner.os == 'macOS' && '--python "$Python_ROOT_DIR/bin/python"' || '' }}
       shell: bash
 
