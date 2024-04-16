@@ -6,8 +6,8 @@ jobs:
   build-python:
     strategy:
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python: ["3.12"]
+        os: ["ubuntu-latest"]
+        python: ["3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout source code
@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          pipx install git+https://github.com/algorandfoundation/algokit-cli@fix/pipx_dep_issues
+          pipx install algokit
           algokit localnet start
           poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
           algokit localnet stop
