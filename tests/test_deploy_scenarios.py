@@ -113,6 +113,8 @@ class DeployFixture:
 
             # With v3 indexer a small delay is needed
             # not to exhaust attempts before target round is reached
+            # NOTE: setting lower timeout may result in algod throttling
+            # if run concurrently via pytest-xdist (which causes inconsistent snapshots)
             time.sleep(1)
 
 
