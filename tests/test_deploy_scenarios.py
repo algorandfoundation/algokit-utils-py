@@ -105,7 +105,7 @@ class DeployFixture:
         return re.sub(r"app id \d+", r"{appN_failed}", logs)
 
     def _wait_for_indexer_round(self, round_target: int, max_attempts: int = 100) -> None:
-        for _attempts in range(max_attempts):
+        for _ in range(max_attempts):
             health = self.indexer_client.health()  # type: ignore[no-untyped-call]
 
             if health["round"] >= round_target:
@@ -113,7 +113,7 @@ class DeployFixture:
 
             # With v3 indexer a small delay is needed
             # not to exhaust attempts before target round is reached
-            time.sleep(0.1)
+            time.sleep(1)
 
 
 @pytest.fixture(scope="module")
