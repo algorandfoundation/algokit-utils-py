@@ -30,7 +30,7 @@ jobs:
           set -o pipefail
           pipx install algokit
           algokit localnet start
-          poetry run pytest -n 1 --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
+          poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
           algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
