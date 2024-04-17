@@ -96,8 +96,7 @@ class ApplicationClient:
         sender: str | None = None,
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: au_deploy.TemplateValueMapping | None = None,
-    ):
-        ...
+    ): ...
 
     @overload
     def __init__(
@@ -113,8 +112,7 @@ class ApplicationClient:
         suggested_params: transaction.SuggestedParams | None = None,
         template_values: au_deploy.TemplateValueMapping | None = None,
         app_name: str | None = None,
-    ):
-        ...
+    ): ...
 
     def __init__(  # noqa: PLR0913
         self,
@@ -403,8 +401,7 @@ class ApplicationClient:
         self,
         call_abi_method: Literal[False],
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def create(
@@ -412,8 +409,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def create(
@@ -421,8 +417,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: CreateCallParameters | CreateCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def create(
         self,
@@ -471,16 +466,14 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def update(
         self,
         call_abi_method: Literal[False],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def update(
@@ -488,8 +481,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def update(
         self,
@@ -532,16 +524,14 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def delete(
         self,
         call_abi_method: Literal[False],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def delete(
@@ -549,8 +539,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def delete(
         self,
@@ -593,16 +582,14 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def call(
         self,
         call_abi_method: Literal[False],
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def call(
@@ -610,8 +597,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: OnCompleteCallParameters | OnCompleteCallParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def call(
         self,
@@ -667,16 +653,14 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True] = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def opt_in(
         self,
         call_abi_method: Literal[False] = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = None,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def opt_in(
@@ -684,8 +668,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def opt_in(
         self,
@@ -726,16 +709,14 @@ class ApplicationClient:
         call_abi_method: ABIMethod | Literal[True],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> ABITransactionResponse:
-        ...
+    ) -> ABITransactionResponse: ...
 
     @overload
     def close_out(
         self,
         call_abi_method: Literal[False],
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     @overload
     def close_out(
@@ -743,8 +724,7 @@ class ApplicationClient:
         call_abi_method: ABIMethod | bool | None = ...,
         transaction_parameters: TransactionParameters | TransactionParametersDict | None = ...,
         **abi_kwargs: ABIArgType,
-    ) -> TransactionResponse | ABITransactionResponse:
-        ...
+    ) -> TransactionResponse | ABITransactionResponse: ...
 
     def close_out(
         self,
@@ -1390,7 +1370,7 @@ def _parse_result(
                 )
                 continue
 
-            logs = tx_info["logs"] if "logs" in tx_info else []
+            logs = tx_info.get("logs", [])
 
             # Look for the last returned value in the log
             if not logs:

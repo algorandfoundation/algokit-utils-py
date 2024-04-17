@@ -121,8 +121,7 @@ ABIArgsDict = dict[str, ABIArgType]
 
 
 class ABIReturnSubroutine(Protocol):
-    def method_spec(self) -> Method:
-        ...
+    def method_spec(self) -> Method: ...
 
 
 ABIMethod: TypeAlias = ABIReturnSubroutine | Method | str
