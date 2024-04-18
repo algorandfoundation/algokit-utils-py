@@ -1004,7 +1004,7 @@ class ApplicationClient:
             self._load_reference_and_check_app_id()
             app_id = self.app_id
         parameters = _convert_transaction_parameters(parameters)
-        method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
+        method = self._resolve_method(abi_method, abi_args, parameters.on_complete or on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self.resolve_signer_sender(parameters.signer, parameters.sender)
         if parameters.boxes is not None:
@@ -1024,7 +1024,7 @@ class ApplicationClient:
                         sender=sender,
                         sp=sp,
                         index=app_id,
-                        on_complete=on_complete,
+                        on_complete=parameters.on_complete or on_complete,
                         approval_program=approval_program,
                         clear_program=clear_program,
                         global_schema=global_schema,
@@ -1052,7 +1052,7 @@ class ApplicationClient:
             sp,
             signer,
             method_args=args,
-            on_complete=on_complete,
+            on_complete=parameters.on_complete or on_complete,
             local_schema=local_schema,
             global_schema=global_schema,
             approval_program=approval_program,
