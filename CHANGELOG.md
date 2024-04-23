@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v2.2.2 (2024-04-23)
+
+### Fix
+
+* Avoid ignoring `on_complete` if provided explicitly via transaction parameters ([#79](https://github.com/algorandfoundation/algokit-utils-py/issues/79)) ([`eb578bf`](https://github.com/algorandfoundation/algokit-utils-py/commit/eb578bfa580da9420e31c76589489ed5f7631ecb))
+
 ## v2.2.1 (2024-02-06)
 
 ### Fix
