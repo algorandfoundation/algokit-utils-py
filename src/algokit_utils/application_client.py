@@ -1,5 +1,6 @@
 import base64
 import copy
+import dataclasses
 import json
 import logging
 import re
@@ -57,7 +58,6 @@ from algokit_utils.models import (
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.indexer import IndexerClient
-
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +375,7 @@ class ApplicationClient:
     ) -> None:
         """Adds a signed transaction with application id == 0 and the schema and source of client's app_spec to atc"""
         approval_program, clear_program = self._check_is_compiled()
-        transaction_parameters = _convert_transaction_parameters(transaction_parameters)
+        transaction_parameters = _convert_transaction_parameters(CreateCallParameters, transaction_parameters)
 
         extra_pages = transaction_parameters.extra_pages or num_extra_program_pages(
             approval_program.raw_binary, clear_program.raw_binary
@@ -388,7 +388,7 @@ class ApplicationClient:
             abi_args=abi_kwargs,
             on_complete=transaction_parameters.on_complete or transaction.OnComplete.NoOpOC,
             call_config=au_spec.CallConfig.CREATE,
-            parameters=transaction_parameters,
+            parameters=_convert_transaction_parameters(TransactionParameters, transaction_parameters),
             approval_program=approval_program.raw_binary,
             clear_program=clear_program.raw_binary,
             global_schema=self.app_spec.global_state_schema,
@@ -567,12 +567,12 @@ class ApplicationClient:
         **abi_kwargs: ABIArgType,
     ) -> None:
         """Adds a signed transaction with specified parameters to atc"""
-        _parameters = _convert_transaction_parameters(transaction_parameters)
+        _parameters = _convert_transaction_parameters(OnCompleteCallParameters, transaction_parameters)
         self.add_method_call(
             atc,
             abi_method=call_abi_method,
             abi_args=abi_kwargs,
-            parameters=_parameters,
+            parameters=_convert_transaction_parameters(TransactionParameters, transaction_parameters),
             on_complete=_parameters.on_complete or transaction.OnComplete.NoOpOC,
         )
 
@@ -607,7 +607,7 @@ class ApplicationClient:
     ) -> TransactionResponse | ABITransactionResponse:
         """Submits a signed transaction with specified parameters"""
         atc = AtomicTransactionComposer()
-        _parameters = _convert_transaction_parameters(transaction_parameters)
+        _parameters = _convert_transaction_parameters(OnCompleteCallParameters, transaction_parameters)
         self.compose_call(
             atc,
             call_abi_method=call_abi_method,
@@ -1003,7 +1003,7 @@ class ApplicationClient:
         if app_id is None:
             self._load_reference_and_check_app_id()
             app_id = self.app_id
-        parameters = _convert_transaction_parameters(parameters)
+        parameters = _convert_transaction_parameters(TransactionParameters, parameters)
         method = self._resolve_method(abi_method, abi_args, on_complete, call_config)
         sp = parameters.suggested_params or self.suggested_params or self.algod_client.suggested_params()
         signer, sender = self.resolve_signer_sender(parameters.signer, parameters.sender)
@@ -1317,11 +1317,18 @@ def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list
     return traces
 
 
+_TParams = typing.TypeVar("_TParams", TransactionParameters, OnCompleteCallParameters, CreateCallParameters)
+
+
 def _convert_transaction_parameters(
-    args: TransactionParameters | TransactionParametersDict | None,
-) -> CreateCallParameters:
-    _args = args.__dict__ if isinstance(args, TransactionParameters) else (args or {})
-    return CreateCallParameters(**_args)
+    cls: type[_TParams],
+    args: object | None,
+) -> _TParams:
+    if args is None:
+        return cls()
+    args_dict = args.__dict__ if not isinstance(args, dict) else (args or {})
+    _args = {f.name: args_dict[f.name] for f in dataclasses.fields(cls) if f.name in args_dict}
+    return cls(**_args)
 
 
 def get_sender_from_signer(signer: TransactionSigner | None) -> str | None:
