@@ -119,6 +119,10 @@ target-version = "py310"
 allow-star-arg-any = true
 suppress-none-returning = true
 
+[tool.ruff.per-file-ignores]
+"src/algokit_utils/beta/*" = ["ERA001", "E501", "PLR0911"]
+"path/to/file.py" = ["E402"]
+
 [tool.poe.tasks]
 docs = "sphinx-build docs/source docs/html"
 

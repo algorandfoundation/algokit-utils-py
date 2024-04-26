@@ -23,7 +23,7 @@ extensions = [
     "autodoc2",
 ]
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = [] # type: ignore
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "algosdk": ("https://py-algorand-sdk.readthedocs.io/en/latest", None),
@@ -37,7 +37,7 @@ PythonDomain.object_types["data"].roles = ("data", "class", "obj")
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
-html_static_path = []
+html_static_path = [] # type: ignore
 
 
 # -- Options for myst ---
