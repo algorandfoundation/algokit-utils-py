@@ -146,8 +146,8 @@ def _send_transaction(
 
     return transaction
 
-def _get_address(account: Account | AccountTransactionSigner) -> str : 
-    if type(account) is Account: 
+def _get_address(account: Account | AccountTransactionSigner) -> str:
+    if type(account) is Account:
         return account.address
     else:
         address = address_from_private_key(account.private_key)  # type: ignore[no-untyped-call]
