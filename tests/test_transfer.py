@@ -120,6 +120,7 @@ def test_transfer_algo(algod_client: "AlgodClient", to_account: Account, funded_
     actual_amount = to_account_info.get("amount")
     assert actual_amount == requested_amount
 
+
 def test_transfer_algo_rekey_account(
     algod_client: "AlgodClient", to_account: Account, rekeyed_account: Account
 ) -> None:

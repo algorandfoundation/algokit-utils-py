@@ -139,12 +139,10 @@ def _send_transaction(
     client.send_transaction(signed_transaction)
 
     txid = transaction.get_txid()  # type: ignore[no-untyped-call]
-    logger.debug(
-        f"Sent transaction {txid} type={transaction.type} from "
-        f"{_get_address(parameters.from_account)}"  # type: ignore[no-untyped-call]
-    )
+    logger.debug(f"Sent transaction {txid} type={transaction.type} from {_get_address(parameters.from_account)}")
 
     return transaction
+
 
 def _get_address(account: Account | AccountTransactionSigner) -> str:
     if type(account) is Account:
