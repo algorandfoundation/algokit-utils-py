@@ -86,7 +86,7 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
     params = parameters
     params.suggested_params = parameters.suggested_params or client.suggested_params()
     from_account = params.from_account
-    sender = address_from_private_key(from_account.private_key)  # type: ignore[no-untyped-call]
+    sender = _get_address(from_account)
     transaction = PaymentTxn(
         sender=sender,
         receiver=params.to_address,
@@ -105,7 +105,7 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
 
     params = parameters
     params.suggested_params = parameters.suggested_params or client.suggested_params()
-    sender = address_from_private_key(parameters.from_account.private_key)  # type: ignore[no-untyped-call]
+    sender = _get_address(parameters.from_account)
     suggested_params = parameters.suggested_params or client.suggested_params()
     xfer_txn = AssetTransferTxn(
         sp=suggested_params,
@@ -139,9 +139,14 @@ def _send_transaction(
     client.send_transaction(signed_transaction)
 
     txid = transaction.get_txid()  # type: ignore[no-untyped-call]
-    logger.debug(
-        f"Sent transaction {txid} type={transaction.type} from "
-        f"{address_from_private_key(parameters.from_account.private_key)}"  # type: ignore[no-untyped-call]
-    )
+    logger.debug(f"Sent transaction {txid} type={transaction.type} from {_get_address(parameters.from_account)}")
 
     return transaction
+
+
+def _get_address(account: Account | AccountTransactionSigner) -> str:
+    if type(account) is Account:
+        return account.address
+    else:
+        address = address_from_private_key(account.private_key)  # type: ignore[no-untyped-call]
+        return str(address)

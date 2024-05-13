@@ -19,6 +19,8 @@ from algokit_utils import (
 )
 from algokit_utils.dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
+from algosdk.transaction import PaymentTxn
 from algosdk.util import algos_to_microalgos
 from pytest_httpx import HTTPXMock
 
@@ -39,6 +41,53 @@ def to_account(kmd_client: "KMDClient") -> Account:
 
 
 @pytest.fixture()
+def rekeyed_from_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -> Account:
+    account = create_kmd_wallet_account(kmd_client, get_unique_name())
+    rekey_account = create_kmd_wallet_account(kmd_client, get_unique_name())
+
+    ensure_funded(
+        algod_client,
+        EnsureBalanceParameters(
+            account_to_fund=account,
+            min_spending_balance_micro_algos=300000,
+            min_funding_increment_micro_algos=1,
+        ),
+    )
+
+    rekey_txn = PaymentTxn(
+        sender=account.address,
+        receiver=account.address,
+        amt=0,
+        note="rekey account",
+        rekey_to=rekey_account.address,
+        sp=algod_client.suggested_params(),
+    )  # type: ignore[no-untyped-call]
+    signed_rekey_txn = rekey_txn.sign(account.private_key)  # type: ignore[no-untyped-call]
+    algod_client.send_transaction(signed_rekey_txn)
+
+    return Account(address=account.address, private_key=rekey_account.private_key)
+
+
+@pytest.fixture()
+def transaction_signer_from_account(
+    kmd_client: "KMDClient",
+    algod_client: "AlgodClient",
+) -> AccountTransactionSigner:
+    account = create_kmd_wallet_account(kmd_client, get_unique_name())
+
+    ensure_funded(
+        algod_client,
+        EnsureBalanceParameters(
+            account_to_fund=account,
+            min_spending_balance_micro_algos=300000,
+            min_funding_increment_micro_algos=1,
+        ),
+    )
+
+    return AccountTransactionSigner(private_key=account.private_key)
+
+
+@pytest.fixture()
 def clawback_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 
@@ -49,6 +98,44 @@ def test_transfer_algo(algod_client: "AlgodClient", to_account: Account, funded_
         algod_client,
         TransferParameters(
             from_account=funded_account,
+            to_address=to_account.address,
+            micro_algos=requested_amount,
+        ),
+    )
+
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == requested_amount
+
+
+def test_transfer_algo_rekey_account(
+    algod_client: "AlgodClient", to_account: Account, rekeyed_from_account: Account
+) -> None:
+    requested_amount = 100_000
+    transfer(
+        algod_client,
+        TransferParameters(
+            from_account=rekeyed_from_account,
+            to_address=to_account.address,
+            micro_algos=requested_amount,
+        ),
+    )
+
+    to_account_info = algod_client.account_info(to_account.address)
+    assert isinstance(to_account_info, dict)
+    actual_amount = to_account_info.get("amount")
+    assert actual_amount == requested_amount
+
+
+def test_transfer_algo_transaction_signer_account(
+    algod_client: "AlgodClient", to_account: Account, transaction_signer_from_account: AccountTransactionSigner
+) -> None:
+    requested_amount = 100_000
+    transfer(
+        algod_client,
+        TransferParameters(
+            from_account=transaction_signer_from_account,
             to_address=to_account.address,
             micro_algos=requested_amount,
         ),
