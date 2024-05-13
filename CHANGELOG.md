@@ -2,6 +2,19 @@
 
 <!--next-version-placeholder-->
 
+## v2.3.0 (2024-05-13)
+
+### Feature
+
+* AlgorandClient ([#71](https://github.com/algorandfoundation/algokit-utils-py/issues/71)) ([`5ee3a3b`](https://github.com/algorandfoundation/algokit-utils-py/commit/5ee3a3b370d155f3a3729444a6d5a5cc4a7f46f6))
+
+### Fix
+
+* Revert avoiding oncomplete ignore in app client calls (to be added as breaking change) ([#88](https://github.com/algorandfoundation/algokit-utils-py/issues/88)) ([`661edeb`](https://github.com/algorandfoundation/algokit-utils-py/commit/661edeb69de841c6985876ea43a3c64fa36b9716))
+* Add tests for transfer with rekey ([`b0b3be9`](https://github.com/algorandfoundation/algokit-utils-py/commit/b0b3be9d22bcec0dd425fb8a1dad236eb7731166))
+* Audit ([`0ee4b83`](https://github.com/algorandfoundation/algokit-utils-py/commit/0ee4b83eda078612d3bc65798df897c70d22b1cd))
+* Rekey transfer ([`55e1dbe`](https://github.com/algorandfoundation/algokit-utils-py/commit/55e1dbe0c7f8cdf8e5c94d1deb39a142c56f55bd))
+
 ## v2.2.2 (2024-04-23)
 
 ### Fix

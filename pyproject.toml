@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "algokit-utils"
-version = "2.2.2"
+version = "2.3.0"
 description = "Utilities for Algorand development for use by AlgoKit"
 authors = ["Algorand Foundation <contact@algorand.foundation>"]
 license = "MIT"
