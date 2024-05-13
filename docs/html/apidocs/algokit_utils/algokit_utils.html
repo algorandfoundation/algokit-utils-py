@@ -528,7 +528,7 @@ and persists the simulation response to an AlgoKit AVM Debugger compliant JSON f
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.Account.address">
 <span class="sig-name descname"><span class="pre">address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.Account.address" title="Permalink to this definition"></a></dt>
-<dd><p>‘field(…)’</p>
+<dd><p>None</p>
 <p>Address for this account</p>
 </dd></dl>
 
@@ -893,234 +893,26 @@ directory(optional): path to the directory where the artifacts should be written
 <dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.CreateCallParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CreateCallParameters</span></span><a class="headerlink" href="#algokit_utils.CreateCallParameters" title="Permalink to this definition"></a></dt>
-<dd><p>Additional parameters that can be included in a transaction when using the
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.OnCompleteCallParameters" title="algokit_utils.models.OnCompleteCallParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.OnCompleteCallParameters</span></code></a></p>
+<p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.create/compose_create methods</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.accounts">
-<span class="sig-name descname"><span class="pre">accounts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.accounts" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Accounts to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.boxes">
-<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><span class="pre">collections.abc.Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><span class="pre">bytearray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.boxes" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Box references to include in transaction. A sequence of (app id, box key) tuples</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.foreign_apps">
-<span class="sig-name descname"><span class="pre">foreign_apps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.foreign_apps" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign apps (by app id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.foreign_assets">
-<span class="sig-name descname"><span class="pre">foreign_assets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.foreign_assets" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign assets (by asset id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.lease">
-<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.lease" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Lease value for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.note">
-<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.note" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Note for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.rekey_to">
-<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.rekey_to" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Address to rekey to</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.sender">
-<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.sender" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Sender of this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.signer">
-<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.signer" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Signer to use when signing this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParameters.suggested_params">
-<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParameters.suggested_params" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>SuggestedParams to use for this transaction</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CreateCallParametersDict</span></span><a class="headerlink" href="#algokit_utils.CreateCallParametersDict" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a>, <a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.OnCompleteCallParametersDict</span></code></a></p>
 <p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.create/compose_create methods</p>
 <p class="rubric">Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.accounts">
-<span class="sig-name descname"><span class="pre">accounts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.accounts" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Accounts to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.boxes">
-<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><span class="pre">collections.abc.Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><span class="pre">bytearray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.boxes" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Box references to include in transaction. A sequence of (app id, box key) tuples</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.foreign_apps">
-<span class="sig-name descname"><span class="pre">foreign_apps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.foreign_apps" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign apps (by app id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.foreign_assets">
-<span class="sig-name descname"><span class="pre">foreign_assets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.foreign_assets" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign assets (by asset id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.lease">
-<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.lease" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Lease value for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.note">
-<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.note" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Note for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.rekey_to">
-<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.rekey_to" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Address to rekey to</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.sender">
-<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.sender" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Sender of this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.signer">
-<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.signer" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Signer to use when signing this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateCallParametersDict.suggested_params">
-<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a></em><a class="headerlink" href="#algokit_utils.CreateCallParametersDict.suggested_params" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>SuggestedParams to use for this transaction</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CreateTransactionParameters</span></span><a class="headerlink" href="#algokit_utils.CreateTransactionParameters" title="Permalink to this definition"></a></dt>
-<dd><p>Additional parameters that can be included in a transaction when calling a create method</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.accounts">
-<span class="sig-name descname"><span class="pre">accounts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.accounts" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Accounts to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.boxes">
-<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><span class="pre">collections.abc.Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><span class="pre">bytearray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.boxes" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Box references to include in transaction. A sequence of (app id, box key) tuples</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.foreign_apps">
-<span class="sig-name descname"><span class="pre">foreign_apps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.foreign_apps" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign apps (by app id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.foreign_assets">
-<span class="sig-name descname"><span class="pre">foreign_assets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.foreign_assets" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign assets (by asset id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.lease">
-<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.lease" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Lease value for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.note">
-<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.note" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Note for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.rekey_to">
-<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.rekey_to" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Address to rekey to</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.sender">
-<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.sender" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Sender of this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.signer">
-<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.signer" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Signer to use when signing this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.CreateTransactionParameters.suggested_params">
-<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.CreateTransactionParameters.suggested_params" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>SuggestedParams to use for this transaction</p>
-</dd></dl>
-
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParameters</span></code></a></p>
+<p>Additional parameters that can be included in a transaction when calling a create method</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1308,158 +1100,19 @@ minimum balance requirement)</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">OnCompleteCallParameters</span></span><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters" title="Permalink to this definition"></a></dt>
-<dd><p>Additional parameters that can be included in a transaction when using the
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.TransactionParameters" title="algokit_utils.models.TransactionParameters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParameters</span></code></a></p>
+<p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.accounts">
-<span class="sig-name descname"><span class="pre">accounts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.accounts" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Accounts to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.boxes">
-<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><span class="pre">collections.abc.Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><span class="pre">bytearray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.boxes" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Box references to include in transaction. A sequence of (app id, box key) tuples</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.foreign_apps">
-<span class="sig-name descname"><span class="pre">foreign_apps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.foreign_apps" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign apps (by app id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.foreign_assets">
-<span class="sig-name descname"><span class="pre">foreign_assets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.foreign_assets" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign assets (by asset id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.lease">
-<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.lease" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Lease value for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.note">
-<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.note" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Note for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.rekey_to">
-<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.rekey_to" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Address to rekey to</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.sender">
-<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.sender" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Sender of this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.signer">
-<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.signer" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Signer to use when signing this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParameters.suggested_params">
-<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParameters.suggested_params" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>SuggestedParams to use for this transaction</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">OnCompleteCallParametersDict</span></span><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a>, <a class="reference internal" href="#algokit_utils.TransactionParametersDict" title="algokit_utils.models.TransactionParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParametersDict</span></code></a></p>
 <p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods</p>
 <p class="rubric">Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.accounts">
-<span class="sig-name descname"><span class="pre">accounts</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.accounts" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Accounts to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.boxes">
-<span class="sig-name descname"><span class="pre">boxes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.12)"><span class="pre">collections.abc.Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.12)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytearray" title="(in Python v3.12)"><span class="pre">bytearray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.boxes" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Box references to include in transaction. A sequence of (app id, box key) tuples</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.foreign_apps">
-<span class="sig-name descname"><span class="pre">foreign_apps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.foreign_apps" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign apps (by app id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.foreign_assets">
-<span class="sig-name descname"><span class="pre">foreign_assets</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.foreign_assets" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>List of foreign assets (by asset id) to include in transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.lease">
-<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.lease" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Lease value for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.note">
-<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.note" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Note for this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.rekey_to">
-<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.rekey_to" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Address to rekey to</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.sender">
-<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.sender" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Sender of this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.signer">
-<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.signer" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>Signer to use when signing this transaction</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="algokit_utils.OnCompleteCallParametersDict.suggested_params">
-<span class="sig-name descname"><span class="pre">suggested_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a></em><a class="headerlink" href="#algokit_utils.OnCompleteCallParametersDict.suggested_params" title="Permalink to this definition"></a></dt>
-<dd><p>None</p>
-<p>SuggestedParams to use for this transaction</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">

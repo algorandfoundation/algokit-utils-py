@@ -155,86 +155,25 @@ class TransactionParameters:
 
 # CreateTransactionParameters is used by algokit-client-generator clients
 @dataclasses.dataclass(kw_only=True)
-class CreateTransactionParameters:
+class CreateTransactionParameters(TransactionParameters):
     """Additional parameters that can be included in a transaction when calling a create method"""
 
-    signer: TransactionSigner | None = None
-    """Signer to use when signing this transaction"""
-    sender: str | None = None
-    """Sender of this transaction"""
-    suggested_params: transaction.SuggestedParams | None = None
-    """SuggestedParams to use for this transaction"""
-    note: bytes | str | None = None
-    """Note for this transaction"""
-    lease: bytes | str | None = None
-    """Lease value for this transaction"""
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
-    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
-    accounts: list[str] | None = None
-    """Accounts to include in transaction"""
-    foreign_apps: list[int] | None = None
-    """List of foreign apps (by app id) to include in transaction"""
-    foreign_assets: list[int] | None = None
-    """List of foreign assets (by asset id) to include in transaction"""
-    rekey_to: str | None = None
-    """Address to rekey to"""
     extra_pages: int | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
-class OnCompleteCallParameters:
+class OnCompleteCallParameters(TransactionParameters):
     """Additional parameters that can be included in a transaction when using the
     ApplicationClient.call/compose_call methods"""
 
-    signer: TransactionSigner | None = None
-    """Signer to use when signing this transaction"""
-    sender: str | None = None
-    """Sender of this transaction"""
-    suggested_params: transaction.SuggestedParams | None = None
-    """SuggestedParams to use for this transaction"""
-    note: bytes | str | None = None
-    """Note for this transaction"""
-    lease: bytes | str | None = None
-    """Lease value for this transaction"""
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
-    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
-    accounts: list[str] | None = None
-    """Accounts to include in transaction"""
-    foreign_apps: list[int] | None = None
-    """List of foreign apps (by app id) to include in transaction"""
-    foreign_assets: list[int] | None = None
-    """List of foreign assets (by asset id) to include in transaction"""
-    rekey_to: str | None = None
-    """Address to rekey to"""
     on_complete: transaction.OnComplete | None = None
 
 
 @dataclasses.dataclass(kw_only=True)
-class CreateCallParameters:
+class CreateCallParameters(OnCompleteCallParameters):
     """Additional parameters that can be included in a transaction when using the
     ApplicationClient.create/compose_create methods"""
 
-    signer: TransactionSigner | None = None
-    """Signer to use when signing this transaction"""
-    sender: str | None = None
-    """Sender of this transaction"""
-    suggested_params: transaction.SuggestedParams | None = None
-    """SuggestedParams to use for this transaction"""
-    note: bytes | str | None = None
-    """Note for this transaction"""
-    lease: bytes | str | None = None
-    """Lease value for this transaction"""
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]] | None = None
-    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
-    accounts: list[str] | None = None
-    """Accounts to include in transaction"""
-    foreign_apps: list[int] | None = None
-    """List of foreign apps (by app id) to include in transaction"""
-    foreign_assets: list[int] | None = None
-    """List of foreign assets (by asset id) to include in transaction"""
-    rekey_to: str | None = None
-    """Address to rekey to"""
-    on_complete: transaction.OnComplete | None = None
     extra_pages: int | None = None
 
 
@@ -263,58 +202,17 @@ class TransactionParametersDict(TypedDict, total=False):
     """Address to rekey to"""
 
 
-class OnCompleteCallParametersDict(TypedDict, total=False):
+class OnCompleteCallParametersDict(TypedDict, TransactionParametersDict, total=False):
     """Additional parameters that can be included in a transaction when using the
     ApplicationClient.call/compose_call methods"""
 
-    signer: TransactionSigner
-    """Signer to use when signing this transaction"""
-    sender: str
-    """Sender of this transaction"""
-    suggested_params: transaction.SuggestedParams
-    """SuggestedParams to use for this transaction"""
-    note: bytes | str
-    """Note for this transaction"""
-    lease: bytes | str
-    """Lease value for this transaction"""
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
-    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
-    accounts: list[str]
-    """Accounts to include in transaction"""
-    foreign_apps: list[int]
-    """List of foreign apps (by app id) to include in transaction"""
-    foreign_assets: list[int]
-    """List of foreign assets (by asset id) to include in transaction"""
-    rekey_to: str
-    """Address to rekey to"""
     on_complete: transaction.OnComplete
 
 
-class CreateCallParametersDict(TypedDict, total=False):
+class CreateCallParametersDict(TypedDict, OnCompleteCallParametersDict, total=False):
     """Additional parameters that can be included in a transaction when using the
     ApplicationClient.create/compose_create methods"""
 
-    signer: TransactionSigner
-    """Signer to use when signing this transaction"""
-    sender: str
-    """Sender of this transaction"""
-    suggested_params: transaction.SuggestedParams
-    """SuggestedParams to use for this transaction"""
-    note: bytes | str
-    """Note for this transaction"""
-    lease: bytes | str
-    """Lease value for this transaction"""
-    boxes: Sequence[tuple[int, bytes | bytearray | str | int]]
-    """Box references to include in transaction. A sequence of (app id, box key) tuples"""
-    accounts: list[str]
-    """Accounts to include in transaction"""
-    foreign_apps: list[int]
-    """List of foreign apps (by app id) to include in transaction"""
-    foreign_assets: list[int]
-    """List of foreign assets (by asset id) to include in transaction"""
-    rekey_to: str
-    """Address to rekey to"""
-    on_complete: transaction.OnComplete
     extra_pages: int
 
 

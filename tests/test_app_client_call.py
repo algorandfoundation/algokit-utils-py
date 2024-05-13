@@ -9,6 +9,7 @@ from algokit_utils import (
     Account,
     ApplicationClient,
     ApplicationSpecification,
+    CreateCallParameters,
     get_account,
 )
 from algosdk.atomic_transaction_composer import (
@@ -16,7 +17,7 @@ from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
     TransactionWithSigner,
 )
-from algosdk.transaction import PaymentTxn
+from algosdk.transaction import ApplicationCallTxn, PaymentTxn
 
 from tests.conftest import check_output_stability, get_unique_name
 
@@ -103,6 +104,22 @@ def test_abi_call_multiple_times_with_atc(client_fixture: ApplicationClient) -> 
     assert result.abi_results[0].return_value == "Hello ABI, test"
     assert result.abi_results[1].return_value == "Hello ABI, test2"
     assert result.abi_results[2].return_value == "Hello ABI, test3"
+
+
+def test_call_parameters_from_derived_type_ignored(client_fixture: ApplicationClient) -> None:
+    client_fixture = client_fixture.prepare()  # make a copy
+    parameters = CreateCallParameters(
+        extra_pages=1,
+    )
+
+    client_fixture.app_id = 123
+    atc = AtomicTransactionComposer()
+    client_fixture.compose_call(atc, "hello", transaction_parameters=parameters, name="test")
+
+    signed_txn = atc.txn_list[0]
+    app_txn = signed_txn.txn
+    assert isinstance(app_txn, ApplicationCallTxn)
+    assert app_txn.extra_pages == 0
 
 
 def test_call_with_box(client_fixture: ApplicationClient) -> None:
