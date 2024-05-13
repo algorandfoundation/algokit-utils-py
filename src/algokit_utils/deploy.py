@@ -23,6 +23,7 @@ from algokit_utils.models import (
     ABIMethod,
     Account,
     CreateCallParameters,
+    TransactionParameters,
     TransactionResponse,
 )
 
@@ -724,7 +725,7 @@ class Deployer:
     def _create_app(self) -> DeployResponse:
         assert self.app_client.existing_deployments
 
-        method, abi_args, parameters = _convert_deploy_args(
+        method, abi_args, parameters = _convert_create_deploy_args(
             self.create_args, self.new_app_metadata, self.signer, self.sender
         )
         create_response = self.app_client.create(
@@ -751,7 +752,7 @@ class Deployer:
             f"{self.new_app_metadata.name} ({self.new_app_metadata.version}) in {self.creator} account."
         )
         atc = AtomicTransactionComposer()
-        create_method, create_abi_args, create_parameters = _convert_deploy_args(
+        create_method, create_abi_args, create_parameters = _convert_create_deploy_args(
             self.create_args, self.new_app_metadata, self.signer, self.sender
         )
         self.app_client.compose_create(
@@ -850,11 +851,10 @@ def _convert_deploy_args(
     note: AppDeployMetaData,
     signer: TransactionSigner | None,
     sender: str | None,
-) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
+) -> tuple[ABIMethod | bool | None, ABIArgsDict, TransactionParameters]:
     args = _args.__dict__ if isinstance(_args, DeployCallArgs) else (_args or {})
 
-    # return most derived type, unused parameters are ignored
-    parameters = CreateCallParameters(
+    parameters = TransactionParameters(
         note=note.encode(),
         signer=signer,
         sender=sender,
@@ -865,11 +865,25 @@ def _convert_deploy_args(
         foreign_apps=args.get("foreign_apps"),
         boxes=args.get("boxes"),
         rekey_to=args.get("rekey_to"),
+    )
+
+    return args.get("method"), args.get("args") or {}, parameters
+
+
+def _convert_create_deploy_args(
+    _args: DeployCallArgs | DeployCallArgsDict | None,
+    note: AppDeployMetaData,
+    signer: TransactionSigner | None,
+    sender: str | None,
+) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
+    method, args, parameters = _convert_deploy_args(_args, note, signer, sender)
+    create_parameters = CreateCallParameters(
+        **parameters.__dict__,
         extra_pages=args.get("extra_pages"),
         on_complete=args.get("on_complete"),
     )
 
-    return args.get("method"), args.get("args") or {}, parameters
+    return method, args, create_parameters
 
 
 def get_app_id_from_tx_id(algod_client: "AlgodClient", tx_id: str) -> int:
