@@ -17,8 +17,6 @@ from algokit_utils import (
     transfer,
     transfer_asset,
 )
-from algokit_utils.application_client import ApplicationClient
-from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
@@ -32,20 +30,9 @@ from tests.test_network_clients import DEFAULT_TOKEN
 if TYPE_CHECKING:
     from algosdk.kmd import KMDClient
     from algosdk.v2client.algod import AlgodClient
-    from algosdk.v2client.indexer import IndexerClient
 
 
 MINIMUM_BALANCE = 100_000  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
-
-
-@pytest.fixture(scope="module")
-def client_fixture(
-    algod_client: "AlgodClient",
-    indexer_client: "IndexerClient",
-    app_spec: ApplicationSpecification,
-    funded_account: Account,
-) -> ApplicationClient:
-    return ApplicationClient(algod_client, app_spec, creator=funded_account, indexer_client=indexer_client)
 
 
 @pytest.fixture()
@@ -54,7 +41,7 @@ def to_account(kmd_client: "KMDClient") -> Account:
 
 
 @pytest.fixture()
-def rekeyed_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -> Account:
+def rekeyed_from_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -> Account:
     account = create_kmd_wallet_account(kmd_client, get_unique_name())
     rekey_account = create_kmd_wallet_account(kmd_client, get_unique_name())
 
@@ -82,11 +69,12 @@ def rekeyed_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -> Acc
 
 
 @pytest.fixture()
-def account_transaction_signer(
+def transaction_signer_from_account(
     kmd_client: "KMDClient",
     algod_client: "AlgodClient",
 ) -> AccountTransactionSigner:
     account = create_kmd_wallet_account(kmd_client, get_unique_name())
+
     ensure_funded(
         algod_client,
         EnsureBalanceParameters(
@@ -122,13 +110,13 @@ def test_transfer_algo(algod_client: "AlgodClient", to_account: Account, funded_
 
 
 def test_transfer_algo_rekey_account(
-    algod_client: "AlgodClient", to_account: Account, rekeyed_account: Account
+    algod_client: "AlgodClient", to_account: Account, rekeyed_from_account: Account
 ) -> None:
     requested_amount = 100_000
     transfer(
         algod_client,
         TransferParameters(
-            from_account=rekeyed_account,
+            from_account=rekeyed_from_account,
             to_address=to_account.address,
             micro_algos=requested_amount,
         ),
@@ -141,13 +129,13 @@ def test_transfer_algo_rekey_account(
 
 
 def test_transfer_algo_transaction_signer_account(
-    algod_client: "AlgodClient", to_account: Account, account_transaction_signer: AccountTransactionSigner
+    algod_client: "AlgodClient", to_account: Account, transaction_signer_from_account: AccountTransactionSigner
 ) -> None:
     requested_amount = 100_000
     transfer(
         algod_client,
         TransferParameters(
-            from_account=account_transaction_signer,
+            from_account=transaction_signer_from_account,
             to_address=to_account.address,
             micro_algos=requested_amount,
         ),
