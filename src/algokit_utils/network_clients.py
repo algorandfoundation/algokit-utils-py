@@ -14,15 +14,12 @@ __all__ = [
     "get_default_localnet_config",
     "get_indexer_client",
     "get_kmd_client_from_algod_client",
-    "get_purestake_config",
     "is_localnet",
     "is_mainnet",
     "is_testnet",
     "AlgoClientConfigs",
     "get_kmd_client",
 ]
-
-_PURE_STAKE_HOST = "purestake.io"
 
 
 @dataclasses.dataclass
@@ -59,22 +56,12 @@ def get_algonode_config(
     )
 
 
-def get_purestake_config(
-    network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"], token: str
-) -> AlgoClientConfig:
-    client = "ps2" if config == "algod" else "idx2"
-    return AlgoClientConfig(
-        server=f"https://{network}-algorand.api.purestake.io/{client}",
-        token=token,
-    )
-
-
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
 
     If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
     config = config or _get_config_from_environment("ALGOD")
-    headers = _get_headers(config, "X-Algo-API-Token")
+    headers = {"X-Algo-API-Token": config.token}
     return AlgodClient(config.token, config.server, headers)
 
 
@@ -91,7 +78,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
 
     If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`"""
     config = config or _get_config_from_environment("INDEXER")
-    headers = _get_headers(config, "X-Indexer-API-Token")
+    headers = {"X-Indexer-API-Token": config.token}
     return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
 
 
@@ -141,14 +128,3 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
         parsed = parse.urlparse(server)
         server = parsed._replace(netloc=f"{parsed.hostname}:{port}").geturl()
     return AlgoClientConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""))
-
-
-def _is_pure_stake_url(url: str) -> bool:
-    parsed = parse.urlparse(url)
-    host = parsed.netloc.split(":")[0].lower()
-    return host.endswith(_PURE_STAKE_HOST)
-
-
-def _get_headers(config: AlgoClientConfig, default_auth_header: str) -> dict[str, str] | None:
-    auth_header = "X-API-Key" if _is_pure_stake_url(config.server) else default_auth_header
-    return {auth_header: config.token}

@@ -555,7 +555,7 @@ Bases: {py:obj}`algokit_utils.models.TransactionResponse`, {py:obj}`typing.Gener
 :canonical: algokit_utils.models.Account.address
 :type: str
 :value: >
-   None
+   'field(...)'
 
 ```{autodoc2-docstring} algokit_utils.models.Account.address
 :parser: myst
