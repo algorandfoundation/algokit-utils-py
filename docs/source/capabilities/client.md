@@ -1,11 +1,11 @@
 # Client management
 
-Client management is one of the core capabilities provided by AlgoKit Utils. 
-It allows you to create [algod](https://developer.algorand.org/docs/rest-apis/algod), [indexer](https://developer.algorand.org/docs/rest-apis/indexer) 
+Client management is one of the core capabilities provided by AlgoKit Utils.
+It allows you to create [algod](https://developer.algorand.org/docs/rest-apis/algod), [indexer](https://developer.algorand.org/docs/rest-apis/indexer)
 and [kmd](https://developer.algorand.org/docs/rest-apis/kmd) clients against various networks resolved from environment or specified configuration.
 
-Any AlgoKit Utils function that needs one of these clients will take the underlying `algosdk` classes (`algosdk.v2client.algod.AlgodClient`, `algosdk.v2client.indexer.IndexerClient`, 
-`algosdk.kmd.KMDClient`) so inline with the [Modularity](../index.md#core-principles) principle you can use existing logic to get instances of these clients without needing to use the 
+Any AlgoKit Utils function that needs one of these clients will take the underlying `algosdk` classes (`algosdk.v2client.algod.AlgodClient`, `algosdk.v2client.indexer.IndexerClient`,
+`algosdk.kmd.KMDClient`) so inline with the [Modularity](../index.md#core-principles) principle you can use existing logic to get instances of these clients without needing to use the
 Client management capability if you prefer.
 
 To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_network_clients.py).
@@ -16,10 +16,9 @@ The network configuration is specified using the `AlgoClientConfig` class. This 
 
 There are a number of ways to produce one of these configuration objects:
 
-* Manually creating the object, e.g. `AlgoClientConfig(server="https://myalgodnode.com", token="SECRET_TOKEN")`
-* `algokit_utils.get_algonode_config(network, config, token)`: Loads an Algod or indexer config against [AlgoNode](https://algonode.io/api/) to either MainNet or TestNet
-* `algokit_utils.get_purestake_config(network, config, token)`: Loads an Algod or indexer config against [PureStake](https://developer.purestake.io/) to either MainNet or TestNet
-* `algokit_utils.get_default_localnet_config(configOrPort)`: Loads an Algod, Indexer or Kmd config against [LocalNet](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md) using the default configuration
+- Manually creating the object, e.g. `AlgoClientConfig(server="https://myalgodnode.com", token="SECRET_TOKEN")`
+- `algokit_utils.get_algonode_config(network, config, token)`: Loads an Algod or indexer config against [Nodely](https://nodely.io/docs/free/start) to either MainNet or TestNet
+- `algokit_utils.get_default_localnet_config(configOrPort)`: Loads an Algod, Indexer or Kmd config against [LocalNet](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md) using the default configuration
 
 ## Clients
 
