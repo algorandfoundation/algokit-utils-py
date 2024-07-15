@@ -48,19 +48,9 @@ jobs:
       - name: Check docs are up to date
         run: |
           poetry run poe docs
-          git status --porcelain docs/ > changed_files.txt
-          if [ -s changed_files.txt ]; then
-            echo "The following files have changes:"
-            cat changed_files.txt
-            echo "Content of changed files:"
-            while read -r file; do
-              status=$(echo "$file" | cut -c1-2)
-              filename=$(echo "$file" | cut -c4-)
-              echo "File: $filename (Status: $status)"
-              cat "$filename"
-              echo "----------------------"
-            done < changed_files.txt
-            exit 1
-          else
-            echo "No changes detected in docs/"
-          fi
+          git diff --quiet --exit-code \
+            ':!docs/html/_sources/apidocs/algokit_utils/algokit_utils.md.txt' \
+            ':!docs/html/apidocs/algokit_utils/algokit_utils.html' \
+            ':!docs/html/searchindex.js' \
+            ':!docs/markdown/apidocs/algokit_utils/algokit_utils.md' \
+            docs/
