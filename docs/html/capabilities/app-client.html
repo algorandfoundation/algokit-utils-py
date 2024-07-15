@@ -66,6 +66,7 @@
 <li class="toctree-l1"><a class="reference internal" href="app-deploy.html">App deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transfer.html">Algo transfers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dispenser-client.html">TestNet Dispenser Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugger.html">Debugger</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -100,7 +101,7 @@
 <p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_app_client_call.py">automated tests</a>.</p>
 <section id="design">
 <h2>Design<a class="headerlink" href="#design" title="Permalink to this heading"></a></h2>
-<p>The design for the app client is based on a wrapper for parsing an <a class="reference external" href="https://github.com/algorandfoundation/ARCs/pull/150">ARC-0032</a> application spec and wrapping the <a class="reference internal" href="app-deploy.html"><span class="std std-doc">App deployment</span></a> functionality and corresponding <a class="reference internal" href="app-deploy.html#design"><span class="std std-ref">design</span></a>.</p>
+<p>The design for the app client is based on a wrapper for parsing an <a class="reference external" href="https://github.com/algorandfoundation/ARCs/pull/150">ARC-0032</a> application spec and wrapping the <a class="reference internal" href="app-deploy.html"><span class="std std-doc">App deployment</span></a> functionality and corresponding <a class="reference internal" href="app-deploy.html#id1"><span class="std std-ref">design</span></a>.</p>
 </section>
 <section id="creating-an-application-client">
 <h2>Creating an application client<a class="headerlink" href="#creating-an-application-client" title="Permalink to this heading"></a></h2>
@@ -221,7 +222,7 @@ Once all the calls have been added to the ATC, it can then be executed. For exam
 <p>Often when calling a smart contract during development you will get logic errors that cause an exception to throw. This may be because of a failing assertion, a lack of fees,
 exhaustion of opcode budget, or any number of other reasons.</p>
 <p>When this occurs, you will generally get an error that looks something like: <code class="docutils literal notranslate"><span class="pre">TransactionPool.Remember:</span> <span class="pre">transaction</span> <span class="pre">{TRANSACTION_ID}:</span> <span class="pre">logic</span> <span class="pre">eval</span> <span class="pre">error:</span> <span class="pre">{ERROR_MESSAGE}.</span> <span class="pre">Details:</span> <span class="pre">pc={PROGRAM_COUNTER_VALUE},</span> <span class="pre">opcodes={LIST_OF_OP_CODES}</span></code>.</p>
-<p>The information in that error message can be parsed and when combined with the <a class="reference internal" href="app-deploy.html#compilation-and-template-substitution"><span class="std std-ref">source map from compilation</span></a> you can expose debugging
+<p>The information in that error message can be parsed and when combined with the <a class="reference internal" href="app-deploy.html#id2"><span class="std std-ref">source map from compilation</span></a> you can expose debugging
 information that makes it much easier to understand what’s happening.</p>
 <p>When an error is thrown then the resulting error that is re-thrown will be a <code class="docutils literal notranslate"><span class="pre">LogicError</span></code>, which has the following fields:</p>
 <ul class="simple">

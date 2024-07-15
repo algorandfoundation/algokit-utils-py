@@ -56,6 +56,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="dispenser-client.html">TestNet Dispenser Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugger.html">Debugger</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -132,7 +133,7 @@ The function to facilitate this is <code class="docutils literal notranslate"><s
 <section id="dispenser">
 <h2>Dispenser<a class="headerlink" href="#dispenser" title="Permalink to this heading"></a></h2>
 <p>If you want to programmatically send funds then you will often need a “dispenser” account that has a store of ALGOs that can be sent and a private key available for that dispenser account.</p>
-<p>There is a standard AlgoKit Utils function to get access to a <a class="reference internal" href="account.html#account"><span class="std std-ref">dispenser account</span></a>: <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code>. When running against
+<p>There is a standard AlgoKit Utils function to get access to a <a class="reference internal" href="account.html#id1"><span class="std std-ref">dispenser account</span></a>: <code class="docutils literal notranslate"><span class="pre">get_dispenser_account</span></code>. When running against
 <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md">LocalNet</a>, the dispenser account can be automatically determined using the
 <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/kmd">Kmd API</a>. When running against other networks like TestNet or MainNet the mnemonic of the dispenser account can be provided via environment
 variable <code class="docutils literal notranslate"><span class="pre">DISPENSER_MNEMONIC</span></code></p>
