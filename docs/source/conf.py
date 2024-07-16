@@ -16,6 +16,77 @@ class AlgoKitRenderer(MystRenderer):
 
     """
 
+
+    @te.override
+    def render_class(self, item: ItemData) -> t.Iterable[str]:
+        """Create the content for a class."""
+        short_name = item["full_name"].split(".")[-1]
+        constructor = self.get_item(f"{item['full_name']}.__init__")
+        sig = short_name
+        if constructor and "args" in constructor:
+            args = self.format_args(
+                constructor["args"], self.show_annotations(item), ignore_self="self"
+            )
+            sig += f"({args})"
+
+        # note, here we can cannot yield by line,
+        # because we need to look ahead to know the length of the backticks
+
+        lines: list[str] = [f":canonical: {item['full_name']}"]
+        if self.no_index(item):
+            lines += [":noindex:"]
+        lines += [""]
+
+        # TODO overloads
+
+        if item.get("bases") and self.show_class_inheritance(item):
+            lines += [
+                "Bases: "
+                + ", ".join(
+                    [self._reformat_cls_base_myst(b) for b in item.get("bases", [])]
+                ),
+                "",
+            ]
+
+        if self.show_docstring(item):
+            lines.append(f"```{{autodoc2-docstring}} {item['full_name']}")
+            if parser_name := self.get_doc_parser(item["full_name"]):
+                lines.append(f":parser: {parser_name}")
+            lines.append("```")
+            lines.append("")
+
+            if self.config.class_docstring == "merge":
+                init_item = self.get_item(f"{item['full_name']}.__init__")
+                if init_item:
+                    lines.extend(
+                        [
+                            "Initialization",
+                            "",
+                            f"```{{autodoc2-docstring}} {init_item['full_name']}",
+                        ]
+                    )
+                    if parser_name := self.get_doc_parser(init_item["full_name"]):
+                        lines.append(f":parser: {parser_name}")
+                    lines.extend(["```", ""])
+
+        for child in self.get_children(
+            item, {"class", "property", "attribute", "method"}
+        ):
+            if (
+                child["full_name"].endswith(".__init__")
+                and self.config.class_docstring == "merge"
+            ):
+                continue
+            for line in self.render_item(child["full_name"]):
+                lines.append(line)
+
+        backticks = self.enclosing_backticks("\n".join(lines))
+        yield f"{backticks}{{py:{item['type']}}} {sig}"
+        for line in lines:
+            yield line
+        yield backticks
+        yield ""
+
     @te.override
     def render_package(self, item: ItemData) -> t.Iterable[str]:  # noqa: C901
         if self.standalone and self.is_hidden(item):

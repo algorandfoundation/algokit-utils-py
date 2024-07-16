@@ -363,7 +363,7 @@
 <dd><p>Bases: <a class="reference internal" href="#algokit_utils.DeployCallArgsDict" title="algokit_utils.deploy.DeployCallArgsDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.deploy.DeployCallArgsDict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>ABI Parameters used to update or delete an application when calling
 <a class="reference internal" href="#algokit_utils.ApplicationClient.deploy" title="algokit_utils.ApplicationClient.deploy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deploy()</span></code></a></p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -379,7 +379,7 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ABICreateCallArgsDict</span></span><a class="headerlink" href="#algokit_utils.ABICreateCallArgsDict" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#algokit_utils.DeployCreateCallArgsDict" title="algokit_utils.deploy.DeployCreateCallArgsDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.deploy.DeployCreateCallArgsDict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>ABI Parameters used to create an application when calling <a class="reference internal" href="#algokit_utils.ApplicationClient.deploy" title="algokit_utils.ApplicationClient.deploy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deploy()</span></code></a></p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -511,7 +511,7 @@ apps or discovering multiple app_ids</p>
 <dt class="sig sig-object py" id="algokit_utils.ApplicationClient">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">ApplicationClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algod_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.ApplicationSpecification" title="algokit_utils.application_specification.ApplicationSpecification"><span class="pre">algokit_utils.application_specification.ApplicationSpecification</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">pathlib.Path</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexer_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">IndexerClient</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">existing_deployments</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.AppLookup" title="algokit_utils.deploy.AppLookup"><span class="pre">algokit_utils.deploy.AppLookup</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner" title="(in algosdk)"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.Account" title="algokit_utils.models.Account"><span class="pre">algokit_utils.models.Account</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suggested_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.SuggestedParams" title="(in algosdk)"><span class="pre">algosdk.transaction.SuggestedParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.TemplateValueMapping" title="algokit_utils.deploy.TemplateValueMapping"><span class="pre">algokit_utils.deploy.TemplateValueMapping</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.ApplicationClient" title="Permalink to this definition"></a></dt>
 <dd><p>A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>ApplicationClient can be created with an app_id to interact with an existing application, alternatively
 it can be created with a creator and indexer_client specified to find existing applications by name and creator.</p>
 <dl class="myst field-list simple">
@@ -755,7 +755,7 @@ directory(optional): path to the directory where the artifacts should be written
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">CallConfig</span></span><a class="headerlink" href="#algokit_utils.CallConfig" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.IntFlag" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.IntFlag</span></code></a></p>
 <p>Describes the type of calls a method can be used for based on <a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.OnComplete" title="(in algosdk)"><code class="xref py py-class docutils literal notranslate"><span class="pre">algosdk.transaction.OnComplete</span></code></a> type</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.CallConfig.ALL">
@@ -801,7 +801,7 @@ ApplicationClient.create/compose_create methods</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a>, <a class="reference internal" href="#algokit_utils.OnCompleteCallParametersDict" title="algokit_utils.models.OnCompleteCallParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.OnCompleteCallParametersDict</span></code></a></p>
 <p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.create/compose_create methods</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -818,7 +818,7 @@ ApplicationClient.create/compose_create methods</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>DefaultArgument is a container for any arguments that may
 be resolved prior to calling some target method</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -835,7 +835,7 @@ be resolved prior to calling some target method</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>Parameters used to update or delete an application when calling
 <a class="reference internal" href="#algokit_utils.ApplicationClient.deploy" title="algokit_utils.ApplicationClient.deploy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deploy()</span></code></a></p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -851,7 +851,7 @@ be resolved prior to calling some target method</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">DeployCreateCallArgsDict</span></span><a class="headerlink" href="#algokit_utils.DeployCreateCallArgsDict" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#algokit_utils.DeployCallArgsDict" title="algokit_utils.deploy.DeployCallArgsDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.deploy.DeployCallArgsDict</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>Parameters used to create an application when calling <a class="reference internal" href="#algokit_utils.ApplicationClient.deploy" title="algokit_utils.ApplicationClient.deploy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">deploy()</span></code></a></p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -961,7 +961,7 @@ ApplicationClient.call/compose_call methods</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a>, <a class="reference internal" href="#algokit_utils.TransactionParametersDict" title="algokit_utils.models.TransactionParametersDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.models.TransactionParametersDict</span></code></a></p>
 <p>Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 </dd></dl>
 
@@ -970,7 +970,7 @@ ApplicationClient.call/compose_call methods</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">OnSchemaBreak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.OnSchemaBreak" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>Action to take if an Application’s schema has breaking changes</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.OnSchemaBreak.AppendApp">
 <span class="sig-name descname"><span class="pre">AppendApp</span></span><a class="headerlink" href="#algokit_utils.OnSchemaBreak.AppendApp" title="Permalink to this definition"></a></dt>
@@ -999,7 +999,7 @@ ApplicationClient.call/compose_call methods</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">OnUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.OnUpdate" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>Action to take if an Application has been updated</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.OnUpdate.AppendApp">
 <span class="sig-name descname"><span class="pre">AppendApp</span></span><a class="headerlink" href="#algokit_utils.OnUpdate.AppendApp" title="Permalink to this definition"></a></dt>
@@ -1035,7 +1035,7 @@ ApplicationClient.call/compose_call methods</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">OperationPerformed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.OperationPerformed" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">enum.Enum</span></code></a></p>
 <p>Describes the actions taken during deployment</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.OperationPerformed.Create">
 <span class="sig-name descname"><span class="pre">Create</span></span><a class="headerlink" href="#algokit_utils.OperationPerformed.Create" title="Permalink to this definition"></a></dt>
@@ -1070,7 +1070,7 @@ ApplicationClient.call/compose_call methods</p>
 <dt class="sig sig-object py" id="algokit_utils.Program">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">Program</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">program</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient" title="(in algosdk)"><span class="pre">algosdk.v2client.algod.AlgodClient</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.Program" title="Permalink to this definition"></a></dt>
 <dd><p>A compiled TEAL program</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Fully compile the program source to binary and generate a
 source map for matching pc to line number</p>
 </dd></dl>
@@ -1084,7 +1084,7 @@ and pass it to the client constructor as <code class="docutils literal notransla
 Alternatively set the access token as environment variable <code class="docutils literal notranslate"><span class="pre">ALGOKIT_DISPENSER_ACCESS_TOKEN</span></code>,
 and it will be auto loaded. If both are set, the constructor argument takes precedence.</p>
 <p>Default request timeout is 15 seconds. Modify by passing <code class="docutils literal notranslate"><span class="pre">request_timeout</span></code> to the constructor.</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="algokit_utils.TestNetDispenserApiClient.fund">
 <span class="sig-name descname"><span class="pre">fund</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">amount</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.dispenser_api.DispenserFundResponse</span></span></span><a class="headerlink" href="#algokit_utils.TestNetDispenserApiClient.fund" title="Permalink to this definition"></a></dt>
@@ -1186,7 +1186,7 @@ and it will be auto loaded. If both are set, the constructor argument takes prec
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.</span></span><span class="sig-name descname"><span class="pre">TransactionParametersDict</span></span><a class="headerlink" href="#algokit_utils.TransactionParametersDict" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypedDict" title="(in Python v3.12)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">typing.TypedDict</span></code></a></p>
 <p>Additional parameters that can be included in a transaction</p>
-<p class="rubric">Initialization</p>
+<p>Initialization</p>
 <p>Initialize self.  See help(type(self)) for accurate signature.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.TransactionParametersDict.accounts">

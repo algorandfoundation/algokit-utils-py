@@ -151,8 +151,7 @@ Bases: {py:obj}`algokit_utils.deploy.DeployCallArgsDict`, {py:obj}`typing.TypedD
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.ABICallArgsDict.__init__
 :parser: myst
@@ -182,8 +181,7 @@ Bases: {py:obj}`algokit_utils.deploy.DeployCreateCallArgsDict`, {py:obj}`typing.
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.ABICreateCallArgsDict.__init__
 :parser: myst
@@ -401,8 +399,7 @@ Bases: {py:obj}`algokit_utils.deploy.AppReference`, {py:obj}`algokit_utils.deplo
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.application_client.ApplicationClient.__init__
 :parser: myst
@@ -655,8 +652,7 @@ Bases: {py:obj}`enum.IntFlag`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.application_specification.CallConfig.__init__
 :parser: myst
@@ -730,8 +726,7 @@ Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.models.OnCompleteCallP
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.models.CreateCallParametersDict.__init__
 :parser: myst
@@ -761,8 +756,7 @@ Bases: {py:obj}`typing.TypedDict`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.application_specification.DefaultArgumentDict.__init__
 :parser: myst
@@ -790,8 +784,7 @@ Bases: {py:obj}`typing.TypedDict`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.DeployCallArgsDict.__init__
 :parser: myst
@@ -821,8 +814,7 @@ Bases: {py:obj}`algokit_utils.deploy.DeployCallArgsDict`, {py:obj}`typing.TypedD
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.DeployCreateCallArgsDict.__init__
 :parser: myst
@@ -1000,8 +992,7 @@ Bases: {py:obj}`typing.TypedDict`, {py:obj}`algokit_utils.models.TransactionPara
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.models.OnCompleteCallParametersDict.__init__
 :parser: myst
@@ -1019,8 +1010,7 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.OnSchemaBreak.__init__
 :parser: myst
@@ -1071,8 +1061,7 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.OnUpdate.__init__
 :parser: myst
@@ -1134,8 +1123,7 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.deploy.OperationPerformed.__init__
 :parser: myst
@@ -1195,8 +1183,7 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.common.Program.__init__
 :parser: myst
@@ -1212,8 +1199,7 @@ Bases: {py:obj}`enum.Enum`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient.__init__
 :parser: myst
@@ -1388,8 +1374,7 @@ Bases: {py:obj}`typing.TypedDict`
 :parser: myst
 ```
 
-```{rubric} Initialization
-```
+Initialization
 
 ```{autodoc2-docstring} algokit_utils.models.TransactionParametersDict.__init__
 :parser: myst
