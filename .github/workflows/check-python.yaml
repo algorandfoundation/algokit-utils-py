@@ -44,3 +44,13 @@ jobs:
 
       - name: Check types with mypy
         run: poetry run mypy
+
+      - name: Check docs are up to date
+        run: |
+          poetry run poe docs
+          git diff --quiet --exit-code \
+            ':!docs/html/_sources/apidocs/algokit_utils/algokit_utils.md.txt' \
+            ':!docs/html/apidocs/algokit_utils/algokit_utils.html' \
+            ':!docs/html/searchindex.js' \
+            ':!docs/markdown/apidocs/algokit_utils/algokit_utils.md' \
+            docs/

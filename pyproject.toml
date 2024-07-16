@@ -32,6 +32,8 @@ beaker-pyteal = "^1.1.1"
 types-deprecated = "^1.2.9.2"
 pytest-httpx = "^0.21.3"
 pytest-xdist = "^3.4.0"
+sphinx-markdown-builder = "^0.6.6"
+linkify-it-py = "^2.0.3"
 
 [build-system]
 requires = ["poetry-core"]
@@ -124,7 +126,9 @@ suppress-none-returning = true
 "path/to/file.py" = ["E402"]
 
 [tool.poe.tasks]
-docs = "sphinx-build docs/source docs/html"
+docs = ["docs-html-only", "docs-md-only"]
+docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
+docs-html-only = "sphinx-build docs/source docs/html"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

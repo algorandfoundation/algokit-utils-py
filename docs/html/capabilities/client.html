@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="app-deploy.html">App deployment</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transfer.html">Algo transfers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dispenser-client.html">TestNet Dispenser Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugger.html">Debugger</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../apidocs/algokit_utils/algokit_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">algokit_utils</span></code></a></li>
 </ul>
 
@@ -87,7 +88,7 @@
 It allows you to create <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/algod">algod</a>, <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/indexer">indexer</a>
 and <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/kmd">kmd</a> clients against various networks resolved from environment or specified configuration.</p>
 <p>Any AlgoKit Utils function that needs one of these clients will take the underlying <code class="docutils literal notranslate"><span class="pre">algosdk</span></code> classes (<code class="docutils literal notranslate"><span class="pre">algosdk.v2client.algod.AlgodClient</span></code>, <code class="docutils literal notranslate"><span class="pre">algosdk.v2client.indexer.IndexerClient</span></code>,
-<code class="docutils literal notranslate"><span class="pre">algosdk.kmd.KMDClient</span></code>) so inline with the <a class="reference internal" href="../index.html#core-principles"><span class="std std-ref">Modularity</span></a> principle you can use existing logic to get instances of these clients without needing to use the
+<code class="docutils literal notranslate"><span class="pre">algosdk.kmd.KMDClient</span></code>) so inline with the <a class="reference internal" href="../index.html#id1"><span class="std std-ref">Modularity</span></a> principle you can use existing logic to get instances of these clients without needing to use the
 Client management capability if you prefer.</p>
 <p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_network_clients.py">automated tests</a>.</p>
 <section id="network-configuration">
