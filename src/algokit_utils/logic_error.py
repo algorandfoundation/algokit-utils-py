@@ -2,6 +2,8 @@ import re
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
 
+from algokit_utils.models import SimulationTrace
+
 if TYPE_CHECKING:
     from algosdk.source_map import SourceMap as AlgoSourceMap
 
@@ -46,7 +48,7 @@ class LogicError(Exception):
         message: str,
         pc: int,
         logic_error: Exception | None = None,
-        traces: list | None = None,
+        traces: list[SimulationTrace] | None = None,
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str

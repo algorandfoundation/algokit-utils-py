@@ -49,6 +49,7 @@ from algokit_utils.models import (
     CreateCallParametersDict,
     OnCompleteCallParameters,
     OnCompleteCallParametersDict,
+    SimulationTrace,
     TransactionParameters,
     TransactionParametersDict,
     TransactionResponse,
@@ -1236,7 +1237,7 @@ def _try_convert_to_logic_error(
     source_ex: Exception | str,
     approval_program: str,
     approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
-    simulate_traces: list | None = None,
+    simulate_traces: list[SimulationTrace] | None = None,
 ) -> Exception | None:
     source_ex_str = str(source_ex)
     logic_error_data = parse_logic_error(source_ex_str)
@@ -1297,7 +1298,7 @@ def execute_atc_with_logic_error(
         raise ex
 
 
-def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[dict[str, Any]]:
+def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list[SimulationTrace]:
     traces = []
     if hasattr(simulate, "simulate_response") and hasattr(simulate, "failed_at") and simulate.failed_at:
         for txn_group in simulate.simulate_response["txn-groups"]:
@@ -1307,12 +1308,12 @@ def _create_simulate_traces(simulate: SimulateAtomicTransactionResponse) -> list
             txn_result = txn_group.get("txn-results", [{}])[0]
             exec_trace = txn_result.get("exec-trace", {})
             traces.append(
-                {
-                    "app-budget-added": app_budget_added,
-                    "app-budget-consumed": app_budget_consumed,
-                    "failure-message": failure_message,
-                    "exec-trace": exec_trace,
-                }
+                SimulationTrace(
+                    app_budget_added=app_budget_added,
+                    app_budget_consumed=app_budget_consumed,
+                    failure_message=failure_message,
+                    exec_trace=exec_trace,
+                )
             )
     return traces
 
