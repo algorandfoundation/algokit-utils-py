@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v2.3.1 (2024-08-08)
+
+### Fix
+
+* Bumping mypy; making traces object typed to prevent misc mypy error on LogicError ([#105](https://github.com/algorandfoundation/algokit-utils-py/issues/105)) ([`a9ffb78`](https://github.com/algorandfoundation/algokit-utils-py/commit/a9ffb7869b59c8e89ee583ee3dff099c7296aa69))
+* Fixed obsolete info and broken links ([#100](https://github.com/algorandfoundation/algokit-utils-py/issues/100)) ([`1d997d2`](https://github.com/algorandfoundation/algokit-utils-py/commit/1d997d2a27dab5e6c2563d092f165a0ac51ff8b1))
+
+### Documentation
+
+* Refining sphinx to also export a new .md only docs version; minor improvements ([#103](https://github.com/algorandfoundation/algokit-utils-py/issues/103)) ([`d21147d`](https://github.com/algorandfoundation/algokit-utils-py/commit/d21147d912fa98985efb0fc51880b561c60fba07))
+
 ## v2.3.0 (2024-05-13)
 
 ### Feature
