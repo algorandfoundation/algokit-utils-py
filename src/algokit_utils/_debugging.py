@@ -176,7 +176,8 @@ def _build_avm_sourcemap(  # noqa: PLR0913
 
 
 @deprecated(
-    reason="Use latest version of AlgoKit AVM VSCode extension instead. It will automatically manage your sourcemaps.",
+    reason="Use latest version of `AlgoKit AVM Debugger` VSCode extension instead. "
+    "It will automatically manage your sourcemaps.",
     version="2.3.1",
 )
 def persist_sourcemaps(
