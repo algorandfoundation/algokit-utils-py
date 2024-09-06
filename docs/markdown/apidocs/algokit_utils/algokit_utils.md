@@ -1049,7 +1049,7 @@ Returns:
 dict[int, str]: A dictionary where the keys are the asset IDs and the values are the transaction IDs of
 the executed transactions.
 
-### algokit_utils.persist_sourcemaps(\*, sources: [list](https://docs.python.org/3/library/stdtypes.html#list)[algokit_utils._debugging.PersistSourceMapInput], project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), with_sources: [bool](https://docs.python.org/3/library/functions.html#bool) = True)
+### algokit_utils.persist_sourcemaps(\*, sources: [list](https://docs.python.org/3/library/stdtypes.html#list)[algokit_utils._debugging.PersistSourceMapInput], project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), with_sources: [bool](https://docs.python.org/3/library/functions.html#bool) = True, persist_mappings: [bool](https://docs.python.org/3/library/functions.html#bool) = False)
 
 Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
 Args:
@@ -1058,6 +1058,8 @@ project_root (Path): The root directory of the project.
 client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
 with_sources (bool): If True, it will dump teal source files along with sourcemaps.
 Default is True, as needed by an AlgoKit AVM debugger.
+persist_mappings (bool): Enables legacy behavior of persisting the `sources.avm.json` mappings to
+the project root. Default is False, given that the AlgoKit AVM VSCode extension will manage the mappings.
 
 ### algokit_utils.replace_template_variables(program: [str](https://docs.python.org/3/library/stdtypes.html#str), template_values: [algokit_utils.deploy.TemplateValueMapping](#algokit_utils.TemplateValueMapping))
 

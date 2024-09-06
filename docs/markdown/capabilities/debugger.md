@@ -26,7 +26,6 @@ config.configure(debug=True)
 
 Debugging utilities can be used to simplify gathering artifacts to be used with [AlgoKit AVM Debugger](https://github.com/algorandfoundation/algokit-avm-vscode-debugger) in non algokit compliant projects. The following methods are provided:
 
-- `persist_sourcemaps`: This method persists the sourcemaps for the given sources as AVM Debugger compliant artifacts. It takes a list of `PersistSourceMapInput` objects, a `Path` object representing the root directory of the project, an `AlgodClient` object for interacting with the Algorand blockchain, and a boolean indicating whether to dump teal source files along with sourcemaps.
 - `simulate_and_persist_response`: This method simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object, and persists the simulation response to an AVM Debugger compliant JSON file. It takes an `AtomicTransactionComposer` object representing the atomic transactions to be simulated and persisted, a `Path` object representing the root directory of the project, an `AlgodClient` object representing the Algorand client, and a float representing the size of the trace buffer in megabytes.
 
 ### Trace filename format
