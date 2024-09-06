@@ -13,6 +13,7 @@ from algosdk.atomic_transaction_composer import (
 )
 from algosdk.encoding import checksum
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
+from deprecated import deprecated
 
 from algokit_utils.common import Program
 
@@ -174,8 +175,17 @@ def _build_avm_sourcemap(  # noqa: PLR0913
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
+@deprecated(
+    reason="Use latest version of AlgoKit AVM VSCode extension instead. It will automatically manage your sourcemaps.",
+    version="2.3.1",
+)
 def persist_sourcemaps(
-    *, sources: list[PersistSourceMapInput], project_root: Path, client: "AlgodClient", with_sources: bool = True
+    *,
+    sources: list[PersistSourceMapInput],
+    project_root: Path,
+    client: "AlgodClient",
+    with_sources: bool = True,
+    persist_mappings: bool = False,
 ) -> None:
     """
     Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
@@ -185,6 +195,8 @@ def persist_sourcemaps(
         client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
         with_sources (bool): If True, it will dump teal source files along with sourcemaps.
         Default is True, as needed by an AlgoKit AVM debugger.
+        persist_mappings (bool): Enables legacy behavior of persisting the `sources.avm.json` mappings to
+        the project root. Default is False, given that the AlgoKit AVM VSCode extension will manage the mappings.
     """
 
     sourcemaps = [
@@ -200,7 +212,8 @@ def persist_sourcemaps(
         for source in sources
     ]
 
-    _upsert_debug_sourcemaps(sourcemaps, project_root)
+    if persist_mappings:
+        _upsert_debug_sourcemaps(sourcemaps, project_root)
 
 
 def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
