@@ -1795,7 +1795,7 @@ Bases: {py:obj}`algokit_utils._transfer.TransferParametersBase`
 ````
 
 
-````{py:function} persist_sourcemaps(*, sources: list[algokit_utils._debugging.PersistSourceMapInput], project_root: pathlib.Path, client: algosdk.v2client.algod.AlgodClient, with_sources: bool = True) -> None
+````{py:function} persist_sourcemaps(*, sources: list[algokit_utils._debugging.PersistSourceMapInput], project_root: pathlib.Path, client: algosdk.v2client.algod.AlgodClient, with_sources: bool = True, persist_mappings: bool = False) -> None
 :canonical: algokit_utils._debugging.persist_sourcemaps
 
 ```{autodoc2-docstring} algokit_utils._debugging.persist_sourcemaps
