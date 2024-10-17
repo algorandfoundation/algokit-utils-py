@@ -49,6 +49,22 @@ op 123 // something
 op "" // more comments
 op "//" //op "//"
 op "//"
+pushbytes base64(//8=)
+pushbytes b64(//8=)
+
+pushbytes base64(//8=)  // pushbytes base64(//8=)
+pushbytes b64(//8=)     // pushbytes b64(//8=)
+pushbytes "base64(//8=)"  // pushbytes "base64(//8=)"
+pushbytes "b64(//8=)"     // pushbytes "b64(//8=)"
+
+pushbytes base64 //8=
+pushbytes b64 //8=
+
+pushbytes base64 //8=  // pushbytes base64 //8=
+pushbytes b64 //8=     // pushbytes b64 //8=
+pushbytes "base64 //8="  // pushbytes "base64 //8="
+pushbytes "b64 //8="     // pushbytes "b64 //8="
+
 """
     result = strip_comments(program)
     check_output_stability(result)
