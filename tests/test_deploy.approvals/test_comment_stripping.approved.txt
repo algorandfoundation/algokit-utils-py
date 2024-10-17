@@ -13,3 +13,18 @@ op 123
 op ""
 op "//"
 op "//"
+pushbytes base64(//8=)
+pushbytes b64(//8=)
+
+pushbytes base64(//8=)
+pushbytes b64(//8=)
+pushbytes "base64(//8=)"
+pushbytes "b64(//8=)"
+
+pushbytes base64 //8=
+pushbytes b64 //8=
+
+pushbytes base64 //8=
+pushbytes b64 //8=
+pushbytes "base64 //8="
+pushbytes "b64 //8="
