@@ -60,9 +60,9 @@ int 1
 
     assert not (sourcemap_file_path).exists()
     assert (app_output_path / "approval.teal").exists()
-    assert (app_output_path / "approval.teal.tok.map").exists()
+    assert (app_output_path / "approval.teal.map").exists()
     assert (app_output_path / "clear.teal").exists()
-    assert (app_output_path / "clear.teal.tok.map").exists()
+    assert (app_output_path / "clear.teal.map").exists()
 
 
 def test_build_teal_sourcemaps_without_sources(
@@ -93,11 +93,11 @@ int 1
 
     assert not (sourcemap_file_path).exists()
     assert not (app_output_path / "approval.teal").exists()
-    assert (app_output_path / "approval.teal.tok.map").exists()
-    assert json.loads((app_output_path / "approval.teal.tok.map").read_text())["sources"] == []
+    assert (app_output_path / "approval.teal.map").exists()
+    assert json.loads((app_output_path / "approval.teal.map").read_text())["sources"] == []
     assert not (app_output_path / "clear.teal").exists()
-    assert (app_output_path / "clear.teal.tok.map").exists()
-    assert json.loads((app_output_path / "clear.teal.tok.map").read_text())["sources"] == []
+    assert (app_output_path / "clear.teal.map").exists()
+    assert json.loads((app_output_path / "clear.teal.map").read_text())["sources"] == []
 
 
 def test_simulate_and_persist_response_via_app_call(

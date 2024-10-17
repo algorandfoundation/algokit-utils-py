@@ -28,7 +28,7 @@ SOURCES_FILE = "sources.avm.json"
 TRACES_FILE_EXT = ".trace.avm.json"
 DEBUG_TRACES_DIR = "debug_traces"
 TEAL_FILE_EXT = ".teal"
-TEAL_SOURCEMAP_EXT = ".teal.tok.map"
+TEAL_SOURCEMAP_EXT = ".teal.map"
 
 
 @dataclass
