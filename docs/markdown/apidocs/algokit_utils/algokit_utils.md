@@ -72,7 +72,7 @@ Bases: [`algokit_utils.deploy.DeployCallArgsDict`](#algokit_utils.DeployCallArgs
 ABI Parameters used to update or delete an application when calling
 [`deploy()`](#algokit_utils.ApplicationClient.deploy)
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -88,7 +88,7 @@ Bases: [`algokit_utils.deploy.DeployCreateCallArgsDict`](#algokit_utils.DeployCr
 
 ABI Parameters used to create an application when calling [`deploy()`](#algokit_utils.ApplicationClient.deploy)
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -197,7 +197,7 @@ Information about an Algorand app
 
 A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app
 
-### Initialization
+Initialization
 
 ApplicationClient can be created with an app_id to interact with an existing application, alternatively
 it can be created with a creator and indexer_client specified to find existing applications by name and creator.
@@ -381,7 +381,7 @@ Bases: [`enum.IntFlag`](https://docs.python.org/3/library/enum.html#enum.IntFlag
 
 Describes the type of calls a method can be used for based on [`algosdk.transaction.OnComplete`](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.OnComplete) type
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -423,7 +423,7 @@ Bases: [`typing.TypedDict`](https://docs.python.org/3/library/typing.html#typing
 Additional parameters that can be included in a transaction when using the
 ApplicationClient.create/compose_create methods
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -440,7 +440,7 @@ Bases: [`typing.TypedDict`](https://docs.python.org/3/library/typing.html#typing
 DefaultArgument is a container for any arguments that may
 be resolved prior to calling some target method
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -456,7 +456,7 @@ Bases: [`typing.TypedDict`](https://docs.python.org/3/library/typing.html#typing
 Parameters used to update or delete an application when calling
 [`deploy()`](#algokit_utils.ApplicationClient.deploy)
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -472,7 +472,7 @@ Bases: [`algokit_utils.deploy.DeployCallArgsDict`](#algokit_utils.DeployCallArgs
 
 Parameters used to create an application when calling [`deploy()`](#algokit_utils.ApplicationClient.deploy)
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -565,7 +565,7 @@ Bases: [`typing.TypedDict`](https://docs.python.org/3/library/typing.html#typing
 Additional parameters that can be included in a transaction when using the
 ApplicationClient.call/compose_call methods
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
@@ -575,7 +575,7 @@ Bases: [`enum.Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
 
 Action to take if an Application’s schema has breaking changes
 
-### Initialization
+Initialization
 
 #### AppendApp
 
@@ -601,7 +601,7 @@ Bases: [`enum.Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
 
 Action to take if an Application has been updated
 
-### Initialization
+Initialization
 
 #### AppendApp
 
@@ -633,7 +633,7 @@ Bases: [`enum.Enum`](https://docs.python.org/3/library/enum.html#enum.Enum)
 
 Describes the actions taken during deployment
 
-### Initialization
+Initialization
 
 #### Create
 
@@ -663,7 +663,7 @@ An existing Application was found, but was out of date, updated to latest versio
 
 A compiled TEAL program
 
-### Initialization
+Initialization
 
 Fully compile the program source to binary and generate a
 source map for matching pc to line number
@@ -678,7 +678,7 @@ and it will be auto loaded. If both are set, the constructor argument takes prec
 
 Default request timeout is 15 seconds. Modify by passing `request_timeout` to the constructor.
 
-### Initialization
+Initialization
 
 #### fund(address: [str](https://docs.python.org/3/library/stdtypes.html#str), amount: [int](https://docs.python.org/3/library/functions.html#int), asset_id: [int](https://docs.python.org/3/library/functions.html#int))
 
@@ -762,7 +762,7 @@ Bases: [`typing.TypedDict`](https://docs.python.org/3/library/typing.html#typing
 
 Additional parameters that can be included in a transaction
 
-### Initialization
+Initialization
 
 Initialize self.  See help(type(self)) for accurate signature.
 
