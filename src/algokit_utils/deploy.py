@@ -867,7 +867,7 @@ def _convert_deploy_args(
     signer: TransactionSigner | None,
     sender: str | None,
 ) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else (_args or {})
+    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else dict(_args or {})
 
     # return most derived type, unused parameters are ignored
     parameters = CreateCallParameters(
