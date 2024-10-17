@@ -39,14 +39,14 @@ def get_account_from_mnemonic(mnemonic: str) -> Account:
 
 def create_kmd_wallet_account(kmd_client: "KMDClient", name: str) -> Account:
     """Creates a wallet with specified name"""
-    wallet_id = kmd_client.create_wallet(name, "")["id"]  # type: ignore[no-untyped-call]
-    wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")  # type: ignore[no-untyped-call]
-    kmd_client.generate_key(wallet_handle)  # type: ignore[no-untyped-call]
+    wallet_id = kmd_client.create_wallet(name, "")["id"]
+    wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
+    kmd_client.generate_key(wallet_handle)
 
-    key_ids: list[str] = kmd_client.list_keys(wallet_handle)  # type: ignore[no-untyped-call]
+    key_ids: list[str] = kmd_client.list_keys(wallet_handle)
     account_key = key_ids[0]
 
-    private_account_key = kmd_client.export_key(wallet_handle, "", account_key)  # type: ignore[no-untyped-call]
+    private_account_key = kmd_client.export_key(wallet_handle, "", account_key)
     return get_account_from_mnemonic(from_private_key(private_account_key))  # type: ignore[no-untyped-call]
 
 
@@ -116,15 +116,15 @@ def get_kmd_wallet_account(
     predicate: "Callable[[dict[str, Any]], bool] | None" = None,
 ) -> Account | None:
     """Returns wallet matching specified name and predicate or None if not found"""
-    wallets: list[dict] = kmd_client.list_wallets()  # type: ignore[no-untyped-call]
+    wallets: list[dict] = kmd_client.list_wallets()
 
     wallet = next((w for w in wallets if w["name"] == name), None)
     if wallet is None:
         return None
 
     wallet_id = wallet["id"]
-    wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")  # type: ignore[no-untyped-call]
-    key_ids: list[str] = kmd_client.list_keys(wallet_handle)  # type: ignore[no-untyped-call]
+    wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
+    key_ids: list[str] = kmd_client.list_keys(wallet_handle)
     matched_account_key = None
     if predicate:
         for key in key_ids:
@@ -138,7 +138,7 @@ def get_kmd_wallet_account(
     if not matched_account_key:
         return None
 
-    private_account_key = kmd_client.export_key(wallet_handle, "", matched_account_key)  # type: ignore[no-untyped-call]
+    private_account_key = kmd_client.export_key(wallet_handle, "", matched_account_key)
     return get_account_from_mnemonic(from_private_key(private_account_key))  # type: ignore[no-untyped-call]
 
 
