@@ -3,11 +3,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
+from algokit_utils.client_manager import ClientManager
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 from typing_extensions import Self
-
-from .client_manager import ClientManager
 
 
 @dataclass

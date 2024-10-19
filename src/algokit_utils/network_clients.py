@@ -17,7 +17,7 @@ __all__ = [
     "is_localnet",
     "is_mainnet",
     "is_testnet",
-    "AlgoClientConfigs",
+    "AlgoConfig",
     "get_kmd_client",
 ]
 
@@ -28,16 +28,24 @@ class AlgoClientConfig:
     {py:class}`algosdk.v2client.indexer.IndexerClient`"""
 
     server: str
-    """URL for the service e.g. `http://localhost:4001` or `https://testnet-api.algonode.cloud`"""
-    token: str
-    """API Token to authenticate with the service"""
+    port: str | int | None = None
+    token: str | None = None
 
 
 @dataclasses.dataclass
-class AlgoClientConfigs:
+class NetworkDetails:
+    genesis_id: str
+    genesis_hash: str
+    is_testnet: bool
+    is_mainnet: bool
+    is_localnet: bool
+
+
+@dataclasses.dataclass
+class AlgoConfig:
     algod_config: AlgoClientConfig
-    indexer_config: AlgoClientConfig
-    kmd_config: AlgoClientConfig | None
+    indexer_config: AlgoClientConfig | None = None
+    kmd_config: AlgoClientConfig | None = None
 
 
 def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> AlgoClientConfig:
@@ -62,7 +70,9 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
     config = config or _get_config_from_environment("ALGOD")
     headers = {"X-Algo-API-Token": config.token}
-    return AlgodClient(config.token, config.server, headers)
+    return AlgodClient(
+        config.token or "", config.server, {key: value for key, value in headers.items() if value is not None}
+    )  # type: ignore[no-untyped-call]
 
 
 def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:

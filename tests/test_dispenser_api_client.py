@@ -6,6 +6,7 @@ from algokit_utils.dispenser_api import (
     DispenserApiConfig,
     DispenserAssetName,
     TestNetDispenserApiClient,
+    TestNetDispenserApiClientParams,
 )
 from pytest_httpx import HTTPXMock
 
@@ -18,7 +19,8 @@ class TestDispenserApiTestnetClient:
             method="POST",
             json=mock_response,
         )
-        dispenser_client = TestNetDispenserApiClient(auth_token="dummy_auth_token")
+        dispenser_params = TestNetDispenserApiClientParams(auth_token="dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient(dispenser_params)
         address = "dummy_address"
         amount = 1
         asset_id = DispenserAssetName.ALGO
@@ -32,7 +34,8 @@ class TestDispenserApiTestnetClient:
             method="POST",
             json={},
         )
-        dispenser_client = TestNetDispenserApiClient(auth_token="dummy_auth_token")
+        dispenser_params = TestNetDispenserApiClientParams(auth_token="dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient(dispenser_params)
         refund_txn_id = "dummy_txn_id"
         dispenser_client.refund(refund_txn_id)
         assert len(httpx_mock.get_requests()) == 1
@@ -50,7 +53,8 @@ class TestDispenserApiTestnetClient:
             method="GET",
             json=mock_response,
         )
-        dispenser_client = TestNetDispenserApiClient("dummy_auth_token")
+        dispenser_params = TestNetDispenserApiClientParams(auth_token="dummy_auth_token")
+        dispenser_client = TestNetDispenserApiClient(dispenser_params)
         address = "dummy_address"
         response = dispenser_client.get_limit(address)
         assert response.amount == amount
@@ -71,5 +75,5 @@ class TestDispenserApiTestnetClient:
     def test_dispenser_api_init_with_ci_and_arg(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("ALGOKIT_DISPENSER_ACCESS_TOKEN", "test_value")
 
-        client = TestNetDispenserApiClient("test_value_2")
+        client = TestNetDispenserApiClient(TestNetDispenserApiClientParams(auth_token="test_value_2"))
         assert client.auth_token == "test_value_2"

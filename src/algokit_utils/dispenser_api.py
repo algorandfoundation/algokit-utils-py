@@ -46,6 +46,16 @@ DISPENSER_REQUEST_TIMEOUT = 15
 DISPENSER_ACCESS_TOKEN_KEY = "ALGOKIT_DISPENSER_ACCESS_TOKEN"
 
 
+@dataclass
+class BaseDispenserApiClientParams:
+    request_timeout: int = DISPENSER_REQUEST_TIMEOUT
+
+
+@dataclass
+class TestNetDispenserApiClientParams(BaseDispenserApiClientParams):
+    auth_token: str | None = None
+
+
 class TestNetDispenserApiClient:
     """
     Client for interacting with the [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md).
@@ -58,13 +68,13 @@ class TestNetDispenserApiClient:
     """
 
     auth_token: str
-    request_timeout = DISPENSER_REQUEST_TIMEOUT
+    request_timeout: int
 
-    def __init__(self, auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT):
+    def __init__(self, params: TestNetDispenserApiClientParams | None = None) -> None:
         auth_token_from_env = os.getenv(DISPENSER_ACCESS_TOKEN_KEY)
 
-        if auth_token:
-            self.auth_token = auth_token
+        if params and params.auth_token:
+            self.auth_token = params.auth_token
         elif auth_token_from_env:
             self.auth_token = auth_token_from_env
         else:
@@ -74,7 +84,7 @@ class TestNetDispenserApiClient:
                 "the auth_token were provided."
             )
 
-        self.request_timeout = request_timeout
+        self.request_timeout = params.request_timeout if params else DISPENSER_REQUEST_TIMEOUT
 
     def _process_dispenser_request(
         self, *, auth_token: str, url_suffix: str, data: dict | None = None, method: str = "POST"

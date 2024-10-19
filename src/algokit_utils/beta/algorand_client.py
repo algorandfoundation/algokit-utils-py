@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from algokit_utils.beta.account_manager import AccountManager
-from algokit_utils.beta.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.beta.composer import (
     AlgokitComposer,
     AppCallParams,
@@ -17,10 +16,11 @@ from algokit_utils.beta.composer import (
     AssetTransferParams,
     MethodCallParams,
     OnlineKeyRegParams,
-    PayParams,
+    PaymentParams,
 )
+from algokit_utils.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.network_clients import (
-    AlgoClientConfigs,
+    AlgoConfig,
     get_algod_client,
     get_algonode_config,
     get_default_localnet_config,
@@ -36,7 +36,7 @@ __all__ = [
     "AssetCreateParams",
     "AssetOptInParams",
     "MethodCallParams",
-    "PayParams",
+    "PaymentParams",
     "AssetFreezeParams",
     "AssetConfigParams",
     "AssetDestroyParams",
@@ -52,7 +52,7 @@ class AlgorandClientSendMethods:
     Methods used to send a transaction to the network and wait for confirmation
     """
 
-    payment: Callable[[PayParams], dict[str, Any]]
+    payment: Callable[[PaymentParams], dict[str, Any]]
     asset_create: Callable[[AssetCreateParams], dict[str, Any]]
     asset_config: Callable[[AssetConfigParams], dict[str, Any]]
     asset_freeze: Callable[[AssetFreezeParams], dict[str, Any]]
@@ -70,7 +70,7 @@ class AlgorandClientTransactionMethods:
     Methods used to form a transaction without signing or sending to the network
     """
 
-    payment: Callable[[PayParams], Transaction]
+    payment: Callable[[PaymentParams], Transaction]
     asset_create: Callable[[AssetCreateParams], Transaction]
     asset_config: Callable[[AssetConfigParams], Transaction]
     asset_freeze: Callable[[AssetFreezeParams], Transaction]
@@ -85,7 +85,7 @@ class AlgorandClientTransactionMethods:
 class AlgorandClient:
     """A client that brokers easy access to Algorand functionality."""
 
-    def __init__(self, config: AlgoClientConfigs | AlgoSdkClients):
+    def __init__(self, config: AlgoConfig | AlgoSdkClients):
         self._client_manager: ClientManager = ClientManager(config)
         self._account_manager: AccountManager = AccountManager(self._client_manager)
 
@@ -242,7 +242,7 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            AlgoClientConfigs(
+            AlgoConfig(
                 algod_config=get_default_localnet_config("algod"),
                 indexer_config=get_default_localnet_config("indexer"),
                 kmd_config=get_default_localnet_config("kmd"),
@@ -257,7 +257,7 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            AlgoClientConfigs(
+            AlgoConfig(
                 algod_config=get_algonode_config("testnet", "algod", ""),
                 indexer_config=get_algonode_config("testnet", "indexer", ""),
                 kmd_config=None,
@@ -272,7 +272,7 @@ class AlgorandClient:
         :return: The `AlgorandClient`
         """
         return AlgorandClient(
-            AlgoClientConfigs(
+            AlgoConfig(
                 algod_config=get_algonode_config("mainnet", "algod", ""),
                 indexer_config=get_algonode_config("mainnet", "indexer", ""),
                 kmd_config=None,
@@ -309,7 +309,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def from_config(config: AlgoClientConfigs) -> "AlgorandClient":
+    def from_config(config: AlgoConfig) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` from the given config.
 
