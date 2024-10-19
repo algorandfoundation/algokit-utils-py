@@ -325,27 +325,43 @@ def add_deploy_template_variables(
 
 
 def _find_unquoted_string(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
-    """Find the first string within a line of TEAL. Only matches outside of quotes are returned.
+    """Find the first string within a line of TEAL. Only matches outside of quotes and base64 are returned.
     Returns None if not found"""
 
     if end < 0:
         end = len(line)
     idx = start
-    in_quotes = False
+    in_quotes = in_base64 = False
     while idx < end:
         current_char = line[idx]
         match current_char:
-            case "\\":
-                if in_quotes:  # skip next character
-                    idx += 1
+            # enter base64
+            case " " | "(" if not in_quotes and _last_token_base64(line, idx):
+                in_base64 = True
+            # exit base64
+            case " " | ")" if not in_quotes and in_base64:
+                in_base64 = False
+            # escaped char
+            case "\\" if in_quotes:
+                # skip next character
+                idx += 1
+            # quote boundary
             case '"':
                 in_quotes = not in_quotes
-            case _:
+            # can test for match
+            case _ if not in_quotes and not in_base64 and line.startswith(token, idx):
                 # only match if not in quotes and string matches
-                if not in_quotes and line.startswith(token, idx):
-                    return idx
+                return idx
         idx += 1
     return None
+
+
+def _last_token_base64(line: str, idx: int) -> bool:
+    try:
+        *_, last = line[:idx].split()
+    except ValueError:
+        return False
+    return last in ("base64", "b64")
 
 
 def _find_template_token(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
@@ -851,7 +867,7 @@ def _convert_deploy_args(
     signer: TransactionSigner | None,
     sender: str | None,
 ) -> tuple[ABIMethod | bool | None, ABIArgsDict, CreateCallParameters]:
-    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else (_args or {})
+    args = _args.__dict__ if isinstance(_args, DeployCallArgs) else dict(_args or {})
 
     # return most derived type, unused parameters are ignored
     parameters = CreateCallParameters(

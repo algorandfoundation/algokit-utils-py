@@ -567,7 +567,7 @@ class AlgokitComposer:
 
         return isinstance(x, bool | int | float | str | bytes)
 
-    def _build_method_call(
+    def _build_method_call(  # noqa: C901, PLR0912
         self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> list[TransactionWithSigner]:
         method_args = []
@@ -633,7 +633,7 @@ class AlgokitComposer:
 
         return self._build_atc(method_atc)
 
-    def _build_txn(
+    def _build_txn(  # noqa: C901, PLR0912
         self,
         txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
         suggested_params: algosdk.transaction.SuggestedParams,
