@@ -234,7 +234,7 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
     txn_list = [txn_group.txn for txn_group in unsigned_txn_groups]
     fake_signed_transactions = empty_signer.sign_transactions(txn_list, [])
     txn_group = [SimulateRequestTransactionGroup(txns=fake_signed_transactions)]
-    trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True)
+    trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True, state_change=True)
 
     simulate_request = SimulateRequest(
         txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
