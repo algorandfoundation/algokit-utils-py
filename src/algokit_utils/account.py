@@ -1,8 +1,12 @@
 import logging
 import os
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from algosdk.account import address_from_private_key
+from algosdk.atomic_transaction_composer import (
+    TransactionSigner,
+)
 from algosdk.mnemonic import from_private_key, to_private_key
 from algosdk.util import algos_to_microalgos
 
@@ -28,6 +32,15 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 _DEFAULT_ACCOUNT_MINIMUM_BALANCE = 1_000_000_000
+
+
+@dataclass(frozen=True)
+class TransactionSignerAccount:
+    address: str
+    signer: TransactionSigner
+
+
+# ====== LEGACY CODE BELOW ======
 
 
 def get_account_from_mnemonic(mnemonic: str) -> Account:

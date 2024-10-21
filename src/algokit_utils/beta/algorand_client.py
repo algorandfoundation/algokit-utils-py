@@ -6,7 +6,7 @@ from typing import Any
 
 from algokit_utils.beta.account_manager import AccountManager
 from algokit_utils.beta.composer import (
-    AlgokitComposer,
+    AlgoKitComposer,
     AppCallParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -176,9 +176,9 @@ class AlgorandClient:
         """Get or create accounts that can sign transactions."""
         return self._account_manager
 
-    def new_group(self) -> AlgokitComposer:
-        """Start a new `AlgokitComposer` transaction group"""
-        return AlgokitComposer(
+    def new_group(self) -> AlgoKitComposer:
+        """Start a new `AlgoKitComposer` transaction group"""
+        return AlgoKitComposer(
             algod=self.client.algod,
             get_signer=lambda addr: self.account.get_signer(addr),
             get_suggested_params=self.get_suggested_params,
