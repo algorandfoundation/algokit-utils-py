@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v2.3.2 (2024-10-21)
+
+### Fix
+
+* Adding state_change flag to simulate params (enables on chain section in extension) ([#109](https://github.com/algorandfoundation/algokit-utils-py/issues/109)) ([`81f731b`](https://github.com/algorandfoundation/algokit-utils-py/commit/81f731bdcf63fac52cd7d8f600055e91d9b5c54b))
+* Stop comment stripping from breaking base64 ([`fa0d3b5`](https://github.com/algorandfoundation/algokit-utils-py/commit/fa0d3b5998338d2c3b03f60d0b53def7b16356b3))
+
 ## v2.3.1 (2024-08-08)
 
 ### Fix
