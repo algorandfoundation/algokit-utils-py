@@ -220,59 +220,59 @@ it can be created with a creator and indexer_client specified to find existing a
   * **app_name** ([*str*](https://docs.python.org/3/library/stdtypes.html#str) *|* [*None*](https://docs.python.org/3/library/constants.html#None)) – Name of application to use when deploying, defaults to name defined on the
     Application Specification
 
-#### add_method_call(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, abi_args: algokit_utils.models.ABIArgsDict | [None](https://docs.python.org/3/library/constants.html#None) = None, app_id: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, on_complete: [algosdk.transaction.OnComplete](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.OnComplete) = transaction.OnComplete.NoOpOC, local_schema: [algosdk.transaction.StateSchema](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.StateSchema) | [None](https://docs.python.org/3/library/constants.html#None) = None, global_schema: [algosdk.transaction.StateSchema](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.StateSchema) | [None](https://docs.python.org/3/library/constants.html#None) = None, approval_program: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [None](https://docs.python.org/3/library/constants.html#None) = None, clear_program: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [None](https://docs.python.org/3/library/constants.html#None) = None, extra_pages: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None, call_config: [algokit_utils.application_specification.CallConfig](#algokit_utils.CallConfig) = au_spec.CallConfig.CALL)
+#### add_method_call(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, abi_args: algokit_utils.models.ABIArgsDict | [None](https://docs.python.org/3/library/constants.html#None) = None, app_id: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, on_complete: [algosdk.transaction.OnComplete](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.OnComplete) = transaction.OnComplete.NoOpOC, local_schema: [algosdk.transaction.StateSchema](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.StateSchema) | [None](https://docs.python.org/3/library/constants.html#None) = None, global_schema: [algosdk.transaction.StateSchema](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.StateSchema) | [None](https://docs.python.org/3/library/constants.html#None) = None, approval_program: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [None](https://docs.python.org/3/library/constants.html#None) = None, clear_program: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [None](https://docs.python.org/3/library/constants.html#None) = None, extra_pages: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None, call_config: [algokit_utils.application_specification.CallConfig](#algokit_utils.CallConfig) = au_spec.CallConfig.CALL) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a transaction to the AtomicTransactionComposer passed
 
-#### call(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.OnCompleteCallParameters](#algokit_utils.OnCompleteCallParameters) | [algokit_utils.models.OnCompleteCallParametersDict](#algokit_utils.OnCompleteCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### call(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.OnCompleteCallParameters](#algokit_utils.OnCompleteCallParameters) | [algokit_utils.models.OnCompleteCallParametersDict](#algokit_utils.OnCompleteCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with specified parameters
 
-#### clear_state(transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### clear_state(transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse)
 
 Submits a signed transaction with on_complete=ClearState
 
-#### close_out(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### close_out(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with on_complete=CloseOut
 
-#### compose_call(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.OnCompleteCallParameters](#algokit_utils.OnCompleteCallParameters) | [algokit_utils.models.OnCompleteCallParametersDict](#algokit_utils.OnCompleteCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_call(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.OnCompleteCallParameters](#algokit_utils.OnCompleteCallParameters) | [algokit_utils.models.OnCompleteCallParametersDict](#algokit_utils.OnCompleteCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with specified parameters to atc
 
-#### compose_clear_state(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### compose_clear_state(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_args: [list](https://docs.python.org/3/library/stdtypes.html#list)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes)] | [None](https://docs.python.org/3/library/constants.html#None) = None) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with on_complete=ClearState to atc
 
-#### compose_close_out(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_close_out(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with on_complete=CloseOut to ac
 
-#### compose_create(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.CreateCallParameters](#algokit_utils.CreateCallParameters) | [algokit_utils.models.CreateCallParametersDict](#algokit_utils.CreateCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_create(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.CreateCallParameters](#algokit_utils.CreateCallParameters) | [algokit_utils.models.CreateCallParametersDict](#algokit_utils.CreateCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with application id == 0 and the schema and source of client’s app_spec to atc
 
-#### compose_delete(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_delete(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with on_complete=DeleteApplication to atc
 
-#### compose_opt_in(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_opt_in(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with on_complete=OptIn to atc
 
-#### compose_update(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### compose_update(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), /, call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Adds a signed transaction with on_complete=UpdateApplication to atc
 
-#### create(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.CreateCallParameters](#algokit_utils.CreateCallParameters) | [algokit_utils.models.CreateCallParametersDict](#algokit_utils.CreateCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### create(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.CreateCallParameters](#algokit_utils.CreateCallParameters) | [algokit_utils.models.CreateCallParametersDict](#algokit_utils.CreateCallParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with application id == 0 and the schema and source of client’s app_spec
 
-#### delete(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### delete(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with on_complete=DeleteApplication
 
-#### deploy(version: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, allow_update: [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, allow_delete: [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, on_update: [algokit_utils.deploy.OnUpdate](#algokit_utils.OnUpdate) = au_deploy.OnUpdate.Fail, on_schema_break: [algokit_utils.deploy.OnSchemaBreak](#algokit_utils.OnSchemaBreak) = au_deploy.OnSchemaBreak.Fail, template_values: [algokit_utils.deploy.TemplateValueMapping](#algokit_utils.TemplateValueMapping) | [None](https://docs.python.org/3/library/constants.html#None) = None, create_args: [algokit_utils.deploy.ABICreateCallArgs](#algokit_utils.ABICreateCallArgs) | [algokit_utils.deploy.ABICreateCallArgsDict](#algokit_utils.ABICreateCallArgsDict) | [algokit_utils.deploy.DeployCreateCallArgs](#algokit_utils.DeployCreateCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None, update_args: [algokit_utils.deploy.ABICallArgs](#algokit_utils.ABICallArgs) | [algokit_utils.deploy.ABICallArgsDict](#algokit_utils.ABICallArgsDict) | [algokit_utils.deploy.DeployCallArgs](#algokit_utils.DeployCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None, delete_args: [algokit_utils.deploy.ABICallArgs](#algokit_utils.ABICallArgs) | [algokit_utils.deploy.ABICallArgsDict](#algokit_utils.ABICallArgsDict) | [algokit_utils.deploy.DeployCallArgs](#algokit_utils.DeployCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### deploy(version: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, allow_update: [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, allow_delete: [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, on_update: [algokit_utils.deploy.OnUpdate](#algokit_utils.OnUpdate) = au_deploy.OnUpdate.Fail, on_schema_break: [algokit_utils.deploy.OnSchemaBreak](#algokit_utils.OnSchemaBreak) = au_deploy.OnSchemaBreak.Fail, template_values: [algokit_utils.deploy.TemplateValueMapping](#algokit_utils.TemplateValueMapping) | [None](https://docs.python.org/3/library/constants.html#None) = None, create_args: [algokit_utils.deploy.ABICreateCallArgs](#algokit_utils.ABICreateCallArgs) | [algokit_utils.deploy.ABICreateCallArgsDict](#algokit_utils.ABICreateCallArgsDict) | [algokit_utils.deploy.DeployCreateCallArgs](#algokit_utils.DeployCreateCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None, update_args: [algokit_utils.deploy.ABICallArgs](#algokit_utils.ABICallArgs) | [algokit_utils.deploy.ABICallArgsDict](#algokit_utils.ABICallArgsDict) | [algokit_utils.deploy.DeployCallArgs](#algokit_utils.DeployCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None, delete_args: [algokit_utils.deploy.ABICallArgs](#algokit_utils.ABICallArgs) | [algokit_utils.deploy.ABICallArgsDict](#algokit_utils.ABICallArgsDict) | [algokit_utils.deploy.DeployCallArgs](#algokit_utils.DeployCallArgs) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.deploy.DeployResponse](#algokit_utils.DeployResponse)
 
 Deploy an application and update client to reference it.
 
@@ -311,43 +311,43 @@ the existing app will be deleted and re-created.
 * **Raises:**
   **DeploymentError** – If the deployment failed
 
-#### export_source_map()
+#### export_source_map() → [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None)
 
 Export approval source map to JSON, can be later re-imported with `import_source_map`
 
-#### get_global_state(\*, raw: [bool](https://docs.python.org/3/library/functions.html#bool) = False)
+#### get_global_state(\*, raw: [bool](https://docs.python.org/3/library/functions.html#bool) = False) → [dict](https://docs.python.org/3/library/stdtypes.html#dict)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [str](https://docs.python.org/3/library/stdtypes.html#str), [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [str](https://docs.python.org/3/library/stdtypes.html#str) | [int](https://docs.python.org/3/library/functions.html#int)]
 
 Gets the global state info associated with app_id
 
-#### get_local_state(account: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, raw: [bool](https://docs.python.org/3/library/functions.html#bool) = False)
+#### get_local_state(account: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*, raw: [bool](https://docs.python.org/3/library/functions.html#bool) = False) → [dict](https://docs.python.org/3/library/stdtypes.html#dict)[[bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [str](https://docs.python.org/3/library/stdtypes.html#str), [bytes](https://docs.python.org/3/library/stdtypes.html#bytes) | [str](https://docs.python.org/3/library/stdtypes.html#str) | [int](https://docs.python.org/3/library/functions.html#int)]
 
 Gets the local state info for associated app_id and account/sender
 
-#### get_signer_sender(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### get_signer_sender(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [tuple](https://docs.python.org/3/library/stdtypes.html#tuple)[[algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None), [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None)]
 
 Return signer and sender, using default values on client if not specified
 
 Will use provided values if given, otherwise will fall back to values defined on client.
 If no sender is specified then will attempt to obtain sender from signer
 
-#### import_source_map(source_map_json: [str](https://docs.python.org/3/library/stdtypes.html#str))
+#### import_source_map(source_map_json: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Import approval source from JSON exported by `export_source_map`
 
-#### opt_in(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### opt_in(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with on_complete=OptIn
 
-#### prepare(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [algokit_utils.models.Account](#algokit_utils.Account) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_id: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, template_values: [algokit_utils.deploy.TemplateValueDict](#algokit_utils.TemplateValueDict) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### prepare(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [algokit_utils.models.Account](#algokit_utils.Account) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None, app_id: [int](https://docs.python.org/3/library/functions.html#int) | [None](https://docs.python.org/3/library/constants.html#None) = None, template_values: [algokit_utils.deploy.TemplateValueDict](#algokit_utils.TemplateValueDict) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.application_client.ApplicationClient](#algokit_utils.ApplicationClient)
 
 Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
 Will also substitute provided template_values into the associated app_spec in the copy
 
-#### resolve(to_resolve: [algokit_utils.application_specification.DefaultArgumentDict](#algokit_utils.DefaultArgumentDict))
+#### resolve(to_resolve: [algokit_utils.application_specification.DefaultArgumentDict](#algokit_utils.DefaultArgumentDict)) → [int](https://docs.python.org/3/library/functions.html#int) | [str](https://docs.python.org/3/library/stdtypes.html#str) | [bytes](https://docs.python.org/3/library/stdtypes.html#bytes)
 
 Resolves the default value for an ABI method, based on app_spec
 
-#### resolve_signer_sender(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### resolve_signer_sender(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None) = None, sender: [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [tuple](https://docs.python.org/3/library/stdtypes.html#tuple)[[algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner), [str](https://docs.python.org/3/library/stdtypes.html#str)]
 
 Return signer and sender, using default values on client if not specified
 
@@ -358,7 +358,7 @@ If no sender is specified then will attempt to obtain sender from signer
   [**ValueError**](https://docs.python.org/3/library/exceptions.html#ValueError) – Raised if a signer or sender is not provided. See `get_signer_sender`
   for variant with no exception
 
-#### update(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType)
+#### update(call_abi_method: algokit_utils.models.ABIMethod | [bool](https://docs.python.org/3/library/functions.html#bool) | [None](https://docs.python.org/3/library/constants.html#None) = None, transaction_parameters: [algokit_utils.models.TransactionParameters](#algokit_utils.TransactionParameters) | [algokit_utils.models.TransactionParametersDict](#algokit_utils.TransactionParametersDict) | [None](https://docs.python.org/3/library/constants.html#None) = None, \*\*abi_kwargs: algokit_utils.models.ABIArgType) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse) | [algokit_utils.models.ABITransactionResponse](#algokit_utils.ABITransactionResponse)
 
 Submits a signed transaction with on_complete=UpdateApplication
 
@@ -368,7 +368,7 @@ ARC-0032 application specification
 
 See [https://github.com/algorandfoundation/ARCs/pull/150](https://github.com/algorandfoundation/ARCs/pull/150)
 
-#### export(directory: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+#### export(directory: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [None](https://docs.python.org/3/library/constants.html#None)
 
 write out the artifacts generated by the application to disk
 
@@ -680,15 +680,15 @@ Default request timeout is 15 seconds. Modify by passing `request_timeout` to th
 
 ### Initialization
 
-#### fund(address: [str](https://docs.python.org/3/library/stdtypes.html#str), amount: [int](https://docs.python.org/3/library/functions.html#int), asset_id: [int](https://docs.python.org/3/library/functions.html#int))
+#### fund(address: [str](https://docs.python.org/3/library/stdtypes.html#str), amount: [int](https://docs.python.org/3/library/functions.html#int), asset_id: [int](https://docs.python.org/3/library/functions.html#int)) → algokit_utils.dispenser_api.DispenserFundResponse
 
 Fund an account with Algos from the dispenser API
 
-#### get_limit(address: [str](https://docs.python.org/3/library/stdtypes.html#str))
+#### get_limit(address: [str](https://docs.python.org/3/library/stdtypes.html#str)) → algokit_utils.dispenser_api.DispenserLimitResponse
 
 Get current limit for an account with Algos from the dispenser API
 
-#### refund(refund_txn_id: [str](https://docs.python.org/3/library/stdtypes.html#str))
+#### refund(refund_txn_id: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Register a refund for a transaction with the dispenser API
 
@@ -836,7 +836,7 @@ None
 
 Round transaction was confirmed, `None` if call was a from a dry-run
 
-#### *static* from_atr(result: [algosdk.atomic_transaction_composer.AtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionResponse) | [algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse), transaction_index: [int](https://docs.python.org/3/library/functions.html#int) = -1)
+#### *static* from_atr(result: [algosdk.atomic_transaction_composer.AtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionResponse) | [algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse), transaction_index: [int](https://docs.python.org/3/library/functions.html#int) = -1) → [algokit_utils.models.TransactionResponse](#algokit_utils.TransactionResponse)
 
 Returns either an ABITransactionResponse or a TransactionResponse based on the type of the transaction
 referred to by transaction_index
@@ -871,11 +871,11 @@ Parameters for transferring µALGOs between accounts
 
 ## Functions
 
-### algokit_utils.create_kmd_wallet_account(kmd_client: [algosdk.kmd.KMDClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str))
+### algokit_utils.create_kmd_wallet_account(kmd_client: [algosdk.kmd.KMDClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Creates a wallet with specified name
 
-### algokit_utils.ensure_funded(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._ensure_funded.EnsureBalanceParameters](#algokit_utils.EnsureBalanceParameters))
+### algokit_utils.ensure_funded(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._ensure_funded.EnsureBalanceParameters](#algokit_utils.EnsureBalanceParameters)) → [algokit_utils._ensure_funded.EnsureFundedResponse](#algokit_utils.EnsureFundedResponse) | [None](https://docs.python.org/3/library/constants.html#None)
 
 Funds a given account using a funding source such that it has a certain amount of algos free to spend
 (accounting for ALGOs locked in minimum balance requirement)
@@ -890,7 +890,7 @@ Returns:
 PaymentTxn | str | None: If funds are needed, the function returns a payment transaction or a
 string indicating that the dispenser API was used. If no funds are needed, the function returns None.
 
-### algokit_utils.execute_atc_with_logic_error(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), approval_program: [str](https://docs.python.org/3/library/stdtypes.html#str), wait_rounds: [int](https://docs.python.org/3/library/functions.html#int) = 4, approval_source_map: [algosdk.source_map.SourceMap](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/source_map.html#algosdk.source_map.SourceMap) | [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[], [algosdk.source_map.SourceMap](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/source_map.html#algosdk.source_map.SourceMap) | [None](https://docs.python.org/3/library/constants.html#None)] | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.execute_atc_with_logic_error(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), approval_program: [str](https://docs.python.org/3/library/stdtypes.html#str), wait_rounds: [int](https://docs.python.org/3/library/functions.html#int) = 4, approval_source_map: [algosdk.source_map.SourceMap](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/source_map.html#algosdk.source_map.SourceMap) | [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[], [algosdk.source_map.SourceMap](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/source_map.html#algosdk.source_map.SourceMap) | [None](https://docs.python.org/3/library/constants.html#None)] | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algosdk.atomic_transaction_composer.AtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionResponse)
 
 Calls `AtomicTransactionComposer.execute()` on provided `atc`, but will parse any errors
 and raise a `LogicError` if possible
@@ -899,7 +899,7 @@ and raise a `LogicError` if possible
 `approval_program` and `approval_source_map` are required to be able to parse any errors into a
 `LogicError`
 
-### algokit_utils.get_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), fund_with_algos: [float](https://docs.python.org/3/library/functions.html#float) = 1000, kmd_client: KMDClient | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.get_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), fund_with_algos: [float](https://docs.python.org/3/library/functions.html#float) = 1000, kmd_client: KMDClient | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Returns an Algorand account with private key loaded by convention based on the given name identifier.
 
@@ -927,55 +927,55 @@ account = get_account('ACCOUNT', algod)
 If that code runs against LocalNet then a wallet called ‘ACCOUNT’ will automatically be created with an account
 that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
 
-### algokit_utils.get_account_from_mnemonic(mnemonic: [str](https://docs.python.org/3/library/stdtypes.html#str))
+### algokit_utils.get_account_from_mnemonic(mnemonic: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Convert a mnemonic (25 word passphrase) into an Account
 
-### algokit_utils.get_algod_client(config: [algokit_utils.network_clients.AlgoClientConfig](#algokit_utils.AlgoClientConfig) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.get_algod_client(config: [algokit_utils.network_clients.AlgoClientConfig](#algokit_utils.AlgoClientConfig) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)
 
 Returns an [`algosdk.v2client.algod.AlgodClient`](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient) from `config` or environment
 
 If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`
 
-### algokit_utils.get_app_id_from_tx_id(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), tx_id: [str](https://docs.python.org/3/library/stdtypes.html#str))
+### algokit_utils.get_app_id_from_tx_id(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), tx_id: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [int](https://docs.python.org/3/library/functions.html#int)
 
 Finds the app_id for provided transaction id
 
-### algokit_utils.get_creator_apps(indexer: [algosdk.v2client.indexer.IndexerClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/indexer.html#algosdk.v2client.indexer.IndexerClient), creator_account: [algokit_utils.models.Account](#algokit_utils.Account) | [str](https://docs.python.org/3/library/stdtypes.html#str))
+### algokit_utils.get_creator_apps(indexer: [algosdk.v2client.indexer.IndexerClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/indexer.html#algosdk.v2client.indexer.IndexerClient), creator_account: [algokit_utils.models.Account](#algokit_utils.Account) | [str](https://docs.python.org/3/library/stdtypes.html#str)) → [algokit_utils.deploy.AppLookup](#algokit_utils.AppLookup)
 
 Returns a mapping of Application names to [`AppMetaData`](#algokit_utils.AppMetaData) for all Applications created by specified
 creator that have a transaction note containing [`AppDeployMetaData`](#algokit_utils.AppDeployMetaData)
 
-### algokit_utils.get_default_localnet_config(config: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[algod, indexer, kmd])
+### algokit_utils.get_default_localnet_config(config: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)[algod, indexer, kmd]) → [algokit_utils.network_clients.AlgoClientConfig](#algokit_utils.AlgoClientConfig)
 
 Returns the client configuration to point to the default LocalNet
 
-### algokit_utils.get_dispenser_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.get_dispenser_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Returns an Account based on DISPENSER_MNENOMIC environment variable or the default account on LocalNet
 
-### algokit_utils.get_indexer_client(config: [algokit_utils.network_clients.AlgoClientConfig](#algokit_utils.AlgoClientConfig) | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.get_indexer_client(config: [algokit_utils.network_clients.AlgoClientConfig](#algokit_utils.AlgoClientConfig) | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algosdk.v2client.indexer.IndexerClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/indexer.html#algosdk.v2client.indexer.IndexerClient)
 
 Returns an [`algosdk.v2client.indexer.IndexerClient`](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/indexer.html#algosdk.v2client.indexer.IndexerClient) from `config` or environment.
 
 If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`
 
-### algokit_utils.get_kmd_client_from_algod_client(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.get_kmd_client_from_algod_client(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [algosdk.kmd.KMDClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient)
 
 Returns an [`algosdk.kmd.KMDClient`](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient) from supplied `client`
 
 Will use the same address as provided `client` but on port specified by `KMD_PORT` environment variable,
 or 4002 by default
 
-### algokit_utils.get_kmd_wallet_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), kmd_client: [algosdk.kmd.KMDClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), predicate: Callable[[[dict](https://docs.python.org/3/library/stdtypes.html#dict)[[str](https://docs.python.org/3/library/stdtypes.html#str), Any]], [bool](https://docs.python.org/3/library/functions.html#bool)] | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.get_kmd_wallet_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), kmd_client: [algosdk.kmd.KMDClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/kmd.html#algosdk.kmd.KMDClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), predicate: Callable[[[dict](https://docs.python.org/3/library/stdtypes.html#dict)[[str](https://docs.python.org/3/library/stdtypes.html#str), Any]], [bool](https://docs.python.org/3/library/functions.html#bool)] | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.models.Account](#algokit_utils.Account) | [None](https://docs.python.org/3/library/constants.html#None)
 
 Returns wallet matching specified name and predicate or None if not found
 
-### algokit_utils.get_localnet_default_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.get_localnet_default_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Returns the default Account in a LocalNet instance
 
-### algokit_utils.get_next_version(current_version: [str](https://docs.python.org/3/library/stdtypes.html#str))
+### algokit_utils.get_next_version(current_version: [str](https://docs.python.org/3/library/stdtypes.html#str)) → [str](https://docs.python.org/3/library/stdtypes.html#str)
 
 Calculates the next version from `current_version`
 
@@ -995,31 +995,31 @@ a version is not specified, and is intended mostly for convenience during local 
 * **Raises:**
   **DeploymentFailedError** – If `current_version` cannot be parsed
 
-### algokit_utils.get_or_create_kmd_wallet_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), fund_with_algos: [float](https://docs.python.org/3/library/functions.html#float) = 1000, kmd_client: KMDClient | [None](https://docs.python.org/3/library/constants.html#None) = None)
+### algokit_utils.get_or_create_kmd_wallet_account(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), name: [str](https://docs.python.org/3/library/stdtypes.html#str), fund_with_algos: [float](https://docs.python.org/3/library/functions.html#float) = 1000, kmd_client: KMDClient | [None](https://docs.python.org/3/library/constants.html#None) = None) → [algokit_utils.models.Account](#algokit_utils.Account)
 
 Returns a wallet with specified name, or creates one if not found
 
-### algokit_utils.get_sender_from_signer(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None))
+### algokit_utils.get_sender_from_signer(signer: [algosdk.atomic_transaction_composer.TransactionSigner](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.TransactionSigner) | [None](https://docs.python.org/3/library/constants.html#None)) → [str](https://docs.python.org/3/library/stdtypes.html#str) | [None](https://docs.python.org/3/library/constants.html#None)
 
 Returns the associated address of a signer, return None if no address found
 
-### algokit_utils.is_localnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.is_localnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [bool](https://docs.python.org/3/library/functions.html#bool)
 
 Returns True if client genesis is `devnet-v1` or `sandnet-v1`
 
-### algokit_utils.is_mainnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.is_mainnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [bool](https://docs.python.org/3/library/functions.html#bool)
 
 Returns True if client genesis is `mainnet-v1`
 
-### algokit_utils.is_testnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient))
+### algokit_utils.is_testnet(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient)) → [bool](https://docs.python.org/3/library/functions.html#bool)
 
 Returns True if client genesis is `testnet-v1`
 
-### algokit_utils.num_extra_program_pages(approval: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes), clear: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes))
+### algokit_utils.num_extra_program_pages(approval: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes), clear: [bytes](https://docs.python.org/3/library/stdtypes.html#bytes)) → [int](https://docs.python.org/3/library/functions.html#int)
 
 Calculate minimum number of extra_pages required for provided approval and clear programs
 
-### algokit_utils.opt_in(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), account: [algokit_utils.models.Account](#algokit_utils.Account), asset_ids: [list](https://docs.python.org/3/library/stdtypes.html#list)[[int](https://docs.python.org/3/library/functions.html#int)])
+### algokit_utils.opt_in(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), account: [algokit_utils.models.Account](#algokit_utils.Account), asset_ids: [list](https://docs.python.org/3/library/stdtypes.html#list)[[int](https://docs.python.org/3/library/functions.html#int)]) → [dict](https://docs.python.org/3/library/stdtypes.html#dict)[[int](https://docs.python.org/3/library/functions.html#int), [str](https://docs.python.org/3/library/stdtypes.html#str)]
 
 Opt-in to a list of assets on the Algorand blockchain. Before an account can receive a specific asset,
 it must `opt-in` to receive it. An opt-in transaction places an asset holding of 0 into the account and increases
@@ -1033,7 +1033,7 @@ Returns:
 dict[int, str]: A dictionary where the keys are the asset IDs and the values
 are the transaction IDs for opting-in to each asset.
 
-### algokit_utils.opt_out(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), account: [algokit_utils.models.Account](#algokit_utils.Account), asset_ids: [list](https://docs.python.org/3/library/stdtypes.html#list)[[int](https://docs.python.org/3/library/functions.html#int)])
+### algokit_utils.opt_out(algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), account: [algokit_utils.models.Account](#algokit_utils.Account), asset_ids: [list](https://docs.python.org/3/library/stdtypes.html#list)[[int](https://docs.python.org/3/library/functions.html#int)]) → [dict](https://docs.python.org/3/library/stdtypes.html#dict)[[int](https://docs.python.org/3/library/functions.html#int), [str](https://docs.python.org/3/library/stdtypes.html#str)]
 
 Opt out from a list of Algorand Standard Assets (ASAs) by transferring them back to their creators.
 The account also recovers the Minimum Balance Requirement for the asset (100,000 microAlgos)
@@ -1049,7 +1049,7 @@ Returns:
 dict[int, str]: A dictionary where the keys are the asset IDs and the values are the transaction IDs of
 the executed transactions.
 
-### algokit_utils.persist_sourcemaps(\*, sources: [list](https://docs.python.org/3/library/stdtypes.html#list)[algokit_utils._debugging.PersistSourceMapInput], project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), with_sources: [bool](https://docs.python.org/3/library/functions.html#bool) = True, persist_mappings: [bool](https://docs.python.org/3/library/functions.html#bool) = False)
+### algokit_utils.persist_sourcemaps(\*, sources: [list](https://docs.python.org/3/library/stdtypes.html#list)[algokit_utils._debugging.PersistSourceMapInput], project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), with_sources: [bool](https://docs.python.org/3/library/functions.html#bool) = True, persist_mappings: [bool](https://docs.python.org/3/library/functions.html#bool) = False) → [None](https://docs.python.org/3/library/constants.html#None)
 
 Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
 Args:
@@ -1061,14 +1061,14 @@ Default is True, as needed by an AlgoKit AVM debugger.
 persist_mappings (bool): Enables legacy behavior of persisting the `sources.avm.json` mappings to
 the project root. Default is False, given that the AlgoKit AVM VSCode extension will manage the mappings.
 
-### algokit_utils.replace_template_variables(program: [str](https://docs.python.org/3/library/stdtypes.html#str), template_values: [algokit_utils.deploy.TemplateValueMapping](#algokit_utils.TemplateValueMapping))
+### algokit_utils.replace_template_variables(program: [str](https://docs.python.org/3/library/stdtypes.html#str), template_values: [algokit_utils.deploy.TemplateValueMapping](#algokit_utils.TemplateValueMapping)) → [str](https://docs.python.org/3/library/stdtypes.html#str)
 
 Replaces `TMPL_*` variables in `program` with `template_values`
 
 #### NOTE
 `template_values` keys should *NOT* be prefixed with `TMPL_`
 
-### algokit_utils.simulate_and_persist_response(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), buffer_size_mb: [float](https://docs.python.org/3/library/functions.html#float) = 256)
+### algokit_utils.simulate_and_persist_response(atc: [algosdk.atomic_transaction_composer.AtomicTransactionComposer](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.AtomicTransactionComposer), project_root: [pathlib.Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path), algod_client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), buffer_size_mb: [float](https://docs.python.org/3/library/functions.html#float) = 256) → [algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/atomic_transaction_composer.html#algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse)
 
 Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
 and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
@@ -1086,10 +1086,10 @@ Returns:
 SimulateAtomicTransactionResponse: The simulated response after persisting it
 for AlgoKit AVM Debugger consumption.
 
-### algokit_utils.transfer(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._transfer.TransferParameters](#algokit_utils.TransferParameters))
+### algokit_utils.transfer(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._transfer.TransferParameters](#algokit_utils.TransferParameters)) → [algosdk.transaction.PaymentTxn](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.PaymentTxn)
 
 Transfer µALGOs between accounts
 
-### algokit_utils.transfer_asset(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._transfer.TransferAssetParameters](#algokit_utils.TransferAssetParameters))
+### algokit_utils.transfer_asset(client: [algosdk.v2client.algod.AlgodClient](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/v2client/algod.html#algosdk.v2client.algod.AlgodClient), parameters: [algokit_utils._transfer.TransferAssetParameters](#algokit_utils.TransferAssetParameters)) → [algosdk.transaction.AssetTransferTxn](https://py-algorand-sdk.readthedocs.io/en/latest/algosdk/transaction.html#algosdk.transaction.AssetTransferTxn)
 
 Transfer assets between accounts

@@ -273,7 +273,7 @@ def simulate_and_persist_response(
 
     txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]
     txn_types_count = {txn_type: txn_types.count(txn_type) for txn_type in set(txn_types)}
-    txn_types_str = "_".join([f"{count}#{txn_type}" for txn_type, count in txn_types_count.items()])
+    txn_types_str = "_".join([f"{count}{txn_type}" for txn_type, count in txn_types_count.items()])
 
     last_round = response.simulate_response["last-round"]
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")

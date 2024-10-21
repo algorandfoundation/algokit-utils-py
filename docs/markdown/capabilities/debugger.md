@@ -40,6 +40,6 @@ Where:
 
 - `timestamp`: The time when the trace file was created, in ISO 8601 format, with colons and periods removed.
 - `last_round`: The last round when the simulation was performed.
-- `transaction_types`: A string representing the types and counts of transactions in the atomic group. Each transaction type is represented as `${count}#${type}`, and different transaction types are separated by underscores.
+- `transaction_types`: A string representing the types and counts of transactions in the atomic group. Each transaction type is represented as `${count}${type}`, and different transaction types are separated by underscores.
 
-For example, a trace file might be named `20220301T123456Z_lr1000_2#pay_1#axfer.trace.avm.json`, indicating that the trace file was created at `2022-03-01T12:34:56Z`, the last round was `1000`, and the atomic group contained 2 payment transactions and 1 asset transfer transaction.
+For example, a trace file might be named `20220301T123456Z_lr1000_2pay_1axfer.trace.avm.json`, indicating that the trace file was created at `2022-03-01T12:34:56Z`, the last round was `1000`, and the atomic group contained 2 payment transactions and 1 asset transfer transaction.
