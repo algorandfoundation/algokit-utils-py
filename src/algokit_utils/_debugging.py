@@ -13,6 +13,7 @@ from algosdk.atomic_transaction_composer import (
 )
 from algosdk.encoding import checksum
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
+from deprecated import deprecated
 
 from algokit_utils.common import Program
 
@@ -27,7 +28,7 @@ SOURCES_FILE = "sources.avm.json"
 TRACES_FILE_EXT = ".trace.avm.json"
 DEBUG_TRACES_DIR = "debug_traces"
 TEAL_FILE_EXT = ".teal"
-TEAL_SOURCEMAP_EXT = ".teal.tok.map"
+TEAL_SOURCEMAP_EXT = ".teal.map"
 
 
 @dataclass
@@ -174,8 +175,18 @@ def _build_avm_sourcemap(  # noqa: PLR0913
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
+@deprecated(
+    reason="Use latest version of `AlgoKit AVM Debugger` VSCode extension instead. "
+    "It will automatically manage your sourcemaps.",
+    version="3.0.0",
+)
 def persist_sourcemaps(
-    *, sources: list[PersistSourceMapInput], project_root: Path, client: "AlgodClient", with_sources: bool = True
+    *,
+    sources: list[PersistSourceMapInput],
+    project_root: Path,
+    client: "AlgodClient",
+    with_sources: bool = True,
+    persist_mappings: bool = False,
 ) -> None:
     """
     Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
@@ -185,6 +196,8 @@ def persist_sourcemaps(
         client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
         with_sources (bool): If True, it will dump teal source files along with sourcemaps.
         Default is True, as needed by an AlgoKit AVM debugger.
+        persist_mappings (bool): Enables legacy behavior of persisting the `sources.avm.json` mappings to
+        the project root. Default is False, given that the AlgoKit AVM VSCode extension will manage the mappings.
     """
 
     sourcemaps = [
@@ -200,7 +213,8 @@ def persist_sourcemaps(
         for source in sources
     ]
 
-    _upsert_debug_sourcemaps(sourcemaps, project_root)
+    if persist_mappings:
+        _upsert_debug_sourcemaps(sourcemaps, project_root)
 
 
 def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
@@ -259,7 +273,7 @@ def simulate_and_persist_response(
 
     txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]
     txn_types_count = {txn_type: txn_types.count(txn_type) for txn_type in set(txn_types)}
-    txn_types_str = "_".join([f"{count}#{txn_type}" for txn_type, count in txn_types_count.items()])
+    txn_types_str = "_".join([f"{count}{txn_type}" for txn_type, count in txn_types_count.items()])
 
     last_round = response.simulate_response["last-round"]
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
