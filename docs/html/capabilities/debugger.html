@@ -122,9 +122,9 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: The time when the trace file was created, in ISO 8601 format, with colons and periods removed.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">last_round</span></code>: The last round when the simulation was performed.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">transaction_types</span></code>: A string representing the types and counts of transactions in the atomic group. Each transaction type is represented as <code class="docutils literal notranslate"><span class="pre">${count}#${type}</span></code>, and different transaction types are separated by underscores.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transaction_types</span></code>: A string representing the types and counts of transactions in the atomic group. Each transaction type is represented as <code class="docutils literal notranslate"><span class="pre">${count}${type}</span></code>, and different transaction types are separated by underscores.</p></li>
 </ul>
-<p>For example, a trace file might be named <code class="docutils literal notranslate"><span class="pre">20220301T123456Z_lr1000_2#pay_1#axfer.trace.avm.json</span></code>, indicating that the trace file was created at <code class="docutils literal notranslate"><span class="pre">2022-03-01T12:34:56Z</span></code>, the last round was <code class="docutils literal notranslate"><span class="pre">1000</span></code>, and the atomic group contained 2 payment transactions and 1 asset transfer transaction.</p>
+<p>For example, a trace file might be named <code class="docutils literal notranslate"><span class="pre">20220301T123456Z_lr1000_2pay_1axfer.trace.avm.json</span></code>, indicating that the trace file was created at <code class="docutils literal notranslate"><span class="pre">2022-03-01T12:34:56Z</span></code>, the last round was <code class="docutils literal notranslate"><span class="pre">1000</span></code>, and the atomic group contained 2 payment transactions and 1 asset transfer transaction.</p>
 </section>
 </section>
 </section>

@@ -318,38 +318,14 @@ Bases: {py:obj}`algokit_utils.models.TransactionResponse`, {py:obj}`typing.Gener
 `````
 
 
-`````{py:class} AlgoClientConfig
+````{py:class} AlgoClientConfig
 :canonical: algokit_utils.network_clients.AlgoClientConfig
 
 ```{autodoc2-docstring} algokit_utils.network_clients.AlgoClientConfig
 :parser: myst
 ```
 
-````{py:attribute} server
-:canonical: algokit_utils.network_clients.AlgoClientConfig.server
-:type: str
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils.network_clients.AlgoClientConfig.server
-:parser: myst
-```
-
 ````
-
-````{py:attribute} token
-:canonical: algokit_utils.network_clients.AlgoClientConfig.token
-:type: str
-:value: >
-   None
-
-```{autodoc2-docstring} algokit_utils.network_clients.AlgoClientConfig.token
-:parser: myst
-```
-
-````
-
-`````
 
 
 ````{py:class} AppDeployMetaData
@@ -1205,7 +1181,7 @@ Bases: {py:obj}`enum.Enum`
 ````
 
 
-`````{py:class} TestNetDispenserApiClient(auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT)
+`````{py:class} TestNetDispenserApiClient(params: algokit_utils.dispenser_api.TestNetDispenserApiClientParams | None = None)
 :canonical: algokit_utils.dispenser_api.TestNetDispenserApiClient
 
 ```{autodoc2-docstring} algokit_utils.dispenser_api.TestNetDispenserApiClient
