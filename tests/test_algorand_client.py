@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 from algokit_utils import Account, ApplicationClient
-from algokit_utils.beta.account_manager import AddressAndSigner
-from algokit_utils.beta.algorand_client import (
+from algokit_utils.accounts.account_manager import AddressAndSigner
+from algokit_utils.clients.algorand_client import (
     AlgorandClient,
     AssetCreateParams,
     AssetOptInParams,

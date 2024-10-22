@@ -1,7 +1,7 @@
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps, simulate_and_persist_response
-from algokit_utils._ensure_funded import EnsureBalanceParameters, EnsureFundedResponse, ensure_funded
-from algokit_utils._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
-from algokit_utils.account import (
+from algokit_utils._legacy_v2._ensure_funded import EnsureBalanceParameters, EnsureFundedResponse, ensure_funded
+from algokit_utils._legacy_v2._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
+from algokit_utils._legacy_v2.account import (
     create_kmd_wallet_account,
     get_account,
     get_account_from_mnemonic,
@@ -10,14 +10,14 @@ from algokit_utils.account import (
     get_localnet_default_account,
     get_or_create_kmd_wallet_account,
 )
-from algokit_utils.application_client import (
+from algokit_utils._legacy_v2.application_client import (
     ApplicationClient,
     execute_atc_with_logic_error,
     get_next_version,
     get_sender_from_signer,
     num_extra_program_pages,
 )
-from algokit_utils.application_specification import (
+from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
     AppSpecStateDict,
     CallConfig,
@@ -27,9 +27,9 @@ from algokit_utils.application_specification import (
     MethodHints,
     OnCompleteActionName,
 )
-from algokit_utils.asset import opt_in, opt_out
-from algokit_utils.common import Program
-from algokit_utils.deploy import (
+from algokit_utils._legacy_v2.asset import opt_in, opt_out
+from algokit_utils._legacy_v2.common import Program
+from algokit_utils._legacy_v2.deploy import (
     DELETABLE_TEMPLATE_NAME,
     NOTE_PREFIX,
     UPDATABLE_TEMPLATE_NAME,
@@ -56,32 +56,24 @@ from algokit_utils.deploy import (
     get_creator_apps,
     replace_template_variables,
 )
-from algokit_utils.dispenser_api import (
-    DISPENSER_ACCESS_TOKEN_KEY,
-    DISPENSER_REQUEST_TIMEOUT,
-    DispenserFundResponse,
-    DispenserLimitResponse,
-    TestNetDispenserApiClient,
-)
-from algokit_utils.logic_error import LogicError
-from algokit_utils.models import (
+from algokit_utils._legacy_v2.logic_error import LogicError
+from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
     ABITransactionResponse,
     Account,
-    CommonCallParameters,  # noqa: F401
-    CommonCallParametersDict,  # noqa: F401
+    CommonCallParameters,
+    CommonCallParametersDict,
     CreateCallParameters,
     CreateCallParametersDict,
     CreateTransactionParameters,
     OnCompleteCallParameters,
     OnCompleteCallParametersDict,
-    RawTransactionParameters,  # noqa: F401
     TransactionParameters,
     TransactionParametersDict,
     TransactionResponse,
 )
-from algokit_utils.network_clients import (
+from algokit_utils._legacy_v2.network_clients import (
     AlgoClientConfig,
     get_algod_client,
     get_algonode_config,
@@ -92,8 +84,16 @@ from algokit_utils.network_clients import (
     is_mainnet,
     is_testnet,
 )
+from algokit_utils.clients.dispenser_api_client import (
+    DISPENSER_ACCESS_TOKEN_KEY,
+    DISPENSER_REQUEST_TIMEOUT,
+    DispenserFundResponse,
+    DispenserLimitResponse,
+    TestNetDispenserApiClient,
+)
 
 __all__ = [
+    # ==== LEGACY V2 EXPORTS BEGIN ====
     "create_kmd_wallet_account",
     "get_account_from_mnemonic",
     "get_or_create_kmd_wallet_account",
@@ -120,6 +120,8 @@ __all__ = [
     "CreateCallParameters",
     "CreateCallParametersDict",
     "CreateTransactionParameters",
+    "CommonCallParameters",
+    "CommonCallParametersDict",
     "DeployCallArgs",
     "DeployCreateCallArgs",
     "DeployCallArgsDict",
@@ -179,4 +181,5 @@ __all__ = [
     "persist_sourcemaps",
     "PersistSourceMapInput",
     "simulate_and_persist_response",
+    # ==== LEGACY V2 EXPORTS END ====
 ]

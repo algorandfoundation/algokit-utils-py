@@ -14,7 +14,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.encoding import checksum
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
-from algokit_utils.common import Program
+from algokit_utils._legacy_v2.common import Program
 
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
