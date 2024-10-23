@@ -34,6 +34,7 @@ pytest-httpx = "^0.21.3"
 pytest-xdist = "^3.4.0"
 sphinx-markdown-builder = "^0.6.6"
 linkify-it-py = "^2.0.3"
+setuptools = "^75.2.0"
 
 [build-system]
 requires = ["poetry-core"]
