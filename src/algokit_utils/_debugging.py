@@ -157,9 +157,7 @@ def _build_avm_sourcemap(  # noqa: PLR0913
         raise ValueError("Either raw teal or compiled teal must be provided")
 
     result = compiled_teal if compiled_teal else Program(str(raw_teal), client=client)
-    program_hash = base64.b64encode(
-        checksum(result.raw_binary)  # type: ignore[no-untyped-call]
-    ).decode()
+    program_hash = base64.b64encode(checksum(result.raw_binary)).decode()
     source_map = result.source_map.__dict__
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
 

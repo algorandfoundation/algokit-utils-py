@@ -2,23 +2,22 @@ import dataclasses
 from collections.abc import Sequence
 from typing import Any, Generic, Protocol, TypeAlias, TypedDict, TypeVar
 
-import algosdk.account
 from algosdk import transaction
 from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import (
-    AccountTransactionSigner,
     AtomicTransactionResponse,
     SimulateAtomicTransactionResponse,
     TransactionSigner,
 )
-from algosdk.encoding import decode_address
 from deprecated import deprecated
+
+# Imports from latest sdk version that rely on models previously used in legacy v2 (but moved to root models/*)
+
 
 __all__ = [
     "ABIArgsDict",
     "ABIMethod",
     "ABITransactionResponse",
-    "Account",
     "CreateCallParameters",
     "CreateCallParametersDict",
     "CreateTransactionParameters",
@@ -29,37 +28,6 @@ __all__ = [
 ]
 
 ReturnType = TypeVar("ReturnType")
-
-
-@dataclasses.dataclass(kw_only=True)
-class Account:
-    """Holds the private_key and address for an account"""
-
-    private_key: str
-    """Base64 encoded private key"""
-    address: str = dataclasses.field(default="")
-    """Address for this account"""
-
-    def __post_init__(self) -> None:
-        if not self.address:
-            self.address = algosdk.account.address_from_private_key(self.private_key)  # type: ignore[no-untyped-call]
-
-    @property
-    def public_key(self) -> bytes:
-        """The public key for this account"""
-        public_key = decode_address(self.address)  # type: ignore[no-untyped-call]
-        assert isinstance(public_key, bytes)
-        return public_key
-
-    @property
-    def signer(self) -> AccountTransactionSigner:
-        """An AccountTransactionSigner for this account"""
-        return AccountTransactionSigner(self.private_key)
-
-    @staticmethod
-    def new_account() -> "Account":
-        private_key, address = algosdk.account.generate_account()  # type: ignore[no-untyped-call]
-        return Account(private_key=private_key)
 
 
 @dataclasses.dataclass(kw_only=True)

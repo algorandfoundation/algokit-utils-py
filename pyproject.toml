@@ -149,6 +149,14 @@ disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
 
+untyped_calls_exclude = [
+    "algosdk",
+]
+
+[[tool.mypy.overrides]]
+module = ["algosdk", "algosdk.*"]
+disallow_untyped_calls = false
+
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
 remove_dist = false

@@ -6,10 +6,10 @@ from algokit_utils import Account, ApplicationClient
 from algokit_utils.accounts.account_manager import AddressAndSigner
 from algokit_utils.clients.algorand_client import (
     AlgorandClient,
+    AppMethodCallParams,
     AssetCreateParams,
     AssetOptInParams,
-    MethodCallParams,
-    PayParams,
+    PaymentParams,
 )
 from algosdk.abi import Contract
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer
@@ -25,14 +25,14 @@ def algorand(funded_account: Account) -> AlgorandClient:
 @pytest.fixture()
 def alice(algorand: AlgorandClient, funded_account: Account) -> AddressAndSigner:
     acct = algorand.account.random()
-    algorand.send.payment(PayParams(sender=funded_account.address, receiver=acct.address, amount=1_000_000))
+    algorand.send.payment(PaymentParams(sender=funded_account.address, receiver=acct.address, amount=1_000_000))
     return acct
 
 
 @pytest.fixture()
 def bob(algorand: AlgorandClient, funded_account: Account) -> AddressAndSigner:
     acct = algorand.account.random()
-    algorand.send.payment(PayParams(sender=funded_account.address, receiver=acct.address, amount=1_000_000))
+    algorand.send.payment(PaymentParams(sender=funded_account.address, receiver=acct.address, amount=1_000_000))
     return acct
 
 
@@ -59,7 +59,7 @@ def test_send_payment(algorand: AlgorandClient, alice: AddressAndSigner, bob: Ad
 
     alice_pre_balance = algorand.account.get_information(alice.address)["amount"]
     bob_pre_balance = algorand.account.get_information(bob.address)["amount"]
-    result = algorand.send.payment(PayParams(sender=alice.address, receiver=bob.address, amount=amount))
+    result = algorand.send.payment(PaymentParams(sender=alice.address, receiver=bob.address, amount=amount))
     alice_post_balance = algorand.account.get_information(alice.address)["amount"]
     bob_post_balance = algorand.account.get_information(bob.address)["amount"]
 
@@ -97,7 +97,7 @@ def test_add_atc(algorand: AlgorandClient, app_client: ApplicationClient, alice:
 
     result = (
         algorand.new_group()
-        .add_payment(PayParams(sender=alice.address, amount=0, receiver=alice.address))
+        .add_payment(PaymentParams(sender=alice.address, amount=0, receiver=alice.address))
         .add_atc(atc)
         .execute()
     )
@@ -109,9 +109,9 @@ def test_add_method_call(
 ) -> None:
     result = (
         algorand.new_group()
-        .add_payment(PayParams(sender=alice.address, amount=0, receiver=alice.address))
+        .add_payment(PaymentParams(sender=alice.address, amount=0, receiver=alice.address))
         .add_method_call(
-            MethodCallParams(
+            AppMethodCallParams(
                 method=contract.get_method_by_name("doMath"),
                 sender=alice.address,
                 app_id=app_client.app_id,
@@ -126,12 +126,12 @@ def test_add_method_call(
 def test_add_method_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
 ) -> None:
-    pay_arg = PayParams(sender=alice.address, receiver=alice.address, amount=1)
+    pay_arg = PaymentParams(sender=alice.address, receiver=alice.address, amount=1)
     result = (
         algorand.new_group()
-        .add_payment(PayParams(sender=alice.address, amount=0, receiver=alice.address))
+        .add_payment(PaymentParams(sender=alice.address, amount=0, receiver=alice.address))
         .add_method_call(
-            MethodCallParams(
+            AppMethodCallParams(
                 method=contract.get_method_by_name("txnArg"),
                 sender=alice.address,
                 app_id=app_client.app_id,
@@ -146,13 +146,13 @@ def test_add_method_with_txn_arg(
 def test_add_method_call_with_method_call_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
 ) -> None:
-    hello_world_call = MethodCallParams(
+    hello_world_call = AppMethodCallParams(
         method=contract.get_method_by_name("helloWorld"), sender=alice.address, app_id=app_client.app_id
     )
     result = (
         algorand.new_group()
         .add_method_call(
-            MethodCallParams(
+            AppMethodCallParams(
                 method=contract.get_method_by_name("methodArg"),
                 sender=alice.address,
                 app_id=app_client.app_id,
@@ -168,14 +168,14 @@ def test_add_method_call_with_method_call_arg(
 def test_add_method_call_with_method_call_arg_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
 ) -> None:
-    pay_arg = PayParams(sender=alice.address, receiver=alice.address, amount=1)
-    txn_arg_call = MethodCallParams(
+    pay_arg = PaymentParams(sender=alice.address, receiver=alice.address, amount=1)
+    txn_arg_call = AppMethodCallParams(
         method=contract.get_method_by_name("txnArg"), sender=alice.address, app_id=app_client.app_id, args=[pay_arg]
     )
     result = (
         algorand.new_group()
         .add_method_call(
-            MethodCallParams(
+            AppMethodCallParams(
                 method=contract.get_method_by_name("nestedTxnArg"),
                 sender=alice.address,
                 app_id=app_client.app_id,
@@ -191,8 +191,8 @@ def test_add_method_call_with_method_call_arg_with_txn_arg(
 def test_add_method_call_with_two_method_call_args_with_txn_arg(
     algorand: AlgorandClient, contract: Contract, alice: AddressAndSigner, app_client: ApplicationClient
 ) -> None:
-    pay_arg_1 = PayParams(sender=alice.address, receiver=alice.address, amount=1)
-    txn_arg_call_1 = MethodCallParams(
+    pay_arg_1 = PaymentParams(sender=alice.address, receiver=alice.address, amount=1)
+    txn_arg_call_1 = AppMethodCallParams(
         method=contract.get_method_by_name("txnArg"),
         sender=alice.address,
         app_id=app_client.app_id,
@@ -200,15 +200,15 @@ def test_add_method_call_with_two_method_call_args_with_txn_arg(
         note=b"1",
     )
 
-    pay_arg_2 = PayParams(sender=alice.address, receiver=alice.address, amount=2)
-    txn_arg_call_2 = MethodCallParams(
+    pay_arg_2 = PaymentParams(sender=alice.address, receiver=alice.address, amount=2)
+    txn_arg_call_2 = AppMethodCallParams(
         method=contract.get_method_by_name("txnArg"), sender=alice.address, app_id=app_client.app_id, args=[pay_arg_2]
     )
 
     result = (
         algorand.new_group()
         .add_method_call(
-            MethodCallParams(
+            AppMethodCallParams(
                 method=contract.get_method_by_name("doubleNestedTxnArg"),
                 sender=alice.address,
                 app_id=app_client.app_id,

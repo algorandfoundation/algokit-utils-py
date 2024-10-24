@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from enum import Enum, auto
 
-from algokit_utils._legacy_v2.models import Account
+from algokit_utils.models.account import Account
 
 __all__ = ["opt_in", "opt_out"]
 logger = logging.getLogger(__name__)

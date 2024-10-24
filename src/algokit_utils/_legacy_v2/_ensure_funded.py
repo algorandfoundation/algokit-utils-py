@@ -7,12 +7,12 @@ from algosdk.v2client.algod import AlgodClient
 
 from algokit_utils._legacy_v2._transfer import TransferParameters, transfer
 from algokit_utils._legacy_v2.account import get_dispenser_account
-from algokit_utils._legacy_v2.models import Account
 from algokit_utils._legacy_v2.network_clients import is_testnet
 from algokit_utils.clients.dispenser_api_client import (
     DispenserAssetName,
     TestNetDispenserApiClient,
 )
+from algokit_utils.models.account import Account
 
 
 @dataclass(kw_only=True)
@@ -63,7 +63,7 @@ def _get_address_to_fund(parameters: EnsureBalanceParameters) -> str:
     if isinstance(parameters.account_to_fund, str):
         return parameters.account_to_fund
     else:
-        return str(address_from_private_key(parameters.account_to_fund.private_key))  # type: ignore[no-untyped-call]
+        return str(address_from_private_key(parameters.account_to_fund.private_key))
 
 
 def _get_account_info(client: AlgodClient, address_to_fund: str) -> dict:
@@ -111,7 +111,7 @@ def _fund_using_transfer(
             fee_micro_algos=parameters.fee_micro_algos,
         ),
     )
-    transaction_id = response.get_txid()  # type: ignore[no-untyped-call]
+    transaction_id = response.get_txid()
     return EnsureFundedResponse(transaction_id=transaction_id, amount=response.amt)
 
 
