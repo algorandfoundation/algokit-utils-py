@@ -20,15 +20,15 @@ from algokit_utils.network_clients import (
 )
 from algokit_utils.transactions.transaction_composer import (
     AppCallParams,
+    AppMethodCallParams,
     AssetConfigParams,
     AssetCreateParams,
     AssetDestroyParams,
     AssetFreezeParams,
     AssetOptInParams,
     AssetTransferParams,
-    MethodCallParams,
-    OnlineKeyRegParams,
-    PayParams,
+    OnlineKeyRegistrationParams,
+    PaymentParams,
     TransactionComposer,
 )
 
@@ -36,13 +36,13 @@ __all__ = [
     "AlgorandClient",
     "AssetCreateParams",
     "AssetOptInParams",
-    "MethodCallParams",
-    "PayParams",
+    "AppMethodCallParams",
+    "PaymentParams",
     "AssetFreezeParams",
     "AssetConfigParams",
     "AssetDestroyParams",
     "AppCallParams",
-    "OnlineKeyRegParams",
+    "OnlineKeyRegistrationParams",
     "AssetTransferParams",
 ]
 
@@ -53,15 +53,15 @@ class AlgorandClientSendMethods:
     Methods used to send a transaction to the network and wait for confirmation
     """
 
-    payment: Callable[[PayParams], dict[str, Any]]
+    payment: Callable[[PaymentParams], dict[str, Any]]
     asset_create: Callable[[AssetCreateParams], dict[str, Any]]
     asset_config: Callable[[AssetConfigParams], dict[str, Any]]
     asset_freeze: Callable[[AssetFreezeParams], dict[str, Any]]
     asset_destroy: Callable[[AssetDestroyParams], dict[str, Any]]
     asset_transfer: Callable[[AssetTransferParams], dict[str, Any]]
     app_call: Callable[[AppCallParams], dict[str, Any]]
-    online_key_reg: Callable[[OnlineKeyRegParams], dict[str, Any]]
-    method_call: Callable[[MethodCallParams], dict[str, Any]]
+    online_key_reg: Callable[[OnlineKeyRegistrationParams], dict[str, Any]]
+    method_call: Callable[[AppMethodCallParams], dict[str, Any]]
     asset_opt_in: Callable[[AssetOptInParams], dict[str, Any]]
 
 
@@ -71,15 +71,15 @@ class AlgorandClientTransactionMethods:
     Methods used to form a transaction without signing or sending to the network
     """
 
-    payment: Callable[[PayParams], Transaction]
+    payment: Callable[[PaymentParams], Transaction]
     asset_create: Callable[[AssetCreateParams], Transaction]
     asset_config: Callable[[AssetConfigParams], Transaction]
     asset_freeze: Callable[[AssetFreezeParams], Transaction]
     asset_destroy: Callable[[AssetDestroyParams], Transaction]
     asset_transfer: Callable[[AssetTransferParams], Transaction]
     app_call: Callable[[AppCallParams], Transaction]
-    online_key_reg: Callable[[OnlineKeyRegParams], Transaction]
-    method_call: Callable[[MethodCallParams], list[Transaction]]
+    online_key_reg: Callable[[OnlineKeyRegistrationParams], Transaction]
+    method_call: Callable[[AppMethodCallParams], list[Transaction]]
     asset_opt_in: Callable[[AssetOptInParams], Transaction]
 
 
