@@ -15,12 +15,12 @@ class Account:
 
     def __post_init__(self) -> None:
         if not self.address:
-            self.address = algosdk.account.address_from_private_key(self.private_key)  # type: ignore[no-untyped-call]
+            self.address = algosdk.account.address_from_private_key(self.private_key)
 
     @property
     def public_key(self) -> bytes:
         """The public key for this account"""
-        public_key = algosdk.encoding.decode_address(self.address)  # type: ignore[no-untyped-call]
+        public_key = algosdk.encoding.decode_address(self.address)
         assert isinstance(public_key, bytes)
         return public_key
 
@@ -31,5 +31,5 @@ class Account:
 
     @staticmethod
     def new_account() -> "Account":
-        private_key, address = algosdk.account.generate_account()  # type: ignore[no-untyped-call]
+        private_key, address = algosdk.account.generate_account()
         return Account(private_key=private_key)

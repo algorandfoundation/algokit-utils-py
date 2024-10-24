@@ -329,14 +329,16 @@ class AppManager:
         if params.get("updatable") is not None:
             if UPDATABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
-                    f"Deploy-time updatability control requested for app deployment, but {UPDATABLE_TEMPLATE_NAME} not present in TEAL code"
+                    f"Deploy-time updatability control requested for app deployment, but {UPDATABLE_TEMPLATE_NAME} "
+                    "not present in TEAL code"
                 )
             teal_template_code = teal_template_code.replace(UPDATABLE_TEMPLATE_NAME, str(int(params["updatable"])))
 
         if params.get("deletable") is not None:
             if DELETABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
-                    f"Deploy-time deletability control requested for app deployment, but {DELETABLE_TEMPLATE_NAME} not present in TEAL code"
+                    f"Deploy-time deletability control requested for app deployment, but {DELETABLE_TEMPLATE_NAME} "
+                    "not present in TEAL code"
                 )
             teal_template_code = teal_template_code.replace(DELETABLE_TEMPLATE_NAME, str(int(params["deletable"])))
 
