@@ -11,6 +11,7 @@ from algosdk import transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner
 from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
+from deprecated import deprecated
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -21,10 +22,11 @@ from algokit_utils._legacy_v2.application_specification import (
 from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
-    Account,
     CreateCallParameters,
     TransactionResponse,
 )
+from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.models.account import Account
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -185,7 +187,7 @@ def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -
     while True:
         response = indexer.lookup_account_application_by_creator(
             creator_address, limit=DEFAULT_INDEXER_MAX_API_RESOURCES_PER_ACCOUNT, next_page=token
-        )  # type: ignore[no-untyped-call]
+        )
         if "message" in response:  # an error occurred
             raise Exception(f"Error querying applications for {creator_address}: {response}")
         for app in response["applications"]:
@@ -199,7 +201,7 @@ def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -
                 address=creator_address,
                 address_role="sender",
                 note_prefix=NOTE_PREFIX.encode("utf-8"),
-            )  # type: ignore[no-untyped-call]
+            )
             transactions: list[dict] = search_transactions_response["transactions"]
             if not transactions:
                 continue
@@ -236,7 +238,7 @@ def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -
 
 
 def _state_schema(schema: dict[str, int]) -> StateSchema:
-    return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
+    return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))
 
 
 def _describe_schema_breaks(prefix: str, from_schema: StateSchema, to_schema: StateSchema) -> Iterable[str]:
@@ -286,33 +288,6 @@ def check_for_app_changes(  # noqa: PLR0913
 
 def _is_valid_token_character(char: str) -> bool:
     return char.isalnum() or char == "_"
-
-
-def _replace_template_variable(program_lines: list[str], template_variable: str, value: str) -> tuple[list[str], int]:
-    result: list[str] = []
-    match_count = 0
-    token = f"TMPL_{template_variable}"
-    token_idx_offset = len(value) - len(token)
-    for line in program_lines:
-        comment_idx = _find_unquoted_string(line, "//")
-        if comment_idx is None:
-            comment_idx = len(line)
-        code = line[:comment_idx]
-        comment = line[comment_idx:]
-        trailing_idx = 0
-        while True:
-            token_idx = _find_template_token(code, token, trailing_idx)
-            if token_idx is None:
-                break
-
-            trailing_idx = token_idx + len(token)
-            prefix = code[:token_idx]
-            suffix = code[trailing_idx:]
-            code = f"{prefix}{value}{suffix}"
-            match_count += 1
-            trailing_idx += token_idx_offset
-        result.append(code + comment)
-    return result, match_count
 
 
 def add_deploy_template_variables(
@@ -437,6 +412,7 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
             logger.warning(f"{tmpl_variable} not found in approval program, but variable was provided")
 
 
+@deprecated(reason="Use `AppManager.replace_template_variables` instead", version="3.0.0")
 def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
     """Replaces `TMPL_*` variables in `program` with `template_values`
 
@@ -444,23 +420,7 @@ def replace_template_variables(program: str, template_values: TemplateValueMappi
     `template_values` keys should *NOT* be prefixed with `TMPL_`
     ```
     """
-    program_lines = program.splitlines()
-    for template_variable_name, template_value in template_values.items():
-        match template_value:
-            case int():
-                value = str(template_value)
-            case str():
-                value = "0x" + template_value.encode("utf-8").hex()
-            case bytes():
-                value = "0x" + template_value.hex()
-            case _:
-                raise DeploymentFailedError(
-                    f"Unexpected template value type {template_variable_name}: {template_value.__class__}"
-                )
-
-        program_lines, matches = _replace_template_variable(program_lines, template_variable_name, value)
-
-    return "\n".join(program_lines)
+    return AppManager.replace_template_variables(program, template_values)
 
 
 def has_template_vars(app_spec: ApplicationSpecification) -> bool:

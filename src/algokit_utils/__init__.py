@@ -30,9 +30,7 @@ from algokit_utils._legacy_v2.application_specification import (
 from algokit_utils._legacy_v2.asset import opt_in, opt_out
 from algokit_utils._legacy_v2.common import Program
 from algokit_utils._legacy_v2.deploy import (
-    DELETABLE_TEMPLATE_NAME,
     NOTE_PREFIX,
-    UPDATABLE_TEMPLATE_NAME,
     ABICallArgs,
     ABICallArgsDict,
     ABICreateCallArgs,
@@ -61,7 +59,6 @@ from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
     ABITransactionResponse,
-    Account,
     CommonCallParameters,
     CommonCallParametersDict,
     CreateCallParameters,
@@ -91,6 +88,8 @@ from algokit_utils.clients.dispenser_api_client import (
     DispenserLimitResponse,
     TestNetDispenserApiClient,
 )
+from algokit_utils.models.account import Account
+from algokit_utils.models.application import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 
 __all__ = [
     # ==== LEGACY V2 EXPORTS BEGIN ====

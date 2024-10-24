@@ -109,7 +109,7 @@ class AccountManager:
 
         :return: The account
         """
-        (sk, addr) = generate_account()  # type: ignore[no-untyped-call]
+        (sk, addr) = generate_account()
         signer = AccountTransactionSigner(sk)
 
         self.set_signer(addr, signer)

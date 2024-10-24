@@ -14,6 +14,8 @@ from algosdk.box_reference import BoxReference
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 
+from algokit_utils.applications.app_manager import AppManager
+
 
 @dataclass(frozen=True)
 class SenderParam:
@@ -223,12 +225,13 @@ TxnParams = Union[  # noqa: UP007
 
 
 class TransactionComposer:
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         algod: AlgodClient,
         get_signer: Callable[[str], TransactionSigner],
         get_suggested_params: Callable[[], algosdk.transaction.SuggestedParams] | None = None,
         default_validity_window: int | None = None,
+        app_manager: AppManager | None = None,
     ):
         self.txn_method_map: dict[str, algosdk.abi.Method] = {}
         self.txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
@@ -238,6 +241,8 @@ class TransactionComposer:
         self.get_suggested_params = get_suggested_params or self.default_get_send_params
         self.get_signer: Callable[[str], TransactionSigner] = get_signer
         self.default_validity_window: int = default_validity_window or 10
+        # TODO: Update composer to match latest interface and use the app manager
+        self.app_manager: AppManager | None = app_manager or AppManager(algod)
 
     def add_payment(self, params: PayParams) -> "TransactionComposer":
         self.txns.append(params)
@@ -291,7 +296,7 @@ class TransactionComposer:
 
         method = atc.method_dict.get(len(group) - 1)
         if method:
-            self.txn_method_map[group[-1].txn.get_txid()] = method  # type: ignore[no-untyped-call]
+            self.txn_method_map[group[-1].txn.get_txid()] = method
 
         return group
 
@@ -304,7 +309,7 @@ class TransactionComposer:
         if params.lease:
             txn.lease = params.lease
         if params.rekey_to:
-            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to)  # type: ignore[no-untyped-call]
+            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to)
         if params.note:
             txn.note = params.note
 
@@ -322,7 +327,7 @@ class TransactionComposer:
         if params.static_fee is not None:
             txn.fee = params.static_fee
         else:
-            txn.fee = txn.estimate_size() * suggested_params.fee or algosdk.constants.min_txn_fee  # type: ignore[no-untyped-call]
+            txn.fee = txn.estimate_size() * suggested_params.fee or algosdk.constants.min_txn_fee
             if params.extra_fee:
                 txn.fee += params.extra_fee
 
@@ -340,7 +345,7 @@ class TransactionComposer:
             receiver=params.receiver,
             amt=params.amount,
             close_remainder_to=params.close_remainder_to,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -362,7 +367,7 @@ class TransactionComposer:
             metadata_hash=params.metadata_hash,
             decimals=params.decimals or 0,
             strict_empty_address_check=False,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -383,13 +388,13 @@ class TransactionComposer:
             "extra_pages": params.extra_pages,
             "local_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("local_uints", 0), num_byte_slices=params.schema.get("local_byte_slices", 0)
-            )  # type: ignore[no-untyped-call]
+            )
             if params.schema
             else None,
             "global_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("global_uints", 0),
                 num_byte_slices=params.schema.get("global_byte_slices", 0),
-            )  # type: ignore[no-untyped-call]
+            )
             if params.schema
             else None,
         }
@@ -398,9 +403,9 @@ class TransactionComposer:
             if params.approval_program is None or params.clear_program is None:
                 raise ValueError("approval_program and clear_program are required for application creation")
 
-            txn = algosdk.transaction.ApplicationCreateTxn(**sdk_params)  # type: ignore[no-untyped-call]
+            txn = algosdk.transaction.ApplicationCreateTxn(**sdk_params)
         else:
-            txn = algosdk.transaction.ApplicationCallTxn(**sdk_params)  # type: ignore[assignment,no-untyped-call]
+            txn = algosdk.transaction.ApplicationCallTxn(**sdk_params)  # type: ignore[assignment]
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -416,7 +421,7 @@ class TransactionComposer:
             freeze=params.freeze,
             clawback=params.clawback,
             strict_empty_address_check=False,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -427,7 +432,7 @@ class TransactionComposer:
             sender=params.sender,
             sp=suggested_params,
             index=params.asset_id,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -440,7 +445,7 @@ class TransactionComposer:
             index=params.asset_id,
             target=params.account,
             new_freeze_state=params.frozen,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -455,7 +460,7 @@ class TransactionComposer:
             index=params.asset_id,
             close_assets_to=params.close_asset_to,
             revocation_target=params.clawback_target,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -473,7 +478,7 @@ class TransactionComposer:
             rekey_to=params.rekey_to,
             nonpart=False,
             sprfkey=params.state_proof_key,
-        )  # type: ignore[no-untyped-call]
+        )
 
         return self._common_txn_build_step(params, txn, suggested_params)
 
@@ -611,7 +616,7 @@ class TransactionComposer:
         method_calls = {}
 
         for i, ts in enumerate(txn_with_signers):
-            method = self.txn_method_map.get(ts.txn.get_txid())  # type: ignore[no-untyped-call]
+            method = self.txn_method_map.get(ts.txn.get_txid())
             if method:
                 method_calls[i] = method
 
