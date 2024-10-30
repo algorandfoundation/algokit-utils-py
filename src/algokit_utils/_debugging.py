@@ -143,6 +143,23 @@ def _build_avm_sourcemap(  # noqa: PLR0913
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
+def cleanup_old_trace_files(output_dir: Path, buffer_size_mb: float) -> None:
+    """
+    Cleanup old trace files if total size exceeds buffer size limit.
+
+    Args:
+        output_dir (Path): Directory containing trace files
+        buffer_size_mb (float): Maximum allowed size in megabytes
+    """
+    total_size = sum(f.stat().st_size for f in output_dir.glob("*") if f.is_file())
+    if total_size > buffer_size_mb * 1024 * 1024:
+        sorted_files = sorted(output_dir.glob("*"), key=lambda p: p.stat().st_mtime)
+        while total_size > buffer_size_mb * 1024 * 1024 and sorted_files:
+            oldest_file = sorted_files.pop(0)
+            total_size -= oldest_file.stat().st_size
+            oldest_file.unlink()
+
+
 def persist_sourcemaps(
     *,
     sources: list[PersistSourceMapInput],
@@ -226,8 +243,13 @@ def simulate_and_persist_response(
     response = simulate_response(atc_to_simulate, algod_client)
     txn_results = response.simulate_response["txn-groups"]
 
-    txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]
-    txn_types_count = {txn_type: txn_types.count(txn_type) for txn_type in set(txn_types)}
+    txn_types = [
+        txn["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results for txn in txn_result["txn-results"]
+    ]
+    txn_types_count = {}
+    for txn_type in txn_types:
+        if txn_type not in txn_types_count:
+            txn_types_count[txn_type] = txn_types.count(txn_type)
     txn_types_str = "_".join([f"{count}{txn_type}" for txn_type, count in txn_types_count.items()])
 
     last_round = response.simulate_response["last-round"]
@@ -235,15 +257,6 @@ def simulate_and_persist_response(
     output_file = project_root / DEBUG_TRACES_DIR / f"{timestamp}_lr{last_round}_{txn_types_str}{TRACES_FILE_EXT}"
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # cleanup old files if buffer size is exceeded
-    total_size = sum(f.stat().st_size for f in output_file.parent.glob("*") if f.is_file())
-    if total_size > buffer_size_mb * 1024 * 1024:
-        sorted_files = sorted(output_file.parent.glob("*"), key=lambda p: p.stat().st_mtime)
-        while total_size > buffer_size_mb * 1024 * 1024:
-            oldest_file = sorted_files.pop(0)
-            total_size -= oldest_file.stat().st_size
-            oldest_file.unlink()
-
+    cleanup_old_trace_files(output_file.parent, buffer_size_mb)
     output_file.write_text(json.dumps(response.simulate_response, indent=2))
     return response
