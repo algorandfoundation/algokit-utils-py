@@ -388,7 +388,7 @@ class AlgokitComposer:
         if params.lease:
             txn.lease = params.lease
         if params.rekey_to:
-            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to)  # type: ignore[no-untyped-call]
+            txn.rekey_to = params.rekey_to
         if params.note:
             txn.note = params.note
 
