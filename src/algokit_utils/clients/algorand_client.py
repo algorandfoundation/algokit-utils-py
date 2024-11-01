@@ -9,6 +9,8 @@ from algosdk.transaction import SuggestedParams, Transaction, wait_for_confirmat
 from typing_extensions import Self
 
 from algokit_utils.accounts.account_manager import AccountManager
+from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.network_clients import (
     AlgoClientConfigs,
@@ -31,6 +33,8 @@ from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     TransactionComposer,
 )
+from algokit_utils.transactions.transaction_creator import AlgorandClientTransactionCreator
+from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
 
 __all__ = [
     "AlgorandClient",
@@ -89,6 +93,15 @@ class AlgorandClient:
     def __init__(self, config: AlgoClientConfigs | AlgoSdkClients):
         self._client_manager: ClientManager = ClientManager(config)
         self._account_manager: AccountManager = AccountManager(self._client_manager)
+        self._asset_manager: AssetManager = AssetManager()  # TODO: implement
+        self._app_manager: AppManager = AppManager(self._client_manager.algod)  # TODO: implement
+        self._transaction_sender = AlgorandClientTransactionSender(
+            new_group=lambda: self.new_group(),
+            asset_manager=self._asset_manager,
+            app_manager=self._app_manager,
+            algod_client=self._client_manager.algod,
+        )
+        self._transaction_creator = AlgorandClientTransactionCreator()  # TODO: implement
 
         self._cached_suggested_params: SuggestedParams | None = None
         self._cached_suggested_params_expiry: float | None = None
@@ -187,53 +200,14 @@ class AlgorandClient:
         )
 
     @property
-    def send(self) -> AlgorandClientSendMethods:
+    def send(self) -> AlgorandClientTransactionSender:
         """Methods for sending a transaction and waiting for confirmation"""
-        return AlgorandClientSendMethods(
-            payment=lambda params: self._unwrap_single_send_result(self.new_group().add_payment(params).execute()),
-            asset_create=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_create(params).execute()
-            ),
-            asset_config=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_config(params).execute()
-            ),
-            asset_freeze=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_freeze(params).execute()
-            ),
-            asset_destroy=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_destroy(params).execute()
-            ),
-            asset_transfer=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_transfer(params).execute()
-            ),
-            app_call=lambda params: self._unwrap_single_send_result(self.new_group().add_app_call(params).execute()),
-            online_key_reg=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_online_key_reg(params).execute()
-            ),
-            method_call=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_method_call(params).execute()
-            ),
-            asset_opt_in=lambda params: self._unwrap_single_send_result(
-                self.new_group().add_asset_opt_in(params).execute()
-            ),
-        )
+        return self._transaction_sender
 
     @property
-    def transactions(self) -> AlgorandClientTransactionMethods:
+    def create_transaction(self) -> AlgorandClientTransactionCreator:
         """Methods for building transactions"""
-
-        return AlgorandClientTransactionMethods(
-            payment=lambda params: self.new_group().add_payment(params).build_group()[0].txn,
-            asset_create=lambda params: self.new_group().add_asset_create(params).build_group()[0].txn,
-            asset_config=lambda params: self.new_group().add_asset_config(params).build_group()[0].txn,
-            asset_freeze=lambda params: self.new_group().add_asset_freeze(params).build_group()[0].txn,
-            asset_destroy=lambda params: self.new_group().add_asset_destroy(params).build_group()[0].txn,
-            asset_transfer=lambda params: self.new_group().add_asset_transfer(params).build_group()[0].txn,
-            app_call=lambda params: self.new_group().add_app_call(params).build_group()[0].txn,
-            online_key_reg=lambda params: self.new_group().add_online_key_reg(params).build_group()[0].txn,
-            method_call=lambda params: [txn.txn for txn in self.new_group().add_method_call(params).build_group()],
-            asset_opt_in=lambda params: self.new_group().add_asset_opt_in(params).build_group()[0].txn,
-        )
+        return self._transaction_creator
 
     @staticmethod
     def default_local_net() -> "AlgorandClient":
