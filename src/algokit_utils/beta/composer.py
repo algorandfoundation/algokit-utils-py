@@ -456,7 +456,6 @@ class AlgokitComposer:
         sdk_params = {
             "sender": params.sender,
             "sp": suggested_params,
-            "index": params.app_id or 0,
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             "approval_program": params.approval_program,
             "clear_program": params.clear_program,
@@ -484,6 +483,7 @@ class AlgokitComposer:
 
             txn = algosdk.transaction.ApplicationCreateTxn(**sdk_params)  # type: ignore[no-untyped-call]
         else:
+            sdk_params["index"] = params.app_id
             txn = algosdk.transaction.ApplicationCallTxn(**sdk_params)  # type: ignore[assignment,no-untyped-call]
 
         return self._common_txn_build_step(params, txn, suggested_params)
