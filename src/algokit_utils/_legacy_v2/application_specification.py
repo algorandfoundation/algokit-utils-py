@@ -130,7 +130,7 @@ def _encode_state_schema(schema: StateSchema) -> dict[str, int]:
 
 
 def _decode_state_schema(data: dict[str, int]) -> StateSchema:
-    return StateSchema(  # type: ignore[no-untyped-call]
+    return StateSchema(
         num_byte_slices=data.get("num_byte_slices", 0),
         num_uints=data.get("num_uints", 0),
     )
@@ -203,4 +203,4 @@ class ApplicationSpecification:
 
 
 def _state_schema(schema: dict[str, int]) -> StateSchema:
-    return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))  # type: ignore[no-untyped-call]
+    return StateSchema(schema.get("num-uint", 0), schema.get("num-byte-slice", 0))

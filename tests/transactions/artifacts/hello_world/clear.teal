@@ -1,0 +1,5 @@
+#pragma version 10
+
+smart_contracts.hello_world.contract.HelloWorld.clear_state_program:
+    pushint 1 // 1
+    return

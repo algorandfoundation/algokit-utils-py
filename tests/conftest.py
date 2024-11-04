@@ -45,7 +45,7 @@ def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
     caller_dir = caller_path.parent
     test_name = test_name or caller_frame.function
     caller_stem = Path(caller_frame.filename).stem
-    output_dir = caller_dir / f"{caller_stem}.approvals"
+    output_dir = caller_dir / "snapshots" / f"{caller_stem}.approvals"
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / f"{test_name}.approved.txt"
     output_file_str = str(output_file)
@@ -188,11 +188,11 @@ def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int
         note=None,
         lease=None,
         rekey_to=None,
-    )  # type: ignore[no-untyped-call]
+    )
 
-    signed_transaction = txn.sign(sender.private_key)  # type: ignore[no-untyped-call]
+    signed_transaction = txn.sign(sender.private_key)
     algod_client.send_transaction(signed_transaction)
-    ptx = algod_client.pending_transaction_info(txn.get_txid())  # type: ignore[no-untyped-call]
+    ptx = algod_client.pending_transaction_info(txn.get_txid())
 
     if isinstance(ptx, dict) and "asset-index" in ptx and isinstance(ptx["asset-index"], int):
         return ptx["asset-index"]

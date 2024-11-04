@@ -125,6 +125,7 @@ suppress-none-returning = true
 [tool.ruff.lint.per-file-ignores]
 "src/algokit_utils/beta/*" = ["ERA001", "E501", "PLR0911"]
 "path/to/file.py" = ["E402"]
+"tests/clients/test_algorand_client.py" = ["ERA001"]  
 
 [tool.poe.tasks]
 docs = ["docs-html-only", "docs-md-only"]
@@ -148,6 +149,14 @@ disallow_untyped_decorators = true
 disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
+
+untyped_calls_exclude = [
+    "algosdk",
+]
+
+[[tool.mypy.overrides]]
+module = ["algosdk", "algosdk.*"]
+disallow_untyped_calls = false
 
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"

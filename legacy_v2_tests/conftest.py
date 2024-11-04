@@ -188,11 +188,11 @@ def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int
         note=None,
         lease=None,
         rekey_to=None,
-    )  # type: ignore[no-untyped-call]
+    )
 
-    signed_transaction = txn.sign(sender.private_key)  # type: ignore[no-untyped-call]
+    signed_transaction = txn.sign(sender.private_key)
     algod_client.send_transaction(signed_transaction)
-    ptx = algod_client.pending_transaction_info(txn.get_txid())  # type: ignore[no-untyped-call]
+    ptx = algod_client.pending_transaction_info(txn.get_txid())
 
     if isinstance(ptx, dict) and "asset-index" in ptx and isinstance(ptx["asset-index"], int):
         return ptx["asset-index"]

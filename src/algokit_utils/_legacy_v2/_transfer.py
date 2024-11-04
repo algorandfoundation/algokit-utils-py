@@ -7,7 +7,7 @@ from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.transaction import AssetTransferTxn, PaymentTxn, SuggestedParams
 
-from algokit_utils._legacy_v2.models import Account
+from algokit_utils.models.account import Account
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -93,7 +93,7 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
         amt=params.micro_algos,
         note=params.note.encode("utf-8") if isinstance(params.note, str) else params.note,
         sp=params.suggested_params,
-    )  # type: ignore[no-untyped-call]
+    )
 
     result = _send_transaction(client=client, transaction=transaction, parameters=params)
     assert isinstance(result, PaymentTxn)
@@ -117,7 +117,7 @@ def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -
         note=params.note,
         index=params.asset_id,
         rekey_to=None,
-    )  # type: ignore[no-untyped-call]
+    )
 
     result = _send_transaction(client=client, transaction=xfer_txn, parameters=params)
     assert isinstance(result, AssetTransferTxn)
@@ -148,5 +148,5 @@ def _get_address(account: Account | AccountTransactionSigner) -> str:
     if type(account) is Account:
         return account.address
     else:
-        address = address_from_private_key(account.private_key)  # type: ignore[no-untyped-call]
+        address = address_from_private_key(account.private_key)
         return str(address)

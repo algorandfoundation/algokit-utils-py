@@ -70,7 +70,7 @@ def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
 
     If no configuration provided will use environment variables `KMD_SERVER`, `KMD_PORT` and `KMD_TOKEN`"""
     config = config or _get_config_from_environment("KMD")
-    return KMDClient(config.token, config.server)  # type: ignore[no-untyped-call]
+    return KMDClient(config.token, config.server)
 
 
 def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
@@ -79,7 +79,7 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
     If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`"""
     config = config or _get_config_from_environment("INDEXER")
     headers = {"X-Indexer-API-Token": config.token}
-    return IndexerClient(config.token, config.server, headers)  # type: ignore[no-untyped-call]
+    return IndexerClient(config.token, config.server, headers)
 
 
 def is_localnet(client: AlgodClient) -> bool:
@@ -109,7 +109,7 @@ def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
     # (e.g. same token and server as algod and port 4002 by default)
     port = os.getenv("KMD_PORT", "4002")
     server = _replace_kmd_port(client.algod_address, port)
-    return KMDClient(client.algod_token, server)  # type: ignore[no-untyped-call]
+    return KMDClient(client.algod_token, server)
 
 
 def _replace_kmd_port(address: str, port: str) -> str:
