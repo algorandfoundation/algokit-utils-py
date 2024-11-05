@@ -101,19 +101,15 @@ class AlgorandClient:
             app_manager=self._app_manager,
             algod_client=self._client_manager.algod,
         )
-        self._transaction_creator = AlgorandClientTransactionCreator()  # TODO: implement
+        self._transaction_creator = AlgorandClientTransactionCreator(
+            new_group=lambda: self.new_group(),
+        )
 
         self._cached_suggested_params: SuggestedParams | None = None
         self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
 
         self._default_validity_window: int = 10
-
-    def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> dict[str, Any]:
-        return {
-            "confirmation": wait_for_confirmation(self._client_manager.algod, results.tx_ids[0]),
-            "tx_id": results.tx_ids[0],
-        }
 
     def set_default_validity_window(self, validity_window: int) -> Self:
         """
@@ -180,16 +176,6 @@ class AlgorandClient:
 
         return copy.deepcopy(self._cached_suggested_params)
 
-    @property
-    def client(self) -> ClientManager:
-        """Get clients, including algosdk clients and app clients."""
-        return self._client_manager
-
-    @property
-    def account(self) -> AccountManager:
-        """Get or create accounts that can sign transactions."""
-        return self._account_manager
-
     def new_group(self) -> TransactionComposer:
         """Start a new `TransactionComposer` transaction group"""
         return TransactionComposer(
@@ -200,6 +186,26 @@ class AlgorandClient:
         )
 
     @property
+    def client(self) -> ClientManager:
+        """Get clients, including algosdk clients and app clients."""
+        return self._client_manager
+
+    @property
+    def account(self) -> AccountManager:
+        """Get or create accounts that can sign transactions."""
+        return self._account_manager
+
+    @property
+    def asset(self) -> AssetManager:
+        """Get or create assets."""
+        return self._asset_manager
+
+    @property
+    def app_deployer(self) -> AppManager:
+        """Get or create applications."""
+        return self._app_manager
+
+    @property
     def send(self) -> AlgorandClientTransactionSender:
         """Methods for sending a transaction and waiting for confirmation"""
         return self._transaction_sender
@@ -208,6 +214,12 @@ class AlgorandClient:
     def create_transaction(self) -> AlgorandClientTransactionCreator:
         """Methods for building transactions"""
         return self._transaction_creator
+
+    def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> dict[str, Any]:
+        return {
+            "confirmation": wait_for_confirmation(self._client_manager.algod, results.tx_ids[0]),
+            "tx_id": results.tx_ids[0],
+        }
 
     @staticmethod
     def default_local_net() -> "AlgorandClient":
