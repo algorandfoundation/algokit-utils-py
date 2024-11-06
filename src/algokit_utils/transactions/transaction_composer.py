@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import logging
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -11,7 +12,9 @@ from algosdk.atomic_transaction_composer import (
     TransactionSigner,
     TransactionWithSigner,
 )
-from algosdk.transaction import OnComplete
+from algosdk.error import AlgodHTTPError
+from algosdk.transaction import OnComplete, Transaction
+from algosdk.v2client.algod import AlgodClient
 from deprecated import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
@@ -28,6 +31,8 @@ if TYPE_CHECKING:
     from algokit_utils.models.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.transactions.models import Arc2TransactionNote
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -565,6 +570,136 @@ class TransactionComposerBuildResult:
     method_calls: dict[int, Method]
 
 
+@dataclass
+class SendAtomicTransactionComposerResults:
+    """Results from sending an AtomicTransactionComposer transaction group"""
+
+    group_id: str | None
+    """The group ID if this was a transaction group"""
+    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    """The confirmation info for each transaction"""
+    tx_ids: list[str]
+    """The transaction IDs that were sent"""
+    transactions: list[Transaction]
+    """The transactions that were sent"""
+    returns: list[Any]
+    """The ABI return values from any ABI method calls"""
+
+
+def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
+    atc: AtomicTransactionComposer,
+    algod: AlgodClient,
+    *,
+    max_rounds_to_wait: int | None = 5,
+    skip_waiting: bool = False,
+    suppress_log: bool = False,
+    populate_resources: bool | None = None,  # TODO: implement/clarify  # noqa: ARG001
+) -> SendAtomicTransactionComposerResults:
+    """Send an AtomicTransactionComposer transaction group
+
+    Args:
+        atc: The AtomicTransactionComposer to send
+        algod: The Algod client to use
+        max_rounds_to_wait: Maximum number of rounds to wait for confirmation
+        skip_waiting: If True, don't wait for transaction confirmation
+        suppress_log: If True, suppress logging
+        populate_resources: If True, populate app call resources
+
+    Returns:
+        The results of sending the transaction group
+
+    Raises:
+        Exception: If there is an error sending the transactions
+    """
+
+    try:
+        # Build transactions
+        transactions_with_signer = atc.build_group()
+        transactions_to_send = [t.txn for t in transactions_with_signer]
+
+        # Get group ID if multiple transactions
+        group_id = None
+        if len(transactions_to_send) > 1:
+            group_id = transactions_to_send[0].group.hex() if transactions_to_send[0].group else None
+
+            if not suppress_log:
+                logger.info(f"Sending group of {len(transactions_to_send)} transactions ({group_id})")
+                logger.debug(f"Transaction IDs ({group_id}): {[t.get_txid() for t in transactions_to_send]}")
+
+        # Simulate if debug enabled
+        if config.debug and config.trace_all and config.project_root:
+            simulate_and_persist_response(
+                atc,
+                config.project_root,
+                algod,
+                config.trace_buffer_size_mb,
+            )
+
+        # Execute transactions
+        result = atc.execute(algod, wait_rounds=max_rounds_to_wait or 5)
+
+        # Log results
+        if not suppress_log:
+            if len(transactions_to_send) > 1:
+                logger.info(f"Group transaction ({group_id}) sent with {len(transactions_to_send)} transactions")
+            else:
+                logger.info(f"Sent transaction ID {transactions_to_send[0].get_txid()}")
+
+        # Get confirmations if not skipping
+        confirmations = None
+        if not skip_waiting:
+            confirmations = [algod.pending_transaction_info(t.get_txid()) for t in transactions_to_send]
+
+        # Return results
+        return SendAtomicTransactionComposerResults(
+            group_id=group_id,
+            confirmations=confirmations or [],
+            tx_ids=[t.get_txid() for t in transactions_to_send],
+            transactions=transactions_to_send,
+            returns=[r.return_value for r in result.abi_results],
+        )
+
+    except AlgodHTTPError as e:
+        # Handle error with debug info if enabled
+        if config.debug:
+            logger.error(
+                "Received error executing Atomic Transaction Composer and debug flag enabled; "
+                "attempting simulation to get more information"
+            )
+
+            simulate = None
+            if config.project_root and not config.trace_all:
+                # Only simulate if trace_all is disabled and project_root is set
+                simulate = simulate_and_persist_response(atc, config.project_root, algod, config.trace_buffer_size_mb)
+            else:
+                simulate = simulate_response(atc, algod)
+
+            traces = []
+            if simulate and simulate.failed_at:
+                for txn_group in simulate.simulate_response["txn-groups"]:
+                    app_budget = txn_group.get("app-budget-added")
+                    app_budget_consumed = txn_group.get("app-budget-consumed")
+                    failure_message = txn_group.get("failure-message")
+                    txn_result = txn_group.get("txn-results", [{}])[0]
+                    exec_trace = txn_result.get("exec-trace", {})
+
+                    traces.append(
+                        {
+                            "trace": exec_trace,
+                            "app_budget": app_budget,
+                            "app_budget_consumed": app_budget_consumed,
+                            "failure_message": failure_message,
+                        }
+                    )
+
+            error = Exception(f"Transaction failed: {e}")
+            error.traces = traces  # type: ignore[attr-defined]
+            raise error from e
+
+        logger.error("Received error executing Atomic Transaction Composer, for more information enable the debug flag")
+        raise Exception(f"Transaction failed: {e}") from e
+
+
 class TransactionComposer:
     """
     A class for composing and managing Algorand transactions using the Algosdk library.
@@ -754,15 +889,18 @@ class TransactionComposer:
         self,
         *,
         max_rounds_to_wait: int | None = None,
-    ) -> algosdk.atomic_transaction_composer.AtomicTransactionResponse:
+    ) -> SendAtomicTransactionComposerResults:
         return self.send(
             max_rounds_to_wait=max_rounds_to_wait,
         )
 
     def send(
         self,
+        *,
         max_rounds_to_wait: int | None = None,
-    ) -> algosdk.atomic_transaction_composer.AtomicTransactionResponse:
+        suppress_log: bool = False,
+        populate_app_call_resources: bool = False,
+    ) -> SendAtomicTransactionComposerResults:
         group = self.build().transactions
 
         wait_rounds = max_rounds_to_wait
@@ -772,7 +910,13 @@ class TransactionComposer:
             wait_rounds = last_round - first_round + 1
 
         try:
-            return self.atc.execute(client=self.algod, wait_rounds=wait_rounds)  # TODO: reimplement ATC
+            return send_atomic_transaction_composer(
+                self.atc,
+                self.algod,
+                max_rounds_to_wait=wait_rounds,
+                suppress_log=suppress_log,
+                populate_resources=populate_app_call_resources,
+            )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
 
@@ -824,7 +968,7 @@ class TransactionComposer:
         if params.lease:
             txn.lease = params.lease
         if params.rekey_to:
-            txn.rekey_to = algosdk.encoding.decode_address(params.rekey_to)
+            txn.rekey_to = params.rekey_to
         if params.note:
             txn.note = params.note
 
@@ -1140,6 +1284,14 @@ class TransactionComposer:
             case AssetOptInParams():
                 asset_transfer = self._build_asset_transfer(
                     AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params
+                )
+                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+            case AssetOptOutParams():
+                txn_dict = txn.__dict__
+                creator = txn_dict.pop("creator")
+                asset_transfer = self._build_asset_transfer(
+                    AssetTransferParams(**txn_dict, receiver=txn.sender, amount=0, close_asset_to=creator),
+                    suggested_params,
                 )
                 return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
             case OnlineKeyRegistrationParams():

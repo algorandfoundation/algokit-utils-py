@@ -269,6 +269,27 @@ class AppManager:
         return [self.get_box_value_from_abi_type(app_id, box_name, abi_type) for box_name in box_names]
 
     @staticmethod
+    def get_abi_return(
+        confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None
+    ) -> ABIValue | None:
+        """Get the ABI return value from a transaction confirmation."""
+        if not method:
+            return None
+
+        # Use the SDK's built-in ABI result parsing
+        atc = algosdk.atomic_transaction_composer.AtomicTransactionComposer()
+        abi_result = atc.parse_result(
+            method,  # Map of transaction index to ABI method
+            "dummy_txn",  # List of transaction info
+            confirmation,  # type: ignore[arg-type]
+        )
+
+        if not abi_result:
+            return None
+
+        return abi_result.return_value  # type: ignore[no-any-return]
+
+    @staticmethod
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
         state_values: dict[str, AppState] = {}
 

@@ -10,10 +10,8 @@ from algokit_utils.transactions.transaction_composer import (
     AssetConfigParams,
     AssetCreateParams,
     PaymentParams,
+    SendAtomicTransactionComposerResults,
     TransactionComposer,
-)
-from algosdk.atomic_transaction_composer import (
-    AtomicTransactionResponse,
 )
 from algosdk.transaction import (
     ApplicationCreateTxn,
@@ -86,7 +84,7 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: Account) -> 
     )["params"]
 
     assert len(response.tx_ids) == 1
-    assert response.confirmed_round > 0
+    assert response.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
     assert isinstance(built.transactions[0], AssetCreateTxn)
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
@@ -196,9 +194,9 @@ def test_send(algorand: AlgorandClient, funded_account: Account) -> None:
         )
     )
     response = composer.send()
-    assert isinstance(response, AtomicTransactionResponse)
+    assert isinstance(response, SendAtomicTransactionComposerResults)
     assert len(response.tx_ids) == 1
-    assert response.confirmed_round > 0
+    assert response.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
 
 
 def test_arc2_note() -> None:
