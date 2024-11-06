@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from logging import getLogger
-from typing import Any, TypedDict
+from typing import Any, TypedDict, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -49,6 +49,9 @@ class SendSingleTransactionResult:
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
     returns: list[algosdk.atomic_transaction_composer.ABIResult] | None = None
 
+    # Fields from AssetCreateParams
+    asset_id: int | None = None
+
 
 @dataclass
 class SendAppTransactionResult(SendSingleTransactionResult):
@@ -77,6 +80,9 @@ class LogConfig(TypedDict, total=False):
     post_log: Callable[[TxnParams, AtomicTransactionResponse], str]
 
 
+T = TypeVar("T", bound=TxnParams)
+
+
 class AlgorandClientTransactionSender:
     """Orchestrates sending transactions for AlgorandClient."""
 
@@ -97,12 +103,12 @@ class AlgorandClientTransactionSender:
 
     def _send(
         self,
-        c: Callable[[TransactionComposer], Callable[[TxnParams], TransactionComposer]],
-        pre_log: Callable[[TxnParams, Transaction], str] | None = None,
-        post_log: Callable[[TxnParams, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[TxnParams], SendSingleTransactionResult]:
-        def send_transaction(params: TxnParams) -> SendSingleTransactionResult:
-            composer = self._new_group()
+        c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
+        pre_log: Callable[[T, Transaction], str] | None = None,
+        post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
+    ) -> Callable[[T], SendSingleTransactionResult]:
+        def send_transaction(params: T) -> SendSingleTransactionResult:
+            composer = self.new_group()
             c(composer)(params)
 
             if pre_log:
@@ -127,11 +133,11 @@ class AlgorandClientTransactionSender:
 
     def _send_app_call(
         self,
-        c: Callable[[TransactionComposer], Callable[[TxnParams], TransactionComposer]],
-        pre_log: Callable[[TxnParams, Transaction], str] | None = None,
-        post_log: Callable[[TxnParams, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[TxnParams], SendAppTransactionResult]:
-        def send_app_call(params: TxnParams) -> SendAppTransactionResult:
+        c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
+        pre_log: Callable[[T, Transaction], str] | None = None,
+        post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
+    ) -> Callable[[T], SendAppTransactionResult]:
+        def send_app_call(params: T) -> SendAppTransactionResult:
             result = self._send(c, pre_log, post_log)(params)
             return SendAppTransactionResult(
                 **result.__dict__,
@@ -142,11 +148,11 @@ class AlgorandClientTransactionSender:
 
     def _send_app_update_call(
         self,
-        c: Callable[[TransactionComposer], Callable[[TxnParams], TransactionComposer]],
-        pre_log: Callable[[TxnParams, Transaction], str] | None = None,
-        post_log: Callable[[TxnParams, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[TxnParams], SendAppUpdateTransactionResult]:
-        def send_app_update_call(params: TxnParams) -> SendAppUpdateTransactionResult:
+        c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
+        pre_log: Callable[[T, Transaction], str] | None = None,
+        post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
+    ) -> Callable[[T], SendAppUpdateTransactionResult]:
+        def send_app_update_call(params: T) -> SendAppUpdateTransactionResult:
             result = self._send_app_call(c, pre_log, post_log)(params)
 
             if not isinstance(params, AppCreateParams | AppUpdateParams | AppCreateMethodCall | AppUpdateMethodCall):
@@ -173,11 +179,11 @@ class AlgorandClientTransactionSender:
 
     def _send_app_create_call(
         self,
-        c: Callable[[TransactionComposer], Callable[[TxnParams], TransactionComposer]],
-        pre_log: Callable[[TxnParams, Transaction], str] | None = None,
-        post_log: Callable[[TxnParams, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[TxnParams], SendAppCreateTransactionResult]:
-        def send_app_create_call(params: TxnParams) -> SendAppCreateTransactionResult:
+        c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
+        pre_log: Callable[[T, Transaction], str] | None = None,
+        post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
+    ) -> Callable[[T], SendAppCreateTransactionResult]:
+        def send_app_create_call(params: T) -> SendAppCreateTransactionResult:
             result = self._send_app_update_call(c, pre_log, post_log)(params)
             app_id = int(result.confirmation["application-index"])  # type: ignore[call-overload]
 
@@ -194,102 +200,156 @@ class AlgorandClientTransactionSender:
         args_str = str([str(a) if not isinstance(a, bytes | bytearray) else a.hex() for a in args])
         return f"{method.name}({args_str})"
 
-    @property
-    def payment(self) -> Callable[[PaymentParams], AtomicTransactionResponse]:
+    def payment(self, params: PaymentParams) -> SendSingleTransactionResult:
+        """Send a payment transaction to transfer Algo between accounts."""
         return self._send(
             lambda c: c.add_payment,
-            {
-                "pre_log": lambda params, transaction: (
-                    f"Sending {params.amount.micro_algos} µALGO from {params.sender} to {params.receiver} "
-                    f"via transaction {transaction.get_txid()}"
-                )
-            },
+            pre_log=lambda params, transaction: (
+                f"Sending {params.amount} from {params.sender} to {params.receiver} "
+                f"via transaction {transaction.get_txid()}"
+            ),
+        )(params)
+
+    def asset_create(self, params: AssetCreateParams) -> SendSingleTransactionResult:
+        """Create a new Algorand Standard Asset."""
+        result = self._send(
+            lambda c: c.add_asset_create,
+            post_log=lambda params, result: (
+                f"Created asset{f' {params.asset_name}' if hasattr(params, 'asset_name') else ''}"
+                f"{f' ({params.unit_name})' if hasattr(params, 'unit_name') else ''} with "
+                f"{params.total} units and {getattr(params, 'decimals', 0)} decimals created by "
+                f"{params.sender} with ID {result.confirmation['asset-index']} via transaction "  # type: ignore[call-overload]
+                f"{result.tx_ids[-1]}"
+            ),
+        )(params)
+
+        result = SendSingleTransactionResult(
+            **result.__dict__,
         )
+        result.asset_id = int(result.confirmation["asset-index"])  # type: ignore[call-overload]
+        return result
 
-    @property
-    def asset_create(self) -> Callable[[AssetCreateParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_create)
+    def asset_config(self, params: AssetConfigParams) -> SendSingleTransactionResult:
+        """Configure an existing Algorand Standard Asset."""
+        return self._send(
+            lambda c: c.add_asset_config,
+            pre_log=lambda params, transaction: (
+                f"Configuring asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def asset_config(self) -> Callable[[AssetConfigParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_config)
+    def asset_freeze(self, params: AssetFreezeParams) -> SendSingleTransactionResult:
+        """Freeze or unfreeze an Algorand Standard Asset for an account."""
+        return self._send(
+            lambda c: c.add_asset_freeze,
+            pre_log=lambda params, transaction: (
+                f"Freezing asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def asset_freeze(self) -> Callable[[AssetFreezeParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_freeze)
+    def asset_destroy(self, params: AssetDestroyParams) -> SendSingleTransactionResult:
+        """Destroys an Algorand Standard Asset."""
+        return self._send(
+            lambda c: c.add_asset_destroy,
+            pre_log=lambda params, transaction: (
+                f"Destroying asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def asset_destroy(self) -> Callable[[AssetDestroyParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_destroy)
+    def asset_transfer(self, params: AssetTransferParams) -> SendSingleTransactionResult:
+        """Transfer an Algorand Standard Asset."""
+        return self._send(
+            lambda c: c.add_asset_transfer,
+            pre_log=lambda params, transaction: (
+                f"Transferring {params.amount} units of asset with ID {params.asset_id} from "
+                f"{params.sender} to {params.receiver} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def asset_transfer(self) -> Callable[[AssetTransferParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_transfer)
+    def asset_opt_in(self, params: AssetOptInParams) -> SendSingleTransactionResult:
+        """Opt an account into an Algorand Standard Asset."""
+        return self._send(
+            lambda c: c.add_asset_opt_in,
+            pre_log=lambda params, transaction: (
+                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction "
+                f"{transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def asset_opt_in(self) -> Callable[[AssetOptInParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_opt_in)
+    def asset_opt_out(
+        self,
+        *,
+        params: AssetOptOutParams,
+        ensure_zero_balance: bool = True,
+    ) -> SendSingleTransactionResult:
+        """Opt an account out of an Algorand Standard Asset."""
+        if ensure_zero_balance:
+            try:
+                account_asset_info = self._asset_manager.get_account_information(params.sender, params.asset_id)
+                balance = account_asset_info.balance
+                if balance != 0:
+                    raise ValueError(
+                        f"Account {params.sender} does not have a zero balance for Asset "
+                        f"{params.asset_id}; can't opt-out."
+                    )
+            except Exception as e:
+                raise ValueError(
+                    f"Account {params.sender} is not opted-in to Asset {params.asset_id}; " "can't opt-out."
+                ) from e
 
-    @property
-    def asset_opt_out(self) -> Callable[[AssetOptOutParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_asset_opt_out)
+        if not hasattr(params, "creator"):
+            asset_info = self._asset_manager.get_by_id(params.asset_id)
+            params = AssetOptOutParams(
+                **params.__dict__,
+                creator=asset_info.creator,
+            )
 
-    @property
-    def app_create(self) -> Callable[[AppCreateParams], SendAppCreateTransactionResult]:
-        return self._send_app_create_call(lambda c: c.add_app_create)  # type: ignore[return-value]
+        creator = params.__dict__.get("creator")
+        return self._send(
+            lambda c: c.add_asset_opt_out,
+            pre_log=lambda params, transaction: (
+                f"Opting {params.sender} out of asset with ID {params.asset_id} to creator "
+                f"{creator} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
 
-    @property
-    def app_update(self) -> Callable[[AppUpdateParams], SendAppUpdateTransactionResult]:
-        return self._send_app_update_call(lambda c: c.add_app_update)
+    def app_create(self, params: AppCreateParams) -> SendAppCreateTransactionResult:
+        """Create a new application."""
+        return self._send_app_create_call(lambda c: c.add_app_create)(params)
 
-    @property
-    def app_delete(self) -> Callable[[AppDeleteParams], SendAppTransactionResult]:
-        return self._send_app_call(lambda c: c.add_app_delete)
+    def app_update(self, params: AppUpdateParams) -> SendAppUpdateTransactionResult:
+        """Update an application."""
+        return self._send_app_update_call(lambda c: c.add_app_update)(params)
 
-    @property
-    def app_call(self) -> Callable[[AppCallParams], SendAppTransactionResult]:
-        return self._send_app_call(lambda c: c.add_app_call)
+    def app_delete(self, params: AppDeleteParams) -> SendAppTransactionResult:
+        """Delete an application."""
+        return self._send_app_call(lambda c: c.add_app_delete)(params)
 
-    @property
-    def app_create_method_call(self) -> Callable[[AppCreateMethodCall], SendAppCreateTransactionResult]:
-        return self._send_app_create_call(lambda c: c.add_app_create_method_call)
+    def app_call(self, params: AppCallParams) -> SendAppTransactionResult:
+        """Call an application."""
+        return self._send_app_call(lambda c: c.add_app_call)(params)
 
-    @property
-    def app_update_method_call(self) -> Callable[[AppUpdateMethodCall], SendAppUpdateTransactionResult]:
-        return self._send_app_update_call(
-            lambda c: c.add_app_update_method_call,
-            {
-                "post_log": lambda params, result: (
-                    f"App {params.app_id} updated with {self._get_method_call_for_log(params.method, params.args or [])} "
-                    f"by {params.sender} via transaction {result.tx_ids[-1]}"
-                )
-            },
-        )
+    def app_create_method_call(self, params: AppCreateMethodCall) -> SendAppCreateTransactionResult:
+        """Call an application's create method."""
+        return self._send_app_create_call(lambda c: c.add_app_create_method_call)(params)
 
-    @property
-    def app_delete_method_call(self) -> Callable[[AppDeleteMethodCall], SendAppTransactionResult]:
-        return self._send_app_call(
-            lambda c: c.add_app_delete_method_call,
-            {
-                "post_log": lambda params, result: (
-                    f"App {params.app_id} deleted with {self._get_method_call_for_log(params.method, params.args or [])} "
-                    f"by {params.sender} via transaction {result.tx_ids[-1]}"
-                )
-            },
-        )
+    def app_update_method_call(self, params: AppUpdateMethodCall) -> SendAppUpdateTransactionResult:
+        """Call an application's update method."""
+        return self._send_app_update_call(lambda c: c.add_app_update_method_call)(params)
 
-    @property
-    def app_call_method_call(self) -> Callable[[AppCallMethodCall], SendAppTransactionResult]:
-        return self._send_app_call(
-            lambda c: c.add_app_call_method_call,
-            {
-                "post_log": lambda params, result: (
-                    f"App {params.app_id} called with {self._get_method_call_for_log(params.method, params.args or [])} "
-                    f"by {params.sender} via transaction {result.tx_ids[-1]}"
-                )
-            },
-        )
+    def app_delete_method_call(self, params: AppDeleteMethodCall) -> SendAppTransactionResult:
+        """Call an application's delete method."""
+        return self._send_app_call(lambda c: c.add_app_delete_method_call)(params)
 
-    @property
-    def online_key_registration(self) -> Callable[[OnlineKeyRegistrationParams], AtomicTransactionResponse]:
-        return self._send(lambda c: c.add_online_key_registration)
+    def app_call_method_call(self, params: AppCallMethodCall) -> SendAppTransactionResult:
+        """Call an application's call method."""
+        return self._send_app_call(lambda c: c.add_app_call_method_call)(params)
+
+    def online_key_registration(self, params: OnlineKeyRegistrationParams) -> SendSingleTransactionResult:
+        """Register an online key."""
+        return self._send(
+            lambda c: c.add_online_key_registration,
+            pre_log=lambda params, transaction: (
+                f"Registering online key for {params.sender} via transaction {transaction.get_txid()}"
+            ),
+        )(params)

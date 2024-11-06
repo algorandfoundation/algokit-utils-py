@@ -67,10 +67,11 @@ def test_create_payment_transaction(algorand: AlgorandClient, funded_account: Ac
 
 
 def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+    expected_total = 1000
     txn = algorand.create_transaction.asset_create(
         AssetCreateParams(
             sender=funded_account.address,
-            total=1000,
+            total=expected_total,
             decimals=0,
             default_frozen=False,
             unit_name="TEST",
@@ -81,7 +82,7 @@ def test_create_asset_create_transaction(algorand: AlgorandClient, funded_accoun
 
     assert isinstance(txn, AssetCreateTxn)
     assert txn.sender == funded_account.address
-    assert txn.total == 1000
+    assert txn.total == expected_total
     assert txn.decimals == 0
     assert txn.default_frozen is False
     assert txn.unit_name == "TEST"
@@ -141,11 +142,12 @@ def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_accou
 def test_create_asset_transfer_transaction(
     algorand: AlgorandClient, funded_account: Account, funded_secondary_account: Account
 ) -> None:
+    expected_amount = 100
     txn = algorand.create_transaction.asset_transfer(
         AssetTransferParams(
             sender=funded_account.address,
             asset_id=1,
-            amount=100,
+            amount=expected_amount,
             receiver=funded_secondary_account.address,
         )
     )
@@ -153,7 +155,7 @@ def test_create_asset_transfer_transaction(
     assert isinstance(txn, AssetTransferTxn)
     assert txn.sender == funded_account.address
     assert txn.index == 1
-    assert txn.amount == 100
+    assert txn.amount == expected_amount
     assert txn.receiver == funded_secondary_account.address
 
 
@@ -220,7 +222,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
             schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
         )
     )
-    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_id)["application-index"]
+    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_id)["application-index"]  # type: ignore[call-overload]
 
     # Then test creating a method call transaction
     result = algorand.create_transaction.app_call_method_call(
@@ -239,23 +241,27 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
 
 
 def test_create_online_key_registration_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+    sp = algorand.get_suggested_params()
+    expected_dilution = 100
+    expected_first = sp.first
+    expected_last = sp.first + int(10e6)
+
     txn = algorand.create_transaction.online_key_registration(
         OnlineKeyRegistrationParams(
             sender=funded_account.address,
-            vote_key="vote_key",
-            selection_key="selection_key",
-            state_proof_key=b"state_proof_key",
-            vote_first=1,
-            vote_last=10,
-            vote_key_dilution=100,
+            vote_key="G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=",
+            selection_key="LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=",
+            state_proof_key=b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
+            vote_first=expected_first,
+            vote_last=expected_last,
+            vote_key_dilution=expected_dilution,
         )
     )
 
     assert isinstance(txn, KeyregTxn)
     assert txn.sender == funded_account.address
-    assert txn.votekey == "vote_key"
-    assert txn.selkey == "selection_key"
-    assert txn.sprfkey == b"state_proof_key"
-    assert txn.votefst == 1
-    assert txn.votelst == 10
-    assert txn.votekd == 100
+    assert txn.selkey == "LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk="
+    assert txn.sprfkey == b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=="
+    assert txn.votefst == expected_first
+    assert txn.votelst == expected_last
+    assert txn.votekd == expected_dilution

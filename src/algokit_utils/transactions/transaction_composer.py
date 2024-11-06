@@ -593,7 +593,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
     max_rounds_to_wait: int | None = 5,
     skip_waiting: bool = False,
     suppress_log: bool = False,
-    populate_resources: bool | None = None,
+    populate_resources: bool | None = None,  # TODO: implement/clarify  # noqa: ARG001
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group
 
@@ -696,9 +696,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
             error.traces = traces  # type: ignore[attr-defined]
             raise error from e
 
-        logger.error(
-            "Received error executing Atomic Transaction Composer, " "for more information enable the debug flag"
-        )
+        logger.error("Received error executing Atomic Transaction Composer, for more information enable the debug flag")
         raise Exception(f"Transaction failed: {e}") from e
 
 
@@ -1286,6 +1284,14 @@ class TransactionComposer:
             case AssetOptInParams():
                 asset_transfer = self._build_asset_transfer(
                     AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params
+                )
+                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+            case AssetOptOutParams():
+                txn_dict = txn.__dict__
+                creator = txn_dict.pop("creator")
+                asset_transfer = self._build_asset_transfer(
+                    AssetTransferParams(**txn_dict, receiver=txn.sender, amount=0, close_asset_to=creator),
+                    suggested_params,
                 )
                 return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
             case OnlineKeyRegistrationParams():
