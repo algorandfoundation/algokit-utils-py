@@ -1,12 +1,12 @@
 import pytest
+
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
-
 from tests.conftest import check_output_stability
 
 
-@pytest.fixture()
+@pytest.fixture
 def algorand(funded_account: Account) -> AlgorandClient:
     client = AlgorandClient.default_local_net()
     client.set_signer(sender=funded_account.address, signer=funded_account.signer)

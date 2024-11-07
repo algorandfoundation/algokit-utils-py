@@ -1,5 +1,7 @@
 import algosdk
 import pytest
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
+
 from algokit_utils import Account, get_account
 from algokit_utils.assets.asset_manager import (
     AccountAssetInformation,
@@ -12,22 +14,20 @@ from algokit_utils.transactions.transaction_composer import (
     AssetCreateParams,
     PaymentParams,
 )
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
-
 from tests.conftest import get_unique_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def sender(funded_account: Account) -> Account:
     return funded_account
 
 
-@pytest.fixture()
+@pytest.fixture
 def receiver(algod_client: algosdk.v2client.algod.AlgodClient) -> Account:
     return get_account(algod_client, get_unique_name())
 
 
-@pytest.fixture()
+@pytest.fixture
 def algorand(funded_account: Account) -> AlgorandClient:
     client = AlgorandClient.default_local_net()
     client.set_signer(sender=funded_account.address, signer=funded_account.signer)

@@ -1,6 +1,13 @@
 from typing import TYPE_CHECKING
 
 import pytest
+from algosdk.transaction import (
+    ApplicationCreateTxn,
+    AssetConfigTxn,
+    AssetCreateTxn,
+    PaymentTxn,
+)
+
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
@@ -13,27 +20,20 @@ from algokit_utils.transactions.transaction_composer import (
     SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
-from algosdk.transaction import (
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    PaymentTxn,
-)
-
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     from algokit_utils.transactions.models import Arc2TransactionNote
 
 
-@pytest.fixture()
+@pytest.fixture
 def algorand(funded_account: Account) -> AlgorandClient:
     client = AlgorandClient.default_local_net()
     client.set_signer(sender=funded_account.address, signer=funded_account.signer)
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient) -> Account:
     secondary_name = get_unique_name()
     return get_account(algorand.client.algod, secondary_name)

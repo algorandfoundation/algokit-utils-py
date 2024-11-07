@@ -68,7 +68,7 @@ class UpdatableConfig:
         finally:
             self._debug = original_debug
 
-    def configure(  # noqa: PLR0913
+    def configure(
         self,
         *,
         debug: bool,

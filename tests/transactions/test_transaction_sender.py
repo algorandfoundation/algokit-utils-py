@@ -2,6 +2,16 @@ from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
+from algosdk.transaction import (
+    ApplicationCreateTxn,
+    AssetConfigTxn,
+    AssetCreateTxn,
+    AssetDestroyTxn,
+    AssetFreezeTxn,
+    AssetTransferTxn,
+    PaymentTxn,
+)
+
 from algokit_utils import (
     Account,
     get_account,
@@ -23,33 +33,23 @@ from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
-from algosdk.transaction import (
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    PaymentTxn,
-)
-
 from tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     import algosdk
 
 
-@pytest.fixture()
+@pytest.fixture
 def sender(funded_account: Account) -> Account:
     return funded_account
 
 
-@pytest.fixture()
+@pytest.fixture
 def receiver(algod_client: "algosdk.v2client.algod.AlgodClient") -> Account:
     return get_account(algod_client, get_unique_name())
 
 
-@pytest.fixture()
+@pytest.fixture
 def transaction_sender(
     algod_client: "algosdk.v2client.algod.AlgodClient", sender: Account
 ) -> AlgorandClientTransactionSender:

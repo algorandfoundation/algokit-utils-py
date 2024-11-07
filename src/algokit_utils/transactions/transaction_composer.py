@@ -720,7 +720,7 @@ class TransactionComposer:
 
     NULL_SIGNER: TransactionSigner = algosdk.atomic_transaction_composer.EmptySigner()
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         algod: AlgodClient,
         get_signer: Callable[[str], TransactionSigner],

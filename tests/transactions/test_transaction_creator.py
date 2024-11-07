@@ -2,6 +2,18 @@ from pathlib import Path
 
 import algosdk
 import pytest
+from algosdk.transaction import (
+    ApplicationCallTxn,
+    ApplicationCreateTxn,
+    AssetConfigTxn,
+    AssetCreateTxn,
+    AssetDestroyTxn,
+    AssetFreezeTxn,
+    AssetTransferTxn,
+    KeyregTxn,
+    PaymentTxn,
+)
+
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
@@ -19,29 +31,17 @@ from algokit_utils.transactions.transaction_composer import (
     OnlineKeyRegistrationParams,
     PaymentParams,
 )
-from algosdk.transaction import (
-    ApplicationCallTxn,
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    KeyregTxn,
-    PaymentTxn,
-)
-
 from legacy_v2_tests.conftest import get_unique_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def algorand(funded_account: Account) -> AlgorandClient:
     client = AlgorandClient.default_local_net()
     client.set_signer(sender=funded_account.address, signer=funded_account.signer)
     return client
 
 
-@pytest.fixture()
+@pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient, funded_account: Account) -> Account:
     secondary_name = get_unique_name()
     account = get_account(algorand.client.algod, secondary_name)

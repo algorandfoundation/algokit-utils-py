@@ -239,7 +239,7 @@ class ApplicationClient:
         )
         return new_client
 
-    def _prepare(  # noqa: PLR0913
+    def _prepare(
         self,
         target: "ApplicationClient",
         *,
