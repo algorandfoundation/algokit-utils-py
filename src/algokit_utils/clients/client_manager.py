@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import algosdk
 from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
@@ -22,6 +24,19 @@ class AlgoSdkClients:
         self.algod = algod
         self.indexer = indexer
         self.kmd = kmd
+
+
+@dataclass(kw_only=True)
+class NetworkDetail:
+    is_test_net: bool
+    is_main_net: bool
+    is_local_net: bool
+    genesis_id: str
+    genesis_hash: str
+
+
+def genesis_id_is_localnet(genesis_id: str) -> bool:
+    return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
 class ClientManager:
@@ -53,11 +68,25 @@ class ClientManager:
         return self._indexer
 
     @property
+    def indexer_if_present(self) -> IndexerClient | None:
+        return self._indexer
+
+    @property
     def kmd(self) -> KMDClient:
         """Returns an algosdk KMD API client or raises an error if it's not been provided."""
         if not self._kmd:
             raise ValueError("Attempt to use Kmd client in AlgoKit instance with no Kmd configured")
         return self._kmd
+
+    def network(self) -> NetworkDetail:
+        sp = self.algod.suggested_params()  # TODO: cache it
+        return NetworkDetail(
+            is_test_net=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
+            is_main_net=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
+            is_local_net=ClientManager.genesis_id_is_local_net(str(sp.gen)),
+            genesis_id=str(sp.gen),
+            genesis_hash=sp.gh,
+        )
 
     def get_testnet_dispenser(
         self, auth_token: str | None = None, request_timeout: int | None = None
@@ -66,3 +95,7 @@ class ClientManager:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
 
         return TestNetDispenserApiClient(auth_token=auth_token)
+
+    @staticmethod
+    def genesis_id_is_local_net(genesis_id: str) -> bool:
+        return genesis_id_is_localnet(genesis_id)

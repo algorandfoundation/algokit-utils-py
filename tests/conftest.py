@@ -157,7 +157,7 @@ def funded_account(algod_client: "AlgodClient") -> Account:
 @pytest.fixture(scope="session")
 def app_spec() -> ApplicationSpecification:
     app_spec = app_client_test.app.build()
-    path = Path(__file__).parent / "app_client_test.json"
+    path = Path(__file__).parent.parent / "legacy_hello_world" / "app_client_test.json"
     path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
 

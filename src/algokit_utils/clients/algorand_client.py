@@ -163,6 +163,10 @@ class AlgorandClient:
         return self._asset_manager
 
     @property
+    def app(self) -> AppManager:
+        return self._app_manager
+
+    @property
     def app_deployer(self) -> AppManager:
         """Get or create applications."""
         return self._app_manager

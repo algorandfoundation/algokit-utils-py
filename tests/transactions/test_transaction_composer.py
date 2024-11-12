@@ -173,8 +173,8 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
     )
-    approval_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "approval.teal").read_text()
-    clear_state_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "clear.teal").read_text()
+    approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
+    clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
     composer.add_app_create(
         AppCreateParams(
             sender=funded_account.address,

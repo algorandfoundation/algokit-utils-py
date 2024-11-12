@@ -210,8 +210,8 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
 
 
 def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
-    approval_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "approval.teal").read_text()
-    clear_state_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "clear.teal").read_text()
+    approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
+    clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
 
     # First create the app
     create_result = algorand.send.app_create(
