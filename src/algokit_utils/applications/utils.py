@@ -30,9 +30,97 @@ from algokit_utils.models.application import (
 if TYPE_CHECKING:
     import algosdk
 
-from typing import Any
+from typing import Any, TypeVar
 
+import algosdk
 from algosdk.abi import ABIType, TupleType
+
+from algokit_utils.models.abi import ABIStruct
+
+T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)
+
+
+def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> AlgorandABIMethod:
+    if "(" not in method_name_or_signature:
+        # Filter by method name
+        methods = [m for m in app_spec.methods if m.name == method_name_or_signature]
+        if not methods:
+            raise ValueError(f"Unable to find method {method_name_or_signature} in {app_spec.name} app.")
+        if len(methods) > 1:
+            signatures = [AlgorandABIMethod.undictify(m.__dict__).get_signature() for m in app_spec.methods]
+            raise ValueError(
+                f"Received a call to method {method_name_or_signature} in contract {app_spec.name}, "
+                f"but this resolved to multiple methods; please pass in an ABI signature instead: "
+                f"{', '.join(signatures)}"
+            )
+        method = methods[0]
+    else:
+        # Find by signature
+        method = None
+        for m in app_spec.methods:
+            abi_method = AlgorandABIMethod.undictify(m.__dict__)
+            if abi_method.get_signature() == method_name_or_signature:
+                method = m
+                break
+        if method is None:
+            raise ValueError(f"Unable to find method {method_name_or_signature} in {app_spec.name} app.")
+
+    return AlgorandABIMethod.undictify(method.__dict__)
+
+
+def get_arc56_return_value(
+    return_value: dict[str, Any] | None,
+    method: Method | AlgorandABIMethod,
+    structs: dict[str, list[StructField]],
+) -> Any:  # noqa: ANN401
+    """Checks for decode errors on the return value and maps it to the specified type.
+
+    Args:
+        return_value: The smart contract response
+        method: The method that was called
+        structs: The struct fields from the app spec
+
+    Returns:
+        The smart contract response with an updated return value
+
+    Raises:
+        ValueError: If there is a decode error
+    """
+
+    # Get method returns info
+    if isinstance(method, AlgorandABIMethod):
+        type_str = method.returns.type
+        struct = None  # AlgorandABIMethod doesn't have struct info
+    else:
+        type_str = method.returns.type_
+        struct = method.returns.struct
+
+    # Handle void/undefined returns
+    if type_str == "void" or return_value is None:
+        return None
+
+    # Handle decode errors
+    if return_value.get("decode_error"):
+        raise ValueError(return_value["decode_error"])
+
+    # Get raw return value
+    raw_value = return_value.get("raw_return_value")
+
+    # Handle AVM types
+    if type_str == "AVMBytes":
+        return raw_value
+    if type_str == "AVMString" and raw_value:
+        return raw_value.decode("utf-8")
+    if type_str == "AVMUint64" and raw_value:
+        return algosdk.abi.ABIType.from_string("uint64").decode(raw_value)
+
+    # Handle structs
+    if struct and struct in structs:
+        return_tuple = return_value.get("return_value")
+        return get_abi_struct_from_abi_tuple(return_tuple, structs[struct], structs)
+
+    # Return as-is
+    return return_value.get("return_value")
 
 
 def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: ANN401, PLR0911

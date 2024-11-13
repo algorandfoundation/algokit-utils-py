@@ -5,11 +5,28 @@ import json
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 
+import algosdk
 from algosdk.logic import get_application_address
+from algosdk.transaction import Transaction
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.utils import get_abi_decoded_value, get_abi_encoded_value
+from algokit_utils.applications.app_manager import AppManager, CompiledTeal, TealTemplateParams
+from algokit_utils.applications.utils import (
+    get_abi_decoded_value,
+    get_abi_encoded_value,
+    get_abi_tuple_from_abi_struct,
+    get_arc56_method,
+)
+from algokit_utils.models.abi import ABIStruct
+from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.application import Arc56Contract, StorageKey, StorageMap
+from algokit_utils.transactions.transaction_composer import (
+    AppMethodCallTransactionArgument,
+    AppUpdateMethodCall,
+    PaymentParams,
+    SenderParam,
+)
+from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -127,12 +144,21 @@ class CloneAppClientParams(_CommonAppClientParams):
 
 
 @dataclass(kw_only=True)
-class ResolveAppClientByNetwork(_CommonAppClientParams):
+class AppClientCompilationResult:
+    approval_program: bytes
+    clear_state_program: bytes
+    compiled_approval: CompiledTeal | None = None
+    compiled_clear: CompiledTeal | None = None
+
+
+@dataclass(kw_only=True)
+class CompileAppClientParams:
     app_spec: Arc56Contract | ApplicationSpecification | str
     algorand: AlgorandClientProtocol
+    compilation: AppClientCompilationParams | None = None
 
 
-class AppClientStateMethodsProtocol(Protocol):
+class _AppClientStateMethodsProtocol(Protocol):
     def get_all(self) -> dict[str, Any]: ...
 
     def get_value(self, name: str, app_state: dict[str, AppState] | None = None) -> ABIValue | None: ...
@@ -142,7 +168,7 @@ class AppClientStateMethodsProtocol(Protocol):
     def get_map(self, map_name: str) -> dict[str, ABIValue]: ...
 
 
-class _AppClientStateMethods(AppClientStateMethodsProtocol):
+class _AppClientStateMethods(_AppClientStateMethodsProtocol):
     def __init__(
         self,
         *,
@@ -169,14 +195,14 @@ class _AppClientStateMethods(AppClientStateMethodsProtocol):
         return self._get_map(map_name)
 
 
-class AppClientStateAccessor:
+class _AppClientStateAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand  # noqa: SLF001
         self._app_id = client._app_id  # noqa: SLF001
         self._app_spec = client._app_spec  # noqa: SLF001
 
-    def local_state(self, address: str) -> AppClientStateMethodsProtocol:
+    def local_state(self, address: str) -> _AppClientStateMethodsProtocol:
         """Methods to access local state for the current app for a given address"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_local_state(self._app_id, address),
@@ -185,7 +211,7 @@ class AppClientStateAccessor:
         )
 
     @property
-    def global_state(self) -> AppClientStateMethodsProtocol:
+    def global_state(self) -> _AppClientStateMethodsProtocol:
         """Methods to access global state for the current app"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_global_state(self._app_id),
@@ -207,7 +233,7 @@ class AppClientStateAccessor:
         state_getter: Callable[[], dict[str, AppState]],
         key_getter: Callable[[], dict[str, StorageKey]],
         map_getter: Callable[[], dict[str, StorageMap]],
-    ) -> AppClientStateMethodsProtocol:
+    ) -> _AppClientStateMethodsProtocol:
         def get_all() -> dict[str, Any]:
             state = state_getter()
             keys = key_getter()
@@ -280,6 +306,208 @@ class AppClientStateAccessor:
         return self._algorand.app.get_global_state(self._app_id)
 
 
+@dataclass(frozen=True)
+class CommonTxnParams:
+    """
+    Common transaction parameters.
+
+    :param signer: The function used to sign transactions.
+    :param rekey_to: Change the signing key of the sender to the given address.
+    :param note: Note to attach to the transaction.
+    :param lease: Prevent multiple transactions with the same lease being included within the validity window.
+    :param static_fee: The transaction fee. In most cases you want to use `extra_fee` unless setting the fee to 0 to be
+    covered by another transaction.
+    :param extra_fee: The fee to pay IN ADDITION to the suggested fee. Useful for covering inner transaction fees.
+    :param max_fee: Throw an error if the fee for the transaction is more than this amount.
+    :param validity_window: How many rounds the transaction should be valid for.
+    :param first_valid_round: Set the first round this transaction is valid. If left undefined, the value from algod
+    will be used. Only set this when you intentionally want this to be some time in the future.
+    :param last_valid_round: The last round this transaction is valid. It is recommended to use validity_window instead.
+    """
+
+    sender: str
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+
+
+@dataclass(frozen=True)
+class AppCallParams(CommonTxnParams, SenderParam):
+    """
+    Application call parameters.
+
+    :param on_complete: The OnComplete action.
+    :param app_id: ID of the application.
+    :param approval_program: The program to execute for all OnCompletes other than ClearState.
+    :param clear_state_program: The program to execute for ClearState OnComplete.
+    :param schema: The state schema for the app. This is immutable.
+    :param args: Application arguments.
+    :param account_references: Account references.
+    :param app_references: App references.
+    :param asset_references: Asset references.
+    :param extra_pages: Number of extra pages required for the programs.
+    :param box_references: Box references.
+    """
+
+    on_complete: OnComplete | None = None
+    app_id: int | None = None
+    approval_program: str | bytes | None = None
+    clear_state_program: str | bytes | None = None
+    schema: dict[str, int] | None = None
+    args: list[bytes] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    extra_pages: int | None = None
+    box_references: list[BoxReference] | None = None
+
+
+@dataclass(kw_only=True)
+class FundAppAccountParams:
+    sender: str | None = None
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+    amount: AlgoAmount
+    close_remainder_to: str | None = None
+    max_rounds_to_wait: int | None = None
+    suppress_log: bool | None = None
+    populate_app_call_resources: bool | None = None
+
+
+@dataclass(kw_only=True)
+class AppClientMethodCallParams:
+    method: str
+    sender: str | None = None
+    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None]
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+
+
+@dataclass(kw_only=True)
+class AppClientCompilationParams:
+    deploy_time_params: TealTemplateParams | None = None
+    updatable: bool | None = None
+    deletable: bool | None = None
+
+
+@dataclass(kw_only=True)
+class ResolveAppClientByNetwork(_CommonAppClientParams):
+    app_spec: Arc56Contract | ApplicationSpecification | str
+    algorand: AlgorandClientProtocol
+
+
+class _AppClientMethodCallParamsAccessor:
+    def __init__(self, client: AppClient) -> None:
+        self._client = client
+        self._algorand = client._algorand  # noqa: SLF001
+        self._app_id = client._app_id  # noqa: SLF001
+        self._app_spec = client._app_spec  # noqa: SLF001
+
+    def fund_app_account(self, params: FundAppAccountParams) -> PaymentParams:
+        return PaymentParams(
+            sender=self._client._get_sender(params.sender),
+            signer=self._client._get_signer(params.sender, params.signer),
+            receiver=self._client.app_address,
+            amount=params.amount,
+            rekey_to=params.rekey_to,
+            note=params.note,
+            lease=params.lease,
+            static_fee=params.static_fee,
+            extra_fee=params.extra_fee,
+            max_fee=params.max_fee,
+            validity_window=params.validity_window,
+            first_valid_round=params.first_valid_round,
+            last_valid_round=params.last_valid_round,
+            close_remainder_to=params.close_remainder_to,
+        )
+
+    def update(self, params: AppClientMethodCallParams | AppClientCompilationParams) -> AppUpdateMethodCall:
+        abi_params = get_abi_params
+        return AppUpdateMethodCall(
+            sender=self._client._get_sender(params.sender),
+            app_id=self._app_id,
+            approval_program=params.approval_program,
+            clear_state_program=params.clear_state_program,
+        )
+
+
+class _AppClientTransactionCreator:
+    def __init__(self, client: AppClient) -> None:
+        self._client = client
+        self._algorand = client._algorand  # noqa: SLF001
+        self._app_id = client._app_id  # noqa: SLF001
+        self._app_spec = client._app_spec  # noqa: SLF001
+
+    def fund_app_account(self, params: FundAppAccountParams) -> Transaction:
+        return self._algorand.create_transaction.payment(self._client.params.fund_app_account(params))
+
+    def update(self, params: AppClientMethodCallParams & AppClientCompilationParams) -> Transaction:
+        return self._algorand.create_transaction.app_update_method_call()
+
+
+#  update: async (params: AppClientMethodCallParams & AppClientCompilationParams) => {
+#         return this._algorand.createTransaction.appUpdateMethodCall(await this.params.update(params))
+#       },
+#       /**
+#        * Return transactions for an opt-in ABI call
+#        */
+#       optIn: async (params: AppClientMethodCallParams) => {
+#         return this._algorand.createTransaction.appCallMethodCall(await this.params.optIn(params))
+#       },
+#       /**
+#        * Return transactions for a delete ABI call
+#        */
+#       delete: async (params: AppClientMethodCallParams) => {
+#         return this._algorand.createTransaction.appDeleteMethodCall(await this.params.delete(params))
+#       },
+#       /**
+#        * Return transactions for a close out ABI call
+#        */
+#       closeOut: async (params: AppClientMethodCallParams) => {
+#         return this._algorand.createTransaction.appCallMethodCall(await this.params.closeOut(params))
+#       },
+#       /**
+#        * Return transactions for an ABI call (defaults to no-op)
+#        */
+#       call: async (params: AppClientMethodCallParams & CallOnComplete) => {
+#         return this._algorand.createTransaction.appCallMethodCall(await this.params.call(params))
+#       },
+
+
+class _AppClientSendAccessor:
+    def __init__(self, client: AppClient) -> None:
+        self._client = client
+        self._algorand = client._algorand  # noqa: SLF001
+        self._app_id = client._app_id  # noqa: SLF001
+        self._app_spec = client._app_spec  # noqa: SLF001
+
+    def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
+        return self._algorand.send.payment(self._client.params.fund_app_account(params))
+
+
 class AppClient:
     def __init__(self, params: AppClientParams) -> None:
         self._app_id = params.app_id
@@ -291,7 +519,9 @@ class AppClient:
         self._default_signer = params.default_signer
         self._approval_source_map = params.approval_source_map
         self._clear_source_map = params.clear_source_map
-        self._state_accessor = AppClientStateAccessor(self)
+        self._state_accessor = _AppClientStateAccessor(self)
+        self._params_accessor = _AppClientParamsAccessor(self)
+        self._send_accessor = _AppClientSendAccessor(self)
 
     @property
     def app_id(self) -> int:
@@ -310,8 +540,16 @@ class AppClient:
         return self._app_spec
 
     @property
-    def state(self) -> AppClientStateAccessor:
+    def state(self) -> _AppClientStateAccessor:
         return self._state_accessor
+
+    @property
+    def params(self) -> _AppClientParamsAccessor:
+        return self._params_accessor
+
+    @property
+    def send(self) -> _AppClientSendAccessor:
+        return self._send_accessor
 
     @staticmethod
     def normalise_app_spec(app_spec: Arc56Contract | ApplicationSpecification | str) -> Arc56Contract:
@@ -362,23 +600,58 @@ class AppClient:
 
         return AppClient(AppClientParams(**input_params))  # type:ignore[arg-type, call-arg]
 
-    #       public static async fromNetwork(params: ResolveAppClientByNetwork): Promise<AppClient> {
-    #     const network = await params.algorand.client.network()
-    #     const appSpec = AppClient.normaliseAppSpec(params.appSpec)
-    #     const networkNames = [network.genesisHash]
-    #     if (network.isLocalNet) networkNames.push('localnet')
-    #     if (network.isTestNet) networkNames.push('testnet')
-    #     if (network.isMainNet) networkNames.push('mainnet')
-    #     const availableAppSpecNetworks = Object.keys(appSpec.networks ?? {})
-    #     const networkIndex = availableAppSpecNetworks.findIndex((n) => networkNames.includes(n))
+    @staticmethod
+    def compile(
+        app_spec: Arc56Contract, app_manager: AppManager, compilation: AppClientCompilationParams | None = None
+    ) -> AppClientCompilationResult:
+        if not app_spec.source:
+            if not app_spec.byte_code or not app_spec.byte_code.get("approval") or not app_spec.byte_code.get("clear"):
+                raise ValueError(f"Attempt to compile app {app_spec.name} without source or byte_code")
 
-    #     if (networkIndex === -1) {
-    #       throw new Error(`No app ID found for network ${JSON.stringify(networkNames)} in the app spec`)
-    #     }
+            return AppClientCompilationResult(
+                approval_program=base64.b64decode(app_spec.byte_code.get("approval", "")),
+                clear_state_program=base64.b64decode(app_spec.byte_code.get("clear", "")),
+            )
 
-    #     const appId = BigInt(appSpec.networks![networkIndex].appID)
-    #     return new AppClient({ ...params, appId, appSpec })
-    #   }
+        approval_template: str = base64.b64decode(app_spec.source.get("approval", "")).decode("utf-8")  # type: ignore[assignment]
+        deployment_metadata = (
+            {"updatable": compilation.updatable or False, "deletable": compilation.deletable or False}
+            if compilation
+            else None
+        )
+        compiled_approval = app_manager.compile_teal_template(
+            approval_template,
+            template_params=compilation.deploy_time_params if compilation else None,
+            deployment_metadata=deployment_metadata,
+        )
+
+        clear_template: str = base64.b64decode(app_spec.source.get("clear", "")).decode("utf-8")  # type: ignore[assignment]
+        compiled_clear = app_manager.compile_teal_template(
+            clear_template,
+            template_params=compilation.deploy_time_params if compilation else None,
+        )
+
+        # TODO: Add invocation of persisting sourcemaps
+
+        return AppClientCompilationResult(
+            approval_program=compiled_approval.compiled_base64_to_bytes,
+            compiled_approval=compiled_approval,
+            clear_state_program=compiled_clear.compiled_base64_to_bytes,
+            compiled_clear=compiled_clear,
+        )
+
+    # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
+    def compile_and_persist_sourcemaps(
+        self, compilation: AppClientCompilationParams | None = None
+    ) -> AppClientCompilationResult:
+        result = AppClient.compile(self._app_spec, self._algorand.app, compilation)
+
+        if result.compiled_approval:
+            self._approval_source_map = result.compiled_approval.source_map
+        if result.compiled_clear:
+            self._clear_source_map = result.compiled_clear.source_map
+
+        return result
 
     def clone(self, params: CloneAppClientParams) -> AppClient:
         default_params = {
@@ -398,20 +671,6 @@ class AppClient:
 
         return AppClient(AppClientParams(**default_params))  # type: ignore[arg-type]
 
-    # public clone(params: CloneAppClientParams) {
-    # return new AppClient({
-    #   appId: this._appId,
-    #   appSpec: this._appSpec,
-    #   algorand: this._algorand,
-    #   appName: this._appName,
-    #   defaultSender: this._defaultSender,
-    #   defaultSigner: this._defaultSigner,
-    #   approvalSourceMap: this._approvalSourceMap,
-    #   clearSourceMap: this._clearSourceMap,
-    #   ...params,
-    # })
-    # }
-
     def get_local_state(self, address: str) -> dict[str, AppState]:
         return self._state_accessor.get_local_state(address)
 
@@ -421,46 +680,143 @@ class AppClient:
     def new_group(self) -> TransactionComposer:
         return self._algorand.new_group()
 
-    def _get_signer(
+    def fund_app_account(
         self,
-        sender: str | None,
-        signer: TransactionSigner | None,
-    ) -> TransactionSigner | None:
-        return signer or (None if sender else self._default_signer)
+    ) -> Any:
+        pass
 
-    def _get_sender(self, sender: str | None = None) -> str:
+    def _get_sender(self, sender: str | None) -> str:
         if not sender and not self._default_sender:
-            raise ValueError(
-                f"No sender provided and no default sender present in app client for call to app {self._app_name}"
+            raise Exception(
+                f"No sender provided and no default sender present in app client for call to app {self.app_name}"
             )
         return sender or self._default_sender  # type: ignore[return-value]
 
-    # def _handle_call_errors(self, call: Callable[[], Any]) -> Any:
-    #     try:
-    #         return call()
-    #     except Exception as e:
-    #         raise self._expose_logic_error(e) from e
+    def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
+        return signer or self._default_signer if sender else None
 
-    # def _expose_logic_error(self, e: Exception) -> Exception:
-    #     # Add source map info if available
-    #     if hasattr(e, "program_counter") and self._approval_source_map:
-    #         pc = e.program_counter  # type: ignore[attr-defined]
-    #         line = self._approval_source_map.get_line_for_pc(pc)
-    #         e.source_line = line  # type: ignore[attr-defined]
-    #     return e
+    def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+        return {
+            **params,
+            "app_id": self._app_id,
+            "sender": self._get_sender(params.get("sender")),
+            "signer": self._get_signer(params.get("sender"), params.get("signer")),
+            "on_complete": on_complete,
+        }
 
-    # def get_abi_method(self, method_name: str) -> dict[str, Any]:
-    #     for method in self._app_spec.contract.methods:
-    #         if method["name"] == method_name:
-    #             return method
-    #     raise ValueError(f"Method {method_name} not found")
+    def _get_abi_args_with_default_values(
+        self,
+        method_name_or_signature: str,
+        args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
+        sender: str,
+    ) -> list[Any]:
+        """Get ABI args with default values filled in.
 
-    # def process_method_call_return(self, result: Any, method: dict[str, Any]) -> Any:
-    #     if not result or "return" not in result:
-    #         return result
+        Args:
+            method_name_or_signature: Method name or ABI signature
+            args: Optional list of argument values
+            sender: Sender address
 
-    #     return_type = method.get("returns", {}).get("type")
-    #     if not return_type:
-    #         return result
+        Returns:
+            List of argument values with defaults filled in
 
-    #     return self._decode_abi_value(result["return"], return_type)
+        Raises:
+            ValueError: If required argument is missing or default value lookup fails
+        """
+        method = get_arc56_method(method_name_or_signature, self._app_spec)
+        result = []
+
+        for i, method_arg in enumerate(method.args):
+            # Get provided arg value if any
+            arg_value = args[i] if args and i < len(args) else None
+
+            if arg_value is not None:
+                # Convert struct to tuple if needed
+                if method_arg.struct and isinstance(arg_value, dict):
+                    arg_value = get_abi_tuple_from_abi_struct(
+                        arg_value, self._app_spec.structs[method_arg.struct], self._app_spec.structs
+                    )
+                result.append(arg_value)
+                continue
+
+            # Handle default value if arg not provided
+            default_value = method_arg.default_value
+            if default_value:
+                match default_value.source:
+                    case "literal":
+                        value_raw = base64.b64decode(default_value.data)
+                        value_type = default_value.type_ or method_arg.type_
+                        result.append(get_abi_decoded_value(value_raw, value_type, self._app_spec.structs))
+
+                    case "method":
+                        # Get method return value
+                        default_method = get_arc56_method(default_value.data, self._app_spec)
+                        empty_args = [None] * len(default_method.args)
+                        call_result = self.send.app_call_method_call(
+                            {"method": default_value.data, "args": empty_args, "sender": sender}
+                        )
+
+                        if not call_result.return_value:
+                            raise ValueError("Default value method call did not return a value")
+
+                        if isinstance(call_result.return_value, dict):
+                            # Convert struct return value to tuple
+                            result.append(
+                                get_abi_tuple_from_abi_struct(
+                                    call_result.return_value,
+                                    self._app_spec.structs[default_method.returns.struct],
+                                    self._app_spec.structs,
+                                )
+                            )
+                        else:
+                            result.append(call_result.return_value)
+
+                    case "local" | "global":
+                        # Get state value
+                        state = (
+                            self.get_global_state()
+                            if default_value.source == "global"
+                            else self.get_local_state(sender)
+                        )
+                        value = next((s for s in state.values() if s.key_base64 == default_value.data), None)
+                        if not value:
+                            raise ValueError(
+                                f"Key '{default_value.data}' not found in {default_value.source} "
+                                f"storage for argument {method_arg.name or f'arg{i+1}'}"
+                            )
+
+                        if value.value_raw:
+                            value_type = default_value.type_ or method_arg.type_
+                            result.append(get_abi_decoded_value(value.value_raw, value_type, self._app_spec.structs))
+                        else:
+                            result.append(value.value)
+
+                    case "box":
+                        # Get box value
+                        box_name = base64.b64decode(default_value.data)
+                        box_value = self._algorand.app.get_box_value(self._app_id, box_name)
+                        value_type = default_value.type_ or method_arg.type_
+                        result.append(get_abi_decoded_value(box_value, value_type, self._app_spec.structs))
+
+            elif not algosdk.abi.is_abi_transaction_type(method_arg.type_):
+                # Error if required non-txn arg missing
+                raise ValueError(
+                    f"No value provided for required argument "
+                    f"{method_arg.name or f'arg{i+1}'} in call to method {method.name}"
+                )
+
+        return result
+
+    def _get_abi_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+        sender = self._get_sender(params.get("sender"))
+        method = get_arc56_method(params["method"], self._app_spec)
+        args = self._get_abi_args_with_default_values(params["method"], params.get("args"), sender)
+        return {
+            **params,
+            "appId": self._app_id,
+            "sender": sender,
+            "signer": self._get_signer(params.get("sender"), params.get("signer")),
+            "method": method,
+            "onComplete": on_complete,
+            "args": args,
+        }

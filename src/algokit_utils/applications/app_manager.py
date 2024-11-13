@@ -60,7 +60,12 @@ class CompiledTeal:
     compiled: bytes
     compiled_hash: str
     compiled_base64_to_bytes: bytes
-    source_map: dict | None
+    source_map: algosdk.source_map.SourceMap | None
+
+
+class AppCompilationResult:
+    compiled_approval: CompiledTeal
+    compiled_clear: CompiledTeal
 
 
 BoxIdentifier = str | bytes | AccountTransactionSigner
