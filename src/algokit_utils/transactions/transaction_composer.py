@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 import math
+import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
+import algosdk.v2client.models
 from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
     TransactionSigner,
@@ -15,6 +17,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.error import AlgodHTTPError
 from algosdk.transaction import OnComplete, Transaction
 from algosdk.v2client.algod import AlgodClient
+from algosdk.v2client.models.simulate_request import SimulateTraceConfig
 from deprecated import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
@@ -700,6 +703,16 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
         raise Exception(f"Transaction failed: {e}") from e
 
 
+class TransactionComposerSimulateOptions(TypedDict):
+    allow_more_logs: bool | None
+    allow_empty_signatures: bool | None
+    allow_unnamed_resources: bool | None
+    extra_opcode_budget: int | None
+    exec_trace_config: SimulateTraceConfig | None
+    round: int | None
+    skip_signature: int | None
+
+
 class TransactionComposer:
     """
     A class for composing and managing Algorand transactions using the Algosdk library.
@@ -920,7 +933,12 @@ class TransactionComposer:
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
 
-    def simulate(self) -> algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse:
+    def simulate(
+        self,
+        **params: typing.Unpack[TransactionComposerSimulateOptions],
+    ) -> algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse:
+        # TODO: propagate simulation options to the underlying algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
         if config.debug and config.project_root and config.trace_all:
             return simulate_and_persist_response(
                 self.atc,

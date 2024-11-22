@@ -424,9 +424,9 @@ class AppClientMethodCallParams:
     # OnComplete
     on_complete: algosdk.transaction.OnComplete | None = None
     # # SendParams
-    # max_rounds_to_wait: int | None = None
-    # suppress_log: bool | None = None
-    # populate_app_call_resources: bool | None = None
+    max_rounds_to_wait: int | None = None
+    suppress_log: bool | None = None
+    populate_app_call_resources: bool | None = None
 
 
 @dataclass(kw_only=True)
@@ -566,7 +566,11 @@ class _AppClientSendAccessor:
         )
 
         if is_read_only_call:
-            return self._algorand.new_group().add_app_call_method_call(self._client.params.call(params)).simulate()
+            return (
+                self._algorand.new_group()
+                .add_app_call_method_call(self._client.params.call(params))
+                .simulate(allow_unnamed_resources=params.populate_app_call_resources or True, skip_signature=True)
+            )
 
         return self._algorand.send.app_call_method_call(self._client.params.call(params))
 
