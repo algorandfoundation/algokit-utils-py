@@ -1148,12 +1148,12 @@ class TransactionComposer:
             txn = algosdk.transaction.ApplicationCreateTxn(
                 **sdk_params,
                 global_schema=algosdk.transaction.StateSchema(
-                    num_uints=params.schema.get("global_uints", 0),
-                    num_byte_slices=params.schema.get("global_byte_slices", 0),
+                    num_uints=params.schema.get("global_ints", 0),
+                    num_byte_slices=params.schema.get("global_bytes", 0),
                 ),
                 local_schema=algosdk.transaction.StateSchema(
-                    num_uints=params.schema.get("local_uints", 0),
-                    num_byte_slices=params.schema.get("local_byte_slices", 0),
+                    num_uints=params.schema.get("local_ints", 0),
+                    num_byte_slices=params.schema.get("local_bytes", 0),
                 ),
                 extra_pages=params.extra_program_pages
                 or math.floor((approval_program_len + clear_program_len) / algosdk.constants.APP_PAGE_MAX_SIZE)

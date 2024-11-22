@@ -14,6 +14,7 @@ from algokit_utils.models.abi import ABIValue
 from algokit_utils.models.application import (
     Arc56Contract,
     Arc56ContractState,
+    Arc56Method,
     ARCType,
     CallConfig,
     DefaultValue,
@@ -40,7 +41,7 @@ from algokit_utils.models.abi import ABIStruct
 T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)
 
 
-def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> AlgorandABIMethod:
+def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> Arc56Method:
     if "(" not in method_name_or_signature:
         # Filter by method name
         methods = [m for m in app_spec.methods if m.name == method_name_or_signature]
@@ -58,14 +59,14 @@ def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> 
         # Find by signature
         method = None
         for m in app_spec.methods:
-            abi_method = AlgorandABIMethod.undictify(m.__dict__)
+            abi_method = AlgorandABIMethod.undictify(m.dictify())
             if abi_method.get_signature() == method_name_or_signature:
                 method = m
                 break
         if method is None:
             raise ValueError(f"Unable to find method {method_name_or_signature} in {app_spec.name} app.")
 
-    return AlgorandABIMethod.undictify(method.__dict__)
+    return Arc56Method(method)
 
 
 def get_arc56_return_value(
@@ -92,7 +93,7 @@ def get_arc56_return_value(
         type_str = method.returns.type
         struct = None  # AlgorandABIMethod doesn't have struct info
     else:
-        type_str = method.returns.type_
+        type_str = method.returns.type
         struct = method.returns.struct
 
     # Handle void/undefined returns
@@ -171,7 +172,7 @@ def get_abi_tuple_from_abi_struct(
         if key not in struct_value:
             raise ValueError(f"Missing value for field '{key}'")
         value = struct_value[key]
-        field_type = field.type_
+        field_type = field.type
         if isinstance(field_type, str):
             if field_type in structs:
                 value = get_abi_tuple_from_abi_struct(value, structs[field_type], structs)
@@ -186,7 +187,7 @@ def get_abi_tuple_type_from_abi_struct_definition(
 ) -> TupleType:
     types = []
     for field in struct_def:
-        field_type = field.type_
+        field_type = field.type
         if isinstance(field_type, str):
             if field_type in structs:
                 types.append(get_abi_tuple_type_from_abi_struct_definition(structs[field_type], structs))
@@ -207,7 +208,7 @@ def get_abi_struct_from_abi_tuple(
     result = {}
     for i, field in enumerate(struct_fields):
         key = field.name
-        field_type = field.type_
+        field_type = field.type
         value = decoded_tuple[i]
         if isinstance(field_type, str):
             if field_type in structs:
@@ -238,9 +239,9 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
                 fields = [
                     StructField(
                         name=name,
-                        type_=type_,
+                        type=type,
                     )
-                    for name, type_ in struct["elements"]
+                    for name, type in struct["elements"]
                 ]
                 structs[struct["name"]] = fields
         return structs
@@ -250,7 +251,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         return app_spec.hints.get(sig)
 
     def get_default_value(
-        type_: Union[str, "algosdk.abi.ABIType"],
+        type: Union[str, "algosdk.abi.ABIType"],
         default_arg: DefaultArgumentDict,
     ) -> DefaultValue | None:
         if not default_arg or default_arg["source"] == "abi-method":
@@ -272,7 +273,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
 
         return DefaultValue(
             data=data,
-            type_="AVMString" if type_ == "string" else str(type_),
+            type="AVMString" if type == "string" else str(type),
             source=source_map.get(default_arg["source"], "literal"),  # type: ignore[arg-type]
         )
 
@@ -292,7 +293,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
                 default_value = get_default_value(str(arg.type), hint.default_arguments[arg.name])
 
             method_arg = MethodArg(
-                type_=str(arg.type),
+                type=arg.type,  # type: ignore[arg-type]
                 struct=struct_name,
                 name=arg.name,
                 desc=arg.desc,
@@ -301,7 +302,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
             args.append(method_arg)
 
         method_returns = MethodReturns(
-            type_=str(method.returns.type),
+            type=method.returns.type,
             struct=hint.structs.get("output", {}).get("name") if hint and hint.structs else None,  # type: ignore[call-overload]
             desc=method.returns.desc,
         )

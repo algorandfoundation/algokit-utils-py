@@ -1,6 +1,8 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field, is_dataclass
 from enum import IntEnum
-from typing import Literal
+from typing import Any, Literal
+
+import algosdk
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 """The name of the TEAL template variable for deploy-time immutability control."""
@@ -40,7 +42,7 @@ class ARCType(IntEnum):
 @dataclass(kw_only=True)
 class StructField:
     name: str
-    type_: ABITypeAlias | StructName | list["StructField"]
+    type: ABITypeAlias | StructName | list["StructField"]
 
 
 @dataclass(kw_only=True)
@@ -62,13 +64,13 @@ class StorageMap:
 @dataclass(kw_only=True)
 class DefaultValue:
     data: str
-    type_: ABITypeAlias | AVMType | None = None
+    type: ABITypeAlias | AVMType | None = None
     source: DefaultValueSource
 
 
 @dataclass(kw_only=True)
 class MethodArg:
-    type_: ABITypeAlias
+    type: algosdk.abi.ABIType
     struct: StructName | None = None
     name: str | None = None
     desc: str | None = None
@@ -77,7 +79,7 @@ class MethodArg:
 
 @dataclass
 class MethodReturns:
-    type_: ABITypeAlias
+    type: algosdk.abi.ABIType
     struct: StructName | None = None
     desc: str | None = None
 
@@ -110,16 +112,31 @@ class Method:
     name: str
     desc: str | None = None
     args: list[MethodArg] = field(default_factory=list)
-    returns: MethodReturns = field(default_factory=lambda: MethodReturns(type_="void"))
+    returns: MethodReturns = field(default_factory=lambda: MethodReturns(type="void"))
     actions: MethodActions = field(default_factory=lambda: MethodActions(create=[], call=[]))
     readonly: bool | None = False
     events: list["Event"] | None = None
     recommendations: Recommendations | None = None
 
+    def dictify(self) -> dict[str, Any]:
+        def serialize(obj: Any) -> Any:
+            if is_dataclass(obj):
+                return {k: serialize(v) for k, v in asdict(obj).items()}
+            elif isinstance(obj, list):
+                return [serialize(item) for item in obj]
+            elif isinstance(obj, dict):
+                return {k: serialize(v) for k, v in obj.items()}
+            elif isinstance(obj, algosdk.abi.ABIType):
+                return str(obj)
+            else:
+                return obj
+
+        return serialize(self)  # type: ignore[no-any-return]
+
 
 @dataclass(kw_only=True)
 class EventArg:
-    type_: ABITypeAlias
+    type: ABITypeAlias
     name: str | None = None
     desc: str | None = None
     struct: StructName | None = None
@@ -165,6 +182,13 @@ class Arc56ContractState:
     keys: dict[str, dict[str, StorageKey]]
     maps: dict[str, dict[str, StorageMap]]
     schemas: dict[str, dict[str, int]]
+
+
+# Wraps algosdk.abi.Method
+class Arc56Method(algosdk.abi.Method):
+    def __init__(self, method: Method):
+        super().__init__(name=method.name, args=method.args, returns=method.returns, desc=method.desc)  # type: ignore[arg-type]
+        self.method = method
 
 
 @dataclass(kw_only=True)

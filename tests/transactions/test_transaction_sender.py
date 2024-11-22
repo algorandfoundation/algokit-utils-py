@@ -1,6 +1,8 @@
-from typing import TYPE_CHECKING, cast
+from pathlib import Path
+from typing import cast
 from unittest.mock import MagicMock, patch
 
+import algosdk
 import pytest
 from algosdk.transaction import (
     ApplicationCreateTxn,
@@ -16,10 +18,14 @@ from algokit_utils import (
     Account,
     get_account,
 )
+from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
+from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
+    AppCallMethodCall,
+    AppCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -35,8 +41,12 @@ from algokit_utils.transactions.transaction_composer import (
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
 from tests.conftest import get_unique_name
 
-if TYPE_CHECKING:
-    import algosdk
+
+@pytest.fixture
+def algorand(funded_account: Account) -> AlgorandClient:
+    client = AlgorandClient.default_local_net()
+    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
+    return client
 
 
 @pytest.fixture
@@ -47,6 +57,40 @@ def sender(funded_account: Account) -> Account:
 @pytest.fixture
 def receiver(algod_client: "algosdk.v2client.algod.AlgodClient") -> Account:
     return get_account(algod_client, get_unique_name())
+
+
+@pytest.fixture
+def raw_hello_world_arc32_app_spec() -> str:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    return raw_json_spec.read_text()
+
+
+@pytest.fixture
+def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+
+
+@pytest.fixture
+def test_hello_world_arc32_app_id(
+    algorand: AlgorandClient, funded_account: Account, test_hello_world_arc32_app_spec: ApplicationSpecification
+) -> int:
+    global_schema = test_hello_world_arc32_app_spec.global_state_schema
+    local_schema = test_hello_world_arc32_app_spec.local_state_schema
+    response = algorand.send.app_create(
+        AppCreateParams(
+            sender=funded_account.address,
+            approval_program=test_hello_world_arc32_app_spec.approval_program,
+            clear_state_program=test_hello_world_arc32_app_spec.clear_program,
+            schema={
+                "global_ints": global_schema.num_uints,
+                "global_bytes": global_schema.num_byte_slices,
+                "local_ints": local_schema.num_uints,
+                "local_bytes": local_schema.num_byte_slices,
+            },  # type: ignore[arg-type]
+        )
+    )
+    return response.app_id
 
 
 @pytest.fixture
@@ -323,6 +367,9 @@ def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, send
     assert txn.close_assets_to == sender.address
 
 
+# TODO: add remaining tests for app_update, app_delete, app_create_method_call, app_update method call, app_delete method call
+
+
 def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
@@ -342,7 +389,31 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
     assert txn.clear_program == b"\x06\x81\x01"
 
 
-# TODO: add remaining app call and app method call tests
+def test_app_call(
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+) -> None:
+    params = AppCallParams(
+        app_id=test_hello_world_arc32_app_id,
+        sender=sender.address,
+        args=[b"\x02\xbe\xce\x11", b"test"],
+    )
+
+    result = transaction_sender.app_call(params)
+    assert not result.return_value  # TODO: improve checks
+
+
+def test_app_call_method_call(
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+) -> None:
+    params = AppCallMethodCall(
+        app_id=test_hello_world_arc32_app_id,
+        sender=sender.address,
+        method=algosdk.abi.Method.from_signature("hello(string)string"),
+        args=["test"],
+    )
+
+    result = transaction_sender.app_call_method_call(params)
+    assert result.return_value == "Hello2, test"
 
 
 @patch("logging.Logger.debug")
