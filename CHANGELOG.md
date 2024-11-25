@@ -2,6 +2,17 @@
 
 <!--next-version-placeholder-->
 
+## v2.4.0 (2024-11-25)
+
+### Feature
+
+* Puya debugging support ([#106](https://github.com/algorandfoundation/algokit-utils-py/issues/106)) ([`4606bc7`](https://github.com/algorandfoundation/algokit-utils-py/commit/4606bc724afcf71cd7002e9eab5cbbe2463f94c2))
+
+### Fix
+
+* Removed incorrect decoding of rekey_to address. ([#121](https://github.com/algorandfoundation/algokit-utils-py/issues/121)) ([`5df807f`](https://github.com/algorandfoundation/algokit-utils-py/commit/5df807f4e03318857a525a66c6485a7edbbba342))
+* Remove index on application create call in beta composer #122 ([`e4a6435`](https://github.com/algorandfoundation/algokit-utils-py/commit/e4a6435ca229f392f6056a949d15fa9cbdfc64b2))
+
 ## v2.3.2 (2024-10-21)
 
 ### Fix
