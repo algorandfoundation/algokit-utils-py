@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import logging
-import math
-import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypedDict, Union
+from typing import TYPE_CHECKING, Any, Union, Unpack
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -17,12 +15,12 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.error import AlgodHTTPError
 from algosdk.transaction import OnComplete, Transaction
 from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.models.simulate_request import SimulateTraceConfig
 from deprecated import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
+from algokit_utils.transactions.models import SimulateOptions
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -585,8 +583,9 @@ class SendAtomicTransactionComposerResults:
     """The transaction IDs that were sent"""
     transactions: list[Transaction]
     """The transactions that were sent"""
-    returns: list[Any]
+    returns: list[Any] | list[algosdk.atomic_transaction_composer.ABIResult]
     """The ABI return values from any ABI method calls"""
+    simulate_response: dict[str, Any] | None = None
 
 
 def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
@@ -701,16 +700,6 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
 
         logger.error("Received error executing Atomic Transaction Composer, for more information enable the debug flag")
         raise Exception(f"Transaction failed: {e}") from e
-
-
-class TransactionComposerSimulateOptions(TypedDict):
-    allow_more_logs: bool | None
-    allow_empty_signatures: bool | None
-    allow_unnamed_resources: bool | None
-    extra_opcode_budget: int | None
-    exec_trace_config: SimulateTraceConfig | None
-    round: int | None
-    skip_signature: int | None
 
 
 class TransactionComposer:
@@ -935,21 +924,47 @@ class TransactionComposer:
 
     def simulate(
         self,
-        **params: typing.Unpack[TransactionComposerSimulateOptions],
-    ) -> algosdk.atomic_transaction_composer.SimulateAtomicTransactionResponse:
-        # TODO: propagate simulation options to the underlying algosdk.atomic_transaction_composer.AtomicTransactionComposer
+        **simulate_options: Unpack[SimulateOptions],
+    ) -> SendAtomicTransactionComposerResults:
+        atc = AtomicTransactionComposer() if simulate_options["skip_signatures"] else self.atc
+
+        if simulate_options["skip_signatures"]:
+            simulate_options["allow_empty_signatures"] = True
+            simulate_options["fix_signers"] = True
+            transactions = self.build_transactions()
+            for txn in transactions.transactions:
+                atc.add_transaction(TransactionWithSigner(txn=txn, signer=TransactionComposer.NULL_SIGNER))
+            atc.method_dict = transactions.method_calls
+        else:
+            self.build()
 
         if config.debug and config.project_root and config.trace_all:
-            return simulate_and_persist_response(
-                self.atc,
+            response = simulate_and_persist_response(
+                atc,
                 config.project_root,
                 self.algod,
                 config.trace_buffer_size_mb,
+                simulate_options,
             )
 
-        return simulate_response(
-            self.atc,
-            self.algod,
+            return SendAtomicTransactionComposerResults(
+                confirmations=[],  # TODO: extract confirmations,
+                transactions=[txn.txn for txn in atc.txn_list],
+                tx_ids=response.tx_ids,
+                group_id=atc.txn_list[-1].txn.group or "",
+                simulate_response=response.simulate_response,
+                returns=response.abi_results,
+            )
+
+        response = simulate_response(atc, self.algod, simulate_options)
+
+        return SendAtomicTransactionComposerResults(
+            confirmations=[],  # TODO: extract confirmations,
+            transactions=[txn.txn for txn in atc.txn_list],
+            tx_ids=response.tx_ids,
+            group_id=atc.txn_list[-1].txn.group or "",
+            simulate_response=response.simulate_response,
+            returns=response.abi_results,
         )
 
     @staticmethod
@@ -1077,7 +1092,7 @@ class TransactionComposer:
             sp=suggested_params,
             signer=params.signer or self.get_signer(params.sender),
             method_args=method_args,
-            on_complete=algosdk.transaction.OnComplete.NoOpOC,
+            on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             note=params.note,
             lease=params.lease,
             boxes=[(ref.app_index, ref.name) for ref in params.box_references] if params.box_references else None,

@@ -3,12 +3,12 @@ from __future__ import annotations
 import base64
 import copy
 import json
+import typing
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict
 
 import algosdk
 from algosdk.box_reference import BoxReference
-from algosdk.logic import get_application_address
 from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
@@ -16,7 +16,6 @@ from algokit_utils.applications.app_manager import AppManager, CompiledTeal, Tea
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_encoded_value,
-    get_abi_tuple_from_abi_struct,
     get_arc56_method,
 )
 from algokit_utils.models.abi import ABIStruct
@@ -410,7 +409,7 @@ class AppClientCallParams:
 class AppClientMethodCallParams:
     method: str
     sender: str | None = None
-    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None]
+    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
     signer: TransactionSigner | None = None
     rekey_to: str | None = None
     note: bytes | None = None
@@ -423,10 +422,12 @@ class AppClientMethodCallParams:
     last_valid_round: int | None = None
     # OnComplete
     on_complete: algosdk.transaction.OnComplete | None = None
-    # # SendParams
-    max_rounds_to_wait: int | None = None
-    suppress_log: bool | None = None
-    populate_app_call_resources: bool | None = None
+
+
+class SendParams(TypedDict, total=False):
+    max_rounds_to_wait: int | None
+    suppress_log: bool | None
+    populate_app_call_resources: bool | None
 
 
 @dataclass(kw_only=True)
@@ -479,6 +480,10 @@ class _AppClientMethodCallParamsAccessor:
             last_valid_round=params.last_valid_round,
             close_remainder_to=params.close_remainder_to,
         )
+
+    def opt_in(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
+        input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.OptInOC)
+        return AppCallMethodCall(**input_params)
 
     def call(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.NoOpOC)
@@ -558,7 +563,12 @@ class _AppClientSendAccessor:
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
         return self._algorand.send.payment(self._client.params.fund_app_account(params))
 
-    def call(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+    def opt_in(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+        return self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
+
+    def call(
+        self, params: AppClientMethodCallParams, **send_params: typing.Unpack[SendParams]
+    ) -> SendAppTransactionResult:
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC
             or not params.on_complete
@@ -566,47 +576,34 @@ class _AppClientSendAccessor:
         )
 
         if is_read_only_call:
-            return (
-                self._algorand.new_group()
-                .add_app_call_method_call(self._client.params.call(params))
-                .simulate(allow_unnamed_resources=params.populate_app_call_resources or True, skip_signature=True)
+            method_call_to_simulate = self._algorand.new_group().add_app_call_method_call(
+                self._client.params.call(params)
+            )
+
+            simulate_response = method_call_to_simulate.simulate(
+                allow_unnamed_resources=send_params["populate_app_call_resources"] if send_params else True,
+                skip_signatures=True,
+                allow_more_logs=True,
+                allow_empty_signatures=True,
+                extra_opcode_budget=None,
+                exec_trace_config=None,
+                round=None,
+                fix_signers=None,  # TODO: double check on whether algosdk py even has this param
+            )
+
+            return SendAppTransactionResult(
+                tx_id=simulate_response.tx_ids[-1],
+                tx_ids=simulate_response.tx_ids,
+                transactions=simulate_response.transactions,
+                transaction=simulate_response.transactions[-1],
+                confirmation=simulate_response.confirmations[-1] if simulate_response.confirmations else b"",
+                confirmations=simulate_response.confirmations,
+                group_id=simulate_response.group_id or "",
+                returns=simulate_response.returns,
+                return_value=simulate_response.returns[-1].return_value,
             )
 
         return self._algorand.send.app_call_method_call(self._client.params.call(params))
-
-    # call: async (params: AppClientMethodCallParams & CallOnComplete & SendParams) => {
-    #     // Read-only call - do it via simulate
-    #     if (
-    #       (params.onComplete === OnApplicationComplete.NoOpOC || !params.onComplete) &&
-    #       getArc56Method(params.method, this._appSpec).method.readonly
-    #     ) {
-    #       const result = await this._algorand
-    #         .newGroup()
-    #         .addAppCallMethodCall(await this.params.call(params))
-    #         .simulate({
-    #           allowUnnamedResources: params.populateAppCallResources ?? true,
-    #           // Simulate calls for a readonly method shouldn't invoke signing
-    #           skipSignatures: true,
-    #         })
-    #       return this.processMethodCallReturn(
-    #         {
-    #           ...result,
-    #           transaction: result.transactions.at(-1)!,
-    #           confirmation: result.confirmations.at(-1)!,
-    #           // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    #           return: result.returns?.length ?? 0 > 0 ? result.returns?.at(-1)! : undefined,
-    #         } satisfies SendAppTransactionResult,
-    #         getArc56Method(params.method, this._appSpec),
-    #       )
-    #     }
-
-    #     return this.handleCallErrors(async () =>
-    #       this.processMethodCallReturn(
-    #         this._algorand.send.appCallMethodCall(await this.params.call(params)),
-    #         getArc56Method(params.method, this._appSpec),
-    #       ),
-    #     )
-    #   },
 
 
 class AppClient:
@@ -614,7 +611,7 @@ class AppClient:
         self._app_id = params.app_id
         self._app_spec = self.normalise_app_spec(params.app_spec)
         self._algorand = params.algorand
-        self._app_address = get_application_address(self._app_id)
+        self._app_address = algosdk.logic.get_application_address(self._app_id)
         self._app_name = params.app_name or self._app_spec.name
         self._default_sender = params.default_sender
         self._default_signer = params.default_signer
@@ -740,6 +737,9 @@ class AppClient:
             clear_state_program=compiled_clear.compiled_base64_to_bytes,
             compiled_clear=compiled_clear,
         )
+
+    def process_method_call_return():
+        pass
 
     # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
     def compile_and_persist_sourcemaps(

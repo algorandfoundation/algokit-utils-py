@@ -7,9 +7,9 @@ from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
+import algosdk
 from algosdk import transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner
-from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
 from deprecated import deprecated
 
@@ -222,7 +222,7 @@ def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -
             if create_metadata and create_metadata.name:
                 apps[create_metadata.name] = AppMetaData(
                     app_id=app_id,
-                    app_address=get_application_address(app_id),
+                    app_address=algosdk.logic.get_application_address(app_id),
                     created_metadata=create_metadata,
                     created_round=app_created_at_round,
                     **(update_metadata or create_metadata).__dict__,
@@ -809,7 +809,7 @@ def _create_metadata(
 ) -> AppMetaData:
     return AppMetaData(
         app_id=app_id,
-        app_address=get_application_address(app_id),
+        app_address=algosdk.logic.get_application_address(app_id),
         created_metadata=original_metadata or app_spec_note,
         created_round=created_round,
         updated_round=updated_round or created_round,

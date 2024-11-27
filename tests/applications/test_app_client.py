@@ -218,13 +218,24 @@ def test_abi_with_default_arg_method(
             default_signer=funded_account.signer,
         )
     )
+    # app_client.send.
+    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in"))
+    app_client.send.call(
+        AppClientMethodCallParams(
+            method="set_local",
+            args=[1, 2, "banana", [1, 2, 3, 4]],
+        )
+    )
+
+    method_signature = "default_value_from_local_state(string)string"
+    defined_value = "defined value"
 
     # Test with defined value
     defined_value_result = app_client.send.call(
-        AppClientMethodCallParams(method="default_value_from_local_state(string)string", args=["defined value"])
+        AppClientMethodCallParams(method=method_signature, args=[defined_value])
     )
     assert defined_value_result.return_value == "Local state, defined value"
 
     # Test with default value
-    default_value_result = app_client.send.call(AppClientMethodCallParams(method="hello(string)string", args=[None]))
-    assert default_value_result.return_value == "Hello, default"
+    default_value_result = app_client.send.call(AppClientMethodCallParams(method=method_signature, args=[None]))
+    assert default_value_result.return_value == "Local state, banana"

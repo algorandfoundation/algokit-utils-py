@@ -15,6 +15,7 @@ from algosdk.encoding import checksum
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
 from algokit_utils._legacy_v2.common import Program
+from algokit_utils.transactions.models import SimulateOptions
 
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -201,7 +202,11 @@ def persist_sourcemaps(
     _upsert_debug_sourcemaps(sourcemaps, project_root)
 
 
-def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
+def simulate_response(
+    atc: AtomicTransactionComposer,
+    algod_client: "AlgodClient",
+    simulate_options: SimulateOptions | dict[str, typing.Any] | None = None,
+) -> SimulateAtomicTransactionResponse:
     """
     Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
 
@@ -219,15 +224,27 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
     fake_signed_transactions = empty_signer.sign_transactions(txn_list, [])
     txn_group = [SimulateRequestTransactionGroup(txns=fake_signed_transactions)]
     trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True, state_change=True)
+    simulate_params: SimulateOptions = simulate_options or {}  # type: ignore[assignment]
 
     simulate_request = SimulateRequest(
-        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
+        txn_groups=txn_group,
+        allow_more_logs=True,
+        round=simulate_params.get("round") or None,
+        extra_opcode_budget=simulate_params.get("extra_opcode_budget") or 0,
+        allow_unnamed_resources=simulate_params.get("allow_unnamed_resources") or True,
+        allow_empty_signatures=simulate_params.get("allow_empty_signatures") or True,
+        exec_trace_config=simulate_params.get("exec_trace_config") or trace_config,
     )
+
     return atc.simulate(algod_client, simulate_request)
 
 
 def simulate_and_persist_response(
-    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: float = 256
+    atc: AtomicTransactionComposer,
+    project_root: Path,
+    algod_client: "AlgodClient",
+    buffer_size_mb: float = 256,
+    simulate_options: SimulateOptions | dict[str, typing.Any] | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
@@ -252,7 +269,7 @@ def simulate_and_persist_response(
         txn_with_sign.txn.last_valid_round = sp.last
         txn_with_sign.txn.genesis_hash = sp.gh
 
-    response = simulate_response(atc_to_simulate, algod_client)
+    response = simulate_response(atc_to_simulate, algod_client, simulate_options)
     txn_results = response.simulate_response["txn-groups"]
 
     txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]

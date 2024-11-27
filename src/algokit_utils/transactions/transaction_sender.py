@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 from logging import getLogger
+from pathlib import Path
 from typing import Any, TypedDict, TypeVar
 
 import algosdk
@@ -8,6 +9,7 @@ import algosdk.atomic_transaction_composer
 from algosdk.atomic_transaction_composer import AtomicTransactionResponse
 from algosdk.transaction import Transaction
 
+from algokit_utils._debugging import simulate_and_persist_response
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.models.abi import ABIValue
@@ -115,17 +117,26 @@ class AlgorandClientTransactionSender:
                 transaction = composer.build().transactions[-1].txn
                 logger.debug(pre_log(params, transaction))
 
-            raw_result = composer.send()
+            try:
+                raw_result = composer.send()
+                raw_result_dict = raw_result.__dict__.copy()
+                del raw_result_dict["simulate_response"]
 
-            result = SendSingleTransactionResult(
-                **raw_result.__dict__,
-                confirmation=raw_result.confirmations[-1],
-                transaction=raw_result.transactions[-1],
-                tx_id=raw_result.tx_ids[-1],
-            )
+                result = SendSingleTransactionResult(
+                    **raw_result_dict,
+                    confirmation=raw_result.confirmations[-1],
+                    transaction=raw_result.transactions[-1],
+                    tx_id=raw_result.tx_ids[-1],
+                )
 
-            if post_log:
-                logger.debug(post_log(params, result))
+                if post_log:
+                    logger.debug(post_log(params, result))
+            except Exception:
+                simulate_and_persist_response(
+                    composer.atc,
+                    Path("/Users/aorumbayev/MakerX/projects/algokit/algokit-utils/utils/algokit-utils-py"),
+                    self._algod,
+                )
 
             return result
 

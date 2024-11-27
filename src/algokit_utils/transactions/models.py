@@ -1,5 +1,7 @@
 from typing import Any, Literal, TypedDict
 
+from algosdk.v2client.models.simulate_request import SimulateTraceConfig
+
 
 # Define specific types for different formats
 class BaseArc2Note(TypedDict):
@@ -20,6 +22,17 @@ class JsonFormatArc2Note(BaseArc2Note):
 
     format: Literal["j"]
     data: str | dict[str, Any] | list[Any] | int | None
+
+
+class SimulateOptions(TypedDict):
+    allow_more_logs: bool | None
+    allow_empty_signatures: bool | None
+    allow_unnamed_resources: bool | None
+    extra_opcode_budget: int | None
+    exec_trace_config: SimulateTraceConfig | None
+    round: int | None
+    skip_signatures: int | None
+    fix_signers: bool | None
 
 
 # Combined type for all valid ARC-0002 notes
