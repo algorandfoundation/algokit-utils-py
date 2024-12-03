@@ -24,17 +24,6 @@ class JsonFormatArc2Note(BaseArc2Note):
     data: str | dict[str, Any] | list[Any] | int | None
 
 
-class SimulateOptions(TypedDict):
-    allow_more_logs: bool | None
-    allow_empty_signatures: bool | None
-    allow_unnamed_resources: bool | None
-    extra_opcode_budget: int | None
-    exec_trace_config: SimulateTraceConfig | None
-    round: int | None
-    skip_signatures: int | None
-    fix_signers: bool | None
-
-
 # Combined type for all valid ARC-0002 notes
 # See: https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md
 Arc2TransactionNote = StringFormatArc2Note | JsonFormatArc2Note

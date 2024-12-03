@@ -3,21 +3,23 @@ from __future__ import annotations
 import base64
 import copy
 import json
-import typing
+import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol, TypedDict
+from typing import TYPE_CHECKING, Any, Protocol
 
 import algosdk
 from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.app_manager import BoxABIValue, BoxName, BoxValue
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_encoded_value,
     get_abi_tuple_from_abi_struct,
     get_arc56_method,
 )
-from algokit_utils.models.application import Arc56Contract, StorageKey, StorageMap
+from algokit_utils.models.application import AppState, Arc56Contract, CompiledTeal, StorageKey, StorageMap
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCall,
     AppCallParams,
@@ -34,17 +36,15 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from algosdk.atomic_transaction_composer import TransactionSigner
-    from algosdk.box_reference import BoxReference
     from algosdk.source_map import SourceMap
 
     from algokit_utils.applications.app_manager import (
         AppManager,
-        AppState,
         BoxIdentifier,
-        CompiledTeal,
+        BoxReference,
         TealTemplateParams,
     )
-    from algokit_utils.models.abi import ABIStruct, ABIValue
+    from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.protocols.application import AlgorandClientProtocol
     from algokit_utils.transactions.transaction_composer import TransactionComposer
@@ -116,13 +116,20 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     return max(bytecblock_offset or 0, intcblock_offset or 0)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
+class AppClientCompilationParams:
+    deploy_time_params: TealTemplateParams | None = None
+    updatable: bool | None = None
+    deletable: bool | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
 class ProgramSourceInfo:
     pc_offset_method: str | None
     source_info: list[dict[str, Any]]
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class ExposedLogicErrorDetails:
     is_clear_state_program: bool = False
     approval_source_map: SourceMap | None = None
@@ -132,28 +139,29 @@ class ExposedLogicErrorDetails:
     clear_source_info: ProgramSourceInfo | None = None
 
 
-@dataclass(kw_only=True)
-class _CommonAppClientParams:
+@dataclass(kw_only=True, frozen=True)
+class _AppClientParamsBase:
+    """Base parameters for creating an app client"""
+
+    app_id: int
+    app_spec: (
+        Arc56Contract | ApplicationSpecification | str
+    )  # Using string quotes since these types may be defined elsewhere
+    algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientParams(_AppClientParamsBase):
+    """Full parameters for creating an app client"""
+
     app_name: str | None = None
-    default_sender: str | None = None
+    default_sender: str | bytes | None = None  # Address can be string or bytes
     default_signer: TransactionSigner | None = None
     approval_source_map: SourceMap | None = None
     clear_source_map: SourceMap | None = None
 
 
-@dataclass(kw_only=True)
-class AppClientParams(_CommonAppClientParams):
-    app_id: int
-    app_spec: Arc56Contract | ApplicationSpecification | str
-    algorand: AlgorandClientProtocol
-
-
-@dataclass(kw_only=True)
-class CloneAppClientParams(_CommonAppClientParams):
-    app_id: int | None = None
-
-
-@dataclass(kw_only=True)
+@dataclass(frozen=True, kw_only=True)
 class AppClientCompilationResult:
     approval_program: bytes
     clear_state_program: bytes
@@ -161,11 +169,149 @@ class AppClientCompilationResult:
     compiled_clear: CompiledTeal | None = None
 
 
-@dataclass(kw_only=True)
-class CompileAppClientParams:
+@dataclass(frozen=True, kw_only=True)
+class CommonTxnParams:
+    sender: str
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class FundAppAccountParams:
+    sender: str | None = None
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    note: bytes | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+    amount: AlgoAmount
+    close_remainder_to: str | None = None
+    max_rounds_to_wait: int | None = None
+    suppress_log: bool | None = None
+    populate_app_call_resources: bool | None = None
+    on_complete: algosdk.transaction.OnComplete | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientCallParams:
+    method: str | None = None  # If calling ABI method, name or signature
+    args: list | None = None  # Arguments to pass to the method
+    boxes: list | None = None  # Box references to load
+    accounts: list[str] | None = None  # Account addresses to load
+    apps: list[int] | None = None  # App IDs to load
+    assets: list[int] | None = None  # Asset IDs to load
+    lease: (str | bytes) | None = None  # Optional lease
+    sender: str | None = None  # Optional sender account
+    note: (bytes | dict | str) | None = None  # Transaction note
+    send_params: dict | None = None  # Parameters to control transaction sending
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientMethodCallParams:
+    method: str
+    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
+    extra_fee: AlgoAmount | None = None
+    first_valid_round: int | None = None
+    lease: bytes | None = None
+    max_fee: AlgoAmount | None = None
+    note: bytes | None = None
+    rekey_to: str | None = None
+    sender: str | None = None
+    signer: TransactionSigner | None = None
+    static_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    last_valid_round: int | None = None
+    on_complete: algosdk.transaction.OnComplete | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientMethodCallWithCompilationParams(AppClientMethodCallParams, AppClientCompilationParams):
+    """Combined parameters for method calls with compilation"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientMethodCallWithSendParams(AppClientMethodCallParams, SendParams):
+    """Combined parameters for method calls with send options"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientMethodCallWithCompilationAndSendParams(
+    AppClientMethodCallParams, AppClientCompilationParams, SendParams
+):
+    """Combined parameters for method calls with compilation and send options"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientBareCallParams:
+    signer: TransactionSigner | None
+    rekey_to: str | None
+    lease: bytes | None
+    static_fee: AlgoAmount | None
+    extra_fee: AlgoAmount | None
+    max_fee: AlgoAmount | None
+    validity_window: int | None
+    first_valid_round: int | None
+    last_valid_round: int | None
+    sender: str | None
+    note: bytes | None
+    args: list[bytes] | None
+    account_references: list[str] | None
+    app_references: list[int] | None
+    asset_references: list[int] | None
+    box_references: list[BoxReference | BoxIdentifier] | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class CallOnComplete:
+    on_complete: algosdk.transaction.OnComplete
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientBareCallWithCompilationParams(AppClientBareCallParams, AppClientCompilationParams):
+    """Combined parameters for bare calls with compilation"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientBareCallWithSendParams(AppClientBareCallParams, SendParams):
+    """Combined parameters for bare calls with send options"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, AppClientCompilationParams, SendParams):
+    """Combined parameters for bare calls with compilation and send options"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams, CallOnComplete):
+    """Combined parameters for bare calls with an OnComplete value"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class ResolveAppClientByNetwork:
     app_spec: Arc56Contract | ApplicationSpecification | str
     algorand: AlgorandClientProtocol
-    compilation: AppClientCompilationParams | None = None
+    app_name: str | None = None
+    default_sender: str | bytes | None = None
+    default_signer: TransactionSigner | None = None
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
 
 
 class _AppClientStateMethodsProtocol(Protocol):
@@ -316,113 +462,6 @@ class _AppClientStateAccessor:
         return self._algorand.app.get_global_state(self._app_id)
 
 
-@dataclass(frozen=True)
-class CommonTxnParams:
-    sender: str
-    signer: TransactionSigner | None = None
-    rekey_to: str | None = None
-    note: bytes | None = None
-    lease: bytes | None = None
-    static_fee: AlgoAmount | None = None
-    extra_fee: AlgoAmount | None = None
-    max_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    first_valid_round: int | None = None
-    last_valid_round: int | None = None
-
-
-@dataclass(kw_only=True)
-class FundAppAccountParams:
-    sender: str | None = None
-    signer: TransactionSigner | None = None
-    rekey_to: str | None = None
-    note: bytes | None = None
-    lease: bytes | None = None
-    static_fee: AlgoAmount | None = None
-    extra_fee: AlgoAmount | None = None
-    max_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    first_valid_round: int | None = None
-    last_valid_round: int | None = None
-    amount: AlgoAmount
-    close_remainder_to: str | None = None
-    max_rounds_to_wait: int | None = None
-    suppress_log: bool | None = None
-    populate_app_call_resources: bool | None = None
-    on_complete: algosdk.transaction.OnComplete | None = None
-
-
-@dataclass(kw_only=True)
-class AppClientCallParams:
-    method: str | None = None  # If calling ABI method, name or signature
-    args: list | None = None  # Arguments to pass to the method
-    boxes: list | None = None  # Box references to load
-    accounts: list[str] | None = None  # Account addresses to load
-    apps: list[int] | None = None  # App IDs to load
-    assets: list[int] | None = None  # Asset IDs to load
-    lease: (str | bytes) | None = None  # Optional lease
-    sender: str | None = None  # Optional sender account
-    note: (bytes | dict | str) | None = None  # Transaction note
-    send_params: dict | None = None  # Parameters to control transaction sending
-
-
-@dataclass(kw_only=True)
-class AppClientMethodCallParams:
-    method: str
-    sender: str | None = None
-    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
-    signer: TransactionSigner | None = None
-    rekey_to: str | None = None
-    note: bytes | None = None
-    lease: bytes | None = None
-    static_fee: AlgoAmount | None = None
-    extra_fee: AlgoAmount | None = None
-    max_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    first_valid_round: int | None = None
-    last_valid_round: int | None = None
-    # OnComplete
-    on_complete: algosdk.transaction.OnComplete | None = None
-
-
-class AppClientBareCallParams(TypedDict, total=False):
-    signer: TransactionSigner | None
-    rekey_to: str | None
-    lease: bytes | None
-    static_fee: AlgoAmount | None
-    extra_fee: AlgoAmount | None
-    max_fee: AlgoAmount | None
-    validity_window: int | None
-    first_valid_round: int | None
-    last_valid_round: int | None
-    sender: str | None
-    note: bytes | None
-    args: list[bytes] | None
-    account_references: list[str] | None
-    app_references: list[int] | None
-    asset_references: list[int] | None
-    box_references: list[BoxReference | BoxIdentifier] | None
-
-
-class SendParams(TypedDict, total=False):
-    max_rounds_to_wait: int | None
-    suppress_log: bool | None
-    populate_app_call_resources: bool | None
-
-
-@dataclass(kw_only=True)
-class AppClientCompilationParams:
-    deploy_time_params: TealTemplateParams | None = None
-    updatable: bool | None = None
-    deletable: bool | None = None
-
-
-@dataclass(kw_only=True)
-class ResolveAppClientByNetwork(_CommonAppClientParams):
-    app_spec: Arc56Contract | ApplicationSpecification | str
-    algorand: AlgorandClientProtocol
-
-
 class _AppClientBareParamsAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
@@ -430,7 +469,9 @@ class _AppClientBareParamsAccessor:
         self._app_id = client._app_id  # noqa: SLF001
         self._app_spec = client._app_spec  # noqa: SLF001
 
-    def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+    def _get_bare_params(
+        self, params: dict[str, Any] | None, on_complete: algosdk.transaction.OnComplete
+    ) -> dict[str, Any]:
         """Get bare parameters for application calls.
 
         Args:
@@ -440,6 +481,7 @@ class _AppClientBareParamsAccessor:
         Returns:
             The processed parameters with defaults filled in
         """
+        params = params or {}
         sender = self._client._get_sender(params.get("sender"))
         return {
             **params,
@@ -449,33 +491,31 @@ class _AppClientBareParamsAccessor:
             "on_complete": on_complete,
         }
 
-    def update(self, params: AppClientBareCallParams | None = None) -> AppUpdateParams:
-        params = params or {}
+    def update(self, params: AppClientBareCallWithCompilationAndSendParams | None = None) -> AppUpdateParams:
         call_params: AppUpdateParams = AppUpdateParams(
-            **self._get_bare_params(params.__dict__, OnComplete.UpdateApplicationOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.UpdateApplicationOC)
         )
         return call_params
 
-    def opt_in(self, params: AppClientBareCallParams | None = None) -> AppCallParams:
-        params = params or {}
+    def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.OptInOC))
         return call_params
 
-    def delete(self, params: AppClientBareCallParams) -> AppCallParams:
+    def delete(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__, OnComplete.DeleteApplicationOC)
         )
         return call_params
 
-    def clear_state(self, params: AppClientBareCallParams) -> AppCallParams:
+    def clear_state(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.ClearStateOC))
         return call_params
 
-    def close_out(self, params: AppClientBareCallParams) -> AppCallParams:
+    def close_out(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.CloseOutOC))
         return call_params
 
-    def call(self, params: AppClientBareCallParams) -> AppCallParams:
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.NoOpOC))
         return call_params
 
@@ -493,13 +533,16 @@ class _AppClientMethodCallParamsAccessor:
         return self._bare_params_accessor
 
     def fund_app_account(self, params: FundAppAccountParams) -> PaymentParams:
+        def random_note() -> bytes:
+            return base64.b64encode(os.urandom(16))
+
         return PaymentParams(
             sender=self._client._get_sender(params.sender),
             signer=self._client._get_signer(params.sender, params.signer),
             receiver=self._client.app_address,
             amount=params.amount,
             rekey_to=params.rekey_to,
-            note=params.note,
+            note=params.note or random_note(),
             lease=params.lease,
             static_fee=params.static_fee,
             extra_fee=params.extra_fee,
@@ -560,22 +603,22 @@ class _AppClientBareCreateTransactionMethods:
         self._client = client
         self._algorand = client._algorand  # noqa: SLF001
 
-    def update(self, params: AppClientBareCallParams) -> Transaction:
+    def update(self, params: AppClientBareCallWithCompilationAndSendParams) -> Transaction:
         return self._algorand.create_transaction.app_update(self._client.params.bare.update(params))
 
-    def opt_in(self, params: AppClientBareCallParams) -> Transaction:
+    def opt_in(self, params: AppClientBareCallWithSendParams) -> Transaction:
         return self._algorand.create_transaction.app_call(self._client.params.bare.opt_in(params))
 
-    def delete(self, params: AppClientBareCallParams) -> Transaction:
+    def delete(self, params: AppClientBareCallWithSendParams) -> Transaction:
         return self._algorand.create_transaction.app_call(self._client.params.bare.delete(params))
 
-    def clear_state(self, params: AppClientBareCallParams) -> Transaction:
+    def clear_state(self, params: AppClientBareCallWithSendParams) -> Transaction:
         return self._algorand.create_transaction.app_call(self._client.params.bare.clear_state(params))
 
-    def close_out(self, params: AppClientBareCallParams) -> Transaction:
+    def close_out(self, params: AppClientBareCallWithSendParams) -> Transaction:
         return self._algorand.create_transaction.app_call(self._client.params.bare.close_out(params))
 
-    def call(self, params: AppClientBareCallParams) -> Transaction:
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> Transaction:
         return self._algorand.create_transaction.app_call(self._client.params.bare.call(params))
 
 
@@ -619,12 +662,7 @@ class _AppClientBareSendAccessor:
 
     def update(
         self,
-        params: AppClientBareCallParams | None = None,
-        *,
-        compilation: AppClientCompilationParams | None = None,
-        # max_rounds_to_wait: int | None = None, # TODO: revisit
-        # suppress_log: bool | None = None,
-        # populate_app_call_resources: bool | None = None,
+        params: AppClientBareCallWithCompilationAndSendParams,
     ) -> SendAppTransactionResult:
         """Send an application update transaction.
 
@@ -638,26 +676,28 @@ class _AppClientBareSendAccessor:
         Returns:
             The result of sending the transaction
         """
-        compiled = self._client.compile_and_persist_sourcemaps(compilation)
+        compiled = self._client.compile_and_persist_sourcemaps(
+            params.deploy_time_params, params.updatable, params.deletable
+        )
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
         bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
         call_result = self._algorand.send.app_update(bare_params)
         return SendAppTransactionResult(**{**call_result.__dict__, **(compiled.__dict__ if compiled else {})})
 
-    def opt_in(self, params: AppClientBareCallParams | None = None) -> SendAppTransactionResult:
+    def opt_in(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call(self._client.params.bare.opt_in(params))
 
-    def delete(self, params: AppClientBareCallParams) -> SendAppTransactionResult:
+    def delete(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call(self._client.params.bare.delete(params))
 
-    def clear_state(self, params: AppClientBareCallParams) -> SendAppTransactionResult:
+    def clear_state(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call(self._client.params.bare.clear_state(params))
 
-    def close_out(self, params: AppClientBareCallParams) -> SendAppTransactionResult:
+    def close_out(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call(self._client.params.bare.close_out(params))
 
-    def call(self, params: AppClientBareCallParams) -> SendAppTransactionResult:
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call(self._client.params.bare.call(params))
 
 
@@ -676,21 +716,19 @@ class _AppClientSendAccessor:
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
         return self._algorand.send.payment(self._client.params.fund_app_account(params))
 
-    def opt_in(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+    def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
 
-    def delete(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+    def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_delete_method_call(self._client.params.delete(params))
 
-    def update(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+    def update(self, params: AppClientMethodCallWithCompilationAndSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_update_method_call(self._client.params.update(params))
 
-    def close_out(self, params: AppClientMethodCallParams) -> SendAppTransactionResult:
+    def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
         return self._algorand.send.app_call_method_call(self._client.params.close_out(params))
 
-    def call(
-        self, params: AppClientMethodCallParams, **send_params: typing.Unpack[SendParams]
-    ) -> SendAppTransactionResult:
+    def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC
             or not params.on_complete
@@ -703,7 +741,7 @@ class _AppClientSendAccessor:
             )
 
             simulate_response = method_call_to_simulate.simulate(
-                allow_unnamed_resources=send_params.get("allow_unnamed_resources", False),
+                allow_unnamed_resources=params.populate_app_call_resources or True,
                 skip_signatures=True,
                 allow_more_logs=True,
                 allow_empty_signatures=True,
@@ -799,9 +837,17 @@ class AppClient:
             raise ValueError("Invalid app spec format")
 
     @staticmethod
-    def from_network(params: ResolveAppClientByNetwork) -> AppClient:
-        network = params.algorand.client.network()
-        app_spec = AppClient.normalise_app_spec(params.app_spec)
+    def from_network(
+        app_spec: Arc56Contract | ApplicationSpecification | str,
+        algorand: AlgorandClientProtocol,
+        app_name: str | None = None,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        network = algorand.client.network()
+        app_spec = AppClient.normalise_app_spec(app_spec)
         network_names = [network.genesis_hash]
 
         if network.is_local_net:
@@ -819,15 +865,26 @@ class AppClient:
 
         app_id = app_spec.networks[available_app_spec_networks[network_index]]["app_id"]  # type: ignore[index]
 
-        input_params = params.__dict__
-        input_params["app_id"] = app_id
-        input_params["app_spec"] = app_spec
-
-        return AppClient(AppClientParams(**input_params))  # type:ignore[arg-type, call-arg]
+        return AppClient(
+            AppClientParams(
+                app_id=app_id,
+                app_spec=app_spec,
+                algorand=algorand,
+                app_name=app_name,
+                default_sender=default_sender,
+                default_signer=default_signer,
+                approval_source_map=approval_source_map,
+                clear_source_map=clear_source_map,
+            )
+        )
 
     @staticmethod
     def compile(
-        app_spec: Arc56Contract, app_manager: AppManager, compilation: AppClientCompilationParams | None = None
+        app_spec: Arc56Contract,
+        app_manager: AppManager,
+        deploy_time_params: TealTemplateParams | None = None,
+        updatable: bool | None = None,
+        deletable: bool | None = None,
     ) -> AppClientCompilationResult:
         if not app_spec.source:
             if not app_spec.byte_code or not app_spec.byte_code.get("approval") or not app_spec.byte_code.get("clear"):
@@ -840,20 +897,20 @@ class AppClient:
 
         approval_template: str = base64.b64decode(app_spec.source.get("approval", "")).decode("utf-8")  # type: ignore[assignment]
         deployment_metadata = (
-            {"updatable": compilation.updatable or False, "deletable": compilation.deletable or False}
-            if compilation
+            {"updatable": updatable or False, "deletable": deletable or False}
+            if updatable is not None or deletable is not None
             else None
         )
         compiled_approval = app_manager.compile_teal_template(
             approval_template,
-            template_params=compilation.deploy_time_params if compilation else None,
+            template_params=deploy_time_params,
             deployment_metadata=deployment_metadata,
         )
 
         clear_template: str = base64.b64decode(app_spec.source.get("clear", "")).decode("utf-8")  # type: ignore[assignment]
         compiled_clear = app_manager.compile_teal_template(
             clear_template,
-            template_params=compilation.deploy_time_params if compilation else None,
+            template_params=deploy_time_params,
         )
 
         # TODO: Add invocation of persisting sourcemaps
@@ -867,9 +924,12 @@ class AppClient:
 
     # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
     def compile_and_persist_sourcemaps(
-        self, compilation: AppClientCompilationParams | None = None
+        self,
+        deploy_time_params: TealTemplateParams | None = None,
+        updatable: bool | None = None,
+        deletable: bool | None = None,
     ) -> AppClientCompilationResult:
-        result = AppClient.compile(self._app_spec, self._algorand.app, compilation)
+        result = AppClient.compile(self._app_spec, self._algorand.app, deploy_time_params, updatable, deletable)
 
         if result.compiled_approval:
             self._approval_source_map = result.compiled_approval.source_map
@@ -878,29 +938,68 @@ class AppClient:
 
         return result
 
-    def clone(self, params: CloneAppClientParams) -> AppClient:
-        default_params = {
-            "app_id": self._app_id,
-            "algorand": self._algorand,
-            "app_spec": self._app_spec,
-            "app_name": self._app_name,
-            "default_sender": self._default_sender,
-            "default_signer": self._default_signer,
-            "approval_source_map": self._approval_source_map,
-            "clear_source_map": self._clear_source_map,
-        }
-
-        for k, v in params.__dict__.items():
-            if k and v:
-                default_params[k] = v
-
-        return AppClient(AppClientParams(**default_params))  # type: ignore[arg-type]
+    def clone(
+        self,
+        app_name: str | None = None,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        return AppClient(
+            AppClientParams(
+                app_id=self._app_id,
+                algorand=self._algorand,
+                app_spec=self._app_spec,
+                app_name=app_name or self._app_name,
+                default_sender=default_sender or self._default_sender,
+                default_signer=default_signer or self._default_signer,
+                approval_source_map=approval_source_map or self._approval_source_map,
+                clear_source_map=clear_source_map or self._clear_source_map,
+            )
+        )
 
     def get_local_state(self, address: str) -> dict[str, AppState]:
         return self._state_accessor.get_local_state(address)
 
     def get_global_state(self) -> dict[str, AppState]:
         return self._state_accessor.get_global_state()
+
+    def get_box_names(self) -> list[BoxName]:
+        return self._algorand.app.get_box_names(self._app_id)
+
+    def get_box_value(self, name: BoxIdentifier) -> bytes:
+        return self._algorand.app.get_box_value(self._app_id, name)
+
+    def get_box_value_from_abi_type(self, name: BoxIdentifier, abi_type: ABIType) -> Any:
+        return self._algorand.app.get_box_value_from_abi_type(self._app_id, name, abi_type)
+
+    def get_box_values(self, filter_func: Callable[[BoxName], bool] | None = None) -> list[BoxValue]:
+        names = self.get_box_names()
+        if filter_func:
+            names = [name for name in names if filter_func(name)]
+
+        # Get values for filtered names
+        values = self._algorand.app.get_box_values(self.app_id, [name.name_raw for name in names])
+
+        # Return list of BoxValue objects
+        return [BoxValue(name=name, value=values[i]) for i, name in enumerate(names)]
+
+    def get_box_values_from_abi_type(
+        self, abi_type: ABIType, filter_func: Callable[[BoxName], bool] | None = None
+    ) -> list[BoxABIValue]:
+        # Get box names and apply filter if provided
+        names = self.get_box_names()
+        if filter_func:
+            names = [name for name in names if filter_func(name)]
+
+        # Get values for filtered names and decode them
+        values = self._algorand.app.get_box_values_from_abi_type(
+            self.app_id, [name.name_raw for name in names], abi_type
+        )
+
+        # Return list of BoxABIValue objects
+        return [BoxABIValue(name=name, value=values[i]) for i, name in enumerate(names)]
 
     def new_group(self) -> TransactionComposer:
         return self._algorand.new_group()

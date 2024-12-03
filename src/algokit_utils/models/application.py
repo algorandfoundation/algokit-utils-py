@@ -3,6 +3,7 @@ from enum import IntEnum
 from typing import Any, Literal
 
 import algosdk
+from algosdk.abi import ABIType as AlgosdkABIType
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 """The name of the TEAL template variable for deploy-time immutability control."""
@@ -70,7 +71,7 @@ class DefaultValue:
 
 @dataclass(kw_only=True)
 class MethodArg:
-    type: algosdk.abi.ABIType
+    type: AlgosdkABIType
     struct: StructName | None = None
     name: str | None = None
     desc: str | None = None
@@ -79,7 +80,7 @@ class MethodArg:
 
 @dataclass
 class MethodReturns:
-    type: algosdk.abi.ABIType
+    type: AlgosdkABIType
     struct: StructName | None = None
     desc: str | None = None
 
@@ -107,7 +108,7 @@ class Recommendations:
     assets: list[int] | None = None
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class Method:
     name: str
     desc: str | None = None
@@ -126,7 +127,7 @@ class Method:
                 return [serialize(item) for item in obj]
             elif isinstance(obj, dict):
                 return {k: serialize(v) for k, v in obj.items()}
-            elif isinstance(obj, algosdk.abi.ABIType):
+            elif isinstance(obj, AlgosdkABIType):
                 return str(obj)
             else:
                 return obj
@@ -208,3 +209,42 @@ class Arc56Contract:
     events: list[Event] | None = None
     template_variables: dict[str, dict[str, ABITypeAlias | AVMType | StructName | str]] | None = None
     scratch_variables: dict[str, dict[str, int | ABITypeAlias | AVMType | StructName]] | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppState:
+    key_raw: bytes
+    key_base64: str
+    value_raw: bytes | None
+    value_base64: str | None
+    value: str | int
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppInformation:
+    app_id: int
+    app_address: str
+    approval_program: bytes
+    clear_state_program: bytes
+    creator: str
+    global_state: dict[str, AppState]
+    local_ints: int
+    local_byte_slices: int
+    global_ints: int
+    global_byte_slices: int
+    extra_program_pages: int | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class CompiledTeal:
+    teal: str
+    compiled: bytes
+    compiled_hash: str
+    compiled_base64_to_bytes: bytes
+    source_map: algosdk.source_map.SourceMap | None
+
+
+@dataclass(frozen=True, kw_only=True)
+class AppCompilationResult:
+    compiled_approval: CompiledTeal
+    compiled_clear: CompiledTeal

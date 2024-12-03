@@ -8,27 +8,37 @@ import algosdk
 import algosdk.atomic_transaction_composer
 import algosdk.box_reference
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
+from algosdk.box_reference import BoxReference as AlgosdkBoxReference
 from algosdk.logic import get_application_address
 from algosdk.v2client import algod
 
-from algokit_utils.models.abi import ABIValue
-from algokit_utils.models.application import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
+from algokit_utils.models.abi import ABIType, ABIValue
+from algokit_utils.models.application import (
+    DELETABLE_TEMPLATE_NAME,
+    UPDATABLE_TEMPLATE_NAME,
+    AppInformation,
+    AppState,
+    CompiledTeal,
+)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class BoxName:
     name: str
     name_raw: bytes
     name_base64: str
 
 
-@dataclass(frozen=True)
-class AppState:
-    key_raw: bytes
-    key_base64: str
-    value_raw: bytes | None
-    value_base64: str | None
-    value: str | int
+@dataclass(frozen=True, kw_only=True)
+class BoxValue:
+    name: BoxName
+    value: bytes
+
+
+@dataclass(frozen=True, kw_only=True)
+class BoxABIValue:
+    name: BoxName
+    value: ABIValue
 
 
 class DataTypeFlag(IntEnum):
@@ -39,36 +49,17 @@ class DataTypeFlag(IntEnum):
 TealTemplateParams: TypeAlias = Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
 
 
-@dataclass(frozen=True)
-class AppInformation:
-    app_id: int
-    app_address: str
-    approval_program: bytes
-    clear_state_program: bytes
-    creator: str
-    global_state: dict[str, AppState]
-    local_ints: int
-    local_byte_slices: int
-    global_ints: int
-    global_byte_slices: int
-    extra_program_pages: int | None
+BoxIdentifier: TypeAlias = str | bytes | AccountTransactionSigner
 
 
-@dataclass(frozen=True)
-class CompiledTeal:
-    teal: str
-    compiled: bytes
-    compiled_hash: str
-    compiled_base64_to_bytes: bytes
-    source_map: algosdk.source_map.SourceMap | None
+class BoxReference(AlgosdkBoxReference):
+    def __init__(self, app_id: int, name: bytes):
+        super().__init__(app_index=app_id, name=name)
 
-
-class AppCompilationResult:
-    compiled_approval: CompiledTeal
-    compiled_clear: CompiledTeal
-
-
-BoxIdentifier = str | bytes | AccountTransactionSigner
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, (BoxReference | AlgosdkBoxReference)):
+            return self.app_index == other.app_index and self.name == other.name
+        return False
 
 
 def _is_valid_token_character(char: str) -> bool:
@@ -187,7 +178,7 @@ class AppManager:
         self,
         teal_template_code: str,
         template_params: TealTemplateParams | None = None,
-        deployment_metadata: dict[str, bool] | None = None,
+        deployment_metadata: Mapping[str, bool] | None = None,
     ) -> CompiledTeal:
         teal_code = AppManager.strip_teal_comments(teal_template_code)
         teal_code = AppManager.replace_template_variables(teal_code, template_params or {})
@@ -242,36 +233,44 @@ class AppManager:
         ]
 
     def get_box_value(self, app_id: int, box_name: BoxIdentifier) -> bytes:
-        name = b""
-        if isinstance(box_name, str):
-            name = box_name.encode("utf-8")
-        elif isinstance(box_name, bytes):
-            name = box_name
-        elif isinstance(box_name, AccountTransactionSigner):
-            name = algosdk.encoding.decode_address(algosdk.account.address_from_private_key(box_name.private_key))
-        else:
-            raise ValueError(f"Invalid box identifier type: {type(box_name)}")
-
+        name = AppManager.get_box_reference(box_name)[1]
         box_result = self._algod.application_box_by_name(app_id, name)
         assert isinstance(box_result, dict)
-        return base64.b64decode(box_result["value"])
+        return bytes(box_result["value"], "utf-8")
 
     def get_box_values(self, app_id: int, box_names: list[BoxIdentifier]) -> list[bytes]:
         return [self.get_box_value(app_id, box_name) for box_name in box_names]
 
-    def get_box_value_from_abi_type(
-        self, app_id: int, box_name: BoxIdentifier, abi_type: algosdk.abi.ABIType
-    ) -> ABIValue:
+    def get_box_value_from_abi_type(self, app_id: int, box_name: BoxIdentifier, abi_type: ABIType) -> ABIValue:
         value = self.get_box_value(app_id, box_name)
         try:
-            return abi_type.decode(value)  # type: ignore[no-any-return]
+            parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
+            decoded_value = abi_type.decode(base64.b64decode(value))  # type: ignore[no-any-return]
+            return tuple(decoded_value) if parse_to_tuple else decoded_value
         except Exception as e:
             raise ValueError(f"Failed to decode box value {value.decode('utf-8')} with ABI type {abi_type}") from e
 
     def get_box_values_from_abi_type(
-        self, app_id: int, box_names: list[BoxIdentifier], abi_type: algosdk.abi.ABIType
+        self, app_id: int, box_names: list[BoxIdentifier], abi_type: ABIType
     ) -> list[ABIValue]:
         return [self.get_box_value_from_abi_type(app_id, box_name, abi_type) for box_name in box_names]
+
+    @staticmethod
+    def get_box_reference(box_id: BoxIdentifier | BoxReference) -> tuple[int, bytes]:
+        if isinstance(box_id, (BoxReference | AlgosdkBoxReference)):
+            return box_id.app_index, box_id.name
+
+        name = b""
+        if isinstance(box_id, str):
+            name = box_id.encode("utf-8")
+        elif isinstance(box_id, bytes):
+            name = box_id
+        elif isinstance(box_id, AccountTransactionSigner):
+            name = algosdk.encoding.decode_address(algosdk.account.address_from_private_key(box_id.private_key))
+        else:
+            raise ValueError(f"Invalid box identifier type: {type(box_id)}")
+
+        return 0, name
 
     @staticmethod
     def get_abi_return(

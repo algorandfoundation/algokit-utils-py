@@ -53,7 +53,7 @@ class AlgorandClient:
     """A client that brokers easy access to Algorand functionality."""
 
     def __init__(self, config: AlgoClientConfigs | AlgoSdkClients):
-        self._client_manager: ClientManager = ClientManager(config)
+        self._client_manager: ClientManager = ClientManager(clients_or_configs=config, algorand_client=self)
         self._account_manager: AccountManager = AccountManager(self._client_manager)
         self._asset_manager: AssetManager = AssetManager(self._client_manager.algod, lambda: self.new_group())
         self._app_manager: AppManager = AppManager(self._client_manager.algod)

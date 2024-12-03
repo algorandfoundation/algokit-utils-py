@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union, Unpack
+from typing import TYPE_CHECKING, Any, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -20,15 +21,16 @@ from deprecated import deprecated
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
-from algokit_utils.transactions.models import SimulateOptions
+from algokit_utils.models.transaction import SendParams
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from algosdk.abi import Method
-    from algosdk.box_reference import BoxReference
     from algosdk.v2client.algod import AlgodClient
+    from algosdk.v2client.models import SimulateTraceConfig
 
+    from algokit_utils.applications.app_manager import BoxReference
     from algokit_utils.models.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.transactions.models import Arc2TransactionNote
@@ -36,13 +38,13 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class SenderParam:
     sender: str
 
 
-@dataclass(frozen=True)
-class CommonTxnParams:
+@dataclass(frozen=True, kw_only=True)
+class CommonTxnParams(SendParams):
     """
     Common transaction parameters.
 
@@ -73,14 +75,10 @@ class CommonTxnParams:
     last_valid_round: int | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredPaymentParams:
-    receiver: str
-    amount: AlgoAmount
-
-
-@dataclass(frozen=True)
-class PaymentParams(CommonTxnParams, _RequiredPaymentParams):
+@dataclass(frozen=True, kw_only=True)
+class PaymentParams(
+    CommonTxnParams,
+):
     """
     Payment transaction parameters.
 
@@ -89,21 +87,14 @@ class PaymentParams(CommonTxnParams, _RequiredPaymentParams):
     :param close_remainder_to: If given, close the sender account and send the remaining balance to this address.
     """
 
+    receiver: str
+    amount: AlgoAmount
     close_remainder_to: str | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAssetCreateParams:
-    total: int
-    asset_name: str
-    unit_name: str
-    url: str
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetCreateParams(
     CommonTxnParams,
-    _RequiredAssetCreateParams,
 ):
     """
     Asset creation parameters.
@@ -124,6 +115,10 @@ class AssetCreateParams(
     :param metadata_hash: Hash of the metadata contained in the metadata URL.
     """
 
+    total: int
+    asset_name: str
+    unit_name: str
+    url: str
     decimals: int | None = None
     default_frozen: bool | None = None
     manager: str | None = None
@@ -133,15 +128,9 @@ class AssetCreateParams(
     metadata_hash: bytes | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAssetConfigParams:
-    asset_id: int
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetConfigParams(
     CommonTxnParams,
-    _RequiredAssetConfigParams,
 ):
     """
     Asset configuration parameters.
@@ -156,23 +145,16 @@ class AssetConfigParams(
     Clawback will be permanently disabled if undefined or an empty string.
     """
 
+    asset_id: int
     manager: str | None = None
     reserve: str | None = None
     freeze: str | None = None
     clawback: str | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAssetFreezeParams:
-    asset_id: int
-    account: str
-    frozen: bool
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetFreezeParams(
     CommonTxnParams,
-    _RequiredAssetFreezeParams,
 ):
     """
     Asset freeze parameters.
@@ -182,16 +164,14 @@ class AssetFreezeParams(
     :param frozen: Whether the assets in the account should be frozen.
     """
 
-
-@dataclass(frozen=True)
-class _RequiredAssetDestroyParams:
     asset_id: int
+    account: str
+    frozen: bool
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetDestroyParams(
     CommonTxnParams,
-    _RequiredAssetDestroyParams,
 ):
     """
     Asset destruction parameters.
@@ -199,20 +179,12 @@ class AssetDestroyParams(
     :param asset_id: ID of the asset.
     """
 
-
-@dataclass(frozen=True)
-class _RequiredOnlineKeyRegistrationParams:
-    vote_key: str
-    selection_key: str
-    vote_first: int
-    vote_last: int
-    vote_key_dilution: int
+    asset_id: int
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class OnlineKeyRegistrationParams(
     CommonTxnParams,
-    _RequiredOnlineKeyRegistrationParams,
 ):
     """
     Online key registration parameters.
@@ -228,20 +200,17 @@ class OnlineKeyRegistrationParams(
     :param state_proof_key: The 64 byte state proof public key commitment.
     """
 
+    vote_key: str
+    selection_key: str
+    vote_first: int
+    vote_last: int
+    vote_key_dilution: int
     state_proof_key: bytes | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAssetTransferParams:
-    asset_id: int
-    amount: int
-    receiver: str
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetTransferParams(
     CommonTxnParams,
-    _RequiredAssetTransferParams,
 ):
     """
     Asset transfer parameters.
@@ -253,19 +222,16 @@ class AssetTransferParams(
     :param close_asset_to: The account to close the asset to.
     """
 
+    asset_id: int
+    amount: int
+    receiver: str
     clawback_target: str | None = None
     close_asset_to: str | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAssetOptInParams:
-    asset_id: int
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetOptInParams(
     CommonTxnParams,
-    _RequiredAssetOptInParams,
 ):
     """
     Asset opt-in parameters.
@@ -273,24 +239,22 @@ class AssetOptInParams(
     :param asset_id: ID of the asset.
     """
 
-
-@dataclass(frozen=True)
-class _RequiredAssetOptOutParams:
     asset_id: int
-    creator: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AssetOptOutParams(
     CommonTxnParams,
-    _RequiredAssetOptOutParams,
 ):
     """
     Asset opt-out parameters.
     """
 
+    asset_id: int
+    creator: str
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, kw_only=True)
 class AppCallParams(CommonTxnParams, SenderParam):
     """
     Application call parameters.
@@ -321,14 +285,8 @@ class AppCallParams(CommonTxnParams, SenderParam):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppCreateParams:
-    approval_program: str | bytes
-    clear_state_program: str | bytes
-
-
-@dataclass(frozen=True)
-class AppCreateParams(CommonTxnParams, SenderParam, _RequiredAppCreateParams):
+@dataclass(frozen=True, kw_only=True)
+class AppCreateParams(CommonTxnParams, SenderParam):
     """
     Application create parameters.
 
@@ -346,6 +304,8 @@ class AppCreateParams(CommonTxnParams, SenderParam, _RequiredAppCreateParams):
     :param extra_program_pages: Number of extra pages required for the programs
     """
 
+    approval_program: str | bytes
+    clear_state_program: str | bytes
     schema: dict[str, int] | None = None
     on_complete: OnComplete | None = None
     args: list[bytes] | None = None
@@ -356,15 +316,8 @@ class AppCreateParams(CommonTxnParams, SenderParam, _RequiredAppCreateParams):
     extra_program_pages: int | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppUpdateParams:
-    app_id: int
-    approval_program: str | bytes
-    clear_state_program: str | bytes
-
-
-@dataclass(frozen=True)
-class AppUpdateParams(CommonTxnParams, SenderParam, _RequiredAppUpdateParams):
+@dataclass(frozen=True, kw_only=True)
+class AppUpdateParams(CommonTxnParams, SenderParam):
     """
     Application update parameters.
 
@@ -375,6 +328,9 @@ class AppUpdateParams(CommonTxnParams, SenderParam, _RequiredAppUpdateParams):
     teal (bytes)
     """
 
+    app_id: int
+    approval_program: str | bytes
+    clear_state_program: str | bytes
     args: list[bytes] | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
@@ -383,16 +339,10 @@ class AppUpdateParams(CommonTxnParams, SenderParam, _RequiredAppUpdateParams):
     on_complete: OnComplete | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppDeleteParams:
-    app_id: int
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AppDeleteParams(
     CommonTxnParams,
     SenderParam,
-    _RequiredAppDeleteParams,
 ):
     """
     Application delete parameters.
@@ -404,16 +354,12 @@ class AppDeleteParams(
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
 
 
-@dataclass(frozen=True)
-class _RequiredMethodCallParams:
-    app_id: int
-    method: Method
-
-
-@dataclass(frozen=True)
-class AppMethodCall(CommonTxnParams, SenderParam, _RequiredMethodCallParams):
+@dataclass(frozen=True, kw_only=True)
+class AppMethodCall(CommonTxnParams, SenderParam):
     """Base class for ABI method calls."""
 
+    app_id: int
+    method: Method
     args: list | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
@@ -421,14 +367,8 @@ class AppMethodCall(CommonTxnParams, SenderParam, _RequiredMethodCallParams):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppMethodCallParams:
-    app_id: int
-    method: Method
-
-
-@dataclass(frozen=True)
-class AppMethodCallParams(CommonTxnParams, SenderParam, _RequiredAppMethodCallParams):
+@dataclass(frozen=True, kw_only=True)
+class AppMethodCallParams(CommonTxnParams, SenderParam):
     """
     Method call parameters.
 
@@ -438,6 +378,8 @@ class AppMethodCallParams(CommonTxnParams, SenderParam, _RequiredAppMethodCallPa
     :param on_complete: The OnComplete action (cannot be UpdateApplication or ClearState)
     """
 
+    app_id: int
+    method: Method
     args: list[bytes] | None = None
     on_complete: OnComplete | None = None
     account_references: list[str] | None = None
@@ -446,7 +388,7 @@ class AppMethodCallParams(CommonTxnParams, SenderParam, _RequiredAppMethodCallPa
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AppCallMethodCall(AppMethodCall):
     """Parameters for a regular ABI method call.
 
@@ -465,14 +407,8 @@ class AppCallMethodCall(AppMethodCall):
     on_complete: OnComplete | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppCreateMethodCallParams:
-    approval_program: str | bytes
-    clear_state_program: str | bytes
-
-
-@dataclass(frozen=True)
-class AppCreateMethodCall(AppMethodCall, _RequiredAppCreateMethodCallParams):
+@dataclass(frozen=True, kw_only=True)
+class AppCreateMethodCall(AppMethodCall):
     """Parameters for an ABI method call that creates an application.
 
     :param approval_program: The program to execute for all OnCompletes other than ClearState
@@ -482,20 +418,15 @@ class AppCreateMethodCall(AppMethodCall, _RequiredAppCreateMethodCallParams):
     :param extra_program_pages: Number of extra pages required for the programs
     """
 
+    approval_program: str | bytes
+    clear_state_program: str | bytes
     schema: dict[str, int] | None = None
     on_complete: OnComplete | None = None
     extra_program_pages: int | None = None
 
 
-@dataclass(frozen=True)
-class _RequiredAppUpdateMethodCallParams:
-    app_id: int
-    approval_program: str | bytes
-    clear_state_program: str | bytes
-
-
-@dataclass(frozen=True)
-class AppUpdateMethodCall(AppMethodCall, _RequiredAppUpdateMethodCallParams):
+@dataclass(frozen=True, kw_only=True)
+class AppUpdateMethodCall(AppMethodCall):
     """Parameters for an ABI method call that updates an application.
 
     :param app_id: ID of the application
@@ -503,10 +434,13 @@ class AppUpdateMethodCall(AppMethodCall, _RequiredAppUpdateMethodCallParams):
     :param clear_state_program: The program to execute for ClearState OnComplete
     """
 
+    app_id: int
+    approval_program: str | bytes
+    clear_state_program: str | bytes
     on_complete: OnComplete = OnComplete.UpdateApplicationOC
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class AppDeleteMethodCall(AppMethodCall):
     """Parameters for an ABI method call that deletes an application.
 
@@ -588,7 +522,7 @@ class SendAtomicTransactionComposerResults:
     simulate_response: dict[str, Any] | None = None
 
 
-def send_atomic_transaction_composer(  # noqa: C901, PLR0912, PLR0913
+def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
     *,
@@ -924,13 +858,20 @@ class TransactionComposer:
 
     def simulate(
         self,
-        **simulate_options: Unpack[SimulateOptions],
+        allow_more_logs: bool | None = None,
+        allow_empty_signatures: bool | None = None,
+        allow_unnamed_resources: bool | None = None,
+        extra_opcode_budget: int | None = None,
+        exec_trace_config: SimulateTraceConfig | None = None,
+        round: int | None = None,
+        skip_signatures: int | None = None,
+        fix_signers: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
-        atc = AtomicTransactionComposer() if simulate_options["skip_signatures"] else self.atc
+        atc = AtomicTransactionComposer() if skip_signatures else self.atc
 
-        if simulate_options["skip_signatures"]:
-            simulate_options["allow_empty_signatures"] = True
-            simulate_options["fix_signers"] = True
+        if skip_signatures:
+            allow_empty_signatures = True
+            fix_signers = True
             transactions = self.build_transactions()
             for txn in transactions.transactions:
                 atc.add_transaction(TransactionWithSigner(txn=txn, signer=TransactionComposer.NULL_SIGNER))
@@ -944,7 +885,14 @@ class TransactionComposer:
                 config.project_root,
                 self.algod,
                 config.trace_buffer_size_mb,
-                simulate_options,
+                allow_more_logs,
+                allow_empty_signatures,
+                allow_unnamed_resources,
+                extra_opcode_budget,
+                exec_trace_config,
+                round,
+                skip_signatures,
+                fix_signers,
             )
 
             return SendAtomicTransactionComposerResults(
@@ -956,7 +904,18 @@ class TransactionComposer:
                 returns=response.abi_results,
             )
 
-        response = simulate_response(atc, self.algod, simulate_options)
+        response = simulate_response(
+            atc,
+            self.algod,
+            allow_more_logs,
+            allow_empty_signatures,
+            allow_unnamed_resources,
+            extra_opcode_budget,
+            exec_trace_config,
+            round,
+            skip_signatures,
+            fix_signers,
+        )
 
         return SendAtomicTransactionComposerResults(
             confirmations=[],  # TODO: extract confirmations,
@@ -1095,10 +1054,140 @@ class TransactionComposer:
             on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             note=params.note,
             lease=params.lease,
-            boxes=[(ref.app_index, ref.name) for ref in params.box_references] if params.box_references else None,
+            boxes=[AppManager.get_box_reference(ref) for ref in params.box_references]
+            if params.box_references
+            else None,
         )
 
         return self._build_atc(method_atc)
+
+    # TODO: reconsider whether atc's add_method_call is the best way to handle passing manually encoded abi args
+    # def _build_method_call(
+    #     self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams
+    # ) -> list[TransactionWithSigner]:
+    #     # Initialize lists to store transactions and encoded arguments
+    #     method_args: list[ABIValue | TransactionWithSigner] = []
+    #     arg_offset = 0
+
+    #     # Initialize foreign arrays
+    #     accounts = params.account_references[:] if params.account_references else []
+    #     foreign_apps = params.app_references[:] if params.app_references else []
+    #     foreign_assets = params.asset_references[:] if params.asset_references else []
+    #     boxes = params.box_references[:] if params.box_references else []
+
+    #     # Prepare app args starting with method selector
+    #     encoded_args = []
+    #     encoded_args.append(params.method.get_selector())
+
+    #     # Process method arguments
+    #     if params.args:
+    #         for i, arg in enumerate(params.args):
+    #             if self._is_abi_value(arg):
+    #                 method_args.append(arg)
+    #                 continue
+
+    #             if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
+    #                 match arg:
+    #                     case (
+    #                         AppCreateMethodCall()
+    #                         | AppCallMethodCall()
+    #                         | AppUpdateMethodCall()
+    #                         | AppDeleteMethodCall()
+    #                     ):
+    #                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
+    #                         method_args.extend(temp_txn_with_signers)
+    #                         arg_offset += len(temp_txn_with_signers) - 1
+    #                         continue
+    #                     case AppCallParams():
+    #                         txn = self._build_app_call(arg, suggested_params)
+    #                     case PaymentParams():
+    #                         txn = self._build_payment(arg, suggested_params)
+    #                     case AssetOptInParams():
+    #                         txn = self._build_asset_transfer(
+    #                             AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params
+    #                         )
+    #                     case _:
+    #                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
+
+    #                 method_args.append(
+    #                     TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
+    #                 )
+    #                 continue
+
+    #             # Handle ABI reference types
+    #             if algosdk.abi.is_abi_reference_type(params.method.args[i + arg_offset].type):
+    #                 arg_type = params.method.args[i + arg_offset].type
+    #                 if arg_type == algosdk.abi.ABIReferenceType.ACCOUNT:
+    #                     address_type = algosdk.abi.AddressType()
+    #                     account_arg = address_type.decode(address_type.encode(cast(str | bytes, arg)))
+    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
+    #                         account_arg, accounts, params.sender
+    #                     )
+    #                     method_args.append(current_arg)
+    #                 elif arg_type == algosdk.abi.ABIReferenceType.ASSET:
+    #                     asset_arg = int(cast(int, arg))
+    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
+    #                         asset_arg, foreign_assets
+    #                     )
+    #                     method_args.append(current_arg)
+    #                 elif arg_type == algosdk.abi.ABIReferenceType.APPLICATION:
+    #                     app_arg = int(cast(int, arg))
+    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
+    #                         app_arg, foreign_apps, params.app_id
+    #                     )
+    #                     method_args.append(current_arg)
+    #                 else:
+    #                     raise ValueError(f"Unsupported ABI reference type: {arg_type}")
+    #                 continue
+
+    #             # Regular ABI value
+    #             method_args.append(arg)
+
+    #     # Encode regular ABI arguments
+    #     for i, arg in enumerate(method_args):
+    #         if isinstance(arg, TransactionWithSigner):
+    #             continue
+    #         arg_type = params.method.args[i].type
+    #         if isinstance(arg_type, algosdk.abi.ABIType):
+    #             try:
+    #                 encoded_args.append(arg_type.encode(arg))
+    #             except Exception as e:
+    #                 if (
+    #                     isinstance(e, AttributeError)
+    #                     and isinstance(arg_type, algosdk.abi.StringType)
+    #                     and isinstance(arg, bytes)
+    #                 ):
+    #                     # Assume user passed a manually abi encoded string, ignore re-encoding and append as raw bytes
+    #                     encoded_args.append(arg)
+    #                 else:
+    #                     raise ValueError(f"Error encoding argument {arg} of type {arg_type}") from e
+
+    #     # Create the app call transaction
+    #     txn = algosdk.transaction.ApplicationCallTxn(
+    #         sender=params.sender,
+    #         sp=suggested_params,
+    #         index=params.app_id or 0,
+    #         on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
+    #         app_args=encoded_args,
+    #         accounts=accounts,
+    #         foreign_apps=foreign_apps,
+    #         foreign_assets=foreign_assets,
+    #         boxes=[AppManager.get_box_reference(ref) for ref in boxes] if boxes else None,
+    #         note=params.note,
+    #         lease=params.lease,
+    #     )
+
+    #     result = [TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))]
+
+    #     # Add any transaction arguments
+    #     for arg in method_args:
+    #         if isinstance(arg, TransactionWithSigner):
+    #             result.append(arg)
+
+    #     # Store the method for this transaction
+    #     self.txn_method_map[txn.get_txid()] = params.method
+
+    #     return result
 
     def _build_payment(
         self, params: PaymentParams, suggested_params: algosdk.transaction.SuggestedParams
@@ -1272,7 +1361,7 @@ class TransactionComposer:
         return self._common_txn_build_step(params, txn, suggested_params)
 
     def _is_abi_value(self, x: bool | float | str | bytes | list | TxnParams) -> bool:
-        if isinstance(x, list):
+        if isinstance(x, list | tuple):
             return len(x) == 0 or all(self._is_abi_value(item) for item in x)
 
         return isinstance(x, bool | int | float | str | bytes)

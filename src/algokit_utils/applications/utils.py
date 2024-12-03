@@ -1,7 +1,8 @@
 import base64
-from typing import TYPE_CHECKING, Literal, Union
+from typing import Any, Literal, TypeVar
 
 from algosdk.abi import Method as AlgorandABIMethod
+from algosdk.abi import TupleType
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -10,7 +11,7 @@ from algokit_utils._legacy_v2.application_specification import (
     MethodConfigDict,
     MethodHints,
 )
-from algokit_utils.models.abi import ABIValue
+from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
 from algokit_utils.models.application import (
     Arc56Contract,
     Arc56ContractState,
@@ -27,16 +28,6 @@ from algokit_utils.models.application import (
     StructField,
     StructName,
 )
-
-if TYPE_CHECKING:
-    import algosdk
-
-from typing import Any, TypeVar
-
-import algosdk
-from algosdk.abi import ABIType, TupleType
-
-from algokit_utils.models.abi import ABIStruct
 
 T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)
 
@@ -113,7 +104,7 @@ def get_arc56_return_value(
     if type_str == "AVMString" and raw_value:
         return raw_value.decode("utf-8")
     if type_str == "AVMUint64" and raw_value:
-        return algosdk.abi.ABIType.from_string("uint64").decode(raw_value)
+        return ABIType.from_string("uint64").decode(raw_value)
 
     # Handle structs
     if struct and struct in structs:
@@ -251,7 +242,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         return app_spec.hints.get(sig)
 
     def get_default_value(
-        type: Union[str, "algosdk.abi.ABIType"],
+        type: str | ABIType,
         default_arg: DefaultArgumentDict,
     ) -> DefaultValue | None:
         if not default_arg or default_arg["source"] == "abi-method":

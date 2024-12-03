@@ -5,6 +5,7 @@ from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
+# from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.network_clients import (
     AlgoClientConfigs,
@@ -12,6 +13,7 @@ from algokit_utils.network_clients import (
     get_indexer_client,
     get_kmd_client,
 )
+from algokit_utils.protocols.application import AlgorandClientProtocol
 
 
 class AlgoSdkClients:
@@ -26,7 +28,7 @@ class AlgoSdkClients:
         self.kmd = kmd
 
 
-@dataclass(kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class NetworkDetail:
     is_test_net: bool
     is_main_net: bool
@@ -40,7 +42,7 @@ def genesis_id_is_localnet(genesis_id: str) -> bool:
 
 
 class ClientManager:
-    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients):
+    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: AlgorandClientProtocol):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
         elif isinstance(clients_or_configs, AlgoClientConfigs):
@@ -54,6 +56,7 @@ class ClientManager:
         self._algod = _clients.algod
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
+        self._algorand = algorand_client
 
     @property
     def algod(self) -> AlgodClient:
@@ -95,6 +98,31 @@ class ClientManager:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
 
         return TestNetDispenserApiClient(auth_token=auth_token)
+
+    # def get_app_factory(
+    #     self,
+    #     app_spec: Arc56Contract | ApplicationSpecification | str,
+    #     app_name: str | None = None,
+    #     default_sender: str | None = None,
+    #     default_signer: TransactionSigner | None = None,
+    #     version: str | None = None,
+    #     updatable: bool | None = None,
+    #     deletable: bool | None = None,
+    #     deploy_time_params: TealTemplateParams | None = None,
+    # ) -> AppFactory:
+    #     return AppFactory(
+    #         AppFactoryParams(
+    #             algorand=self._algorand,
+    #             app_spec=app_spec,
+    #             app_name=app_name,
+    #             default_sender=default_sender,
+    #             default_signer=default_signer,
+    #             version=version,
+    #             updatable=updatable,
+    #             deletable=deletable,
+    #             deploy_time_params=deploy_time_params,
+    #         )
+    #     )
 
     @staticmethod
     def genesis_id_is_local_net(genesis_id: str) -> bool:
