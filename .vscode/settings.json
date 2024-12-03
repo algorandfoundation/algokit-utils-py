@@ -16,18 +16,24 @@
     "**/__pycache__": true,
     ".idea": true
   },
-
   // Python
   "platformSettings.autoLoad": true,
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
-  "python.analysis.extraPaths": ["${workspaceFolder}/src"],
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src"
+  ],
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
+  "python.analysis.exclude": [
+    "tests/artifacts/**"
+  ],
   "python.analysis.typeCheckingMode": "basic",
   "ruff.enable": true,
   "ruff.lint.run": "onSave",
-  "ruff.lint.args": ["--config=pyproject.toml"],
+  "ruff.lint.args": [
+    "--config=pyproject.toml"
+  ],
   "ruff.importStrategy": "fromEnvironment",
   "ruff.fixAll": true, //lint and fix all files in workspace
   "ruff.organizeImports": true, //organize imports on save
@@ -37,7 +43,6 @@
   "ruff.codeAction.fixViolation": {
     "enable": true
   },
-
   "mypy.configFile": "pyproject.toml",
   // set to empty array to use config from project
   "mypy.targets": [],
@@ -52,11 +57,7 @@
       }
     ]
   },
-
-  // PowerShell
-  "[powershell]": {
-    "editor.defaultFormatter": "ms-vscode.powershell"
-  },
-  "powershell.codeFormatting.preset": "Stroustrup",
-  "python.testing.pytestArgs": ["."]
+  "python.testing.pytestArgs": [
+    "."
+  ],
 }

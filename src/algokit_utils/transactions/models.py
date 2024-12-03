@@ -1,7 +1,5 @@
 from typing import Any, Literal, TypedDict
 
-from algosdk.v2client.models.simulate_request import SimulateTraceConfig
-
 
 # Define specific types for different formats
 class BaseArc2Note(TypedDict):

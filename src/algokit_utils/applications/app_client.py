@@ -5,7 +5,7 @@ import copy
 import json
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import algosdk
 from algosdk.transaction import OnComplete, Transaction
@@ -18,7 +18,16 @@ from algokit_utils.applications.utils import (
     get_abi_tuple_from_abi_struct,
     get_arc56_method,
 )
-from algokit_utils.models.application import AppState, Arc56Contract, CompiledTeal, StorageKey, StorageMap
+from algokit_utils.errors.logic_error import LogicError, parse_logic_error
+from algokit_utils.models.application import (
+    AppState,
+    Arc56Contract,
+    CompiledTeal,
+    ProgramSourceInfo,
+    SourceInfoDetail,
+    StorageKey,
+    StorageMap,
+)
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCall,
@@ -52,6 +61,8 @@ if TYPE_CHECKING:
 # TEAL opcodes for constant blocks
 BYTE_CBLOCK = 0x20  # bytecblock opcode
 INT_CBLOCK = 0x21  # intcblock opcode
+
+T = TypeVar("T")  # For generic return type in _handle_call_errors
 
 
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
@@ -121,12 +132,6 @@ class AppClientCompilationParams:
     deploy_time_params: TealTemplateParams | None = None
     updatable: bool | None = None
     deletable: bool | None = None
-
-
-@dataclass(frozen=True, kw_only=True)
-class ProgramSourceInfo:
-    pc_offset_method: str | None
-    source_info: list[dict[str, Any]]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -354,9 +359,9 @@ class _AppClientStateMethods(_AppClientStateMethodsProtocol):
 class _AppClientStateAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
 
     def local_state(self, address: str) -> _AppClientStateMethodsProtocol:
         """Methods to access local state for the current app for a given address"""
@@ -465,9 +470,9 @@ class _AppClientStateAccessor:
 class _AppClientBareParamsAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
 
     def _get_bare_params(
         self, params: dict[str, Any] | None, on_complete: algosdk.transaction.OnComplete
@@ -523,9 +528,9 @@ class _AppClientBareParamsAccessor:
 class _AppClientMethodCallParamsAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
         self._bare_params_accessor = _AppClientBareParamsAccessor(client)
 
     @property
@@ -583,16 +588,16 @@ class _AppClientMethodCallParamsAccessor:
         input_params["app_id"] = self._app_id
         input_params["on_complete"] = on_complete
 
-        input_params["sender"] = self._client._get_sender(params["sender"])  # noqa: SLF001
-        input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])  # noqa: SLF001
+        input_params["sender"] = self._client._get_sender(params["sender"])
+        input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
         if params.get("method"):
             input_params["method"] = get_arc56_method(params["method"], self._app_spec)
             if params.get("args"):
-                input_params["args"] = self._client._get_abi_args_with_default_values(  # noqa: SLF001
+                input_params["args"] = self._client._get_abi_args_with_default_values(
                     method_name_or_signature=params["method"],
                     args=params["args"],
-                    sender=self._client._get_sender(input_params["sender"]),  # noqa: SLF001
+                    sender=self._client._get_sender(input_params["sender"]),
                 )
 
         return input_params
@@ -601,7 +606,7 @@ class _AppClientMethodCallParamsAccessor:
 class _AppClientBareCreateTransactionMethods:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
+        self._algorand = client._algorand
 
     def update(self, params: AppClientBareCallWithCompilationAndSendParams) -> Transaction:
         return self._algorand.create_transaction.app_update(self._client.params.bare.update(params))
@@ -625,9 +630,9 @@ class _AppClientBareCreateTransactionMethods:
 class _AppClientMethodCallTransactionCreator:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
         self._bare_create_transaction_methods = _AppClientBareCreateTransactionMethods(client)
 
     @property
@@ -656,9 +661,9 @@ class _AppClientMethodCallTransactionCreator:
 class _AppClientBareSendAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
 
     def update(
         self,
@@ -682,31 +687,41 @@ class _AppClientBareSendAccessor:
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
         bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
-        call_result = self._algorand.send.app_update(bare_params)
+        call_result = self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_params))
         return SendAppTransactionResult(**{**call_result.__dict__, **(compiled.__dict__ if compiled else {})})
 
     def opt_in(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call(self._client.params.bare.opt_in(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call(self._client.params.bare.opt_in(params))
+        )
 
     def delete(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call(self._client.params.bare.delete(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call(self._client.params.bare.delete(params))
+        )
 
     def clear_state(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call(self._client.params.bare.clear_state(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call(self._client.params.bare.clear_state(params))
+        )
 
     def close_out(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call(self._client.params.bare.close_out(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call(self._client.params.bare.close_out(params))
+        )
 
     def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call(self._client.params.bare.call(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call(self._client.params.bare.call(params))
+        )
 
 
 class _AppClientSendAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
-        self._algorand = client._algorand  # noqa: SLF001
-        self._app_id = client._app_id  # noqa: SLF001
-        self._app_spec = client._app_spec  # noqa: SLF001
+        self._algorand = client._algorand
+        self._app_id = client._app_id
+        self._app_spec = client._app_spec
         self._bare_send_accessor = _AppClientBareSendAccessor(client)
 
     @property
@@ -714,19 +729,29 @@ class _AppClientSendAccessor:
         return self._bare_send_accessor
 
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
-        return self._algorand.send.payment(self._client.params.fund_app_account(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.payment(self._client.params.fund_app_account(params))
+        )
 
     def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
+        )
 
     def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_delete_method_call(self._client.params.delete(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params))
+        )
 
     def update(self, params: AppClientMethodCallWithCompilationAndSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_update_method_call(self._client.params.update(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_update_method_call(self._client.params.update(params))
+        )
 
     def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._algorand.send.app_call_method_call(self._client.params.close_out(params))
+        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+            lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params))
+        )
 
     def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
         is_read_only_call = (
@@ -740,15 +765,17 @@ class _AppClientSendAccessor:
                 self._client.params.call(params)
             )
 
-            simulate_response = method_call_to_simulate.simulate(
-                allow_unnamed_resources=params.populate_app_call_resources or True,
-                skip_signatures=True,
-                allow_more_logs=True,
-                allow_empty_signatures=True,
-                extra_opcode_budget=None,
-                exec_trace_config=None,
-                round=None,
-                fix_signers=None,  # TODO: double check on whether algosdk py even has this param
+            simulate_response = self._client._handle_call_errors(
+                lambda: method_call_to_simulate.simulate(
+                    allow_unnamed_resources=params.populate_app_call_resources or True,
+                    skip_signatures=True,
+                    allow_more_logs=True,
+                    allow_empty_signatures=True,
+                    extra_opcode_budget=None,
+                    exec_trace_config=None,
+                    round=None,
+                    fix_signers=None,  # TODO: double check on whether algosdk py even has this param
+                )
             )
 
             return SendAppTransactionResult(
@@ -763,7 +790,9 @@ class _AppClientSendAccessor:
                 return_value=simulate_response.returns[-1].return_value,
             )
 
-        return self._algorand.send.app_call_method_call(self._client.params.call(params))
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call_method_call(self._client.params.call(params))
+        )
 
 
 class AppClient:
@@ -914,13 +943,84 @@ class AppClient:
         )
 
         # TODO: Add invocation of persisting sourcemaps
-
         return AppClientCompilationResult(
             approval_program=compiled_approval.compiled_base64_to_bytes,
             compiled_approval=compiled_approval,
             clear_state_program=compiled_clear.compiled_base64_to_bytes,
             compiled_clear=compiled_clear,
         )
+
+    @staticmethod
+    def expose_logic_error_static(
+        e: Exception, app_spec: Arc56Contract, details: ExposedLogicErrorDetails
+    ) -> Exception:
+        """Takes an error that may include a logic error and re-exposes it with source info."""
+        source_map = details.clear_source_map if details.is_clear_state_program else details.approval_source_map
+
+        error_details = parse_logic_error(str(e))
+        if not error_details:
+            return e
+
+        # The PC value to find in the ARC56 SourceInfo
+        arc56_pc = error_details["pc"]
+
+        program_source_info = (
+            details.clear_source_info if details.is_clear_state_program else details.approval_source_info
+        )
+
+        # The offset to apply to the PC if using the cblocks pc offset method
+        cblocks_offset = 0
+
+        # If the program uses cblocks offset, then we need to adjust the PC accordingly
+        if program_source_info and program_source_info.pc_offset_method == "cblocks":
+            if not details.program:
+                raise Exception("Program bytes are required to calculate the ARC56 cblocks PC offset")
+
+            cblocks_offset = get_constant_block_offset(details.program)
+            arc56_pc = error_details["pc"] - cblocks_offset
+
+        # Find the source info for this PC and get the error message
+        source_info = None
+        if program_source_info and program_source_info.source_info:
+            source_info = next(
+                (s for s in program_source_info.source_info if isinstance(s, SourceInfoDetail) and arc56_pc in s.pc),
+                None,
+            )
+        error_message = source_info.error_message if source_info else None
+
+        # If we have the source we can display the TEAL in the error message
+        if hasattr(app_spec, "source"):
+            program_source = (
+                (app_spec.source.get("clear") if details.is_clear_state_program else app_spec.source.get("approval"))
+                if app_spec.source
+                else None
+            )
+            if program_source:
+                e = LogicError(
+                    logic_error_str=str(e),
+                    program=program_source,
+                    source_map=source_map,
+                    transaction_id=error_details["transaction_id"],
+                    message=error_details["message"],
+                    pc=error_details["pc"],
+                    logic_error=e,
+                    traces=None,
+                )
+
+        if error_message:
+            import re
+
+            app_id = re.search(r"(?<=app=)\d+", str(e))
+            tx_id = re.search(r"(?<=transaction )\S+(?=:)", str(e))
+            error = Exception(
+                f"Runtime error when executing {app_spec.name} "
+                f"(appId: {app_id.group() if app_id else ''}) in transaction "
+                f"{tx_id.group() if tx_id else ''}: {error_message}"
+            )
+            error.__cause__ = e
+            return error
+
+        return e
 
     # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
     def compile_and_persist_sourcemaps(
@@ -1006,6 +1106,63 @@ class AppClient:
 
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
         return self.send.fund_app_account(params)
+
+    def expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT001, FBT002
+        """Takes an error that may include a logic error from a call to the current app and re-exposes the
+        error to include source code information via the source map and ARC-56 spec.
+
+        Args:
+            e: The error to parse
+            is_clear_state_program: Whether the code was running the clear state program (defaults to approval program)
+
+        Returns:
+            The new error, or if there was no logic error or source map then the wrapped error with source details
+        """
+
+        # Get source info based on program type
+        source_info = None
+        if hasattr(self._app_spec, "source_info") and self._app_spec.source_info:
+            source_info = (
+                self._app_spec.source_info.get("clear")
+                if is_clear_state_program
+                else self._app_spec.source_info.get("approval")
+            )
+
+        pc_offset_method = source_info.pc_offset_method if source_info else None
+
+        program: bytes | None = None
+        if pc_offset_method == "cblocks":
+            # TODO: Cache this if we deploy the app and it's not updateable
+            app_info = self._algorand.app.get_by_id(self.app_id)
+            program = app_info.clear_state_program if is_clear_state_program else app_info.approval_program
+
+        return AppClient.expose_logic_error_static(
+            e,
+            self._app_spec,
+            ExposedLogicErrorDetails(
+                is_clear_state_program=is_clear_state_program,
+                approval_source_map=self._approval_source_map,
+                clear_source_map=self._clear_source_map,
+                program=program,
+                approval_source_info=(
+                    self._app_spec.source_info.get("approval")
+                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                    else None
+                ),
+                clear_source_info=(
+                    self._app_spec.source_info.get("clear")
+                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                    else None
+                ),
+            ),
+        )
+
+    def _handle_call_errors(self, call: Callable[[], T]) -> T:
+        """Make the given call and catch any errors, augmenting with debugging information before re-throwing."""
+        try:
+            return call()
+        except Exception as e:
+            raise self.expose_logic_error(e=e) from None
 
     def _get_sender(self, sender: str | None) -> str:
         if not sender and not self._default_sender:

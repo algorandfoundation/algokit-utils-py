@@ -1,4 +1,5 @@
 import base64
+import json
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +16,7 @@ from algokit_utils.applications.app_client import (
 from algokit_utils.applications.app_manager import AppManager, BoxReference
 from algokit_utils.applications.utils import arc32_to_arc56
 from algokit_utils.clients.algorand_client import AlgorandClient
+from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.abi import ABIType
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
@@ -118,6 +120,29 @@ def test_app_client(
             default_signer=funded_account.signer,
             app_id=testing_app_arc32_app_id,
             algorand=algorand,
+            app_spec=testing_app_arc32_app_spec,
+        )
+    )
+
+
+@pytest.fixture
+def test_app_client_with_sourcemaps(
+    algorand: AlgorandClient,
+    funded_account: Account,
+    testing_app_arc32_app_spec: ApplicationSpecification,
+    testing_app_arc32_app_id: int,
+) -> AppClient:
+    sourcemaps = json.loads(
+        (Path(__file__).parent.parent / "artifacts" / "testing_app" / "sources.teal.map.json").read_text()
+    )
+    return AppClient(
+        AppClientParams(
+            default_sender=funded_account.address,
+            default_signer=funded_account.signer,
+            app_id=testing_app_arc32_app_id,
+            algorand=algorand,
+            approval_source_map=algosdk.source_map.SourceMap(sourcemaps["approvalSourceMap"]),
+            clear_source_map=algosdk.source_map.SourceMap(sourcemaps["clearSourceMap"]),
             app_spec=testing_app_arc32_app_spec,
         )
     )
@@ -553,3 +578,14 @@ def test_abi_with_default_arg_method(
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
     assert default_value_result.return_value == "Local state, banana"
+
+
+def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:
+    with pytest.raises(LogicError) as exc_info:
+        test_app_client_with_sourcemaps.send.call(AppClientMethodCallWithSendParams(method="error"))
+
+    error = exc_info.value
+    assert error.pc == 885  # noqa: PLR2004
+    assert "assert failed pc=885" in str(error)
+    assert len(error.transaction_id) == 52  # noqa: PLR2004
+    assert error.line_no == 469  # noqa: PLR2004
