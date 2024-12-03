@@ -7,6 +7,7 @@ from algosdk.transaction import SuggestedParams, wait_for_confirmation
 from typing_extensions import Self
 
 from algokit_utils.accounts.account_manager import AccountManager
+from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
@@ -62,6 +63,9 @@ class AlgorandClient:
             asset_manager=self._asset_manager,
             app_manager=self._app_manager,
             algod_client=self._client_manager.algod,
+        )
+        self._app_deployer: AppDeployer = AppDeployer(
+            self._app_manager, self._transaction_sender, self._client_manager.indexer_if_present
         )
         self._transaction_creator = AlgorandClientTransactionCreator(
             new_group=lambda: self.new_group(),
@@ -167,9 +171,9 @@ class AlgorandClient:
         return self._app_manager
 
     @property
-    def app_deployer(self) -> AppManager:
+    def app_deployer(self) -> AppDeployer:
         """Get or create applications."""
-        return self._app_manager
+        return self._app_deployer
 
     @property
     def send(self) -> AlgorandClientTransactionSender:

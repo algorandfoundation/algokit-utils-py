@@ -19,6 +19,7 @@ class UpdatableConfig:
         trace_all (bool): Indicates whether to trace all operations.
         trace_buffer_size_mb (int): The size of the trace buffer in megabytes.
         max_search_depth (int): The maximum depth to search for a specific file.
+        populate_app_call_resources (bool): Indicates whether to populate app call resources.
     """
 
     def __init__(self) -> None:
@@ -27,6 +28,7 @@ class UpdatableConfig:
         self._trace_all: bool = False
         self._trace_buffer_size_mb: int | float = 256  # megabytes
         self._max_search_depth: int = 10
+        self._populate_app_call_resources: bool = False
         self._configure_project_root()
 
     def _configure_project_root(self) -> None:
@@ -58,6 +60,10 @@ class UpdatableConfig:
     def trace_buffer_size_mb(self) -> int | float:
         """Returns the size of the trace buffer in megabytes."""
         return self._trace_buffer_size_mb
+
+    @property
+    def populate_app_call_resource(self) -> bool:
+        return self._populate_app_call_resources
 
     def with_debug(self, func: Callable[[], str | None]) -> None:
         """Executes a function with debug mode temporarily enabled."""

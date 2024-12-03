@@ -319,6 +319,12 @@ class ResolveAppClientByNetwork:
     clear_source_map: SourceMap | None = None
 
 
+@dataclass(frozen=True, kw_only=True)
+class AppSourceMaps:
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
+
+
 class _AppClientStateMethodsProtocol(Protocol):
     def get_all(self) -> dict[str, Any]: ...
 
@@ -1058,6 +1064,22 @@ class AppClient:
                 clear_source_map=clear_source_map or self._clear_source_map,
             )
         )
+
+    def export_source_maps(self) -> AppSourceMaps:
+        if not self._approval_source_map or not self._clear_source_map:
+            raise ValueError(
+                "Unable to export source maps; they haven't been loaded into this client - "
+                "you need to call create, update, or deploy first"
+            )
+
+        return AppSourceMaps(
+            approval_source_map=self._approval_source_map,
+            clear_source_map=self._clear_source_map,
+        )
+
+    def import_source_maps(self, source_maps: AppSourceMaps) -> None:
+        self._approval_source_map = source_maps.approval_source_map
+        self._clear_source_map = source_maps.clear_source_map
 
     def get_local_state(self, address: str) -> dict[str, AppState]:
         return self._state_accessor.get_local_state(address)

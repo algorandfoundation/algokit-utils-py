@@ -22,6 +22,7 @@ from algokit_utils._debugging import simulate_and_persist_response, simulate_res
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
 from algokit_utils.models.transaction import SendParams
+from algokit_utils.transactions.utils import populate_app_call_resources
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -529,7 +530,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     max_rounds_to_wait: int | None = 5,
     skip_waiting: bool = False,
     suppress_log: bool = False,
-    populate_resources: bool | None = None,  # TODO: implement/clarify  # noqa: ARG001
+    populate_resources: bool | None = None,  # TODO: implement/clarify
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group
 
@@ -551,6 +552,14 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     try:
         # Build transactions
         transactions_with_signer = atc.build_group()
+
+        if (
+            populate_resources
+            or config.populate_app_call_resource
+            and any(isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer)
+        ):
+            atc = populate_app_call_resources(atc, algod)
+
         transactions_to_send = [t.txn for t in transactions_with_signer]
 
         # Get group ID if multiple transactions

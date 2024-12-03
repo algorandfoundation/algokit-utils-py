@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Protocol
 
 from typing_extensions import runtime_checkable
 
+from algokit_utils.applications.app_deployer import AppDeployer
+
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.indexer import IndexerClient
@@ -29,7 +31,7 @@ class AlgorandClientProtocol(Protocol):
     def app(self) -> AppManager: ...
 
     @property
-    def app_deployer(self) -> AppManager: ...
+    def app_deployer(self) -> AppDeployer: ...
 
     @property
     def send(self) -> AlgorandClientTransactionSender: ...
