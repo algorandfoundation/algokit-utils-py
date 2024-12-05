@@ -27,6 +27,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
+from typing_extensions import deprecated
 
 import algokit_utils._legacy_v2.application_specification as au_spec
 import algokit_utils._legacy_v2.deploy as au_deploy
@@ -83,6 +84,7 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
+@deprecated("Use AppClient from algokit_utils.applications instead")
 class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
@@ -1254,6 +1256,7 @@ def _try_convert_to_logic_error(
     return None
 
 
+@deprecated("Deprecated")
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",

@@ -3,10 +3,12 @@ import dataclasses
 import json
 import logging
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Literal
 
+import algosdk
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.logic import get_application_address
+from algosdk.transaction import OnComplete, Transaction
 from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils._legacy_v2.deploy import (
@@ -15,8 +17,9 @@ from algokit_utils._legacy_v2.deploy import (
     AppMetaData,
     OnSchemaBreak,
     OnUpdate,
+    OperationPerformed,
 )
-from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_manager import AppManager, TealTemplateParams
 from algokit_utils.models.abi import ABIValue
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCall,
@@ -27,7 +30,6 @@ from algokit_utils.transactions.transaction_composer import (
 )
 from algokit_utils.transactions.transaction_sender import (
     AlgorandClientTransactionSender,
-    SendAppTransactionResult,
 )
 
 APP_DEPLOY_NOTE_DAPP = "algokit_deployer"
@@ -35,11 +37,12 @@ APP_DEPLOY_NOTE_DAPP = "algokit_deployer"
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True)
 class DeployAppUpdateParams:
     """Parameters for an update transaction in app deployment"""
 
     sender: str
+    on_complete: OnComplete = OnComplete.UpdateApplicationOC
     signer: TransactionSigner | None = None
     args: list[bytes] | None = None
     note: bytes | None = None
@@ -51,11 +54,12 @@ class DeployAppUpdateParams:
     foreign_assets: list[int] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True)
 class DeployAppDeleteParams:
     """Parameters for a delete transaction in app deployment"""
 
     sender: str
+    on_complete: OnComplete = OnComplete.DeleteApplicationOC
     signer: TransactionSigner | None = None
     note: bytes | None = None
     lease: bytes | None = None
@@ -66,12 +70,12 @@ class DeployAppDeleteParams:
     foreign_assets: list[int] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True)
 class AppDeployParams:
     """Parameters for deploying an app"""
 
     metadata: AppDeployMetaData
-    deploy_time_params: dict[str, Any] | None = None
+    deploy_time_params: TealTemplateParams | None = None
     on_schema_break: Literal["replace", "fail", "append"] | OnSchemaBreak = OnSchemaBreak.Fail
     on_update: Literal["update", "replace", "fail", "append"] | OnUpdate = OnUpdate.Fail
     create_params: AppCreateParams | AppCreateMethodCall
@@ -84,16 +88,36 @@ class AppDeployParams:
     suppress_log: bool = False
 
 
-@dataclass(frozen=True)
-class AppDeploymentResult:
-    operation_performed: Literal["create", "update", "replace", "nothing"]
-    app_id: int
-    app_address: str
-    transaction: transaction.Transaction | None = None
-    confirmation: dict[str, Any] | None = None
+@dataclass(kw_only=True, frozen=True)
+class ConfirmedTransactionResult:
+    transaction: algosdk.transaction.Transaction
+    confirmation: algosdk.v2client.algod.AlgodResponseType
+    confirmations: list[algosdk.v2client.algod.AlgodResponseType] | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppDeployResult:
+    operation_performed: OperationPerformed
+
+    # Common fields from AppMetadata
+    name: str
+    version: str
+    created_round: int
+    updated_round: int
+    deleted: bool
+    created_metadata: dict
+    deletable: bool | None = None
+    updatable: bool | None = None
+
+    app_id: int | None = None
+    app_address: str | None = None
+    transaction: Transaction | None = None
+    confirmation: algosdk.v2client.algod.AlgodResponseType | None = None
+    compiled_approval: dict | None = None
+    compiled_clear: dict | None = None
     return_value: ABIValue | None = None
     delete_return: ABIValue | None = None
-    delete_result: dict[str, Any] | None = None
+    delete_result: ConfirmedTransactionResult | None = None
 
 
 class AppDeployer:
@@ -118,7 +142,7 @@ class AppDeployer:
         }
         return json.dumps(note).encode()
 
-    def deploy(self, deployment: AppDeployParams) -> AppDeploymentResult | SendAppTransactionResult:
+    def deploy(self, deployment: AppDeployParams) -> AppDeployResult:
         # Create new instances with updated notes
         note = self._create_deploy_note(deployment.metadata)
         create_params = dataclasses.replace(deployment.create_params, note=note)
@@ -217,8 +241,9 @@ class AppDeployer:
                 clear_program=clear_program,
             )
 
-        return AppDeploymentResult(
-            operation_performed="nothing",
+        return AppDeployResult(
+            **existing_app.__dict__,
+            operation_performed=OperationPerformed.Nothing,
             app_id=existing_app.app_id,
             app_address=existing_app.app_address,
         )
@@ -228,44 +253,49 @@ class AppDeployer:
         deployment: AppDeployParams,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeploymentResult:
+    ) -> AppDeployResult:
         """Create a new application"""
 
         if isinstance(deployment.create_params, AppCreateMethodCall):
-            create_params = AppCreateMethodCall(
-                **{
-                    **deployment.create_params.__dict__,
-                    "approval_program": approval_program,
-                    "clear_state_program": clear_program,
-                }
+            result = self._transaction_sender.app_create_method_call(
+                AppCreateMethodCall(
+                    **{
+                        **deployment.create_params.__dict__,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
             )
-            result = self._transaction_sender.app_create_method_call(create_params)
         else:
-            create_params = AppCreateParams(
-                **{
-                    **deployment.create_params.__dict__,
-                    "approval_program": approval_program,
-                    "clear_state_program": clear_program,
-                }
+            result = self._transaction_sender.app_create(
+                AppCreateParams(
+                    **{
+                        **deployment.create_params.__dict__,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
             )
-            result = self._transaction_sender.app_create(create_params)
 
         app_metadata = AppMetaData(
             app_id=result.app_id,
             app_address=get_application_address(result.app_id),
             **deployment.metadata.__dict__,
             created_metadata=deployment.metadata,
-            created_round=result.confirmation["confirmed-round"],
-            updated_round=result.confirmation["confirmed-round"],
+            created_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
+            updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
             deleted=False,
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
-        return AppDeploymentResult(
-            operation_performed="create",
-            app_id=result.app_id,
-            app_address=get_application_address(result.app_id),
+        app_metadata_dict = app_metadata.__dict__
+        app_metadata_dict["operation_performed"] = OperationPerformed.Create
+        app_metadata_dict["app_id"] = result.app_id
+        app_metadata_dict["app_address"] = get_application_address(result.app_id)
+
+        return AppDeployResult(
+            **app_metadata_dict,
             transaction=result.transaction,
             confirmation=result.confirmation,
             return_value=result.return_value,
@@ -277,7 +307,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeploymentResult:
+    ) -> AppDeployResult:
         if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail"):
             raise ValueError(
                 "Schema break detected and onSchemaBreak=OnSchemaBreak.Fail, stopping deployment. "
@@ -299,7 +329,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeploymentResult:
+    ) -> AppDeployResult:
         if deployment.on_update in (OnUpdate.Fail, "fail"):
             raise ValueError(
                 "Update detected and onUpdate=Fail, stopping deployment. " "Try a different onUpdate value to not fail."
@@ -328,7 +358,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeploymentResult:
+    ) -> AppDeployResult:
         composer = self._transaction_sender.new_group()
 
         # Add create transaction
@@ -383,7 +413,7 @@ class AppDeployer:
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
-        return AppDeploymentResult(
+        return AppDeployResult(
             operation_performed="replace",
             app_id=app_id,
             app_address=get_application_address(app_id),

@@ -16,7 +16,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.error import AlgodHTTPError
 from algosdk.transaction import OnComplete, Transaction
 from algosdk.v2client.algod import AlgodClient
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.app_manager import AppManager
@@ -39,12 +39,12 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class SenderParam:
     sender: str
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class CommonTxnParams(SendParams):
     """
     Common transaction parameters.
@@ -76,7 +76,7 @@ class CommonTxnParams(SendParams):
     last_valid_round: int | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class PaymentParams(
     CommonTxnParams,
 ):
@@ -93,7 +93,7 @@ class PaymentParams(
     close_remainder_to: str | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetCreateParams(
     CommonTxnParams,
 ):
@@ -129,7 +129,7 @@ class AssetCreateParams(
     metadata_hash: bytes | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetConfigParams(
     CommonTxnParams,
 ):
@@ -153,7 +153,7 @@ class AssetConfigParams(
     clawback: str | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetFreezeParams(
     CommonTxnParams,
 ):
@@ -170,7 +170,7 @@ class AssetFreezeParams(
     frozen: bool
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetDestroyParams(
     CommonTxnParams,
 ):
@@ -183,7 +183,7 @@ class AssetDestroyParams(
     asset_id: int
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class OnlineKeyRegistrationParams(
     CommonTxnParams,
 ):
@@ -209,7 +209,7 @@ class OnlineKeyRegistrationParams(
     state_proof_key: bytes | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetTransferParams(
     CommonTxnParams,
 ):
@@ -230,7 +230,7 @@ class AssetTransferParams(
     close_asset_to: str | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetOptInParams(
     CommonTxnParams,
 ):
@@ -243,7 +243,7 @@ class AssetOptInParams(
     asset_id: int
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetOptOutParams(
     CommonTxnParams,
 ):
@@ -255,7 +255,7 @@ class AssetOptOutParams(
     creator: str
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppCallParams(CommonTxnParams, SenderParam):
     """
     Application call parameters.
@@ -286,7 +286,7 @@ class AppCallParams(CommonTxnParams, SenderParam):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppCreateParams(CommonTxnParams, SenderParam):
     """
     Application create parameters.
@@ -317,7 +317,7 @@ class AppCreateParams(CommonTxnParams, SenderParam):
     extra_program_pages: int | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppUpdateParams(CommonTxnParams, SenderParam):
     """
     Application update parameters.
@@ -340,7 +340,7 @@ class AppUpdateParams(CommonTxnParams, SenderParam):
     on_complete: OnComplete | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppDeleteParams(
     CommonTxnParams,
     SenderParam,
@@ -355,7 +355,7 @@ class AppDeleteParams(
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppMethodCall(CommonTxnParams, SenderParam):
     """Base class for ABI method calls."""
 
@@ -368,7 +368,7 @@ class AppMethodCall(CommonTxnParams, SenderParam):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppMethodCallParams(CommonTxnParams, SenderParam):
     """
     Method call parameters.
@@ -389,7 +389,7 @@ class AppMethodCallParams(CommonTxnParams, SenderParam):
     box_references: list[BoxReference] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppCallMethodCall(AppMethodCall):
     """Parameters for a regular ABI method call.
 
@@ -408,7 +408,7 @@ class AppCallMethodCall(AppMethodCall):
     on_complete: OnComplete | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppCreateMethodCall(AppMethodCall):
     """Parameters for an ABI method call that creates an application.
 
@@ -426,7 +426,7 @@ class AppCreateMethodCall(AppMethodCall):
     extra_program_pages: int | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppUpdateMethodCall(AppMethodCall):
     """Parameters for an ABI method call that updates an application.
 
@@ -441,7 +441,7 @@ class AppUpdateMethodCall(AppMethodCall):
     on_complete: OnComplete = OnComplete.UpdateApplicationOC
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppDeleteMethodCall(AppMethodCall):
     """Parameters for an ABI method call that deletes an application.
 
@@ -484,7 +484,7 @@ TxnParams = Union[  # noqa: UP007
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class BuiltTransactions:
     """
     Set of transactions built by TransactionComposer.
@@ -510,7 +510,7 @@ class TransactionComposerBuildResult:
 class SendAtomicTransactionComposerResults:
     """Results from sending an AtomicTransactionComposer transaction group"""
 
-    group_id: str | None
+    group_id: str
     """The group ID if this was a transaction group"""
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
     """The confirmation info for each transaction"""
@@ -529,7 +529,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     *,
     max_rounds_to_wait: int | None = 5,
     skip_waiting: bool = False,
-    suppress_log: bool = False,
+    suppress_log: bool | None = None,
     populate_resources: bool | None = None,  # TODO: implement/clarify
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group
@@ -597,7 +597,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
 
         # Return results
         return SendAtomicTransactionComposerResults(
-            group_id=group_id,
+            group_id=group_id or "",
             confirmations=confirmations or [],
             tx_ids=[t.get_txid() for t in transactions_to_send],
             transactions=transactions_to_send,
@@ -829,7 +829,7 @@ class TransactionComposer:
 
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
-    @deprecated(reason="Use send() instead", version="3.0.0")
+    @deprecated("Use send() instead")
     def execute(
         self,
         *,
@@ -843,8 +843,8 @@ class TransactionComposer:
         self,
         *,
         max_rounds_to_wait: int | None = None,
-        suppress_log: bool = False,
-        populate_app_call_resources: bool = False,
+        suppress_log: bool | None = None,
+        populate_app_call_resources: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
         group = self.build().transactions
 
@@ -1066,6 +1066,8 @@ class TransactionComposer:
             boxes=[AppManager.get_box_reference(ref) for ref in params.box_references]
             if params.box_references
             else None,
+            approval_program=params.approval_program if isinstance(params, AppCreateMethodCall) else None,  # type: ignore[arg-type]
+            clear_program=params.clear_state_program if isinstance(params, AppCreateMethodCall) else None,  # type: ignore[arg-type]
         )
 
         return self._build_atc(method_atc)

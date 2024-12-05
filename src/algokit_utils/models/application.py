@@ -108,7 +108,7 @@ class Recommendations:
     assets: list[int] | None = None
 
 
-@dataclass(kw_only=True, frozen=True)
+@dataclass(kw_only=True)
 class Method:
     name: str
     desc: str | None = None
@@ -211,7 +211,7 @@ class Arc56Contract:
     scratch_variables: dict[str, dict[str, int | ABITypeAlias | AVMType | StructName]] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppState:
     key_raw: bytes
     key_base64: str
@@ -220,7 +220,7 @@ class AppState:
     value: str | int
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppInformation:
     app_id: int
     app_address: str
@@ -235,7 +235,7 @@ class AppInformation:
     extra_program_pages: int | None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class CompiledTeal:
     teal: str
     compiled: bytes
@@ -244,7 +244,7 @@ class CompiledTeal:
     source_map: algosdk.source_map.SourceMap | None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppCompilationResult:
     compiled_approval: CompiledTeal
     compiled_clear: CompiledTeal

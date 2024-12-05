@@ -22,20 +22,20 @@ from algokit_utils.models.application import (
 )
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class BoxName:
     name: str
     name_raw: bytes
     name_base64: str
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class BoxValue:
     name: BoxName
     value: bytes
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class BoxABIValue:
     name: BoxName
     value: ABIValue
@@ -130,7 +130,7 @@ def _find_unquoted_string(line: str, token: str, start: int = 0, end: int = -1) 
 def _replace_template_variable(program_lines: list[str], template_variable: str, value: str) -> tuple[list[str], int]:
     result: list[str] = []
     match_count = 0
-    token = f"TMPL_{template_variable}"
+    token = f"TMPL_{template_variable}" if not template_variable.startswith("TMPL_") else template_variable
     token_idx_offset = len(value) - len(token)
     for line in program_lines:
         comment_idx = _find_unquoted_string(line, "//")

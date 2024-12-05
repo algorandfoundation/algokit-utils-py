@@ -4,16 +4,26 @@ from typing import Any
 
 from algosdk.account import generate_account
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
+from algosdk.transaction import SuggestedParams
 from typing_extensions import Self
 
 from algokit_utils.account import get_dispenser_account, get_kmd_wallet_account, get_localnet_default_account
 from algokit_utils.clients.client_manager import ClientManager
+from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer
+from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class AddressAndSigner:
     address: str
     signer: TransactionSigner
+
+
+@dataclass(frozen=True, kw_only=True)
+class EnsureFundedResponse(SendSingleTransactionResult):
+    transaction_id: str
+    amount_funded: AlgoAmount
 
 
 class AccountManager:
@@ -112,9 +122,9 @@ class AccountManager:
         (sk, addr) = generate_account()
         signer = AccountTransactionSigner(sk)
 
-        self.set_signer(addr, signer)
+        self.set_signer(str(addr), signer)
 
-        return AddressAndSigner(address=addr, signer=signer)
+        return AddressAndSigner(address=str(addr), signer=signer)
 
     def dispenser(self) -> AddressAndSigner:
         """
@@ -138,3 +148,107 @@ class AccountManager:
         acct = get_localnet_default_account(self._client_manager.algod)
         self.set_signer(acct.address, acct.signer)
         return AddressAndSigner(address=acct.address, signer=acct.signer)
+
+    def ensure_funded(  # noqa: PLR0913
+        self,
+        account_fo_fund: str,
+        dispenser_account: str,
+        min_spending_balance: AlgoAmount,
+        min_funding_increment: AlgoAmount,
+        # Sender params
+        max_rounds_to_wait: int | None = None,
+        suppress_log: bool | None = None,
+        populate_app_call_resources: bool | None = None,
+        # Common txn params
+        signer: TransactionSigner | None = None,
+        rekey_to: str | None = None,
+        note: bytes | None = None,
+        lease: bytes | None = None,
+        static_fee: AlgoAmount | None = None,
+        extra_fee: AlgoAmount | None = None,
+        max_fee: AlgoAmount | None = None,
+        validity_window: int | None = None,
+        first_valid_round: int | None = None,
+        last_valid_round: int | None = None,
+    ) -> EnsureFundedResponse | None:
+        amount_funded = self._get_ensure_funded_amount(account_fo_fund, min_spending_balance, min_funding_increment)
+
+        if not amount_funded:
+            return None
+
+        result = (
+            self._get_composer()
+            .add_payment(
+                PaymentParams(
+                    sender=dispenser_account,
+                    receiver=account_fo_fund,
+                    amount=amount_funded,
+                    signer=signer,
+                    rekey_to=rekey_to,
+                    note=note,
+                    lease=lease,
+                    static_fee=static_fee,
+                    extra_fee=extra_fee,
+                    max_fee=max_fee,
+                    validity_window=validity_window,
+                    first_valid_round=first_valid_round,
+                    last_valid_round=last_valid_round,
+                )
+            )
+            .send(
+                max_rounds_to_wait=max_rounds_to_wait,
+                suppress_log=suppress_log,
+                populate_app_call_resources=populate_app_call_resources,
+            )
+        )
+
+        return EnsureFundedResponse(
+            returns=result.returns,
+            transactions=result.transactions,
+            confirmations=result.confirmations,
+            tx_ids=result.tx_ids,
+            group_id=result.group_id,
+            transaction_id=result.tx_ids[0],
+            confirmation=result.confirmations[0],
+            transaction=result.transactions[0],
+            amount_funded=amount_funded,
+        )
+
+    def _get_composer(self, get_suggested_params: Callable[[], SuggestedParams] | None = None) -> TransactionComposer:
+        if get_suggested_params is None:
+
+            def _get_suggested_params() -> SuggestedParams:
+                return self._client_manager.algod.suggested_params()
+
+            get_suggested_params = _get_suggested_params
+
+        return TransactionComposer(
+            algod=self._client_manager.algod, get_signer=self.get_signer, get_suggested_params=get_suggested_params
+        )
+
+    def _calculate_fund_amount(
+        self,
+        min_spending_balance: int,
+        current_spending_balance: int,
+        min_funding_increment: int,
+    ) -> int | None:
+        if min_spending_balance > current_spending_balance:
+            min_fund_amount = min_spending_balance - current_spending_balance
+            return max(min_fund_amount, min_funding_increment)
+        return None
+
+    def _get_ensure_funded_amount(
+        self,
+        sender: str,
+        min_spending_balance: AlgoAmount,
+        min_funding_increment: AlgoAmount | None = None,
+    ) -> AlgoAmount | None:
+        account_info = self.get_information(sender)
+        current_spending_balance = account_info["amount"] - account_info["min-balance"]
+
+        min_increment = min_funding_increment.micro_algo if min_funding_increment else 0
+        amount_funded = self._calculate_fund_amount(
+            min_spending_balance.micro_algo, current_spending_balance, min_increment
+        )
+
+        return AlgoAmount.from_micro_algo(amount_funded) if amount_funded is not None else None

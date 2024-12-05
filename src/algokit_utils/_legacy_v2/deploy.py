@@ -11,7 +11,7 @@ import algosdk
 from algosdk import transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner
 from algosdk.transaction import StateSchema
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -175,6 +175,7 @@ def _parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
         return None
 
 
+@deprecated("Deprecated")
 def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -> AppLookup:
     """Returns a mapping of Application names to {py:class}`AppMetaData` for all Applications created by specified
     creator that have a transaction note containing {py:class}`AppDeployMetaData`
@@ -255,6 +256,7 @@ class AppChanges:
     schema_change_description: str | None
 
 
+@deprecated("Deprecated")
 def check_for_app_changes(
     algod_client: "AlgodClient",
     *,
@@ -412,7 +414,7 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
             logger.warning(f"{tmpl_variable} not found in approval program, but variable was provided")
 
 
-@deprecated(reason="Use `AppManager.replace_template_variables` instead", version="3.0.0")
+@deprecated("Use `AppManager.replace_template_variables` instead")
 def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
     """Replaces `TMPL_*` variables in `program` with `template_values`
 

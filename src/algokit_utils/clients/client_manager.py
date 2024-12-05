@@ -1,12 +1,17 @@
 from dataclasses import dataclass
 
 import algosdk
+from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.kmd import KMDClient
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
+from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
+from algokit_utils.applications.app_manager import TealTemplateParams
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
+from algokit_utils.models.application import Arc56Contract
 from algokit_utils.network_clients import (
     AlgoClientConfigs,
     get_algod_client,
@@ -99,30 +104,33 @@ class ClientManager:
 
         return TestNetDispenserApiClient(auth_token=auth_token)
 
-    # def get_app_factory(
-    #     self,
-    #     app_spec: Arc56Contract | ApplicationSpecification | str,
-    #     app_name: str | None = None,
-    #     default_sender: str | None = None,
-    #     default_signer: TransactionSigner | None = None,
-    #     version: str | None = None,
-    #     updatable: bool | None = None,
-    #     deletable: bool | None = None,
-    #     deploy_time_params: TealTemplateParams | None = None,
-    # ) -> AppFactory:
-    #     return AppFactory(
-    #         AppFactoryParams(
-    #             algorand=self._algorand,
-    #             app_spec=app_spec,
-    #             app_name=app_name,
-    #             default_sender=default_sender,
-    #             default_signer=default_signer,
-    #             version=version,
-    #             updatable=updatable,
-    #             deletable=deletable,
-    #             deploy_time_params=deploy_time_params,
-    #         )
-    #     )
+    def get_app_factory(
+        self,
+        app_spec: Arc56Contract | ApplicationSpecification | str,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        version: str | None = None,
+        updatable: bool | None = None,
+        deletable: bool | None = None,
+        deploy_time_params: TealTemplateParams | None = None,
+    ) -> AppFactory:
+        if not self._algorand:
+            raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
+
+        return AppFactory(
+            AppFactoryParams(
+                algorand=self._algorand,
+                app_spec=app_spec,
+                app_name=app_name,
+                default_sender=default_sender,
+                default_signer=default_signer,
+                version=version,
+                updatable=updatable,
+                deletable=deletable,
+                deploy_time_params=deploy_time_params,
+            )
+        )
 
     @staticmethod
     def genesis_id_is_local_net(genesis_id: str) -> bool:

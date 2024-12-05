@@ -127,14 +127,14 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     return max(bytecblock_offset or 0, intcblock_offset or 0)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientCompilationParams:
     deploy_time_params: TealTemplateParams | None = None
     updatable: bool | None = None
     deletable: bool | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ExposedLogicErrorDetails:
     is_clear_state_program: bool = False
     approval_source_map: SourceMap | None = None
@@ -145,20 +145,14 @@ class ExposedLogicErrorDetails:
 
 
 @dataclass(kw_only=True, frozen=True)
-class _AppClientParamsBase:
-    """Base parameters for creating an app client"""
+class AppClientParams:
+    """Full parameters for creating an app client"""
 
-    app_id: int
     app_spec: (
         Arc56Contract | ApplicationSpecification | str
     )  # Using string quotes since these types may be defined elsewhere
     algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppClientParams(_AppClientParamsBase):
-    """Full parameters for creating an app client"""
-
+    app_id: int
     app_name: str | None = None
     default_sender: str | bytes | None = None  # Address can be string or bytes
     default_signer: TransactionSigner | None = None
@@ -166,7 +160,7 @@ class AppClientParams(_AppClientParamsBase):
     clear_source_map: SourceMap | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientCompilationResult:
     approval_program: bytes
     clear_state_program: bytes
@@ -174,7 +168,7 @@ class AppClientCompilationResult:
     compiled_clear: CompiledTeal | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class CommonTxnParams:
     sender: str
     signer: TransactionSigner | None = None
@@ -189,7 +183,7 @@ class CommonTxnParams:
     last_valid_round: int | None = None
 
 
-@dataclass(kw_only=True, frozen=True)
+@dataclass(kw_only=True)
 class FundAppAccountParams:
     sender: str | None = None
     signer: TransactionSigner | None = None
@@ -210,7 +204,7 @@ class FundAppAccountParams:
     on_complete: algosdk.transaction.OnComplete | None = None
 
 
-@dataclass(kw_only=True, frozen=True)
+@dataclass(kw_only=True)
 class AppClientCallParams:
     method: str | None = None  # If calling ABI method, name or signature
     args: list | None = None  # Arguments to pass to the method
@@ -224,7 +218,7 @@ class AppClientCallParams:
     send_params: dict | None = None  # Parameters to control transaction sending
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallParams:
     method: str
     args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
@@ -246,69 +240,69 @@ class AppClientMethodCallParams:
     on_complete: algosdk.transaction.OnComplete | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithCompilationParams(AppClientMethodCallParams, AppClientCompilationParams):
     """Combined parameters for method calls with compilation"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithSendParams(AppClientMethodCallParams, SendParams):
     """Combined parameters for method calls with send options"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithCompilationAndSendParams(
     AppClientMethodCallParams, AppClientCompilationParams, SendParams
 ):
     """Combined parameters for method calls with compilation and send options"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientBareCallParams:
-    signer: TransactionSigner | None
-    rekey_to: str | None
-    lease: bytes | None
-    static_fee: AlgoAmount | None
-    extra_fee: AlgoAmount | None
-    max_fee: AlgoAmount | None
-    validity_window: int | None
-    first_valid_round: int | None
-    last_valid_round: int | None
-    sender: str | None
-    note: bytes | None
-    args: list[bytes] | None
-    account_references: list[str] | None
-    app_references: list[int] | None
-    asset_references: list[int] | None
-    box_references: list[BoxReference | BoxIdentifier] | None
+    signer: TransactionSigner | None = None
+    rekey_to: str | None = None
+    lease: bytes | None = None
+    static_fee: AlgoAmount | None = None
+    extra_fee: AlgoAmount | None = None
+    max_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+    sender: str | None = None
+    note: bytes | None = None
+    args: list[bytes] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class CallOnComplete:
     on_complete: algosdk.transaction.OnComplete
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCompilationParams(AppClientBareCallParams, AppClientCompilationParams):
     """Combined parameters for bare calls with compilation"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithSendParams(AppClientBareCallParams, SendParams):
     """Combined parameters for bare calls with send options"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, AppClientCompilationParams, SendParams):
     """Combined parameters for bare calls with compilation and send options"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams, CallOnComplete):
     """Combined parameters for bare calls with an OnComplete value"""
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class ResolveAppClientByNetwork:
     app_spec: Arc56Contract | ApplicationSpecification | str
     algorand: AlgorandClientProtocol
@@ -319,7 +313,7 @@ class ResolveAppClientByNetwork:
     clear_source_map: SourceMap | None = None
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True, frozen=True)
 class AppSourceMaps:
     approval_source_map: SourceMap | None = None
     clear_source_map: SourceMap | None = None
@@ -785,7 +779,6 @@ class _AppClientSendAccessor:
             )
 
             return SendAppTransactionResult(
-                tx_id=simulate_response.tx_ids[-1],
                 tx_ids=simulate_response.tx_ids,
                 transactions=simulate_response.transactions,
                 transaction=simulate_response.transactions[-1],
@@ -921,6 +914,12 @@ class AppClient:
         updatable: bool | None = None,
         deletable: bool | None = None,
     ) -> AppClientCompilationResult:
+        def is_base64(s: str) -> bool:
+            try:
+                return base64.b64encode(base64.b64decode(s)).decode() == s
+            except Exception:
+                return False
+
         if not app_spec.source:
             if not app_spec.byte_code or not app_spec.byte_code.get("approval") or not app_spec.byte_code.get("clear"):
                 raise ValueError(f"Attempt to compile app {app_spec.name} without source or byte_code")
@@ -930,19 +929,24 @@ class AppClient:
                 clear_state_program=base64.b64decode(app_spec.byte_code.get("clear", "")),
             )
 
-        approval_template: str = base64.b64decode(app_spec.source.get("approval", "")).decode("utf-8")  # type: ignore[assignment]
-        deployment_metadata = (
-            {"updatable": updatable or False, "deletable": deletable or False}
-            if updatable is not None or deletable is not None
-            else None
+        approval_source = app_spec.source.get("approval", "")
+        approval_template: str = (
+            base64.b64decode(approval_source).decode("utf-8") if is_base64(approval_source) else approval_source
         )
         compiled_approval = app_manager.compile_teal_template(
             approval_template,
             template_params=deploy_time_params,
-            deployment_metadata=deployment_metadata,
+            deployment_metadata=(
+                {"updatable": updatable or False, "deletable": deletable or False}
+                if updatable is not None or deletable is not None
+                else None
+            ),
         )
 
-        clear_template: str = base64.b64decode(app_spec.source.get("clear", "")).decode("utf-8")  # type: ignore[assignment]
+        clear_source = app_spec.source.get("clear", "")
+        clear_template: str = (
+            base64.b64decode(clear_source).decode("utf-8") if is_base64(clear_source) else clear_source
+        )
         compiled_clear = app_manager.compile_teal_template(
             clear_template,
             template_params=deploy_time_params,

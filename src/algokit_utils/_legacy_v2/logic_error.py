@@ -2,7 +2,7 @@ import re
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
 
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2.models import SimulationTrace
 
@@ -39,7 +39,7 @@ def parse_logic_error(
     }
 
 
-@deprecated(reason="Use algokit_utils.models.error.LogicError instead", version="3.0.0")
+@deprecated("Use algokit_utils.models.error.LogicError instead")
 class LogicError(Exception):
     def __init__(
         self,
