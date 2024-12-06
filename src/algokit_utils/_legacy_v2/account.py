@@ -35,7 +35,7 @@ _DEFAULT_ACCOUNT_MINIMUM_BALANCE = 1_000_000_000
 def get_account_from_mnemonic(mnemonic: str) -> Account:
     """Convert a mnemonic (25 word passphrase) into an Account"""
     private_key = to_private_key(mnemonic)
-    address = address_from_private_key(private_key)
+    address = str(address_from_private_key(private_key))
     return Account(private_key=private_key, address=address)
 
 

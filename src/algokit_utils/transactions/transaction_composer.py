@@ -352,6 +352,11 @@ class AppDeleteParams(
     """
 
     app_id: int
+    args: list[bytes] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    box_references: list[BoxReference] | None = None
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
 
 
@@ -1066,8 +1071,8 @@ class TransactionComposer:
             boxes=[AppManager.get_box_reference(ref) for ref in params.box_references]
             if params.box_references
             else None,
-            approval_program=params.approval_program if isinstance(params, AppCreateMethodCall) else None,  # type: ignore[arg-type]
-            clear_program=params.clear_state_program if isinstance(params, AppCreateMethodCall) else None,  # type: ignore[arg-type]
+            approval_program=params.approval_program if hasattr(params, "approval_program") else None,  # type: ignore[arg-type]
+            clear_program=params.clear_state_program if hasattr(params, "clear_state_program") else None,  # type: ignore[arg-type]
         )
 
         return self._build_atc(method_atc)
@@ -1236,10 +1241,10 @@ class TransactionComposer:
 
     def _build_app_call(
         self,
-        params: AppCallParams | AppUpdateParams | AppCreateParams,
+        params: AppCallParams | AppUpdateParams | AppCreateParams | AppDeleteParams,
         suggested_params: algosdk.transaction.SuggestedParams,
     ) -> algosdk.transaction.Transaction:
-        app_id = params.app_id if isinstance(params, AppCallParams | AppUpdateMethodCall) else None
+        app_id = params.app_id if hasattr(params, "app_id") and params.app_id else 0  # type: ignore[]
 
         approval_program = None
         clear_program = None
@@ -1399,7 +1404,7 @@ class TransactionComposer:
             case AssetCreateParams():
                 asset_create = self._build_asset_create(txn, suggested_params)
                 return [TransactionWithSigner(txn=asset_create, signer=signer)]
-            case AppCallParams() | AppUpdateParams() | AppCreateParams():
+            case AppCallParams() | AppUpdateParams() | AppCreateParams() | AppDeleteParams():
                 app_call = self._build_app_call(txn, suggested_params)
                 return [TransactionWithSigner(txn=app_call, signer=signer)]
             case AssetConfigParams():

@@ -1,7 +1,6 @@
 import base64
 import dataclasses
 import json
-import logging
 from dataclasses import dataclass
 from typing import Literal
 
@@ -19,7 +18,8 @@ from algokit_utils._legacy_v2.deploy import (
     OnUpdate,
     OperationPerformed,
 )
-from algokit_utils.applications.app_manager import AppManager, TealTemplateParams
+from algokit_utils.applications.app_manager import AppManager, BoxReference, TealTemplateParams
+from algokit_utils.config import config
 from algokit_utils.models.abi import ABIValue
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCall,
@@ -27,6 +27,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppDeleteMethodCall,
     AppDeleteParams,
     AppUpdateMethodCall,
+    AppUpdateParams,
 )
 from algokit_utils.transactions.transaction_sender import (
     AlgorandClientTransactionSender,
@@ -34,7 +35,7 @@ from algokit_utils.transactions.transaction_sender import (
 
 APP_DEPLOY_NOTE_DAPP = "algokit_deployer"
 
-logger = logging.getLogger(__name__)
+logger = config.logger
 
 
 @dataclass(kw_only=True)
@@ -48,10 +49,10 @@ class DeployAppUpdateParams:
     note: bytes | None = None
     lease: bytes | None = None
     rekey_to: str | None = None
-    boxes: list[tuple[int, bytes]] | None = None
-    accounts: list[str] | None = None
-    foreign_apps: list[int] | None = None
-    foreign_assets: list[int] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    box_references: list[BoxReference] | None = None
 
 
 @dataclass(kw_only=True)
@@ -64,10 +65,10 @@ class DeployAppDeleteParams:
     note: bytes | None = None
     lease: bytes | None = None
     rekey_to: str | None = None
-    boxes: list[tuple[int, bytes]] | None = None
-    accounts: list[str] | None = None
-    foreign_apps: list[int] | None = None
-    foreign_assets: list[int] | None = None
+    account_references: list[str] | None = None
+    app_references: list[int] | None = None
+    asset_references: list[int] | None = None
+    box_references: list[BoxReference] | None = None
 
 
 @dataclass(kw_only=True)
@@ -144,6 +145,14 @@ class AppDeployer:
 
     def deploy(self, deployment: AppDeployParams) -> AppDeployResult:
         # Create new instances with updated notes
+        logger.info(
+            f"Idempotently deploying app \"{deployment.metadata.name}\" from creator "
+            f"{deployment.create_params.sender} using {len(deployment.create_params.approval_program)} bytes of "
+            f"{'teal code' if isinstance(deployment.create_params.approval_program, str) else 'AVM bytecode'} and "
+            f"{len(deployment.create_params.clear_state_program)} bytes of "
+            f"{'teal code' if isinstance(deployment.create_params.clear_state_program, str) else 'AVM bytecode'}",
+            suppress_log=deployment.suppress_log,
+        )
         note = self._create_deploy_note(deployment.metadata)
         create_params = dataclasses.replace(deployment.create_params, note=note)
         update_params = dataclasses.replace(deployment.update_params, note=note)
@@ -226,6 +235,20 @@ class AppDeployer:
         )
 
         if is_schema_break:
+            logger.warning(
+                f"Detected a breaking app schema change in app {existing_app.app_id}:",
+                extra={
+                    "from": {
+                        "global_ints": existing_app_record.global_ints,
+                        "global_byte_slices": existing_app_record.global_byte_slices,
+                        "local_ints": existing_app_record.local_ints,
+                        "local_byte_slices": existing_app_record.local_byte_slices,
+                    },
+                    "to": deployment.create_params.schema,
+                },
+                suppress_log=deployment.suppress_log,
+            )
+
             return self._handle_schema_break(
                 deployment=deployment,
                 existing_app=existing_app,
@@ -427,6 +450,58 @@ class AppDeployer:
             },
         )
 
+    def _update_app(
+        self,
+        deployment: AppDeployParams,
+        existing_app: AppMetaData,
+        approval_program: bytes,
+        clear_program: bytes,
+    ) -> AppDeployResult:
+        """Update an existing application"""
+
+        if isinstance(deployment.update_params, AppUpdateMethodCall):
+            result = self._transaction_sender.app_update_method_call(
+                AppUpdateMethodCall(
+                    **{
+                        **deployment.update_params.__dict__,
+                        "app_id": existing_app.app_id,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
+            )
+        else:
+            result = self._transaction_sender.app_update(
+                AppUpdateParams(
+                    **{
+                        **deployment.update_params.__dict__,
+                        "app_id": existing_app.app_id,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
+            )
+
+        app_metadata = AppMetaData(
+            app_id=existing_app.app_id,
+            app_address=existing_app.app_address,
+            created_metadata=existing_app.created_metadata,
+            created_round=existing_app.created_round,
+            updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
+            **deployment.metadata.__dict__,
+            deleted=False,
+        )
+
+        self._update_app_lookup(deployment.create_params.sender, app_metadata)
+
+        return AppDeployResult(
+            **app_metadata.__dict__,
+            operation_performed=OperationPerformed.Update,
+            transaction=result.transaction,
+            confirmation=result.confirmation,
+            return_value=result.return_value,
+        )
+
     def _update_app_lookup(self, sender: str, app_metadata: AppMetaData) -> None:
         """Update the app lookup cache"""
 
@@ -492,7 +567,9 @@ class AppDeployer:
                         deleted=app.get("deleted", False),
                     )
             except Exception as e:
-                logger.warning(f"Error processing app {app_id} for creator {creator_address}: {e}")
+                logger.warning(
+                    f"Error processing app {app_id} for creator {creator_address}: {e}",
+                )
                 continue
 
         lookup = AppLookup(creator=creator_address, apps=app_lookup)

@@ -332,14 +332,13 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         Converts method configuration into a list of on-complete action literals.
 
         Args:
-            call_config (MethodConfigDict): Configuration dictionary for method actions.
+            call_config (CallConfig | MethodConfigDict): Configuration dictionary or CallConfig object for method actions.
             action_type (Literal["CREATE", "CALL"]): The type of action to convert.
 
         Returns:
-            List[Literal['NoOp', 'OptIn', 'DeleteApplication']]: A list of on-complete action literals.
+            List[OnCompleteAction]: A list of on-complete action literals.
         """
-
-        config_action_map: dict[str, OnCompleteAction] = {
+        config_action_map = {
             "no_op": "NoOp",
             "opt_in": "OptIn",
             "close_out": "CloseOut",
@@ -348,11 +347,15 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
             "delete_application": "DeleteApplication",
         }
 
-        return [
-            action
-            for key, action in config_action_map.items()
-            if hasattr(call_config, key) and getattr(call_config, key) in ("ALL", action_type)
-        ]
+        def get_action_value(key: str) -> str | None:
+            if isinstance(call_config, dict):
+                config_value = call_config.get(key)  # type: ignore[call-overload]
+                # Handle legacy CallConfig enum
+                return config_value.name if hasattr(config_value, "name") else config_value  # type: ignore[no-any-return]
+            # Handle new CallConfig dataclass
+            return getattr(call_config, key, None)
+
+        return [action for key, action in config_action_map.items() if get_action_value(key) in ("ALL", action_type)]  # type: ignore  # noqa: PGH003
 
     # Convert structs
     structs = convert_structs()

@@ -214,22 +214,20 @@ class _AppFactoryParamsAccessor:
         )
 
     def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCall:
-        return AppUpdateMethodCall(
-            **params.__dict__,
-            sender=self._factory._get_sender(params.sender),
-            method=get_arc56_method(params.method, self._factory._app_spec),
-            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-            on_complete=OnComplete.UpdateApplicationOC,
-        )
+        params_dict = params.__dict__
+        params_dict["sender"] = self._factory._get_sender(params.sender)
+        params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
+        params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
+        params_dict["on_complete"] = OnComplete.UpdateApplicationOC
+        return AppUpdateMethodCall(**params.__dict__, app_id=0, approval_program="", clear_state_program="")
 
     def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCall:
-        return AppDeleteMethodCall(
-            **params.__dict__,
-            sender=self._factory._get_sender(params.sender),
-            method=get_arc56_method(params.method, self._factory._app_spec),
-            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-            on_complete=OnComplete.DeleteApplicationOC,
-        )
+        params_dict = params.__dict__
+        params_dict["sender"] = self._factory._get_sender(params.sender)
+        params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
+        params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
+        params_dict["on_complete"] = OnComplete.DeleteApplicationOC
+        return AppDeleteMethodCall(**params_dict, app_id=0)
 
 
 class _AppFactoryBareCreateTransactionAccessor:

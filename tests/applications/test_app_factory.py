@@ -1,8 +1,9 @@
 from pathlib import Path
 
+import algosdk
 import pytest
 from algosdk.logic import get_application_address
-from algosdk.transaction import ApplicationCreateTxn, OnComplete
+from algosdk.transaction import ApplicationCallTxn, ApplicationCreateTxn, OnComplete
 
 from algokit_utils._legacy_v2.deploy import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import AppClientMethodCallParams
@@ -56,7 +57,7 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
     random_account = algorand.account.random()
     dispenser_account = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        account_fo_fund=random_account.address,
+        account_fo_fund=random_account,
         dispenser_account=dispenser_account.address,
         min_spending_balance=AlgoAmount.from_algo(10),
         min_funding_increment=AlgoAmount.from_algo(1),
@@ -136,3 +137,82 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     assert result.app_id > 0
     assert app_client.app_id == result.app_id == result.confirmation["application-index"]  # type: ignore[call-overload]
     assert app_client.app_address == get_application_address(app_client.app_id)
+
+
+def test_deploy_app_update(factory: AppFactory) -> None:
+    _, created_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 1,
+        },
+        updatable=True,
+    )
+
+    _, updated_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 2,
+        },
+        on_update=OnUpdate.UpdateApp,
+    )
+
+    assert updated_app.operation_performed == OperationPerformed.Update
+    assert created_app.app_id == updated_app.app_id
+    assert created_app.app_address == updated_app.app_address
+    assert created_app.confirmation
+    assert created_app.updatable
+    assert created_app.updatable == updated_app.updatable
+    assert created_app.updated_round != updated_app.updated_round
+    assert created_app.created_round == updated_app.created_round
+    assert updated_app.updated_round == updated_app.confirmation["confirmed-round"]  # type: ignore[call-overload]
+
+
+def test_deploy_app_update_abi(factory: AppFactory) -> None:
+    _, created_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 1,
+        },
+        updatable=True,
+    )
+
+    _, updated_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 2,
+        },
+        on_update=OnUpdate.UpdateApp,
+        update_params=AppClientMethodCallParams(method="update_abi", args=["args_io"]),
+    )
+
+    assert updated_app.operation_performed == OperationPerformed.Update
+    assert updated_app.app_id == created_app.app_id
+    assert updated_app.app_address == created_app.app_address
+    assert updated_app.confirmation is not None
+    assert updated_app.created_round == created_app.created_round
+    assert updated_app.updated_round != updated_app.created_round
+    assert updated_app.updated_round == updated_app.confirmation["confirmed-round"]  # type: ignore[call-overload]
+    assert isinstance(updated_app.transaction, ApplicationCallTxn)
+    assert updated_app.transaction.on_complete == OnComplete.UpdateApplicationOC  # type: ignore[union-attr]
+    assert updated_app.return_value == "args_io"
+
+
+def test_deploy_app_replace(factory: AppFactory) -> None:
+    _, created_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 1,
+        },
+        deletable=True,
+    )
+
+    _, replaced_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 2,
+        },
+        on_update=OnUpdate.ReplaceApp,
+    )
+
+    assert replaced_app.operation_performed == OperationPerformed.Replace
+    assert replaced_app.app_id > created_app.app_id
+    assert replaced_app.app_address == algosdk.logic.get_application_address(replaced_app.app_id)
+    assert replaced_app.confirmation is not None
+    assert replaced_app.delete_return is not None
+    assert replaced_app.delete_return.confirmation is not None
+    assert replaced_app.delete_return.transaction.application_id == created_app.app_id  # type: ignore[union-attr]
+    assert replaced_app.delete_return.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]

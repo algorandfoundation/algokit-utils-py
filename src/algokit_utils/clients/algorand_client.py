@@ -11,14 +11,7 @@ from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
-from algokit_utils.network_clients import (
-    AlgoClientConfigs,
-    get_algod_client,
-    get_algonode_config,
-    get_default_localnet_config,
-    get_indexer_client,
-    get_kmd_client,
-)
+from algokit_utils.models.network import AlgoClientConfigs
 from algokit_utils.transactions.transaction_composer import (
     AppCallParams,
     AppMethodCallParams,
@@ -200,9 +193,9 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config=get_default_localnet_config("algod"),
-                indexer_config=get_default_localnet_config("indexer"),
-                kmd_config=get_default_localnet_config("kmd"),
+                algod_config=ClientManager.get_default_local_net_config("algod"),
+                indexer_config=ClientManager.get_default_local_net_config("indexer"),
+                kmd_config=ClientManager.get_default_local_net_config("kmd"),
             )
         )
 
@@ -215,8 +208,8 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config=get_algonode_config("testnet", "algod", ""),
-                indexer_config=get_algonode_config("testnet", "indexer", ""),
+                algod_config=ClientManager.get_algonode_config("testnet", "algod"),
+                indexer_config=ClientManager.get_algonode_config("testnet", "indexer"),
                 kmd_config=None,
             )
         )
@@ -230,8 +223,8 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config=get_algonode_config("mainnet", "algod", ""),
-                indexer_config=get_algonode_config("mainnet", "indexer", ""),
+                algod_config=ClientManager.get_algonode_config("mainnet", "algod"),
+                indexer_config=ClientManager.get_algonode_config("mainnet", "indexer"),
                 kmd_config=None,
             )
         )
@@ -257,13 +250,7 @@ class AlgorandClient:
 
         :return: The `AlgorandClient`
         """
-        return AlgorandClient(
-            AlgoSdkClients(
-                algod=get_algod_client(),
-                kmd=get_kmd_client(),
-                indexer=get_indexer_client(),
-            )
-        )
+        return AlgorandClient(ClientManager.get_config_from_environment_or_localnet())
 
     @staticmethod
     def from_config(config: AlgoClientConfigs) -> "AlgorandClient":

@@ -2,12 +2,53 @@ import logging
 import os
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 # Environment variable to override the project root
 ALGOKIT_PROJECT_ROOT = os.getenv("ALGOKIT_PROJECT_ROOT")
 ALGOKIT_CONFIG_FILENAME = ".algokit.toml"
+
+
+class AlgoKitLogger:
+    def __init__(self) -> None:
+        self._logger = logging.getLogger("algokit")
+        self._setup_logger()
+
+    def _setup_logger(self) -> None:
+        formatter = logging.Formatter("%(levelname)s: %(message)s")
+        handler = logging.StreamHandler()
+        handler.setFormatter(formatter)
+        self._logger.addHandler(handler)
+        self._logger.setLevel(logging.INFO)
+
+    def _get_logger(self, *, suppress_log: bool = False) -> logging.Logger:
+        if suppress_log:
+            null_logger = logging.getLogger("null")
+            null_logger.addHandler(logging.NullHandler())
+            return null_logger
+        return self._logger
+
+    def error(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log an error message, optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).error(message, *args, **kwargs)
+
+    def warning(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log a warning message, optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).warning(message, *args, **kwargs)
+
+    def info(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log an info message, optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).info(message, *args, **kwargs)
+
+    def debug(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log a debug message, optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).debug(message, *args, **kwargs)
+
+    def verbose(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log a verbose message (maps to debug), optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).debug(message, *args, **kwargs)
 
 
 class UpdatableConfig:
@@ -23,6 +64,7 @@ class UpdatableConfig:
     """
 
     def __init__(self) -> None:
+        self._logger = AlgoKitLogger()
         self._debug: bool = False
         self._project_root: Path | None = None
         self._trace_all: bool = False
@@ -35,11 +77,15 @@ class UpdatableConfig:
         """Configures the project root by searching for a specific file within a depth limit."""
         current_path = Path(__file__).resolve()
         for _ in range(self._max_search_depth):
-            logger.debug(f"Searching in: {current_path}")
+            self.logger.debug(f"Searching in: {current_path}")
             if (current_path / ALGOKIT_CONFIG_FILENAME).exists():
                 self._project_root = current_path
                 break
             current_path = current_path.parent
+
+    @property
+    def logger(self) -> AlgoKitLogger:
+        return self._logger
 
     @property
     def debug(self) -> bool:
