@@ -2,12 +2,12 @@ import base64
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Any, TypeAlias
+from typing import Any, TypeAlias, cast
 
 import algosdk
 import algosdk.atomic_transaction_composer
 import algosdk.box_reference
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
+from algosdk.atomic_transaction_composer import ABIResult, AccountTransactionSigner
 from algosdk.box_reference import BoxReference as AlgosdkBoxReference
 from algosdk.logic import get_application_address
 from algosdk.v2client import algod
@@ -266,7 +266,9 @@ class AppManager:
         elif isinstance(box_id, bytes):
             name = box_id
         elif isinstance(box_id, AccountTransactionSigner):
-            name = algosdk.encoding.decode_address(algosdk.account.address_from_private_key(box_id.private_key))
+            name = cast(
+                bytes, algosdk.encoding.decode_address(algosdk.account.address_from_private_key(box_id.private_key))
+            )
         else:
             raise ValueError(f"Invalid box identifier type: {type(box_id)}")
 
@@ -275,7 +277,7 @@ class AppManager:
     @staticmethod
     def get_abi_return(
         confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None
-    ) -> ABIValue | None:
+    ) -> ABIResult | None:
         """Get the ABI return value from a transaction confirmation."""
         if not method:
             return None
@@ -291,7 +293,7 @@ class AppManager:
         if not abi_result:
             return None
 
-        return abi_result.return_value  # type: ignore[no-any-return]
+        return abi_result
 
     @staticmethod
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
@@ -350,7 +352,7 @@ class AppManager:
         return "\n".join(program_lines)
 
     @staticmethod
-    def replace_teal_template_deploy_time_control_params(teal_template_code: str, params: dict[str, bool]) -> str:
+    def replace_teal_template_deploy_time_control_params(teal_template_code: str, params: Mapping[str, bool]) -> str:
         if params.get("updatable") is not None:
             if UPDATABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(

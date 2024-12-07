@@ -18,18 +18,11 @@ from algokit_utils import (
     ApplicationSpecification,
     EnsureBalanceParameters,
     ensure_funded,
-    get_account,
-    get_algod_client,
-    get_indexer_client,
-    get_kmd_client_from_algod_client,
     replace_template_variables,
 )
-from legacy_v2_tests import app_client_test
 
 if TYPE_CHECKING:
-    from algosdk.kmd import KMDClient
     from algosdk.v2client.algod import AlgodClient
-    from algosdk.v2client.indexer import IndexerClient
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -125,41 +118,6 @@ def is_opted_in(client_fixture: ApplicationClient) -> bool:
     assert isinstance(account_info, dict)
     apps_local_state = account_info["apps-local-state"]
     return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
-
-
-@pytest.fixture(scope="session")
-def algod_client() -> "AlgodClient":
-    return get_algod_client()
-
-
-@pytest.fixture(scope="session")
-def kmd_client(algod_client: "AlgodClient") -> "KMDClient":
-    return get_kmd_client_from_algod_client(algod_client)
-
-
-@pytest.fixture(scope="session")
-def indexer_client() -> "IndexerClient":
-    return get_indexer_client()
-
-
-@pytest.fixture
-def creator(algod_client: "AlgodClient") -> Account:
-    creator_name = get_unique_name()
-    return get_account(algod_client, creator_name)
-
-
-@pytest.fixture(scope="session")
-def funded_account(algod_client: "AlgodClient") -> Account:
-    creator_name = get_unique_name()
-    return get_account(algod_client, creator_name)
-
-
-@pytest.fixture(scope="session")
-def app_spec() -> ApplicationSpecification:
-    app_spec = app_client_test.app.build()
-    path = Path(__file__).parent.parent / "legacy_hello_world" / "app_client_test.json"
-    path.write_text(app_spec.to_json())
-    return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
 
 
 def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int | None) -> int:

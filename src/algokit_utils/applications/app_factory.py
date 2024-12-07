@@ -6,7 +6,7 @@ from typing import Any, TypeGuard, TypeVar
 import algosdk
 from algosdk import transaction
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import TransactionSigner
+from algosdk.atomic_transaction_composer import ABIResult, TransactionSigner
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 
@@ -22,7 +22,12 @@ from algokit_utils.applications.app_client import (
     AppSourceMaps,
     ExposedLogicErrorDetails,
 )
-from algokit_utils.applications.app_deployer import AppDeployParams, DeployAppDeleteParams, DeployAppUpdateParams
+from algokit_utils.applications.app_deployer import (
+    AppDeployParams,
+    ConfirmedTransactionResult,
+    DeployAppDeleteParams,
+    DeployAppUpdateParams,
+)
 from algokit_utils.applications.app_manager import TealTemplateParams
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
@@ -30,6 +35,7 @@ from algokit_utils.applications.utils import (
     get_arc56_method,
     get_arc56_return_value,
 )
+from algokit_utils.models.abi import ABIStruct, ABIValue
 from algokit_utils.models.application import (
     DELETABLE_TEMPLATE_NAME,
     UPDATABLE_TEMPLATE_NAME,
@@ -47,7 +53,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppUpdateMethodCall,
     BuiltTransactions,
 )
-from algokit_utils.transactions.transaction_sender import SendAppTransactionResult
+from algokit_utils.transactions.transaction_sender import SendAppCreateTransactionResult, SendAppTransactionResult
 
 T = TypeVar("T")
 
@@ -119,11 +125,12 @@ class AppFactoryDeployResult:
     created_round: int
     deletable: bool
     deleted: bool
-    delete_return: Any | None = None
+    delete_return_value: ABIValue | ABIStruct | None = None
+    delete_result: ConfirmedTransactionResult | None = None
     group_id: str | None = None
     name: str
     operation_performed: OperationPerformed
-    return_value: Any | None = None
+    return_value: ABIValue | ABIStruct | None = None
     returns: list[Any] | None = None
     transaction: Transaction
     transactions: list[Transaction]
@@ -142,7 +149,7 @@ class _AppFactoryBareParamsAccessor:
     def create(self, params: AppFactoryCreateParams | None = None) -> AppCreateParams:
         create_args = {}
         if params:
-            create_args = {**params.__dict__}
+            create_args = {**params.__dict__.copy()}
             del create_args["schema"]
             del create_args["sender"]
             del create_args["on_complete"]
@@ -214,15 +221,15 @@ class _AppFactoryParamsAccessor:
         )
 
     def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCall:
-        params_dict = params.__dict__
+        params_dict = params.__dict__.copy()
         params_dict["sender"] = self._factory._get_sender(params.sender)
         params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
         params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
         params_dict["on_complete"] = OnComplete.UpdateApplicationOC
-        return AppUpdateMethodCall(**params.__dict__, app_id=0, approval_program="", clear_state_program="")
+        return AppUpdateMethodCall(**params_dict, app_id=0, approval_program="", clear_state_program="")
 
     def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCall:
-        params_dict = params.__dict__
+        params_dict = params.__dict__.copy()
         params_dict["sender"] = self._factory._get_sender(params.sender)
         params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
         params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
@@ -311,7 +318,7 @@ class _AppFactorySendAccessor:
     def bare(self) -> _AppFactoryBareSendAccessor:
         return self._bare
 
-    def create(self, params: AppFactoryCreateMethodCallParams) -> tuple[AppClient, AppFactoryDeployResult]:
+    def create(self, params: AppFactoryCreateMethodCallParams) -> tuple[AppClient, SendAppCreateTransactionResult]:
         updatable = params.updatable if params.updatable is not None else self._factory._updatable
         deletable = params.deletable if params.deletable is not None else self._factory._deletable
         deploy_time_params = (
@@ -326,16 +333,13 @@ class _AppFactorySendAccessor:
             )
         )
 
+        create_params_dict = params.__dict__.copy()
+        create_params_dict["updatable"] = updatable
+        create_params_dict["deletable"] = deletable
+        create_params_dict["deploy_time_params"] = deploy_time_params
         result = self._factory._handle_call_errors(
             lambda: self._algorand.send.app_create_method_call(
-                self._factory.params.create(
-                    AppFactoryCreateMethodCallParams(
-                        **params.__dict__,
-                        updatable=updatable,
-                        deletable=deletable,
-                        deploy_time_params=deploy_time_params,
-                    )
-                )
+                self._factory.params.create(AppFactoryCreateMethodCallParams(**create_params_dict))
             )
         )
 
@@ -343,7 +347,16 @@ class _AppFactorySendAccessor:
             self._factory.get_app_client_by_id(
                 app_id=result.app_id,
             ),
-            AppFactoryDeployResult(**{**result.__dict__, **(compiled.__dict__ if compiled else {})}),
+            SendAppCreateTransactionResult(
+                **{
+                    **result.__dict__,
+                    **(
+                        {"compiled_approval": compiled.compiled_approval, "compiled_clear": compiled.compiled_clear}
+                        if compiled
+                        else {}
+                    ),
+                }
+            ),
         )
 
 
@@ -492,8 +505,8 @@ class AppFactory:
 
         result = {**deploy_result.__dict__, **(compiled.__dict__ if compiled else {})}
 
-        if hasattr(result, "return_value"):
-            if result["operation_performed"] == "update":
+        if "return_value" in result:
+            if result["operation_performed"] == OperationPerformed.Update:
                 if update_params and hasattr(update_params, "method"):
                     result["return_value"] = get_arc56_return_value(
                         result["return_value"],
@@ -507,17 +520,12 @@ class AppFactory:
                     self._app_spec.structs,
                 )
 
-        if "delete_return" in result and delete_params and hasattr(delete_params, "method"):
-            result["delete_return"] = get_arc56_return_value(
-                result["delete_return"],
+        if "delete_return_value" in result and delete_params and hasattr(delete_params, "method"):
+            result["delete_return_value"] = get_arc56_return_value(
+                result["delete_return_value"],
                 get_arc56_method(delete_params.method, self._app_spec),  # type: ignore[arg-type]
                 self._app_spec.structs,
             )
-
-        del result["delete_result"]
-        result["transactions"] = []
-        result["tx_id"] = ""
-        result["tx_ids"] = []
 
         return app_client, AppFactoryDeployResult(**result)
 
@@ -624,13 +632,12 @@ class AppFactory:
             raise self.expose_logic_error(e) from None
 
     def _parse_method_call_return(self, result: SendAppTransactionResult, method: Method) -> SendAppTransactionResult:
-        return_value = result.return_value
-        if isinstance(return_value, dict):
-            return_value = get_arc56_return_value(return_value, method, self._app_spec.structs)
         return SendAppTransactionResult(
             **{
                 **result.__dict__,
-                "return_value": return_value,
+                "return_value": get_arc56_return_value(result.return_value, method, self._app_spec.structs)
+                if isinstance(result.return_value, ABIResult)
+                else None,
             }
         )
 

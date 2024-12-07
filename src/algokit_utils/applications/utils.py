@@ -3,6 +3,7 @@ from typing import Any, Literal, TypeVar
 
 from algosdk.abi import Method as AlgorandABIMethod
 from algosdk.abi import TupleType
+from algosdk.atomic_transaction_composer import ABIResult
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -61,10 +62,10 @@ def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> 
 
 
 def get_arc56_return_value(
-    return_value: dict[str, Any] | None,
+    return_value: ABIResult | None,
     method: Method | AlgorandABIMethod,
     structs: dict[str, list[StructField]],
-) -> Any:  # noqa: ANN401
+) -> ABIValue | ABIStruct | None:
     """Checks for decode errors on the return value and maps it to the specified type.
 
     Args:
@@ -92,11 +93,11 @@ def get_arc56_return_value(
         return None
 
     # Handle decode errors
-    if return_value.get("decode_error"):
-        raise ValueError(return_value["decode_error"])
+    if return_value.decode_error:
+        raise ValueError(return_value.decode_error)
 
     # Get raw return value
-    raw_value = return_value.get("raw_return_value")
+    raw_value = return_value.raw_value
 
     # Handle AVM types
     if type_str == "AVMBytes":
@@ -104,15 +105,15 @@ def get_arc56_return_value(
     if type_str == "AVMString" and raw_value:
         return raw_value.decode("utf-8")
     if type_str == "AVMUint64" and raw_value:
-        return ABIType.from_string("uint64").decode(raw_value)
+        return ABIType.from_string("uint64").decode(raw_value)  # type: ignore[no-any-return]
 
     # Handle structs
     if struct and struct in structs:
-        return_tuple = return_value.get("return_value")
+        return_tuple = return_value.return_value
         return get_abi_struct_from_abi_tuple(return_tuple, structs[struct], structs)
 
     # Return as-is
-    return return_value.get("return_value")
+    return return_value.return_value  # type: ignore[no-any-return]
 
 
 def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: ANN401, PLR0911

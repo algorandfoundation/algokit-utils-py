@@ -606,7 +606,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             confirmations=confirmations or [],
             tx_ids=[t.get_txid() for t in transactions_to_send],
             transactions=transactions_to_send,
-            returns=[r.return_value for r in result.abi_results],
+            returns=result.abi_results,
         )
 
     except AlgodHTTPError as e:
@@ -931,8 +931,12 @@ class TransactionComposer:
             fix_signers,
         )
 
+        confirmation_results = response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
+            "txn-results"
+        ]
+
         return SendAtomicTransactionComposerResults(
-            confirmations=[],  # TODO: extract confirmations,
+            confirmations=[txn["txn-result"] for txn in confirmation_results],
             transactions=[txn.txn for txn in atc.txn_list],
             tx_ids=response.tx_ids,
             group_id=atc.txn_list[-1].txn.group or "",
@@ -1008,53 +1012,55 @@ class TransactionComposer:
         arg_offset = 0
 
         if params.args:
-            for i, arg in enumerate(params.args):
+            for _, arg in enumerate(params.args):
                 if self._is_abi_value(arg):
                     method_args.append(arg)
                     continue
 
-                if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
-                    match arg:
-                        case (
-                            AppCreateMethodCall()
-                            | AppCallMethodCall()
-                            | AppUpdateMethodCall()
-                            | AppDeleteMethodCall()
-                        ):
-                            temp_txn_with_signers = self._build_method_call(arg, suggested_params)
-                            method_args.extend(temp_txn_with_signers)
-                            arg_offset += len(temp_txn_with_signers) - 1
-                            continue
-                        case AppCallParams():
-                            txn = self._build_app_call(arg, suggested_params)
-                        case PaymentParams():
-                            txn = self._build_payment(arg, suggested_params)
-                        case AssetOptInParams():
-                            txn = self._build_asset_transfer(
-                                AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params
-                            )
-                        case AssetCreateParams():
-                            txn = self._build_asset_create(arg, suggested_params)
-                        case AssetConfigParams():
-                            txn = self._build_asset_config(arg, suggested_params)
-                        case AssetDestroyParams():
-                            txn = self._build_asset_destroy(arg, suggested_params)
-                        case AssetFreezeParams():
-                            txn = self._build_asset_freeze(arg, suggested_params)
-                        case AssetTransferParams():
-                            txn = self._build_asset_transfer(arg, suggested_params)
-                        case OnlineKeyRegistrationParams():
-                            txn = self._build_key_reg(arg, suggested_params)
-                        case _:
-                            raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
-
-                    method_args.append(
-                        TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
-                    )
-
+                if isinstance(arg, TransactionWithSigner):
+                    method_args.append(arg)
                     continue
 
-                raise ValueError(f"Unsupported method arg: {arg!s}")
+                if isinstance(arg, algosdk.transaction.Transaction):
+                    # Wrap in TransactionWithSigner
+                    method_args.append(
+                        TransactionWithSigner(txn=arg, signer=params.signer or self.get_signer(params.sender))
+                    )
+                    continue
+                match arg:
+                    case AppCreateMethodCall() | AppCallMethodCall() | AppUpdateMethodCall() | AppDeleteMethodCall():
+                        temp_txn_with_signers = self._build_method_call(arg, suggested_params)
+                        method_args.extend(temp_txn_with_signers)
+                        arg_offset += len(temp_txn_with_signers) - 1
+                        continue
+                    case AppCallParams():
+                        txn = self._build_app_call(arg, suggested_params)
+                    case PaymentParams():
+                        txn = self._build_payment(arg, suggested_params)
+                    case AssetOptInParams():
+                        txn = self._build_asset_transfer(
+                            AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params
+                        )
+                    case AssetCreateParams():
+                        txn = self._build_asset_create(arg, suggested_params)
+                    case AssetConfigParams():
+                        txn = self._build_asset_config(arg, suggested_params)
+                    case AssetDestroyParams():
+                        txn = self._build_asset_destroy(arg, suggested_params)
+                    case AssetFreezeParams():
+                        txn = self._build_asset_freeze(arg, suggested_params)
+                    case AssetTransferParams():
+                        txn = self._build_asset_transfer(arg, suggested_params)
+                    case OnlineKeyRegistrationParams():
+                        txn = self._build_key_reg(arg, suggested_params)
+                    case _:
+                        raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
+
+                method_args.append(
+                    TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
+                )
+
+                continue
 
         method_atc = AtomicTransactionComposer()
 
@@ -1071,139 +1077,15 @@ class TransactionComposer:
             boxes=[AppManager.get_box_reference(ref) for ref in params.box_references]
             if params.box_references
             else None,
+            foreign_apps=params.app_references,
+            foreign_assets=params.asset_references,
+            accounts=params.account_references,
             approval_program=params.approval_program if hasattr(params, "approval_program") else None,  # type: ignore[arg-type]
             clear_program=params.clear_state_program if hasattr(params, "clear_state_program") else None,  # type: ignore[arg-type]
+            rekey_to=params.rekey_to,
         )
 
         return self._build_atc(method_atc)
-
-    # TODO: reconsider whether atc's add_method_call is the best way to handle passing manually encoded abi args
-    # def _build_method_call(
-    #     self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams
-    # ) -> list[TransactionWithSigner]:
-    #     # Initialize lists to store transactions and encoded arguments
-    #     method_args: list[ABIValue | TransactionWithSigner] = []
-    #     arg_offset = 0
-
-    #     # Initialize foreign arrays
-    #     accounts = params.account_references[:] if params.account_references else []
-    #     foreign_apps = params.app_references[:] if params.app_references else []
-    #     foreign_assets = params.asset_references[:] if params.asset_references else []
-    #     boxes = params.box_references[:] if params.box_references else []
-
-    #     # Prepare app args starting with method selector
-    #     encoded_args = []
-    #     encoded_args.append(params.method.get_selector())
-
-    #     # Process method arguments
-    #     if params.args:
-    #         for i, arg in enumerate(params.args):
-    #             if self._is_abi_value(arg):
-    #                 method_args.append(arg)
-    #                 continue
-
-    #             if algosdk.abi.is_abi_transaction_type(params.method.args[i + arg_offset].type):
-    #                 match arg:
-    #                     case (
-    #                         AppCreateMethodCall()
-    #                         | AppCallMethodCall()
-    #                         | AppUpdateMethodCall()
-    #                         | AppDeleteMethodCall()
-    #                     ):
-    #                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
-    #                         method_args.extend(temp_txn_with_signers)
-    #                         arg_offset += len(temp_txn_with_signers) - 1
-    #                         continue
-    #                     case AppCallParams():
-    #                         txn = self._build_app_call(arg, suggested_params)
-    #                     case PaymentParams():
-    #                         txn = self._build_payment(arg, suggested_params)
-    #                     case AssetOptInParams():
-    #                         txn = self._build_asset_transfer(
-    #                             AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params
-    #                         )
-    #                     case _:
-    #                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
-
-    #                 method_args.append(
-    #                     TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
-    #                 )
-    #                 continue
-
-    #             # Handle ABI reference types
-    #             if algosdk.abi.is_abi_reference_type(params.method.args[i + arg_offset].type):
-    #                 arg_type = params.method.args[i + arg_offset].type
-    #                 if arg_type == algosdk.abi.ABIReferenceType.ACCOUNT:
-    #                     address_type = algosdk.abi.AddressType()
-    #                     account_arg = address_type.decode(address_type.encode(cast(str | bytes, arg)))
-    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
-    #                         account_arg, accounts, params.sender
-    #                     )
-    #                     method_args.append(current_arg)
-    #                 elif arg_type == algosdk.abi.ABIReferenceType.ASSET:
-    #                     asset_arg = int(cast(int, arg))
-    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
-    #                         asset_arg, foreign_assets
-    #                     )
-    #                     method_args.append(current_arg)
-    #                 elif arg_type == algosdk.abi.ABIReferenceType.APPLICATION:
-    #                     app_arg = int(cast(int, arg))
-    #                     current_arg = algosdk.atomic_transaction_composer.populate_foreign_array(
-    #                         app_arg, foreign_apps, params.app_id
-    #                     )
-    #                     method_args.append(current_arg)
-    #                 else:
-    #                     raise ValueError(f"Unsupported ABI reference type: {arg_type}")
-    #                 continue
-
-    #             # Regular ABI value
-    #             method_args.append(arg)
-
-    #     # Encode regular ABI arguments
-    #     for i, arg in enumerate(method_args):
-    #         if isinstance(arg, TransactionWithSigner):
-    #             continue
-    #         arg_type = params.method.args[i].type
-    #         if isinstance(arg_type, algosdk.abi.ABIType):
-    #             try:
-    #                 encoded_args.append(arg_type.encode(arg))
-    #             except Exception as e:
-    #                 if (
-    #                     isinstance(e, AttributeError)
-    #                     and isinstance(arg_type, algosdk.abi.StringType)
-    #                     and isinstance(arg, bytes)
-    #                 ):
-    #                     # Assume user passed a manually abi encoded string, ignore re-encoding and append as raw bytes
-    #                     encoded_args.append(arg)
-    #                 else:
-    #                     raise ValueError(f"Error encoding argument {arg} of type {arg_type}") from e
-
-    #     # Create the app call transaction
-    #     txn = algosdk.transaction.ApplicationCallTxn(
-    #         sender=params.sender,
-    #         sp=suggested_params,
-    #         index=params.app_id or 0,
-    #         on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
-    #         app_args=encoded_args,
-    #         accounts=accounts,
-    #         foreign_apps=foreign_apps,
-    #         foreign_assets=foreign_assets,
-    #         boxes=[AppManager.get_box_reference(ref) for ref in boxes] if boxes else None,
-    #         note=params.note,
-    #         lease=params.lease,
-    #     )
-
-    #     result = [TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))]
-
-    #     # Add any transaction arguments
-    #     for arg in method_args:
-    #         if isinstance(arg, TransactionWithSigner):
-    #             result.append(arg)
-
-    #     # Store the method for this transaction
-    #     self.txn_method_map[txn.get_txid()] = params.method
-
-    #     return result
 
     def _build_payment(
         self, params: PaymentParams, suggested_params: algosdk.transaction.SuggestedParams
@@ -1392,6 +1274,9 @@ class TransactionComposer:
                 return [txn]
             case AtomicTransactionComposer():
                 return self._build_atc(txn)
+            case algosdk.transaction.Transaction():
+                signer = self.get_signer(txn.sender)
+                return [TransactionWithSigner(txn=txn, signer=signer)]
             case AppCreateMethodCall() | AppCallMethodCall() | AppUpdateMethodCall() | AppDeleteMethodCall():
                 return self._build_method_call(txn, suggested_params)
 

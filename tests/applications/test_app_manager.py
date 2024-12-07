@@ -3,14 +3,24 @@ import pytest
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
+from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import check_output_stability
 
 
 @pytest.fixture
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
+
+
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
 
 
 def test_template_substitution() -> None:

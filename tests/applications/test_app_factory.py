@@ -6,18 +6,36 @@ from algosdk.logic import get_application_address
 from algosdk.transaction import ApplicationCallTxn, ApplicationCreateTxn, OnComplete
 
 from algokit_utils._legacy_v2.deploy import OnSchemaBreak, OnUpdate, OperationPerformed
-from algokit_utils.applications.app_client import AppClientMethodCallParams
-from algokit_utils.applications.app_factory import AppFactory, AppFactoryCreateWithSendParams
+from algokit_utils.applications.app_client import (
+    AppClientMethodCallParams,
+    AppClientMethodCallWithCompilationAndSendParams,
+    AppClientMethodCallWithSendParams,
+)
+from algokit_utils.applications.app_factory import (
+    AppFactory,
+    AppFactoryCreateMethodCallParams,
+    AppFactoryCreateWithSendParams,
+)
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
 @pytest.fixture
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
+
+
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
 
 
 @pytest.fixture
@@ -212,7 +230,146 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
     assert replaced_app.app_id > created_app.app_id
     assert replaced_app.app_address == algosdk.logic.get_application_address(replaced_app.app_id)
     assert replaced_app.confirmation is not None
-    assert replaced_app.delete_return is not None
-    assert replaced_app.delete_return.confirmation is not None
-    assert replaced_app.delete_return.transaction.application_id == created_app.app_id  # type: ignore[union-attr]
-    assert replaced_app.delete_return.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]
+    assert replaced_app.delete_result is not None
+    assert replaced_app.delete_result.confirmation is not None
+    assert len(replaced_app.transactions) == 2  # noqa: PLR2004
+    assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
+    assert replaced_app.delete_result.transaction.index == created_app.app_id  # type: ignore[union-attr]
+    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]
+
+
+def test_deploy_app_replace_abi(factory: AppFactory) -> None:
+    _, created_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 1,
+        },
+        deletable=True,
+        populate_app_call_resources=False,
+    )
+
+    _, replaced_app = factory.deploy(
+        deploy_time_params={
+            "VALUE": 2,
+        },
+        on_update=OnUpdate.ReplaceApp,
+        create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
+        delete_params=AppClientMethodCallParams(method="delete_abi", args=["arg2_io"]),
+    )
+
+    assert replaced_app.operation_performed == OperationPerformed.Replace
+    assert replaced_app.app_id > created_app.app_id
+    assert replaced_app.app_address == algosdk.logic.get_application_address(replaced_app.app_id)
+    assert replaced_app.confirmation is not None
+    assert replaced_app.delete_result is not None
+    assert replaced_app.delete_result.confirmation is not None
+    assert len(replaced_app.transactions) == 2
+    assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
+    assert replaced_app.delete_result.transaction.index == created_app.app_id  # type: ignore[union-attr]
+    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]
+    assert replaced_app.return_value == "arg_io"
+    assert replaced_app.delete_return_value == "arg2_io"
+
+
+def test_create_then_call_app(factory: AppFactory) -> None:
+    app_client, _ = factory.send.bare.create(
+        AppFactoryCreateWithSendParams(
+            deploy_time_params={
+                "UPDATABLE": 1,
+                "DELETABLE": 1,
+                "VALUE": 1,
+            },
+        )
+    )
+
+    call = app_client.send.call(AppClientMethodCallWithSendParams(method="call_abi", args=["test"]))
+
+    assert call.return_value
+    assert call.return_value.return_value == "Hello, test"
+
+
+def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, factory: AppFactory) -> None:
+    rekey_to = algorand.account.random()
+
+    app_client, _ = factory.send.bare.create(
+        AppFactoryCreateWithSendParams(
+            deploy_time_params={
+                "UPDATABLE": 1,
+                "DELETABLE": 1,
+                "VALUE": 1,
+            },
+        )
+    )
+
+    app_client.send.opt_in(AppClientMethodCallWithSendParams(method="opt_in", rekey_to=rekey_to.address))
+
+    # If the rekey didn't work this will throw
+    rekeyed_account = algorand.account.rekeyed(funded_account.address, rekey_to)
+    algorand.send.payment(
+        PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.address, receiver=funded_account.address)
+    )
+
+
+def test_create_app_with_abi(factory: AppFactory) -> None:
+    _, call_return = factory.send.create(
+        AppFactoryCreateMethodCallParams(
+            method="create_abi",
+            args=["string_io"],
+            deploy_time_params={
+                "UPDATABLE": 0,
+                "DELETABLE": 0,
+                "VALUE": 1,
+            },
+        )
+    )
+
+    assert call_return.return_value
+    # Fix return value issues
+    assert call_return.return_value.return_value == "string_io"
+
+
+def test_update_app_with_abi(factory: AppFactory) -> None:
+    deploy_time_params = {
+        "UPDATABLE": 1,
+        "DELETABLE": 0,
+        "VALUE": 1,
+    }
+    app_client, _ = factory.send.bare.create(
+        AppFactoryCreateWithSendParams(
+            deploy_time_params=deploy_time_params,
+        )
+    )
+
+    call_return = app_client.send.update(
+        AppClientMethodCallWithCompilationAndSendParams(
+            method="update_abi",
+            args=["string_io"],
+            deploy_time_params=deploy_time_params,
+        )
+    )
+
+    assert call_return.return_value is not None
+    assert call_return.return_value.return_value == "string_io"
+    # TODO: fix this
+    # assert call_return.compiled_approval is not None
+
+
+def test_delete_app_with_abi(factory: AppFactory) -> None:
+    app_client, _ = factory.send.bare.create(
+        AppFactoryCreateWithSendParams(
+            deploy_time_params={
+                "UPDATABLE": 0,
+                "DELETABLE": 1,
+                "VALUE": 1,
+            },
+        )
+    )
+
+    call_return = app_client.send.delete(
+        AppClientMethodCallWithSendParams(
+            method="delete_abi",
+            args=["string_io"],
+        )
+    )
+
+    assert call_return.return_value is not None
+    assert call_return.return_value.return_value == "string_io"

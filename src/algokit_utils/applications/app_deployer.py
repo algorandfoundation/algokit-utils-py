@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import algosdk
-from algosdk.atomic_transaction_composer import TransactionSigner
+from algosdk.atomic_transaction_composer import ABIResult, TransactionSigner
 from algosdk.logic import get_application_address
 from algosdk.transaction import OnComplete, Transaction
 from algosdk.v2client.indexer import IndexerClient
@@ -20,7 +20,6 @@ from algokit_utils._legacy_v2.deploy import (
 )
 from algokit_utils.applications.app_manager import AppManager, BoxReference, TealTemplateParams
 from algokit_utils.config import config
-from algokit_utils.models.abi import ABIValue
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCall,
     AppCreateParams,
@@ -113,11 +112,15 @@ class AppDeployResult:
     app_id: int | None = None
     app_address: str | None = None
     transaction: Transaction | None = None
+    tx_id: str | None = None
+    transactions: list[Transaction] | None = None
+    tx_ids: list[str] | None = None
     confirmation: algosdk.v2client.algod.AlgodResponseType | None = None
+    confirmations: list[algosdk.v2client.algod.AlgodResponseType] | None = None
     compiled_approval: dict | None = None
     compiled_clear: dict | None = None
-    return_value: ABIValue | None = None
-    delete_return: ABIValue | None = None
+    return_value: ABIResult | None = None
+    delete_return_value: ABIResult | None = None
     delete_result: ConfirmedTransactionResult | None = None
 
 
@@ -319,8 +322,12 @@ class AppDeployer:
 
         return AppDeployResult(
             **app_metadata_dict,
+            tx_id=result.tx_id,
+            tx_ids=result.tx_ids,
             transaction=result.transaction,
+            transactions=result.transactions,
             confirmation=result.confirmation,
+            confirmations=result.confirmations,
             return_value=result.return_value,
         )
 
@@ -342,7 +349,7 @@ class AppDeployer:
             return self._create_app(deployment, approval_program, clear_program)
 
         if existing_app.deletable:
-            return self._create_and_delete_app(deployment, existing_app, approval_program, clear_program)
+            return self._replace_app(deployment, existing_app, approval_program, clear_program)
         else:
             raise ValueError("App is not deletable but onSchemaBreak=ReplaceApp, " "cannot delete and recreate app")
 
@@ -369,13 +376,13 @@ class AppDeployer:
 
         if deployment.on_update in (OnUpdate.ReplaceApp, "replace"):
             if existing_app.deletable:
-                return self._create_and_delete_app(deployment, existing_app, approval_program, clear_program)
+                return self._replace_app(deployment, existing_app, approval_program, clear_program)
             else:
                 raise ValueError("App is not deletable but onUpdate=ReplaceApp, " "cannot delete and recreate app")
 
         raise ValueError(f"Unsupported onUpdate value: {deployment.on_update}")
 
-    def _create_and_delete_app(
+    def _replace_app(
         self,
         deployment: AppDeployParams,
         existing_app: AppMetaData,
@@ -386,33 +393,35 @@ class AppDeployer:
 
         # Add create transaction
         if isinstance(deployment.create_params, AppCreateMethodCall):
-            create_params = AppCreateMethodCall(
-                **{
-                    **deployment.create_params.__dict__,
-                    "approval_program": approval_program,
-                    "clear_state_program": clear_program,
-                }
+            composer.add_app_create_method_call(
+                AppCreateMethodCall(
+                    **{
+                        **deployment.create_params.__dict__,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
             )
-            composer.add_app_create_method_call(create_params)
         else:
-            create_params = AppCreateParams(
-                **{
-                    **deployment.create_params.__dict__,
-                    "approval_program": approval_program,
-                    "clear_state_program": clear_program,
-                }
+            composer.add_app_create(
+                AppCreateParams(
+                    **{
+                        **deployment.create_params.__dict__,
+                        "approval_program": approval_program,
+                        "clear_state_program": clear_program,
+                    }
+                )
             )
-            composer.add_app_create(create_params)
 
         # Add delete transaction
         if isinstance(deployment.delete_params, AppDeleteMethodCall):
-            delete_params = AppDeleteMethodCall(
+            delete_call_params = AppDeleteMethodCall(
                 **{
                     **deployment.delete_params.__dict__,
                     "app_id": existing_app.app_id,
                 }
             )
-            composer.add_app_delete_method_call(delete_params)
+            composer.add_app_delete_method_call(delete_call_params)
         else:
             delete_params = AppDeleteParams(
                 **{
@@ -424,30 +433,43 @@ class AppDeployer:
 
         result = composer.send()
 
-        app_id = int(result.confirmations[0]["application-index"])
+        app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
         app_metadata = AppMetaData(
             app_id=app_id,
             app_address=get_application_address(app_id),
             **deployment.metadata.__dict__,
             created_metadata=deployment.metadata,
-            created_round=result.confirmations[0]["confirmed-round"],
-            updated_round=result.confirmations[0]["confirmed-round"],
+            created_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
+            updated_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
             deleted=False,
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
+        app_metadata_dict = app_metadata.__dict__
+        app_metadata_dict["operation_performed"] = OperationPerformed.Replace
+        app_metadata_dict["app_id"] = app_id
+        app_metadata_dict["app_address"] = get_application_address(app_id)
+
+        # Extract return_value and delete_return_value from ABIResult
+        return_value = result.returns[0] if result.returns and isinstance(result.returns[0], ABIResult) else None
+        delete_return_value = (
+            result.returns[-1] if len(result.returns) > 1 and isinstance(result.returns[-1], ABIResult) else None
+        )
+
         return AppDeployResult(
-            operation_performed="replace",
-            app_id=app_id,
-            app_address=get_application_address(app_id),
+            **app_metadata_dict,
+            tx_id=result.tx_ids[0],
+            tx_ids=result.tx_ids,
             transaction=result.transactions[0],
+            transactions=result.transactions,
             confirmation=result.confirmations[0],
-            return_value=result.returns[0] if result.returns else None,
-            delete_return=result.returns[-1] if len(result.returns) > 1 else None,
-            delete_result={
-                "transaction": result.transactions[-1],
-                "confirmation": result.confirmations[-1],
-            },
+            confirmations=result.confirmations,
+            return_value=return_value,
+            delete_return_value=delete_return_value,
+            delete_result=ConfirmedTransactionResult(
+                transaction=result.transactions[-1],
+                confirmation=result.confirmations[-1],
+            ),
         )
 
     def _update_app(
@@ -498,7 +520,9 @@ class AppDeployer:
             **app_metadata.__dict__,
             operation_performed=OperationPerformed.Update,
             transaction=result.transaction,
+            transactions=result.transactions,
             confirmation=result.confirmation,
+            confirmations=result.confirmations,
             return_value=result.return_value,
         )
 

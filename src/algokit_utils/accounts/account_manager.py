@@ -106,6 +106,7 @@ class AccountManager:
         private_key = to_private_key(mnemonic)
         account = Account(private_key=private_key)
         self._accounts[account.address] = account
+        self.set_signer(account.address, AccountTransactionSigner(private_key=private_key))
         return account
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> Account:
@@ -115,12 +116,14 @@ class AccountManager:
             private_key = mnemonic.to_private_key(account_mnemonic)
             account = Account(private_key=private_key)
             self._accounts[account.address] = account
+            self.set_signer(account.address, AccountTransactionSigner(private_key=private_key))
             return account
 
         if self._client_manager.is_local_net():
             kmd_account = self._kmd_account_manager.get_or_create_wallet_account(name, fund_with)
             account = Account(private_key=kmd_account.private_key)
             self._accounts[account.address] = account
+            self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
             return account
 
         raise ValueError(f"Missing environment variable {name.upper()}_MNEMONIC when looking for account {name}")
@@ -134,11 +137,13 @@ class AccountManager:
 
         account = Account(private_key=kmd_account.private_key)
         self._accounts[account.address] = account
+        self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
         return account
 
-    def rekeyed(self, sender: str, account: Account) -> Account:
-        self._accounts[sender] = account
-        return account
+    def rekeyed(self, sender: Account | str, account: Account) -> Account:
+        sender_address = sender.address if isinstance(sender, Account) else sender
+        self._accounts[sender_address] = account
+        return Account(address=sender_address, private_key=account.private_key)
 
     def random(self) -> Account:
         """
@@ -148,12 +153,14 @@ class AccountManager:
         """
         account = Account.new_account()
         self._accounts[account.address] = account
+        self.set_signer(account.address, AccountTransactionSigner(private_key=account.private_key))
         return account
 
     def localnet_dispenser(self) -> Account:
         kmd_account = self._kmd_account_manager.get_localnet_dispenser_account()
         account = Account(private_key=kmd_account.private_key)
         self._accounts[account.address] = account
+        self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
         return account
 
     def dispenser_from_environment(self) -> Account:

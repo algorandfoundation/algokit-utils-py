@@ -5,12 +5,11 @@ from typing import Any, TypedDict, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
-from algosdk.atomic_transaction_composer import AtomicTransactionResponse
+from algosdk.atomic_transaction_composer import ABIResult, AtomicTransactionResponse
 from algosdk.transaction import Transaction
 
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
-from algokit_utils.models.abi import ABIValue
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCall,
     AppCallParams,
@@ -43,6 +42,7 @@ class SendSingleTransactionResult:
 
     # Fields from SendAtomicTransactionComposerResults
     group_id: str
+    tx_id: str | None = None
     tx_ids: list[str]  # Full array of transaction IDs
     transactions: list[Transaction]
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
@@ -56,7 +56,7 @@ class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
 
 @dataclass(frozen=True)
 class SendAppTransactionResult(SendSingleTransactionResult):
-    return_value: ABIValue | None = None
+    return_value: ABIResult | None = None
 
 
 @dataclass(frozen=True)
@@ -119,6 +119,7 @@ class AlgorandClientTransactionSender:
                 **raw_result_dict,
                 confirmation=raw_result.confirmations[-1],
                 transaction=raw_result.transactions[-1],
+                tx_id=raw_result.tx_ids[-1],
             )
 
             if post_log:

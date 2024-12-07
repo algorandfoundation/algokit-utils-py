@@ -4,7 +4,7 @@ import base64
 import copy
 import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import algosdk
@@ -572,11 +572,29 @@ class _AppClientMethodCallParamsAccessor:
         )
         return AppDeleteMethodCall(**input_params)
 
-    def update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCall:
-        input_params = self._get_abi_params(
-            params.__dict__, on_complete=algosdk.transaction.OnComplete.UpdateApplicationOC
+    def update(
+        self, params: AppClientMethodCallParams | AppClientMethodCallWithCompilationAndSendParams
+    ) -> AppUpdateMethodCall:
+        compile_params = (
+            self._client.compile(
+                app_spec=self._client.app_spec,
+                app_manager=self._algorand.app,
+                deploy_time_params=params.deploy_time_params,
+                updatable=params.updatable,
+                deletable=params.deletable,
+            ).__dict__
+            if isinstance(params, AppClientMethodCallWithCompilationAndSendParams)
+            else {}
         )
-        return AppUpdateMethodCall(**input_params)
+
+        input_params = {
+            **self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.UpdateApplicationOC),
+            **compile_params,
+        }
+        # Filter input_params to include only fields valid for AppUpdateMethodCall
+        app_update_method_call_fields = {field.name for field in fields(AppUpdateMethodCall)}
+        filtered_input_params = {k: v for k, v in input_params.items() if k in app_update_method_call_fields}
+        return AppUpdateMethodCall(**filtered_input_params)
 
     def close_out(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.CloseOutOC)
@@ -786,7 +804,7 @@ class _AppClientSendAccessor:
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
-                return_value=simulate_response.returns[-1].return_value,
+                return_value=simulate_response.returns[-1],
             )
 
         return self._client._handle_call_errors(

@@ -1,10 +1,12 @@
 import base64
 import json
+import random
 from pathlib import Path
 from typing import Any
 
 import algosdk
 import pytest
+from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_client import (
@@ -14,21 +16,30 @@ from algokit_utils.applications.app_client import (
     FundAppAccountParams,
 )
 from algokit_utils.applications.app_manager import AppManager, BoxReference
-from algokit_utils.applications.utils import arc32_to_arc56
+from algokit_utils.applications.utils import arc32_to_arc56, get_arc56_method
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.abi import ABIType
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.application import Arc56Contract
-from algokit_utils.transactions.transaction_composer import AppCreateParams
+from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
 
 
 @pytest.fixture
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
+
+
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
 
 
 @pytest.fixture
@@ -318,6 +329,135 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
     assert call2.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]
 
 
+def test_construct_transaction_with_abi_encoding_including_transaction(
+    algorand: AlgorandClient, funded_account: Account, test_app_client: AppClient
+) -> None:
+    # Create a payment transaction with random amount
+    amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
+    payment_txn = algorand.send.payment(
+        PaymentParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=amount,
+        )
+    )
+
+    # Call the ABI method with the payment transaction
+    result = test_app_client.send.call(
+        AppClientMethodCallWithSendParams(
+            method="call_abi_txn",
+            args=[payment_txn.transaction, "test"],
+        )
+    )
+
+    assert result.confirmation
+    assert len(result.transactions) == 2  # noqa: PLR2004
+    return_value = AppManager.get_abi_return(
+        result.confirmation, get_arc56_method("call_abi_txn", test_app_client.app_spec)
+    )
+    expected_return = f"Sent {amount.micro_algos}. test"
+    assert result.return_value
+    assert result.return_value.return_value == expected_return
+    assert return_value
+    assert return_value.return_value == result.return_value.return_value
+
+
+def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+) -> None:
+    # Create a payment transaction with a random amount
+    amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
+    txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=amount,
+        )
+    )
+
+    called_indexes = []
+    original_signer = algorand.account.get_signer(funded_account.address)
+
+    class IndexCapturingSigner(TransactionSigner):
+        def sign_transactions(
+            self, txn_group: list[algosdk.transaction.Transaction], indexes: list[int]
+        ) -> list[algosdk.transaction.GenericSignedTransaction]:
+            called_indexes.extend(indexes)
+            return original_signer.sign_transactions(txn_group, indexes)
+
+    test_app_client.send.call(
+        AppClientMethodCallWithSendParams(
+            method="call_abi_txn",
+            args=[txn, "test"],
+            sender=funded_account.address,
+            signer=IndexCapturingSigner(),
+        )
+    )
+
+    assert called_indexes == [0, 1]
+
+
+def test_sign_transaction_in_group_with_different_signer_if_provided(
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+) -> None:
+    # Generate a new account
+    test_account = algorand.account.random()
+    algorand.account.ensure_funded(
+        account_fo_fund=test_account,
+        dispenser_account=funded_account,
+        min_spending_balance=AlgoAmount.from_algos(10),
+        min_funding_increment=AlgoAmount.from_algos(1),
+    )
+
+    # Fund the account with 1 Algo
+    txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=test_account.address,
+            receiver=test_account.address,
+            amount=AlgoAmount.from_algos(random.randint(1, 5)),
+        )
+    )
+
+    # Call method with transaction and signer
+    test_app_client.send.call(
+        AppClientMethodCallWithSendParams(
+            method="call_abi_txn",
+            args=[TransactionWithSigner(txn=txn, signer=test_account.signer), "test"],
+        )
+    )
+
+
+def test_construct_transaction_with_abi_encoding_including_foreign_references_not_in_signature(
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+) -> None:
+    test_account = algorand.account.random()
+    algorand.account.ensure_funded(
+        account_fo_fund=test_account,
+        dispenser_account=funded_account,
+        min_spending_balance=AlgoAmount.from_algos(10),
+        min_funding_increment=AlgoAmount.from_algos(1),
+    )
+
+    result = test_app_client.send.call(
+        AppClientMethodCallWithSendParams(
+            method="call_abi_foreign_refs",
+            app_references=[345],
+            account_references=[test_account.address],
+            asset_references=[567],
+        )
+    )
+
+    # Assuming the method returns a string matching the format below
+    expected_return = AppManager.get_abi_return(
+        result.confirmations[0],
+        get_arc56_method("call_abi_foreign_refs", test_app_client.app_spec),
+    )
+    assert result.return_value
+    assert "App: 345, Asset: 567, Account: " in result.return_value.return_value
+    assert expected_return
+    assert expected_return.return_value == result.return_value.return_value
+
+
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
     # Test global state
     test_app_client.send.call(
@@ -573,11 +713,13 @@ def test_abi_with_default_arg_method(
         AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
     )
 
-    assert defined_value_result.return_value == "Local state, defined value"
+    assert defined_value_result.return_value
+    assert defined_value_result.return_value.return_value == "Local state, defined value"
 
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
-    assert default_value_result.return_value == "Local state, banana"
+    assert default_value_result.return_value
+    assert default_value_result.return_value.return_value == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:
