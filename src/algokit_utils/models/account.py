@@ -3,6 +3,8 @@ import dataclasses
 import algosdk
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 
+DISPENSER_ACCOUNT_NAME = "DISPENSER"
+
 
 @dataclasses.dataclass(kw_only=True)
 class Account:
@@ -15,7 +17,7 @@ class Account:
 
     def __post_init__(self) -> None:
         if not self.address:
-            self.address = algosdk.account.address_from_private_key(self.private_key)
+            self.address = algosdk.account.address_from_private_key(self.private_key)  # type: ignore[arg-type]
 
     @property
     def public_key(self) -> bytes:

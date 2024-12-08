@@ -1,6 +1,7 @@
-import algosdk
 import pytest
-from algokit_utils import Account, get_account
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
+
+from algokit_utils import Account
 from algokit_utils.assets.asset_manager import (
     AccountAssetInformation,
     AssetInformation,
@@ -12,26 +13,32 @@ from algokit_utils.transactions.transaction_composer import (
     AssetCreateParams,
     PaymentParams,
 )
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
-
-from tests.conftest import get_unique_name
 
 
-@pytest.fixture()
-def sender(funded_account: Account) -> Account:
-    return funded_account
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
 
 
-@pytest.fixture()
-def receiver(algod_client: algosdk.v2client.algod.AlgodClient) -> Account:
-    return get_account(algod_client, get_unique_name())
+@pytest.fixture
+def sender(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
 
 
-@pytest.fixture()
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+@pytest.fixture
+def receiver(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    return new_account
 
 
 def test_get_by_id(algorand: AlgorandClient, sender: Account) -> None:
