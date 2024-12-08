@@ -5,11 +5,12 @@ import pytest
 from algosdk.logic import get_application_address
 from algosdk.transaction import ApplicationCallTxn, ApplicationCreateTxn, OnComplete
 
-from algokit_utils._legacy_v2.deploy import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import (
+    AppClient,
     AppClientMethodCallParams,
     AppClientMethodCallWithCompilationAndSendParams,
     AppClientMethodCallWithSendParams,
+    AppClientParams,
 )
 from algokit_utils.applications.app_factory import (
     AppFactory,
@@ -17,6 +18,7 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateWithSendParams,
 )
 from algokit_utils.clients.algorand_client import AlgorandClient
+from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
@@ -47,6 +49,18 @@ def app_spec() -> str:
 def factory(algorand: AlgorandClient, funded_account: Account, app_spec: str) -> AppFactory:
     """Create AppFactory fixture"""
     return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.address)
+
+
+@pytest.fixture
+def arc56_factory(
+    algorand: AlgorandClient,
+    funded_account: Account,
+) -> AppFactory:
+    """Create AppFactory fixture"""
+    arc56_raw_spec = (
+        Path(__file__).parent.parent / "artifacts" / "testing_app_arc56" / "arc56_app_spec.json"
+    ).read_text()
+    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.address)
 
 
 def test_create_app(factory: AppFactory) -> None:
@@ -373,3 +387,72 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
 
     assert call_return.return_value is not None
     assert call_return.return_value.return_value == "string_io"
+
+
+def test_export_import_sourcemaps(
+    factory: AppFactory,
+    algorand: AlgorandClient,
+    funded_account: Account,
+) -> None:
+    # Export source maps from original client
+    client, app = factory.deploy(deploy_time_params={"VALUE": 1})
+    old_sourcemaps = client.export_source_maps()
+
+    # Create new client instance
+    new_client = AppClient(
+        AppClientParams(
+            app_id=app.app_id,
+            default_sender=funded_account.address,
+            default_signer=funded_account.signer,
+            algorand=algorand,
+            app_spec=client.app_spec,
+        )
+    )
+
+    # Test error handling before importing source maps
+    with pytest.raises(LogicError) as exc_info:
+        new_client.send.call(AppClientMethodCallWithSendParams(method="error"))
+
+    assert "assert failed" in exc_info.value.message
+
+    # Import source maps into new client
+    new_client.import_source_maps(old_sourcemaps)
+
+    # Test error handling after importing source maps
+    with pytest.raises(LogicError) as exc_info:
+        new_client.send.call(AppClientMethodCallWithSendParams(method="error"))
+
+    error = exc_info.value
+    assert error.stack == (
+        "// error\n"
+        "error_7:\n"
+        "proto 0 0\n"
+        "intc_0 // 0\n"
+        "// Deliberate error\n"
+        "assert <--- Error\n"
+        "retsub\n\n"
+        "// create\n"
+        "create_8:"
+    )
+    assert error.pc == 885
+    assert error.message == "assert failed pc=885"
+    assert len(error.transaction_id) == 52
+
+
+def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
+    arc56_factory: AppFactory,
+) -> None:
+    client, _ = arc56_factory.deploy(
+        create_params=AppClientMethodCallParams(method="createApplication"),
+        deploy_time_params={
+            "bytes64TmplVar": "0" * 64,
+            "uint64TmplVar": 123,
+            "bytes32TmplVar": "0" * 32,
+            "bytesTmplVar": "foo",
+        },
+    )
+
+    with pytest.raises(Exception) as exc_info:
+        client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
+
+    assert "this is an error" in str(exc_info.value)

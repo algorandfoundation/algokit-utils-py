@@ -915,9 +915,9 @@ class ApplicationClient:
         if self.app_id == 0:
             raise Exception(
                 "ApplicationClient is not associated with an app instance, to resolve either:\n"
-                "1.) provide an app_id on construction OR\n"
-                "2.) provide a creator address so an app can be searched for OR\n"
-                "3.) create an app first using create or deploy methods"
+                "1.provide an app_id on construction OR\n"
+                "2.provide a creator address so an app can be searched for OR\n"
+                "3.create an app first using create or deploy methods"
             )
 
     def _resolve_method(

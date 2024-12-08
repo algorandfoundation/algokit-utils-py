@@ -19,6 +19,8 @@ LOGIC_ERROR = (
     ".*transaction (?P<transaction_id>[A-Z0-9]+): logic eval error: (?P<message>.*). Details: .*pc=(?P<pc>[0-9]+).*"
 )
 
+DEFAULT_BLAST_RADIUS = 5
+
 
 class LogicErrorData(TypedDict):
     transaction_id: str
@@ -49,6 +51,8 @@ def parse_logic_error(
 
 
 class LogicError(Exception):
+    _blast_radius = DEFAULT_BLAST_RADIUS
+
     def __init__(
         self,
         *,
@@ -60,6 +64,7 @@ class LogicError(Exception):
         pc: int,
         logic_error: Exception | None = None,
         traces: list[SimulationTrace] | None = None,
+        blast_radius: int | None = None,
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str
@@ -70,8 +75,19 @@ class LogicError(Exception):
         self.message = message
         self.pc = pc
         self.traces = traces
-
         self.line_no = self.source_map.get_line_for_pc(self.pc) if self.source_map else None
+        self._blast_radius = blast_radius or self._blast_radius
+
+        if self.line_no and self.line_no > 0:
+            start = max(0, self.line_no - self._blast_radius)
+            stop = min(len(self.program), self.line_no + self._blast_radius)
+
+            stack_lines = self.program.splitlines()[start:stop]
+
+            middle_index = len(stack_lines) // 2
+            stack_lines[middle_index] += " <--- Error"
+
+            self.stack = "\n".join(stack_lines)
 
     def __str__(self) -> str:
         return (
@@ -85,9 +101,9 @@ class LogicError(Exception):
             return """
 Could not determine TEAL source line for the error as no approval source map was provided, to receive a trace of the
 error please provide an approval SourceMap. Either by:
-    1.) Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
-    2.) Set approval_source_map from a previously compiled approval program OR
-    3.) Import a previously exported source map using import_source_map"""
+    1.Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
+    2.Set approval_source_map from a previously compiled approval program OR
+    3.Import a previously exported source map using import_source_map"""
 
         program_lines = copy(self.lines)
         program_lines[self.line_no] += "\t\t<-- Error"

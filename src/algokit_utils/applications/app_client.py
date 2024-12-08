@@ -8,6 +8,7 @@ from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 import algosdk
+from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
@@ -45,7 +46,6 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from algosdk.atomic_transaction_composer import TransactionSigner
-    from algosdk.source_map import SourceMap
 
     from algokit_utils.applications.app_manager import (
         AppManager,
@@ -63,6 +63,12 @@ BYTE_CBLOCK = 0x20  # bytecblock opcode
 INT_CBLOCK = 0x21  # intcblock opcode
 
 T = TypeVar("T")  # For generic return type in _handle_call_errors
+
+
+def camel_to_snake_case(name: str) -> str:
+    import re
+
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
@@ -878,7 +884,9 @@ class AppClient:
 
             return arc32_to_arc56(spec)
         elif isinstance(spec, dict):
-            return Arc56Contract(**spec)
+            # normalize field names to lowercase to python camel
+            transformed_spec = {camel_to_snake_case(k): v for k, v in spec.items()}
+            return Arc56Contract(**transformed_spec)
         else:
             raise ValueError("Invalid app spec format")
 
@@ -1100,8 +1108,30 @@ class AppClient:
         )
 
     def import_source_maps(self, source_maps: AppSourceMaps) -> None:
-        self._approval_source_map = source_maps.approval_source_map
-        self._clear_source_map = source_maps.clear_source_map
+        if not source_maps.approval_source_map:
+            raise ValueError("Approval source map is required")
+        if not source_maps.clear_source_map:
+            raise ValueError("Clear source map is required")
+
+        if not isinstance(source_maps.approval_source_map, dict | SourceMap):
+            raise ValueError(
+                "Approval source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
+            )
+        if not isinstance(source_maps.clear_source_map, dict | SourceMap):
+            raise ValueError(
+                "Clear source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
+            )
+
+        self._approval_source_map = (
+            SourceMap(source_map=source_maps.approval_source_map)
+            if isinstance(source_maps.approval_source_map, dict)
+            else source_maps.approval_source_map
+        )
+        self._clear_source_map = (
+            SourceMap(source_map=source_maps.clear_source_map)
+            if isinstance(source_maps.clear_source_map, dict)
+            else source_maps.clear_source_map
+        )
 
     def get_local_state(self, address: str) -> dict[str, AppState]:
         return self._state_accessor.get_local_state(address)

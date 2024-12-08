@@ -210,6 +210,16 @@ class Arc56Contract:
     template_variables: dict[str, dict[str, ABITypeAlias | AVMType | StructName | str]] | None = None
     scratch_variables: dict[str, dict[str, int | ABITypeAlias | AVMType | StructName]] | None = None
 
+    def __init__(self, **kwargs: Any) -> None:
+        if isinstance(kwargs.get("state"), dict):
+            kwargs["state"] = Arc56ContractState(**kwargs["state"])
+        if isinstance(kwargs.get("methods"), list):
+            kwargs["methods"] = [Method(**method) for method in kwargs["methods"]]
+        if isinstance(kwargs.get("source_info"), dict):
+            kwargs["source_info"] = {k: ProgramSourceInfo(**v) for k, v in kwargs["source_info"].items()}
+
+        super().__init__(**kwargs)
+
 
 @dataclass(kw_only=True, frozen=True)
 class AppState:
