@@ -5,6 +5,7 @@ import pytest
 from algosdk.logic import get_application_address
 from algosdk.transaction import ApplicationCallTxn, ApplicationCreateTxn, OnComplete
 
+from algokit_utils import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallParams,
@@ -452,7 +453,53 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
         },
     )
 
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(LogicError) as exc_info:
         client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
 
-    assert "this is an error" in str(exc_info.value)
+    assert "this is an error" in exc_info.value.stack
+
+
+def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
+    arc56_factory: AppFactory,
+    algorand: AlgorandClient,
+    funded_account: Account,
+) -> None:
+    # Deploy app with template parameters
+    client, result = arc56_factory.deploy(
+        create_params=AppClientMethodCallParams(method="createApplication"),
+        deploy_time_params={
+            "bytes64TmplVar": "0" * 64,
+            "uint64TmplVar": 0,
+            "bytes32TmplVar": "0" * 32,
+            "bytesTmplVar": "foo",
+        },
+    )
+    app_id = result.app_id
+
+    # Create new client without source map from compilation
+    app_client = AppClient(
+        AppClientParams(
+            app_id=app_id,
+            default_sender=funded_account.address,
+            default_signer=funded_account.signer,
+            algorand=algorand,
+            app_spec=client.app_spec,
+        )
+    )
+
+    # Test error handling
+    with pytest.raises(LogicError) as exc_info:
+        app_client.send.call(AppClientMethodCallWithSendParams(method="tmpl"))
+
+    expected_error = """log
+
+// tests/example-contracts/arc56_templates/templates.algo.ts:14
+// assert(this.uint64TmplVar)
+intc 1 // TMPL_uint64TmplVar
+assert <--- Error
+retsub
+
+// specificLengthTemplateVar()void
+*abi_route_specificLengthTemplateVar:""".splitlines()
+
+    assert expected_error == [t.strip() for t in exc_info.value.stack.splitlines()]

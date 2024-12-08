@@ -59,16 +59,10 @@ if TYPE_CHECKING:
     from algokit_utils.transactions.transaction_composer import TransactionComposer
 
 # TEAL opcodes for constant blocks
-BYTE_CBLOCK = 0x20  # bytecblock opcode
-INT_CBLOCK = 0x21  # intcblock opcode
+BYTE_CBLOCK = 38  # bytecblock opcode
+INT_CBLOCK = 32  # intcblock opcode
 
 T = TypeVar("T")  # For generic return type in _handle_call_errors
-
-
-def camel_to_snake_case(name: str) -> str:
-    import re
-
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
 
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
@@ -885,8 +879,7 @@ class AppClient:
             return arc32_to_arc56(spec)
         elif isinstance(spec, dict):
             # normalize field names to lowercase to python camel
-            transformed_spec = {camel_to_snake_case(k): v for k, v in spec.items()}
-            return Arc56Contract(**transformed_spec)
+            return Arc56Contract.from_json(spec)
         else:
             raise ValueError("Invalid app spec format")
 
@@ -987,7 +980,7 @@ class AppClient:
         )
 
     @staticmethod
-    def expose_logic_error_static(
+    def expose_logic_error_static(  # noqa: C901
         e: Exception, app_spec: Arc56Contract, details: ExposedLogicErrorDetails
     ) -> Exception:
         """Takes an error that may include a logic error and re-exposes it with source info."""
@@ -1031,6 +1024,17 @@ class AppClient:
                 if app_spec.source
                 else None
             )
+            custom_get_line_for_pc = None
+
+            def get_line_for_pc(input_pc: int) -> int | None:
+                if not program_source_info:
+                    return None
+                teal = [line.teal for line in program_source_info.source_info if input_pc - cblocks_offset in line.pc]
+                return teal[0] if teal else None
+
+            if not source_map:
+                custom_get_line_for_pc = get_line_for_pc
+
             if program_source:
                 e = LogicError(
                     logic_error_str=str(e),
@@ -1040,6 +1044,7 @@ class AppClient:
                     message=error_details["message"],
                     pc=error_details["pc"],
                     logic_error=e,
+                    get_line_for_pc=custom_get_line_for_pc,
                     traces=None,
                 )
 
@@ -1145,7 +1150,7 @@ class AppClient:
     def get_box_value(self, name: BoxIdentifier) -> bytes:
         return self._algorand.app.get_box_value(self._app_id, name)
 
-    def get_box_value_from_abi_type(self, name: BoxIdentifier, abi_type: ABIType) -> Any:
+    def get_box_value_from_abi_type(self, name: BoxIdentifier, abi_type: ABIType) -> ABIValue:
         return self._algorand.app.get_box_value_from_abi_type(self._app_id, name, abi_type)
 
     def get_box_values(self, filter_func: Callable[[BoxName], bool] | None = None) -> list[BoxValue]:
@@ -1290,7 +1295,7 @@ class AppClient:
         method = get_arc56_method(method_name_or_signature, self._app_spec)
         result = []
 
-        for i, method_arg in enumerate(method.args):
+        for i, method_arg in enumerate(method.arc56_args):
             # Get provided arg value if any
             arg_value = args[i] if args and i < len(args) else None
 
@@ -1316,8 +1321,13 @@ class AppClient:
                         # Get method return value
                         default_method = get_arc56_method(default_value.data, self._app_spec)
                         empty_args = [None] * len(default_method.args)
-                        call_result = self.send.app_call_method_call(
-                            {"method": default_value.data, "args": empty_args, "sender": sender}
+                        call_result = self._algorand.send.app_call_method_call(
+                            AppCallMethodCall(
+                                app_id=self._app_id,
+                                method=algosdk.abi.Method.from_signature(default_value.data),
+                                args=empty_args,
+                                sender=sender,
+                            )
                         )
 
                         if not call_result.return_value:
@@ -1328,12 +1338,12 @@ class AppClient:
                             result.append(
                                 get_abi_tuple_from_abi_struct(
                                     call_result.return_value,
-                                    self._app_spec.structs[default_method.returns.struct],
+                                    self._app_spec.structs[str(default_method.arc56_returns.type)],
                                     self._app_spec.structs,
                                 )
                             )
                         else:
-                            result.append(call_result.return_value)
+                            result.append(call_result.return_value.return_value)
 
                     case "local" | "global":
                         # Get state value
@@ -1374,7 +1384,9 @@ class AppClient:
     def _get_abi_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
         method = get_arc56_method(params["method"], self._app_spec)
-        args = self._get_abi_args_with_default_values(params["method"], params.get("args"), sender)
+        args = self._get_abi_args_with_default_values(
+            method_name_or_signature=params["method"], args=params.get("args"), sender=sender
+        )
         return {
             **params,
             "appId": self._app_id,

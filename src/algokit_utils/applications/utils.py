@@ -14,10 +14,11 @@ from algokit_utils._legacy_v2.application_specification import (
 )
 from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
 from algokit_utils.models.application import (
+    ABIArgumentType,
+    ABITypeAlias,
     Arc56Contract,
     Arc56ContractState,
     Arc56Method,
-    ARCType,
     CallConfig,
     DefaultValue,
     Method,
@@ -51,12 +52,13 @@ def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> 
         # Find by signature
         method = None
         for m in app_spec.methods:
-            abi_method = AlgorandABIMethod.undictify(m.dictify())
+            abi_method = AlgorandABIMethod.undictify(m.to_dict())
             if abi_method.get_signature() == method_name_or_signature:
                 method = m
                 break
-        if method is None:
-            raise ValueError(f"Unable to find method {method_name_or_signature} in {app_spec.name} app.")
+
+    if method is None:
+        raise ValueError(f"Unable to find method {method_name_or_signature} in {app_spec.name} app.")
 
     return Arc56Method(method)
 
@@ -139,18 +141,22 @@ def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[Str
         return abi_type.encode(value)
 
 
-def get_abi_decoded_value(value: bytes | int | str, type_str: str, structs: dict[str, list[StructField]]) -> ABIValue:
-    if type_str == "AVMBytes" or not isinstance(value, bytes):
+def get_abi_decoded_value(
+    value: bytes | int | str, type_str: str | ABITypeAlias | ABIArgumentType, structs: dict[str, list[StructField]]
+) -> ABIValue:
+    type_value = str(type_str)
+
+    if type_value == "AVMBytes" or not isinstance(value, bytes):
         return value
-    if type_str == "AVMString":
+    if type_value == "AVMString":
         return value.decode("utf-8")
-    if type_str == "AVMUint64":
+    if type_value == "AVMUint64":
         return ABIType.from_string("uint64").decode(value)  # type: ignore[no-any-return]
-    if type_str in structs:
-        tuple_type = get_abi_tuple_type_from_abi_struct_definition(structs[type_str], structs)
+    if type_value in structs:
+        tuple_type = get_abi_tuple_type_from_abi_struct_definition(structs[type_value], structs)
         decoded_tuple = tuple_type.decode(value)
-        return get_abi_struct_from_abi_tuple(decoded_tuple, structs[type_str], structs)
-    return ABIType.from_string(type_str).decode(value)  # type: ignore[no-any-return]
+        return get_abi_struct_from_abi_tuple(decoded_tuple, structs[type_value], structs)
+    return ABIType.from_string(type_value).decode(value)  # type: ignore[no-any-return]
 
 
 def get_abi_tuple_from_abi_struct(
@@ -231,9 +237,9 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
                 fields = [
                     StructField(
                         name=name,
-                        type=type,
+                        type=type_,
                     )
-                    for name, type in struct["elements"]
+                    for name, type_ in struct["elements"]
                 ]
                 structs[struct["name"]] = fields
         return structs
@@ -294,7 +300,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
             args.append(method_arg)
 
         method_returns = MethodReturns(
-            type=method.returns.type,
+            type=str(method.returns.type),
             struct=hint.structs.get("output", {}).get("name") if hint and hint.structs else None,  # type: ignore[call-overload]
             desc=method.returns.desc,
         )
@@ -399,7 +405,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
     }
 
     return Arc56Contract(
-        arcs=[ARCType.ARC56],
+        arcs=[],
         name=app_spec.contract.name,
         desc=app_spec.contract.desc,
         structs=structs,

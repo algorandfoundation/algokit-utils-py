@@ -182,7 +182,7 @@ def testing_app_puya_arc32_app_id(
                 "global_ints": global_schema.num_uints,
                 "local_bytes": local_schema.num_byte_slices,
                 "local_ints": local_schema.num_uints,
-            },  # type: ignore[arg-type]
+            },  # type: ignore[]
         )
     )
     return response.app_id

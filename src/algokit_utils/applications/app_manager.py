@@ -10,6 +10,7 @@ import algosdk.box_reference
 from algosdk.atomic_transaction_composer import ABIResult, AccountTransactionSigner
 from algosdk.box_reference import BoxReference as AlgosdkBoxReference
 from algosdk.logic import get_application_address
+from algosdk.source_map import SourceMap
 from algosdk.v2client import algod
 
 from algokit_utils.models.abi import ABIType, ABIValue
@@ -169,7 +170,7 @@ class AppManager:
             compiled=compiled["result"],
             compiled_hash=compiled["hash"],
             compiled_base64_to_bytes=base64.b64decode(compiled["result"]),
-            source_map=compiled.get("sourcemap"),
+            source_map=SourceMap(compiled.get("sourcemap", {})),
         )
         self._compilation_results[teal_code] = result
         return result

@@ -1,5 +1,7 @@
+import base64
 import dataclasses
 import re
+from collections.abc import Callable
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
 
@@ -64,28 +66,40 @@ class LogicError(Exception):
         pc: int,
         logic_error: Exception | None = None,
         traces: list[SimulationTrace] | None = None,
+        get_line_for_pc: Callable[[int], int | None] | None = None,
         blast_radius: int | None = None,
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str
-        self.program = program
+        try:
+            self.program = base64.b64decode(program).decode("utf-8")
+        except Exception:
+            self.program = program
         self.source_map = source_map
-        self.lines = program.split("\n")
+        self.lines = self.program.split("\n")
         self.transaction_id = transaction_id
         self.message = message
         self.pc = pc
         self.traces = traces
-        self.line_no = self.source_map.get_line_for_pc(self.pc) if self.source_map else None
+        self.line_no = (
+            self.source_map.get_line_for_pc(self.pc)
+            if self.source_map
+            else get_line_for_pc(self.pc)
+            if get_line_for_pc
+            else None
+        )
+        self.stack = ""
         self._blast_radius = blast_radius or self._blast_radius
 
         if self.line_no and self.line_no > 0:
-            start = max(0, self.line_no - self._blast_radius)
-            stop = min(len(self.program), self.line_no + self._blast_radius)
+            line_no = self.line_no - 1
+            start = max(0, line_no - self._blast_radius)
+            stop = min(len(self.program), line_no + self._blast_radius)
 
             stack_lines = self.program.splitlines()[start:stop]
 
             middle_index = len(stack_lines) // 2
-            stack_lines[middle_index] += " <--- Error"
+            stack_lines[middle_index] = stack_lines[middle_index] + " <--- Error"
 
             self.stack = "\n".join(stack_lines)
 
