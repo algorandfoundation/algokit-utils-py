@@ -17,7 +17,6 @@ from algokit_utils.models.application import (
     Arc56Contract,
     Arc56ContractState,
     Arc56Method,
-    ARCType,
     CallConfig,
     DefaultValue,
     Method,
@@ -399,7 +398,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
     }
 
     return Arc56Contract(
-        arcs=[ARCType.ARC56],
+        arcs=[],
         name=app_spec.contract.name,
         desc=app_spec.contract.desc,
         structs=structs,

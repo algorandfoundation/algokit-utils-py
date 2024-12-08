@@ -65,12 +65,6 @@ INT_CBLOCK = 0x21  # intcblock opcode
 T = TypeVar("T")  # For generic return type in _handle_call_errors
 
 
-def camel_to_snake_case(name: str) -> str:
-    import re
-
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
-
-
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     """Calculate the offset after constant blocks in TEAL program.
 
@@ -885,8 +879,7 @@ class AppClient:
             return arc32_to_arc56(spec)
         elif isinstance(spec, dict):
             # normalize field names to lowercase to python camel
-            transformed_spec = {camel_to_snake_case(k): v for k, v in spec.items()}
-            return Arc56Contract(**transformed_spec)
+            return Arc56Contract.from_json(spec)
         else:
             raise ValueError("Invalid app spec format")
 

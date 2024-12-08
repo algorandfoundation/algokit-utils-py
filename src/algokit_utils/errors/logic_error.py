@@ -1,3 +1,4 @@
+import base64
 import dataclasses
 import re
 from copy import copy
@@ -68,9 +69,12 @@ class LogicError(Exception):
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str
-        self.program = program
+        try:
+            self.program = base64.b64decode(program).decode("utf-8")
+        except Exception:
+            self.program = program
         self.source_map = source_map
-        self.lines = program.split("\n")
+        self.lines = self.program.split("\n")
         self.transaction_id = transaction_id
         self.message = message
         self.pc = pc
