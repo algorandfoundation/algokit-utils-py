@@ -117,9 +117,9 @@ class AssetCreateParams(
     """
 
     total: int
-    asset_name: str
-    unit_name: str
-    url: str
+    asset_name: str | None = None
+    unit_name: str | None = None
+    url: str | None = None
     decimals: int | None = None
     default_frozen: bool | None = None
     manager: str | None = None
