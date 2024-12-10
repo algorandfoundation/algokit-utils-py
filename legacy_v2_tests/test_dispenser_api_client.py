@@ -1,13 +1,14 @@
 import json
 
 import pytest
+from pytest_httpx import HTTPXMock
+
 from algokit_utils.dispenser_api import (
     DISPENSER_ASSETS,
     DispenserApiConfig,
     DispenserAssetName,
     TestNetDispenserApiClient,
 )
-from pytest_httpx import HTTPXMock
 
 
 class TestDispenserApiTestnetClient:

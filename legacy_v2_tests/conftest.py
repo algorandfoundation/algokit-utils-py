@@ -8,6 +8,8 @@ from uuid import uuid4
 
 import algosdk.transaction
 import pytest
+from dotenv import load_dotenv
+
 from algokit_utils import (
     DELETABLE_TEMPLATE_NAME,
     UPDATABLE_TEMPLATE_NAME,
@@ -22,8 +24,6 @@ from algokit_utils import (
     get_kmd_client_from_algod_client,
     replace_template_variables,
 )
-from dotenv import load_dotenv
-
 from legacy_v2_tests import app_client_test
 
 if TYPE_CHECKING:
@@ -142,7 +142,7 @@ def indexer_client() -> "IndexerClient":
     return get_indexer_client()
 
 
-@pytest.fixture()
+@pytest.fixture
 def creator(algod_client: "AlgodClient") -> Account:
     creator_name = get_unique_name()
     return get_account(algod_client, creator_name)

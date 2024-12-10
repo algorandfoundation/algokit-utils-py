@@ -2,6 +2,7 @@ import re
 from typing import TYPE_CHECKING
 
 import pytest
+
 from algokit_utils import (
     Account,
     EnsureBalanceParameters,
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 from legacy_v2_tests.conftest import assure_funds, generate_test_asset, get_unique_name
 
 
-@pytest.fixture()
+@pytest.fixture
 def to_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 

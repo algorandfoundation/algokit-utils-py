@@ -121,3 +121,27 @@ class AlgoAmount:
         elif isinstance(other, int | Decimal):
             return self.amount_in_micro_algo >= int(other)
         raise TypeError(f"Unsupported operand type(s) for >=: 'AlgoAmount' and '{type(other).__name__}'")
+
+    def __sub__(self, other: int | Decimal | AlgoAmount) -> AlgoAmount:
+        if isinstance(other, AlgoAmount):
+            total_micro_algos = self.micro_algos - other.micro_algos
+        elif isinstance(other, (int | Decimal)):
+            total_micro_algos = self.micro_algos - int(other)
+        else:
+            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+        return AlgoAmount.from_micro_algos(total_micro_algos)
+
+    def __rsub__(self, other: int | Decimal) -> AlgoAmount:
+        if isinstance(other, (int | Decimal)):
+            total_micro_algos = int(other) - self.micro_algos
+            return AlgoAmount.from_micro_algos(total_micro_algos)
+        raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
+
+    def __isub__(self, other: int | Decimal | AlgoAmount) -> Self:
+        if isinstance(other, AlgoAmount):
+            self.amount_in_micro_algo -= other.micro_algos
+        elif isinstance(other, (int | Decimal)):
+            self.amount_in_micro_algo -= int(other)
+        else:
+            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+        return self

@@ -1,11 +1,12 @@
 import base64
 from typing import TYPE_CHECKING
 
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
+
 from algokit_utils import (
     ApplicationClient,
     ApplicationSpecification,
 )
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient

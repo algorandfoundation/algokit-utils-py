@@ -3,6 +3,11 @@ from typing import TYPE_CHECKING
 import algosdk
 import httpx
 import pytest
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
+from algosdk.transaction import PaymentTxn
+from algosdk.util import algos_to_microalgos
+from pytest_httpx import HTTPXMock
+
 from algokit_utils import (
     Account,
     EnsureBalanceParameters,
@@ -19,11 +24,6 @@ from algokit_utils import (
 )
 from algokit_utils.dispenser_api import DispenserApiConfig
 from algokit_utils.network_clients import get_algod_client, get_algonode_config
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
-from algosdk.transaction import PaymentTxn
-from algosdk.util import algos_to_microalgos
-from pytest_httpx import HTTPXMock
-
 from legacy_v2_tests.conftest import assure_funds, check_output_stability, generate_test_asset, get_unique_name
 from legacy_v2_tests.test_network_clients import DEFAULT_TOKEN
 
@@ -35,12 +35,12 @@ if TYPE_CHECKING:
 MINIMUM_BALANCE = 100_000  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
 
 
-@pytest.fixture()
+@pytest.fixture
 def to_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 
 
-@pytest.fixture()
+@pytest.fixture
 def rekeyed_from_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -> Account:
     account = create_kmd_wallet_account(kmd_client, get_unique_name())
     rekey_account = create_kmd_wallet_account(kmd_client, get_unique_name())
@@ -68,7 +68,7 @@ def rekeyed_from_account(algod_client: "AlgodClient", kmd_client: "KMDClient") -
     return Account(address=account.address, private_key=rekey_account.private_key)
 
 
-@pytest.fixture()
+@pytest.fixture
 def transaction_signer_from_account(
     kmd_client: "KMDClient",
     algod_client: "AlgodClient",
@@ -87,7 +87,7 @@ def transaction_signer_from_account(
     return AccountTransactionSigner(private_key=account.private_key)
 
 
-@pytest.fixture()
+@pytest.fixture
 def clawback_account(kmd_client: "KMDClient") -> Account:
     return create_kmd_wallet_account(kmd_client, get_unique_name())
 

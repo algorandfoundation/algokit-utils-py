@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import pytest
+
 from algokit_utils import (
     ABICreateCallArgs,
     Account,
@@ -9,7 +10,6 @@ from algokit_utils import (
     TransferParameters,
     transfer,
 )
-
 from legacy_v2_tests.conftest import get_unique_name, read_spec
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from algosdk.v2client.indexer import IndexerClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_fixture(
     algod_client: "AlgodClient",
     indexer_client: "IndexerClient",

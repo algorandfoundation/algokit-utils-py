@@ -2,6 +2,18 @@ from pathlib import Path
 
 import algosdk
 import pytest
+from algosdk.transaction import (
+    ApplicationCallTxn,
+    ApplicationCreateTxn,
+    AssetConfigTxn,
+    AssetCreateTxn,
+    AssetDestroyTxn,
+    AssetFreezeTxn,
+    AssetTransferTxn,
+    KeyregTxn,
+    PaymentTxn,
+)
+
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
@@ -19,29 +31,26 @@ from algokit_utils.transactions.transaction_composer import (
     OnlineKeyRegistrationParams,
     PaymentParams,
 )
-from algosdk.transaction import (
-    ApplicationCallTxn,
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    KeyregTxn,
-    PaymentTxn,
-)
-
 from legacy_v2_tests.conftest import get_unique_name
 
 
-@pytest.fixture()
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
 
 
-@pytest.fixture()
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
+
+
+@pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient, funded_account: Account) -> Account:
     secondary_name = get_unique_name()
     account = get_account(algorand.client.algod, secondary_name)
@@ -210,8 +219,8 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
 
 
 def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
-    approval_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "approval.teal").read_text()
-    clear_state_program = Path(Path(__file__).parent / "artifacts" / "hello_world" / "clear.teal").read_text()
+    approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
+    clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
 
     # First create the app
     create_result = algorand.send.app_create(
@@ -222,7 +231,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
             schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
         )
     )
-    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_id)["application-index"]  # type: ignore[call-overload]
+    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_ids[0])["application-index"]  # type: ignore[call-overload]
 
     # Then test creating a method call transaction
     result = algorand.create_transaction.app_call_method_call(

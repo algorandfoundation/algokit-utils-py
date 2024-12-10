@@ -7,11 +7,11 @@ from collections.abc import Iterable, Mapping, Sequence
 from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
+import algosdk
 from algosdk import transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionSigner
-from algosdk.logic import get_application_address
 from algosdk.transaction import StateSchema
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -36,26 +36,26 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "UPDATABLE_TEMPLATE_NAME",
     "DELETABLE_TEMPLATE_NAME",
     "NOTE_PREFIX",
+    "UPDATABLE_TEMPLATE_NAME",
     "ABICallArgs",
-    "ABICreateCallArgs",
     "ABICallArgsDict",
+    "ABICreateCallArgs",
     "ABICreateCallArgsDict",
-    "DeploymentFailedError",
-    "AppReference",
     "AppDeployMetaData",
-    "AppMetaData",
     "AppLookup",
+    "AppMetaData",
+    "AppReference",
     "DeployCallArgs",
-    "DeployCreateCallArgs",
     "DeployCallArgsDict",
+    "DeployCreateCallArgs",
     "DeployCreateCallArgsDict",
-    "Deployer",
     "DeployResponse",
-    "OnUpdate",
+    "Deployer",
+    "DeploymentFailedError",
     "OnSchemaBreak",
+    "OnUpdate",
     "OperationPerformed",
     "TemplateValueDict",
     "TemplateValueMapping",
@@ -175,6 +175,7 @@ def _parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
         return None
 
 
+@deprecated("Deprecated")
 def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -> AppLookup:
     """Returns a mapping of Application names to {py:class}`AppMetaData` for all Applications created by specified
     creator that have a transaction note containing {py:class}`AppDeployMetaData`
@@ -222,7 +223,7 @@ def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -
             if create_metadata and create_metadata.name:
                 apps[create_metadata.name] = AppMetaData(
                     app_id=app_id,
-                    app_address=get_application_address(app_id),
+                    app_address=algosdk.logic.get_application_address(app_id),
                     created_metadata=create_metadata,
                     created_round=app_created_at_round,
                     **(update_metadata or create_metadata).__dict__,
@@ -255,7 +256,8 @@ class AppChanges:
     schema_change_description: str | None
 
 
-def check_for_app_changes(  # noqa: PLR0913
+@deprecated("Deprecated")
+def check_for_app_changes(
     algod_client: "AlgodClient",
     *,
     new_approval: bytes,
@@ -412,7 +414,7 @@ def check_template_variables(approval_program: str, template_values: TemplateVal
             logger.warning(f"{tmpl_variable} not found in approval program, but variable was provided")
 
 
-@deprecated(reason="Use `AppManager.replace_template_variables` instead", version="3.0.0")
+@deprecated("Use `AppManager.replace_template_variables` instead")
 def replace_template_variables(program: str, template_values: TemplateValueMapping) -> str:
     """Replaces `TMPL_*` variables in `program` with `template_values`
 
@@ -809,7 +811,7 @@ def _create_metadata(
 ) -> AppMetaData:
     return AppMetaData(
         app_id=app_id,
-        app_address=get_application_address(app_id),
+        app_address=algosdk.logic.get_application_address(app_id),
         created_metadata=original_metadata or app_spec_note,
         created_round=created_round,
         updated_round=updated_round or created_round,

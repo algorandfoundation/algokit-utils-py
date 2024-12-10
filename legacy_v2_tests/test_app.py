@@ -1,4 +1,5 @@
 import pytest
+
 from algokit_utils import AppDeployMetaData
 
 

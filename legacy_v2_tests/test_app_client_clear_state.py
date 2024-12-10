@@ -2,12 +2,12 @@ import base64
 from typing import TYPE_CHECKING
 
 import pytest
+
 from algokit_utils import (
     Account,
     ApplicationClient,
     ApplicationSpecification,
 )
-
 from legacy_v2_tests.conftest import is_opted_in
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from algosdk.v2client.indexer import IndexerClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_fixture(
     algod_client: "AlgodClient",
     indexer_client: "IndexerClient",

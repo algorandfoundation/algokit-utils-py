@@ -3,12 +3,13 @@ import contextlib
 from typing import TYPE_CHECKING, Any
 
 import pytest
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
+
 from algokit_utils import (
     ApplicationClient,
     ApplicationSpecification,
     get_sender_from_signer,
 )
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 
 if TYPE_CHECKING:
     from algosdk import transaction
@@ -30,7 +31,7 @@ fake_key = base64.b64encode(b"a" * 64).decode("utf8")
 @pytest.mark.parametrize("override_signer", [CustomSigner(), AccountTransactionSigner(fake_key), None])
 @pytest.mark.parametrize("default_sender", ["default_sender", None])
 @pytest.mark.parametrize("default_signer", [CustomSigner(), AccountTransactionSigner(fake_key), None])
-def test_resolve_signer_sender(  # noqa: PLR0913
+def test_resolve_signer_sender(
     *,
     algod_client: "AlgodClient",
     app_spec: ApplicationSpecification,
