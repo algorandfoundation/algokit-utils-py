@@ -1,13 +1,13 @@
 from typing import TYPE_CHECKING
 
 import pytest
+
 from algokit_utils import (
     Account,
     ApplicationClient,
     ApplicationSpecification,
     LogicError,
 )
-
 from legacy_v2_tests.conftest import check_output_stability
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from algosdk.v2client.indexer import IndexerClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_fixture(
     algod_client: "AlgodClient",
     indexer_client: "IndexerClient",

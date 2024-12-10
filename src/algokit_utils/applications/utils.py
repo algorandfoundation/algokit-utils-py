@@ -306,8 +306,8 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         )
 
         method_actions = MethodActions(
-            create=convert_actions(hint.call_config, "CREATE") if hint and hint.call_config else [],  # type: ignore[arg-type]
-            call=convert_actions(hint.call_config, "CALL") if hint and hint.call_config else [],  # type: ignore[arg-type]
+            create=convert_actions(hint.call_config, "CREATE") if hint and hint.call_config else [],  # type: ignore  # noqa: PGH003
+            call=convert_actions(hint.call_config, "CALL") if hint and hint.call_config else [],
         )
 
         return Method(
@@ -374,12 +374,16 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
     state = Arc56ContractState(
         schemas={
             "global": {
-                "ints": app_spec.global_state_schema.num_uints,  # type: ignore[attr-defined]
-                "bytes": app_spec.global_state_schema.num_byte_slices,  # type: ignore[attr-defined]
+                "ints": int(app_spec.global_state_schema.num_uints) if app_spec.global_state_schema.num_uints else 0,
+                "bytes": int(app_spec.global_state_schema.num_byte_slices)
+                if app_spec.global_state_schema.num_byte_slices
+                else 0,
             },
             "local": {
-                "ints": app_spec.local_state_schema.num_uints,  # type: ignore[attr-defined]
-                "bytes": app_spec.local_state_schema.num_byte_slices,  # type: ignore[attr-defined]
+                "ints": int(app_spec.local_state_schema.num_uints) if app_spec.local_state_schema.num_uints else 0,
+                "bytes": int(app_spec.local_state_schema.num_byte_slices)
+                if app_spec.local_state_schema.num_byte_slices
+                else 0,
             },
         },
         keys={

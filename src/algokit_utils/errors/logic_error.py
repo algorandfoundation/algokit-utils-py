@@ -53,8 +53,6 @@ def parse_logic_error(
 
 
 class LogicError(Exception):
-    _blast_radius = DEFAULT_BLAST_RADIUS
-
     def __init__(
         self,
         *,
@@ -67,7 +65,6 @@ class LogicError(Exception):
         logic_error: Exception | None = None,
         traces: list[SimulationTrace] | None = None,
         get_line_for_pc: Callable[[int], int | None] | None = None,
-        blast_radius: int | None = None,
     ):
         self.logic_error = logic_error
         self.logic_error_str = logic_error_str
@@ -88,20 +85,6 @@ class LogicError(Exception):
             if get_line_for_pc
             else None
         )
-        self.stack = ""
-        self._blast_radius = blast_radius or self._blast_radius
-
-        if self.line_no and self.line_no > 0:
-            line_no = self.line_no - 1
-            start = max(0, line_no - self._blast_radius)
-            stop = min(len(self.program), line_no + self._blast_radius)
-
-            stack_lines = self.program.splitlines()[start:stop]
-
-            middle_index = len(stack_lines) // 2
-            stack_lines[middle_index] = stack_lines[middle_index] + " <--- Error"
-
-            self.stack = "\n".join(stack_lines)
 
     def __str__(self) -> str:
         return (

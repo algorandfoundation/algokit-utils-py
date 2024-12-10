@@ -95,11 +95,11 @@ def test_hello_world_arc32_app_id(
             approval_program=test_hello_world_arc32_app_spec.approval_program,
             clear_state_program=test_hello_world_arc32_app_spec.clear_program,
             schema={
-                "global_ints": global_schema.num_uints,
-                "global_bytes": global_schema.num_byte_slices,
-                "local_ints": local_schema.num_uints,
-                "local_bytes": local_schema.num_byte_slices,
-            },  # type: ignore[arg-type]
+                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
+                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
+                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+            },
         )
     )
     return response.app_id
@@ -375,9 +375,6 @@ def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, send
     assert txn.amount == 0
     assert txn.receiver == receiver.address
     assert txn.close_assets_to == sender.address
-
-
-# TODO: add remaining tests for app_update, app_delete, app_create_method_call, app_update method call, app_delete method call
 
 
 def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:

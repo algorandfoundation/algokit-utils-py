@@ -33,3 +33,4 @@ repos:
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
         files: "^(src|tests)/"
+        exclude: "^tests/artifacts/"

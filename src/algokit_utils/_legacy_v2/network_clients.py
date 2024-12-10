@@ -10,16 +10,16 @@ from typing_extensions import deprecated
 
 __all__ = [
     "AlgoClientConfig",
+    "AlgoClientConfigs",
     "get_algod_client",
     "get_algonode_config",
     "get_default_localnet_config",
     "get_indexer_client",
+    "get_kmd_client",
     "get_kmd_client_from_algod_client",
     "is_localnet",
     "is_mainnet",
     "is_testnet",
-    "AlgoClientConfigs",
-    "get_kmd_client",
 ]
 
 

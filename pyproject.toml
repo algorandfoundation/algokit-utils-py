@@ -93,8 +93,6 @@ lint.select = [
   "RUF",    # Ruff-specific rules
 ]
 lint.ignore = [
-  "ANN101", # no type for self
-  "ANN102", # no type for cls
   "RET505", # allow else after return
   "SIM108", # allow if-else in place of ternary
   "E111", # indentation is not a multiple of four

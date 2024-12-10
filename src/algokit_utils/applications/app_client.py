@@ -772,10 +772,8 @@ class _AppClientSendAccessor:
         )
 
     def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        is_read_only_call = (
-            params.on_complete == algosdk.transaction.OnComplete.NoOpOC
-            or not params.on_complete
-            and get_arc56_method(params.method, self._app_spec).method.readonly
+        is_read_only_call = params.on_complete == algosdk.transaction.OnComplete.NoOpOC or (
+            not params.on_complete and get_arc56_method(params.method, self._app_spec).method.readonly
         )
 
         if is_read_only_call:

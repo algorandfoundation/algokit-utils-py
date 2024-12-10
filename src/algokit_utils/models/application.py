@@ -49,6 +49,8 @@ class SerializableBaseClass:
         def serialize(obj: Any) -> dict[str, Any] | list[Any] | Any:  # noqa: ANN401
             if is_dataclass(obj) and not isinstance(obj, type):
                 return {k: serialize(v) for k, v in asdict(obj).items()}
+            elif isinstance(obj, algosdk.abi.ABIType):
+                return str(obj)
             elif isinstance(obj, list):
                 return [serialize(item) for item in obj]
             elif isinstance(obj, dict):
@@ -244,14 +246,22 @@ class Arc56MethodReturnType:
 class Arc56Method(SerializableBaseClass, algosdk.abi.Method):
     def __init__(self, method: Method) -> None:
         # First, create the parent class with original arguments
-        super().__init__(name=method.name, args=method.args, returns=method.returns, desc=method.desc)  # type: ignore[arg-type]
+        super().__init__(
+            name=method.name,
+            args=method.args,  # type: ignore[arg-type]
+            returns=algosdk.abi.Returns(arg_type=method.returns.type, desc=method.returns.desc),
+            desc=method.desc,
+        )
         self.method = method
 
         # Store our custom Arc56MethodArg list separately
+
         self._arc56_args = [
             Arc56MethodArg.from_method_arg(
                 arg,
-                algosdk.abi.ABIType.from_string(arg.type),
+                algosdk.abi.ABIType.from_string(arg.type)
+                if not self._is_transaction_or_reference_type(arg.type) and isinstance(arg.type, str)
+                else arg.type,  # type: ignore[arg-type]
             )
             for arg in method.args
         ]

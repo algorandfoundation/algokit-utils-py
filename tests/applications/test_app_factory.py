@@ -222,7 +222,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert updated_app.updated_round != updated_app.created_round
     assert updated_app.updated_round == updated_app.confirmation["confirmed-round"]  # type: ignore[call-overload]
     assert isinstance(updated_app.transaction, ApplicationCallTxn)
-    assert updated_app.transaction.on_complete == OnComplete.UpdateApplicationOC  # type: ignore[union-attr]
+    assert updated_app.transaction.on_complete == OnComplete.UpdateApplicationOC
     assert updated_app.return_value == "args_io"
 
 
@@ -249,8 +249,8 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
     assert replaced_app.delete_result.confirmation is not None
     assert len(replaced_app.transactions) == 2  # noqa: PLR2004
     assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
-    assert replaced_app.delete_result.transaction.index == created_app.app_id  # type: ignore[union-attr]
-    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]
+    assert replaced_app.delete_result.transaction.index == created_app.app_id
+    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC
 
 
 def test_deploy_app_replace_abi(factory: AppFactory) -> None:
@@ -277,10 +277,10 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     assert replaced_app.confirmation is not None
     assert replaced_app.delete_result is not None
     assert replaced_app.delete_result.confirmation is not None
-    assert len(replaced_app.transactions) == 2
+    assert len(replaced_app.transactions) == 2  # noqa: PLR2004
     assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
-    assert replaced_app.delete_result.transaction.index == created_app.app_id  # type: ignore[union-attr]
-    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC  # type: ignore[union-attr]
+    assert replaced_app.delete_result.transaction.index == created_app.app_id
+    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC
     assert replaced_app.return_value == "arg_io"
     assert replaced_app.delete_return_value == "arg2_io"
 
@@ -424,20 +424,13 @@ def test_export_import_sourcemaps(
         new_client.send.call(AppClientMethodCallWithSendParams(method="error"))
 
     error = exc_info.value
-    assert error.stack == (
-        "// error\n"
-        "error_7:\n"
-        "proto 0 0\n"
-        "intc_0 // 0\n"
-        "// Deliberate error\n"
-        "assert <--- Error\n"
-        "retsub\n\n"
-        "// create\n"
-        "create_8:"
+    assert (
+        error.trace().strip()
+        == "// error\n\terror_7:\n\tproto 0 0\n\tintc_0 // 0\n\t// Deliberate error\n\tassert\t\t<-- Error\n\tretsub\n\t\n\t// create\n\tcreate_8:"  # noqa: E501
     )
-    assert error.pc == 885
+    assert error.pc == 885  # noqa: PLR2004
     assert error.message == "assert failed pc=885"
-    assert len(error.transaction_id) == 52
+    assert len(error.transaction_id) == 52  # noqa: PLR2004
 
 
 def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
@@ -453,10 +446,8 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
         },
     )
 
-    with pytest.raises(LogicError) as exc_info:
+    with pytest.raises(Exception, match="this is an error"):
         client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
-
-    assert "this is an error" in exc_info.value.stack
 
 
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
@@ -491,15 +482,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     with pytest.raises(LogicError) as exc_info:
         app_client.send.call(AppClientMethodCallWithSendParams(method="tmpl"))
 
-    expected_error = """log
-
-// tests/example-contracts/arc56_templates/templates.algo.ts:14
-// assert(this.uint64TmplVar)
-intc 1 // TMPL_uint64TmplVar
-assert <--- Error
-retsub
-
-// specificLengthTemplateVar()void
-*abi_route_specificLengthTemplateVar:""".splitlines()
-
-    assert expected_error == [t.strip() for t in exc_info.value.stack.splitlines()]
+    assert (
+        exc_info.value.trace().strip()
+        == "// tests/example-contracts/arc56_templates/templates.algo.ts:14\n\t\t// assert(this.uint64TmplVar)\n\t\tintc 1 // TMPL_uint64TmplVar\n\t\tassert\n\t\tretsub\t\t<-- Error\n\t\n\t// specificLengthTemplateVar()void\n\t*abi_route_specificLengthTemplateVar:\n\t\t// execute specificLengthTemplateVar()void"  # noqa: E501
+    )

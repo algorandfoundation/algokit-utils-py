@@ -11,14 +11,14 @@ from algosdk.transaction import StateSchema
 from typing_extensions import deprecated
 
 __all__ = [
+    "AppSpecStateDict",
+    "ApplicationSpecification",
     "CallConfig",
     "DefaultArgumentDict",
     "DefaultArgumentType",
     "MethodConfigDict",
-    "OnCompleteActionName",
     "MethodHints",
-    "ApplicationSpecification",
-    "AppSpecStateDict",
+    "OnCompleteActionName",
 ]
 
 

@@ -17,7 +17,7 @@ class Account:
 
     def __post_init__(self) -> None:
         if not self.address:
-            self.address = algosdk.account.address_from_private_key(self.private_key)  # type: ignore[arg-type]
+            self.address = str(algosdk.account.address_from_private_key(self.private_key))
 
     @property
     def public_key(self) -> bytes:

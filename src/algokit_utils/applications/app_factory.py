@@ -442,7 +442,7 @@ class AppFactory:
 
         update_args: DeployAppUpdateParams | AppUpdateMethodCall
         if _is_method_call_params(update_params):
-            update_args = self.params.deploy_update(update_params)  # type: ignore[arg-type]
+            update_args = self.params.deploy_update(update_params)
         else:
             update_args = DeployAppUpdateParams(
                 **self.params.bare.deploy_update(
@@ -452,7 +452,7 @@ class AppFactory:
 
         delete_args: DeployAppDeleteParams | AppDeleteMethodCall
         if _is_method_call_params(delete_params):
-            delete_args = self.params.deploy_delete(delete_params)  # type: ignore[arg-type]
+            delete_args = self.params.deploy_delete(delete_params)
         else:
             delete_args = DeployAppDeleteParams(
                 **self.params.bare.deploy_delete(
@@ -507,23 +507,23 @@ class AppFactory:
 
         if "return_value" in result:
             if result["operation_performed"] == OperationPerformed.Update:
-                if update_params and hasattr(update_params, "method"):
+                if update_params and isinstance(update_params, AppClientMethodCallParams):
                     result["return_value"] = get_arc56_return_value(
                         result["return_value"],
-                        get_arc56_method(update_params.method, self._app_spec),  # type: ignore[arg-type]
+                        get_arc56_method(update_params.method, self._app_spec),
                         self._app_spec.structs,
                     )
-            elif create_params and hasattr(create_params, "method"):
+            elif create_params and isinstance(create_params, AppClientMethodCallParams):
                 result["return_value"] = get_arc56_return_value(
                     result["return_value"],
-                    get_arc56_method(create_params.method, self._app_spec),  # type: ignore[arg-type]
+                    get_arc56_method(create_params.method, self._app_spec),
                     self._app_spec.structs,
                 )
 
-        if "delete_return_value" in result and delete_params and hasattr(delete_params, "method"):
+        if "delete_return_value" in result and delete_params and isinstance(delete_params, AppClientMethodCallParams):
             result["delete_return_value"] = get_arc56_return_value(
                 result["delete_return_value"],
-                get_arc56_method(delete_params.method, self._app_spec),  # type: ignore[arg-type]
+                get_arc56_method(delete_params.method, self._app_spec),
                 self._app_spec.structs,
             )
 

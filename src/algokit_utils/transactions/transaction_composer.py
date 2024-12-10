@@ -558,9 +558,8 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Build transactions
         transactions_with_signer = atc.build_group()
 
-        if (
-            populate_resources
-            or config.populate_app_call_resource
+        if populate_resources or (
+            config.populate_app_call_resource
             and any(isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer)
         ):
             atc = populate_app_call_resources(atc, algod)
@@ -1126,7 +1125,7 @@ class TransactionComposer:
         params: AppCallParams | AppUpdateParams | AppCreateParams | AppDeleteParams,
         suggested_params: algosdk.transaction.SuggestedParams,
     ) -> algosdk.transaction.Transaction:
-        app_id = params.app_id if hasattr(params, "app_id") and params.app_id else 0  # type: ignore[]
+        app_id = getattr(params, "app_id", 0)
 
         approval_program = None
         clear_program = None

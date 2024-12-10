@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
-import algokit_utils
 import pytest
 
+import algokit_utils
 from legacy_v2_tests.conftest import get_unique_name, read_spec
 
 if TYPE_CHECKING:

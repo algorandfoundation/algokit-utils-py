@@ -12,7 +12,7 @@ MAX_APP_CALL_ACCOUNT_REFERENCES = 4
 MAX_APP_CALL_FOREIGN_REFERENCES = 8
 
 
-def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:
+def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:  # noqa: C901, PLR0915, PLR0912
     """
     Populate application call resources based on simulation results.
     """
@@ -64,7 +64,7 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
         app_txn.foreign_assets = foreign_assets
         app_txn.boxes = boxes
 
-    def populate_group_resource(
+    def populate_group_resource(  # noqa: C901, PLR0915
         txns: list[TransactionWithSigner], reference: str | BoxReference | dict[str, Any] | int, ref_type: str
     ) -> None:
         """Helper function to populate group-level resources"""

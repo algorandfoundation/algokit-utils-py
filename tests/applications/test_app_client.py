@@ -66,11 +66,11 @@ def hello_world_arc32_app_id(
             approval_program=hello_world_arc32_app_spec.approval_program,
             clear_state_program=hello_world_arc32_app_spec.clear_program,
             schema={
-                "global_ints": global_schema.num_uints,
-                "global_bytes": global_schema.num_byte_slices,
-                "local_ints": local_schema.num_uints,
-                "local_bytes": local_schema.num_byte_slices,
-            },  # type: ignore[arg-type]
+                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
+                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
+                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+            },
         )
     )
     return response.app_id
@@ -108,11 +108,11 @@ def testing_app_arc32_app_id(
             approval_program=approval,
             clear_state_program=testing_app_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": global_schema.num_byte_slices,
-                "global_ints": global_schema.num_uints,
-                "local_bytes": local_schema.num_byte_slices,
-                "local_ints": local_schema.num_uints,
-            },  # type: ignore[arg-type]
+                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
+                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
+            },
         )
     )
     return response.app_id
@@ -178,11 +178,11 @@ def testing_app_puya_arc32_app_id(
             approval_program=testing_app_puya_arc32_app_spec.approval_program,
             clear_state_program=testing_app_puya_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": global_schema.num_byte_slices,
-                "global_ints": global_schema.num_uints,
-                "local_bytes": local_schema.num_byte_slices,
-                "local_ints": local_schema.num_uints,
-            },  # type: ignore[]
+                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
+                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
+            },
         )
     )
     return response.app_id
@@ -334,7 +334,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 ) -> None:
     # Create a payment transaction with random amount
     amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
-    payment_txn = algorand.send.payment(
+    payment_txn = algorand.create_transaction.payment(
         PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
@@ -346,7 +346,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
     result = test_app_client.send.call(
         AppClientMethodCallWithSendParams(
             method="call_abi_txn",
-            args=[payment_txn.transaction, "test"],
+            args=[payment_txn, "test"],
         )
     )
 
@@ -472,7 +472,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     assert hasattr(global_state["bytes2"], "value_raw")
     assert sorted(global_state.keys()) == ["bytes1", "bytes2", "int1", "int2", "value"]
     assert global_state["int1"].value == 1
-    assert global_state["int2"].value == 2
+    assert global_state["int2"].value == 2  # noqa: PLR2004
     assert global_state["bytes1"].value == "asdf"
     assert global_state["bytes2"].value_raw == bytes([1, 2, 3, 4])
 
@@ -489,7 +489,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     assert "local_bytes2" in local_state
     assert sorted(local_state.keys()) == ["local_bytes1", "local_bytes2", "local_int1", "local_int2"]
     assert local_state["local_int1"].value == 1
-    assert local_state["local_int2"].value == 2
+    assert local_state["local_int2"].value == 2  # noqa: PLR2004
     assert local_state["local_bytes1"].value == "asdf"
     assert local_state["local_bytes2"].value_raw == bytes([1, 2, 3, 4])
 

@@ -204,8 +204,8 @@ class AppDeployer:
 
         # Get existing app metadata
         apps = deployment.existing_deployments or self.get_creator_apps_by_name(
-            deployment.create_params.sender,
-            deployment.ignore_cache,
+            creator_address=deployment.create_params.sender,
+            ignore_cache=deployment.ignore_cache,
         )
 
         existing_app = apps.apps.get(deployment.metadata.name)
@@ -538,7 +538,7 @@ class AppDeployer:
         else:
             lookup.apps[app_metadata.name] = app_metadata
 
-    def get_creator_apps_by_name(self, creator_address: str, ignore_cache: bool = False) -> AppLookup:
+    def get_creator_apps_by_name(self, *, creator_address: str, ignore_cache: bool = False) -> AppLookup:
         """Get apps created by an account"""
 
         if not ignore_cache and creator_address in self._app_lookups:
