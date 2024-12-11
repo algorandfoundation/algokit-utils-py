@@ -12,10 +12,17 @@ from typing_extensions import Self
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestNetDispenserApiClient
+from algokit_utils.config import config
 from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer
+from algokit_utils.transactions.transaction_composer import (
+    PaymentParams,
+    SendAtomicTransactionComposerResults,
+    TransactionComposer,
+)
 from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
+
+logger = config.logger
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -76,7 +83,7 @@ class AccountManager:
             raise ValueError(f"No account found for address {sender}")
         return account
 
-    def get_signer(self, sender: str) -> TransactionSigner:
+    def get_signer(self, sender: str | Account) -> TransactionSigner:
         """
         Returns the `TransactionSigner` for the given sender address.
 
@@ -85,20 +92,20 @@ class AccountManager:
         :param sender: The sender address
         :return: The `TransactionSigner` or throws an error if not found
         """
-        account = self._accounts.get(sender)
+        account = self._accounts.get(self._get_address(sender))
         signer = account.signer if account else self._default_signer
         if not signer:
             raise ValueError(f"No signer found for address {sender}")
         return signer
 
-    def get_information(self, sender: str) -> dict[str, Any]:
+    def get_information(self, sender: str | Account) -> dict[str, Any]:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
         :param sender: The address of the sender/account to look up
         :return: The account information
         """
-        info = self._client_manager.algod.account_info(sender)
+        info = self._client_manager.algod.account_info(self._get_address(sender))
         assert isinstance(info, dict)
         return info
 
@@ -145,6 +152,77 @@ class AccountManager:
         self._accounts[sender_address] = account
         return Account(address=sender_address, private_key=account.private_key)
 
+    def rekey_account(  # noqa: PLR0913
+        self,
+        account: str | Account,
+        rekey_to: str | Account,
+        *,
+        # Common transaction parameters
+        signer: TransactionSigner | None = None,
+        note: bytes | None = None,
+        lease: bytes | None = None,
+        static_fee: AlgoAmount | None = None,
+        extra_fee: AlgoAmount | None = None,
+        max_fee: AlgoAmount | None = None,
+        validity_window: int | None = None,
+        first_valid_round: int | None = None,
+        last_valid_round: int | None = None,
+        suppress_log: bool | None = None,
+    ) -> SendAtomicTransactionComposerResults:
+        """Rekey an account to a new address.
+
+        Args:
+            account: The account to rekey
+            rekey_to: The address or account to rekey to
+            signer: Optional transaction signer
+            note: Optional transaction note
+            lease: Optional transaction lease
+            static_fee: Optional static fee
+            extra_fee: Optional extra fee
+            max_fee: Optional max fee
+            validity_window: Optional validity window
+            first_valid_round: Optional first valid round
+            last_valid_round: Optional last valid round
+            suppress_log: Optional flag to suppress logging
+
+        Returns:
+            The transaction result
+        """
+        sender_address = self._get_address(account)
+        rekey_address = self._get_address(rekey_to)
+
+        result = (
+            self._get_composer()
+            .add_payment(
+                PaymentParams(
+                    sender=sender_address,
+                    receiver=sender_address,
+                    amount=AlgoAmount.from_micro_algo(0),
+                    rekey_to=rekey_address,
+                    signer=signer,
+                    note=note,
+                    lease=lease,
+                    static_fee=static_fee,
+                    extra_fee=extra_fee,
+                    max_fee=max_fee,
+                    validity_window=validity_window,
+                    first_valid_round=first_valid_round,
+                    last_valid_round=last_valid_round,
+                    suppress_log=suppress_log,
+                )
+            )
+            .send()
+        )
+
+        # If rekey_to is a signing account, set it as the signer for this account
+        if isinstance(rekey_to, Account):
+            self.rekeyed(account, rekey_to)
+
+        if not suppress_log:
+            logger.info(f"Rekeyed {account} to {rekey_to} via transaction {result.tx_ids[-1]}")
+
+        return result
+
     def random(self) -> Account:
         """
         Tracks and returns a new, random Algorand account.
@@ -171,10 +249,10 @@ class AccountManager:
 
     def ensure_funded(  # noqa: PLR0913
         self,
-        account_fo_fund: str | Account,
+        account_to_fund: str | Account,
         dispenser_account: str | Account,
         min_spending_balance: AlgoAmount,
-        min_funding_increment: AlgoAmount,
+        min_funding_increment: AlgoAmount | None = None,
         # Sender params
         max_rounds_to_wait: int | None = None,
         suppress_log: bool | None = None,
@@ -191,9 +269,9 @@ class AccountManager:
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
     ) -> EnsureFundedResponse | None:
-        account_fo_fund = account_fo_fund.address if isinstance(account_fo_fund, Account) else account_fo_fund
-        dispenser_account = dispenser_account.address if isinstance(dispenser_account, Account) else dispenser_account
-        amount_funded = self._get_ensure_funded_amount(account_fo_fund, min_spending_balance, min_funding_increment)
+        account_to_fund = self._get_address(account_to_fund)
+        dispenser_account = self._get_address(dispenser_account)
+        amount_funded = self._get_ensure_funded_amount(account_to_fund, min_spending_balance, min_funding_increment)
 
         if not amount_funded:
             return None
@@ -203,7 +281,7 @@ class AccountManager:
             .add_payment(
                 PaymentParams(
                     sender=dispenser_account,
-                    receiver=account_fo_fund,
+                    receiver=account_to_fund,
                     amount=amount_funded,
                     signer=signer,
                     rekey_to=rekey_to,
@@ -281,7 +359,7 @@ class AccountManager:
         Returns:
             EnsureFundedResponse if funding was needed, None otherwise
         """
-        account_to_fund = account_to_fund.address if isinstance(account_to_fund, Account) else account_to_fund
+        account_to_fund = self._get_address(account_to_fund)
         dispenser_account = self.dispenser_from_environment()
 
         amount_funded = self._get_ensure_funded_amount(account_to_fund, min_spending_balance, min_funding_increment)
@@ -349,7 +427,7 @@ class AccountManager:
         Raises:
             ValueError: If attempting to fund on non-TestNet network
         """
-        account_to_fund = account_to_fund.address if isinstance(account_to_fund, Account) else account_to_fund
+        account_to_fund = self._get_address(account_to_fund)
 
         if not self._client_manager.is_test_net():
             raise ValueError("Attempt to fund using TestNet dispenser API on non TestNet network.")
@@ -367,8 +445,11 @@ class AccountManager:
 
         return EnsureFundedFromTestnetDispenserApiResponse(
             transaction_id=result.tx_id,
-            amount_funded=amount_funded,
+            amount_funded=AlgoAmount.from_micro_algo(result.amount),
         )
+
+    def _get_address(self, sender: str | Account) -> str:
+        return sender.address if isinstance(sender, Account) else sender
 
     def _get_composer(self, get_suggested_params: Callable[[], SuggestedParams] | None = None) -> TransactionComposer:
         if get_suggested_params is None:

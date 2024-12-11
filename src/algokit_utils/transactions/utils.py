@@ -269,3 +269,34 @@ def get_unnamed_app_call_resources_accessed(atc: AtomicTransactionComposer, algo
         "group": group_response.get("unnamed-resources-accessed", {}),
         "txns": [txn.get("unnamed-resources-accessed", {}) for txn in group_response.get("txn-results", [])],
     }
+
+
+MAX_LEASE_LENGTH = 32
+
+
+def encode_lease(lease: str | bytes | None) -> bytes | None:
+    if lease is None:
+        return None
+    elif isinstance(lease, bytes):
+        if not (1 <= len(lease) <= MAX_LEASE_LENGTH):
+            raise ValueError(
+                f"Received invalid lease; expected something with length between 1 and {MAX_LEASE_LENGTH}, "
+                f"but received bytes with length {len(lease)}"
+            )
+        if len(lease) == MAX_LEASE_LENGTH:
+            return lease
+        lease32 = bytearray(32)
+        lease32[: len(lease)] = lease
+        return bytes(lease32)
+    elif isinstance(lease, str):
+        encoded = lease.encode("utf-8")
+        if not (1 <= len(encoded) <= MAX_LEASE_LENGTH):
+            raise ValueError(
+                f"Received invalid lease; expected something with length between 1 and {MAX_LEASE_LENGTH}, "
+                f"but received '{lease}' with length {len(lease)}"
+            )
+        lease32 = bytearray(MAX_LEASE_LENGTH)
+        lease32[: len(encoded)] = encoded
+        return bytes(lease32)
+    else:
+        raise TypeError(f"Unknown lease type received of {type(lease)}")

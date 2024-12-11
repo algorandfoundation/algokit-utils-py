@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from logging import getLogger
 from typing import Any, TypedDict, TypeVar
 
 import algosdk
@@ -10,6 +9,8 @@ from algosdk.transaction import Transaction
 
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
+from algokit_utils.config import config
+from algokit_utils.transactions.models import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCall,
     AppCallParams,
@@ -32,19 +33,19 @@ from algokit_utils.transactions.transaction_composer import (
     TxnParams,
 )
 
-logger = getLogger(__name__)
+logger = config.logger
 
 
 @dataclass(frozen=True, kw_only=True)
 class SendSingleTransactionResult:
-    transaction: Transaction  # Last transaction
+    transaction: TransactionWrapper  # Last transaction
     confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
 
     # Fields from SendAtomicTransactionComposerResults
     group_id: str
     tx_id: str | None = None
     tx_ids: list[str]  # Full array of transaction IDs
-    transactions: list[Transaction]
+    transactions: list[TransactionWrapper]
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
     returns: list[algosdk.atomic_transaction_composer.ABIResult] | None = None
 
@@ -113,12 +114,13 @@ class AlgorandClientTransactionSender:
 
             raw_result = composer.send()
             raw_result_dict = raw_result.__dict__.copy()
+            raw_result_dict["transactions"] = raw_result.transactions
             del raw_result_dict["simulate_response"]
 
             result = SendSingleTransactionResult(
                 **raw_result_dict,
                 confirmation=raw_result.confirmations[-1],
-                transaction=raw_result.transactions[-1],
+                transaction=raw_result_dict["transactions"][-1],
                 tx_id=raw_result.tx_ids[-1],
             )
 

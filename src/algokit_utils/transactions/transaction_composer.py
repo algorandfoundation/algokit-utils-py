@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Union
@@ -14,7 +13,7 @@ from algosdk.atomic_transaction_composer import (
     TransactionWithSigner,
 )
 from algosdk.error import AlgodHTTPError
-from algosdk.transaction import OnComplete, Transaction
+from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 from typing_extensions import deprecated
 
@@ -22,7 +21,8 @@ from algokit_utils._debugging import simulate_and_persist_response, simulate_res
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.transactions.utils import populate_app_call_resources
+from algokit_utils.transactions.models import TransactionWrapper
+from algokit_utils.transactions.utils import encode_lease, populate_app_call_resources
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -36,7 +36,8 @@ if TYPE_CHECKING:
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.transactions.models import Arc2TransactionNote
 
-logger = logging.getLogger(__name__)
+
+logger = config.logger
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -521,7 +522,7 @@ class SendAtomicTransactionComposerResults:
     """The confirmation info for each transaction"""
     tx_ids: list[str]
     """The transaction IDs that were sent"""
-    transactions: list[Transaction]
+    transactions: list[TransactionWrapper]
     """The transactions that were sent"""
     returns: list[Any] | list[algosdk.atomic_transaction_composer.ABIResult]
     """The ABI return values from any ABI method calls"""
@@ -604,7 +605,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             group_id=group_id or "",
             confirmations=confirmations or [],
             tx_ids=[t.get_txid() for t in transactions_to_send],
-            transactions=transactions_to_send,
+            transactions=[TransactionWrapper(t) for t in transactions_to_send],
             returns=result.abi_results,
         )
 
@@ -876,7 +877,7 @@ class TransactionComposer:
         allow_unnamed_resources: bool | None = None,
         extra_opcode_budget: int | None = None,
         exec_trace_config: SimulateTraceConfig | None = None,
-        round: int | None = None,
+        round: int | None = None,  # noqa: A002 TODO: revisit
         skip_signatures: int | None = None,
         fix_signers: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
@@ -910,7 +911,7 @@ class TransactionComposer:
 
             return SendAtomicTransactionComposerResults(
                 confirmations=[],  # TODO: extract confirmations,
-                transactions=[txn.txn for txn in atc.txn_list],
+                transactions=[TransactionWrapper(txn.txn) for txn in atc.txn_list],
                 tx_ids=response.tx_ids,
                 group_id=atc.txn_list[-1].txn.group or "",
                 simulate_response=response.simulate_response,
@@ -936,7 +937,7 @@ class TransactionComposer:
 
         return SendAtomicTransactionComposerResults(
             confirmations=[txn["txn-result"] for txn in confirmation_results],
-            transactions=[txn.txn for txn in atc.txn_list],
+            transactions=[TransactionWrapper(txn.txn) for txn in atc.txn_list],
             tx_ids=response.tx_ids,
             group_id=atc.txn_list[-1].txn.group or "",
             simulate_response=response.simulate_response,
@@ -975,7 +976,7 @@ class TransactionComposer:
         suggested_params: algosdk.transaction.SuggestedParams,
     ) -> algosdk.transaction.Transaction:
         if params.lease:
-            txn.lease = params.lease
+            txn.lease = encode_lease(params.lease)
         if params.rekey_to:
             txn.rekey_to = params.rekey_to
         if params.note:
@@ -1107,13 +1108,13 @@ class TransactionComposer:
             sp=suggested_params,
             total=params.total,
             default_frozen=params.default_frozen or False,
-            unit_name=params.unit_name,
-            asset_name=params.asset_name,
+            unit_name=params.unit_name or "",
+            asset_name=params.asset_name or "",
             manager=params.manager,
             reserve=params.reserve,
             freeze=params.freeze,
             clawback=params.clawback,
-            url=params.url,
+            url=params.url or "",
             metadata_hash=params.metadata_hash,
             decimals=params.decimals or 0,
         )

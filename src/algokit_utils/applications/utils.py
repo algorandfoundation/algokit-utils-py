@@ -249,7 +249,7 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         return app_spec.hints.get(sig)
 
     def get_default_value(
-        type: str | ABIType,
+        type: str | ABIType,  # noqa: A002 TODO: revisit
         default_arg: DefaultArgumentDict,
     ) -> DefaultValue | None:
         if not default_arg or default_arg["source"] == "abi-method":
@@ -339,7 +339,8 @@ def arc32_to_arc56(app_spec: ApplicationSpecification) -> Arc56Contract:  # noqa
         Converts method configuration into a list of on-complete action literals.
 
         Args:
-            call_config (CallConfig | MethodConfigDict): Configuration dictionary or CallConfig object for method actions.
+            call_config (CallConfig | MethodConfigDict): Configuration dictionary or CallConfig object for method
+            actions.
             action_type (Literal["CREATE", "CALL"]): The type of action to convert.
 
         Returns:

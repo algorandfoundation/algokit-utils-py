@@ -98,7 +98,7 @@ class ClientManager:
         return self._kmd
 
     def network(self) -> NetworkDetail:
-        sp = self.algod.suggested_params()  # TODO: cache it
+        sp = self._algod.suggested_params()  # TODO: cache it
         return NetworkDetail(
             is_test_net=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
             is_main_net=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
@@ -159,7 +159,7 @@ class ClientManager:
         If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
         config = config or _get_config_from_environment("ALGOD")
         headers = {"X-Algo-API-Token": config.token or ""}
-        return AlgodClient(config.token or "", config.server, headers)
+        return AlgodClient(algod_token=config.token or "", algod_address=config.server, headers=headers)
 
     @staticmethod
     def get_algod_client_from_environment() -> AlgodClient:
@@ -181,10 +181,11 @@ class ClientManager:
     def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
         """Returns an {py:class}`algosdk.v2client.indexer.IndexerClient` from `config` or environment.
 
-        If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and `INDEXER_TOKEN`"""
+        If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and
+        `INDEXER_TOKEN`"""
         config = config or _get_config_from_environment("INDEXER")
         headers = {"X-Indexer-API-Token": config.token}
-        return IndexerClient(config.token, config.server, headers)
+        return IndexerClient(indexer_token=config.token, indexer_address=config.server, headers=headers)
 
     @staticmethod
     def get_indexer_client_from_environment() -> IndexerClient:
@@ -291,6 +292,6 @@ class ClientManager:
         """
         service_type = "api" if config == "algod" else "idx"
         return AlgoClientConfig(
-            server=f"https://{network}-{service_type}.algonode.cloud/",
+            server=f"https://{network}-{service_type}.algonode.cloud",
             port=443,
         )

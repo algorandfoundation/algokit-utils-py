@@ -84,7 +84,16 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
-@deprecated("Use AppClient from algokit_utils.applications instead")
+@deprecated(
+    "Use AppClient from algokit_utils.applications instead. Example:\n"
+    "```python\n"
+    "from algokit_utils.clients import AlgorandClient\n"
+    "from algokit_utils.models.application import Arc56Contract\n"
+    "algorand_client = AlgorandClient.from_environment()\n"
+    "app_client = AppClient.from_network(app_spec=Arc56Contract.from_json(app_spec_json), "
+    "algorand=algorand_client, app_id=123)\n"
+    "```"
+)
 class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
@@ -1256,7 +1265,10 @@ def _try_convert_to_logic_error(
     return None
 
 
-@deprecated("Deprecated")
+@deprecated(
+    "The execute_atc_with_logic_error function is deprecated; use AppClient's error handling and TransactionComposer's "
+    "send method for equivalent functionality and improved error management."
+)
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",

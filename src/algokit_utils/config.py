@@ -34,6 +34,10 @@ class AlgoKitLogger:
         """Log an error message, optionally suppressing output"""
         self._get_logger(suppress_log=suppress_log).error(message, *args, **kwargs)
 
+    def exception(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
+        """Log an exception message, optionally suppressing output"""
+        self._get_logger(suppress_log=suppress_log).exception(message, *args, **kwargs)
+
     def warning(self, message: str, *args: Any, suppress_log: bool = False, **kwargs: Any) -> None:
         """Log a warning message, optionally suppressing output"""
         self._get_logger(suppress_log=suppress_log).warning(message, *args, **kwargs)

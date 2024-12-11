@@ -37,10 +37,10 @@ jobs:
           # stop the build if there are files that don't meet formatting requirements
           poetry run ruff format --check .
 
-      # - name: Check linting with Ruff
-      #   run: |
-      #     # stop the build if there are Python syntax errors or undefined names
-      #     poetry run ruff check .
+      - name: Check linting with Ruff
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          poetry run ruff check .
 
       - name: Check types with mypy
         run: poetry run mypy

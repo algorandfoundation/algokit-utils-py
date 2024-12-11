@@ -3,7 +3,7 @@ from pathlib import Path
 import algosdk
 import pytest
 from algosdk.logic import get_application_address
-from algosdk.transaction import ApplicationCallTxn, ApplicationCreateTxn, OnComplete
+from algosdk.transaction import OnComplete
 
 from algokit_utils import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import (
@@ -90,7 +90,7 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
     random_account = algorand.account.random()
     dispenser_account = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        account_fo_fund=random_account,
+        account_to_fund=random_account,
         dispenser_account=dispenser_account.address,
         min_spending_balance=AlgoAmount.from_algo(10),
         min_funding_increment=AlgoAmount.from_algo(1),
@@ -125,8 +125,8 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
         )
     )
 
-    assert isinstance(result.transaction, ApplicationCreateTxn)
-    assert result.transaction.on_complete == OnComplete.OptInOC
+    assert result.transaction.application_call
+    assert result.transaction.application_call.on_complete == OnComplete.OptInOC
     assert app_client.app_id > 0
     assert app_client.app_address == get_application_address(app_client.app_id)
     assert isinstance(result.confirmation, dict)
@@ -221,8 +221,8 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert updated_app.created_round == created_app.created_round
     assert updated_app.updated_round != updated_app.created_round
     assert updated_app.updated_round == updated_app.confirmation["confirmed-round"]  # type: ignore[call-overload]
-    assert isinstance(updated_app.transaction, ApplicationCallTxn)
-    assert updated_app.transaction.on_complete == OnComplete.UpdateApplicationOC
+    assert updated_app.transaction.application_call
+    assert updated_app.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
     assert updated_app.return_value == "args_io"
 
 
@@ -247,10 +247,10 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
     assert replaced_app.confirmation is not None
     assert replaced_app.delete_result is not None
     assert replaced_app.delete_result.confirmation is not None
-    assert len(replaced_app.transactions) == 2  # noqa: PLR2004
-    assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
-    assert replaced_app.delete_result.transaction.index == created_app.app_id
-    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC
+    assert len(replaced_app.transactions) == 2
+    assert replaced_app.delete_result.transaction.application_call
+    assert replaced_app.delete_result.transaction.application_call.index == created_app.app_id
+    assert replaced_app.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
 
 
 def test_deploy_app_replace_abi(factory: AppFactory) -> None:
@@ -277,10 +277,10 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     assert replaced_app.confirmation is not None
     assert replaced_app.delete_result is not None
     assert replaced_app.delete_result.confirmation is not None
-    assert len(replaced_app.transactions) == 2  # noqa: PLR2004
-    assert isinstance(replaced_app.delete_result.transaction, ApplicationCallTxn)
-    assert replaced_app.delete_result.transaction.index == created_app.app_id
-    assert replaced_app.delete_result.transaction.on_complete == OnComplete.DeleteApplicationOC
+    assert len(replaced_app.transactions) == 2
+    assert replaced_app.delete_result.transaction.application_call
+    assert replaced_app.delete_result.transaction.application_call.index == created_app.app_id
+    assert replaced_app.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
     assert replaced_app.return_value == "arg_io"
     assert replaced_app.delete_return_value == "arg2_io"
 
@@ -428,9 +428,9 @@ def test_export_import_sourcemaps(
         error.trace().strip()
         == "// error\n\terror_7:\n\tproto 0 0\n\tintc_0 // 0\n\t// Deliberate error\n\tassert\t\t<-- Error\n\tretsub\n\t\n\t// create\n\tcreate_8:"  # noqa: E501
     )
-    assert error.pc == 885  # noqa: PLR2004
+    assert error.pc == 885
     assert error.message == "assert failed pc=885"
-    assert len(error.transaction_id) == 52  # noqa: PLR2004
+    assert len(error.transaction_id) == 52
 
 
 def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(

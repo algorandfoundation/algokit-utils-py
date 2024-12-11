@@ -46,6 +46,7 @@ from algokit_utils.models.application import (
 )
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.application import AlgorandClientProtocol
+from algokit_utils.transactions.models import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCall,
     AppCreateParams,
@@ -132,8 +133,8 @@ class AppFactoryDeployResult:
     operation_performed: OperationPerformed
     return_value: ABIValue | ABIStruct | None = None
     returns: list[Any] | None = None
-    transaction: Transaction
-    transactions: list[Transaction]
+    transaction: TransactionWrapper
+    transactions: list[TransactionWrapper]
     tx_id: str
     tx_ids: list[str]
     updatable: bool
@@ -401,7 +402,7 @@ class AppFactory:
     def create_transaction(self) -> _AppFactoryCreateTransactionAccessor:
         return self._create_transaction_accessor
 
-    def deploy(
+    def deploy(  # noqa: PLR0913
         self,
         *,
         deploy_time_params: TealTemplateParams | None = None,
@@ -415,9 +416,9 @@ class AppFactory:
         updatable: bool | None = None,
         deletable: bool | None = None,
         app_name: str | None = None,
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool = False,
-        populate_app_call_resources: bool = False,
+        max_rounds_to_wait: int | None = None,  # noqa: ARG002 TODO: revisit
+        suppress_log: bool = False,  # noqa: ARG002 TODO: revisit
+        populate_app_call_resources: bool = False,  # noqa: ARG002 TODO: revisit
     ) -> tuple[AppClient, AppFactoryDeployResult]:
         updatable = (
             updatable if updatable is not None else self._updatable or self._get_deploy_time_control("updatable")
@@ -551,7 +552,7 @@ class AppFactory:
             )
         )
 
-    def expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:
+    def expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001 TODO: revisit
         return AppClient.expose_logic_error_static(
             e,
             self._app_spec,

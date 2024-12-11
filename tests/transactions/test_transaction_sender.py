@@ -1,22 +1,10 @@
 from pathlib import Path
-from typing import cast
 from unittest.mock import MagicMock, patch
 
 import algosdk
 import pytest
-from algosdk.transaction import (
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    PaymentTxn,
-)
 
-from algokit_utils import (
-    Account,
-)
+from algokit_utils import Account
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
@@ -133,7 +121,8 @@ def test_payment(transaction_sender: AlgorandClientTransactionSender, sender: Ac
 
     assert len(result.tx_ids) == 1
     assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-    txn = cast(PaymentTxn, result.transaction)
+    txn = result.transaction.payment
+    assert txn
     assert txn.sender == sender.address
     assert txn.receiver == receiver.address
     assert txn.amt == amount.micro_algos
@@ -154,7 +143,8 @@ def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_create(params)
     assert len(result.tx_ids) == 1
     assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-    txn = cast(AssetCreateTxn, result.transaction)
+    txn = result.transaction.asset_config
+    assert txn
     assert txn.sender == sender.address
     assert txn.total == total
     assert txn.decimals == 0
@@ -189,10 +179,12 @@ def test_asset_config(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_config(config_params)
 
     assert len(result.tx_ids) == 1
-    assert isinstance(result.transaction, AssetConfigTxn)
-    assert result.transaction.sender == sender.address
-    assert result.transaction.index == asset_id
-    assert result.transaction.manager == receiver.address
+    assert result.transaction.asset_config
+    txn = result.transaction.asset_config
+    assert txn
+    assert txn.sender == sender.address
+    assert txn.index == asset_id
+    assert txn.manager == receiver.address
 
 
 def test_asset_freeze(
@@ -225,7 +217,9 @@ def test_asset_freeze(
     result = transaction_sender.asset_freeze(freeze_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetFreezeTxn, result.transaction)
+    assert result.transaction.asset_freeze
+    txn = result.transaction.asset_freeze
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
     assert txn.target == sender.address
@@ -256,7 +250,8 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
     result = transaction_sender.asset_destroy(destroy_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetDestroyTxn, result.transaction)
+    txn = result.transaction.asset_config
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
 
@@ -298,7 +293,8 @@ def test_asset_transfer(
     result = transaction_sender.asset_transfer(transfer_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetTransferTxn, result.transaction)
+    txn = result.transaction.asset_transfer
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
     assert txn.receiver == receiver.address
@@ -329,7 +325,8 @@ def test_asset_opt_in(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_opt_in(opt_in_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetTransferTxn, result.transaction)
+    assert result.transaction.asset_transfer
+    txn = result.transaction.asset_transfer
     assert txn.sender == receiver.address
     assert txn.index == asset_id
     assert txn.amount == 0
@@ -369,7 +366,8 @@ def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, send
     )
     result = transaction_sender.asset_opt_out(params=opt_out_params)
 
-    txn = cast(AssetTransferTxn, result.transaction)
+    assert result.transaction.asset_transfer
+    txn = result.transaction.asset_transfer
     assert txn.sender == receiver.address
     assert txn.index == asset_id
     assert txn.amount == 0
@@ -390,7 +388,9 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
     result = transaction_sender.app_create(params)
     assert result.app_id > 0
     assert result.app_address
-    txn = cast(ApplicationCreateTxn, result.transaction)
+
+    assert result.transaction.application_call
+    txn = result.transaction.application_call
     assert txn.sender == sender.address
     assert txn.approval_program == b"\x06\x81\x01"
     assert txn.clear_program == b"\x06\x81\x01"

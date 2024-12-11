@@ -137,7 +137,10 @@ def _decode_state_schema(data: dict[str, int]) -> StateSchema:
     )
 
 
-@deprecated("Deprecated")
+@deprecated(
+    "The ApplicationSpecification class is deprecated. Use Arc56Contract and the TransactionComposer and AppClient "
+    "classes for modern application development."
+)
 @dataclasses.dataclass(kw_only=True)
 class ApplicationSpecification:
     """ARC-0032 application specification

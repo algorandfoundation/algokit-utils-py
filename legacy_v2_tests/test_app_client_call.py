@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
@@ -86,7 +87,7 @@ def test_abi_call_with_transaction_arg(client_fixture: ApplicationClient, funded
         sender=funded_account.address,
         receiver=client_fixture.app_address,
         amt=1_000_000,
-        note=b"Payment",
+        note=sha256(b"self-payment").digest(),
         sp=client_fixture.algod_client.suggested_params(),
     )  # type: ignore[no-untyped-call]
     payment_with_signer = TransactionWithSigner(payment, AccountTransactionSigner(funded_account.private_key))

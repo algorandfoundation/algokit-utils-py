@@ -116,7 +116,10 @@ def _fund_using_transfer(
     return EnsureFundedResponse(transaction_id=transaction_id, amount=response.amt)
 
 
-@deprecated("Deprecated")
+@deprecated(
+    "Use `algorand.account.ensure_funded()`, `algorand.account.ensure_funded_from_environment()`, "
+    "or `algorand.account.ensure_funded_from_testnet_dispenser_api()` instead"
+)
 def ensure_funded(
     client: AlgodClient,
     parameters: EnsureBalanceParameters,

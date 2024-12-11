@@ -351,7 +351,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
     )
 
     assert result.confirmation
-    assert len(result.transactions) == 2  # noqa: PLR2004
+    assert len(result.transactions) == 2
     return_value = AppManager.get_abi_return(
         result.confirmation, get_arc56_method("call_abi_txn", test_app_client.app_spec)
     )
@@ -403,7 +403,7 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
     # Generate a new account
     test_account = algorand.account.random()
     algorand.account.ensure_funded(
-        account_fo_fund=test_account,
+        account_to_fund=test_account,
         dispenser_account=funded_account,
         min_spending_balance=AlgoAmount.from_algos(10),
         min_funding_increment=AlgoAmount.from_algos(1),
@@ -432,7 +432,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
 ) -> None:
     test_account = algorand.account.random()
     algorand.account.ensure_funded(
-        account_fo_fund=test_account,
+        account_to_fund=test_account,
         dispenser_account=funded_account,
         min_spending_balance=AlgoAmount.from_algos(10),
         min_funding_increment=AlgoAmount.from_algos(1),
@@ -472,7 +472,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     assert hasattr(global_state["bytes2"], "value_raw")
     assert sorted(global_state.keys()) == ["bytes1", "bytes2", "int1", "int2", "value"]
     assert global_state["int1"].value == 1
-    assert global_state["int2"].value == 2  # noqa: PLR2004
+    assert global_state["int2"].value == 2
     assert global_state["bytes1"].value == "asdf"
     assert global_state["bytes2"].value_raw == bytes([1, 2, 3, 4])
 
@@ -489,7 +489,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     assert "local_bytes2" in local_state
     assert sorted(local_state.keys()) == ["local_bytes1", "local_bytes2", "local_int1", "local_int2"]
     assert local_state["local_int1"].value == 1
-    assert local_state["local_int2"].value == 2  # noqa: PLR2004
+    assert local_state["local_int2"].value == 2
     assert local_state["local_bytes1"].value == "asdf"
     assert local_state["local_bytes2"].value_raw == bytes([1, 2, 3, 4])
 
@@ -727,7 +727,7 @@ def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> Non
         test_app_client_with_sourcemaps.send.call(AppClientMethodCallWithSendParams(method="error"))
 
     error = exc_info.value
-    assert error.pc == 885  # noqa: PLR2004
+    assert error.pc == 885
     assert "assert failed pc=885" in str(error)
-    assert len(error.transaction_id) == 52  # noqa: PLR2004
-    assert error.line_no == 469  # noqa: PLR2004
+    assert len(error.transaction_id) == 52
+    assert error.line_no == 469

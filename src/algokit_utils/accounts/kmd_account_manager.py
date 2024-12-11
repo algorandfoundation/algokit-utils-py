@@ -1,15 +1,15 @@
-import logging
 from collections.abc import Callable
 from typing import Any, cast
 
 from algosdk.kmd import KMDClient
 
 from algokit_utils.clients.client_manager import ClientManager
+from algokit_utils.config import config
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer
 
-logger = logging.getLogger(__name__)
+logger = config.logger
 
 
 class KmdAccount(Account):

@@ -72,7 +72,7 @@ def test_random_account_creation(algorand: AlgorandClient) -> None:
     # Assert
     assert account.address
     assert account.private_key
-    assert len(account.public_key) == 32  # noqa: PLR2004
+    assert len(account.public_key) == 32
 
 
 def test_ensure_funded_from_environment(algorand: AlgorandClient) -> None:

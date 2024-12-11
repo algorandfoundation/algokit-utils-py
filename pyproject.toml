@@ -127,12 +127,16 @@ suppress-none-returning = true
 [tool.ruff.lint.per-file-ignores]
 "src/algokit_utils/beta/*" = ["ERA001", "E501", "PLR0911"]
 "src/algokit_utils/applications/app_client.py" = ["SLF001"]
+"src/algokit_utils/applications/app_factory.py" = ["SLF001"]
 "tests/clients/test_algorand_client.py" = ["ERA001"]  
+"src/algokit_utils/_legacy_v2/**/*" = ["E501"]
+"tests/**/*" = ["PLR2004"]  
 
 [tool.poe.tasks]
 docs = ["docs-html-only", "docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docs-html-only = "sphinx-build docs/source docs/html"
+"tests/**/*" = ["PLR2004"]  
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

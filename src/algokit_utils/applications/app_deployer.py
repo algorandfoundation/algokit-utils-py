@@ -7,7 +7,7 @@ from typing import Literal
 import algosdk
 from algosdk.atomic_transaction_composer import ABIResult, TransactionSigner
 from algosdk.logic import get_application_address
-from algosdk.transaction import OnComplete, Transaction
+from algosdk.transaction import OnComplete
 from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils._legacy_v2.deploy import (
@@ -20,6 +20,7 @@ from algokit_utils._legacy_v2.deploy import (
 )
 from algokit_utils.applications.app_manager import AppManager, BoxReference, TealTemplateParams
 from algokit_utils.config import config
+from algokit_utils.transactions.models import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCall,
     AppCreateParams,
@@ -90,7 +91,7 @@ class AppDeployParams:
 
 @dataclass(kw_only=True, frozen=True)
 class ConfirmedTransactionResult:
-    transaction: algosdk.transaction.Transaction
+    transaction: TransactionWrapper
     confirmation: algosdk.v2client.algod.AlgodResponseType
     confirmations: list[algosdk.v2client.algod.AlgodResponseType] | None = None
 
@@ -111,9 +112,9 @@ class AppDeployResult:
 
     app_id: int | None = None
     app_address: str | None = None
-    transaction: Transaction | None = None
+    transaction: TransactionWrapper | None = None
     tx_id: str | None = None
-    transactions: list[Transaction] | None = None
+    transactions: list[TransactionWrapper] | None = None
     tx_ids: list[str] | None = None
     confirmation: algosdk.v2client.algod.AlgodResponseType | None = None
     confirmations: list[algosdk.v2client.algod.AlgodResponseType] | None = None

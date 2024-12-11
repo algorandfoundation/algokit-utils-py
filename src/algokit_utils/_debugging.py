@@ -209,9 +209,9 @@ def simulate_response(
     allow_unnamed_resources: bool | None = None,
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
-    round: int | None = None,
-    skip_signatures: int | None = None,
-    fix_signers: bool | None = None,
+    round: int | None = None,  # noqa: A002 TODO: revisit
+    skip_signatures: int | None = None,  # noqa: ARG001 TODO: revisit
+    fix_signers: bool | None = None,  # noqa: ARG001 TODO: revisit
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
@@ -244,7 +244,7 @@ def simulate_response(
     return atc.simulate(algod_client, simulate_request)
 
 
-def simulate_and_persist_response(
+def simulate_and_persist_response(  # noqa: PLR0913 TODO: revisit
     atc: AtomicTransactionComposer,
     project_root: Path,
     algod_client: "AlgodClient",
@@ -254,7 +254,7 @@ def simulate_and_persist_response(
     allow_unnamed_resources: bool | None = None,
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
-    round: int | None = None,
+    round: int | None = None,  # noqa: A002 TODO: revisit
     skip_signatures: int | None = None,
     fix_signers: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:

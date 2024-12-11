@@ -1,12 +1,13 @@
 import contextlib
 import enum
-import logging
 import os
 from dataclasses import dataclass
 
 import httpx
 
-logger = logging.getLogger(__name__)
+from algokit_utils.config import config
+
+logger = config.logger
 
 
 class DispenserApiConfig:
