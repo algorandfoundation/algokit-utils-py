@@ -81,6 +81,15 @@ from algokit_utils._legacy_v2.network_clients import (
     is_mainnet,
     is_testnet,
 )
+
+# New interfaces
+from algokit_utils.accounts.account_manager import AccountManager
+from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
+from algokit_utils.applications.app_client import AppClient
+from algokit_utils.applications.app_factory import AppFactory
+from algokit_utils.assets.asset_manager import AssetManager
+from algokit_utils.clients.algorand_client import AlgorandClient
+from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import (
     DISPENSER_ACCESS_TOKEN_KEY,
     DISPENSER_REQUEST_TIMEOUT,
@@ -90,6 +99,7 @@ from algokit_utils.clients.dispenser_api_client import (
 )
 from algokit_utils.models.account import Account
 from algokit_utils.models.application import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
+from algokit_utils.transactions.transaction_composer import TransactionComposer
 
 __all__ = [
     "DELETABLE_TEMPLATE_NAME",
@@ -105,15 +115,21 @@ __all__ = [
     "ABIMethod",
     "ABITransactionResponse",
     "Account",
+    "AccountManager",
     "AlgoClientConfig",
+    "AlgorandClient",
+    "AppClient",
     "AppDeployMetaData",
+    "AppFactory",
     "AppLookup",
     "AppMetaData",
     "AppReference",
     "AppSpecStateDict",
     "ApplicationClient",
     "ApplicationSpecification",
+    "AssetManager",
     "CallConfig",
+    "ClientManager",
     "CommonCallParameters",
     "CommonCallParametersDict",
     "CreateCallParameters",
@@ -131,6 +147,7 @@ __all__ = [
     "DispenserLimitResponse",
     "EnsureBalanceParameters",
     "EnsureFundedResponse",
+    "KmdAccountManager",
     "LogicError",
     "MethodConfigDict",
     "MethodHints",
@@ -145,6 +162,7 @@ __all__ = [
     "TemplateValueDict",
     "TemplateValueMapping",
     "TestNetDispenserApiClient",
+    "TransactionComposer",
     "TransactionParameters",
     "TransactionParametersDict",
     "TransactionResponse",
