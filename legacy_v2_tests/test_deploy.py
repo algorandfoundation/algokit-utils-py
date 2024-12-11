@@ -2,7 +2,6 @@ from algokit_utils import (
     replace_template_variables,
 )
 from algokit_utils._legacy_v2.deploy import strip_comments
-
 from legacy_v2_tests.conftest import check_output_stability
 
 

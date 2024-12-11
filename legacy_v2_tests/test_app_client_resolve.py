@@ -5,7 +5,6 @@ from algokit_utils import (
     ApplicationClient,
     DefaultArgumentDict,
 )
-
 from legacy_v2_tests.conftest import read_spec
 
 if TYPE_CHECKING:

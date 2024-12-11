@@ -1,4 +1,5 @@
 import pytest
+
 from algokit_utils import (
     DeploymentFailedError,
     get_next_version,

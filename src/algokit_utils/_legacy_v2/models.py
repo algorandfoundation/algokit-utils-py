@@ -9,7 +9,7 @@ from algosdk.atomic_transaction_composer import (
     SimulateAtomicTransactionResponse,
     TransactionSigner,
 )
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 # Imports from latest sdk version that rely on models previously used in legacy v2 (but moved to root models/*)
 
@@ -185,17 +185,17 @@ class CreateCallParametersDict(OnCompleteCallParametersDict, total=False):
 
 
 # Pre 1.3.1 backwards compatibility
-@deprecated(reason="Use TransactionParameters instead", version="1.3.1")
+@deprecated("Use TransactionParameters instead")
 class RawTransactionParameters(TransactionParameters):
     """Deprecated, use TransactionParameters instead"""
 
 
-@deprecated(reason="Use TransactionParameters instead", version="1.3.1")
+@deprecated("Use TransactionParameters instead")
 class CommonCallParameters(TransactionParameters):
     """Deprecated, use TransactionParameters instead"""
 
 
-@deprecated(reason="Use TransactionParametersDict instead", version="1.3.1")
+@deprecated("Use TransactionParametersDict instead")
 class CommonCallParametersDict(TransactionParametersDict):
     """Deprecated, use TransactionParametersDict instead"""
 

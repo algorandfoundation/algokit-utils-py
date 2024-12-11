@@ -1,6 +1,13 @@
 from typing import TYPE_CHECKING
 
 import pytest
+from algosdk.transaction import (
+    ApplicationCreateTxn,
+    AssetConfigTxn,
+    AssetCreateTxn,
+    PaymentTxn,
+)
+
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
@@ -13,27 +20,29 @@ from algokit_utils.transactions.transaction_composer import (
     SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
-from algosdk.transaction import (
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    PaymentTxn,
-)
-
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     from algokit_utils.transactions.models import Arc2TransactionNote
 
 
-@pytest.fixture()
-def algorand(funded_account: Account) -> AlgorandClient:
-    client = AlgorandClient.default_local_net()
-    client.set_signer(sender=funded_account.address, signer=funded_account.signer)
-    return client
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
 
 
-@pytest.fixture()
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
+
+
+@pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient) -> Account:
     secondary_name = get_unique_name()
     return get_account(algorand.client.algod, secondary_name)

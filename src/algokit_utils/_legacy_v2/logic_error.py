@@ -2,6 +2,8 @@ import re
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
 
+from typing_extensions import deprecated
+
 from algokit_utils._legacy_v2.models import SimulationTrace
 
 if TYPE_CHECKING:
@@ -37,8 +39,9 @@ def parse_logic_error(
     }
 
 
+@deprecated("Use algokit_utils.models.error.LogicError instead")
 class LogicError(Exception):
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         *,
         logic_error_str: str,
@@ -74,9 +77,9 @@ class LogicError(Exception):
             return """
 Could not determine TEAL source line for the error as no approval source map was provided, to receive a trace of the
 error please provide an approval SourceMap. Either by:
-    1.) Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
-    2.) Set approval_source_map from a previously compiled approval program OR
-    3.) Import a previously exported source map using import_source_map"""
+    1. Providing template_values when creating the ApplicationClient, so a SourceMap can be obtained automatically OR
+    2. Set approval_source_map from a previously compiled approval program OR
+    3. Import a previously exported source map using import_source_map"""
 
         program_lines = copy(self.lines)
         program_lines[self.line_no] += "\t\t<-- Error"

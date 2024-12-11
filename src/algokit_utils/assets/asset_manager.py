@@ -14,7 +14,7 @@ from algokit_utils.transactions.transaction_composer import (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(kw_only=True, frozen=True)
 class AccountAssetInformation:
     """Information about an account's holding of a particular asset."""
 
@@ -28,7 +28,7 @@ class AccountAssetInformation:
     """The round this information was retrieved at."""
 
 
-@dataclass(frozen=True)
+@dataclass(kw_only=True, frozen=True)
 class AssetInformation:
     """Information about an asset."""
 
@@ -66,7 +66,7 @@ class AssetInformation:
     """32-byte hash of some metadata that is relevant to the asset and/or asset holders."""
 
 
-@dataclass(frozen=True)
+@dataclass(kw_only=True, frozen=True)
 class BulkAssetOptInOutResult:
     """Individual result from performing a bulk opt-in or bulk opt-out for an account against a series of assets."""
 

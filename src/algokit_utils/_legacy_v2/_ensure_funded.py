@@ -4,6 +4,7 @@ from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
+from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2._transfer import TransferParameters, transfer
 from algokit_utils._legacy_v2.account import get_dispenser_account
@@ -115,6 +116,10 @@ def _fund_using_transfer(
     return EnsureFundedResponse(transaction_id=transaction_id, amount=response.amt)
 
 
+@deprecated(
+    "Use `algorand.account.ensure_funded()`, `algorand.account.ensure_funded_from_environment()`, "
+    "or `algorand.account.ensure_funded_from_testnet_dispenser_api()` instead"
+)
 def ensure_funded(
     client: AlgodClient,
     parameters: EnsureBalanceParameters,

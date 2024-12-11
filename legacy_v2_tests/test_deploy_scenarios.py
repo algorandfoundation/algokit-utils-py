@@ -6,6 +6,7 @@ from enum import Enum
 from unittest.mock import Mock, patch
 
 import pytest
+
 from algokit_utils import (
     Account,
     ApplicationClient,
@@ -19,7 +20,6 @@ from algokit_utils import (
     get_indexer_client,
     get_localnet_default_account,
 )
-
 from legacy_v2_tests.conftest import check_output_stability, get_specs, get_unique_name, read_spec
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ class DeployFixture:
         self.creator = creator
         self.app_name = get_unique_name()
 
-    def deploy(  # noqa: PLR0913
+    def deploy(
         self,
         app_spec: ApplicationSpecification,
         *,
@@ -128,12 +128,12 @@ def creator(creator_name: str) -> Account:
     return get_account(get_algod_client(), creator_name)
 
 
-@pytest.fixture()
+@pytest.fixture
 def app_name() -> str:
     return get_unique_name()
 
 
-@pytest.fixture()
+@pytest.fixture
 def deploy_fixture(
     caplog: pytest.LogCaptureFixture, request: pytest.FixtureRequest, creator_name: str, creator: Account
 ) -> DeployFixture:

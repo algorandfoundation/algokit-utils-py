@@ -8,16 +8,17 @@ from typing import Any, Literal, TypeAlias, TypedDict
 from algosdk.abi import Contract
 from algosdk.abi.method import MethodDict
 from algosdk.transaction import StateSchema
+from typing_extensions import deprecated
 
 __all__ = [
+    "AppSpecStateDict",
+    "ApplicationSpecification",
     "CallConfig",
     "DefaultArgumentDict",
     "DefaultArgumentType",
     "MethodConfigDict",
-    "OnCompleteActionName",
     "MethodHints",
-    "ApplicationSpecification",
-    "AppSpecStateDict",
+    "OnCompleteActionName",
 ]
 
 
@@ -136,6 +137,10 @@ def _decode_state_schema(data: dict[str, int]) -> StateSchema:
     )
 
 
+@deprecated(
+    "The ApplicationSpecification class is deprecated. Use Arc56Contract and the TransactionComposer and AppClient "
+    "classes for modern application development."
+)
 @dataclasses.dataclass(kw_only=True)
 class ApplicationSpecification:
     """ARC-0032 application specification

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
 from algosdk.constants import TX_GROUP_LIMIT
 from algosdk.transaction import AssetTransferTxn
+from typing_extensions import deprecated
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -68,6 +69,10 @@ def _ensure_asset_balance_conditions(
         raise ValueError(error_message)
 
 
+@deprecated(
+    "Use TransactionComposer.add_asset_opt_in() or AlgorandClient.asset.opt_in() instead. "
+    "Example: composer.add_asset_opt_in(AssetOptInParams(sender=account.address, asset_id=123))"
+)
 def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
     """
     Opt-in to a list of assets on the Algorand blockchain. Before an account can receive a specific asset,
@@ -116,6 +121,10 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
     return result
 
 
+@deprecated(
+    "Use TransactionComposer.add_asset_opt_out() or AlgorandClient.asset.opt_out() instead. "
+    "Example: composer.add_asset_opt_out(AssetOptOutParams(sender=account.address, asset_id=123, creator=creator_address))"
+)
 def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
     """
     Opt out from a list of Algorand Standard Assets (ASAs) by transferring them back to their creators.

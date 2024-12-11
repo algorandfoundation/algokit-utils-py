@@ -1,16 +1,16 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from logging import getLogger
 from typing import Any, TypedDict, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
-from algosdk.atomic_transaction_composer import AtomicTransactionResponse
+from algosdk.atomic_transaction_composer import ABIResult, AtomicTransactionResponse
 from algosdk.transaction import Transaction
 
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
-from algokit_utils.models.abi import ABIValue
+from algokit_utils.config import config
+from algokit_utils.transactions.models import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCall,
     AppCallParams,
@@ -33,46 +33,43 @@ from algokit_utils.transactions.transaction_composer import (
     TxnParams,
 )
 
-logger = getLogger(__name__)
+logger = config.logger
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class SendSingleTransactionResult:
-    tx_id: str  # Single transaction ID (last from txIds array)
-    transaction: Transaction  # Last transaction
+    transaction: TransactionWrapper  # Last transaction
     confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
 
     # Fields from SendAtomicTransactionComposerResults
     group_id: str
+    tx_id: str | None = None
     tx_ids: list[str]  # Full array of transaction IDs
-    transactions: list[Transaction]
+    transactions: list[TransactionWrapper]
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
     returns: list[algosdk.atomic_transaction_composer.ABIResult] | None = None
 
-    # Fields from AssetCreateParams
-    asset_id: int | None = None
+
+@dataclass(frozen=True, kw_only=True)
+class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
+    asset_id: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class SendAppTransactionResult(SendSingleTransactionResult):
-    return_value: ABIValue | None = None
+    return_value: ABIResult | None = None
 
 
-@dataclass
+@dataclass(frozen=True)
 class SendAppUpdateTransactionResult(SendAppTransactionResult):
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
 
 
-@dataclass
-class _RequiredSendAppTransactionResult:
+@dataclass(frozen=True, kw_only=True)
+class SendAppCreateTransactionResult(SendAppUpdateTransactionResult):
     app_id: int
     app_address: str
-
-
-@dataclass
-class SendAppCreateTransactionResult(SendAppUpdateTransactionResult, _RequiredSendAppTransactionResult):
-    pass
 
 
 class LogConfig(TypedDict, total=False):
@@ -116,11 +113,14 @@ class AlgorandClientTransactionSender:
                 logger.debug(pre_log(params, transaction))
 
             raw_result = composer.send()
+            raw_result_dict = raw_result.__dict__.copy()
+            raw_result_dict["transactions"] = raw_result.transactions
+            del raw_result_dict["simulate_response"]
 
             result = SendSingleTransactionResult(
-                **raw_result.__dict__,
+                **raw_result_dict,
                 confirmation=raw_result.confirmations[-1],
-                transaction=raw_result.transactions[-1],
+                transaction=raw_result_dict["transactions"][-1],
                 tx_id=raw_result.tx_ids[-1],
             )
 
@@ -210,7 +210,7 @@ class AlgorandClientTransactionSender:
             ),
         )(params)
 
-    def asset_create(self, params: AssetCreateParams) -> SendSingleTransactionResult:
+    def asset_create(self, params: AssetCreateParams) -> SendSingleAssetCreateTransactionResult:
         """Create a new Algorand Standard Asset."""
         result = self._send(
             lambda c: c.add_asset_create,
@@ -223,11 +223,10 @@ class AlgorandClientTransactionSender:
             ),
         )(params)
 
-        result = SendSingleTransactionResult(
+        return SendSingleAssetCreateTransactionResult(
             **result.__dict__,
+            asset_id=int(result.confirmation["asset-index"]),  # type: ignore[call-overload]
         )
-        result.asset_id = int(result.confirmation["asset-index"])  # type: ignore[call-overload]
-        return result
 
     def asset_config(self, params: AssetConfigParams) -> SendSingleTransactionResult:
         """Configure an existing Algorand Standard Asset."""

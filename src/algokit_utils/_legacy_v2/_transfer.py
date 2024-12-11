@@ -12,7 +12,7 @@ from algokit_utils.models.account import Account
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
-__all__ = ["TransferParameters", "transfer", "TransferAssetParameters", "transfer_asset"]
+__all__ = ["TransferAssetParameters", "TransferParameters", "transfer", "transfer_asset"]
 logger = logging.getLogger(__name__)
 
 

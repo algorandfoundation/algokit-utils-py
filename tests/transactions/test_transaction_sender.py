@@ -1,15 +1,18 @@
-from typing import TYPE_CHECKING, cast
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import algosdk
 import pytest
-from algokit_utils import (
-    Account,
-    get_account,
-)
+
+from algokit_utils import Account
+from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
+from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
+    AppCallMethodCall,
+    AppCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -23,47 +26,86 @@ from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
-from algosdk.transaction import (
-    ApplicationCreateTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    PaymentTxn,
-)
-
-from tests.conftest import get_unique_name
-
-if TYPE_CHECKING:
-    import algosdk
 
 
-@pytest.fixture()
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
+
+
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
+
+
+@pytest.fixture
 def sender(funded_account: Account) -> Account:
     return funded_account
 
 
-@pytest.fixture()
-def receiver(algod_client: "algosdk.v2client.algod.AlgodClient") -> Account:
-    return get_account(algod_client, get_unique_name())
+@pytest.fixture
+def receiver(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+    )
+    return new_account
 
 
-@pytest.fixture()
-def transaction_sender(
-    algod_client: "algosdk.v2client.algod.AlgodClient", sender: Account
-) -> AlgorandClientTransactionSender:
+@pytest.fixture
+def raw_hello_world_arc32_app_spec() -> str:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    return raw_json_spec.read_text()
+
+
+@pytest.fixture
+def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+
+
+@pytest.fixture
+def test_hello_world_arc32_app_id(
+    algorand: AlgorandClient, funded_account: Account, test_hello_world_arc32_app_spec: ApplicationSpecification
+) -> int:
+    global_schema = test_hello_world_arc32_app_spec.global_state_schema
+    local_schema = test_hello_world_arc32_app_spec.local_state_schema
+    response = algorand.send.app_create(
+        AppCreateParams(
+            sender=funded_account.address,
+            approval_program=test_hello_world_arc32_app_spec.approval_program,
+            clear_state_program=test_hello_world_arc32_app_spec.clear_program,
+            schema={
+                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
+                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
+                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+            },
+        )
+    )
+    return response.app_id
+
+
+@pytest.fixture
+def transaction_sender(algorand: AlgorandClient, sender: Account) -> AlgorandClientTransactionSender:
     def new_group() -> TransactionComposer:
         return TransactionComposer(
-            algod=algod_client,
+            algod=algorand.client.algod,
             get_signer=lambda _: sender.signer,
         )
 
     return AlgorandClientTransactionSender(
         new_group=new_group,
-        asset_manager=AssetManager(algod_client, new_group),
-        app_manager=AppManager(algod_client),
-        algod_client=algod_client,
+        asset_manager=AssetManager(algorand.client.algod, new_group),
+        app_manager=AppManager(algorand.client.algod),
+        algod_client=algorand.client.algod,
     )
 
 
@@ -79,7 +121,8 @@ def test_payment(transaction_sender: AlgorandClientTransactionSender, sender: Ac
 
     assert len(result.tx_ids) == 1
     assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-    txn = cast(PaymentTxn, result.transaction)
+    txn = result.transaction.payment
+    assert txn
     assert txn.sender == sender.address
     assert txn.receiver == receiver.address
     assert txn.amt == amount.micro_algos
@@ -100,7 +143,8 @@ def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_create(params)
     assert len(result.tx_ids) == 1
     assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-    txn = cast(AssetCreateTxn, result.transaction)
+    txn = result.transaction.asset_config
+    assert txn
     assert txn.sender == sender.address
     assert txn.total == total
     assert txn.decimals == 0
@@ -135,10 +179,12 @@ def test_asset_config(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_config(config_params)
 
     assert len(result.tx_ids) == 1
-    assert isinstance(result.transaction, AssetConfigTxn)
-    assert result.transaction.sender == sender.address
-    assert result.transaction.index == asset_id
-    assert result.transaction.manager == receiver.address
+    assert result.transaction.asset_config
+    txn = result.transaction.asset_config
+    assert txn
+    assert txn.sender == sender.address
+    assert txn.index == asset_id
+    assert txn.manager == receiver.address
 
 
 def test_asset_freeze(
@@ -171,7 +217,9 @@ def test_asset_freeze(
     result = transaction_sender.asset_freeze(freeze_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetFreezeTxn, result.transaction)
+    assert result.transaction.asset_freeze
+    txn = result.transaction.asset_freeze
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
     assert txn.target == sender.address
@@ -202,7 +250,8 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
     result = transaction_sender.asset_destroy(destroy_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetDestroyTxn, result.transaction)
+    txn = result.transaction.asset_config
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
 
@@ -244,7 +293,8 @@ def test_asset_transfer(
     result = transaction_sender.asset_transfer(transfer_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetTransferTxn, result.transaction)
+    txn = result.transaction.asset_transfer
+    assert txn
     assert txn.sender == sender.address
     assert txn.index == asset_id
     assert txn.receiver == receiver.address
@@ -275,7 +325,8 @@ def test_asset_opt_in(transaction_sender: AlgorandClientTransactionSender, sende
     result = transaction_sender.asset_opt_in(opt_in_params)
 
     assert len(result.tx_ids) == 1
-    txn = cast(AssetTransferTxn, result.transaction)
+    assert result.transaction.asset_transfer
+    txn = result.transaction.asset_transfer
     assert txn.sender == receiver.address
     assert txn.index == asset_id
     assert txn.amount == 0
@@ -315,7 +366,8 @@ def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, send
     )
     result = transaction_sender.asset_opt_out(params=opt_out_params)
 
-    txn = cast(AssetTransferTxn, result.transaction)
+    assert result.transaction.asset_transfer
+    txn = result.transaction.asset_transfer
     assert txn.sender == receiver.address
     assert txn.index == asset_id
     assert txn.amount == 0
@@ -336,13 +388,40 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
     result = transaction_sender.app_create(params)
     assert result.app_id > 0
     assert result.app_address
-    txn = cast(ApplicationCreateTxn, result.transaction)
+
+    assert result.transaction.application_call
+    txn = result.transaction.application_call
     assert txn.sender == sender.address
     assert txn.approval_program == b"\x06\x81\x01"
     assert txn.clear_program == b"\x06\x81\x01"
 
 
-# TODO: add remaining app call and app method call tests
+def test_app_call(
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+) -> None:
+    params = AppCallParams(
+        app_id=test_hello_world_arc32_app_id,
+        sender=sender.address,
+        args=[b"\x02\xbe\xce\x11", b"test"],
+    )
+
+    result = transaction_sender.app_call(params)
+    assert not result.return_value  # TODO: improve checks
+
+
+def test_app_call_method_call(
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+) -> None:
+    params = AppCallMethodCall(
+        app_id=test_hello_world_arc32_app_id,
+        sender=sender.address,
+        method=algosdk.abi.Method.from_signature("hello(string)string"),
+        args=["test"],
+    )
+
+    result = transaction_sender.app_call_method_call(params)
+    assert result.return_value
+    assert result.return_value.return_value == "Hello2, test"
 
 
 @patch("logging.Logger.debug")

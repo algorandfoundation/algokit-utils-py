@@ -27,6 +27,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.constants import APP_PAGE_MAX_SIZE
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
+from typing_extensions import deprecated
 
 import algokit_utils._legacy_v2.application_specification as au_spec
 import algokit_utils._legacy_v2.deploy as au_deploy
@@ -83,6 +84,16 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     return ceil(((len(approval) + len(clear)) - APP_PAGE_MAX_SIZE) / APP_PAGE_MAX_SIZE)
 
 
+@deprecated(
+    "Use AppClient from algokit_utils.applications instead. Example:\n"
+    "```python\n"
+    "from algokit_utils.clients import AlgorandClient\n"
+    "from algokit_utils.models.application import Arc56Contract\n"
+    "algorand_client = AlgorandClient.from_environment()\n"
+    "app_client = AppClient.from_network(app_spec=Arc56Contract.from_json(app_spec_json), "
+    "algorand=algorand_client, app_id=123)\n"
+    "```"
+)
 class ApplicationClient:
     """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
 
@@ -239,7 +250,7 @@ class ApplicationClient:
         )
         return new_client
 
-    def _prepare(  # noqa: PLR0913
+    def _prepare(
         self,
         target: "ApplicationClient",
         *,
@@ -913,9 +924,9 @@ class ApplicationClient:
         if self.app_id == 0:
             raise Exception(
                 "ApplicationClient is not associated with an app instance, to resolve either:\n"
-                "1.) provide an app_id on construction OR\n"
-                "2.) provide a creator address so an app can be searched for OR\n"
-                "3.) create an app first using create or deploy methods"
+                "1.provide an app_id on construction OR\n"
+                "2.provide a creator address so an app can be searched for OR\n"
+                "3.create an app first using create or deploy methods"
             )
 
     def _resolve_method(
@@ -1254,6 +1265,10 @@ def _try_convert_to_logic_error(
     return None
 
 
+@deprecated(
+    "The execute_atc_with_logic_error function is deprecated; use AppClient's error handling and TransactionComposer's "
+    "send method for equivalent functionality and improved error management."
+)
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
     algod_client: "AlgodClient",

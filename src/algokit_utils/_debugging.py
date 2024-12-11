@@ -143,7 +143,7 @@ def _write_to_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def _build_avm_sourcemap(  # noqa: PLR0913
+def _build_avm_sourcemap(
     *,
     app_name: str,
     file_name: str,
@@ -201,7 +201,18 @@ def persist_sourcemaps(
     _upsert_debug_sourcemaps(sourcemaps, project_root)
 
 
-def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
+def simulate_response(
+    atc: AtomicTransactionComposer,
+    algod_client: "AlgodClient",
+    allow_more_logs: bool | None = None,
+    allow_empty_signatures: bool | None = None,
+    allow_unnamed_resources: bool | None = None,
+    extra_opcode_budget: int | None = None,
+    exec_trace_config: SimulateTraceConfig | None = None,
+    round: int | None = None,  # noqa: A002 TODO: revisit
+    skip_signatures: int | None = None,  # noqa: ARG001 TODO: revisit
+    fix_signers: bool | None = None,  # noqa: ARG001 TODO: revisit
+) -> SimulateAtomicTransactionResponse:
     """
     Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
 
@@ -221,13 +232,31 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
     trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True, state_change=True)
 
     simulate_request = SimulateRequest(
-        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
+        txn_groups=txn_group,
+        allow_more_logs=allow_more_logs or True,
+        round=round,
+        extra_opcode_budget=extra_opcode_budget or 0,
+        allow_unnamed_resources=allow_unnamed_resources or True,
+        allow_empty_signatures=allow_empty_signatures or True,
+        exec_trace_config=exec_trace_config or trace_config,
     )
+
     return atc.simulate(algod_client, simulate_request)
 
 
-def simulate_and_persist_response(
-    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: float = 256
+def simulate_and_persist_response(  # noqa: PLR0913 TODO: revisit
+    atc: AtomicTransactionComposer,
+    project_root: Path,
+    algod_client: "AlgodClient",
+    buffer_size_mb: float = 256,
+    allow_more_logs: bool | None = None,
+    allow_empty_signatures: bool | None = None,
+    allow_unnamed_resources: bool | None = None,
+    extra_opcode_budget: int | None = None,
+    exec_trace_config: SimulateTraceConfig | None = None,
+    round: int | None = None,  # noqa: A002 TODO: revisit
+    skip_signatures: int | None = None,
+    fix_signers: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
@@ -252,7 +281,18 @@ def simulate_and_persist_response(
         txn_with_sign.txn.last_valid_round = sp.last
         txn_with_sign.txn.genesis_hash = sp.gh
 
-    response = simulate_response(atc_to_simulate, algod_client)
+    response = simulate_response(
+        atc_to_simulate,
+        algod_client,
+        allow_more_logs,
+        allow_empty_signatures,
+        allow_unnamed_resources,
+        extra_opcode_budget,
+        exec_trace_config,
+        round,
+        skip_signatures,
+        fix_signers,
+    )
     txn_results = response.simulate_response["txn-groups"]
 
     txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]

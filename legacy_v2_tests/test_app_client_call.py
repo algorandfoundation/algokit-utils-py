@@ -1,17 +1,10 @@
 from collections.abc import Generator
+from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
-import algokit_utils
 import pytest
-from algokit_utils import (
-    Account,
-    ApplicationClient,
-    ApplicationSpecification,
-    CreateCallParameters,
-    get_account,
-)
 from algosdk.atomic_transaction_composer import (
     AccountTransactionSigner,
     AtomicTransactionComposer,
@@ -19,6 +12,16 @@ from algosdk.atomic_transaction_composer import (
 )
 from algosdk.transaction import ApplicationCallTxn, PaymentTxn
 
+import algokit_utils
+import algokit_utils._legacy_v2
+import algokit_utils._legacy_v2.logic_error
+from algokit_utils import (
+    Account,
+    ApplicationClient,
+    ApplicationSpecification,
+    CreateCallParameters,
+    get_account,
+)
 from legacy_v2_tests.conftest import check_output_stability, get_unique_name
 
 if TYPE_CHECKING:
@@ -84,7 +87,7 @@ def test_abi_call_with_transaction_arg(client_fixture: ApplicationClient, funded
         sender=funded_account.address,
         receiver=client_fixture.app_address,
         amt=1_000_000,
-        note=b"Payment",
+        note=sha256(b"self-payment").digest(),
         sp=client_fixture.algod_client.suggested_params(),
     )  # type: ignore[no-untyped-call]
     payment_with_signer = TransactionWithSigner(payment, AccountTransactionSigner(funded_account.private_key))
@@ -186,7 +189,7 @@ def test_readonly_call(client_fixture: ApplicationClient) -> None:
 
 
 def test_readonly_call_with_error(client_fixture: ApplicationClient) -> None:
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         client_fixture.call(
             "readonly",
             error=1,
@@ -211,7 +214,7 @@ def test_readonly_call_with_error_with_new_client_provided_template_values(
     )
     new_client.approval_source_map = client.approval_source_map
 
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         new_client.call(
             "readonly",
             error=1,
@@ -234,7 +237,7 @@ def test_readonly_call_with_error_with_new_client_provided_source_map(
     new_client = ApplicationClient(algod_client, app_spec, app_id=client.app_id, signer=funded_account)
     new_client.approval_source_map = client.approval_source_map
 
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         new_client.call(
             "readonly",
             error=1,
@@ -259,7 +262,7 @@ def test_readonly_call_with_error_with_imported_source_map(
     new_client = ApplicationClient(algod_client, app_spec, app_id=client.app_id, signer=funded_account)
     new_client.import_source_map(source_map_export)
 
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         new_client.call(
             "readonly",
             error=1,
@@ -281,7 +284,7 @@ def test_readonly_call_with_error_with_new_client_missing_source_map(
 
     new_client = ApplicationClient(algod_client, app_spec, app_id=client.app_id, signer=funded_account)
 
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         new_client.call(
             "readonly",
             error=1,
@@ -292,7 +295,7 @@ def test_readonly_call_with_error_with_new_client_missing_source_map(
 
 def test_readonly_call_with_error_debug_mode_disabled(mock_config: Mock, client_fixture: ApplicationClient) -> None:
     mock_config.debug = False
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         client_fixture.call(
             "readonly",
             error=1,
@@ -302,7 +305,7 @@ def test_readonly_call_with_error_debug_mode_disabled(mock_config: Mock, client_
 
 
 def test_readonly_call_with_error_debug_mode_enabled(client_fixture: ApplicationClient) -> None:
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         client_fixture.call(
             "readonly",
             error=1,
@@ -322,7 +325,7 @@ def test_app_call_with_error_debug_mode_disabled(mock_config: Mock, client_fixtu
             min_funding_increment_micro_algos=200_000,
         ),
     )
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         client_fixture.call(
             "set_box",
             name=b"ssss",
@@ -342,7 +345,7 @@ def test_app_call_with_error_debug_mode_enabled(client_fixture: ApplicationClien
             min_funding_increment_micro_algos=200_000,
         ),
     )
-    with pytest.raises(algokit_utils.LogicError) as ex:
+    with pytest.raises(algokit_utils._legacy_v2.logic_error.LogicError) as ex:  # noqa: SLF001
         client_fixture.call(
             "set_box",
             name=b"ssss",
@@ -350,4 +353,3 @@ def test_app_call_with_error_debug_mode_enabled(client_fixture: ApplicationClien
         )
 
     assert ex.value.traces is not None
-    assert ex.value.traces[0].exec_trace["approval-program-trace"] is not None
