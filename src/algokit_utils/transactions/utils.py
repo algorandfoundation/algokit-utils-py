@@ -1,15 +1,56 @@
+import base64
+from copy import deepcopy
 from typing import Any, cast
 
 from algosdk import logic, transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, EmptySigner, TransactionWithSigner
-from algosdk.box_reference import BoxReference
 from algosdk.error import AtomicTransactionComposerError
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models import SimulateRequest
 
+from algokit_utils.applications.app_manager import BoxReference
+
 # Constants
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4
 MAX_APP_CALL_FOREIGN_REFERENCES = 8
+
+
+def _find_available_transaction_index(
+    txns: list[TransactionWithSigner], reference_type: str, reference: str | dict[str, Any] | int
+) -> int:
+    """Find index of first transaction that can accommodate the new reference."""
+
+    def check_transaction(txn: TransactionWithSigner) -> bool:
+        # Skip if not an application call transaction
+        if txn.txn.type != "appl":
+            return False
+
+        # Get current counts (using get() with default 0 for Pythonic null handling)
+        accounts = len(getattr(txn.txn, "accounts", []) or [])
+        assets = len(getattr(txn.txn, "foreign_assets", []) or [])
+        apps = len(getattr(txn.txn, "foreign_apps", []) or [])
+        boxes = len(getattr(txn.txn, "boxes", []) or [])
+
+        # For account references, only check account limit
+        if reference_type == "account":
+            return accounts < MAX_APP_CALL_ACCOUNT_REFERENCES
+
+        # For asset holdings or local state, need space for both account and other reference
+        if reference_type in ("asset_holding", "app_local"):
+            return (
+                accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES - 1
+                and accounts < MAX_APP_CALL_ACCOUNT_REFERENCES
+            )
+
+        # For boxes with non-zero app ID, need space for box and app reference
+        if reference_type == "box" and reference and int(getattr(reference, "app", 0)) != 0:
+            return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES - 1
+
+        # Default case - just check total references
+        return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES
+
+    # Return first matching index or -1 if none found
+    return next((i for i, txn in enumerate(txns) if check_transaction(txn)), -1)
 
 
 def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:  # noqa: C901, PLR0915, PLR0912
@@ -26,7 +67,7 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
             continue
 
         # Validate no unexpected resources
-        if txn_resources.get("boxes") or txn_resources.get("extraBoxRefs"):
+        if txn_resources.get("boxes") or txn_resources.get("extra-box-refs"):
             raise ValueError("Unexpected boxes at the transaction level")
         if txn_resources.get("appLocals"):
             raise ValueError("Unexpected app local at the transaction level")
@@ -64,29 +105,28 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
         app_txn.foreign_assets = foreign_assets
         app_txn.boxes = boxes
 
-    def populate_group_resource(  # noqa: C901, PLR0915
-        txns: list[TransactionWithSigner], reference: str | BoxReference | dict[str, Any] | int, ref_type: str
+    def populate_group_resource(  # noqa: C901, PLR0912, PLR0915
+        txns: list[TransactionWithSigner], reference: str | dict[str, Any] | int, ref_type: str
     ) -> None:
-        """Helper function to populate group-level resources"""
+        """Helper function to populate group-level resources matching TypeScript implementation"""
 
         def is_appl_below_limit(t: TransactionWithSigner) -> bool:
             if not isinstance(t.txn, transaction.ApplicationCallTxn):
                 return False
 
-            app_txn = t.txn
-            accounts = len(app_txn.accounts or [])
-            assets = len(app_txn.foreign_assets or [])
-            apps = len(app_txn.foreign_apps or [])
-            boxes = len(app_txn.boxes or [])
+            accounts = len(getattr(t.txn, "accounts", []) or [])
+            assets = len(getattr(t.txn, "foreign_assets", []) or [])
+            apps = len(getattr(t.txn, "foreign_apps", []) or [])
+            boxes = len(getattr(t.txn, "boxes", []) or [])
 
             return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES
 
-        # Handle asset holding and app local references
+        # Handle asset holding and app local references first
         if ref_type in ("assetHolding", "appLocal"):
             ref_dict = cast(dict[str, Any], reference)
             account = ref_dict["account"]
 
-            # Try to find transaction with account already available
+            # First try to find transaction with account already available
             txn_idx = next(
                 (
                     i
@@ -100,7 +140,7 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
                             logic.get_application_address(app_id)
                             for app_id in (getattr(t.txn, "foreign_apps", []) or [])
                         )
-                        or any(account in str(v) for v in t.txn.__dict__.values())
+                        or any(str(account) in str(v) for v in t.txn.__dict__.values())
                     )
                 ),
                 -1,
@@ -116,48 +156,90 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
                     app_txn.foreign_apps = [*list(getattr(app_txn, "foreign_apps", []) or []), app_id]
                 return
 
+            # Try to find transaction that already has the app/asset available
+            txn_idx = next(
+                (
+                    i
+                    for i, t in enumerate(txns)
+                    if is_appl_below_limit(t)
+                    and isinstance(t.txn, transaction.ApplicationCallTxn)
+                    and len(getattr(t.txn, "accounts", []) or []) < MAX_APP_CALL_ACCOUNT_REFERENCES
+                    and (
+                        (
+                            ref_type == "assetHolding"
+                            and ref_dict["asset"] in (getattr(t.txn, "foreign_assets", []) or [])
+                        )
+                        or (
+                            ref_type == "appLocal"
+                            and (
+                                ref_dict["app"] in (getattr(t.txn, "foreign_apps", []) or [])
+                                or t.txn.index == ref_dict["app"]
+                            )
+                        )
+                    )
+                ),
+                -1,
+            )
+
+            if txn_idx >= 0:
+                app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+                accounts = list(getattr(app_txn, "accounts", []) or [])
+                accounts.append(account)
+                app_txn.accounts = accounts
+                return
+
+        # Handle box references
+        if ref_type == "box":
+            box_ref: tuple[int, bytes] = (reference["app"], base64.b64decode(reference["name"]))  # type: ignore  # noqa: PGH003
+
+            # Try to find transaction that already has the app available
+            txn_idx = next(
+                (
+                    i
+                    for i, t in enumerate(txns)
+                    if is_appl_below_limit(t)
+                    and isinstance(t.txn, transaction.ApplicationCallTxn)
+                    and (box_ref[0] in (getattr(t.txn, "foreign_apps", []) or []) or t.txn.index == box_ref[0])
+                ),
+                -1,
+            )
+
+            if txn_idx >= 0:
+                app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+                boxes = list(getattr(app_txn, "boxes", []) or [])
+                boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))
+                app_txn.boxes = boxes
+                return
+
         # Find available transaction for the resource
-        txn_idx = next(
-            (
-                i
-                for i, t in enumerate(txns)
-                if is_appl_below_limit(t)
-                and isinstance(t.txn, transaction.ApplicationCallTxn)
-                and (
-                    len(getattr(t.txn, "accounts", []) or []) < MAX_APP_CALL_ACCOUNT_REFERENCES
-                    if ref_type == "account"
-                    else True
-                )
-            ),
-            -1,
-        )
+        txn_idx = _find_available_transaction_index(txns, ref_type, reference)
 
         if txn_idx == -1:
             raise ValueError("No more transactions below reference limit. Add another app call to the group.")
 
         app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
 
-        # Add resource based on type
         if ref_type == "account":
             accounts = list(getattr(app_txn, "accounts", []) or [])
             accounts.append(cast(str, reference))
             app_txn.accounts = accounts
         elif ref_type == "app":
+            app_id = int(cast(str | int, reference))
             foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
-            foreign_apps.append(int(cast(str | int, reference)))
+            foreign_apps.append(app_id)
             app_txn.foreign_apps = foreign_apps
         elif ref_type == "box":
-            box_ref = cast(BoxReference, reference)
             boxes = list(getattr(app_txn, "boxes", []) or [])
-            boxes.append(box_ref)
+            boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))
             app_txn.boxes = boxes
-            if box_ref.app_index != 0:
+            if box_ref[0] != 0:
                 foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
-                foreign_apps.append(box_ref.app_index)
+                foreign_apps.append(box_ref[0])
                 app_txn.foreign_apps = foreign_apps
         elif ref_type == "asset":
+            asset_id = int(cast(str | int, reference))
             foreign_assets = list(getattr(app_txn, "foreign_assets", []) or [])
-            foreign_assets.append(int(cast(str | int, reference)))
+            foreign_assets.append(asset_id)
             app_txn.foreign_assets = foreign_assets
         elif ref_type == "assetHolding":
             ref_dict = cast(dict[str, Any], reference)
@@ -218,10 +300,9 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
             populate_group_resource(group, app, "app")
 
         # Handle extra box references
-        extra_box_refs = group_resources.get("extraBoxRefs", 0)
+        extra_box_refs = group_resources.get("extra-box-refs", 0)
         for _ in range(extra_box_refs):
-            empty_box = BoxReference(0, b"")
-            populate_group_resource(group, empty_box, "box")
+            populate_group_resource(group, {"app": 0, "name": ""}, "box")
 
     # Create new ATC with updated transactions
     new_atc = AtomicTransactionComposer()
@@ -230,7 +311,7 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
         new_atc.add_transaction(txn_with_signer)
 
     # Copy method calls
-    new_atc.method_dict = atc.method_dict.copy()
+    new_atc.method_dict = deepcopy(atc.method_dict)
 
     return new_atc
 

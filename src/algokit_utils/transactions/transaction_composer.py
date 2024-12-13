@@ -274,7 +274,7 @@ class AppCallParams(CommonTxnParams, SenderParam):
     :param box_references: Box references.
     """
 
-    on_complete: OnComplete | None = None
+    on_complete: OnComplete
     app_id: int | None = None
     approval_program: str | bytes | None = None
     clear_state_program: str | bytes | None = None
@@ -372,6 +372,7 @@ class AppMethodCall(CommonTxnParams, SenderParam):
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
     box_references: list[BoxReference] | None = None
+    schema: dict[str, int] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -560,7 +561,8 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         transactions_with_signer = atc.build_group()
 
         if populate_resources or (
-            config.populate_app_call_resource
+            populate_resources is None
+            and config.populate_app_call_resource
             and any(isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer)
         ):
             atc = populate_app_call_resources(atc, algod)
@@ -971,36 +973,32 @@ class TransactionComposer:
 
     def _common_txn_build_step(
         self,
+        build_txn: Callable[[dict], algosdk.transaction.Transaction],
         params: CommonTxnParams,
-        txn: algosdk.transaction.Transaction,
-        suggested_params: algosdk.transaction.SuggestedParams,
+        txn_params: dict,
     ) -> algosdk.transaction.Transaction:
+        # Clone suggested params
+        txn_params["sp"] = (
+            algosdk.transaction.SuggestedParams(**txn_params["sp"].__dict__) if "sp" in txn_params else None
+        )
+
         if params.lease:
-            txn.lease = encode_lease(params.lease)
+            txn_params["lease"] = encode_lease(params.lease)
         if params.rekey_to:
-            txn.rekey_to = params.rekey_to
+            txn_params["rekey_to"] = params.rekey_to
         if params.note:
-            txn.note = params.note
+            txn_params["note"] = params.note
 
-        if params.first_valid_round:
-            txn.first_valid_round = params.first_valid_round
+        if params.static_fee is not None and txn_params["sp"]:
+            txn_params["sp"].fee = params.static_fee.micro_algos
+            txn_params["sp"].flat_fee = True
 
-        if params.last_valid_round:
-            txn.last_valid_round = params.last_valid_round
-        else:
-            txn.last_valid_round = txn.first_valid_round + (params.validity_window or self.default_validity_window)
+        txn = build_txn(txn_params)
 
-        if params.static_fee is not None and params.extra_fee is not None:
-            raise ValueError("Cannot set both static_fee and extra_fee")
+        if params.extra_fee:
+            txn.fee += params.extra_fee.micro_algos
 
-        if params.static_fee is not None:
-            txn.fee = params.static_fee.micro_algos
-        else:
-            txn.fee = txn.estimate_size() * suggested_params.fee or algosdk.constants.min_txn_fee
-            if params.extra_fee:
-                txn.fee += params.extra_fee
-
-        if params.max_fee is not None and txn.fee > params.max_fee:
+        if params.max_fee and txn.fee > params.max_fee.micro_algos:
             raise ValueError(f"Transaction fee {txn.fee} is greater than max_fee {params.max_fee}")
 
         return txn
@@ -1064,62 +1062,80 @@ class TransactionComposer:
 
         method_atc = AtomicTransactionComposer()
 
-        method_atc.add_method_call(
-            app_id=params.app_id or 0,
-            method=params.method,
-            sender=params.sender,
-            sp=suggested_params,
-            signer=params.signer or self.get_signer(params.sender),
-            method_args=method_args,
-            on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
-            note=params.note,
-            lease=params.lease,
-            boxes=[AppManager.get_box_reference(ref) for ref in params.box_references]
+        txn_params = {
+            "app_id": params.app_id or 0,
+            "method": params.method,
+            "sender": params.sender,
+            "sp": suggested_params,
+            "signer": params.signer or self.get_signer(params.sender),
+            "method_args": method_args,
+            "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
+            "note": params.note,
+            "lease": params.lease,
+            "boxes": [AppManager.get_box_reference(ref) for ref in params.box_references]
             if params.box_references
             else None,
-            foreign_apps=params.app_references,
-            foreign_assets=params.asset_references,
-            accounts=params.account_references,
-            approval_program=params.approval_program if hasattr(params, "approval_program") else None,  # type: ignore[arg-type]
-            clear_program=params.clear_state_program if hasattr(params, "clear_state_program") else None,  # type: ignore[arg-type]
-            rekey_to=params.rekey_to,
-        )
+            "foreign_apps": params.app_references,
+            "foreign_assets": params.asset_references,
+            "accounts": params.account_references,
+            "global_schema": algosdk.transaction.StateSchema(
+                num_uints=params.schema.get("global_ints", 0),
+                num_byte_slices=params.schema.get("global_bytes", 0),
+            )
+            if params.schema
+            else None,
+            "local_schema": algosdk.transaction.StateSchema(
+                num_uints=params.schema.get("local_ints", 0),
+                num_byte_slices=params.schema.get("local_bytes", 0),
+            )
+            if params.schema
+            else None,
+            "approval_program": params.approval_program if hasattr(params, "approval_program") else None,
+            "clear_program": params.clear_state_program if hasattr(params, "clear_state_program") else None,
+            "rekey_to": params.rekey_to,
+        }
+
+        def _add_method_call_and_return_txn(x: dict) -> algosdk.transaction.Transaction:
+            method_atc.add_method_call(**x)
+            return method_atc.build_group()[-1].txn
+
+        self._common_txn_build_step(lambda x: _add_method_call_and_return_txn(x), params, txn_params)
 
         return self._build_atc(method_atc)
 
     def _build_payment(
         self, params: PaymentParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.PaymentTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            receiver=params.receiver,
-            amt=params.amount.micro_algos,
-            close_remainder_to=params.close_remainder_to,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "receiver": params.receiver,
+            "amt": params.amount.micro_algos,
+            "close_remainder_to": params.close_remainder_to,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.PaymentTxn(**x), params, txn_params)
 
     def _build_asset_create(
         self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.AssetCreateTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            total=params.total,
-            default_frozen=params.default_frozen or False,
-            unit_name=params.unit_name or "",
-            asset_name=params.asset_name or "",
-            manager=params.manager,
-            reserve=params.reserve,
-            freeze=params.freeze,
-            clawback=params.clawback,
-            url=params.url or "",
-            metadata_hash=params.metadata_hash,
-            decimals=params.decimals or 0,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "total": params.total,
+            "default_frozen": params.default_frozen or False,
+            "unit_name": params.unit_name or "",
+            "asset_name": params.asset_name or "",
+            "manager": params.manager,
+            "reserve": params.reserve,
+            "freeze": params.freeze,
+            "clawback": params.clawback,
+            "url": params.url or "",
+            "metadata_hash": params.metadata_hash,
+            "decimals": params.decimals or 0,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.AssetCreateTxn(**x), params, txn_params)
 
     def _build_app_call(
         self,
@@ -1158,6 +1174,8 @@ class TransactionComposer:
             "clear_program": clear_program,
         }
 
+        txn_params = {**sdk_params, "index": app_id}
+
         if not app_id and isinstance(params, AppCreateParams):
             if not sdk_params["approval_program"] or not sdk_params["clear_program"]:
                 raise ValueError("approval_program and clear_program are required for application creation")
@@ -1165,98 +1183,96 @@ class TransactionComposer:
             if not params.schema:
                 raise ValueError("schema is required for application creation")
 
-            txn = algosdk.transaction.ApplicationCreateTxn(
-                **sdk_params,
-                global_schema=algosdk.transaction.StateSchema(
+            txn_params = {
+                **txn_params,
+                "global_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("global_ints", 0),
                     num_byte_slices=params.schema.get("global_bytes", 0),
                 ),
-                local_schema=algosdk.transaction.StateSchema(
+                "local_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("local_ints", 0),
                     num_byte_slices=params.schema.get("local_bytes", 0),
                 ),
-                extra_pages=params.extra_program_pages
+                "extra_pages": params.extra_program_pages
                 or math.floor((approval_program_len + clear_program_len) / algosdk.constants.APP_PAGE_MAX_SIZE)
                 if params.extra_program_pages
                 else 0,
-            )
-        else:
-            txn = algosdk.transaction.ApplicationCallTxn(**sdk_params, index=app_id)  # type: ignore[assignment]
+            }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.ApplicationCallTxn(**x), params, txn_params)
 
     def _build_asset_config(
         self, params: AssetConfigParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.AssetConfigTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            index=params.asset_id,
-            manager=params.manager,
-            reserve=params.reserve,
-            freeze=params.freeze,
-            clawback=params.clawback,
-            strict_empty_address_check=False,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "index": params.asset_id,
+            "manager": params.manager,
+            "reserve": params.reserve,
+            "freeze": params.freeze,
+            "clawback": params.clawback,
+            "strict_empty_address_check": False,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.AssetConfigTxn(**x), params, txn_params)
 
     def _build_asset_destroy(
         self, params: AssetDestroyParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.AssetDestroyTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            index=params.asset_id,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "index": params.asset_id,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.AssetDestroyTxn(**x), params, txn_params)
 
     def _build_asset_freeze(
         self, params: AssetFreezeParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.AssetFreezeTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            index=params.asset_id,
-            target=params.account,
-            new_freeze_state=params.frozen,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "index": params.asset_id,
+            "target": params.account,
+            "new_freeze_state": params.frozen,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.AssetFreezeTxn(**x), params, txn_params)
 
     def _build_asset_transfer(
         self, params: AssetTransferParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.AssetTransferTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            receiver=params.receiver,
-            amt=params.amount,
-            index=params.asset_id,
-            close_assets_to=params.close_asset_to,
-            revocation_target=params.clawback_target,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "receiver": params.receiver,
+            "amt": params.amount,
+            "index": params.asset_id,
+            "close_assets_to": params.close_asset_to,
+            "revocation_target": params.clawback_target,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.AssetTransferTxn(**x), params, txn_params)
 
     def _build_key_reg(
         self, params: OnlineKeyRegistrationParams, suggested_params: algosdk.transaction.SuggestedParams
     ) -> algosdk.transaction.Transaction:
-        txn = algosdk.transaction.KeyregTxn(
-            sender=params.sender,
-            sp=suggested_params,
-            votekey=params.vote_key,
-            selkey=params.selection_key,
-            votefst=params.vote_first,
-            votelst=params.vote_last,
-            votekd=params.vote_key_dilution,
-            rekey_to=params.rekey_to,
-            nonpart=False,
-            sprfkey=params.state_proof_key,
-        )
+        txn_params = {
+            "sender": params.sender,
+            "sp": suggested_params,
+            "votekey": params.vote_key,
+            "selkey": params.selection_key,
+            "votefst": params.vote_first,
+            "votelst": params.vote_last,
+            "votekd": params.vote_key_dilution,
+            "rekey_to": params.rekey_to,
+            "nonpart": False,
+            "sprfkey": params.state_proof_key,
+        }
 
-        return self._common_txn_build_step(params, txn, suggested_params)
+        return self._common_txn_build_step(lambda x: algosdk.transaction.KeyregTxn(**x), params, txn_params)
 
     def _is_abi_value(self, x: bool | float | str | bytes | list | TxnParams) -> bool:
         if isinstance(x, list | tuple):

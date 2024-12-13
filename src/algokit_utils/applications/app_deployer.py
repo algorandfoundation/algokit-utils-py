@@ -268,12 +268,13 @@ class AppDeployer:
                 clear_program=clear_program,
             )
 
-        return AppDeployResult(
-            **existing_app.__dict__,
-            operation_performed=OperationPerformed.Nothing,
-            app_id=existing_app.app_id,
-            app_address=existing_app.app_address,
-        )
+        existing_app_dict = existing_app.__dict__
+        existing_app_dict["operation_performed"] = OperationPerformed.Nothing
+        existing_app_dict["app_id"] = existing_app.app_id
+        existing_app_dict["app_address"] = existing_app.app_address
+
+        logger.debug("No detected changes in app, nothing to do.", suppress_log=deployment.suppress_log)
+        return AppDeployResult(**existing_app_dict)
 
     def _create_app(
         self,

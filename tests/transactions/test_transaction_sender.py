@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import algosdk
 import pytest
+from algosdk.transaction import OnComplete
 
 from algokit_utils import Account
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
@@ -402,6 +403,7 @@ def test_app_call(
     params = AppCallParams(
         app_id=test_hello_world_arc32_app_id,
         sender=sender.address,
+        on_complete=OnComplete.NoOpOC,
         args=[b"\x02\xbe\xce\x11", b"test"],
     )
 
