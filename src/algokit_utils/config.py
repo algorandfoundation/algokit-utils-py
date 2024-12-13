@@ -127,11 +127,12 @@ class UpdatableConfig:
     def configure(
         self,
         *,
-        debug: bool,
+        debug: bool | None = None,
         project_root: Path | None = None,
         trace_all: bool = False,
         trace_buffer_size_mb: float = 256,
         max_search_depth: int = 10,
+        populate_app_call_resources: bool = False,
     ) -> None:
         """
         Configures various settings for the application.
@@ -153,16 +154,17 @@ class UpdatableConfig:
             None
         """
 
-        self._debug = debug
-
-        if project_root:
+        if debug is not None:
+            self._debug = debug
+        if project_root is not None:
             self._project_root = project_root.resolve(strict=True)
-        elif debug and ALGOKIT_PROJECT_ROOT:
+        elif debug is not None and ALGOKIT_PROJECT_ROOT:
             self._project_root = Path(ALGOKIT_PROJECT_ROOT).resolve(strict=True)
 
         self._trace_all = trace_all
         self._trace_buffer_size_mb = trace_buffer_size_mb
         self._max_search_depth = max_search_depth
+        self._populate_app_call_resources = populate_app_call_resources
 
 
 config = UpdatableConfig()
