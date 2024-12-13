@@ -4,16 +4,16 @@ from dataclasses import dataclass
 from typing import Any
 
 from algosdk import mnemonic
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
+from algosdk.atomic_transaction_composer import LogicSigTransactionSigner, TransactionSigner
 from algosdk.mnemonic import to_private_key
-from algosdk.transaction import SuggestedParams
+from algosdk.transaction import LogicSigAccount, SuggestedParams
 from typing_extensions import Self
 
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestNetDispenserApiClient
 from algokit_utils.config import config
-from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account
+from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account, MultiSigAccount, MultisigMetadata
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
@@ -52,7 +52,7 @@ class AccountManager:
         """
         self._client_manager = client_manager
         self._kmd_account_manager = KmdAccountManager(client_manager)
-        self._accounts = dict[str, Account]()
+        self._signers = dict[str, TransactionSigner]()
         self._default_signer: TransactionSigner | None = None
 
     def set_default_signer(self, signer: TransactionSigner) -> Self:
@@ -73,17 +73,26 @@ class AccountManager:
         :param signer: The signer to sign transactions with for the given sender
         :return: The AccountCreator instance for method chaining
         """
-        if isinstance(signer, AccountTransactionSigner):
-            self._accounts[sender] = Account(private_key=signer.private_key)
+        self._signers[sender] = signer
         return self
 
     def get_account(self, sender: str) -> Account:
-        account = self._accounts.get(sender)
+        account = self._signers.get(sender)
         if not account:
             raise ValueError(f"No account found for address {sender}")
+        if not isinstance(account, Account):
+            raise ValueError(f"Account {sender} is not a regular account")
         return account
 
-    def get_signer(self, sender: str | Account) -> TransactionSigner:
+    def get_logic_sig_account(self, sender: str) -> LogicSigAccount:
+        account = self._signers.get(sender)
+        if not account:
+            raise ValueError(f"No account found for address {sender}")
+        if not isinstance(account, LogicSigAccount):
+            raise ValueError(f"Account {sender} is not a logic sig account")
+        return account
+
+    def get_signer(self, sender: str | Account | LogicSigAccount) -> TransactionSigner:
         """
         Returns the `TransactionSigner` for the given sender address.
 
@@ -92,8 +101,7 @@ class AccountManager:
         :param sender: The sender address
         :return: The `TransactionSigner` or throws an error if not found
         """
-        account = self._accounts.get(self._get_address(sender))
-        signer = account.signer if account else self._default_signer
+        signer = self._signers.get(self._get_address(sender))
         if not signer:
             raise ValueError(f"No signer found for address {sender}")
         return signer
@@ -109,29 +117,48 @@ class AccountManager:
         assert isinstance(info, dict)
         return info
 
+    def _register_account(self, private_key: str) -> Account:
+        """Helper method to create and register an account with its signer.
+
+        Args:
+            private_key: The private key for the account
+
+        Returns:
+            The registered Account instance
+        """
+        account = Account(private_key=private_key)
+        self._signers[account.address] = account.signer
+        return account
+
+    def _register_logic_sig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
+        logic_sig = LogicSigAccount(program, args)
+        self._signers[logic_sig.address()] = LogicSigTransactionSigner(logic_sig)
+        return logic_sig
+
+    def _register_multi_sig(
+        self, version: int, threshold: int, addrs: list[str], signing_accounts: list[Account]
+    ) -> MultiSigAccount:
+        msig_account = MultiSigAccount(
+            MultisigMetadata(version=version, threshold=threshold, addresses=addrs),
+            signing_accounts,
+        )
+        self._signers[str(msig_account.address)] = msig_account.signer
+        return msig_account
+
     def from_mnemonic(self, mnemonic: str) -> Account:
         private_key = to_private_key(mnemonic)
-        account = Account(private_key=private_key)
-        self._accounts[account.address] = account
-        self.set_signer(account.address, AccountTransactionSigner(private_key=private_key))
-        return account
+        return self._register_account(private_key)
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> Account:
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
         if account_mnemonic:
             private_key = mnemonic.to_private_key(account_mnemonic)
-            account = Account(private_key=private_key)
-            self._accounts[account.address] = account
-            self.set_signer(account.address, AccountTransactionSigner(private_key=private_key))
-            return account
+            return self._register_account(private_key)
 
         if self._client_manager.is_local_net():
             kmd_account = self._kmd_account_manager.get_or_create_wallet_account(name, fund_with)
-            account = Account(private_key=kmd_account.private_key)
-            self._accounts[account.address] = account
-            self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
-            return account
+            return self._register_account(kmd_account.private_key)
 
         raise ValueError(f"Missing environment variable {name.upper()}_MNEMONIC when looking for account {name}")
 
@@ -142,14 +169,38 @@ class AccountManager:
         if not kmd_account:
             raise ValueError(f"Unable to find KMD account {name}{' with predicate' if predicate else ''}")
 
-        account = Account(private_key=kmd_account.private_key)
-        self._accounts[account.address] = account
-        self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
-        return account
+        return self._register_account(kmd_account.private_key)
+
+    def logic_sig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
+        return self._register_logic_sig(program, args)
+
+    def multi_sig(
+        self, version: int, threshold: int, addrs: list[str], signing_accounts: list[Account]
+    ) -> MultiSigAccount:
+        return self._register_multi_sig(version, threshold, addrs, signing_accounts)
+
+    def random(self) -> Account:
+        """
+        Tracks and returns a new, random Algorand account.
+
+        :return: The account
+        """
+        account = Account.new_account()
+        return self._register_account(account.private_key)
+
+    def localnet_dispenser(self) -> Account:
+        kmd_account = self._kmd_account_manager.get_localnet_dispenser_account()
+        return self._register_account(kmd_account.private_key)
+
+    def dispenser_from_environment(self) -> Account:
+        name = os.getenv(f"{DISPENSER_ACCOUNT_NAME}_MNEMONIC")
+        if name:
+            return self.from_environment(DISPENSER_ACCOUNT_NAME)
+        return self.localnet_dispenser()
 
     def rekeyed(self, sender: Account | str, account: Account) -> Account:
         sender_address = sender.address if isinstance(sender, Account) else sender
-        self._accounts[sender_address] = account
+        self._signers[sender_address] = account.signer
         return Account(address=sender_address, private_key=account.private_key)
 
     def rekey_account(  # noqa: PLR0913
@@ -222,30 +273,6 @@ class AccountManager:
             logger.info(f"Rekeyed {account} to {rekey_to} via transaction {result.tx_ids[-1]}")
 
         return result
-
-    def random(self) -> Account:
-        """
-        Tracks and returns a new, random Algorand account.
-
-        :return: The account
-        """
-        account = Account.new_account()
-        self._accounts[account.address] = account
-        self.set_signer(account.address, AccountTransactionSigner(private_key=account.private_key))
-        return account
-
-    def localnet_dispenser(self) -> Account:
-        kmd_account = self._kmd_account_manager.get_localnet_dispenser_account()
-        account = Account(private_key=kmd_account.private_key)
-        self._accounts[account.address] = account
-        self.set_signer(account.address, AccountTransactionSigner(private_key=kmd_account.private_key))
-        return account
-
-    def dispenser_from_environment(self) -> Account:
-        name = os.getenv(f"{DISPENSER_ACCOUNT_NAME}_MNEMONIC")
-        if name:
-            return self.from_environment(DISPENSER_ACCOUNT_NAME)
-        return self.localnet_dispenser()
 
     def ensure_funded(  # noqa: PLR0913
         self,
@@ -448,8 +475,16 @@ class AccountManager:
             amount_funded=AlgoAmount.from_micro_algo(result.amount),
         )
 
-    def _get_address(self, sender: str | Account) -> str:
-        return sender.address if isinstance(sender, Account) else sender
+    def _get_address(self, sender: str | Account | LogicSigAccount) -> str:
+        match sender:
+            case Account():
+                return sender.address
+            case LogicSigAccount():
+                return sender.address()
+            case str():
+                return sender
+            case _:
+                raise ValueError(f"Unknown sender type: {type(sender)}")
 
     def _get_composer(self, get_suggested_params: Callable[[], SuggestedParams] | None = None) -> TransactionComposer:
         if get_suggested_params is None:

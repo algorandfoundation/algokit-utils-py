@@ -112,7 +112,11 @@ class AlgorandClientTransactionSender:
                 transaction = composer.build().transactions[-1].txn
                 logger.debug(pre_log(params, transaction))
 
-            raw_result = composer.send()
+            raw_result = composer.send(
+                populate_app_call_resources=params.populate_app_call_resources,
+                max_rounds_to_wait=params.max_rounds_to_wait,
+                suppress_log=params.suppress_log,
+            )
             raw_result_dict = raw_result.__dict__.copy()
             raw_result_dict["transactions"] = raw_result.transactions
             del raw_result_dict["simulate_response"]

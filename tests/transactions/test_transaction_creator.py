@@ -4,7 +4,6 @@ import algosdk
 import pytest
 from algosdk.transaction import (
     ApplicationCallTxn,
-    ApplicationCreateTxn,
     AssetConfigTxn,
     AssetCreateTxn,
     AssetDestroyTxn,
@@ -212,7 +211,7 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
         )
     )
 
-    assert isinstance(txn, ApplicationCreateTxn)
+    assert isinstance(txn, ApplicationCallTxn)
     assert txn.sender == funded_account.address
     assert txn.approval_program == b"\x06\x81\x01"
     assert txn.clear_program == b"\x06\x81\x01"

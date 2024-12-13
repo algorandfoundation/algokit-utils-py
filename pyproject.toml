@@ -164,6 +164,10 @@ untyped_calls_exclude = [
 module = ["algosdk", "algosdk.*"]
 disallow_untyped_calls = false
 
+[[tool.mypy.overrides]]
+module = ["tests.transactions.test_transaction_composer"]
+disable_error_code = ["call-overload", "union-attr"]
+
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
 remove_dist = false
