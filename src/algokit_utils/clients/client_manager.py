@@ -6,11 +6,13 @@ from urllib import parse
 import algosdk
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.kmd import KMDClient
+from algosdk.source_map import SourceMap
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.app_client import AppClient, AppClientParams
 from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils.applications.app_manager import TealTemplateParams
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
@@ -150,6 +152,54 @@ class ClientManager:
                 deletable=deletable,
                 deploy_time_params=deploy_time_params,
             )
+        )
+
+    def get_app_client_by_id(
+        self,
+        app_spec: (Arc56Contract | ApplicationSpecification | str),
+        app_id: int,
+        app_name: str | None = None,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        if not self._algorand:
+            raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
+
+        return AppClient(
+            AppClientParams(
+                app_spec=app_spec,
+                algorand=self._algorand,
+                app_id=app_id,
+                app_name=app_name,
+                default_sender=default_sender,
+                default_signer=default_signer,
+                approval_source_map=approval_source_map,
+                clear_source_map=clear_source_map,
+            )
+        )
+
+    def get_app_client_by_network(
+        self,
+        app_spec: (Arc56Contract | ApplicationSpecification | str),
+        app_name: str | None = None,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        if not self._algorand:
+            raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
+
+        return AppClient.from_network(
+            app_spec=app_spec,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
         )
 
     @staticmethod
