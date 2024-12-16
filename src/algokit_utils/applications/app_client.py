@@ -12,7 +12,6 @@ from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_manager import BoxABIValue, BoxName, BoxValue
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_encoded_value,
@@ -20,41 +19,46 @@ from algokit_utils.applications.utils import (
     get_arc56_method,
 )
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
+from algokit_utils.models.abi import BoxABIValue
 from algokit_utils.models.application import (
+    AppClientCompilationParams,
+    AppClientCompilationResult,
+    AppClientParams,
+    AppSourceMaps,
     AppState,
     Arc56Contract,
-    CompiledTeal,
     ProgramSourceInfo,
     SourceInfoDetail,
     StorageKey,
     StorageMap,
 )
-from algokit_utils.models.transaction import SendParams
+from algokit_utils.models.state import BoxName, BoxValue
+from algokit_utils.models.transaction import (
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
+    SendParams,
+    SendSingleTransactionResult,
+)
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCallParams,
-    AppDeleteMethodCall,
+    AppDeleteMethodCallParams,
     AppMethodCallTransactionArgument,
-    AppUpdateMethodCall,
+    AppUpdateMethodCallParams,
     AppUpdateParams,
     BuiltTransactions,
     PaymentParams,
 )
-from algokit_utils.transactions.transaction_sender import SendAppTransactionResult, SendSingleTransactionResult
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from algosdk.atomic_transaction_composer import TransactionSigner
 
-    from algokit_utils.applications.app_manager import (
-        AppManager,
-        BoxIdentifier,
-        BoxReference,
-        TealTemplateParams,
-    )
+    from algokit_utils.applications.app_manager import AppManager
     from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.models.amount import AlgoAmount
+    from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
     from algokit_utils.protocols.application import AlgorandClientProtocol
     from algokit_utils.transactions.transaction_composer import TransactionComposer
 
@@ -128,13 +132,6 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppClientCompilationParams:
-    deploy_time_params: TealTemplateParams | None = None
-    updatable: bool | None = None
-    deletable: bool | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
 class ExposedLogicErrorDetails:
     is_clear_state_program: bool = False
     approval_source_map: SourceMap | None = None
@@ -145,31 +142,7 @@ class ExposedLogicErrorDetails:
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppClientParams:
-    """Full parameters for creating an app client"""
-
-    app_spec: (
-        Arc56Contract | ApplicationSpecification | str
-    )  # Using string quotes since these types may be defined elsewhere
-    algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
-    app_id: int
-    app_name: str | None = None
-    default_sender: str | bytes | None = None  # Address can be string or bytes
-    default_signer: TransactionSigner | None = None
-    approval_source_map: SourceMap | None = None
-    clear_source_map: SourceMap | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppClientCompilationResult:
-    approval_program: bytes
-    clear_state_program: bytes
-    compiled_approval: CompiledTeal | None = None
-    compiled_clear: CompiledTeal | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class CommonTxnParams:
+class _CommonTxnParams:
     sender: str
     signer: TransactionSigner | None = None
     rekey_to: str | None = None
@@ -309,12 +282,6 @@ class ResolveAppClientByNetwork:
     app_name: str | None = None
     default_sender: str | bytes | None = None
     default_signer: TransactionSigner | None = None
-    approval_source_map: SourceMap | None = None
-    clear_source_map: SourceMap | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppSourceMaps:
     approval_source_map: SourceMap | None = None
     clear_source_map: SourceMap | None = None
 
@@ -558,23 +525,23 @@ class _AppClientMethodCallParamsAccessor:
             close_remainder_to=params.close_remainder_to,
         )
 
-    def opt_in(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
+    def opt_in(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.OptInOC)
-        return AppCallMethodCall(**input_params)
+        return AppCallMethodCallParams(**input_params)
 
-    def call(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
+    def call(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.NoOpOC)
-        return AppCallMethodCall(**input_params)
+        return AppCallMethodCallParams(**input_params)
 
-    def delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCall:
+    def delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCallParams:
         input_params = self._get_abi_params(
             params.__dict__, on_complete=algosdk.transaction.OnComplete.DeleteApplicationOC
         )
-        return AppDeleteMethodCall(**input_params)
+        return AppDeleteMethodCallParams(**input_params)
 
     def update(
         self, params: AppClientMethodCallParams | AppClientMethodCallWithCompilationAndSendParams
-    ) -> AppUpdateMethodCall:
+    ) -> AppUpdateMethodCallParams:
         compile_params = (
             self._client.compile(
                 app_spec=self._client.app_spec,
@@ -591,14 +558,14 @@ class _AppClientMethodCallParamsAccessor:
             **self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.UpdateApplicationOC),
             **compile_params,
         }
-        # Filter input_params to include only fields valid for AppUpdateMethodCall
-        app_update_method_call_fields = {field.name for field in fields(AppUpdateMethodCall)}
+        # Filter input_params to include only fields valid for AppUpdateMethodCallParams
+        app_update_method_call_fields = {field.name for field in fields(AppUpdateMethodCallParams)}
         filtered_input_params = {k: v for k, v in input_params.items() if k in app_update_method_call_fields}
-        return AppUpdateMethodCall(**filtered_input_params)
+        return AppUpdateMethodCallParams(**filtered_input_params)
 
-    def close_out(self, params: AppClientMethodCallParams) -> AppCallMethodCall:
+    def close_out(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.CloseOutOC)
-        return AppCallMethodCall(**input_params)
+        return AppCallMethodCallParams(**input_params)
 
     def _get_abi_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
         input_params = copy.deepcopy(params)
@@ -761,7 +728,7 @@ class _AppClientSendAccessor:
             lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params))
         )
 
-    def update(self, params: AppClientMethodCallWithCompilationAndSendParams) -> SendAppTransactionResult:
+    def update(self, params: AppClientMethodCallWithCompilationAndSendParams) -> SendAppUpdateTransactionResult:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
             lambda: self._algorand.send.app_update_method_call(self._client.params.update(params))
         )
@@ -790,7 +757,6 @@ class _AppClientSendAccessor:
                     extra_opcode_budget=None,
                     exec_trace_config=None,
                     round=None,
-                    fix_signers=None,  # TODO: double check on whether algosdk py even has this param
                 )
             )
 
@@ -802,7 +768,7 @@ class _AppClientSendAccessor:
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
-                return_value=simulate_response.returns[-1],
+                abi_return=simulate_response.returns[-1],
             )
 
         return self._client._handle_call_errors(
@@ -1320,7 +1286,7 @@ class AppClient:
                         default_method = get_arc56_method(default_value.data, self._app_spec)
                         empty_args = [None] * len(default_method.args)
                         call_result = self._algorand.send.app_call_method_call(
-                            AppCallMethodCall(
+                            AppCallMethodCallParams(
                                 app_id=self._app_id,
                                 method=algosdk.abi.Method.from_signature(default_value.data),
                                 args=empty_args,
@@ -1328,20 +1294,20 @@ class AppClient:
                             )
                         )
 
-                        if not call_result.return_value:
+                        if not call_result.abi_return:
                             raise ValueError("Default value method call did not return a value")
 
-                        if isinstance(call_result.return_value, dict):
+                        if isinstance(call_result.abi_return, dict):
                             # Convert struct return value to tuple
                             result.append(
                                 get_abi_tuple_from_abi_struct(
-                                    call_result.return_value,
+                                    call_result.abi_return,
                                     self._app_spec.structs[str(default_method.arc56_returns.type)],
                                     self._app_spec.structs,
                                 )
                             )
-                        else:
-                            result.append(call_result.return_value.return_value)
+                        elif call_result.abi_return.value:
+                            result.append(call_result.abi_return.value)
 
                     case "local" | "global":
                         # Get state value

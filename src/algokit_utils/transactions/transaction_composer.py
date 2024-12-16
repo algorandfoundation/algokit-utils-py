@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -19,9 +19,9 @@ from typing_extensions import deprecated
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
-from algokit_utils.models.transaction import SendParams
-from algokit_utils.transactions.models import TransactionWrapper
-from algokit_utils.transactions.utils import encode_lease, populate_app_call_resources
+from algokit_utils.models.state import BoxIdentifier
+from algokit_utils.models.transaction import SendAtomicTransactionComposerResults, SendParams, TransactionWrapper
+from algokit_utils.transactions.utils import encode_lease, get_abi_return_value, populate_app_call_resources
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -30,22 +30,17 @@ if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.models import SimulateTraceConfig
 
-    from algokit_utils.applications.app_manager import BoxReference
     from algokit_utils.models.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
-    from algokit_utils.transactions.models import Arc2TransactionNote
+    from algokit_utils.models.state import BoxReference
+    from algokit_utils.models.transaction import Arc2TransactionNote
 
 
 logger = config.logger
 
 
 @dataclass(kw_only=True, frozen=True)
-class SenderParam:
-    sender: str
-
-
-@dataclass(kw_only=True, frozen=True)
-class CommonTxnParams(SendParams):
+class _CommonTxnParams:
     """
     Common transaction parameters.
 
@@ -77,8 +72,13 @@ class CommonTxnParams(SendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
+class _CommonTxnWithSendParams(_CommonTxnParams, SendParams):
+    pass
+
+
+@dataclass(kw_only=True, frozen=True)
 class PaymentParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Payment transaction parameters.
@@ -95,7 +95,7 @@ class PaymentParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetCreateParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset creation parameters.
@@ -131,7 +131,7 @@ class AssetCreateParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetConfigParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset configuration parameters.
@@ -155,7 +155,7 @@ class AssetConfigParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetFreezeParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset freeze parameters.
@@ -172,7 +172,7 @@ class AssetFreezeParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetDestroyParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset destruction parameters.
@@ -185,7 +185,7 @@ class AssetDestroyParams(
 
 @dataclass(kw_only=True, frozen=True)
 class OnlineKeyRegistrationParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Online key registration parameters.
@@ -211,7 +211,7 @@ class OnlineKeyRegistrationParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetTransferParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset transfer parameters.
@@ -232,7 +232,7 @@ class AssetTransferParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetOptInParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset opt-in parameters.
@@ -245,7 +245,7 @@ class AssetOptInParams(
 
 @dataclass(kw_only=True, frozen=True)
 class AssetOptOutParams(
-    CommonTxnParams,
+    _CommonTxnWithSendParams,
 ):
     """
     Asset opt-out parameters.
@@ -256,7 +256,7 @@ class AssetOptOutParams(
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCallParams(CommonTxnParams, SenderParam):
+class AppCallParams(_CommonTxnWithSendParams):
     """
     Application call parameters.
 
@@ -287,7 +287,7 @@ class AppCallParams(CommonTxnParams, SenderParam):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCreateParams(CommonTxnParams, SenderParam):
+class AppCreateParams(_CommonTxnWithSendParams):
     """
     Application create parameters.
 
@@ -318,7 +318,9 @@ class AppCreateParams(CommonTxnParams, SenderParam):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppUpdateParams(CommonTxnParams, SenderParam):
+class AppUpdateParams(
+    _CommonTxnWithSendParams,
+):
     """
     Application update parameters.
 
@@ -336,14 +338,13 @@ class AppUpdateParams(CommonTxnParams, SenderParam):
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
     on_complete: OnComplete | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppDeleteParams(
-    CommonTxnParams,
-    SenderParam,
+    _CommonTxnWithSendParams,
 ):
     """
     Application delete parameters.
@@ -356,12 +357,12 @@ class AppDeleteParams(
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppMethodCall(CommonTxnParams, SenderParam):
+class _BaseAppMethodCall(_CommonTxnWithSendParams):
     """Base class for ABI method calls."""
 
     app_id: int
@@ -370,12 +371,12 @@ class AppMethodCall(CommonTxnParams, SenderParam):
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
     schema: dict[str, int] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppMethodCallParams(CommonTxnParams, SenderParam):
+class AppMethodCallParams(_CommonTxnWithSendParams):
     """
     Method call parameters.
 
@@ -396,7 +397,7 @@ class AppMethodCallParams(CommonTxnParams, SenderParam):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCallMethodCall(AppMethodCall):
+class AppCallMethodCallParams(_BaseAppMethodCall):
     """Parameters for a regular ABI method call.
 
     :param app_id: ID of the application
@@ -415,7 +416,7 @@ class AppCallMethodCall(AppMethodCall):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCreateMethodCall(AppMethodCall):
+class AppCreateMethodCallParams(_BaseAppMethodCall):
     """Parameters for an ABI method call that creates an application.
 
     :param approval_program: The program to execute for all OnCompletes other than ClearState
@@ -433,7 +434,7 @@ class AppCreateMethodCall(AppMethodCall):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppUpdateMethodCall(AppMethodCall):
+class AppUpdateMethodCallParams(_BaseAppMethodCall):
     """Parameters for an ABI method call that updates an application.
 
     :param app_id: ID of the application
@@ -448,7 +449,7 @@ class AppUpdateMethodCall(AppMethodCall):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppDeleteMethodCall(AppMethodCall):
+class AppDeleteMethodCallParams(_BaseAppMethodCall):
     """Parameters for an ABI method call that deletes an application.
 
     :param app_id: ID of the application
@@ -459,16 +460,18 @@ class AppDeleteMethodCall(AppMethodCall):
 
 
 # Type alias for all possible method call types
-MethodCallParams = AppCallMethodCall | AppCreateMethodCall | AppUpdateMethodCall | AppDeleteMethodCall
+MethodCallParams = (
+    AppCallMethodCallParams | AppCreateMethodCallParams | AppUpdateMethodCallParams | AppDeleteMethodCallParams
+)
 
 
 # Type alias for transaction arguments in method calls
 AppMethodCallTransactionArgument = (
     TransactionWithSigner
     | algosdk.transaction.Transaction
-    | AppCreateMethodCall
-    | AppUpdateMethodCall
-    | AppCallMethodCall
+    | AppCreateMethodCallParams
+    | AppUpdateMethodCallParams
+    | AppCallMethodCallParams
 )
 
 
@@ -510,23 +513,6 @@ class TransactionComposerBuildResult:
     atc: AtomicTransactionComposer
     transactions: list[TransactionWithSigner]
     method_calls: dict[int, Method]
-
-
-@dataclass
-class SendAtomicTransactionComposerResults:
-    """Results from sending an AtomicTransactionComposer transaction group"""
-
-    group_id: str
-    """The group ID if this was a transaction group"""
-    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
-    """The confirmation info for each transaction"""
-    tx_ids: list[str]
-    """The transaction IDs that were sent"""
-    transactions: list[TransactionWrapper]
-    """The transactions that were sent"""
-    returns: list[Any] | list[algosdk.atomic_transaction_composer.ABIResult]
-    """The ABI return values from any ABI method calls"""
-    simulate_response: dict[str, Any] | None = None
 
 
 def send_atomic_transaction_composer(  # noqa: C901, PLR0912
@@ -607,7 +593,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             confirmations=confirmations or [],
             tx_ids=[t.get_txid() for t in transactions_to_send],
             transactions=[TransactionWrapper(t) for t in transactions_to_send],
-            returns=result.abi_results,
+            returns=[get_abi_return_value(r) for r in result.abi_results],
         )
 
     except Exception as e:
@@ -756,19 +742,19 @@ class TransactionComposer:
         self.txns.append(params)
         return self
 
-    def add_app_create_method_call(self, params: AppCreateMethodCall) -> TransactionComposer:
+    def add_app_create_method_call(self, params: AppCreateMethodCallParams) -> TransactionComposer:
         self.txns.append(params)
         return self
 
-    def add_app_update_method_call(self, params: AppUpdateMethodCall) -> TransactionComposer:
+    def add_app_update_method_call(self, params: AppUpdateMethodCallParams) -> TransactionComposer:
         self.txns.append(params)
         return self
 
-    def add_app_delete_method_call(self, params: AppDeleteMethodCall) -> TransactionComposer:
+    def add_app_delete_method_call(self, params: AppDeleteMethodCallParams) -> TransactionComposer:
         self.txns.append(params)
         return self
 
-    def add_app_call_method_call(self, params: AppCallMethodCall) -> TransactionComposer:
+    def add_app_call_method_call(self, params: AppCallMethodCallParams) -> TransactionComposer:
         self.txns.append(params)
         return self
 
@@ -880,13 +866,11 @@ class TransactionComposer:
         exec_trace_config: SimulateTraceConfig | None = None,
         round: int | None = None,  # noqa: A002 TODO: revisit
         skip_signatures: int | None = None,
-        fix_signers: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
         atc = AtomicTransactionComposer() if skip_signatures else self.atc
 
         if skip_signatures:
             allow_empty_signatures = True
-            fix_signers = True
             transactions = self.build_transactions()
             for txn in transactions.transactions:
                 atc.add_transaction(TransactionWithSigner(txn=txn, signer=TransactionComposer.NULL_SIGNER))
@@ -907,7 +891,6 @@ class TransactionComposer:
                 exec_trace_config,
                 round,
                 skip_signatures,
-                fix_signers,
             )
 
             return SendAtomicTransactionComposerResults(
@@ -916,7 +899,7 @@ class TransactionComposer:
                 tx_ids=response.tx_ids,
                 group_id=atc.txn_list[-1].txn.group or "",
                 simulate_response=response.simulate_response,
-                returns=response.abi_results,
+                returns=[get_abi_return_value(r) for r in response.abi_results],
             )
 
         response = simulate_response(
@@ -929,7 +912,6 @@ class TransactionComposer:
             exec_trace_config,
             round,
             skip_signatures,
-            fix_signers,
         )
 
         confirmation_results = response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
@@ -942,7 +924,7 @@ class TransactionComposer:
             tx_ids=response.tx_ids,
             group_id=atc.txn_list[-1].txn.group or "",
             simulate_response=response.simulate_response,
-            returns=response.abi_results,
+            returns=[get_abi_return_value(r) for r in response.abi_results],
         )
 
     @staticmethod
@@ -973,7 +955,7 @@ class TransactionComposer:
     def _common_txn_build_step(
         self,
         build_txn: Callable[[dict], algosdk.transaction.Transaction],
-        params: CommonTxnParams,
+        params: _CommonTxnWithSendParams,
         txn_params: dict,
     ) -> algosdk.transaction.Transaction:
         # Clone suggested params
@@ -1025,7 +1007,12 @@ class TransactionComposer:
                     )
                     continue
                 match arg:
-                    case AppCreateMethodCall() | AppCallMethodCall() | AppUpdateMethodCall() | AppDeleteMethodCall():
+                    case (
+                        AppCreateMethodCallParams()
+                        | AppCallMethodCallParams()
+                        | AppUpdateMethodCallParams()
+                        | AppDeleteMethodCallParams()
+                    ):
                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
                         method_args.extend(temp_txn_with_signers)
                         arg_offset += len(temp_txn_with_signers) - 1
@@ -1292,7 +1279,12 @@ class TransactionComposer:
             case algosdk.transaction.Transaction():
                 signer = self.get_signer(txn.sender)
                 return [TransactionWithSigner(txn=txn, signer=signer)]
-            case AppCreateMethodCall() | AppCallMethodCall() | AppUpdateMethodCall() | AppDeleteMethodCall():
+            case (
+                AppCreateMethodCallParams()
+                | AppCallMethodCallParams()
+                | AppUpdateMethodCallParams()
+                | AppDeleteMethodCallParams()
+            ):
                 return self._build_method_call(txn, suggested_params)
 
         signer = txn.signer or self.get_signer(txn.sender)

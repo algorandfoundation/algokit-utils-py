@@ -1,19 +1,17 @@
 import base64
 from collections.abc import Mapping
-from dataclasses import dataclass
-from enum import IntEnum
-from typing import Any, TypeAlias, cast
+from typing import Any, cast
 
 import algosdk
 import algosdk.atomic_transaction_composer
 import algosdk.box_reference
-from algosdk.atomic_transaction_composer import ABIResult, AccountTransactionSigner
+from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.box_reference import BoxReference as AlgosdkBoxReference
 from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
 from algosdk.v2client import algod
 
-from algokit_utils.models.abi import ABIType, ABIValue
+from algokit_utils.models.abi import ABIReturn, ABIType, ABIValue
 from algokit_utils.models.application import (
     DELETABLE_TEMPLATE_NAME,
     UPDATABLE_TEMPLATE_NAME,
@@ -21,54 +19,8 @@ from algokit_utils.models.application import (
     AppState,
     CompiledTeal,
 )
-
-
-@dataclass(kw_only=True, frozen=True)
-class BoxName:
-    name: str
-    name_raw: bytes
-    name_base64: str
-
-
-@dataclass(kw_only=True, frozen=True)
-class BoxValue:
-    name: BoxName
-    value: bytes
-
-
-@dataclass(kw_only=True, frozen=True)
-class BoxABIValue:
-    name: BoxName
-    value: ABIValue
-
-
-class DataTypeFlag(IntEnum):
-    BYTES = 1
-    UINT = 2
-
-
-TealTemplateParams: TypeAlias = Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
-
-
-BoxIdentifier: TypeAlias = str | bytes | AccountTransactionSigner
-
-
-class BoxReference(AlgosdkBoxReference):
-    def __init__(self, app_id: int, name: bytes | str):
-        super().__init__(app_index=app_id, name=self._b64_decode(name))
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, (BoxReference | AlgosdkBoxReference)):
-            return self.app_index == other.app_index and self.name == other.name
-        return False
-
-    def _b64_decode(self, value: str | bytes) -> bytes:
-        if isinstance(value, str):
-            try:
-                return base64.b64decode(value)
-            except Exception:
-                return value.encode("utf-8")
-        return value
+from algokit_utils.models.state import BoxIdentifier, BoxName, BoxReference, DataTypeFlag, TealTemplateParams
+from algokit_utils.transactions.utils import get_abi_return_value
 
 
 def _is_valid_token_character(char: str) -> bool:
@@ -286,7 +238,7 @@ class AppManager:
     @staticmethod
     def get_abi_return(
         confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None
-    ) -> ABIResult | None:
+    ) -> ABIReturn | None:
         """Get the ABI return value from a transaction confirmation."""
         if not method:
             return None
@@ -302,7 +254,7 @@ class AppManager:
         if not abi_result:
             return None
 
-        return abi_result
+        return get_abi_return_value(abi_result)
 
     @staticmethod
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:

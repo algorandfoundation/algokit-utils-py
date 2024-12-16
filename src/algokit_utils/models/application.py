@@ -3,6 +3,12 @@ from dataclasses import asdict, dataclass, field, is_dataclass
 from typing import Any, Literal, TypeAlias
 
 import algosdk
+from algosdk.atomic_transaction_composer import TransactionSigner
+from algosdk.source_map import SourceMap
+
+from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.protocols.application import AlgorandClientProtocol
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 """The name of the TEAL template variable for deploy-time immutability control."""
@@ -467,3 +473,40 @@ class CompiledTeal:
 class AppCompilationResult:
     compiled_approval: CompiledTeal
     compiled_clear: CompiledTeal
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppSourceMaps:
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientCompilationResult:
+    approval_program: bytes
+    clear_state_program: bytes
+    compiled_approval: CompiledTeal | None = None
+    compiled_clear: CompiledTeal | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientParams:
+    """Full parameters for creating an app client"""
+
+    app_spec: (
+        Arc56Contract | ApplicationSpecification | str
+    )  # Using string quotes since these types may be defined elsewhere
+    algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
+    app_id: int
+    app_name: str | None = None
+    default_sender: str | bytes | None = None  # Address can be string or bytes
+    default_signer: TransactionSigner | None = None
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientCompilationParams:
+    deploy_time_params: TealTemplateParams | None = None
+    updatable: bool | None = None
+    deletable: bool | None = None

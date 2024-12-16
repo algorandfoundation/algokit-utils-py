@@ -18,7 +18,7 @@ from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -29,7 +29,7 @@ from algokit_utils.transactions.transaction_composer import (
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
-    from algokit_utils.transactions.models import Arc2TransactionNote
+    from algokit_utils.models.transaction import Arc2TransactionNote
 
 
 @pytest.fixture
@@ -210,7 +210,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
         get_signer=lambda _: funded_account.signer,
     )
     composer.add_app_call_method_call(
-        AppCallMethodCall(
+        AppCallMethodCallParams(
             sender=funded_account.address,
             app_id=app_id,
             method=algosdk.abi.Method.from_signature("hello(string)string"),
@@ -224,7 +224,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
     response = composer.send(max_rounds_to_wait=20)
-    assert response.returns[-1].return_value == "Hello, world"
+    assert response.returns[-1].value == "Hello, world"
 
 
 def test_simulate(algorand: AlgorandClient, funded_account: Account) -> None:

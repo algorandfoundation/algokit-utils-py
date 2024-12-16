@@ -1,60 +1,71 @@
 import base64
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any, TypeGuard, TypeVar
 
-import algosdk
 from algosdk import transaction
 from algosdk.abi import Method
-from algosdk.atomic_transaction_composer import ABIResult, TransactionSigner
+from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
+from typing_extensions import Self
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils._legacy_v2.deploy import AppDeployMetaData, AppLookup, OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientBareCallParams,
-    AppClientCompilationParams,
-    AppClientCompilationResult,
     AppClientMethodCallParams,
-    AppClientParams,
-    AppSourceMaps,
     ExposedLogicErrorDetails,
 )
 from algokit_utils.applications.app_deployer import (
+    AppDeployMetaData,
     AppDeployParams,
-    ConfirmedTransactionResult,
-    DeployAppDeleteParams,
-    DeployAppUpdateParams,
+    AppDeployResponse,
+    AppLookup,
+    AppMetaData,
+    OnSchemaBreak,
+    OnUpdate,
+    OperationPerformed,
 )
-from algokit_utils.applications.app_manager import TealTemplateParams
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_tuple_from_abi_struct,
     get_arc56_method,
     get_arc56_return_value,
 )
-from algokit_utils.models.abi import ABIStruct, ABIValue
+from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIValue
 from algokit_utils.models.application import (
     DELETABLE_TEMPLATE_NAME,
     UPDATABLE_TEMPLATE_NAME,
+    AppClientCompilationParams,
+    AppClientCompilationResult,
+    AppClientParams,
+    AppSourceMaps,
     Arc56Contract,
     Arc56Method,
-    CompiledTeal,
     MethodArg,
 )
-from algokit_utils.models.transaction import SendParams
+from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.models.transaction import (
+    SendAppCreateTransactionResult,
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
+    SendParams,
+    SendSingleTransactionResult,
+    _SendAppCreateTransactionResult,
+    _SendAppTransactionResult,
+    _SendAppUpdateTransactionResult,
+)
 from algokit_utils.protocols.application import AlgorandClientProtocol
-from algokit_utils.transactions.models import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
-    AppCreateMethodCall,
+    AppCreateMethodCallParams,
     AppCreateParams,
-    AppDeleteMethodCall,
-    AppUpdateMethodCall,
+    AppDeleteMethodCallParams,
+    AppDeleteParams,
+    AppUpdateMethodCallParams,
+    AppUpdateParams,
     BuiltTransactions,
 )
-from algokit_utils.transactions.transaction_sender import SendAppCreateTransactionResult, SendAppTransactionResult
 
 T = TypeVar("T")
 
@@ -91,55 +102,135 @@ class AppFactoryCreateMethodCallParams(AppClientMethodCallParams, AppClientCompi
     extra_program_pages: int | None = None
 
 
+@dataclass(frozen=True, kw_only=True)
+class AppFactoryCreateMethodCallResult(SendSingleTransactionResult):
+    app_id: int
+    app_address: str
+    compiled_approval: Any | None = None
+    compiled_clear: Any | None = None
+    abi_return: ABIValue | ABIStruct | None = None
+
+
 @dataclass(kw_only=True, frozen=True)
 class AppFactoryCreateMethodCallWithSendParams(AppFactoryCreateMethodCallParams, SendParams):
     pass
 
 
+@dataclass(frozen=True)
+class SendAppTransactionResultWithABIValue(_SendAppTransactionResult[ABIValue | ABIStruct | None]):
+    @classmethod
+    def from_send_app_txn(
+        cls, response: SendAppTransactionResult | None, abi_return: ABIValue | ABIStruct | None
+    ) -> Self | None:
+        if response is None:
+            return None
+
+        return cls(
+            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
+        )
+
+
+@dataclass(frozen=True)
+class SendAppUpdateTransactionResultWithABIValue(_SendAppUpdateTransactionResult[ABIValue | ABIStruct | None]):
+    @classmethod
+    def from_send_app_update_txn(
+        cls, response: SendAppUpdateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
+    ) -> Self | None:
+        if response is None:
+            return None
+
+        return cls(
+            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
+        )
+
+
 @dataclass(frozen=True, kw_only=True)
-class AppFactoryCreateResult(SendAppTransactionResult):
-    """Result from creating an application via AppFactory"""
+class SendAppCreateTransactionResultWithABIValue(_SendAppCreateTransactionResult[ABIValue | ABIStruct | None]):
+    @classmethod
+    def from_send_app_create_txn(
+        cls, response: SendAppCreateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
+    ) -> Self | None:
+        if response is None:
+            return None
 
-    app_id: int
-    """The ID of the created application"""
-    app_address: str
-    """The address of the created application"""
-    compiled_approval: CompiledTeal | None = None
-    """The compiled approval program if source was provided"""
-    compiled_clear: CompiledTeal | None = None
-    """The compiled clear program if source was provided"""
+        return cls(
+            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
+        )
 
 
-@dataclass(kw_only=True, frozen=True)
-class AppFactoryDeployResult:
-    """Represents the result object from app deployment"""
+@dataclass(frozen=True)
+class AppFactoryDeployResponse:
+    """Result from deploying an application via AppFactory"""
 
-    app_address: str
-    app_id: int
-    approval_program: bytes  # Uint8Array
-    clear_state_program: bytes  # Uint8Array
-    compiled_approval: dict  # Contains teal, compiled, compiledHash, compiledBase64ToBytes, sourceMap
-    compiled_clear: dict  # Contains teal, compiled, compiledHash, compiledBase64ToBytes, sourceMap
-    confirmation: algosdk.v2client.algod.AlgodResponseType
-    confirmations: list[algosdk.v2client.algod.AlgodResponseType] | None = None
-    created_metadata: dict  # {name: str, version: str, updatable: bool, deletable: bool}
-    created_round: int
-    deletable: bool
-    deleted: bool
-    delete_return_value: ABIValue | ABIStruct | None = None
-    delete_result: ConfirmedTransactionResult | None = None
-    group_id: str | None = None
-    name: str
+    app: AppMetaData
+    app_client: AppClient
     operation_performed: OperationPerformed
-    return_value: ABIValue | ABIStruct | None = None
-    returns: list[Any] | None = None
-    transaction: TransactionWrapper
-    transactions: list[TransactionWrapper]
-    tx_id: str
-    tx_ids: list[str]
-    updatable: bool
-    updated_round: int
-    version: str
+    create_response: SendAppCreateTransactionResultWithABIValue | None = None
+    update_response: SendAppUpdateTransactionResultWithABIValue | None = None
+    delete_response: SendAppTransactionResultWithABIValue | None = None
+
+    @classmethod
+    def from_deploy_response(
+        cls,
+        response: AppDeployResponse,
+        deploy_params: AppDeployParams,
+        app_client: AppClient,
+        app_compilation_data: AppClientCompilationResult | None = None,
+    ) -> Self:
+        def set_compilation_data(response: Any, compilation_data: AppClientCompilationResult | None) -> Any:  # noqa: ANN401
+            if compilation_data is None:
+                return response
+            if hasattr(response, "compiled_approval"):
+                response.compiled_approval = compilation_data.compiled_approval
+            if hasattr(response, "compiled_clear"):
+                response.compiled_clear = compilation_data.compiled_clear
+            return response
+
+        def process_abi_response(
+            response_data: SendAppTransactionResult
+            | SendAppCreateTransactionResult
+            | SendAppUpdateTransactionResult
+            | None,
+            params: Any,  # noqa: ANN401
+            from_txn_method: Callable,
+        ) -> Any | None:  # noqa: ANN401
+            if not response_data:
+                return None
+
+            abi_return = None
+            if isinstance(params, AppClientMethodCallParams):
+                abi_return = get_arc56_return_value(
+                    response_data.abi_return,
+                    get_arc56_method(params.method, app_client.app_spec),
+                    app_client.app_spec.structs,
+                )
+
+            response_ = from_txn_method(response_data, abi_return)
+            if response_ is None:
+                return None
+
+            return set_compilation_data(response_, app_compilation_data)
+
+        return cls(
+            app=response.app,
+            app_client=app_client,
+            operation_performed=response.operation_performed,
+            create_response=process_abi_response(
+                response.create_response,
+                deploy_params.create_params,
+                SendAppCreateTransactionResultWithABIValue.from_send_app_create_txn,
+            ),
+            update_response=process_abi_response(
+                response.update_response,
+                deploy_params.update_params,
+                SendAppUpdateTransactionResultWithABIValue.from_send_app_update_txn,
+            ),
+            delete_response=process_abi_response(
+                response.delete_response,
+                deploy_params.delete_params,
+                SendAppTransactionResultWithABIValue.from_send_app_txn,
+            ),
+        )
 
 
 class _AppFactoryBareParamsAccessor:
@@ -148,45 +239,56 @@ class _AppFactoryBareParamsAccessor:
         self._algorand = factory._algorand
 
     def create(self, params: AppFactoryCreateParams | None = None) -> AppCreateParams:
-        create_args = {}
-        if params:
-            create_args = {**params.__dict__.copy()}
-            del create_args["schema"]
-            del create_args["sender"]
-            del create_args["on_complete"]
-            del create_args["deploy_time_params"]
-            del create_args["updatable"]
-            del create_args["deletable"]
-            compiled = self._factory.compile(params)
-            create_args["approval_program"] = compiled.approval_program
-            create_args["clear_state_program"] = compiled.clear_state_program
+        base_params = params or AppFactoryCreateParams()
+
+        compiled = self._factory.compile(base_params)
 
         return AppCreateParams(
-            **create_args,
-            schema=(params.schema if params else None)
+            approval_program=compiled.approval_program,
+            clear_state_program=compiled.clear_state_program,
+            schema=base_params.schema
             or {
                 "global_bytes": self._factory._app_spec.state.schemas["global"]["bytes"],
                 "global_ints": self._factory._app_spec.state.schemas["global"]["ints"],
                 "local_bytes": self._factory._app_spec.state.schemas["local"]["bytes"],
                 "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
             },
-            sender=self._factory._get_sender(params.sender if params else None),
-            on_complete=(params.on_complete if params else None) or OnComplete.NoOpOC,
+            sender=self._factory._get_sender(base_params.sender),
+            on_complete=base_params.on_complete or OnComplete.NoOpOC,
+            extra_program_pages=base_params.extra_program_pages,
         )
 
-    def deploy_update(self, params: AppClientBareCallParams | None = None) -> dict[str, Any]:
-        return {
-            **(params.__dict__ if params else {}),
-            "sender": self._factory._get_sender(params.sender if params else None),
-            "on_complete": OnComplete.UpdateApplicationOC,
-        }
+    def deploy_update(self, params: AppClientBareCallParams | None = None) -> AppUpdateParams:
+        return AppUpdateParams(
+            app_id=0,
+            approval_program="",
+            clear_state_program="",
+            sender=self._factory._get_sender(params.sender if params else None),
+            on_complete=OnComplete.UpdateApplicationOC,
+            signer=params.signer if params else None,
+            note=params.note if params else None,
+            lease=params.lease if params else None,
+            rekey_to=params.rekey_to if params else None,
+            account_references=params.account_references if params else None,
+            app_references=params.app_references if params else None,
+            asset_references=params.asset_references if params else None,
+            box_references=params.box_references if params else None,
+        )
 
-    def deploy_delete(self, params: AppClientBareCallParams | None = None) -> dict[str, Any]:
-        return {
-            **(params.__dict__ if params else {}),
-            "sender": self._factory._get_sender(params.sender if params else None),
-            "on_complete": OnComplete.DeleteApplicationOC,
-        }
+    def deploy_delete(self, params: AppClientBareCallParams | None = None) -> AppDeleteParams:
+        return AppDeleteParams(
+            app_id=0,
+            sender=self._factory._get_sender(params.sender if params else None),
+            on_complete=OnComplete.DeleteApplicationOC,
+            signer=params.signer if params else None,
+            note=params.note if params else None,
+            lease=params.lease if params else None,
+            rekey_to=params.rekey_to if params else None,
+            account_references=params.account_references if params else None,
+            app_references=params.app_references if params else None,
+            asset_references=params.asset_references if params else None,
+            box_references=params.box_references if params else None,
+        )
 
 
 class _AppFactoryParamsAccessor:
@@ -198,44 +300,54 @@ class _AppFactoryParamsAccessor:
     def bare(self) -> _AppFactoryBareParamsAccessor:
         return self._bare
 
-    def create(self, params: AppFactoryCreateMethodCallParams) -> AppCreateMethodCall:
+    def create(self, params: AppFactoryCreateMethodCallParams) -> AppCreateMethodCallParams:
         compiled = self._factory.compile(params)
-        params_dict = params.__dict__
-        params_dict["schema"] = params.schema or {
-            "global_bytes": self._factory._app_spec.state.schemas["global"]["bytes"],
-            "global_ints": self._factory._app_spec.state.schemas["global"]["ints"],
-            "local_bytes": self._factory._app_spec.state.schemas["local"]["bytes"],
-            "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
-        }
-        params_dict["sender"] = self._factory._get_sender(params.sender)
-        params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
-        params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
-        params_dict["on_complete"] = params.on_complete or OnComplete.NoOpOC
-        del params_dict["deploy_time_params"]
-        del params_dict["updatable"]
-        del params_dict["deletable"]
-        return AppCreateMethodCall(
-            **params_dict,
+
+        return AppCreateMethodCallParams(
             app_id=0,
             approval_program=compiled.approval_program,
             clear_state_program=compiled.clear_state_program,
+            schema=params.schema
+            or {
+                "global_bytes": self._factory._app_spec.state.schemas["global"]["bytes"],
+                "global_ints": self._factory._app_spec.state.schemas["global"]["ints"],
+                "local_bytes": self._factory._app_spec.state.schemas["local"]["bytes"],
+                "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
+            },
+            sender=self._factory._get_sender(params.sender),
+            method=get_arc56_method(params.method, self._factory._app_spec),
+            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+            on_complete=params.on_complete or OnComplete.NoOpOC,
+            note=params.note,
+            lease=params.lease,
+            rekey_to=params.rekey_to,
         )
 
-    def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCall:
-        params_dict = params.__dict__.copy()
-        params_dict["sender"] = self._factory._get_sender(params.sender)
-        params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
-        params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
-        params_dict["on_complete"] = OnComplete.UpdateApplicationOC
-        return AppUpdateMethodCall(**params_dict, app_id=0, approval_program="", clear_state_program="")
+    def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCallParams:
+        return AppUpdateMethodCallParams(
+            app_id=0,
+            approval_program="",
+            clear_state_program="",
+            sender=self._factory._get_sender(params.sender),
+            method=get_arc56_method(params.method, self._factory._app_spec),
+            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+            on_complete=OnComplete.UpdateApplicationOC,
+            note=params.note,
+            lease=params.lease,
+            rekey_to=params.rekey_to,
+        )
 
-    def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCall:
-        params_dict = params.__dict__.copy()
-        params_dict["sender"] = self._factory._get_sender(params.sender)
-        params_dict["method"] = get_arc56_method(params.method, self._factory._app_spec)
-        params_dict["args"] = self._factory._get_create_abi_args_with_default_values(params.method, params.args)
-        params_dict["on_complete"] = OnComplete.DeleteApplicationOC
-        return AppDeleteMethodCall(**params_dict, app_id=0)
+    def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCallParams:
+        return AppDeleteMethodCallParams(
+            app_id=0,
+            sender=self._factory._get_sender(params.sender),
+            method=get_arc56_method(params.method, self._factory._app_spec),
+            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+            on_complete=OnComplete.DeleteApplicationOC,
+            note=params.note,
+            lease=params.lease,
+            rekey_to=params.rekey_to,
+        )
 
 
 class _AppFactoryBareCreateTransactionAccessor:
@@ -264,48 +376,51 @@ class _AppFactoryBareSendAccessor:
         self._factory = factory
         self._algorand = factory._algorand
 
-    def create(self, params: AppFactoryCreateWithSendParams | None = None) -> tuple[AppClient, AppFactoryCreateResult]:
-        updatable = params.updatable if params and params.updatable is not None else self._factory._updatable
-        deletable = params.deletable if params and params.deletable is not None else self._factory._deletable
-        deploy_time_params = (
-            params.deploy_time_params
-            if params and params.deploy_time_params is not None
-            else self._factory._deploy_time_params
+    def create(
+        self, params: AppFactoryCreateWithSendParams | None = None
+    ) -> tuple[AppClient, SendAppCreateTransactionResult]:
+        base_params = params or AppFactoryCreateWithSendParams()
+
+        # Use replace() to create new instance with overridden values
+        create_params = replace(
+            base_params,
+            updatable=base_params.updatable if base_params.updatable is not None else self._factory._updatable,
+            deletable=base_params.deletable if base_params.deletable is not None else self._factory._deletable,
+            deploy_time_params=(
+                base_params.deploy_time_params
+                if base_params.deploy_time_params is not None
+                else self._factory._deploy_time_params
+            ),
         )
 
         compiled = self._factory.compile(
             AppClientCompilationParams(
-                deploy_time_params=deploy_time_params,
-                updatable=updatable,
-                deletable=deletable,
+                deploy_time_params=create_params.deploy_time_params,
+                updatable=create_params.updatable,
+                deletable=create_params.deletable,
             )
         )
 
-        create_args = {}
-        if params:
-            create_args = {**params.__dict__}
-            del create_args["max_rounds_to_wait"]
-            del create_args["suppress_log"]
-            del create_args["populate_app_call_resources"]
-
-        create_args["updatable"] = updatable
-        create_args["deletable"] = deletable
-        create_args["deploy_time_params"] = deploy_time_params
-
         result = self._factory._handle_call_errors(
-            lambda: self._algorand.send.app_create(
-                self._factory.params.bare.create(AppFactoryCreateParams(**create_args))
-            )
-        ).__dict__
-
-        result["compiled_approval"] = compiled.compiled_approval
-        result["compiled_clear"] = compiled.compiled_clear
+            lambda: self._algorand.send.app_create(self._factory.params.bare.create(create_params))
+        )
 
         return (
             self._factory.get_app_client_by_id(
-                app_id=result["app_id"],
+                app_id=result.app_id,
             ),
-            AppFactoryCreateResult(**result),
+            SendAppCreateTransactionResult(
+                transaction=result.transaction,
+                confirmation=result.confirmation,
+                app_id=result.app_id,
+                app_address=result.app_address,
+                compiled_approval=compiled.compiled_approval if compiled else None,
+                compiled_clear=compiled.compiled_clear if compiled else None,
+                group_id=result.group_id,
+                tx_ids=result.tx_ids,
+                transactions=result.transactions,
+                confirmations=result.confirmations,
+            ),
         )
 
 
@@ -319,28 +434,30 @@ class _AppFactorySendAccessor:
     def bare(self) -> _AppFactoryBareSendAccessor:
         return self._bare
 
-    def create(self, params: AppFactoryCreateMethodCallParams) -> tuple[AppClient, SendAppCreateTransactionResult]:
-        updatable = params.updatable if params.updatable is not None else self._factory._updatable
-        deletable = params.deletable if params.deletable is not None else self._factory._deletable
-        deploy_time_params = (
-            params.deploy_time_params if params.deploy_time_params is not None else self._factory._deploy_time_params
+    def create(self, params: AppFactoryCreateMethodCallParams) -> tuple[AppClient, AppFactoryCreateMethodCallResult]:
+        create_params = replace(
+            params,
+            updatable=params.updatable if params.updatable is not None else self._factory._updatable,
+            deletable=params.deletable if params.deletable is not None else self._factory._deletable,
+            deploy_time_params=(
+                params.deploy_time_params
+                if params.deploy_time_params is not None
+                else self._factory._deploy_time_params
+            ),
         )
 
         compiled = self._factory.compile(
             AppClientCompilationParams(
-                deploy_time_params=deploy_time_params,
-                updatable=updatable,
-                deletable=deletable,
+                deploy_time_params=create_params.deploy_time_params,
+                updatable=create_params.updatable,
+                deletable=create_params.deletable,
             )
         )
 
-        create_params_dict = params.__dict__.copy()
-        create_params_dict["updatable"] = updatable
-        create_params_dict["deletable"] = deletable
-        create_params_dict["deploy_time_params"] = deploy_time_params
         result = self._factory._handle_call_errors(
-            lambda: self._algorand.send.app_create_method_call(
-                self._factory.params.create(AppFactoryCreateMethodCallParams(**create_params_dict))
+            lambda: self._factory._parse_method_call_return(
+                lambda: self._algorand.send.app_create_method_call(self._factory.params.create(create_params)),
+                get_arc56_method(params.method, self._factory._app_spec),
             )
         )
 
@@ -348,15 +465,20 @@ class _AppFactorySendAccessor:
             self._factory.get_app_client_by_id(
                 app_id=result.app_id,
             ),
-            SendAppCreateTransactionResult(
-                **{
-                    **result.__dict__,
-                    **(
-                        {"compiled_approval": compiled.compiled_approval, "compiled_clear": compiled.compiled_clear}
-                        if compiled
-                        else {}
-                    ),
-                }
+            AppFactoryCreateMethodCallResult(
+                transaction=result.transaction,
+                confirmation=result.confirmation,
+                tx_id=result.tx_id,
+                app_id=result.app_id,
+                app_address=result.app_address,
+                abi_return=result.abi_return,
+                compiled_approval=compiled.compiled_approval if compiled else None,
+                compiled_clear=compiled.compiled_clear if compiled else None,
+                group_id=result.group_id,
+                tx_ids=result.tx_ids,
+                transactions=result.transactions,
+                confirmations=result.confirmations,
+                returns=result.returns,
             ),
         )
 
@@ -406,8 +528,8 @@ class AppFactory:
         self,
         *,
         deploy_time_params: TealTemplateParams | None = None,
-        on_update: OnUpdate = OnUpdate.Fail,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        on_update: OnUpdate = OnUpdate.FAIL,
+        on_schema_break: OnSchemaBreak = OnSchemaBreak.FAIL,
         create_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
@@ -416,119 +538,98 @@ class AppFactory:
         updatable: bool | None = None,
         deletable: bool | None = None,
         app_name: str | None = None,
-        max_rounds_to_wait: int | None = None,  # noqa: ARG002 TODO: revisit
-        suppress_log: bool = False,  # noqa: ARG002 TODO: revisit
-        populate_app_call_resources: bool = False,  # noqa: ARG002 TODO: revisit
-    ) -> tuple[AppClient, AppFactoryDeployResult]:
-        updatable = (
+        max_rounds_to_wait: int | None = None,
+        suppress_log: bool = False,
+        populate_app_call_resources: bool = False,
+    ) -> AppFactoryDeployResponse:
+        """Deploy the application with the specified parameters."""
+
+        # Resolve control parameters with factory defaults
+        resolved_updatable = (
             updatable if updatable is not None else self._updatable or self._get_deploy_time_control("updatable")
         )
-        deletable = (
+        resolved_deletable = (
             deletable if deletable is not None else self._deletable or self._get_deploy_time_control("deletable")
         )
-        deploy_time_params = deploy_time_params if deploy_time_params is not None else self._deploy_time_params
+        resolved_deploy_time_params = deploy_time_params or self._deploy_time_params
 
-        compiled = self.compile(
-            AppClientCompilationParams(
-                deploy_time_params=deploy_time_params,
-                updatable=updatable,
-                deletable=deletable,
-            )
-        )
+        def prepare_create_args() -> AppCreateMethodCallParams | AppCreateParams:
+            """Prepare create arguments based on parameter type."""
+            if create_params and isinstance(create_params, AppClientMethodCallParams):
+                return self.params.create(
+                    AppFactoryCreateMethodCallParams(
+                        **asdict(create_params),
+                        updatable=resolved_updatable,
+                        deletable=resolved_deletable,
+                        deploy_time_params=resolved_deploy_time_params,
+                    )
+                )
 
-        def _is_method_call_params(
-            params: AppClientMethodCallParams | AppClientBareCallParams | None,
-        ) -> TypeGuard[AppClientMethodCallParams]:
-            return params is not None and hasattr(params, "method")
-
-        update_args: DeployAppUpdateParams | AppUpdateMethodCall
-        if _is_method_call_params(update_params):
-            update_args = self.params.deploy_update(update_params)
-        else:
-            update_args = DeployAppUpdateParams(
-                **self.params.bare.deploy_update(
-                    update_params if isinstance(update_params, AppClientBareCallParams) else None
+            base_params = create_params or AppClientBareCallParams()
+            return self.params.bare.create(
+                AppFactoryCreateParams(
+                    **asdict(base_params) if base_params else {},
+                    updatable=resolved_updatable,
+                    deletable=resolved_deletable,
+                    deploy_time_params=resolved_deploy_time_params,
                 )
             )
 
-        delete_args: DeployAppDeleteParams | AppDeleteMethodCall
-        if _is_method_call_params(delete_params):
-            delete_args = self.params.deploy_delete(delete_params)
-        else:
-            delete_args = DeployAppDeleteParams(
-                **self.params.bare.deploy_delete(
-                    delete_params if isinstance(delete_params, AppClientBareCallParams) else None
-                )
+        def prepare_update_args() -> AppUpdateMethodCallParams | AppUpdateParams:
+            """Prepare update arguments based on parameter type."""
+            return (
+                self.params.deploy_update(update_params)
+                if isinstance(update_params, AppClientMethodCallParams)
+                else self.params.bare.deploy_update(update_params)
             )
 
-        app_deploy_params = AppDeployParams(
-            deploy_time_params=deploy_time_params,
+        def prepare_delete_args() -> AppDeleteMethodCallParams | AppDeleteParams:
+            """Prepare delete arguments based on parameter type."""
+            return (
+                self.params.deploy_delete(delete_params)
+                if isinstance(delete_params, AppClientMethodCallParams)
+                else self.params.bare.deploy_delete(delete_params)
+            )
+
+        # Execute deployment
+        deploy_params = AppDeployParams(
+            deploy_time_params=resolved_deploy_time_params,
             on_schema_break=on_schema_break,
             on_update=on_update,
             existing_deployments=existing_deployments,
             ignore_cache=ignore_cache,
-            create_params=(
-                self.params.create(
-                    AppFactoryCreateMethodCallParams(
-                        **create_params.__dict__,
-                        updatable=updatable,
-                        deletable=deletable,
-                        deploy_time_params=deploy_time_params,
-                    )
-                )
-                if create_params and hasattr(create_params, "method")
-                else self.params.bare.create(
-                    AppFactoryCreateParams(
-                        **create_params.__dict__ if create_params else {},
-                        updatable=updatable,
-                        deletable=deletable,
-                        deploy_time_params=deploy_time_params,
-                    )
-                )
-            ),
-            update_params=update_args,
-            delete_params=delete_args,
+            create_params=prepare_create_args(),
+            update_params=prepare_update_args(),
+            delete_params=prepare_delete_args(),
             metadata=AppDeployMetaData(
                 name=app_name or self._app_name,
                 version=self._version,
-                updatable=updatable,
-                deletable=deletable,
+                updatable=resolved_updatable,
+                deletable=resolved_deletable,
+            ),
+            suppress_log=suppress_log,
+            max_rounds_to_wait=max_rounds_to_wait,
+            populate_app_call_resources=populate_app_call_resources,
+        )
+        deploy_response = self._algorand.app_deployer.deploy(deploy_params)
+
+        return AppFactoryDeployResponse.from_deploy_response(
+            deploy_response,
+            deploy_params,
+            self.get_app_client_by_id(
+                app_id=deploy_response.app.app_id,
+                app_name=app_name,
+                default_sender=self._default_sender,
+                default_signer=self._default_signer,
+            ),
+            self.compile(
+                AppClientCompilationParams(
+                    deploy_time_params=resolved_deploy_time_params,
+                    updatable=resolved_updatable,
+                    deletable=resolved_deletable,
+                )
             ),
         )
-        deploy_result = self._algorand.app_deployer.deploy(app_deploy_params)
-
-        app_client = self.get_app_client_by_id(
-            app_id=deploy_result.app_id or 0,
-            app_name=app_name,
-            default_sender=self._default_sender,
-            default_signer=self._default_signer,
-        )
-
-        result = {**deploy_result.__dict__, **(compiled.__dict__ if compiled else {})}
-
-        if "return_value" in result:
-            if result["operation_performed"] == OperationPerformed.Update:
-                if update_params and isinstance(update_params, AppClientMethodCallParams):
-                    result["return_value"] = get_arc56_return_value(
-                        result["return_value"],
-                        get_arc56_method(update_params.method, self._app_spec),
-                        self._app_spec.structs,
-                    )
-            elif create_params and isinstance(create_params, AppClientMethodCallParams):
-                result["return_value"] = get_arc56_return_value(
-                    result["return_value"],
-                    get_arc56_method(create_params.method, self._app_spec),
-                    self._app_spec.structs,
-                )
-
-        if "delete_return_value" in result and delete_params and isinstance(delete_params, AppClientMethodCallParams):
-            result["delete_return_value"] = get_arc56_return_value(
-                result["delete_return_value"],
-                get_arc56_method(delete_params.method, self._app_spec),
-                self._app_spec.structs,
-            )
-
-        return app_client, AppFactoryDeployResult(**result)
 
     def get_app_client_by_id(
         self,
@@ -632,12 +733,19 @@ class AppFactory:
         except Exception as e:
             raise self.expose_logic_error(e) from None
 
-    def _parse_method_call_return(self, result: SendAppTransactionResult, method: Method) -> SendAppTransactionResult:
-        return SendAppTransactionResult(
+    def _parse_method_call_return(
+        self,
+        result: Callable[
+            [], SendAppTransactionResult | SendAppCreateTransactionResult | SendAppUpdateTransactionResult
+        ],
+        method: Method,
+    ) -> AppFactoryCreateMethodCallResult:
+        result_value = result()
+        return AppFactoryCreateMethodCallResult(
             **{
-                **result.__dict__,
-                "return_value": get_arc56_return_value(result.return_value, method, self._app_spec.structs)
-                if isinstance(result.return_value, ABIResult)
+                **result_value.__dict__,
+                "abi_return": get_arc56_return_value(result_value.abi_return, method, self._app_spec.structs)
+                if isinstance(result_value.abi_return, ABIReturn)
                 else None,
             }
         )
@@ -645,46 +753,51 @@ class AppFactory:
     def _get_create_abi_args_with_default_values(
         self,
         method_name_or_signature: str | Arc56Method,
-        args: list[Any] | None,
+        user_args: list[Any] | None,
     ) -> list[Any]:
+        """
+        Builds a list of ABI argument values for creation calls, applying default
+        argument values when not provided.
+        """
         method = (
             get_arc56_method(method_name_or_signature, self._app_spec)
             if isinstance(method_name_or_signature, str)
             else method_name_or_signature
         )
-        result = []
 
         def _has_struct(arg: Any) -> TypeGuard[MethodArg]:  # noqa: ANN401
             return hasattr(arg, "struct")
 
-        for i, method_arg in enumerate(method.args):
-            arg = method_arg
-            arg_value = args[i] if args and i < len(args) else None
+        results: list[Any] = []
 
-            if arg_value is not None:
-                if _has_struct(arg) and arg.struct and isinstance(arg_value, dict):
+        for i, param in enumerate(method.args):
+            if user_args and i < len(user_args):
+                arg_value = user_args[i]
+                if _has_struct(param) and param.struct and isinstance(arg_value, dict):
                     arg_value = get_abi_tuple_from_abi_struct(
                         arg_value,
-                        self._app_spec.structs[arg.struct],
+                        self._app_spec.structs[param.struct],
                         self._app_spec.structs,
                     )
-                result.append(arg_value)
+                results.append(arg_value)
                 continue
 
-            default_value = getattr(arg, "default_value", None)
+            default_value = getattr(param, "default_value", None)
             if default_value:
                 if default_value.source == "literal":
-                    value_raw = base64.b64decode(default_value.data)
-                    value_type = default_value.type or str(arg.type)
-                    result.append(get_abi_decoded_value(value_raw, value_type, self._app_spec.structs))
+                    raw_value = base64.b64decode(default_value.data)
+                    value_type = default_value.type or str(param.type)
+                    decoded_value = get_abi_decoded_value(raw_value, value_type, self._app_spec.structs)
+                    results.append(decoded_value)
                 else:
                     raise ValueError(
-                        f"Can't provide default value for {default_value.source} for a contract creation call"
+                        f"Cannot provide default value from source={default_value.source} "
+                        "for a contract creation call."
                     )
             else:
+                param_name = param.name or f"arg{i + 1}"
                 raise ValueError(
-                    f"No value provided for required argument "
-                    f"{arg.name or f'arg{i+1}'} in call to method {method.name}"
+                    f"No value provided for required argument {param_name} " f"in call to method {method.name}"
                 )
 
-        return result
+        return results

@@ -211,7 +211,6 @@ def simulate_response(
     exec_trace_config: SimulateTraceConfig | None = None,
     round: int | None = None,  # noqa: A002 TODO: revisit
     skip_signatures: int | None = None,  # noqa: ARG001 TODO: revisit
-    fix_signers: bool | None = None,  # noqa: ARG001 TODO: revisit
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
@@ -256,7 +255,6 @@ def simulate_and_persist_response(  # noqa: PLR0913 TODO: revisit
     exec_trace_config: SimulateTraceConfig | None = None,
     round: int | None = None,  # noqa: A002 TODO: revisit
     skip_signatures: int | None = None,
-    fix_signers: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
@@ -291,7 +289,6 @@ def simulate_and_persist_response(  # noqa: PLR0913 TODO: revisit
         exec_trace_config,
         round,
         skip_signatures,
-        fix_signers,
     )
     txn_results = response.simulate_response["txn-groups"]
 

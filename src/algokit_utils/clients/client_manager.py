@@ -12,12 +12,12 @@ from algosdk.v2client.indexer import IndexerClient
 
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_client import AppClient, AppClientParams
+from algokit_utils.applications.app_client import AppClient
 from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
-from algokit_utils.applications.app_manager import TealTemplateParams
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
-from algokit_utils.models.application import Arc56Contract
+from algokit_utils.models.application import AppClientParams, Arc56Contract
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
+from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.protocols.application import AlgorandClientProtocol
 
 

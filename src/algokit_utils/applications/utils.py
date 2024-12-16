@@ -3,7 +3,6 @@ from typing import Any, Literal, TypeVar
 
 from algosdk.abi import Method as AlgorandABIMethod
 from algosdk.abi import TupleType
-from algosdk.atomic_transaction_composer import ABIResult
 
 from algokit_utils._legacy_v2.application_specification import (
     ApplicationSpecification,
@@ -12,7 +11,7 @@ from algokit_utils._legacy_v2.application_specification import (
     MethodConfigDict,
     MethodHints,
 )
-from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
+from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIType, ABIValue
 from algokit_utils.models.application import (
     ABIArgumentType,
     ABITypeAlias,
@@ -64,7 +63,7 @@ def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> 
 
 
 def get_arc56_return_value(
-    return_value: ABIResult | None,
+    return_value: ABIReturn | None,
     method: Method | AlgorandABIMethod,
     structs: dict[str, list[StructField]],
 ) -> ABIValue | ABIStruct | None:
@@ -111,11 +110,11 @@ def get_arc56_return_value(
 
     # Handle structs
     if struct and struct in structs:
-        return_tuple = return_value.return_value
+        return_tuple = return_value.value
         return get_abi_struct_from_abi_tuple(return_tuple, structs[struct], structs)
 
     # Return as-is
-    return return_value.return_value  # type: ignore[no-any-return]
+    return return_value.value
 
 
 def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: ANN401, PLR0911

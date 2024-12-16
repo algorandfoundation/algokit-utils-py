@@ -5,14 +5,13 @@ import pytest
 from algosdk.logic import get_application_address
 from algosdk.transaction import OnComplete
 
-from algokit_utils import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallParams,
     AppClientMethodCallWithCompilationAndSendParams,
     AppClientMethodCallWithSendParams,
-    AppClientParams,
 )
+from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_factory import (
     AppFactory,
     AppFactoryCreateMethodCallParams,
@@ -22,6 +21,7 @@ from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.application import AppClientParams
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
@@ -137,8 +137,8 @@ def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
     factory.deploy(
         deletable=False,
         updatable=False,
-        on_schema_break=OnSchemaBreak.Fail,
-        on_update=OnUpdate.Fail,
+        on_schema_break=OnSchemaBreak.FAIL,
+        on_update=OnUpdate.FAIL,
         deploy_time_params={
             "VALUE": 1,
         },
@@ -146,30 +146,37 @@ def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
 
 
 def test_deploy_app_create(factory: AppFactory) -> None:
-    app_client, result = factory.deploy(
+    deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
     )
 
-    assert result.operation_performed == OperationPerformed.Create
-    assert result.app_id > 0
-    assert app_client.app_id == result.app_id == result.confirmation["application-index"]  # type: ignore[call-overload]
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert deploy_result.result.operation_performed == OperationPerformed.CREATE
+    assert (
+        deploy_result.app_client.app_id
+        == deploy_result.result.app_id
+        == deploy_result.result.confirmation["application-index"]
+    )  # type: ignore[call-overload]
+    assert deploy_result.app_client.app_address == get_application_address(deploy_result.app_client.app_id)
 
 
 def test_deploy_app_create_abi(factory: AppFactory) -> None:
-    app_client, result = factory.deploy(
+    deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
         create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
     )
 
-    assert result.operation_performed == OperationPerformed.Create
-    assert result.app_id > 0
-    assert app_client.app_id == result.app_id == result.confirmation["application-index"]  # type: ignore[call-overload]
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert deploy_result.result.operation_performed == OperationPerformed.Create
+    assert deploy_result.result.app_id > 0
+    assert (
+        deploy_result.app_client.app_id
+        == deploy_result.result.app_id
+        == deploy_result.result.confirmation["application-index"]
+    )  # type: ignore[call-overload]
+    assert deploy_result.app_client.app_address == get_application_address(deploy_result.app_client.app_id)
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:
@@ -223,6 +230,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert updated_app.updated_round == updated_app.confirmation["confirmed-round"]  # type: ignore[call-overload]
     assert updated_app.transaction.application_call
     assert updated_app.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
+    assert updated_app.return_value
     assert updated_app.return_value == "args_io"
 
 
@@ -281,7 +289,9 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     assert replaced_app.delete_result.transaction.application_call
     assert replaced_app.delete_result.transaction.application_call.index == created_app.app_id
     assert replaced_app.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
+    assert replaced_app.return_value
     assert replaced_app.return_value == "arg_io"
+    assert replaced_app.delete_return_value
     assert replaced_app.delete_return_value == "arg2_io"
 
 
@@ -298,8 +308,8 @@ def test_create_then_call_app(factory: AppFactory) -> None:
 
     call = app_client.send.call(AppClientMethodCallWithSendParams(method="call_abi", args=["test"]))
 
-    assert call.return_value
-    assert call.return_value.return_value == "Hello, test"
+    assert call.abi_return
+    assert call.abi_return.value == "Hello, test"
 
 
 def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, factory: AppFactory) -> None:
@@ -337,9 +347,8 @@ def test_create_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.return_value
-    # Fix return value issues
-    assert call_return.return_value.return_value == "string_io"
+    assert call_return.abi_return
+    assert call_return.abi_return == "string_io"
 
 
 def test_update_app_with_abi(factory: AppFactory) -> None:
@@ -362,8 +371,8 @@ def test_update_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.return_value is not None
-    assert call_return.return_value.return_value == "string_io"
+    assert call_return.abi_return
+    assert call_return.abi_return.value == "string_io"
     # TODO: fix this
     # assert call_return.compiled_approval is not None
 
@@ -386,8 +395,8 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.return_value is not None
-    assert call_return.return_value.return_value == "string_io"
+    assert call_return.abi_return
+    assert call_return.abi_return.value == "string_io"
 
 
 def test_export_import_sourcemaps(

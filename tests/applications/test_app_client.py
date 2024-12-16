@@ -12,17 +12,17 @@ from algokit_utils._legacy_v2.application_specification import ApplicationSpecif
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallWithSendParams,
-    AppClientParams,
     FundAppAccountParams,
 )
-from algokit_utils.applications.app_manager import AppManager, BoxReference
+from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.utils import arc32_to_arc56, get_arc56_method
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.abi import ABIType
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.application import Arc56Contract
+from algokit_utils.models.application import AppClientParams, Arc56Contract
+from algokit_utils.models.state import BoxReference
 from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
 
 
@@ -352,14 +352,14 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    return_value = AppManager.get_abi_return(
+    response = AppManager.get_abi_return(
         result.confirmation, get_arc56_method("call_abi_txn", test_app_client.app_spec)
     )
     expected_return = f"Sent {amount.micro_algos}. test"
-    assert result.return_value
-    assert result.return_value.return_value == expected_return
-    assert return_value
-    assert return_value.return_value == result.return_value.return_value
+    assert result.abi_return
+    assert result.abi_return.value == expected_return
+    assert response
+    assert response.value == result.abi_return.value
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
@@ -452,10 +452,11 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
         result.confirmations[0],
         get_arc56_method("call_abi_foreign_refs", test_app_client.app_spec),
     )
-    assert result.return_value
-    assert "App: 345, Asset: 567, Account: " in result.return_value.return_value
+    assert result.abi_return
+    assert result.abi_return.value
+    assert str(result.abi_return.value).startswith("App: 345, Asset: 567, Account: ")
     assert expected_return
-    assert expected_return.return_value == result.return_value.return_value
+    assert expected_return.value == result.abi_return.value
 
 
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
@@ -713,13 +714,14 @@ def test_abi_with_default_arg_method(
         AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
     )
 
-    assert defined_value_result.return_value
-    assert defined_value_result.return_value.return_value == "Local state, defined value"
+    assert defined_value_result.abi_return
+    assert defined_value_result.abi_return.value == "Local state, defined value"
 
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
-    assert default_value_result.return_value
-    assert default_value_result.return_value.return_value == "Local state, banana"
+    assert default_value_result
+    assert default_value_result.abi_return
+    assert default_value_result.abi_return.value == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:

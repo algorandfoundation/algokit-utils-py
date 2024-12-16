@@ -18,7 +18,7 @@ from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -234,7 +234,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
 
     # Then test creating a method call transaction
     result = algorand.create_transaction.app_call_method_call(
-        AppCallMethodCall(
+        AppCallMethodCallParams(
             sender=funded_account.address,
             app_id=app_id,
             method=algosdk.abi.Method.from_signature("hello(string)string"),
