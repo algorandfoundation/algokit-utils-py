@@ -270,7 +270,7 @@ class AccountManager:
             self.rekeyed(account, rekey_to)
 
         if not suppress_log:
-            logger.info(f"Rekeyed {account} to {rekey_to} via transaction {result.tx_ids[-1]}")
+            logger.info(f"Rekeyed {sender_address} to {rekey_address} via transaction {result.tx_ids[-1]}")
 
         return result
 

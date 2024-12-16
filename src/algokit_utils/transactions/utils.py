@@ -6,7 +6,7 @@ from algosdk import logic, transaction
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, EmptySigner, TransactionWithSigner
 from algosdk.error import AtomicTransactionComposerError
 from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.models import SimulateRequest
+from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup
 
 from algokit_utils.applications.app_manager import BoxReference
 
@@ -319,20 +319,22 @@ def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClie
 def get_unnamed_app_call_resources_accessed(atc: AtomicTransactionComposer, algod: AlgodClient) -> dict[str, Any]:
     """Get unnamed resources accessed by application calls in an atomic transaction group."""
     # Create simulation request with required flags
-    simulate_request = SimulateRequest(
-        txn_groups=[], allow_unnamed_resources=True, allow_empty_signatures=True, extra_opcode_budget=0
-    )
+    simulate_request = SimulateRequest(txn_groups=[], allow_unnamed_resources=True, allow_empty_signatures=True)
 
     # Create empty signer
     null_signer = EmptySigner()
 
     # Clone the ATC and replace signers
-    empty_signer_atc = atc.clone()
-    for txn in empty_signer_atc.txn_list:
-        txn.signer = null_signer
+    unsigned_txn_groups = atc.build_group()
+    txn_group = [
+        SimulateRequestTransactionGroup(
+            txns=null_signer.sign_transactions([txn_group.txn for txn_group in unsigned_txn_groups], [])
+        )
+    ]
+    simulate_request = SimulateRequest(txn_groups=txn_group, allow_unnamed_resources=True, allow_empty_signatures=True)
 
     # Run simulation
-    result = empty_signer_atc.simulate(algod, simulate_request)
+    result = atc.simulate(algod, simulate_request)
 
     # Get first group response
     group_response = result.simulate_response["txn-groups"][0]

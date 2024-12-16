@@ -12,7 +12,6 @@ from algosdk.atomic_transaction_composer import (
     TransactionSigner,
     TransactionWithSigner,
 )
-from algosdk.error import AlgodHTTPError
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
 from typing_extensions import deprecated
@@ -611,7 +610,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             returns=result.abi_results,
         )
 
-    except AlgodHTTPError as e:
+    except Exception as e:
         # Handle error with debug info if enabled
         if config.debug:
             logger.error(
@@ -649,7 +648,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             raise error from e
 
         logger.error("Received error executing Atomic Transaction Composer, for more information enable the debug flag")
-        raise Exception(f"Transaction failed: {e}") from e
+        raise e
 
 
 class TransactionComposer:
