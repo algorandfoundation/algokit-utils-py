@@ -1312,7 +1312,7 @@ class AppClient:
         return sender or self._default_sender  # type: ignore[return-value]
 
     def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
-        return signer or self._default_signer if sender else None
+        return signer or self._default_signer if not sender or sender == self._default_sender else None
 
     def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
         """Get bare parameters for application calls.

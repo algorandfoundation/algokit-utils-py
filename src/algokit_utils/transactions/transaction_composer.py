@@ -677,115 +677,115 @@ class TransactionComposer:
             default_validity_window (Optional[int], optional): The default validity window for transactions. If not
             provided, it defaults to 10. Defaults to None.
         """
-        self.txn_method_map: dict[str, algosdk.abi.Method] = {}
-        self.txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
-        self.atc: AtomicTransactionComposer = AtomicTransactionComposer()
-        self.algod: AlgodClient = algod
-        self.default_get_send_params = lambda: self.algod.suggested_params()
-        self.get_suggested_params = get_suggested_params or self.default_get_send_params
-        self.get_signer: Callable[[str], TransactionSigner] = get_signer
-        self.default_validity_window: int = default_validity_window or 10
-        self.app_manager = app_manager or AppManager(algod)
+        self._txn_method_map: dict[str, algosdk.abi.Method] = {}
+        self._txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
+        self._atc: AtomicTransactionComposer = AtomicTransactionComposer()
+        self._algod: AlgodClient = algod
+        self._default_get_send_params = lambda: self._algod.suggested_params()
+        self._get_suggested_params = get_suggested_params or self._default_get_send_params
+        self._get_signer: Callable[[str], TransactionSigner] = get_signer
+        self._default_validity_window: int = default_validity_window or 10
+        self._app_manager = app_manager or AppManager(algod)
 
     def add_transaction(
         self, transaction: algosdk.transaction.Transaction, signer: TransactionSigner | None = None
     ) -> TransactionComposer:
-        self.txns.append(TransactionWithSigner(txn=transaction, signer=signer or self.get_signer(transaction.sender)))
+        self._txns.append(TransactionWithSigner(txn=transaction, signer=signer or self._get_signer(transaction.sender)))
         return self
 
     def add_payment(self, params: PaymentParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_create(self, params: AssetCreateParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_config(self, params: AssetConfigParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_freeze(self, params: AssetFreezeParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_destroy(self, params: AssetDestroyParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_transfer(self, params: AssetTransferParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_opt_in(self, params: AssetOptInParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_asset_opt_out(self, params: AssetOptOutParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_create(self, params: AppCreateParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_update(self, params: AppUpdateParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_delete(self, params: AppDeleteParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_call(self, params: AppCallParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_create_method_call(self, params: AppCreateMethodCallParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_update_method_call(self, params: AppUpdateMethodCallParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_delete_method_call(self, params: AppDeleteMethodCallParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_app_call_method_call(self, params: AppCallMethodCallParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_online_key_registration(self, params: OnlineKeyRegistrationParams) -> TransactionComposer:
-        self.txns.append(params)
+        self._txns.append(params)
         return self
 
     def add_atc(self, atc: AtomicTransactionComposer) -> TransactionComposer:
-        self.txns.append(atc)
+        self._txns.append(atc)
         return self
 
     def count(self) -> int:
         return len(self.build_transactions().transactions)
 
     def build(self) -> TransactionComposerBuildResult:
-        if self.atc.get_status() == algosdk.atomic_transaction_composer.AtomicTransactionComposerStatus.BUILDING:
-            suggested_params = self.get_suggested_params()
+        if self._atc.get_status() == algosdk.atomic_transaction_composer.AtomicTransactionComposerStatus.BUILDING:
+            suggested_params = self._get_suggested_params()
             txn_with_signers: list[TransactionWithSigner] = []
 
-            for txn in self.txns:
+            for txn in self._txns:
                 txn_with_signers.extend(self._build_txn(txn, suggested_params))
 
             for ts in txn_with_signers:
-                self.atc.add_transaction(ts)
-                method = self.txn_method_map.get(ts.txn.get_txid())
+                self._atc.add_transaction(ts)
+                method = self._txn_method_map.get(ts.txn.get_txid())
                 if method:
-                    self.atc.method_dict[len(self.atc.txn_list) - 1] = method
+                    self._atc.method_dict[len(self._atc.txn_list) - 1] = method
 
         return TransactionComposerBuildResult(
-            atc=self.atc,
-            transactions=self.atc.build_group(),
-            method_calls=self.atc.method_dict,
+            atc=self._atc,
+            transactions=self._atc.build_group(),
+            method_calls=self._atc.method_dict,
         )
 
     def rebuild(self) -> TransactionComposerBuildResult:
@@ -793,7 +793,7 @@ class TransactionComposer:
         return self.build()
 
     def build_transactions(self) -> BuiltTransactions:
-        suggested_params = self.get_suggested_params()
+        suggested_params = self._get_suggested_params()
 
         transactions: list[algosdk.transaction.Transaction] = []
         method_calls: dict[int, Method] = {}
@@ -801,7 +801,7 @@ class TransactionComposer:
 
         idx = 0
 
-        for txn in self.txns:
+        for txn in self._txns:
             txn_with_signers: list[TransactionWithSigner] = []
 
             if isinstance(txn, MethodCallParams):
@@ -813,7 +813,7 @@ class TransactionComposer:
                 transactions.append(ts.txn)
                 if ts.signer and ts.signer != self.NULL_SIGNER:
                     signers[idx] = ts.signer
-                method = self.txn_method_map.get(ts.txn.get_txid())
+                method = self._txn_method_map.get(ts.txn.get_txid())
                 if method:
                     method_calls[idx] = method
                 idx += 1
@@ -842,13 +842,13 @@ class TransactionComposer:
         wait_rounds = max_rounds_to_wait
         if wait_rounds is None:
             last_round = max(txn.txn.last_valid_round for txn in group)
-            first_round = self.get_suggested_params().first
+            first_round = self._get_suggested_params().first
             wait_rounds = last_round - first_round + 1
 
         try:
             return send_atomic_transaction_composer(
-                self.atc,
-                self.algod,
+                self._atc,
+                self._algod,
                 max_rounds_to_wait=wait_rounds,
                 suppress_log=suppress_log,
                 populate_resources=populate_app_call_resources,
@@ -881,7 +881,7 @@ class TransactionComposer:
             response = simulate_and_persist_response(
                 atc,
                 config.project_root,
-                self.algod,
+                self._algod,
                 config.trace_buffer_size_mb,
                 allow_more_logs,
                 allow_empty_signatures,
@@ -903,7 +903,7 @@ class TransactionComposer:
 
         response = simulate_response(
             atc,
-            self.algod,
+            self._algod,
             allow_more_logs,
             allow_empty_signatures,
             allow_unnamed_resources,
@@ -947,7 +947,7 @@ class TransactionComposer:
 
         method = atc.method_dict.get(len(group) - 1)
         if method:
-            self.txn_method_map[group[-1].txn.get_txid()] = method
+            self._txn_method_map[group[-1].txn.get_txid()] = method
 
         return group
 
@@ -1002,7 +1002,7 @@ class TransactionComposer:
                 if isinstance(arg, algosdk.transaction.Transaction):
                     # Wrap in TransactionWithSigner
                     method_args.append(
-                        TransactionWithSigner(txn=arg, signer=params.signer or self.get_signer(params.sender))
+                        TransactionWithSigner(txn=arg, signer=params.signer or self._get_signer(params.sender))
                     )
                     continue
                 match arg:
@@ -1040,7 +1040,7 @@ class TransactionComposer:
                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
 
                 method_args.append(
-                    TransactionWithSigner(txn=txn, signer=params.signer or self.get_signer(params.sender))
+                    TransactionWithSigner(txn=txn, signer=params.signer or self._get_signer(params.sender))
                 )
 
                 continue
@@ -1052,7 +1052,7 @@ class TransactionComposer:
             "method": params.method,
             "sender": params.sender,
             "sp": suggested_params,
-            "signer": params.signer or self.get_signer(params.sender),
+            "signer": params.signer or self._get_signer(params.sender),
             "method_args": method_args,
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             "note": params.note,
@@ -1134,12 +1134,12 @@ class TransactionComposer:
 
         if isinstance(params, AppUpdateParams | AppCreateParams):
             if isinstance(params.approval_program, str):
-                approval_program = self.app_manager.compile_teal(params.approval_program).compiled_base64_to_bytes
+                approval_program = self._app_manager.compile_teal(params.approval_program).compiled_base64_to_bytes
             elif isinstance(params.approval_program, bytes):
                 approval_program = params.approval_program
 
             if isinstance(params.clear_state_program, str):
-                clear_program = self.app_manager.compile_teal(params.clear_state_program).compiled_base64_to_bytes
+                clear_program = self._app_manager.compile_teal(params.clear_state_program).compiled_base64_to_bytes
             elif isinstance(params.clear_state_program, bytes):
                 clear_program = params.clear_state_program
 
@@ -1276,7 +1276,7 @@ class TransactionComposer:
             case AtomicTransactionComposer():
                 return self._build_atc(txn)
             case algosdk.transaction.Transaction():
-                signer = self.get_signer(txn.sender)
+                signer = self._get_signer(txn.sender)
                 return [TransactionWithSigner(txn=txn, signer=signer)]
             case (
                 AppCreateMethodCallParams()
@@ -1286,7 +1286,7 @@ class TransactionComposer:
             ):
                 return self._build_method_call(txn, suggested_params)
 
-        signer = txn.signer or self.get_signer(txn.sender)
+        signer = txn.signer or self._get_signer(txn.sender)
 
         match txn:
             case PaymentParams():

@@ -256,6 +256,7 @@ class _AppFactoryBareParamsAccessor:
                 "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
             },
             sender=self._factory._get_sender(base_params.sender),
+            signer=self._factory._get_signer(base_params.sender, base_params.signer),
             on_complete=base_params.on_complete or OnComplete.NoOpOC,
             extra_program_pages=base_params.extra_program_pages,
         )
@@ -267,7 +268,7 @@ class _AppFactoryBareParamsAccessor:
             clear_state_program="",
             sender=self._factory._get_sender(params.sender if params else None),
             on_complete=OnComplete.UpdateApplicationOC,
-            signer=params.signer if params else None,
+            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
             note=params.note if params else None,
             lease=params.lease if params else None,
             rekey_to=params.rekey_to if params else None,
@@ -281,8 +282,8 @@ class _AppFactoryBareParamsAccessor:
         return AppDeleteParams(
             app_id=0,
             sender=self._factory._get_sender(params.sender if params else None),
+            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
             on_complete=OnComplete.DeleteApplicationOC,
-            signer=params.signer if params else None,
             note=params.note if params else None,
             lease=params.lease if params else None,
             rekey_to=params.rekey_to if params else None,
@@ -317,6 +318,7 @@ class _AppFactoryParamsAccessor:
                 "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
             },
             sender=self._factory._get_sender(params.sender),
+            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
             method=get_arc56_method(params.method, self._factory._app_spec),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=params.on_complete or OnComplete.NoOpOC,
@@ -331,6 +333,7 @@ class _AppFactoryParamsAccessor:
             approval_program="",
             clear_state_program="",
             sender=self._factory._get_sender(params.sender),
+            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
             method=get_arc56_method(params.method, self._factory._app_spec),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.UpdateApplicationOC,
@@ -343,6 +346,7 @@ class _AppFactoryParamsAccessor:
         return AppDeleteMethodCallParams(
             app_id=0,
             sender=self._factory._get_sender(params.sender),
+            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
             method=get_arc56_method(params.method, self._factory._app_spec),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.DeleteApplicationOC,
@@ -752,6 +756,9 @@ class AppFactory:
                 f"No sender provided and no default sender present in app client for call to app {self._app_name}"
             )
         return str(sender or self._default_sender)
+
+    def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
+        return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
     def _handle_call_errors(self, call: Callable[[], T]) -> T:
         try:
