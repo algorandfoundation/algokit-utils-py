@@ -15,7 +15,6 @@ from algokit_utils.applications.app_client import (
     AppClient,
     AppClientBareCallParams,
     AppClientMethodCallParams,
-    ExposedLogicErrorDetails,
 )
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
@@ -33,6 +32,7 @@ from algokit_utils.applications.utils import (
     get_arc56_method,
     get_arc56_return_value,
 )
+from algokit_utils.errors.logic_error import LogicErrorDetails
 from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIValue
 from algokit_utils.models.application import (
     DELETABLE_TEMPLATE_NAME,
@@ -655,26 +655,28 @@ class AppFactory:
             )
         )
 
-    def expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001 TODO: revisit
-        return AppClient.expose_logic_error_static(
-            e,
-            self._app_spec,
-            ExposedLogicErrorDetails(
-                is_clear_state_program=is_clear_state_program,
-                approval_source_map=self._approval_source_map,
-                clear_source_map=self._clear_source_map,
-                program=None,
-                approval_source_info=(
-                    self._app_spec.source_info.get("approval")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
-                clear_source_info=(
-                    self._app_spec.source_info.get("clear")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
-            ),
+    def get_app_client_by_creator_and_name(
+        self,
+        creator_address: str,
+        app_name: str,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        return AppClient.from_creator_and_name(
+            creator_address=creator_address,
+            app_name=app_name or self._app_name,
+            default_sender=default_sender or self._default_sender,
+            default_signer=default_signer or self._default_signer,
+            approval_source_map=approval_source_map or self._approval_source_map,
+            clear_source_map=clear_source_map or self._clear_source_map,
+            ignore_cache=ignore_cache,
+            app_lookup_cache=app_lookup_cache,
+            app_spec=self._app_spec,
+            algorand=self._algorand,
         )
 
     def export_source_maps(self) -> AppSourceMaps:
@@ -708,6 +710,28 @@ class AppFactory:
 
         return result
 
+    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001 TODO: revisit
+        return AppClient._expose_logic_error_static(
+            e,
+            self._app_spec,
+            LogicErrorDetails(
+                is_clear_state_program=is_clear_state_program,
+                approval_source_map=self._approval_source_map,
+                clear_source_map=self._clear_source_map,
+                program=None,
+                approval_source_info=(
+                    self._app_spec.source_info.get("approval")
+                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                    else None
+                ),
+                clear_source_info=(
+                    self._app_spec.source_info.get("clear")
+                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                    else None
+                ),
+            ),
+        )
+
     def _get_deploy_time_control(self, control: str) -> bool | None:
         approval = (
             self._app_spec.source["approval"] if self._app_spec.source and "approval" in self._app_spec.source else None
@@ -733,7 +757,7 @@ class AppFactory:
         try:
             return call()
         except Exception as e:
-            raise self.expose_logic_error(e) from None
+            raise self._expose_logic_error(e) from None
 
     def _parse_method_call_return(
         self,

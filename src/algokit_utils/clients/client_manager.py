@@ -13,6 +13,7 @@ from algosdk.v2client.indexer import IndexerClient
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_client import AppClient
+from algokit_utils.applications.app_deployer import AppLookup
 from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.application import AppClientParams, Arc56Contract
@@ -197,6 +198,31 @@ class ClientManager:
             app_name=app_name,
             default_sender=default_sender,
             default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
+        )
+
+    def get_app_client_by_creator_and_name(
+        self,
+        creator_address: str,
+        app_name: str,
+        app_spec: Arc56Contract | ApplicationSpecification | str,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        return AppClient.from_creator_and_name(
+            creator_address=creator_address,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            ignore_cache=ignore_cache,
+            app_lookup_cache=app_lookup_cache,
+            app_spec=app_spec,
             approval_source_map=approval_source_map,
             clear_source_map=clear_source_map,
             algorand=self._algorand,

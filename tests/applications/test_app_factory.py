@@ -171,11 +171,8 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     create_result = deploy_result.create_response
     assert create_result is not None
     assert deploy_result.app.app_id > 0
-    assert (
-        deploy_result.app_client.app_id
-        == deploy_result.app.app_id
-        == getattr(create_result.confirmation, "application-index")
-    )
+    app_index = create_result.confirmation["application-index"]  # type: ignore[call-overload]
+    assert deploy_result.app_client.app_id == deploy_result.app.app_id == app_index
     assert deploy_result.app_client.app_address == get_application_address(deploy_result.app_client.app_id)
 
 
@@ -206,9 +203,8 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.app.updated_round != update_deploy_result.app.updated_round
     assert create_deploy_result.app.created_round == update_deploy_result.app.created_round
     assert update_deploy_result.update_response.confirmation
-    assert update_deploy_result.app.updated_round == getattr(
-        update_deploy_result.update_response.confirmation, "confirmed-round"
-    )
+    confirmed_round = update_deploy_result.update_response.confirmation["confirmed-round"]  # type: ignore[call-overload]
+    assert update_deploy_result.app.updated_round == confirmed_round
 
 
 def test_deploy_app_update_abi(factory: AppFactory) -> None:

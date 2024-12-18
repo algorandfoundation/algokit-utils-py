@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING, TypedDict
 from algosdk.atomic_transaction_composer import (
     SimulateAtomicTransactionResponse,
 )
+from algosdk.source_map import SourceMap
+
+from algokit_utils.models.application import ProgramSourceInfo
 
 if TYPE_CHECKING:
     from algosdk.source_map import SourceMap as AlgoSourceMap
@@ -127,3 +130,13 @@ def create_simulate_traces_for_logic_error(simulate: SimulateAtomicTransactionRe
                 )
             )
     return traces
+
+
+@dataclasses.dataclass(kw_only=True, frozen=True)
+class LogicErrorDetails:
+    is_clear_state_program: bool = False
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
+    program: bytes | None = None
+    approval_source_info: ProgramSourceInfo | None = None
+    clear_source_info: ProgramSourceInfo | None = None
