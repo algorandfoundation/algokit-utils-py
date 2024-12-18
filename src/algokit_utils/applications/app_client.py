@@ -444,7 +444,7 @@ class _AppClientStateAccessor:
             if value and value.value_raw:
                 return get_abi_decoded_value(value.value_raw, key_info.value_type, self._app_spec.structs)
 
-            return None
+            return value.value if value else None
 
         def get_map_value(map_name: str, key: bytes | Any, app_state: dict[str, AppState] | None = None) -> Any:  # noqa: ANN401
             state = app_state or state_getter()
@@ -456,7 +456,7 @@ class _AppClientStateAccessor:
             value = next((s for s in state.values() if s.key_base64 == full_key), None)
             if value and value.value_raw:
                 return get_abi_decoded_value(value.value_raw, metadata.value_type, self._app_spec.structs)
-            return None
+            return value.value if value else None
 
         def get_map(map_name: str) -> dict[str, ABIValue]:
             state = state_getter()
