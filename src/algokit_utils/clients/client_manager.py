@@ -294,7 +294,9 @@ class ClientManager:
 
             # Include KMD config only for local networks (not mainnet/testnet)
             kmd_config = (
-                ClientManager.get_kmd_config_from_environment()
+                AlgoClientConfig(
+                    server=algod_config.server, token=algod_config.token, port=os.getenv("KMD_PORT", "4002")
+                )
                 if not any(net in algod_server.lower() for net in ["mainnet", "testnet"])
                 else None
             )
