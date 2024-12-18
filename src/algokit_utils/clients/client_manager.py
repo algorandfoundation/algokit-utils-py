@@ -19,7 +19,13 @@ from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.application import AppClientParams, Arc56Contract
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.protocols.application import AlgorandClientProtocol
+from algokit_utils.protocols.client import AlgorandClientProtocol
+
+__all__ = [
+    "AlgoSdkClients",
+    "ClientManager",
+    "NetworkDetail",
+]
 
 
 class AlgoSdkClients:

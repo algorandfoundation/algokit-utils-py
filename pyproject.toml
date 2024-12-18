@@ -10,11 +10,11 @@ readme = "README.md"
 python = "^3.10"
 py-algorand-sdk = "^2.4.0"
 httpx = "^0.23.1"
-deprecated = "^1.2.14"
+typing-extensions = ">=4.6.0"  # Add this line
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
-ruff = ">=0.1.6,<=0.8.2"
+ruff = ">=0.1.6,<=0.8.3"
 pip-audit = "^2.5.6"
 pytest-mock = "^3.11.1"
 mypy = "^1.5.1"
@@ -29,7 +29,6 @@ sphinx-rtd-theme = "^1.2.0"
 sphinx-autodoc2 = ">=0.4.2,<0.6.0"
 poethepoet = ">=0.19,<0.26"
 beaker-pyteal = "^1.1.1"
-types-deprecated = "^1.2.9.2"
 pytest-httpx = "^0.21.3"
 pytest-xdist = "^3.4.0"
 sphinx-markdown-builder = "^0.6.6"
@@ -42,7 +41,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
-lint.select = [
+select = [
   # all possible codes as of this ruff version are listed here,
   # ones we don't want/need are commented out to make it clear
   # which have been omitted on purpose vs which ones get added
@@ -81,7 +80,6 @@ lint.select = [
   "SLF",    # flake8-self
   "SIM",    # flake8-simplify
   "TID",    # flake8-tidy-imports
-  "TCH",    # flake8-type-checking
   "ARG",    # flake8-unused-arguments
   "PTH",    # flake8-use-pathlib
   "ERA",    # eradicate
@@ -136,7 +134,6 @@ suppress-none-returning = true
 docs = ["docs-html-only", "docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docs-html-only = "sphinx-build docs/source docs/html"
-"tests/**/*" = ["PLR2004"]  
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

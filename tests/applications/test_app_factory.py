@@ -146,7 +146,7 @@ def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
 
 
 def test_deploy_app_create(factory: AppFactory) -> None:
-    deploy_result = factory.deploy(
+    app_client, deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -155,12 +155,12 @@ def test_deploy_app_create(factory: AppFactory) -> None:
     assert deploy_result.operation_performed == OperationPerformed.Create
     assert deploy_result.create_response
     assert deploy_result.create_response.app_id > 0
-    assert deploy_result.app_client.app_id == deploy_result.create_response.app_id
-    assert deploy_result.app_client.app_address == get_application_address(deploy_result.app_client.app_id)
+    assert app_client.app_id == deploy_result.create_response.app_id
+    assert app_client.app_address == get_application_address(app_client.app_id)
 
 
 def test_deploy_app_create_abi(factory: AppFactory) -> None:
-    deploy_result = factory.deploy(
+    app_client, deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -172,12 +172,12 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     assert create_result is not None
     assert deploy_result.app.app_id > 0
     app_index = create_result.confirmation["application-index"]  # type: ignore[call-overload]
-    assert deploy_result.app_client.app_id == deploy_result.app.app_id == app_index
-    assert deploy_result.app_client.app_address == get_application_address(deploy_result.app_client.app_id)
+    assert app_client.app_id == deploy_result.app.app_id == app_index
+    assert app_client.app_address == get_application_address(app_client.app_id)
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:
-    create_deploy_result = factory.deploy(
+    app_client, create_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -186,7 +186,7 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_response
 
-    update_deploy_result = factory.deploy(
+    updated_app_client, update_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 2,
         },
@@ -208,7 +208,7 @@ def test_deploy_app_update(factory: AppFactory) -> None:
 
 
 def test_deploy_app_update_abi(factory: AppFactory) -> None:
-    create_deploy_result = factory.deploy(
+    _, create_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -218,7 +218,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert create_deploy_result.create_response
     created_app = create_deploy_result.create_response
 
-    update_deploy_result = factory.deploy(
+    _, update_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 2,
         },
@@ -245,7 +245,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
 
 
 def test_deploy_app_replace(factory: AppFactory) -> None:
-    create_deploy_result = factory.deploy(
+    _, create_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -254,7 +254,7 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_response
 
-    replace_deploy_result = factory.deploy(
+    _, replace_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 2,
         },
@@ -282,7 +282,7 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
 
 
 def test_deploy_app_replace_abi(factory: AppFactory) -> None:
-    create_deploy_result = factory.deploy(
+    _, create_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 1,
         },
@@ -290,7 +290,7 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
         populate_app_call_resources=False,
     )
 
-    replace_deploy_result = factory.deploy(
+    replaced_app_client, replace_deploy_result = factory.deploy(
         deploy_time_params={
             "VALUE": 2,
         },
@@ -301,9 +301,7 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
 
     assert replace_deploy_result.operation_performed == OperationPerformed.Replace
     assert replace_deploy_result.app.app_id > create_deploy_result.app.app_id
-    assert replace_deploy_result.app.app_address == algosdk.logic.get_application_address(
-        replace_deploy_result.app_client.app_id
-    )
+    assert replace_deploy_result.app.app_address == algosdk.logic.get_application_address(replaced_app_client.app_id)
     assert replace_deploy_result.create_response is not None
     assert replace_deploy_result.delete_response is not None
     assert replace_deploy_result.delete_response.confirmation is not None
@@ -432,17 +430,17 @@ def test_export_import_sourcemaps(
     funded_account: Account,
 ) -> None:
     # Export source maps from original client
-    deploy_result = factory.deploy(deploy_time_params={"VALUE": 1})
-    old_sourcemaps = deploy_result.app_client.export_source_maps()
+    app_client, _ = factory.deploy(deploy_time_params={"VALUE": 1})
+    old_sourcemaps = app_client.export_source_maps()
 
     # Create new client instance
     new_client = AppClient(
         AppClientParams(
-            app_id=deploy_result.app_client.app_id,
+            app_id=app_client.app_id,
             default_sender=funded_account.address,
             default_signer=funded_account.signer,
             algorand=algorand,
-            app_spec=deploy_result.app_client.app_spec,
+            app_spec=app_client.app_spec,
         )
     )
 
@@ -472,7 +470,7 @@ def test_export_import_sourcemaps(
 def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
 ) -> None:
-    deploy_result = arc56_factory.deploy(
+    app_client, _ = arc56_factory.deploy(
         create_params=AppClientMethodCallParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
@@ -483,7 +481,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
     )
 
     with pytest.raises(Exception, match="this is an error"):
-        deploy_result.app_client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
+        app_client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
 
 
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
@@ -492,7 +490,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     funded_account: Account,
 ) -> None:
     # Deploy app with template parameters
-    deploy_result = arc56_factory.deploy(
+    app_client, _ = arc56_factory.deploy(
         create_params=AppClientMethodCallParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
@@ -501,7 +499,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
             "bytesTmplVar": "foo",
         },
     )
-    app_id = deploy_result.app_client.app_id
+    app_id = app_client.app_id
 
     # Create new client without source map from compilation
     app_client = AppClient(
@@ -510,7 +508,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
             default_sender=funded_account.address,
             default_signer=funded_account.signer,
             algorand=algorand,
-            app_spec=deploy_result.app_client.app_spec,
+            app_spec=app_client.app_spec,
         )
     )
 

@@ -32,6 +32,17 @@ APP_DEPLOY_NOTE_DAPP = "ALGOKIT_DEPLOYER"
 
 logger = config.logger
 
+__all__ = [
+    "AppDeployMetaData",
+    "AppDeployParams",
+    "AppDeployResponse",
+    "AppDeployer",
+    "AppLookup",
+    "OnSchemaBreak",
+    "OnUpdate",
+    "OperationPerformed",
+]
+
 
 @dataclasses.dataclass
 class AppReference:

@@ -8,7 +8,15 @@ from algosdk.source_map import SourceMap
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.protocols.application import AlgorandClientProtocol
+from algokit_utils.protocols.client import AlgorandClientProtocol
+
+__all__ = [
+    "Arc56Contract",
+    "Arc56ContractState",
+    "Arc56Method",
+    "Arc56MethodArg",
+    "Arc56MethodReturnType",
+]
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
 """The name of the TEAL template variable for deploy-time immutability control."""

@@ -1,6 +1,7 @@
 import json
-from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from collections.abc import Generator
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 from algosdk.atomic_transaction_composer import (
@@ -16,28 +17,60 @@ from algokit_utils._debugging import (
     persist_sourcemaps,
     simulate_and_persist_response,
 )
-from algokit_utils._legacy_v2.application_client import ApplicationClient
-from algokit_utils.account import get_account
-from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils.applications.app_client import (
+    AppClient,
+    AppClientMethodCallWithSendParams,
+)
+from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
+from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.common import Program
-from algokit_utils.models import Account
-from legacy_v2_tests.conftest import check_output_stability, get_unique_name
-
-if TYPE_CHECKING:
-    from algosdk.v2client.algod import AlgodClient
+from algokit_utils.models.account import Account
+from algokit_utils.models.amount import AlgoAmount
+from tests.conftest import check_output_stability
 
 
 @pytest.fixture
-def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecification) -> ApplicationClient:
-    creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-    client = ApplicationClient(algod_client, app_spec, signer=creator)
-    create_response = client.create("create")
-    assert create_response.tx_id
-    return client
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_local_net()
 
 
-def test_legacy_build_teal_sourcemaps(algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory) -> None:
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> Account:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_micro_algos(1_000_000),
+        min_funding_increment=AlgoAmount.from_micro_algos(1_000_000),
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
+
+
+@pytest.fixture
+def client_fixture(algorand: AlgorandClient, funded_account: Account) -> AppClient:
+    app_spec = (Path(__file__).parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
+    app_factory = algorand.client.get_app_factory(
+        app_spec=app_spec, default_sender=funded_account.address, default_signer=funded_account.signer
+    )
+    app_client, _ = app_factory.send.create(
+        AppFactoryCreateMethodCallParams(
+            method="create", deletable=True, updatable=True, deploy_time_params={"VERSION": 1}
+        )
+    )
+    return app_client
+
+
+@pytest.fixture
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.transactions.transaction_composer.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        mock_config.project_root = None
+        yield mock_config
+
+
+def test_build_teal_sourcemaps(algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
@@ -53,7 +86,7 @@ int 1
         PersistSourceMapInput(raw_teal=clear, app_name="cool_app", file_name="clear"),
     ]
 
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client)
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algorand.client.algod)
 
     root_path = cwd / ".algokit" / "sources"
     sourcemap_file_path = root_path / "sources.avm.json"
@@ -72,14 +105,14 @@ int 1
     check_output_stability(json.dumps(result.to_dict()))
 
     # check for updates in case of multiple runs
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client)
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algorand.client.algod)
     result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
     for item in result.txn_group_sources:
         assert item.location != "dummy"
 
 
-def test_legacy_build_teal_sourcemaps_without_sources(
-    algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory
+def test_build_teal_sourcemaps_without_sources(
+    algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory
 ) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
 
@@ -91,14 +124,14 @@ int 1
 #pragma version 9
 int 1
 """
-    compiled_approval = Program(approval, algod_client)
-    compiled_clear = Program(clear, algod_client)
+    compiled_approval = Program(approval, algorand.client.algod)
+    compiled_clear = Program(clear, algorand.client.algod)
     sources = [
         PersistSourceMapInput(compiled_teal=compiled_approval, app_name="cool_app", file_name="approval.teal"),
         PersistSourceMapInput(compiled_teal=compiled_clear, app_name="cool_app", file_name="clear"),
     ]
 
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client, with_sources=False)
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algorand.client.algod, with_sources=False)
 
     root_path = cwd / ".algokit" / "sources"
     sourcemap_file_path = root_path / "sources.avm.json"
@@ -118,19 +151,18 @@ int 1
     check_output_stability(json.dumps(result.to_dict()))
 
 
-def test_legacy_simulate_and_persist_response_via_app_call(
+def test_simulate_and_persist_response_via_app_call(
     tmp_path_factory: pytest.TempPathFactory,
-    client_fixture: ApplicationClient,
-    mocker: Mock,
+    client_fixture: AppClient,
+    mock_config: Mock,
 ) -> None:
-    mock_config = mocker.patch("algokit_utils._legacy_v2.application_client.config")
     mock_config.debug = True
     mock_config.trace_all = True
     mock_config.trace_buffer_size_mb = 256
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
 
-    client_fixture.call("hello", name="test")
+    client_fixture.send.call(AppClientMethodCallWithSendParams(method="hello", args=["test"]))
 
     output_path = cwd / "debug_traces"
 
@@ -142,27 +174,27 @@ def test_legacy_simulate_and_persist_response_via_app_call(
     assert simulated_txn["apid"] == client_fixture.app_id
 
 
-def test_legacy_simulate_and_persist_response(
-    tmp_path_factory: pytest.TempPathFactory, client_fixture: ApplicationClient, mocker: Mock, funded_account: Account
+def test_simulate_and_persist_response(
+    tmp_path_factory: pytest.TempPathFactory, algorand: AlgorandClient, mock_config: Mock, funded_account: Account
 ) -> None:
-    mock_config = mocker.patch("algokit_utils._legacy_v2.application_client.config")
     mock_config.debug = True
     mock_config.trace_all = True
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
+    algod = algorand.client.algod
 
     payment = PaymentTxn(
         sender=funded_account.address,
-        receiver=client_fixture.app_address,
+        receiver=funded_account.address,
         amt=1_000_000,
         note=b"Payment",
-        sp=client_fixture.algod_client.suggested_params(),
-    )  # type: ignore[no-untyped-call]
+        sp=algod.suggested_params(),
+    )
     txn_with_signer = TransactionWithSigner(payment, AccountTransactionSigner(funded_account.private_key))
     atc = AtomicTransactionComposer()
     atc.add_transaction(txn_with_signer)
 
-    simulate_and_persist_response(atc, cwd, client_fixture.algod_client)
+    simulate_and_persist_response(atc, cwd, algod)
 
     output_path = cwd / "debug_traces"
     content = list(output_path.iterdir())
@@ -174,4 +206,4 @@ def test_legacy_simulate_and_persist_response(
     trace_file_path = content[0]
     while trace_file_path.exists():
         tmp_atc = atc.clone()
-        simulate_and_persist_response(tmp_atc, cwd, client_fixture.algod_client, buffer_size_mb=0.01)
+        simulate_and_persist_response(tmp_atc, cwd, algod, buffer_size_mb=0.003)

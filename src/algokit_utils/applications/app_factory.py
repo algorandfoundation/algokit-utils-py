@@ -32,7 +32,6 @@ from algokit_utils.applications.utils import (
     get_arc56_method,
     get_arc56_return_value,
 )
-from algokit_utils.errors.logic_error import LogicErrorDetails
 from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIValue
 from algokit_utils.models.application import (
     DELETABLE_TEMPLATE_NAME,
@@ -56,7 +55,7 @@ from algokit_utils.models.transaction import (
     SendParams,
     SendSingleTransactionResult,
 )
-from algokit_utils.protocols.application import AlgorandClientProtocol
+from algokit_utils.protocols.client import AlgorandClientProtocol
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -68,6 +67,16 @@ from algokit_utils.transactions.transaction_composer import (
 )
 
 T = TypeVar("T")
+
+__all__ = [
+    "AppFactory",
+    "AppFactoryCreateMethodCallParams",
+    "AppFactoryCreateMethodCallResult",
+    "AppFactoryCreateMethodCallWithSendParams",
+    "AppFactoryCreateParams",
+    "AppFactoryCreateWithSendParams",
+    "AppFactoryDeployResponse",
+]
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -163,7 +172,6 @@ class AppFactoryDeployResponse:
     """Result from deploying an application via AppFactory"""
 
     app: AppMetaData
-    app_client: AppClient
     operation_performed: OperationPerformed
     create_response: SendAppCreateTransactionResultWithABIValue | None = None
     update_response: SendAppUpdateTransactionResultWithABIValue | None = None
@@ -174,7 +182,7 @@ class AppFactoryDeployResponse:
         cls,
         response: AppDeployResponse,
         deploy_params: AppDeployParams,
-        app_client: AppClient,
+        app_spec: Arc56Contract,
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
         def set_compilation_data(response: Any, compilation_data: AppClientCompilationResult | None) -> Any:  # noqa: ANN401
@@ -203,8 +211,8 @@ class AppFactoryDeployResponse:
             if response_data.abi_return and hasattr(params, "method"):
                 abi_return = get_arc56_return_value(
                     response_data.abi_return,
-                    get_arc56_method(params.method, app_client.app_spec),
-                    app_client.app_spec.structs,
+                    get_arc56_method(params.method, app_spec),
+                    app_spec.structs,
                 )
 
             response_ = from_txn_method(response_data, abi_return)
@@ -215,7 +223,6 @@ class AppFactoryDeployResponse:
 
         return cls(
             app=response.app,
-            app_client=app_client,
             operation_performed=response.operation_performed,
             create_response=process_abi_response(
                 response.create_response,
@@ -547,7 +554,7 @@ class AppFactory:
         max_rounds_to_wait: int | None = None,
         suppress_log: bool = False,
         populate_app_call_resources: bool = False,
-    ) -> AppFactoryDeployResponse:
+    ) -> tuple[AppClient, AppFactoryDeployResponse]:
         """Deploy the application with the specified parameters."""
 
         # Resolve control parameters with factory defaults
@@ -619,16 +626,18 @@ class AppFactory:
         )
         deploy_response = self._algorand.app_deployer.deploy(deploy_params)
 
-        return AppFactoryDeployResponse.from_deploy_response(
-            deploy_response,
-            deploy_params,
-            self.get_app_client_by_id(
-                app_id=deploy_response.app.app_id,
-                app_name=app_name,
-                default_sender=self._default_sender,
-                default_signer=self._default_signer,
-            ),
-            self.compile(
+        # Prepare app client and factory deploy response
+        app_client = self.get_app_client_by_id(
+            app_id=deploy_response.app.app_id,
+            app_name=app_name,
+            default_sender=self._default_sender,
+            default_signer=self._default_signer,
+        )
+        factory_deploy_response = AppFactoryDeployResponse.from_deploy_response(
+            response=deploy_response,
+            deploy_params=deploy_params,
+            app_spec=app_client.app_spec,
+            app_compilation_data=self.compile(
                 AppClientCompilationParams(
                     deploy_time_params=resolved_deploy_time_params,
                     updatable=resolved_updatable,
@@ -636,6 +645,8 @@ class AppFactory:
                 )
             ),
         )
+
+        return app_client, factory_deploy_response
 
     def get_app_client_by_id(
         self,
@@ -716,23 +727,21 @@ class AppFactory:
 
     def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001 TODO: revisit
         return AppClient._expose_logic_error_static(
-            e,
-            self._app_spec,
-            LogicErrorDetails(
-                is_clear_state_program=is_clear_state_program,
-                approval_source_map=self._approval_source_map,
-                clear_source_map=self._clear_source_map,
-                program=None,
-                approval_source_info=(
-                    self._app_spec.source_info.get("approval")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
-                clear_source_info=(
-                    self._app_spec.source_info.get("clear")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
+            e=e,
+            app_spec=self._app_spec,
+            is_clear_state_program=is_clear_state_program,
+            approval_source_map=self._approval_source_map,
+            clear_source_map=self._clear_source_map,
+            program=None,
+            approval_source_info=(
+                self._app_spec.source_info.get("approval")
+                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                else None
+            ),
+            clear_source_info=(
+                self._app_spec.source_info.get("clear")
+                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                else None
             ),
         )
 

@@ -37,6 +37,25 @@ if TYPE_CHECKING:
 
 logger = config.logger
 
+__all__ = [
+    "AppCallParams",
+    "AppCreateParams",
+    "AppDeleteParams",
+    "AppUpdateParams",
+    "AssetConfigParams",
+    "AssetCreateParams",
+    "AssetDestroyParams",
+    "AssetFreezeParams",
+    "AssetOptInParams",
+    "AssetOptOutParams",
+    "AssetTransferParams",
+    "OnlineKeyRegistrationParams",
+    "PaymentParams",
+    "TransactionComposer",
+    "TransactionComposerBuildResult",
+    "send_atomic_transaction_composer",
+]
+
 
 @dataclass(kw_only=True, frozen=True)
 class _CommonTxnParams:
@@ -789,7 +808,7 @@ class TransactionComposer:
         )
 
     def rebuild(self) -> TransactionComposerBuildResult:
-        self.atc = AtomicTransactionComposer()
+        self._atc = AtomicTransactionComposer()
         return self.build()
 
     def build_transactions(self) -> BuiltTransactions:
@@ -866,7 +885,7 @@ class TransactionComposer:
         round: int | None = None,  # noqa: A002 TODO: revisit
         skip_signatures: int | None = None,
     ) -> SendAtomicTransactionComposerResults:
-        atc = AtomicTransactionComposer() if skip_signatures else self.atc
+        atc = AtomicTransactionComposer() if skip_signatures else self._atc
 
         if skip_signatures:
             allow_empty_signatures = True

@@ -1,5 +1,4 @@
 import base64
-import dataclasses
 import re
 from collections.abc import Callable
 from copy import copy
@@ -8,9 +7,8 @@ from typing import TYPE_CHECKING, TypedDict
 from algosdk.atomic_transaction_composer import (
     SimulateAtomicTransactionResponse,
 )
-from algosdk.source_map import SourceMap
 
-from algokit_utils.models.application import ProgramSourceInfo
+from algokit_utils.models.simulate import SimulationTrace
 
 if TYPE_CHECKING:
     from algosdk.source_map import SourceMap as AlgoSourceMap
@@ -24,21 +22,11 @@ LOGIC_ERROR = (
     ".*transaction (?P<transaction_id>[A-Z0-9]+): logic eval error: (?P<message>.*). Details: .*pc=(?P<pc>[0-9]+).*"
 )
 
-DEFAULT_BLAST_RADIUS = 5
-
 
 class LogicErrorData(TypedDict):
     transaction_id: str
     message: str
     pc: int
-
-
-@dataclasses.dataclass
-class SimulationTrace:
-    app_budget_added: int | None
-    app_budget_consumed: int | None
-    failure_message: str | None
-    exec_trace: dict[str, object]
 
 
 def parse_logic_error(
@@ -130,13 +118,3 @@ def create_simulate_traces_for_logic_error(simulate: SimulateAtomicTransactionRe
                 )
             )
     return traces
-
-
-@dataclasses.dataclass(kw_only=True, frozen=True)
-class LogicErrorDetails:
-    is_clear_state_program: bool = False
-    approval_source_map: SourceMap | None = None
-    clear_source_map: SourceMap | None = None
-    program: bytes | None = None
-    approval_source_info: ProgramSourceInfo | None = None
-    clear_source_info: ProgramSourceInfo | None = None

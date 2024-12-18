@@ -54,7 +54,6 @@ from algokit_utils._legacy_v2.deploy import (
     get_creator_apps,
     replace_template_variables,
 )
-from algokit_utils._legacy_v2.logic_error import LogicError
 from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
@@ -97,6 +96,7 @@ from algokit_utils.clients.dispenser_api_client import (
     DispenserLimitResponse,
     TestNetDispenserApiClient,
 )
+from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.application import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.transactions.transaction_composer import TransactionComposer

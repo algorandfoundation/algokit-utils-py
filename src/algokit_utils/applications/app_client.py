@@ -11,6 +11,7 @@ import algosdk
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 
+from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
@@ -18,7 +19,8 @@ from algokit_utils.applications.utils import (
     get_abi_tuple_from_abi_struct,
     get_arc56_method,
 )
-from algokit_utils.errors.logic_error import LogicError, LogicErrorDetails, parse_logic_error
+from algokit_utils.config import config
+from algokit_utils.errors.logic_error import LogicError, parse_logic_error
 from algokit_utils.models.abi import BoxABIValue
 from algokit_utils.models.application import (
     AppClientCompilationParams,
@@ -27,6 +29,7 @@ from algokit_utils.models.application import (
     AppSourceMaps,
     AppState,
     Arc56Contract,
+    ProgramSourceInfo,
     SourceInfoDetail,
     StorageKey,
     StorageMap,
@@ -59,8 +62,21 @@ if TYPE_CHECKING:
     from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
-    from algokit_utils.protocols.application import AlgorandClientProtocol
+    from algokit_utils.protocols.client import AlgorandClientProtocol
     from algokit_utils.transactions.transaction_composer import TransactionComposer
+
+__all__ = [
+    "AppClient",
+    "AppClientBareCallParams",
+    "AppClientBareCallWithCompilationAndSendParams",
+    "AppClientBareCallWithCompilationParams",
+    "AppClientBareCallWithSendParams",
+    "AppClientCallParams",
+    "AppClientMethodCallParams",
+    "AppClientMethodCallWithCompilationAndSendParams",
+    "AppClientMethodCallWithCompilationParams",
+    "AppClientMethodCallWithSendParams",
+]
 
 # TEAL opcodes for constant blocks
 BYTE_CBLOCK = 38  # bytecblock opcode
@@ -735,9 +751,7 @@ class _AppClientBareSendAccessor:
         Returns:
             The result of sending the transaction
         """
-        compiled = self._client.compile_and_persist_sourcemaps(
-            params.deploy_time_params, params.updatable, params.deletable
-        )
+        compiled = self._client.compile_sourcemaps(params.deploy_time_params, params.updatable, params.deletable)
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
         bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
@@ -1038,6 +1052,19 @@ class AppClient:
             template_params=deploy_time_params,
         )
 
+        if config.debug and config.project_root:
+            persist_sourcemaps(
+                sources=[
+                    PersistSourceMapInput(
+                        compiled_teal=compiled_approval, app_name=app_spec.name, file_name="approval.teal"
+                    ),
+                    PersistSourceMapInput(compiled_teal=compiled_clear, app_name=app_spec.name, file_name="clear.teal"),
+                ],
+                project_root=config.project_root,
+                client=app_manager._algod,
+                with_sources=True,
+            )
+
         # TODO: Add invocation of persisting sourcemaps
         return AppClientCompilationResult(
             approval_program=compiled_approval.compiled_base64_to_bytes,
@@ -1048,10 +1075,18 @@ class AppClient:
 
     @staticmethod
     def _expose_logic_error_static(  # noqa: C901
-        e: Exception, app_spec: Arc56Contract, details: LogicErrorDetails
+        *,
+        e: Exception,
+        app_spec: Arc56Contract,
+        is_clear_state_program: bool = False,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+        program: bytes | None = None,
+        approval_source_info: ProgramSourceInfo | None = None,
+        clear_source_info: ProgramSourceInfo | None = None,
     ) -> Exception:
         """Takes an error that may include a logic error and re-exposes it with source info."""
-        source_map = details.clear_source_map if details.is_clear_state_program else details.approval_source_map
+        source_map = clear_source_map if is_clear_state_program else approval_source_map
 
         error_details = parse_logic_error(str(e))
         if not error_details:
@@ -1060,19 +1095,17 @@ class AppClient:
         # The PC value to find in the ARC56 SourceInfo
         arc56_pc = error_details["pc"]
 
-        program_source_info = (
-            details.clear_source_info if details.is_clear_state_program else details.approval_source_info
-        )
+        program_source_info = clear_source_info if is_clear_state_program else approval_source_info
 
         # The offset to apply to the PC if using the cblocks pc offset method
         cblocks_offset = 0
 
         # If the program uses cblocks offset, then we need to adjust the PC accordingly
         if program_source_info and program_source_info.pc_offset_method == "cblocks":
-            if not details.program:
+            if not program:
                 raise Exception("Program bytes are required to calculate the ARC56 cblocks PC offset")
 
-            cblocks_offset = get_constant_block_offset(details.program)
+            cblocks_offset = get_constant_block_offset(program)
             arc56_pc = error_details["pc"] - cblocks_offset
 
         # Find the source info for this PC and get the error message
@@ -1087,7 +1120,7 @@ class AppClient:
         # If we have the source we can display the TEAL in the error message
         if hasattr(app_spec, "source"):
             program_source = (
-                (app_spec.source.get("clear") if details.is_clear_state_program else app_spec.source.get("approval"))
+                (app_spec.source.get("clear") if is_clear_state_program else app_spec.source.get("approval"))
                 if app_spec.source
                 else None
             )
@@ -1131,7 +1164,7 @@ class AppClient:
         return e
 
     # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
-    def compile_and_persist_sourcemaps(
+    def compile_sourcemaps(
         self,
         deploy_time_params: TealTemplateParams | None = None,
         updatable: bool | None = None,
@@ -1277,23 +1310,21 @@ class AppClient:
             program = app_info.clear_state_program if is_clear_state_program else app_info.approval_program
 
         return AppClient._expose_logic_error_static(
-            e,
-            self._app_spec,
-            LogicErrorDetails(
-                is_clear_state_program=is_clear_state_program,
-                approval_source_map=self._approval_source_map,
-                clear_source_map=self._clear_source_map,
-                program=program,
-                approval_source_info=(
-                    self._app_spec.source_info.get("approval")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
-                clear_source_info=(
-                    self._app_spec.source_info.get("clear")
-                    if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                    else None
-                ),
+            e=e,
+            app_spec=self._app_spec,
+            is_clear_state_program=is_clear_state_program,
+            approval_source_map=self._approval_source_map,
+            clear_source_map=self._clear_source_map,
+            program=program,
+            approval_source_info=(
+                self._app_spec.source_info.get("approval")
+                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                else None
+            ),
+            clear_source_info=(
+                self._app_spec.source_info.get("clear")
+                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
+                else None
             ),
         )
 
