@@ -19,7 +19,6 @@ from typing_extensions import deprecated
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
-from algokit_utils.models.state import BoxIdentifier
 from algokit_utils.models.transaction import SendAtomicTransactionComposerResults, SendParams, TransactionWrapper
 from algokit_utils.transactions.utils import encode_lease, get_abi_return_value, populate_app_call_resources
 
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
 
     from algokit_utils.models.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
-    from algokit_utils.models.state import BoxReference
+    from algokit_utils.models.state import BoxIdentifier, BoxReference
     from algokit_utils.models.transaction import Arc2TransactionNote
 
 

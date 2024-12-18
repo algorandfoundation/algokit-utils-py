@@ -33,7 +33,10 @@ from algokit_utils.models.application import (
 T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)
 
 
-def get_arc56_method(method_name_or_signature: str, app_spec: Arc56Contract) -> Arc56Method:
+def get_arc56_method(method_name_or_signature: str | Arc56Method, app_spec: Arc56Contract) -> Arc56Method:
+    if isinstance(method_name_or_signature, Arc56Method):
+        return method_name_or_signature
+
     if "(" not in method_name_or_signature:
         # Filter by method name
         methods = [m for m in app_spec.methods if m.name == method_name_or_signature]

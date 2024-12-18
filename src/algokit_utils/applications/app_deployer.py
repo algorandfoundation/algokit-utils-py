@@ -80,37 +80,37 @@ class AppLookup:
 class OnSchemaBreak(str, Enum):
     """Action to take if an Application's schema has breaking changes"""
 
-    FAIL = "fail"
+    Fail = "fail"
     """Fail the deployment"""
-    REPLACE_APP = "replace_app"
+    ReplaceApp = "replace_app"
     """Create a new Application and delete the old Application in a single transaction"""
-    APPEND_APP = "append_app"
+    AppendApp = "append_app"
     """Create a new Application"""
 
 
 class OnUpdate(str, Enum):
     """Action to take if an Application has been updated"""
 
-    FAIL = "fail"
+    Fail = "fail"
     """Fail the deployment"""
-    UPDATE_APP = "update_app"
+    UpdateApp = "update_app"
     """Update the Application with the new approval and clear programs"""
-    REPLACE_APP = "replace_app"
+    ReplaceApp = "replace_app"
     """Create a new Application and delete the old Application in a single transaction"""
-    APPEND_APP = "append_app"
+    AppendApp = "append_app"
     """Create a new application"""
 
 
 class OperationPerformed(str, Enum):
     """Describes the actions taken during deployment"""
 
-    NOTHING = "nothing"
+    Nothing = "nothing"
     """An existing Application was found"""
-    CREATE = "create"
+    Create = "create"
     """No existing Application was found, created a new Application"""
-    UPDATE = "update"
+    Update = "update"
     """An existing Application was found, but was out of date, updated to latest version"""
-    REPLACE = "replace"
+    Replace = "replace"
     """An existing Application was found, but was out of date, created a new Application and deleted the original"""
 
 
@@ -120,8 +120,8 @@ class AppDeployParams:
 
     metadata: AppDeployMetaData
     deploy_time_params: TealTemplateParams | None = None
-    on_schema_break: Literal["replace", "fail", "append"] | OnSchemaBreak = OnSchemaBreak.FAIL
-    on_update: Literal["update", "replace", "fail", "append"] | OnUpdate = OnUpdate.FAIL
+    on_schema_break: Literal["replace", "fail", "append"] | OnSchemaBreak = OnSchemaBreak.Fail
+    on_update: Literal["update", "replace", "fail", "append"] | OnUpdate = OnUpdate.Fail
     create_params: AppCreateParams | AppCreateMethodCallParams
     update_params: AppUpdateParams | AppUpdateMethodCallParams
     delete_params: AppDeleteParams | AppDeleteMethodCallParams
@@ -289,7 +289,7 @@ class AppDeployer:
         logger.debug("No detected changes in app, nothing to do.", suppress_log=deployment.suppress_log)
         return AppDeployResponse(
             app=existing_app,
-            operation_performed=OperationPerformed.NOTHING,
+            operation_performed=OperationPerformed.Nothing,
         )
 
     def _create_app(
@@ -339,7 +339,7 @@ class AppDeployer:
 
         return AppDeployResponse(
             app=app_metadata,
-            operation_performed=OperationPerformed.CREATE,
+            operation_performed=OperationPerformed.Create,
             create_response=create_response,
         )
 
@@ -413,7 +413,7 @@ class AppDeployer:
 
         return AppDeployResponse(
             app=app_metadata,
-            operation_performed=OperationPerformed.REPLACE,
+            operation_performed=OperationPerformed.Replace,
             create_response=create_response,
             update_response=None,
             delete_response=delete_response,
@@ -465,7 +465,7 @@ class AppDeployer:
 
         return AppDeployResponse(
             app=app_metadata,
-            operation_performed=OperationPerformed.UPDATE,
+            operation_performed=OperationPerformed.Update,
             update_response=result,
         )
 
@@ -476,14 +476,14 @@ class AppDeployer:
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResponse:
-        if deployment.on_schema_break in (OnSchemaBreak.FAIL, "fail"):
+        if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail"):
             raise ValueError(
                 "Schema break detected and onSchemaBreak=OnSchemaBreak.Fail, stopping deployment. "
                 "If you want to try deleting and recreating the app then "
                 "re-run with onSchemaBreak=OnSchemaBreak.ReplaceApp"
             )
 
-        if deployment.on_schema_break in (OnSchemaBreak.APPEND_APP, "append"):
+        if deployment.on_schema_break in (OnSchemaBreak.AppendApp, "append"):
             return self._create_app(deployment, approval_program, clear_program)
 
         if existing_app.deletable:
@@ -498,21 +498,21 @@ class AppDeployer:
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResponse:
-        if deployment.on_update in (OnUpdate.FAIL, "fail"):
+        if deployment.on_update in (OnUpdate.Fail, "fail"):
             raise ValueError(
                 "Update detected and onUpdate=Fail, stopping deployment. " "Try a different onUpdate value to not fail."
             )
 
-        if deployment.on_update in (OnUpdate.APPEND_APP, "append"):
+        if deployment.on_update in (OnUpdate.AppendApp, "append"):
             return self._create_app(deployment, approval_program, clear_program)
 
-        if deployment.on_update in (OnUpdate.UPDATE_APP, "update"):
+        if deployment.on_update in (OnUpdate.UpdateApp, "update"):
             if existing_app.updatable:
                 return self._update_app(deployment, existing_app, approval_program, clear_program)
             else:
                 raise ValueError("App is not updatable but onUpdate=UpdateApp, cannot update app")
 
-        if deployment.on_update in (OnUpdate.REPLACE_APP, "replace"):
+        if deployment.on_update in (OnUpdate.ReplaceApp, "replace"):
             if existing_app.deletable:
                 return self._replace_app(deployment, existing_app, approval_program, clear_program)
             else:

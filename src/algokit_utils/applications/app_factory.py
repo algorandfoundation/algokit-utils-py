@@ -48,13 +48,13 @@ from algokit_utils.models.application import (
 from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.models.transaction import (
     SendAppCreateTransactionResult,
+    SendAppCreateTransactionResultBase,
     SendAppTransactionResult,
+    SendAppTransactionResultBase,
     SendAppUpdateTransactionResult,
+    SendAppUpdateTransactionResultBase,
     SendParams,
     SendSingleTransactionResult,
-    _SendAppCreateTransactionResult,
-    _SendAppTransactionResult,
-    _SendAppUpdateTransactionResult,
 )
 from algokit_utils.protocols.application import AlgorandClientProtocol
 from algokit_utils.transactions.transaction_composer import (
@@ -117,7 +117,7 @@ class AppFactoryCreateMethodCallWithSendParams(AppFactoryCreateMethodCallParams,
 
 
 @dataclass(frozen=True)
-class SendAppTransactionResultWithABIValue(_SendAppTransactionResult[ABIValue | ABIStruct | None]):
+class SendAppTransactionResultWithABIValue(SendAppTransactionResultBase[ABIValue | ABIStruct | None]):
     @classmethod
     def from_send_app_txn(
         cls, response: SendAppTransactionResult | None, abi_return: ABIValue | ABIStruct | None
@@ -131,7 +131,7 @@ class SendAppTransactionResultWithABIValue(_SendAppTransactionResult[ABIValue | 
 
 
 @dataclass(frozen=True)
-class SendAppUpdateTransactionResultWithABIValue(_SendAppUpdateTransactionResult[ABIValue | ABIStruct | None]):
+class SendAppUpdateTransactionResultWithABIValue(SendAppUpdateTransactionResultBase[ABIValue | ABIStruct | None]):
     @classmethod
     def from_send_app_update_txn(
         cls, response: SendAppUpdateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
@@ -145,7 +145,7 @@ class SendAppUpdateTransactionResultWithABIValue(_SendAppUpdateTransactionResult
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResultWithABIValue(_SendAppCreateTransactionResult[ABIValue | ABIStruct | None]):
+class SendAppCreateTransactionResultWithABIValue(SendAppCreateTransactionResultBase[ABIValue | ABIStruct | None]):
     @classmethod
     def from_send_app_create_txn(
         cls, response: SendAppCreateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
@@ -180,10 +180,12 @@ class AppFactoryDeployResponse:
         def set_compilation_data(response: Any, compilation_data: AppClientCompilationResult | None) -> Any:  # noqa: ANN401
             if compilation_data is None:
                 return response
-            if hasattr(response, "compiled_approval"):
-                response.compiled_approval = compilation_data.compiled_approval
-            if hasattr(response, "compiled_clear"):
-                response.compiled_clear = compilation_data.compiled_clear
+            if hasattr(response, "compiled_approval") and hasattr(compilation_data, "compiled_approval"):
+                return replace(
+                    response,
+                    compiled_approval=compilation_data.compiled_approval,
+                    compiled_clear=compilation_data.compiled_clear,
+                )
             return response
 
         def process_abi_response(
@@ -198,7 +200,7 @@ class AppFactoryDeployResponse:
                 return None
 
             abi_return = None
-            if isinstance(params, AppClientMethodCallParams):
+            if response_data.abi_return and hasattr(params, "method"):
                 abi_return = get_arc56_return_value(
                     response_data.abi_return,
                     get_arc56_method(params.method, app_client.app_spec),
@@ -528,8 +530,8 @@ class AppFactory:
         self,
         *,
         deploy_time_params: TealTemplateParams | None = None,
-        on_update: OnUpdate = OnUpdate.FAIL,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.FAIL,
+        on_update: OnUpdate = OnUpdate.Fail,
+        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
         create_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,

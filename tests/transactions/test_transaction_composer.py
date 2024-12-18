@@ -17,13 +17,13 @@ from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.transaction import SendAtomicTransactionComposerResults
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
     PaymentParams,
-    SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
 from legacy_v2_tests.conftest import get_unique_name

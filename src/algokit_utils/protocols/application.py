@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class NetworkDetails:
+class _NetworkDetails:
     genesis_id: str
     genesis_hash: str
     network_name: str
@@ -52,7 +52,7 @@ class ClientManagerProtocol(Protocol):
     @property
     def indexer(self) -> IndexerClient | None: ...
 
-    async def network(self) -> NetworkDetails: ...
+    async def network(self) -> _NetworkDetails: ...
 
     async def is_local_net(self) -> bool: ...
 

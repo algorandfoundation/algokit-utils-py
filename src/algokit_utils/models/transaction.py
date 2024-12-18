@@ -125,36 +125,34 @@ class SendSingleTransactionResult:
     def from_composer_result(cls, result: SendAtomicTransactionComposerResults, index: int = -1) -> Self:
         # Get base parameters
         base_params = {
-            "transaction": TransactionWrapper(result.transactions[index]),
+            "transaction": result.transactions[index],
             "confirmation": result.confirmations[index],
             "group_id": result.group_id,
             "tx_id": result.tx_ids[index],
             "tx_ids": result.tx_ids,
-            "transactions": result.transactions,
+            "transactions": [result.transactions[index]],
             "confirmations": result.confirmations,
             "returns": result.returns,
         }
 
         # For asset creation, extract asset_id from confirmation
         if cls is SendSingleAssetCreateTransactionResult:
-            base_params["asset_id"] = result.confirmations[index]["asset-index"]  # type: ignore[index]
+            base_params["asset_id"] = result.confirmations[index]["asset-index"]  # type: ignore[call-overload]
         # For app creation, extract app_id and calculate app_address
         elif cls is SendAppCreateTransactionResult:
-            app_id = result.confirmations[index]["application-index"]  # type: ignore[index]
+            app_id = result.confirmations[index]["application-index"]  # type: ignore[call-overload]
             base_params.update(
                 {
                     "app_id": app_id,
                     "app_address": algosdk.logic.get_application_address(app_id),
-                    "abi_return": result.returns[index] if result.returns else None,
-                    "compiled_approval": None,  # These would need to be passed in separately
-                    "compiled_clear": None,  # if needed
+                    "abi_return": result.returns[index] if result.returns else None,  # type: ignore[dict-item]
                 }
             )
         # For regular app transactions, just add abi_return
         elif cls is SendAppTransactionResult:
-            base_params["abi_return"] = result.returns[index] if result.returns else None
+            base_params["abi_return"] = result.returns[index] if result.returns else None  # type: ignore[assignment]
 
-        return cls(**base_params)
+        return cls(**base_params)  # type: ignore[arg-type]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -162,40 +160,45 @@ class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
     asset_id: int
 
 
-T = TypeVar("T")
+ABIReturnT = TypeVar("ABIReturnT")
 
 
 @dataclass(frozen=True)
-class _SendAppTransactionResult(Generic[T], SendSingleTransactionResult):
-    abi_return: T | None = None
+class SendAppTransactionResultBase(SendSingleTransactionResult, Generic[ABIReturnT]):
+    """Base class for all app transaction results with generic ABI return type"""
+
+    abi_return: ABIReturnT | None = None
 
 
 @dataclass(frozen=True)
-class SendAppTransactionResult(_SendAppTransactionResult[ABIReturn]):
-    pass
+class SendAppUpdateTransactionResultBase(SendAppTransactionResultBase[ABIReturnT]):
+    """Base class for app update transaction results"""
 
-
-@dataclass(frozen=True)
-class _SendAppUpdateTransactionResult(Generic[T], SendSingleTransactionResult):
-    abi_return: T | None = None
-    compiled_approval: Any | None = None
-    compiled_clear: Any | None = None
-
-
-@dataclass(frozen=True)
-class SendAppUpdateTransactionResult(_SendAppUpdateTransactionResult[ABIReturn]):
-    pass
-
-
-@dataclass(frozen=True)
-class _SendAppCreateTransactionResult(Generic[T], SendSingleTransactionResult):
-    app_id: int
-    app_address: str
-    abi_return: T | None = None
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResult(_SendAppCreateTransactionResult):
-    pass
+class SendAppCreateTransactionResultBase(SendAppTransactionResultBase[ABIReturnT]):
+    """Base class for app create transaction results"""
+
+    app_id: int
+    app_address: str
+    compiled_approval: Any | None = None
+    compiled_clear: Any | None = None
+
+
+# Concrete implementations with ABIReturn type
+@dataclass(frozen=True)
+class SendAppTransactionResult(SendAppTransactionResultBase[ABIReturn]):
+    """Standard app transaction result with ABIReturn type"""
+
+
+@dataclass(frozen=True)
+class SendAppUpdateTransactionResult(SendAppUpdateTransactionResultBase[ABIReturn]):
+    """Standard app update transaction result with ABIReturn type"""
+
+
+@dataclass(frozen=True, kw_only=True)
+class SendAppCreateTransactionResult(SendAppCreateTransactionResultBase[ABIReturn]):
+    """Standard app create transaction result with ABIReturn type"""
