@@ -15,13 +15,14 @@ from algokit_utils.applications.app_client import (
     FundAppAccountParams,
 )
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.applications.utils import arc32_to_arc56, get_arc56_method
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.abi import ABIType
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.application import AppClientParams, Arc56Contract
+from algokit_utils.models.application import AppClientParams
 from algokit_utils.models.state import BoxReference
 from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
 

@@ -11,14 +11,12 @@ from algokit_utils._legacy_v2.application_specification import (
     MethodConfigDict,
     MethodHints,
 )
-from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIType, ABIValue
-from algokit_utils.models.application import (
+from algokit_utils.applications.app_spec.arc56 import (
     ABIArgumentType,
     ABITypeAlias,
     Arc56Contract,
     Arc56ContractState,
     Arc56Method,
-    CallConfig,
     DefaultValue,
     Method,
     MethodActions,
@@ -28,6 +26,10 @@ from algokit_utils.models.application import (
     StorageKey,
     StructField,
     StructName,
+)
+from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIType, ABIValue
+from algokit_utils.models.application import (
+    CallConfig,
 )
 
 T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)

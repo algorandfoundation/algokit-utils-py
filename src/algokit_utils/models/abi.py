@@ -4,7 +4,7 @@ from typing import TypeAlias
 import algosdk
 from algosdk.abi.method import Method
 
-from algokit_utils.models.application import StructField
+from algokit_utils.applications.app_spec.arc56 import StructField
 from algokit_utils.models.state import BoxName
 
 ABIPrimitiveValue = bool | int | str | bytes | bytearray

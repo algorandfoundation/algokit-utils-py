@@ -141,7 +141,7 @@ class AccountManager:
         :param sender: The sender address
         :return: The `TransactionSigner` or throws an error if not found
         """
-        signer = self._signers.get(self._get_address(sender))
+        signer = self._signers.get(self._get_address(sender)) or self._default_signer
         if not signer:
             raise ValueError(f"No signer found for address {sender}")
         return signer

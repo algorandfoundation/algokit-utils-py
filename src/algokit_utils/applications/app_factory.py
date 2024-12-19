@@ -26,6 +26,7 @@ from algokit_utils.applications.app_deployer import (
     OnUpdate,
     OperationPerformed,
 )
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Arc56Method, MethodArg
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_tuple_from_abi_struct,
@@ -40,9 +41,6 @@ from algokit_utils.models.application import (
     AppClientCompilationResult,
     AppClientParams,
     AppSourceMaps,
-    Arc56Contract,
-    Arc56Method,
-    MethodArg,
 )
 from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.models.transaction import (
@@ -711,8 +709,8 @@ class AppFactory:
 
     def compile(self, compilation: AppClientCompilationParams | None = None) -> AppClientCompilationResult:
         result = AppClient.compile(
-            self._app_spec,
-            self._algorand.app,
+            app_spec=self._app_spec,
+            app_manager=self._algorand.app,
             deploy_time_params=compilation.deploy_time_params if compilation else None,
             updatable=compilation.updatable if compilation else None,
             deletable=compilation.deletable if compilation else None,

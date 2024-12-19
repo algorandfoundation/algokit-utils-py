@@ -13,6 +13,13 @@ from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.app_spec.arc56 import (
+    Arc56Contract,
+    ProgramSourceInfo,
+    SourceInfoDetail,
+    StorageKey,
+    StorageMap,
+)
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_encoded_value,
@@ -28,11 +35,6 @@ from algokit_utils.models.application import (
     AppClientParams,
     AppSourceMaps,
     AppState,
-    Arc56Contract,
-    ProgramSourceInfo,
-    SourceInfoDetail,
-    StorageKey,
-    StorageMap,
 )
 from algokit_utils.models.state import BoxName, BoxValue
 from algokit_utils.models.transaction import (
