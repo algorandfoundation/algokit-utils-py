@@ -15,8 +15,7 @@ from algokit_utils.applications.app_client import (
     FundAppAccountParams,
 )
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
-from algokit_utils.applications.utils import arc32_to_arc56, get_arc56_method
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Networks
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.abi import ABIType
@@ -295,8 +294,8 @@ def test_resolve_from_network(
     hello_world_arc32_app_id: int,
     hello_world_arc32_app_spec: ApplicationSpecification,
 ) -> None:
-    arc56_app_spec = arc32_to_arc56(hello_world_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": {"app_id": hello_world_arc32_app_id}}
+    arc56_app_spec = Arc56Contract.from_arc32(hello_world_arc32_app_spec)
+    arc56_app_spec.networks = {"localnet": Networks(app_id=hello_world_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -353,9 +352,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    response = AppManager.get_abi_return(
-        result.confirmation, get_arc56_method("call_abi_txn", test_app_client.app_spec)
-    )
+    response = AppManager.get_abi_return(result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn"))
     expected_return = f"Sent {amount.micro_algos}. test"
     assert result.abi_return
     assert result.abi_return.value == expected_return
@@ -690,7 +687,7 @@ def test_abi_with_default_arg_method(
     testing_app_arc32_app_id: int,
     testing_app_arc32_app_spec: ApplicationSpecification,
 ) -> None:
-    arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
+    arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
     arc56_app_spec.networks = {"localnet": {"app_id": testing_app_arc32_app_id}}
     app_client = AppClient.from_network(
         algorand=algorand,

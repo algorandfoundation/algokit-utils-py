@@ -1,7 +1,7 @@
 import base64
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
-from typing import Any, TypeGuard, TypeVar
+from typing import Any, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
@@ -26,11 +26,10 @@ from algokit_utils.applications.app_deployer import (
     OnUpdate,
     OperationPerformed,
 )
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Arc56Method, MethodArg
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.applications.utils import (
     get_abi_decoded_value,
     get_abi_tuple_from_abi_struct,
-    get_arc56_method,
     get_arc56_return_value,
 )
 from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIValue
@@ -209,7 +208,7 @@ class AppFactoryDeployResponse:
             if response_data.abi_return and hasattr(params, "method"):
                 abi_return = get_arc56_return_value(
                     response_data.abi_return,
-                    get_arc56_method(params.method, app_spec),
+                    app_spec.get_arc56_method(params.method),
                     app_spec.structs,
                 )
 
@@ -255,10 +254,10 @@ class _AppFactoryBareParamsAccessor:
             clear_state_program=compiled.clear_state_program,
             schema=base_params.schema
             or {
-                "global_bytes": self._factory._app_spec.state.schemas["global"]["bytes"],
-                "global_ints": self._factory._app_spec.state.schemas["global"]["ints"],
-                "local_bytes": self._factory._app_spec.state.schemas["local"]["bytes"],
-                "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
+                "global_bytes": self._factory._app_spec.state.schema.global_state.bytes,
+                "global_ints": self._factory._app_spec.state.schema.global_state.ints,
+                "local_bytes": self._factory._app_spec.state.schema.local_state.bytes,
+                "local_ints": self._factory._app_spec.state.schema.local_state.ints,
             },
             sender=self._factory._get_sender(base_params.sender),
             signer=self._factory._get_signer(base_params.sender, base_params.signer),
@@ -317,14 +316,14 @@ class _AppFactoryParamsAccessor:
             clear_state_program=compiled.clear_state_program,
             schema=params.schema
             or {
-                "global_bytes": self._factory._app_spec.state.schemas["global"]["bytes"],
-                "global_ints": self._factory._app_spec.state.schemas["global"]["ints"],
-                "local_bytes": self._factory._app_spec.state.schemas["local"]["bytes"],
-                "local_ints": self._factory._app_spec.state.schemas["local"]["ints"],
+                "global_bytes": self._factory._app_spec.state.schema.global_state.bytes,
+                "global_ints": self._factory._app_spec.state.schema.global_state.ints,
+                "local_bytes": self._factory._app_spec.state.schema.local_state.bytes,
+                "local_ints": self._factory._app_spec.state.schema.local_state.ints,
             },
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=get_arc56_method(params.method, self._factory._app_spec),
+            method=self._factory._app_spec.get_arc56_method(params.method),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=params.on_complete or OnComplete.NoOpOC,
             note=params.note,
@@ -339,7 +338,7 @@ class _AppFactoryParamsAccessor:
             clear_state_program="",
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=get_arc56_method(params.method, self._factory._app_spec),
+            method=self._factory._app_spec.get_arc56_method(params.method),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.UpdateApplicationOC,
             note=params.note,
@@ -352,7 +351,7 @@ class _AppFactoryParamsAccessor:
             app_id=0,
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=get_arc56_method(params.method, self._factory._app_spec),
+            method=self._factory._app_spec.get_arc56_method(params.method),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.DeleteApplicationOC,
             note=params.note,
@@ -468,7 +467,7 @@ class _AppFactorySendAccessor:
         result = self._factory._handle_call_errors(
             lambda: self._factory._parse_method_call_return(
                 lambda: self._algorand.send.app_create_method_call(self._factory.params.create(create_params)),
-                get_arc56_method(params.method, self._factory._app_spec),
+                self._factory._app_spec.get_arc56_method(params.method),
             )
         )
 
@@ -731,29 +730,19 @@ class AppFactory:
             approval_source_map=self._approval_source_map,
             clear_source_map=self._clear_source_map,
             program=None,
-            approval_source_info=(
-                self._app_spec.source_info.get("approval")
-                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                else None
-            ),
-            clear_source_info=(
-                self._app_spec.source_info.get("clear")
-                if self._app_spec.source_info and hasattr(self._app_spec, "source_info")
-                else None
-            ),
+            approval_source_info=(self._app_spec.source_info.approval if self._app_spec.source_info else None),
+            clear_source_info=(self._app_spec.source_info.clear if self._app_spec.source_info else None),
         )
 
     def _get_deploy_time_control(self, control: str) -> bool | None:
-        approval = (
-            self._app_spec.source["approval"] if self._app_spec.source and "approval" in self._app_spec.source else None
-        )
+        approval = self._app_spec.source.approval if self._app_spec.source else None
 
         template_name = UPDATABLE_TEMPLATE_NAME if control == "updatable" else DELETABLE_TEMPLATE_NAME
         if not approval or template_name not in approval:
             return None
 
         on_complete = "UpdateApplication" if control == "updatable" else "DeleteApplication"
-        return on_complete in self._app_spec.bare_actions.get("call", []) or any(
+        return on_complete in self._app_spec.bare_actions.call or any(
             on_complete in m.actions.call for m in self._app_spec.methods if m.actions and m.actions.call
         )
 
@@ -792,28 +781,21 @@ class AppFactory:
 
     def _get_create_abi_args_with_default_values(
         self,
-        method_name_or_signature: str | Arc56Method,
+        method_name_or_signature: str,
         user_args: list[Any] | None,
     ) -> list[Any]:
         """
         Builds a list of ABI argument values for creation calls, applying default
         argument values when not provided.
         """
-        method = (
-            get_arc56_method(method_name_or_signature, self._app_spec)
-            if isinstance(method_name_or_signature, str)
-            else method_name_or_signature
-        )
-
-        def _has_struct(arg: Any) -> TypeGuard[MethodArg]:  # noqa: ANN401
-            return hasattr(arg, "struct")
+        method = self._app_spec.get_arc56_method(method_name_or_signature)
 
         results: list[Any] = []
 
         for i, param in enumerate(method.args):
             if user_args and i < len(user_args):
                 arg_value = user_args[i]
-                if _has_struct(param) and param.struct and isinstance(arg_value, dict):
+                if param.struct and isinstance(arg_value, dict):
                     arg_value = get_abi_tuple_from_abi_struct(
                         arg_value,
                         self._app_spec.structs[param.struct],
