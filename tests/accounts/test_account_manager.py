@@ -30,7 +30,7 @@ def test_new_account_is_retrieved_and_funded(algorand: AlgorandClient) -> None:
 
     # Assert
     account_info = algorand.account.get_information(account.address)
-    assert account_info["amount"] > 0
+    assert account_info.amount > 0
 
 
 def test_same_account_is_subsequently_retrieved(algorand: AlgorandClient) -> None:
@@ -90,7 +90,7 @@ def test_ensure_funded_from_environment(algorand: AlgorandClient) -> None:
     assert result is not None
     assert result.amount_funded is not None
     account_info = algorand.account.get_information(account.address)
-    assert account_info["amount"] >= min_balance.micro_algos
+    assert account_info.amount_without_pending_rewards >= min_balance.micro_algos
 
 
 def test_get_account_information(algorand: AlgorandClient) -> None:
@@ -101,8 +101,7 @@ def test_get_account_information(algorand: AlgorandClient) -> None:
     info = algorand.account.get_information(account.address)
 
     # Assert
-    assert isinstance(info, dict)
-    assert "amount" in info
-    assert "min-balance" in info
-    assert "address" in info
-    assert info["address"] == account.address
+    assert info.amount is not None
+    assert info.min_balance is not None
+    assert info.address is not None
+    assert info.address == account.address

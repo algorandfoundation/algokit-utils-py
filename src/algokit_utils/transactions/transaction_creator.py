@@ -4,13 +4,13 @@ from typing import TypeVar
 from algosdk.transaction import Transaction
 
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCallParams,
-    AppCreateMethodCall,
+    AppCreateMethodCallParams,
     AppCreateParams,
-    AppDeleteMethodCall,
+    AppDeleteMethodCallParams,
     AppDeleteParams,
-    AppUpdateMethodCall,
+    AppUpdateMethodCallParams,
     AppUpdateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -125,22 +125,22 @@ class AlgorandClientTransactionCreator:
         return self._transaction(lambda c: c.add_app_call)
 
     @property
-    def app_create_method_call(self) -> Callable[[AppCreateMethodCall], BuiltTransactions]:
+    def app_create_method_call(self) -> Callable[[AppCreateMethodCallParams], BuiltTransactions]:
         """Create an application create call with ABI method call transaction."""
         return self._transactions(lambda c: c.add_app_create_method_call)
 
     @property
-    def app_update_method_call(self) -> Callable[[AppUpdateMethodCall], BuiltTransactions]:
+    def app_update_method_call(self) -> Callable[[AppUpdateMethodCallParams], BuiltTransactions]:
         """Create an application update call with ABI method call transaction."""
         return self._transactions(lambda c: c.add_app_update_method_call)
 
     @property
-    def app_delete_method_call(self) -> Callable[[AppDeleteMethodCall], BuiltTransactions]:
+    def app_delete_method_call(self) -> Callable[[AppDeleteMethodCallParams], BuiltTransactions]:
         """Create an application delete call with ABI method call transaction."""
         return self._transactions(lambda c: c.add_app_delete_method_call)
 
     @property
-    def app_call_method_call(self) -> Callable[[AppCallMethodCall], BuiltTransactions]:
+    def app_call_method_call(self) -> Callable[[AppCallMethodCallParams], BuiltTransactions]:
         """Create an application call with ABI method call transaction."""
         return self._transactions(lambda c: c.add_app_call_method_call)
 

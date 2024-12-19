@@ -15,14 +15,20 @@ from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestN
 from algokit_utils.config import config
 from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account, MultiSigAccount, MultisigMetadata
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.transaction import SendAtomicTransactionComposerResults, SendSingleTransactionResult
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
-    SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
-from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
 logger = config.logger
+
+__all__ = [
+    "AccountInformation",
+    "AccountManager",
+    "EnsureFundedFromTestnetDispenserApiResponse",
+    "EnsureFundedResponse",
+]
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -39,6 +45,40 @@ class EnsureFundedResponse(SendSingleTransactionResult, _CommonEnsureFundedParam
 @dataclass(frozen=True, kw_only=True)
 class EnsureFundedFromTestnetDispenserApiResponse(_CommonEnsureFundedParams):
     pass
+
+
+@dataclass(frozen=True, kw_only=True)
+class AccountInformation:
+    address: str
+    amount: int
+    amount_without_pending_rewards: int
+    min_balance: int
+    pending_rewards: int
+    rewards: int
+    round: int
+    status: str
+    total_apps_opted_in: int | None = None
+    total_assets_opted_in: int | None = None
+    total_box_bytes: int | None = None
+    total_boxes: int | None = None
+    total_created_apps: int | None = None
+    total_created_assets: int | None = None
+    apps_local_state: list[dict] | None = None
+    apps_total_extra_pages: int | None = None
+    apps_total_schema: dict | None = None
+    assets: list[dict] | None = None
+    auth_addr: str | None = None
+    closed_at_round: int | None = None
+    created_apps: list[dict] | None = None
+    created_assets: list[dict] | None = None
+    created_at_round: int | None = None
+    deleted: bool | None = None
+    incentive_eligible: bool | None = None
+    last_heartbeat: int | None = None
+    last_proposed: int | None = None
+    participation: dict | None = None
+    reward_base: int | None = None
+    sig_type: str | None = None
 
 
 class AccountManager:
@@ -101,12 +141,12 @@ class AccountManager:
         :param sender: The sender address
         :return: The `TransactionSigner` or throws an error if not found
         """
-        signer = self._signers.get(self._get_address(sender))
+        signer = self._signers.get(self._get_address(sender)) or self._default_signer
         if not signer:
             raise ValueError(f"No signer found for address {sender}")
         return signer
 
-    def get_information(self, sender: str | Account) -> dict[str, Any]:
+    def get_information(self, sender: str | Account) -> AccountInformation:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
@@ -115,7 +155,8 @@ class AccountManager:
         """
         info = self._client_manager.algod.account_info(self._get_address(sender))
         assert isinstance(info, dict)
-        return info
+        info = {k.replace("-", "_"): v for k, v in info.items()}
+        return AccountInformation(**info)
 
     def _register_account(self, private_key: str) -> Account:
         """Helper method to create and register an account with its signer.
@@ -516,7 +557,7 @@ class AccountManager:
         min_funding_increment: AlgoAmount | None = None,
     ) -> AlgoAmount | None:
         account_info = self.get_information(sender)
-        current_spending_balance = account_info["amount"] - account_info["min-balance"]
+        current_spending_balance = account_info.amount - account_info.min_balance
 
         min_increment = min_funding_increment.micro_algo if min_funding_increment else 0
         amount_funded = self._calculate_fund_amount(

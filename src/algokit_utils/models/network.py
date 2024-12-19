@@ -1,5 +1,10 @@
 import dataclasses
 
+__all__ = [
+    "AlgoClientConfig",
+    "AlgoClientConfigs",
+]
+
 
 @dataclasses.dataclass
 class AlgoClientConfig:
