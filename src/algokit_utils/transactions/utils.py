@@ -3,12 +3,13 @@ from copy import deepcopy
 from typing import Any, cast
 
 from algosdk import logic, transaction
-from algosdk.atomic_transaction_composer import AtomicTransactionComposer, EmptySigner, TransactionWithSigner
+from algosdk.atomic_transaction_composer import ABIResult, AtomicTransactionComposer, EmptySigner, TransactionWithSigner
 from algosdk.error import AtomicTransactionComposerError
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup
 
-from algokit_utils.applications.app_manager import BoxReference
+from algokit_utils.models.abi import ABIReturn
+from algokit_utils.models.state import BoxReference
 
 # Constants
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4
@@ -383,3 +384,15 @@ def encode_lease(lease: str | bytes | None) -> bytes | None:
         return bytes(lease32)
     else:
         raise TypeError(f"Unknown lease type received of {type(lease)}")
+
+
+def get_abi_return_value(result: ABIResult) -> ABIReturn:
+    if result.decode_error:
+        return ABIReturn(decode_error=result.decode_error)
+
+    return ABIReturn(
+        raw_value=result.raw_value,
+        value=result.return_value,
+        method=result.method,
+        decode_error=None,
+    )

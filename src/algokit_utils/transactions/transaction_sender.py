@@ -1,24 +1,28 @@
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, TypedDict, TypeVar
+from typing import Any, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
-from algosdk.atomic_transaction_composer import ABIResult, AtomicTransactionResponse
 from algosdk.transaction import Transaction
 
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
-from algokit_utils.transactions.models import TransactionWrapper
+from algokit_utils.models.transaction import (
+    SendAppCreateTransactionResult,
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
+    SendSingleAssetCreateTransactionResult,
+    SendSingleTransactionResult,
+)
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCallParams,
-    AppCreateMethodCall,
+    AppCreateMethodCallParams,
     AppCreateParams,
-    AppDeleteMethodCall,
+    AppDeleteMethodCallParams,
     AppDeleteParams,
-    AppUpdateMethodCall,
+    AppUpdateMethodCallParams,
     AppUpdateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -34,47 +38,6 @@ from algokit_utils.transactions.transaction_composer import (
 )
 
 logger = config.logger
-
-
-@dataclass(frozen=True, kw_only=True)
-class SendSingleTransactionResult:
-    transaction: TransactionWrapper  # Last transaction
-    confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
-
-    # Fields from SendAtomicTransactionComposerResults
-    group_id: str
-    tx_id: str | None = None
-    tx_ids: list[str]  # Full array of transaction IDs
-    transactions: list[TransactionWrapper]
-    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
-    returns: list[algosdk.atomic_transaction_composer.ABIResult] | None = None
-
-
-@dataclass(frozen=True, kw_only=True)
-class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
-    asset_id: int
-
-
-@dataclass(frozen=True)
-class SendAppTransactionResult(SendSingleTransactionResult):
-    return_value: ABIResult | None = None
-
-
-@dataclass(frozen=True)
-class SendAppUpdateTransactionResult(SendAppTransactionResult):
-    compiled_approval: Any | None = None
-    compiled_clear: Any | None = None
-
-
-@dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResult(SendAppUpdateTransactionResult):
-    app_id: int
-    app_address: str
-
-
-class LogConfig(TypedDict, total=False):
-    pre_log: Callable[[TxnParams, Transaction], str]
-    post_log: Callable[[TxnParams, AtomicTransactionResponse], str]
 
 
 T = TypeVar("T", bound=TxnParams)
@@ -145,7 +108,7 @@ class AlgorandClientTransactionSender:
             result = self._send(c, pre_log, post_log)(params)
             return SendAppTransactionResult(
                 **result.__dict__,
-                return_value=AppManager.get_abi_return(result.confirmation, getattr(params, "method", None)),
+                abi_return=AppManager.get_abi_return(result.confirmation, getattr(params, "method", None)),
             )
 
         return send_app_call
@@ -159,7 +122,9 @@ class AlgorandClientTransactionSender:
         def send_app_update_call(params: T) -> SendAppUpdateTransactionResult:
             result = self._send_app_call(c, pre_log, post_log)(params)
 
-            if not isinstance(params, AppCreateParams | AppUpdateParams | AppCreateMethodCall | AppUpdateMethodCall):
+            if not isinstance(
+                params, AppCreateParams | AppUpdateParams | AppCreateMethodCallParams | AppUpdateMethodCallParams
+            ):
                 raise TypeError("Invalid parameter type")
 
             compiled_approval = (
@@ -332,19 +297,19 @@ class AlgorandClientTransactionSender:
         """Call an application."""
         return self._send_app_call(lambda c: c.add_app_call)(params)
 
-    def app_create_method_call(self, params: AppCreateMethodCall) -> SendAppCreateTransactionResult:
+    def app_create_method_call(self, params: AppCreateMethodCallParams) -> SendAppCreateTransactionResult:
         """Call an application's create method."""
         return self._send_app_create_call(lambda c: c.add_app_create_method_call)(params)
 
-    def app_update_method_call(self, params: AppUpdateMethodCall) -> SendAppUpdateTransactionResult:
+    def app_update_method_call(self, params: AppUpdateMethodCallParams) -> SendAppUpdateTransactionResult:
         """Call an application's update method."""
         return self._send_app_update_call(lambda c: c.add_app_update_method_call)(params)
 
-    def app_delete_method_call(self, params: AppDeleteMethodCall) -> SendAppTransactionResult:
+    def app_delete_method_call(self, params: AppDeleteMethodCallParams) -> SendAppTransactionResult:
         """Call an application's delete method."""
         return self._send_app_call(lambda c: c.add_app_delete_method_call)(params)
 
-    def app_call_method_call(self, params: AppCallMethodCall) -> SendAppTransactionResult:
+    def app_call_method_call(self, params: AppCallMethodCallParams) -> SendAppTransactionResult:
         """Call an application's call method."""
         return self._send_app_call(lambda c: c.add_app_call_method_call)(params)
 

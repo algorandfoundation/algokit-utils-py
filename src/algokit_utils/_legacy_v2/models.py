@@ -11,6 +11,8 @@ from algosdk.atomic_transaction_composer import (
 )
 from typing_extensions import deprecated
 
+from algokit_utils.models.simulate import SimulationTrace
+
 # Imports from latest sdk version that rely on models previously used in legacy v2 (but moved to root models/*)
 
 
@@ -23,6 +25,7 @@ __all__ = [
     "CreateTransactionParameters",
     "OnCompleteCallParameters",
     "OnCompleteCallParametersDict",
+    "SimulationTrace",
     "TransactionParameters",
     "TransactionResponse",
 ]
@@ -198,11 +201,3 @@ class CommonCallParameters(TransactionParameters):
 @deprecated("Use TransactionParametersDict instead")
 class CommonCallParametersDict(TransactionParametersDict):
     """Deprecated, use TransactionParametersDict instead"""
-
-
-@dataclasses.dataclass
-class SimulationTrace:
-    app_budget_added: int | None
-    app_budget_consumed: int | None
-    failure_message: str | None
-    exec_trace: dict[str, object]
