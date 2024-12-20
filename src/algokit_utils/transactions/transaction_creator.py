@@ -25,6 +25,10 @@ from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
 
+__all__ = [
+    "AlgorandClientTransactionCreator",
+]
+
 TxnParam = TypeVar("TxnParam")
 TxnResult = TypeVar("TxnResult")
 

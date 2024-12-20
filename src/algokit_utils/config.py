@@ -4,8 +4,6 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 # Environment variable to override the project root
 ALGOKIT_PROJECT_ROOT = os.getenv("ALGOKIT_PROJECT_ROOT")
 ALGOKIT_CONFIG_FILENAME = ".algokit.toml"

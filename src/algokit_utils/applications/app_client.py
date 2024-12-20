@@ -12,6 +12,12 @@ from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
+from algokit_utils.applications.abi import (
+    BoxABIValue,
+    get_abi_decoded_value,
+    get_abi_encoded_value,
+    get_abi_tuple_from_abi_struct,
+)
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.applications.app_spec.arc56 import (
     Arc56Contract,
@@ -21,28 +27,15 @@ from algokit_utils.applications.app_spec.arc56 import (
     StorageKey,
     StorageMap,
 )
-from algokit_utils.applications.utils import (
-    get_abi_decoded_value,
-    get_abi_encoded_value,
-    get_abi_tuple_from_abi_struct,
-)
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
-from algokit_utils.models.abi import BoxABIValue
 from algokit_utils.models.application import (
-    AppClientCompilationParams,
-    AppClientCompilationResult,
-    AppClientParams,
     AppSourceMaps,
     AppState,
+    CompiledTeal,
 )
 from algokit_utils.models.state import BoxName, BoxValue
-from algokit_utils.models.transaction import (
-    SendAppTransactionResult,
-    SendAppUpdateTransactionResult,
-    SendParams,
-    SendSingleTransactionResult,
-)
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -53,15 +46,20 @@ from algokit_utils.transactions.transaction_composer import (
     BuiltTransactions,
     PaymentParams,
 )
+from algokit_utils.transactions.transaction_sender import (
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
+    SendSingleTransactionResult,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from algosdk.atomic_transaction_composer import TransactionSigner
 
+    from algokit_utils.applications.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.applications.app_deployer import AppLookup
     from algokit_utils.applications.app_manager import AppManager
-    from algokit_utils.models.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
     from algokit_utils.protocols.client import AlgorandClientProtocol
@@ -70,14 +68,20 @@ if TYPE_CHECKING:
 __all__ = [
     "AppClient",
     "AppClientBareCallParams",
+    "AppClientBareCallWithCallOnCompleteParams",
     "AppClientBareCallWithCompilationAndSendParams",
     "AppClientBareCallWithCompilationParams",
     "AppClientBareCallWithSendParams",
     "AppClientCallParams",
+    "AppClientCompilationParams",
+    "AppClientCompilationResult",
     "AppClientMethodCallParams",
     "AppClientMethodCallWithCompilationAndSendParams",
     "AppClientMethodCallWithCompilationParams",
     "AppClientMethodCallWithSendParams",
+    "AppClientParams",
+    "AppSourceMaps",
+    "FundAppAccountParams",
 ]
 
 # TEAL opcodes for constant blocks
@@ -147,6 +151,21 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
     # Return maximum offset
     return max(bytecblock_offset or 0, intcblock_offset or 0)
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientCompilationResult:
+    approval_program: bytes
+    clear_state_program: bytes
+    compiled_approval: CompiledTeal | None = None
+    compiled_clear: CompiledTeal | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientCompilationParams:
+    deploy_time_params: TealTemplateParams | None = None
+    updatable: bool | None = None
+    deletable: bool | None = None
 
 
 @dataclass(kw_only=True)
@@ -664,7 +683,7 @@ class _AppClientMethodCallParamsAccessor:
         input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
         if params.get("method"):
-            input_params["method"] = self._app_spec.get_arc56_method(params["method"])
+            input_params["method"] = self._app_spec.get_arc56_method(params["method"]).to_abi_method()
             if params.get("args"):
                 input_params["args"] = self._client._get_abi_args_with_default_values(
                     method_name_or_signature=params["method"],
@@ -841,7 +860,7 @@ class _AppClientSendAccessor:
                     allow_empty_signatures=True,
                     extra_opcode_budget=None,
                     exec_trace_config=None,
-                    round=None,
+                    simulation_round=None,
                 )
             )
 
@@ -859,6 +878,20 @@ class _AppClientSendAccessor:
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call_method_call(self._client.params.call(params))
         )
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientParams:
+    """Full parameters for creating an app client"""
+
+    app_spec: Arc56Contract | Arc32Contract | str  # Using string quotes since these types may be defined elsewhere
+    algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
+    app_id: int
+    app_name: str | None = None
+    default_sender: str | bytes | None = None  # Address can be string or bytes
+    default_signer: TransactionSigner | None = None
+    approval_source_map: SourceMap | None = None
+    clear_source_map: SourceMap | None = None
 
 
 class AppClient:
@@ -954,7 +987,7 @@ class AppClient:
         if network_index is None:
             raise Exception(f"No app ID found for network {json.dumps(network_names)} in the app spec")
 
-        app_id = app_spec.networks[available_app_spec_networks[network_index]]["app_id"]  # type: ignore[index]
+        app_id = app_spec.networks[available_app_spec_networks[network_index]].app_id  # type: ignore[index]
 
         return AppClient(
             AppClientParams(
@@ -1026,12 +1059,8 @@ class AppClient:
                 clear_state_program=base64.b64decode(app_spec.byte_code.clear),
             )
 
-        approval_source = app_spec.source.approval
-        approval_template: str = (
-            base64.b64decode(approval_source).decode("utf-8") if is_base64(approval_source) else approval_source
-        )
         compiled_approval = app_manager.compile_teal_template(
-            approval_template,
+            app_spec.source.get_decoded_approval(),
             template_params=deploy_time_params,
             deployment_metadata=(
                 {"updatable": updatable or False, "deletable": deletable or False}
@@ -1040,12 +1069,8 @@ class AppClient:
             ),
         )
 
-        clear_source = app_spec.source.clear
-        clear_template: str = (
-            base64.b64decode(clear_source).decode("utf-8") if is_base64(clear_source) else clear_source
-        )
         compiled_clear = app_manager.compile_teal_template(
-            clear_template,
+            app_spec.source.get_decoded_clear(),
             template_params=deploy_time_params,
         )
 
@@ -1062,7 +1087,6 @@ class AppClient:
                 with_sources=True,
             )
 
-        # TODO: Add invocation of persisting sourcemaps
         return AppClientCompilationResult(
             approval_program=compiled_approval.compiled_base64_to_bytes,
             compiled_approval=compiled_approval,
@@ -1117,7 +1141,11 @@ class AppClient:
         # If we have the source we can display the TEAL in the error message
         if hasattr(app_spec, "source"):
             program_source = (
-                (app_spec.source.clear if is_clear_state_program else app_spec.source.approval)
+                (
+                    app_spec.source.get_decoded_clear()
+                    if is_clear_state_program
+                    else app_spec.source.get_decoded_approval()
+                )
                 if app_spec.source
                 else None
             )

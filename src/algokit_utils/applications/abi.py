@@ -1,41 +1,68 @@
-from typing import Any, TypeVar
+from dataclasses import dataclass
+from typing import Any, TypeAlias
 
-from algosdk.abi import Method as AlgorandABIMethod
-from algosdk.abi import TupleType
+import algosdk
+from algosdk.abi.method import Method as AlgorandABIMethod
+from algosdk.atomic_transaction_composer import ABIResult
 
-from algokit_utils.applications.app_spec.arc56 import (
-    ABIArgumentType,
-    ABITypeAlias,
-    StructField,
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract, StructField
+from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
+from algokit_utils.models.state import BoxName
+
+ABIValue: TypeAlias = (
+    bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"]
 )
-from algokit_utils.applications.app_spec.arc56 import (
-    Method as Arc56Method,
-)
-from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIType, ABIValue
+ABIStruct: TypeAlias = dict[str, list[dict[str, "ABIValue"]]]
+Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
-T = TypeVar("T", bound=ABIValue | bytes | ABIStruct | None)
+ABIType: TypeAlias = algosdk.abi.ABIType
+ABIArgumentType: TypeAlias = algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType
+
+__all__ = [
+    "ABIArgumentType",
+    "ABIReturn",
+    "ABIStruct",
+    "ABIType",
+    "ABIValue",
+    "Arc56ReturnValueType",
+    "BoxABIValue",
+    "get_abi_decoded_value",
+    "get_abi_encoded_value",
+    "get_abi_struct_from_abi_tuple",
+    "get_abi_tuple_from_abi_struct",
+    "get_abi_tuple_type_from_abi_struct_definition",
+    "get_arc56_value",
+]
 
 
-def get_arc56_return_value(
-    return_value: ABIReturn | None,
-    method: Arc56Method | AlgorandABIMethod,
-    structs: dict[str, list[StructField]],
+@dataclass(kw_only=True)
+class ABIReturn:
+    raw_value: bytes | None = None
+    value: ABIValue | None = None
+    method: AlgorandABIMethod | None = None
+    decode_error: Exception | None = None
+
+    def __init__(self, result: ABIResult) -> None:
+        self.decode_error = result.decode_error
+        if not self.decode_error:
+            self.raw_value = result.raw_value
+            self.value = result.return_value
+            self.method = result.method
+
+    @property
+    def is_success(self) -> bool:
+        """Returns True if the ABI call was successful (no decode error)"""
+        return self.decode_error is None
+
+    def get_arc56_value(
+        self, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
+    ) -> ABIValue | ABIStruct | None:
+        return get_arc56_value(self, method, structs)
+
+
+def get_arc56_value(
+    abi_return: ABIReturn, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
 ) -> ABIValue | ABIStruct | None:
-    """Checks for decode errors on the return value and maps it to the specified type.
-
-    Args:
-        return_value: The smart contract response
-        method: The method that was called
-        structs: The struct fields from the app spec
-
-    Returns:
-        The smart contract response with an updated return value
-
-    Raises:
-        ValueError: If there is a decode error
-    """
-
-    # Get method returns info
     if isinstance(method, AlgorandABIMethod):
         type_str = method.returns.type
         struct = None  # AlgorandABIMethod doesn't have struct info
@@ -43,16 +70,13 @@ def get_arc56_return_value(
         type_str = method.returns.type
         struct = method.returns.struct
 
-    # Handle void/undefined returns
-    if type_str == "void" or return_value is None:
+    if type_str == "void" or abi_return.value is None:
         return None
 
-    # Handle decode errors
-    if return_value.decode_error:
-        raise ValueError(return_value.decode_error)
+    if abi_return.decode_error:
+        raise ValueError(abi_return.decode_error)
 
-    # Get raw return value
-    raw_value = return_value.raw_value
+    raw_value = abi_return.raw_value
 
     # Handle AVM types
     if type_str == "AVMBytes":
@@ -64,14 +88,14 @@ def get_arc56_return_value(
 
     # Handle structs
     if struct and struct in structs:
-        return_tuple = return_value.value
-        return get_abi_struct_from_abi_tuple(return_tuple, structs[struct], structs)
+        return_tuple = abi_return.value
+        return Arc56Contract.get_abi_struct_from_abi_tuple(return_tuple, structs[struct], structs)
 
     # Return as-is
-    return return_value.value
+    return abi_return.value
 
 
-def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: ANN401, PLR0911
+def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: PLR0911, ANN401
     if isinstance(value, (bytes | bytearray)):
         return value
     if type_str == "AVMUint64":
@@ -95,7 +119,7 @@ def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[Str
 
 
 def get_abi_decoded_value(
-    value: bytes | int | str, type_str: str | ABITypeAlias | ABIArgumentType, structs: dict[str, list[StructField]]
+    value: bytes | int | str, type_str: str | ABIArgumentType, structs: dict[str, list[StructField]]
 ) -> ABIValue:
     type_value = str(type_str)
 
@@ -135,7 +159,7 @@ def get_abi_tuple_from_abi_struct(
 
 def get_abi_tuple_type_from_abi_struct_definition(
     struct_def: list[StructField], structs: dict[str, list[StructField]]
-) -> TupleType:
+) -> algosdk.abi.TupleType:
     types = []
     for field in struct_def:
         field_type = field.type
@@ -148,7 +172,7 @@ def get_abi_tuple_type_from_abi_struct_definition(
             types.append(get_abi_tuple_type_from_abi_struct_definition(field_type, structs))
         else:
             raise ValueError(f"Invalid field type: {field_type}")
-    return TupleType(types)
+    return algosdk.abi.TupleType(types)
 
 
 def get_abi_struct_from_abi_tuple(
@@ -168,3 +192,9 @@ def get_abi_struct_from_abi_tuple(
             value = get_abi_struct_from_abi_tuple(value, field_type, structs)
         result[key] = value
     return result
+
+
+@dataclass(kw_only=True, frozen=True)
+class BoxABIValue:
+    name: BoxName
+    value: ABIValue

@@ -12,11 +12,12 @@ from algokit_utils.models.simulate import SimulationTrace
 
 if TYPE_CHECKING:
     from algosdk.source_map import SourceMap as AlgoSourceMap
-
 __all__ = [
     "LogicError",
+    "LogicErrorData",
     "parse_logic_error",
 ]
+
 
 LOGIC_ERROR = (
     ".*transaction (?P<transaction_id>[A-Z0-9]+): logic eval error: (?P<message>.*). Details: .*pc=(?P<pc>[0-9]+).*"

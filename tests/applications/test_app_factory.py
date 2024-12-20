@@ -10,6 +10,7 @@ from algokit_utils.applications.app_client import (
     AppClientMethodCallParams,
     AppClientMethodCallWithCompilationAndSendParams,
     AppClientMethodCallWithSendParams,
+    AppClientParams,
 )
 from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_factory import (
@@ -21,7 +22,6 @@ from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.application import AppClientParams
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
@@ -43,7 +43,7 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 @pytest.fixture
 def app_spec() -> str:
-    return (Path(__file__).parent.parent / "artifacts" / "testing_app" / "arc32_app_spec.json").read_text()
+    return (Path(__file__).parent.parent / "artifacts" / "testing_app" / "app_spec.arc32.json").read_text()
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def arc56_factory(
 ) -> AppFactory:
     """Create AppFactory fixture"""
     arc56_raw_spec = (
-        Path(__file__).parent.parent / "artifacts" / "testing_app_arc56" / "arc56_app_spec.json"
+        Path(__file__).parent.parent / "artifacts" / "testing_app_arc56" / "app_spec.arc56.json"
     ).read_text()
     return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.address)
 
@@ -241,7 +241,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
         update_deploy_result.update_response.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
     )
     assert update_deploy_result.update_response.abi_return
-    assert update_deploy_result.update_response.abi_return == "args_io"
+    assert update_deploy_result.update_response.abi_value == "args_io"
 
 
 def test_deploy_app_replace(factory: AppFactory) -> None:
@@ -316,9 +316,9 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
         replace_deploy_result.delete_response.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
     )
     assert replace_deploy_result.create_response.abi_return
-    assert replace_deploy_result.create_response.abi_return == "arg_io"
+    assert replace_deploy_result.create_response.abi_value == "arg_io"
     assert replace_deploy_result.delete_response.abi_return
-    assert replace_deploy_result.delete_response.abi_return == "arg2_io"
+    assert replace_deploy_result.delete_response.abi_value == "arg2_io"
 
 
 def test_create_then_call_app(factory: AppFactory) -> None:

@@ -1,20 +1,17 @@
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
 from algosdk.transaction import Transaction
+from typing_extensions import Self
 
+from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
-from algokit_utils.models.transaction import (
-    SendAppCreateTransactionResult,
-    SendAppTransactionResult,
-    SendAppUpdateTransactionResult,
-    SendSingleAssetCreateTransactionResult,
-    SendSingleTransactionResult,
-)
+from algokit_utils.models.transaction import TransactionWrapper
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -33,14 +30,93 @@ from algokit_utils.transactions.transaction_composer import (
     AssetTransferParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
+    SendAtomicTransactionComposerResults,
     TransactionComposer,
     TxnParams,
 )
+
+__all__ = [
+    "AlgorandClientTransactionSender",
+    "SendAppCreateTransactionResult",
+    "SendAppTransactionResult",
+    "SendAppUpdateTransactionResult",
+    "SendSingleAssetCreateTransactionResult",
+    "SendSingleTransactionResult",
+]
 
 logger = config.logger
 
 
 T = TypeVar("T", bound=TxnParams)
+
+
+@dataclass(frozen=True, kw_only=True)
+class SendSingleTransactionResult:
+    transaction: TransactionWrapper  # Last transaction
+    confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
+
+    # Fields from SendAtomicTransactionComposerResults
+    group_id: str
+    tx_id: str | None = None
+    tx_ids: list[str]  # Full array of transaction IDs
+    transactions: list[TransactionWrapper]
+    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    returns: list[ABIReturn] | None = None
+
+    @classmethod
+    def from_composer_result(cls, result: SendAtomicTransactionComposerResults, index: int = -1) -> Self:
+        # Get base parameters
+        base_params = {
+            "transaction": result.transactions[index],
+            "confirmation": result.confirmations[index],
+            "group_id": result.group_id,
+            "tx_id": result.tx_ids[index],
+            "tx_ids": result.tx_ids,
+            "transactions": [result.transactions[index]],
+            "confirmations": result.confirmations,
+            "returns": result.returns,
+        }
+
+        # For asset creation, extract asset_id from confirmation
+        if cls is SendSingleAssetCreateTransactionResult:
+            base_params["asset_id"] = result.confirmations[index]["asset-index"]  # type: ignore[call-overload]
+        # For app creation, extract app_id and calculate app_address
+        elif cls is SendAppCreateTransactionResult:
+            app_id = result.confirmations[index]["application-index"]  # type: ignore[call-overload]
+            base_params.update(
+                {
+                    "app_id": app_id,
+                    "app_address": algosdk.logic.get_application_address(app_id),
+                    "abi_return": result.returns[index] if result.returns else None,  # type: ignore[dict-item]
+                }
+            )
+        # For regular app transactions, just add abi_return
+        elif cls is SendAppTransactionResult:
+            base_params["abi_return"] = result.returns[index] if result.returns else None  # type: ignore[assignment]
+
+        return cls(**base_params)  # type: ignore[arg-type]
+
+
+@dataclass(frozen=True, kw_only=True)
+class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
+    asset_id: int
+
+
+@dataclass(frozen=True)
+class SendAppTransactionResult(SendSingleTransactionResult):
+    abi_return: ABIReturn | None = None
+
+
+@dataclass(frozen=True)
+class SendAppUpdateTransactionResult(SendAppTransactionResult):
+    compiled_approval: Any | None = None
+    compiled_clear: Any | None = None
+
+
+@dataclass(frozen=True, kw_only=True)
+class SendAppCreateTransactionResult(SendAppUpdateTransactionResult):
+    app_id: int
+    app_address: str
 
 
 class AlgorandClientTransactionSender:

@@ -11,10 +11,21 @@ from algosdk.transaction import OnComplete, Transaction
 from typing_extensions import Self
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.abi import (
+    ABIReturn,
+    ABIStruct,
+    ABIValue,
+    Arc56ReturnValueType,
+    get_abi_decoded_value,
+    get_abi_tuple_from_abi_struct,
+)
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientBareCallParams,
+    AppClientCompilationParams,
+    AppClientCompilationResult,
     AppClientMethodCallParams,
+    AppClientParams,
 )
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
@@ -26,32 +37,13 @@ from algokit_utils.applications.app_deployer import (
     OnUpdate,
     OperationPerformed,
 )
+from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
-from algokit_utils.applications.utils import (
-    get_abi_decoded_value,
-    get_abi_tuple_from_abi_struct,
-    get_arc56_return_value,
-)
-from algokit_utils.models.abi import ABIReturn, ABIStruct, ABIValue
 from algokit_utils.models.application import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
-    AppClientCompilationParams,
-    AppClientCompilationResult,
-    AppClientParams,
     AppSourceMaps,
 )
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.models.transaction import (
-    SendAppCreateTransactionResult,
-    SendAppCreateTransactionResultBase,
-    SendAppTransactionResult,
-    SendAppTransactionResultBase,
-    SendAppUpdateTransactionResult,
-    SendAppUpdateTransactionResultBase,
-    SendParams,
-    SendSingleTransactionResult,
-)
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.client import AlgorandClientProtocol
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
@@ -61,6 +53,12 @@ from algokit_utils.transactions.transaction_composer import (
     AppUpdateMethodCallParams,
     AppUpdateParams,
     BuiltTransactions,
+)
+from algokit_utils.transactions.transaction_sender import (
+    SendAppCreateTransactionResult,
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
+    SendSingleTransactionResult,
 )
 
 T = TypeVar("T")
@@ -73,6 +71,10 @@ __all__ = [
     "AppFactoryCreateParams",
     "AppFactoryCreateWithSendParams",
     "AppFactoryDeployResponse",
+    "AppFactoryParams",
+    "SendAppCreateFactoryTransactionResult",
+    "SendAppFactoryTransactionResult",
+    "SendAppUpdateFactoryTransactionResult",
 ]
 
 
@@ -123,45 +125,18 @@ class AppFactoryCreateMethodCallWithSendParams(AppFactoryCreateMethodCallParams,
 
 
 @dataclass(frozen=True)
-class SendAppTransactionResultWithABIValue(SendAppTransactionResultBase[ABIValue | ABIStruct | None]):
-    @classmethod
-    def from_send_app_txn(
-        cls, response: SendAppTransactionResult | None, abi_return: ABIValue | ABIStruct | None
-    ) -> Self | None:
-        if response is None:
-            return None
-
-        return cls(
-            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
-        )
+class SendAppFactoryTransactionResult(SendAppTransactionResult):
+    abi_value: Arc56ReturnValueType | None = None
 
 
 @dataclass(frozen=True)
-class SendAppUpdateTransactionResultWithABIValue(SendAppUpdateTransactionResultBase[ABIValue | ABIStruct | None]):
-    @classmethod
-    def from_send_app_update_txn(
-        cls, response: SendAppUpdateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
-    ) -> Self | None:
-        if response is None:
-            return None
-
-        return cls(
-            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
-        )
+class SendAppUpdateFactoryTransactionResult(SendAppUpdateTransactionResult):
+    abi_value: Arc56ReturnValueType | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResultWithABIValue(SendAppCreateTransactionResultBase[ABIValue | ABIStruct | None]):
-    @classmethod
-    def from_send_app_create_txn(
-        cls, response: SendAppCreateTransactionResult | None, abi_return: ABIValue | ABIStruct | None
-    ) -> Self | None:
-        if response is None:
-            return None
-
-        return cls(
-            **asdict(replace(response, abi_return=abi_return)),  # type: ignore[arg-type]
-        )
+class SendAppCreateFactoryTransactionResult(SendAppCreateTransactionResult):
+    abi_value: Arc56ReturnValueType | None = None
 
 
 @dataclass(frozen=True)
@@ -170,9 +145,9 @@ class AppFactoryDeployResponse:
 
     app: AppMetaData
     operation_performed: OperationPerformed
-    create_response: SendAppCreateTransactionResultWithABIValue | None = None
-    update_response: SendAppUpdateTransactionResultWithABIValue | None = None
-    delete_response: SendAppTransactionResultWithABIValue | None = None
+    create_response: SendAppCreateFactoryTransactionResult | None = None
+    update_response: SendAppUpdateFactoryTransactionResult | None = None
+    delete_response: SendAppFactoryTransactionResult | None = None
 
     @classmethod
     def from_deploy_response(
@@ -182,59 +157,50 @@ class AppFactoryDeployResponse:
         app_spec: Arc56Contract,
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
-        def set_compilation_data(response: Any, compilation_data: AppClientCompilationResult | None) -> Any:  # noqa: ANN401
-            if compilation_data is None:
-                return response
-            if hasattr(response, "compiled_approval") and hasattr(compilation_data, "compiled_approval"):
-                return replace(
-                    response,
-                    compiled_approval=compilation_data.compiled_approval,
-                    compiled_clear=compilation_data.compiled_clear,
-                )
-            return response
-
-        def process_abi_response(
+        def to_factory_response(
             response_data: SendAppTransactionResult
             | SendAppCreateTransactionResult
             | SendAppUpdateTransactionResult
             | None,
             params: Any,  # noqa: ANN401
-            from_txn_method: Callable,
         ) -> Any | None:  # noqa: ANN401
             if not response_data:
                 return None
 
-            abi_return = None
-            if response_data.abi_return and hasattr(params, "method"):
-                abi_return = get_arc56_return_value(
-                    response_data.abi_return,
-                    app_spec.get_arc56_method(params.method),
-                    app_spec.structs,
-                )
+            abi_value = None
+            abi_return = response_data.abi_return
+            if abi_return and abi_return.method:
+                abi_value = abi_return.get_arc56_value(params.method, app_spec.structs)
 
-            response_ = from_txn_method(response_data, abi_return)
-            if response_ is None:
-                return None
-
-            return set_compilation_data(response_, app_compilation_data)
+            match response_data:
+                case SendAppCreateTransactionResult():
+                    return SendAppCreateFactoryTransactionResult(**asdict(response_data), abi_value=abi_value)
+                case SendAppUpdateTransactionResult():
+                    raw_response = asdict(response_data)
+                    raw_response["compiled_approval"] = (
+                        app_compilation_data.compiled_approval if app_compilation_data else None
+                    )
+                    raw_response["compiled_clear"] = (
+                        app_compilation_data.compiled_clear if app_compilation_data else None
+                    )
+                    return SendAppUpdateFactoryTransactionResult(**raw_response, abi_value=abi_value)
+                case SendAppTransactionResult():
+                    return SendAppFactoryTransactionResult(**asdict(response_data), abi_value=abi_value)
 
         return cls(
             app=response.app,
             operation_performed=response.operation_performed,
-            create_response=process_abi_response(
+            create_response=to_factory_response(
                 response.create_response,
                 deploy_params.create_params,
-                SendAppCreateTransactionResultWithABIValue.from_send_app_create_txn,
             ),
-            update_response=process_abi_response(
+            update_response=to_factory_response(
                 response.update_response,
                 deploy_params.update_params,
-                SendAppUpdateTransactionResultWithABIValue.from_send_app_update_txn,
             ),
-            delete_response=process_abi_response(
+            delete_response=to_factory_response(
                 response.delete_response,
                 deploy_params.delete_params,
-                SendAppTransactionResultWithABIValue.from_send_app_txn,
             ),
         )
 
@@ -323,7 +289,7 @@ class _AppFactoryParamsAccessor:
             },
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory._app_spec.get_arc56_method(params.method),
+            method=self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=params.on_complete or OnComplete.NoOpOC,
             note=params.note,
@@ -338,7 +304,7 @@ class _AppFactoryParamsAccessor:
             clear_state_program="",
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory._app_spec.get_arc56_method(params.method),
+            method=self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.UpdateApplicationOC,
             note=params.note,
@@ -351,7 +317,7 @@ class _AppFactoryParamsAccessor:
             app_id=0,
             sender=self._factory._get_sender(params.sender),
             signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory._app_spec.get_arc56_method(params.method),
+            method=self._factory.app_spec.get_arc56_method(params.method).to_abi_method(),
             args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
             on_complete=OnComplete.DeleteApplicationOC,
             note=params.note,
@@ -467,7 +433,7 @@ class _AppFactorySendAccessor:
         result = self._factory._handle_call_errors(
             lambda: self._factory._parse_method_call_return(
                 lambda: self._algorand.send.app_create_method_call(self._factory.params.create(create_params)),
-                self._factory._app_spec.get_arc56_method(params.method),
+                self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
             )
         )
 
@@ -722,7 +688,7 @@ class AppFactory:
 
         return result
 
-    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001 TODO: revisit
+    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001
         return AppClient._expose_logic_error_static(
             e=e,
             app_spec=self._app_spec,
@@ -735,7 +701,7 @@ class AppFactory:
         )
 
     def _get_deploy_time_control(self, control: str) -> bool | None:
-        approval = self._app_spec.source.approval if self._app_spec.source else None
+        approval = self._app_spec.source.get_decoded_approval() if self._app_spec.source else None
 
         template_name = UPDATABLE_TEMPLATE_NAME if control == "updatable" else DELETABLE_TEMPLATE_NAME
         if not approval or template_name not in approval:
@@ -773,7 +739,7 @@ class AppFactory:
         return AppFactoryCreateMethodCallResult(
             **{
                 **result_value.__dict__,
-                "abi_return": get_arc56_return_value(result_value.abi_return, method, self._app_spec.structs)
+                "abi_return": result_value.abi_return.get_arc56_value(method, self._app_spec.structs)
                 if isinstance(result_value.abi_return, ABIReturn)
                 else None,
             }

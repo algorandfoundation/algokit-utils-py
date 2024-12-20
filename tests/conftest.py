@@ -10,8 +10,6 @@ import pytest
 from dotenv import load_dotenv
 
 from algokit_utils import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
     Account,
     ApplicationClient,
     ApplicationSpecification,
@@ -19,6 +17,7 @@ from algokit_utils import (
     ensure_funded,
     replace_template_variables,
 )
+from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.transactions.transaction_composer import AssetCreateParams
 

@@ -5,6 +5,8 @@ from decimal import Decimal
 import algosdk
 from typing_extensions import Self
 
+__all__ = ["AlgoAmount"]
+
 
 class AlgoAmount:
     def __init__(self, amount: dict[str, int | Decimal]):

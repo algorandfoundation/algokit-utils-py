@@ -11,16 +11,26 @@ from algosdk.logic import get_application_address
 from algosdk.source_map import SourceMap
 from algosdk.v2client import algod
 
-from algokit_utils.models.abi import ABIReturn, ABIType, ABIValue
+from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue
 from algokit_utils.models.application import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
     AppInformation,
     AppState,
     CompiledTeal,
 )
 from algokit_utils.models.state import BoxIdentifier, BoxName, BoxReference, DataTypeFlag, TealTemplateParams
-from algokit_utils.transactions.utils import get_abi_return_value
+
+__all__ = [
+    "DELETABLE_TEMPLATE_NAME",
+    "UPDATABLE_TEMPLATE_NAME",
+    "AppManager",
+]
+
+
+UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
+"""The name of the TEAL template variable for deploy-time immutability control."""
+
+DELETABLE_TEMPLATE_NAME = "TMPL_DELETABLE"
+"""The name of the TEAL template variable for deploy-time permanence control."""
 
 
 def _is_valid_token_character(char: str) -> bool:
@@ -254,7 +264,7 @@ class AppManager:
         if not abi_result:
             return None
 
-        return get_abi_return_value(abi_result)
+        return ABIReturn(abi_result)
 
     @staticmethod
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:

@@ -7,8 +7,6 @@ import httpx
 
 from algokit_utils.config import config
 
-logger = config.logger
-
 __all__ = [
     "DISPENSER_ACCESS_TOKEN_KEY",
     "DISPENSER_ASSETS",
@@ -20,6 +18,9 @@ __all__ = [
     "DispenserLimitResponse",
     "TestNetDispenserApiClient",
 ]
+
+
+logger = config.logger
 
 
 class DispenserApiConfig:

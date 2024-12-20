@@ -62,13 +62,13 @@ def receiver(algorand: AlgorandClient) -> Account:
 
 @pytest.fixture
 def raw_hello_world_arc32_app_spec() -> str:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return raw_json_spec.read_text()
 
 
 @pytest.fixture
 def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return ApplicationSpecification.from_json(raw_json_spec.read_text())
 
 

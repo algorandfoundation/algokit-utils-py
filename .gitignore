@@ -170,3 +170,6 @@ cython_debug/
 /docs/source/apidocs
 
 !docs/html
+
+# Received approval test files
+*.received.*

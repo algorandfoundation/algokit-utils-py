@@ -12,12 +12,11 @@ from algosdk.v2client.indexer import IndexerClient
 
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_client import AppClient
+from algokit_utils.applications.app_client import AppClient, AppClientParams
 from algokit_utils.applications.app_deployer import AppLookup
 from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
-from algokit_utils.models.application import AppClientParams
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
 from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.protocols.client import AlgorandClientProtocol
@@ -48,10 +47,6 @@ class NetworkDetail:
     is_local_net: bool
     genesis_id: str
     genesis_hash: str
-
-
-def genesis_id_is_localnet(genesis_id: str) -> bool:
-    return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
@@ -276,7 +271,7 @@ class ClientManager:
 
     @staticmethod
     def genesis_id_is_local_net(genesis_id: str) -> bool:
-        return genesis_id_is_localnet(genesis_id)
+        return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
     @staticmethod
     def get_config_from_environment_or_localnet() -> AlgoClientConfigs:

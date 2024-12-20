@@ -13,12 +13,7 @@ from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
 
-__all__ = [
-    "AccountAssetInformation",
-    "AssetInformation",
-    "AssetManager",
-    "BulkAssetOptInOutResult",
-]
+__all__ = ["AccountAssetInformation", "AssetInformation", "AssetManager", "BulkAssetOptInOutResult"]
 
 
 @dataclass(kw_only=True, frozen=True)

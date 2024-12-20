@@ -11,11 +11,6 @@ from algosdk.v2client.indexer import IndexerClient
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.models.transaction import (
-    SendAppCreateTransactionResult,
-    SendAppTransactionResult,
-    SendAppUpdateTransactionResult,
-)
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -26,22 +21,29 @@ from algokit_utils.transactions.transaction_composer import (
 )
 from algokit_utils.transactions.transaction_sender import (
     AlgorandClientTransactionSender,
+    SendAppCreateTransactionResult,
+    SendAppTransactionResult,
+    SendAppUpdateTransactionResult,
 )
 
-APP_DEPLOY_NOTE_DAPP = "ALGOKIT_DEPLOYER"
-
-logger = config.logger
-
 __all__ = [
+    "APP_DEPLOY_NOTE_DAPP",
     "AppDeployMetaData",
     "AppDeployParams",
     "AppDeployResponse",
     "AppDeployer",
     "AppLookup",
+    "AppMetaData",
+    "AppReference",
     "OnSchemaBreak",
     "OnUpdate",
     "OperationPerformed",
 ]
+
+
+APP_DEPLOY_NOTE_DAPP: str = "ALGOKIT_DEPLOYER"
+
+logger = config.logger
 
 
 @dataclasses.dataclass

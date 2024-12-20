@@ -229,7 +229,7 @@ def simulate_response(
     allow_unnamed_resources: bool | None = None,
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
-    round: int | None = None,  # noqa: A002 TODO: revisit
+    simulation_round: int | None = None,
     skip_signatures: int | None = None,  # noqa: ARG001 TODO: revisit
 ) -> SimulateAtomicTransactionResponse:
     """
@@ -253,7 +253,7 @@ def simulate_response(
     simulate_request = SimulateRequest(
         txn_groups=txn_group,
         allow_more_logs=allow_more_logs or True,
-        round=round,
+        round=simulation_round,
         extra_opcode_budget=extra_opcode_budget or 0,
         allow_unnamed_resources=allow_unnamed_resources or True,
         allow_empty_signatures=allow_empty_signatures or True,
@@ -273,7 +273,7 @@ def simulate_and_persist_response(  # noqa: PLR0913
     allow_unnamed_resources: bool | None = None,
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
-    round: int | None = None,  # noqa: A002
+    simulation_round: int | None = None,
     skip_signatures: int | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """
@@ -307,7 +307,7 @@ def simulate_and_persist_response(  # noqa: PLR0913
         allow_unnamed_resources,
         extra_opcode_budget,
         exec_trace_config,
-        round,
+        simulation_round,
         skip_signatures,
     )
     txn_results = response.simulate_response["txn-groups"]

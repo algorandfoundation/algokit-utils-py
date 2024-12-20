@@ -2,8 +2,7 @@ from algosdk.abi import ABIType, Method
 from algosdk.abi.method import Returns
 from algosdk.atomic_transaction_composer import ABIResult
 
-from algokit_utils.models.abi import ABIReturn, ABIValue
-from algokit_utils.transactions.utils import get_abi_return_value
+from algokit_utils.applications.abi import ABIReturn, ABIValue
 
 
 def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
@@ -20,7 +19,7 @@ def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
         decode_error=None,
     )
 
-    return get_abi_return_value(result)
+    return ABIReturn(result)
 
 
 class TestABIReturn:

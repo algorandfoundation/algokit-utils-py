@@ -5,14 +5,10 @@ import algosdk.atomic_transaction_composer
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 from algosdk.transaction import Multisig, MultisigTransaction
 
+__all__ = ["DISPENSER_ACCOUNT_NAME", "Account", "MultiSigAccount", "MultisigMetadata"]
+
+
 DISPENSER_ACCOUNT_NAME = "DISPENSER"
-
-
-__all__ = [
-    "Account",
-    "MultiSigAccount",
-    "MultisigMetadata",
-]
 
 
 @dataclasses.dataclass(kw_only=True)

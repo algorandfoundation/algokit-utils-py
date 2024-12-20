@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -17,10 +17,12 @@ from algosdk.v2client.algod import AlgodClient
 from typing_extensions import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
+from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
 from algokit_utils.config import config
-from algokit_utils.models.transaction import SendAtomicTransactionComposerResults, SendParams, TransactionWrapper
-from algokit_utils.transactions.utils import encode_lease, get_abi_return_value, populate_app_call_resources
+from algokit_utils.models.transaction import SendParams, TransactionWrapper
+from algokit_utils.transactions.utils import encode_lease, populate_app_call_resources
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -29,13 +31,11 @@ if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.models import SimulateTraceConfig
 
-    from algokit_utils.models.abi import ABIValue
+    from algokit_utils.applications.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference
     from algokit_utils.models.transaction import Arc2TransactionNote
 
-
-logger = config.logger
 
 __all__ = [
     "AppCallParams",
@@ -51,10 +51,15 @@ __all__ = [
     "AssetTransferParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
+    "SendAtomicTransactionComposerResults",
     "TransactionComposer",
     "TransactionComposerBuildResult",
+    "TxnParams",
     "send_atomic_transaction_composer",
 ]
+
+
+logger = config.logger
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -533,6 +538,23 @@ class TransactionComposerBuildResult:
     method_calls: dict[int, Method]
 
 
+@dataclass
+class SendAtomicTransactionComposerResults:
+    """Results from sending an AtomicTransactionComposer transaction group"""
+
+    group_id: str
+    """The group ID if this was a transaction group"""
+    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    """The confirmation info for each transaction"""
+    tx_ids: list[str]
+    """The transaction IDs that were sent"""
+    transactions: list[TransactionWrapper]
+    """The transactions that were sent"""
+    returns: list[ABIReturn]
+    """The ABI return values from any ABI method calls"""
+    simulate_response: dict[str, Any] | None = None
+
+
 def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
@@ -540,7 +562,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     max_rounds_to_wait: int | None = 5,
     skip_waiting: bool = False,
     suppress_log: bool | None = None,
-    populate_resources: bool | None = None,  # TODO: implement/clarify
+    populate_resources: bool | None = None,
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group
 
@@ -611,7 +633,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             confirmations=confirmations or [],
             tx_ids=[t.get_txid() for t in transactions_to_send],
             transactions=[TransactionWrapper(t) for t in transactions_to_send],
-            returns=[get_abi_return_value(r) for r in result.abi_results],
+            returns=[ABIReturn(r) for r in result.abi_results],
         )
 
     except Exception as e:
@@ -882,7 +904,7 @@ class TransactionComposer:
         allow_unnamed_resources: bool | None = None,
         extra_opcode_budget: int | None = None,
         exec_trace_config: SimulateTraceConfig | None = None,
-        round: int | None = None,  # noqa: A002 TODO: revisit
+        simulation_round: int | None = None,
         skip_signatures: int | None = None,
     ) -> SendAtomicTransactionComposerResults:
         atc = AtomicTransactionComposer() if skip_signatures else self._atc
@@ -907,17 +929,19 @@ class TransactionComposer:
                 allow_unnamed_resources,
                 extra_opcode_budget,
                 exec_trace_config,
-                round,
+                simulation_round,
                 skip_signatures,
             )
 
             return SendAtomicTransactionComposerResults(
-                confirmations=[],  # TODO: extract confirmations,
+                confirmations=response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
+                    "txn-results"
+                ],
                 transactions=[TransactionWrapper(txn.txn) for txn in atc.txn_list],
                 tx_ids=response.tx_ids,
                 group_id=atc.txn_list[-1].txn.group or "",
                 simulate_response=response.simulate_response,
-                returns=[get_abi_return_value(r) for r in response.abi_results],
+                returns=[ABIReturn(r) for r in response.abi_results],
             )
 
         response = simulate_response(
@@ -928,7 +952,7 @@ class TransactionComposer:
             allow_unnamed_resources,
             extra_opcode_budget,
             exec_trace_config,
-            round,
+            simulation_round,
             skip_signatures,
         )
 
@@ -942,7 +966,7 @@ class TransactionComposer:
             tx_ids=response.tx_ids,
             group_id=atc.txn_list[-1].txn.group or "",
             simulate_response=response.simulate_response,
-            returns=[get_abi_return_value(r) for r in response.abi_results],
+            returns=[ABIReturn(r) for r in response.abi_results],
         )
 
     @staticmethod
@@ -991,6 +1015,9 @@ class TransactionComposer:
         if params.static_fee is not None and txn_params["sp"]:
             txn_params["sp"].fee = params.static_fee.micro_algos
             txn_params["sp"].flat_fee = True
+
+        if isinstance(txn_params.get("method"), Arc56Method):
+            txn_params["method"] = txn_params["method"].to_abi_method()
 
         txn = build_txn(txn_params)
 
@@ -1094,8 +1121,8 @@ class TransactionComposer:
             )
             if params.schema
             else None,
-            "approval_program": params.approval_program if hasattr(params, "approval_program") else None,
-            "clear_program": params.clear_state_program if hasattr(params, "clear_state_program") else None,
+            "approval_program": getattr(params, "approval_program", None),
+            "clear_program": getattr(params, "clear_state_program", None),
             "rekey_to": params.rekey_to,
         }
 

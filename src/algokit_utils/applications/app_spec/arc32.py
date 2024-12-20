@@ -18,6 +18,8 @@ __all__ = [
     "MethodConfigDict",
     "MethodHints",
     "OnCompleteActionName",
+    "StateDict",
+    "StructArgDict",
 ]
 
 
@@ -126,7 +128,7 @@ def _encode_state_schema(schema: StateSchema) -> dict[str, int]:
     return {
         "num_byte_slices": schema.num_byte_slices,
         "num_uints": schema.num_uints,
-    }
+    }  # type: ignore[unused-ignore]
 
 
 def _decode_state_schema(data: dict[str, int]) -> StateSchema:

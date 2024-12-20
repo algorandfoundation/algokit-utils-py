@@ -8,6 +8,7 @@ from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.box_reference import BoxReference as AlgosdkBoxReference
 
 __all__ = [
+    "BoxIdentifier",
     "BoxName",
     "BoxReference",
     "BoxValue",

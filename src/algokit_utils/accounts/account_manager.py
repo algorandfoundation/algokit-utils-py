@@ -15,11 +15,12 @@ from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestN
 from algokit_utils.config import config
 from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account, MultiSigAccount, MultisigMetadata
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.transaction import SendAtomicTransactionComposerResults, SendSingleTransactionResult
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
+    SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
+from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
 logger = config.logger
 

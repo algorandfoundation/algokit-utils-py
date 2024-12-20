@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
@@ -14,13 +13,6 @@ if TYPE_CHECKING:
 __all__ = [
     "AlgorandClientProtocol",
 ]
-
-
-@dataclass
-class _NetworkDetails:
-    genesis_id: str
-    genesis_hash: str
-    network_name: str
 
 
 @runtime_checkable
