@@ -18,7 +18,7 @@ from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
@@ -29,7 +29,7 @@ from algokit_utils.transactions.transaction_composer import (
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
-    from algokit_utils.transactions.models import Arc2TransactionNote
+    from algokit_utils.models.transaction import Arc2TransactionNote
 
 
 @pytest.fixture
@@ -210,7 +210,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
         get_signer=lambda _: funded_account.signer,
     )
     composer.add_app_call_method_call(
-        AppCallMethodCall(
+        AppCallMethodCallParams(
             sender=funded_account.address,
             app_id=app_id,
             method=algosdk.abi.Method.from_signature("hello(string)string"),
@@ -224,7 +224,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
     response = composer.send(max_rounds_to_wait=20)
-    assert response.returns[-1].return_value == "Hello, world"
+    assert response.returns[-1].value == "Hello, world"
 
 
 def test_simulate(algorand: AlgorandClient, funded_account: Account) -> None:
@@ -294,6 +294,7 @@ def test_transaction_cap_is_ignored_if_higher_than_fee(algorand: AlgorandClient,
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1_000_000))
     )
+    assert isinstance(response.confirmation, dict)
     assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_micro_algo(1000)
 
 
@@ -301,6 +302,7 @@ def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algos(1))
     )
+    assert isinstance(response.confirmation, dict)
     assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_algos(1)
 
 
@@ -313,8 +315,10 @@ def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: Acc
     composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algos(2))))
     response = composer.send()
 
-    assert response.confirmations[0]["txn"]["txn"]["grp"] is not None
-    assert response.confirmations[1]["txn"]["txn"]["grp"] is not None
+    assert isinstance(response.confirmations[0], dict)
+    assert isinstance(response.confirmations[1], dict)
+    assert response.confirmations[0].get("txn", {}).get("txn", {}).get("grp") is not None
+    assert response.confirmations[1].get("txn", {}).get("txn", {}).get("grp") is not None
     assert response.transactions[0].payment.group is not None
     assert response.transactions[1].payment.group is not None
     assert len(response.confirmations) == 2

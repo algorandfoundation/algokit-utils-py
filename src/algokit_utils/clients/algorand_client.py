@@ -1,10 +1,9 @@
 import copy
 import time
-from typing import Any
 
-from algosdk.atomic_transaction_composer import AtomicTransactionResponse, TransactionSigner
-from algosdk.transaction import SuggestedParams, wait_for_confirmation
-from typing_extensions import Self
+import typing_extensions
+from algosdk.atomic_transaction_composer import TransactionSigner
+from algosdk.transaction import SuggestedParams
 
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
@@ -13,16 +12,6 @@ from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs
 from algokit_utils.transactions.transaction_composer import (
-    AppCallParams,
-    AppMethodCallParams,
-    AssetConfigParams,
-    AssetCreateParams,
-    AssetDestroyParams,
-    AssetFreezeParams,
-    AssetOptInParams,
-    AssetTransferParams,
-    OnlineKeyRegistrationParams,
-    PaymentParams,
     TransactionComposer,
 )
 from algokit_utils.transactions.transaction_creator import AlgorandClientTransactionCreator
@@ -30,16 +19,6 @@ from algokit_utils.transactions.transaction_sender import AlgorandClientTransact
 
 __all__ = [
     "AlgorandClient",
-    "AppCallParams",
-    "AppMethodCallParams",
-    "AssetConfigParams",
-    "AssetCreateParams",
-    "AssetDestroyParams",
-    "AssetFreezeParams",
-    "AssetOptInParams",
-    "AssetTransferParams",
-    "OnlineKeyRegistrationParams",
-    "PaymentParams",
 ]
 
 
@@ -70,7 +49,7 @@ class AlgorandClient:
 
         self._default_validity_window: int = 10
 
-    def set_default_validity_window(self, validity_window: int) -> Self:
+    def set_default_validity_window(self, validity_window: int) -> typing_extensions.Self:
         """
         Sets the default validity window for transactions.
 
@@ -80,7 +59,7 @@ class AlgorandClient:
         self._default_validity_window = validity_window
         return self
 
-    def set_default_signer(self, signer: TransactionSigner) -> Self:
+    def set_default_signer(self, signer: TransactionSigner) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
@@ -90,7 +69,7 @@ class AlgorandClient:
         self._account_manager.set_default_signer(signer)
         return self
 
-    def set_signer(self, sender: str, signer: TransactionSigner) -> Self:
+    def set_signer(self, sender: str, signer: TransactionSigner) -> typing_extensions.Self:
         """
         Tracks the given account for later signing.
 
@@ -101,7 +80,9 @@ class AlgorandClient:
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_suggested_params(self, suggested_params: SuggestedParams, until: float | None = None) -> Self:
+    def set_suggested_params(
+        self, suggested_params: SuggestedParams, until: float | None = None
+    ) -> typing_extensions.Self:
         """
         Sets a cache value to use for suggested params.
 
@@ -113,7 +94,7 @@ class AlgorandClient:
         self._cached_suggested_params_expiry = until or time.time() + self._cached_suggested_params_timeout
         return self
 
-    def set_suggested_params_timeout(self, timeout: int) -> Self:
+    def set_suggested_params_timeout(self, timeout: int) -> typing_extensions.Self:
         """
         Sets the timeout for caching suggested params.
 
@@ -177,12 +158,6 @@ class AlgorandClient:
     def create_transaction(self) -> AlgorandClientTransactionCreator:
         """Methods for building transactions"""
         return self._transaction_creator
-
-    def _unwrap_single_send_result(self, results: AtomicTransactionResponse) -> dict[str, Any]:
-        return {
-            "confirmation": wait_for_confirmation(self._client_manager.algod, results.tx_ids[0]),
-            "tx_id": results.tx_ids[0],
-        }
 
     @staticmethod
     def default_local_net() -> "AlgorandClient":

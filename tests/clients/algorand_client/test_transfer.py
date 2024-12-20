@@ -48,7 +48,7 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
     assert result.transaction.payment.amt == 5_000_000
 
     assert result.transaction.payment.sender == funded_account.address == result.confirmation["txn"]["txn"]["snd"]  # type: ignore  # noqa: PGH003
-    assert account_info["amount"] == 5_000_000
+    assert account_info.amount == 5_000_000
 
 
 def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_account: Account) -> None:
@@ -314,9 +314,7 @@ def test_ensure_funded(algorand: AlgorandClient, funded_account: Account) -> Non
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert isinstance(to_account_info, dict)
-    actual_amount = to_account_info.get("amount")
-    assert actual_amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
+    assert to_account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
 
 
 def test_ensure_funded_uses_dispenser_by_default(
@@ -336,7 +334,7 @@ def test_ensure_funded_uses_dispenser_by_default(
     assert result.transaction.payment.sender == dispenser.address
 
     account_info = algorand.account.get_information(second_account)
-    assert account_info["amount"] == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
+    assert account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
 
 
 def test_ensure_funded_respects_minimum_funding_increment(algorand: AlgorandClient, funded_account: Account) -> None:
@@ -350,9 +348,7 @@ def test_ensure_funded_respects_minimum_funding_increment(algorand: AlgorandClie
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert isinstance(to_account_info, dict)
-    actual_amount = to_account_info.get("amount")
-    assert actual_amount == AlgoAmount.from_algos(1)
+    assert to_account_info.amount == AlgoAmount.from_algos(1)
 
 
 def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock) -> None:

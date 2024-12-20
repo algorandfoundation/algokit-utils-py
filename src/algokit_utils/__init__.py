@@ -1,6 +1,48 @@
-from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps, simulate_and_persist_response
-from algokit_utils._legacy_v2._ensure_funded import EnsureBalanceParameters, EnsureFundedResponse, ensure_funded
-from algokit_utils._legacy_v2._transfer import TransferAssetParameters, TransferParameters, transfer, transfer_asset
+"""AlgoKit Python Utilities - a set of utilities for building solutions on Algorand
+
+This module provides commonly used utilities and types at the root level for convenience.
+For more specific functionality, import directly from the relevant submodules:
+
+    from algokit_utils.accounts import KmdAccountManager
+    from algokit_utils.applications import AppClient
+    from algokit_utils.applications.app_spec import Arc52Contract
+    etc.
+"""
+
+# Core types and utilities that are commonly used
+from algokit_utils.models.account import Account
+from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
+from algokit_utils.errors.logic_error import LogicError
+from algokit_utils.clients.algorand_client import AlgorandClient
+
+# Common managers/clients that are frequently used entry points
+from algokit_utils.accounts.account_manager import AccountManager
+from algokit_utils.applications.app_client import AppClient
+from algokit_utils.applications.app_factory import AppFactory
+from algokit_utils.assets.asset_manager import AssetManager
+from algokit_utils.clients.client_manager import ClientManager
+from algokit_utils.transactions.transaction_composer import TransactionComposer
+
+# Commonly used constants
+from algokit_utils.clients.dispenser_api_client import (
+    DISPENSER_ACCESS_TOKEN_KEY,
+    TestNetDispenserApiClient,
+    DISPENSER_REQUEST_TIMEOUT,
+)
+
+# ==== LEGACY V2 SUPPORT BEGIN ====
+# These imports are maintained for backwards compatibility
+from algokit_utils._legacy_v2._ensure_funded import (
+    EnsureBalanceParameters,
+    EnsureFundedResponse,
+    ensure_funded,
+)
+from algokit_utils._legacy_v2._transfer import (
+    TransferAssetParameters,
+    TransferParameters,
+    transfer,
+    transfer_asset,
+)
 from algokit_utils._legacy_v2.account import (
     create_kmd_wallet_account,
     get_account,
@@ -54,7 +96,6 @@ from algokit_utils._legacy_v2.deploy import (
     get_creator_apps,
     replace_template_variables,
 )
-from algokit_utils._legacy_v2.logic_error import LogicError
 from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
@@ -81,32 +122,35 @@ from algokit_utils._legacy_v2.network_clients import (
     is_mainnet,
     is_testnet,
 )
+# ==== LEGACY V2 SUPPORT END ====
 
-# New interfaces
-from algokit_utils.accounts.account_manager import AccountManager
-from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
-from algokit_utils.applications.app_client import AppClient
-from algokit_utils.applications.app_factory import AppFactory
-from algokit_utils.assets.asset_manager import AssetManager
-from algokit_utils.clients.algorand_client import AlgorandClient
-from algokit_utils.clients.client_manager import ClientManager
-from algokit_utils.clients.dispenser_api_client import (
-    DISPENSER_ACCESS_TOKEN_KEY,
-    DISPENSER_REQUEST_TIMEOUT,
-    DispenserFundResponse,
-    DispenserLimitResponse,
-    TestNetDispenserApiClient,
+# Debugging utilities
+from algokit_utils._debugging import (
+    PersistSourceMapInput,
+    persist_sourcemaps,
+    simulate_and_persist_response,
 )
-from algokit_utils.models.account import Account
-from algokit_utils.models.application import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
-from algokit_utils.transactions.transaction_composer import TransactionComposer
 
 __all__ = [
+    # Core types and utilities
+    "Account",
+    "LogicError",
+    "AlgorandClient",
     "DELETABLE_TEMPLATE_NAME",
+    "UPDATABLE_TEMPLATE_NAME",
+    # Common managers/clients
+    "AccountManager",
+    "AppClient",
+    "AppFactory",
+    "AssetManager",
+    "ClientManager",
+    "TransactionComposer",
+    "TestNetDispenserApiClient",
+    # Constants
     "DISPENSER_ACCESS_TOKEN_KEY",
     "DISPENSER_REQUEST_TIMEOUT",
     "NOTE_PREFIX",
-    "UPDATABLE_TEMPLATE_NAME",
+    # Legacy v2 exports - maintained for backwards compatibility
     "ABIArgsDict",
     "ABICallArgs",
     "ABICallArgsDict",
@@ -114,22 +158,15 @@ __all__ = [
     "ABICreateCallArgsDict",
     "ABIMethod",
     "ABITransactionResponse",
-    "Account",
-    "AccountManager",
     "AlgoClientConfig",
-    "AlgorandClient",
-    "AppClient",
     "AppDeployMetaData",
-    "AppFactory",
     "AppLookup",
     "AppMetaData",
     "AppReference",
     "AppSpecStateDict",
     "ApplicationClient",
     "ApplicationSpecification",
-    "AssetManager",
     "CallConfig",
-    "ClientManager",
     "CommonCallParameters",
     "CommonCallParametersDict",
     "CreateCallParameters",
@@ -143,12 +180,8 @@ __all__ = [
     "DeployCreateCallArgsDict",
     "DeployResponse",
     "DeploymentFailedError",
-    "DispenserFundResponse",
-    "DispenserLimitResponse",
     "EnsureBalanceParameters",
     "EnsureFundedResponse",
-    "KmdAccountManager",
-    "LogicError",
     "MethodConfigDict",
     "MethodHints",
     "OnCompleteActionName",
@@ -161,14 +194,12 @@ __all__ = [
     "Program",
     "TemplateValueDict",
     "TemplateValueMapping",
-    "TestNetDispenserApiClient",
-    "TransactionComposer",
     "TransactionParameters",
     "TransactionParametersDict",
     "TransactionResponse",
     "TransferAssetParameters",
     "TransferParameters",
-    # ==== LEGACY V2 EXPORTS BEGIN ====
+    # Legacy v2 functions
     "create_kmd_wallet_account",
     "ensure_funded",
     "execute_atc_with_logic_error",
@@ -198,5 +229,4 @@ __all__ = [
     "simulate_and_persist_response",
     "transfer",
     "transfer_asset",
-    # ==== LEGACY V2 EXPORTS END ====
 ]

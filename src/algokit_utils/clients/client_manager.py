@@ -13,12 +13,19 @@ from algosdk.v2client.indexer import IndexerClient
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_client import AppClient, AppClientParams
+from algokit_utils.applications.app_deployer import AppLookup
 from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
-from algokit_utils.applications.app_manager import TealTemplateParams
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
-from algokit_utils.models.application import Arc56Contract
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
-from algokit_utils.protocols.application import AlgorandClientProtocol
+from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.protocols.client import AlgorandClientProtocol
+
+__all__ = [
+    "AlgoSdkClients",
+    "ClientManager",
+    "NetworkDetail",
+]
 
 
 class AlgoSdkClients:
@@ -40,10 +47,6 @@ class NetworkDetail:
     is_local_net: bool
     genesis_id: str
     genesis_hash: str
-
-
-def genesis_id_is_localnet(genesis_id: str) -> bool:
-    return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
@@ -202,6 +205,31 @@ class ClientManager:
             algorand=self._algorand,
         )
 
+    def get_app_client_by_creator_and_name(
+        self,
+        creator_address: str,
+        app_name: str,
+        app_spec: Arc56Contract | ApplicationSpecification | str,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> AppClient:
+        return AppClient.from_creator_and_name(
+            creator_address=creator_address,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            ignore_cache=ignore_cache,
+            app_lookup_cache=app_lookup_cache,
+            app_spec=app_spec,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
+        )
+
     @staticmethod
     def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
         """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
@@ -243,7 +271,7 @@ class ClientManager:
 
     @staticmethod
     def genesis_id_is_local_net(genesis_id: str) -> bool:
-        return genesis_id_is_localnet(genesis_id)
+        return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
     @staticmethod
     def get_config_from_environment_or_localnet() -> AlgoClientConfigs:
@@ -268,7 +296,9 @@ class ClientManager:
 
             # Include KMD config only for local networks (not mainnet/testnet)
             kmd_config = (
-                ClientManager.get_kmd_config_from_environment()
+                AlgoClientConfig(
+                    server=algod_config.server, token=algod_config.token, port=os.getenv("KMD_PORT", "4002")
+                )
                 if not any(net in algod_server.lower() for net in ["mainnet", "testnet"])
                 else None
             )

@@ -10,8 +10,6 @@ import pytest
 from dotenv import load_dotenv
 
 from algokit_utils import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
     Account,
     ApplicationClient,
     ApplicationSpecification,
@@ -19,6 +17,7 @@ from algokit_utils import (
     ensure_funded,
     replace_template_variables,
 )
+from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.transactions.transaction_composer import AssetCreateParams
 
@@ -39,7 +38,7 @@ def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
     caller_dir = caller_path.parent
     test_name = test_name or caller_frame.function
     caller_stem = Path(caller_frame.filename).stem
-    output_dir = caller_dir / "snapshots" / f"{caller_stem}.approvals"
+    output_dir = caller_dir / "_snapshots" / f"{caller_stem}.approvals"
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / f"{test_name}.approved.txt"
     output_file_str = str(output_file)

@@ -37,7 +37,7 @@ def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecificati
     return client
 
 
-def test_build_teal_sourcemaps(algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory) -> None:
+def test_legacy_build_teal_sourcemaps(algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
@@ -78,7 +78,7 @@ int 1
         assert item.location != "dummy"
 
 
-def test_build_teal_sourcemaps_without_sources(
+def test_legacy_build_teal_sourcemaps_without_sources(
     algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory
 ) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
@@ -118,7 +118,7 @@ int 1
     check_output_stability(json.dumps(result.to_dict()))
 
 
-def test_simulate_and_persist_response_via_app_call(
+def test_legacy_simulate_and_persist_response_via_app_call(
     tmp_path_factory: pytest.TempPathFactory,
     client_fixture: ApplicationClient,
     mocker: Mock,
@@ -142,7 +142,7 @@ def test_simulate_and_persist_response_via_app_call(
     assert simulated_txn["apid"] == client_fixture.app_id
 
 
-def test_simulate_and_persist_response(
+def test_legacy_simulate_and_persist_response(
     tmp_path_factory: pytest.TempPathFactory, client_fixture: ApplicationClient, mocker: Mock, funded_account: Account
 ) -> None:
     mock_config = mocker.patch("algokit_utils._legacy_v2.application_client.config")

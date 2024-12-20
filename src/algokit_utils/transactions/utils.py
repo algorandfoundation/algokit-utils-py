@@ -8,7 +8,12 @@ from algosdk.error import AtomicTransactionComposerError
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup
 
-from algokit_utils.applications.app_manager import BoxReference
+from algokit_utils.models.state import BoxReference
+
+__all__ = [
+    "get_unnamed_app_call_resources_accessed",
+    "populate_app_call_resources",
+]
 
 # Constants
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4

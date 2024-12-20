@@ -12,7 +12,7 @@ from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
-    AppCallMethodCall,
+    AppCallMethodCallParams,
     AppCallParams,
     AppCreateParams,
     AssetConfigParams,
@@ -62,13 +62,13 @@ def receiver(algorand: AlgorandClient) -> Account:
 
 @pytest.fixture
 def raw_hello_world_arc32_app_spec() -> str:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return raw_json_spec.read_text()
 
 
 @pytest.fixture
 def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return ApplicationSpecification.from_json(raw_json_spec.read_text())
 
 
@@ -408,13 +408,13 @@ def test_app_call(
     )
 
     result = transaction_sender.app_call(params)
-    assert not result.return_value  # TODO: improve checks
+    assert not result.abi_return  # TODO: improve checks
 
 
 def test_app_call_method_call(
     test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
 ) -> None:
-    params = AppCallMethodCall(
+    params = AppCallMethodCallParams(
         app_id=test_hello_world_arc32_app_id,
         sender=sender.address,
         method=algosdk.abi.Method.from_signature("hello(string)string"),
@@ -422,8 +422,8 @@ def test_app_call_method_call(
     )
 
     result = transaction_sender.app_call_method_call(params)
-    assert result.return_value
-    assert result.return_value.return_value == "Hello2, test"
+    assert result.abi_return
+    assert result.abi_return.value == "Hello2, test"
 
 
 @patch("logging.Logger.debug")

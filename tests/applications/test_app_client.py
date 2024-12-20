@@ -9,20 +9,20 @@ import pytest
 from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallWithSendParams,
     AppClientParams,
     FundAppAccountParams,
 )
-from algokit_utils.applications.app_manager import AppManager, BoxReference
-from algokit_utils.applications.utils import arc32_to_arc56, get_arc56_method
+from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
-from algokit_utils.models.abi import ABIType
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.application import Arc56Contract
+from algokit_utils.models.state import BoxReference
 from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
 
 
@@ -44,13 +44,13 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 @pytest.fixture
 def raw_hello_world_arc32_app_spec() -> str:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return raw_json_spec.read_text()
 
 
 @pytest.fixture
 def hello_world_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return ApplicationSpecification.from_json(raw_json_spec.read_text())
 
 
@@ -78,13 +78,13 @@ def hello_world_arc32_app_id(
 
 @pytest.fixture
 def raw_testing_app_arc32_app_spec() -> str:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "app_spec.arc32.json"
     return raw_json_spec.read_text()
 
 
 @pytest.fixture
 def testing_app_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "app_spec.arc32.json"
     return ApplicationSpecification.from_json(raw_json_spec.read_text())
 
 
@@ -161,7 +161,7 @@ def test_app_client_with_sourcemaps(
 
 @pytest.fixture
 def testing_app_puya_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "arc32_app_spec.json"
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "app_spec.arc32.json"
     return ApplicationSpecification.from_json(raw_json_spec.read_text())
 
 
@@ -204,9 +204,6 @@ def test_app_client_puya(
             app_spec=testing_app_puya_arc32_app_spec,
         )
     )
-
-
-# TODO: add variations around arc 56 contracts too
 
 
 def test_clone_overriding_default_sender_and_inheriting_app_name(
@@ -294,8 +291,8 @@ def test_resolve_from_network(
     hello_world_arc32_app_id: int,
     hello_world_arc32_app_spec: ApplicationSpecification,
 ) -> None:
-    arc56_app_spec = arc32_to_arc56(hello_world_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": {"app_id": hello_world_arc32_app_id}}
+    arc56_app_spec = Arc56Contract.from_arc32(hello_world_arc32_app_spec)
+    arc56_app_spec.networks = {"localnet": Network(app_id=hello_world_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -352,14 +349,14 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    return_value = AppManager.get_abi_return(
-        result.confirmation, get_arc56_method("call_abi_txn", test_app_client.app_spec)
+    response = AppManager.get_abi_return(
+        result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
     )
     expected_return = f"Sent {amount.micro_algos}. test"
-    assert result.return_value
-    assert result.return_value.return_value == expected_return
-    assert return_value
-    assert return_value.return_value == result.return_value.return_value
+    assert result.abi_return
+    assert result.abi_return.value == expected_return
+    assert response
+    assert response.value == result.abi_return.value
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
@@ -450,12 +447,13 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     # Assuming the method returns a string matching the format below
     expected_return = AppManager.get_abi_return(
         result.confirmations[0],
-        get_arc56_method("call_abi_foreign_refs", test_app_client.app_spec),
+        test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
     )
-    assert result.return_value
-    assert "App: 345, Asset: 567, Account: " in result.return_value.return_value
+    assert result.abi_return
+    assert result.abi_return.value
+    assert str(result.abi_return.value).startswith("App: 345, Asset: 567, Account: ")
     assert expected_return
-    assert expected_return.return_value == result.return_value.return_value
+    assert expected_return.value == result.abi_return.value
 
 
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
@@ -681,15 +679,14 @@ def test_box_methods_with_arc4_returns_parametrized(
         assert abi_decoded_boxes[0].value == arg_value
 
 
-# TODO: see if needs moving into app factory tests file
 def test_abi_with_default_arg_method(
     algorand: AlgorandClient,
     funded_account: Account,
     testing_app_arc32_app_id: int,
     testing_app_arc32_app_spec: ApplicationSpecification,
 ) -> None:
-    arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": {"app_id": testing_app_arc32_app_id}}
+    arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
+    arc56_app_spec.networks = {"localnet": Network(app_id=testing_app_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -713,13 +710,14 @@ def test_abi_with_default_arg_method(
         AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
     )
 
-    assert defined_value_result.return_value
-    assert defined_value_result.return_value.return_value == "Local state, defined value"
+    assert defined_value_result.abi_return
+    assert defined_value_result.abi_return.value == "Local state, defined value"
 
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
-    assert default_value_result.return_value
-    assert default_value_result.return_value.return_value == "Local state, banana"
+    assert default_value_result
+    assert default_value_result.abi_return
+    assert default_value_result.abi_return.value == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:
