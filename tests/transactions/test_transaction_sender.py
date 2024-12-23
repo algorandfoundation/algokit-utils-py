@@ -22,6 +22,7 @@ from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
     AssetOptOutParams,
     AssetTransferParams,
+    OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
     TransactionComposer,
@@ -449,7 +450,7 @@ def test_payment_logging(
     assert receiver.address in log_message
 
 
-def test_online_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
+def test_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
     sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
 
     params = OnlineKeyRegistrationParams(
@@ -463,5 +464,16 @@ def test_online_key_registration(transaction_sender: AlgorandClientTransactionSe
     )
 
     result = transaction_sender.online_key_registration(params)
+    assert len(result.tx_ids) == 1
+    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+
+    sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
+
+    off_key_reg_params = OfflineKeyRegistrationParams(
+        sender=sender.address,
+        prevent_account_from_ever_participating_again=True,
+    )
+
+    result = transaction_sender.offline_key_registration(off_key_reg_params)
     assert len(result.tx_ids) == 1
     assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]

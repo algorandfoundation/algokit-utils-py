@@ -49,6 +49,7 @@ __all__ = [
     "AssetOptInParams",
     "AssetOptOutParams",
     "AssetTransferParams",
+    "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
     "SendAtomicTransactionComposerResults",
@@ -233,6 +234,15 @@ class OnlineKeyRegistrationParams(
 
 
 @dataclass(kw_only=True, frozen=True)
+class OfflineKeyRegistrationParams(_CommonTxnWithSendParams):
+    """
+    Offline key registration parameters.
+    """
+
+    prevent_account_from_ever_participating_again: bool
+
+
+@dataclass(kw_only=True, frozen=True)
 class AssetTransferParams(
     _CommonTxnWithSendParams,
 ):
@@ -306,7 +316,7 @@ class AppCallParams(_CommonTxnWithSendParams):
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
     extra_pages: int | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -336,7 +346,7 @@ class AppCreateParams(_CommonTxnWithSendParams):
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
     extra_program_pages: int | None = None
 
 
@@ -416,7 +426,7 @@ class AppMethodCallParams(_CommonTxnWithSendParams):
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference] | None = None
+    box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -513,6 +523,7 @@ TxnParams = Union[  # noqa: UP007
     AppUpdateParams,
     AppDeleteParams,
     MethodCallParams,
+    OfflineKeyRegistrationParams,
 ]
 
 
@@ -802,6 +813,10 @@ class TransactionComposer:
         self._txns.append(params)
         return self
 
+    def add_offline_key_registration(self, params: OfflineKeyRegistrationParams) -> TransactionComposer:
+        self._txns.append(params)
+        return self
+
     def add_atc(self, atc: AtomicTransactionComposer) -> TransactionComposer:
         self._txns.append(atc)
         return self
@@ -1080,7 +1095,7 @@ class TransactionComposer:
                         txn = self._build_asset_freeze(arg, suggested_params)
                     case AssetTransferParams():
                         txn = self._build_asset_transfer(arg, suggested_params)
-                    case OnlineKeyRegistrationParams():
+                    case OnlineKeyRegistrationParams() | OfflineKeyRegistrationParams():
                         txn = self._build_key_reg(arg, suggested_params)
                     case _:
                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
@@ -1288,22 +1303,40 @@ class TransactionComposer:
         return self._common_txn_build_step(lambda x: algosdk.transaction.AssetTransferTxn(**x), params, txn_params)
 
     def _build_key_reg(
-        self, params: OnlineKeyRegistrationParams, suggested_params: algosdk.transaction.SuggestedParams
+        self,
+        params: OnlineKeyRegistrationParams | OfflineKeyRegistrationParams,
+        suggested_params: algosdk.transaction.SuggestedParams,
     ) -> algosdk.transaction.Transaction:
-        txn_params = {
-            "sender": params.sender,
-            "sp": suggested_params,
-            "votekey": params.vote_key,
-            "selkey": params.selection_key,
-            "votefst": params.vote_first,
-            "votelst": params.vote_last,
-            "votekd": params.vote_key_dilution,
-            "rekey_to": params.rekey_to,
-            "nonpart": False,
-            "sprfkey": params.state_proof_key,
-        }
+        if isinstance(params, OnlineKeyRegistrationParams):
+            txn_params = {
+                "sender": params.sender,
+                "sp": suggested_params,
+                "votekey": params.vote_key,
+                "selkey": params.selection_key,
+                "votefst": params.vote_first,
+                "votelst": params.vote_last,
+                "votekd": params.vote_key_dilution,
+                "rekey_to": params.rekey_to,
+                "nonpart": False,
+                "sprfkey": params.state_proof_key,
+            }
 
-        return self._common_txn_build_step(lambda x: algosdk.transaction.KeyregTxn(**x), params, txn_params)
+            return self._common_txn_build_step(lambda x: algosdk.transaction.KeyregTxn(**x), params, txn_params)
+
+        return self._common_txn_build_step(
+            lambda x: algosdk.transaction.KeyregTxn(**x),
+            params,
+            {
+                "sender": params.sender,
+                "sp": suggested_params,
+                "nonpart": params.prevent_account_from_ever_participating_again,
+                "votekey": None,
+                "selkey": None,
+                "votefst": None,
+                "votelst": None,
+                "votekd": None,
+            },
+        )
 
     def _is_abi_value(self, x: bool | float | str | bytes | list | TxnParams) -> bool:
         if isinstance(x, list | tuple):
@@ -1369,7 +1402,7 @@ class TransactionComposer:
                     suggested_params,
                 )
                 return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
-            case OnlineKeyRegistrationParams():
+            case OnlineKeyRegistrationParams() | OfflineKeyRegistrationParams():
                 key_reg = self._build_key_reg(txn, suggested_params)
                 return [TransactionWithSigner(txn=key_reg, signer=signer)]
             case _:
