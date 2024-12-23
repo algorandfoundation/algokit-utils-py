@@ -265,7 +265,8 @@ class AccountManager:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
-        See `<https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress>`_ for response data schema details.
+        See `<https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress>`_
+        for response data schema details.
 
         :param str|Account sender: The address of the sender/account to look up
         :returns: The account information
@@ -346,14 +347,16 @@ class AccountManager:
         without manual config locally (including when you reset the LocalNet).
 
         :param str name: The name identifier of the account
-        :param AlgoAmount|None fund_with: Optional amount to fund the account with when it gets created (when targeting LocalNet)
+        :param AlgoAmount|None fund_with: Optional amount to fund the account with when it gets created
+        (when targeting LocalNet)
         :returns: The account
         :raises ValueError: If environment variable {NAME}_MNEMONIC is missing when looking for account {NAME}
 
         .. note::
             Convention:
                 * **Non-LocalNet:** will load `{NAME}_MNEMONIC` as a mnemonic secret.
-                  If `{NAME}_SENDER` is defined then it will use that for the sender address (i.e. to support rekeyed accounts)
+                  If `{NAME}_SENDER` is defined then it will use that for the sender address
+                  (i.e. to support rekeyed accounts)
                 * **LocalNet:** will load the account from a KMD wallet called {NAME} and if that wallet doesn't exist
                   it will create it and fund the account for you
 
@@ -361,7 +364,7 @@ class AccountManager:
         >>> # If you have a mnemonic secret loaded into `MY_ACCOUNT_MNEMONIC` then you can call:
         >>> account = account_manager.from_environment('MY_ACCOUNT')
         >>> # If that code runs against LocalNet then a wallet called `MY_ACCOUNT` will automatically be created
-        >>> # with an account that is automatically funded with the specified amount from the default LocalNet dispenser.
+        >>> # with an account that is automatically funded with the specified amount from the default LocalNet dispenser
         """
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
@@ -615,7 +618,8 @@ class AccountManager:
 
         :param str|Account account_to_fund: The account to fund
         :param str|Account dispenser_account: The account to use as a dispenser funding source
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have available to spend
+        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account
+        should have available to spend
         :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
         :param int|None max_rounds_to_wait: Optional maximum rounds to wait for transaction
         :param bool|None suppress_log: Optional flag to suppress logging
@@ -630,7 +634,8 @@ class AccountManager:
         :param int|None validity_window: Optional validity window
         :param int|None first_valid_round: Optional first valid round
         :param int|None last_valid_round: Optional last valid round
-        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or None if no funds were needed
+        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed,
+        or None if no funds were needed
 
         :example:
         >>> # Basic example:
@@ -722,7 +727,8 @@ class AccountManager:
         See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
 
         :param str|Account account_to_fund: The account to fund
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have available to spend
+        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have available to
+        spend
         :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
         :param int|None max_rounds_to_wait: Optional maximum rounds to wait for transaction
         :param bool|None suppress_log: Optional flag to suppress logging
@@ -737,7 +743,8 @@ class AccountManager:
         :param int|None validity_window: Optional validity window
         :param int|None first_valid_round: Optional first valid round
         :param int|None last_valid_round: Optional last valid round
-        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or None if no funds were needed
+        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
+        None if no funds were needed
 
         .. note::
             The dispenser account is retrieved from the account mnemonic stored in
@@ -820,9 +827,11 @@ class AccountManager:
 
         :param str|Account account_to_fund: The account to fund
         :param TestNetDispenserApiClient dispenser_client: The TestNet dispenser funding client
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have available to spend
+        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have
+        available to spend
         :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
-        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or None if no funds were needed
+        :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
+        None if no funds were needed
         :raises ValueError: If attempting to fund on non-TestNet network
 
         :example:

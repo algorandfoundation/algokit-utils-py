@@ -38,9 +38,13 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+    "AppCallMethodCallParams",
     "AppCallParams",
+    "AppCreateMethodCallParams",
     "AppCreateParams",
+    "AppDeleteMethodCallParams",
     "AppDeleteParams",
+    "AppUpdateMethodCallParams",
     "AppUpdateParams",
     "AssetConfigParams",
     "AssetCreateParams",
@@ -49,6 +53,7 @@ __all__ = [
     "AssetOptInParams",
     "AssetOptOutParams",
     "AssetTransferParams",
+    "MethodCallParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
     "SendAtomicTransactionComposerResults",

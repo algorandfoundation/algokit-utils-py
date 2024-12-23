@@ -16,22 +16,27 @@ account_manager = AccountManager(client_manager)
 
 ## `Account` and Transaction Signing
 
-The core type that holds information about an account is the `Account` class, which is a thin wrapper on top of stateless account address generation methods from `py-algorand-sdk`. It encapsulates a private key and address, with convenience properties for `address`, `signer` and `public_key`. The `signer` property returns an `AccountTransactionSigner` which ties together the address and signing capability.
+The core type that holds information about a signer/sender pair for a transaction in Python is the `Account` class, which represents both the signing capability and sender address in one object. This is different from the TypeScript implementation which uses `TransactionSignerAccount` interface that combines an `algosdk.TransactionSigner` with a sender address.
 
-This is different from the TypeScript implementation which uses a type called `Account` that represents an `algosdk.atomic_transaction_composer.TransactionSigner` (`signer`) along with a sender address (`addr`) as the encoded string address.
+The Python `Account` class provides:
+
+- `address` - The encoded string address
+- `private_key` - The private key for signing
+- `signer` - An `AccountTransactionSigner` that can sign transactions
+- `public_key` - The public key associated with this account
 
 ## Registering a signer
 
-The `AccountManager` keeps track of which signer is associated with a given sender address. This is used to automatically sign transactions by that sender. Any of the [methods](#accounts) within `AccountManager` that return an account will automatically register the signer with the sender. If however, you are creating a signer external to the `AccountManager`, then you need to register the signer with the `AccountManager` if you want it to be able to automatically sign transactions from that sender.
+The `AccountManager` keeps track of which signer is associated with a given sender address. This is used by the transaction composition functionality to automatically sign transactions by that sender. Any of the [methods](#accounts) within `AccountManager` that return an account will automatically register the signer with the sender.
 
-There are two methods that can be used for this, `set_signer_from_account`, which takes any number of account based objects that combine signer and sender (`Account` | `Account` | `LogicSigAccount` | `SigningAccount` | `MultisigAccount`), or `set_signer` which takes the sender address and the `TransactionSigner`:
+There are two methods that can be used for this:
 
 ```python
-account_manager.set_signer_from_account(Account(address=..., private_key=...))
-account_manager.set_signer_from_account(LogicSigAccount(program, args))
-account_manager.set_signer_from_account(SigningAccount(mnemonic, sender))
-account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
-account_manager.set_signer("SENDERADDRESS", transaction_signer)
+# Register an account object that has both signer and sender
+account_manager.set_signer_from_account(account)
+
+# Register just a signer for a given sender address
+account_manager.set_signer("SENDER_ADDRESS", transaction_signer)
 ```
 
 ## Default signer
@@ -56,28 +61,28 @@ If there is no signer registered for that sender address it will either return t
 
 In order to get/register accounts for signing operations you can use the following methods on `AccountManager`:
 
-- `account_manager.from_environment(name, fund_with)` - Registers and returns an account with private key loaded by convention based on the given name identifier - either by idempotently creating the account in KMD or from environment variable via `{NAME}_MNEMONIC` and (optionally) `{NAME}_SENDER` (if account is rekeyed)
+- `from_environment(name: str, fund_with: AlgoAmount | None = None) -> Account` - Registers and returns an account with private key loaded by convention based on the given name identifier - either by idempotently creating the account in KMD or from environment variable via `{NAME}_MNEMONIC` and (optionally) `{NAME}_SENDER` (if account is rekeyed)
   - This allows you to have powerful code that will automatically create and fund an account by name locally and when deployed against TestNet/MainNet will automatically resolve from environment variables, without having to have different code
   - Note: `fund_with` allows you to control how many Algo are seeded into an account created in KMD
-- `account_manager.from_mnemonic(mnemonic_secret, sender=None)` - Registers and returns an account with secret key loaded by taking the mnemonic secret
-- `account_manager.multisig(multisig_params, signing_accounts)` - Registers and returns a multisig account with one or more signing keys loaded
-- `account_manager.rekeyed(sender, signer)` - Registers and returns an account representing the given rekeyed sender/signer combination
-- `account_manager.random()` - Returns a new, cryptographically randomly generated account with private key loaded
-- `account_manager.from_kmd()` - Returns an account with private key loaded from the given KMD wallet (identified by name)
-- `account_manager.logicsig(program, args=None)` - Returns an account that represents a logic signature
+- `from_mnemonic(mnemonic_secret: str) -> Account` - Registers and returns an account with secret key loaded by taking the mnemonic secret
+- `multisig(version: int, threshold: int, addrs: list[str], signing_accounts: list[Account]) -> MultisigAccount` - Registers and returns a multisig account with one or more signing keys loaded
+- `rekeyed(sender: Account | str, account: Account) -> Account` - Registers and returns an account representing the given rekeyed sender/signer combination
+- `random() -> Account` - Returns a new, cryptographically randomly generated account with private key loaded
+- `from_kmd(name: str, predicate: Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None) -> Account` - Returns an account with private key loaded from the given KMD wallet
+- `logic_sig(program: bytes, args: list[bytes] | None = None) -> LogicSigAccount` - Returns an account that represents a logic signature
 
 ### Underlying account classes
 
-While `Account` is the main class used to represent an account that can sign, there are underlying account classes that can underpin the signer within the transaction signer account.
+While `Account` is the main class used to represent an account that can sign, there are underlying account classes that can underpin the signer:
 
-- `TransactionSigner` - an in-built `algosdk.atomic_transaction_composer.TransactionSigner` object that can sign transactions.
+- `Account` - The main account class that combines address and private key
 - `LogicSigAccount` - An in-built algosdk `LogicSigAccount` object for logic signature accounts
 - `MultisigAccount` - An abstraction around multisig accounts that supports multisig accounts with one or more signers present
 
 ### Dispenser
 
-- `account_manager.dispenser_from_environment()` - Returns an account (with private key loaded) that can act as a dispenser from environment variables, or against default LocalNet if no environment variables present
-- `account_manager.local_net_dispenser()` - Returns an account with private key loaded that can act as a dispenser for the default LocalNet dispenser account
+- `dispenser_from_environment() -> Account` - Returns an account (with private key loaded) that can act as a dispenser from environment variables, or against default LocalNet if no environment variables present
+- `local_net_dispenser() -> Account` - Returns an account with private key loaded that can act as a dispenser for the default LocalNet dispenser account
 
 ## Rekey account
 
@@ -87,13 +92,25 @@ One of the unique features of Algorand is the ability to change the private key 
 Rekeying should be done with caution as a rekey transaction can result in permanent loss of control of an account.
 ```
 
-You can issue a transaction to rekey an account by using the `account_manager.rekey_account(account, rekey_to, **options)` function:
+You can issue a transaction to rekey an account by using the `rekey_account` method:
 
-- `account: str | Account` - The account address or signing account of the account that will be rekeyed
-- `rekey_to: str | Account` - The account address or signing account of the account that will be used to authorise transactions for the rekeyed account going forward. If a signing account is provided that will now be tracked as the signer for `account` in the `AccountManager` instance.
-- `options` - A set of keyword arguments of optional parameters, which includes:
-  - Common transaction parameters
-  - Execution parameters
+```python
+account_manager.rekey_account(
+    account="ACCOUNTADDRESS",  # str | Account
+    rekey_to="NEWADDRESS",    # str | Account
+    # Optional parameters
+    signer=None,              # TransactionSigner
+    note=None,               # bytes
+    lease=None,              # bytes
+    static_fee=None,         # AlgoAmount
+    extra_fee=None,          # AlgoAmount
+    max_fee=None,            # AlgoAmount
+    validity_window=None,    # int
+    first_valid_round=None,  # int
+    last_valid_round=None,   # int
+    suppress_log=None        # bool
+)
+```
 
 You can also pass in `rekey_to` as a common transaction parameter to any transaction.
 
@@ -147,9 +164,9 @@ kmd_account_manager = KmdAccountManager(client_manager)
 
 The methods that are available are:
 
-- `get_wallet_account(wallet_name, predicate=None, sender=None)` - Returns an Algorand signing account with private key loaded from the given KMD wallet (identified by name).
-- `get_or_create_wallet_account(name, fund_with=None)` - Gets an account with private key loaded from a KMD wallet of the given name, or alternatively creates one with funds in it via a KMD wallet of the given name.
-- `get_local_net_dispenser_account()` - Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts)
+- `get_wallet_account(wallet_name: str, predicate: Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None) -> Account` - Returns an Algorand signing account with private key loaded from the given KMD wallet (identified by name).
+- `get_or_create_wallet_account(name: str, fund_with: AlgoAmount | None = None) -> Account` - Gets an account with private key loaded from a KMD wallet of the given name, or alternatively creates one with funds in it via a KMD wallet of the given name.
+- `get_local_net_dispenser_account() -> Account` - Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts)
 
 ```python
 # Get a wallet account that seeded the LocalNet network
@@ -161,7 +178,7 @@ default_dispenser_account = kmd_account_manager.get_wallet_account(
 local_net_dispenser_account = kmd_account_manager.get_local_net_dispenser_account()
 # Idempotently get (if exists) or create (if it doesn't exist yet) an account by name using KMD
 # if creating it then fund it with 2 ALGO from the default dispenser account
-new_account = kmd_account_manager.get_or_create_wallet_account("account1", 2_000_000)  # microAlgos
+new_account = kmd_account_manager.get_or_create_wallet_account("account1", AlgoAmount.from_algo(2))
 # This will return the same account as above since the name matches
 existing_account = kmd_account_manager.get_or_create_wallet_account("account1")
 ```
@@ -174,5 +191,5 @@ local_net_dispenser = account_manager.local_net_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = account_manager.dispenser_from_environment()
 # Get / create and register account from KMD idempotently by name
-account1 = account_manager.from_kmd("account1", 2_000_000)  # microAlgos
+account1 = account_manager.from_kmd("account1", AlgoAmount.from_algo(2))
 ```
