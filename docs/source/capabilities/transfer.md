@@ -6,7 +6,7 @@ To see some usage examples check out the automated tests in the repository.
 
 ## `payment`
 
-The key function to facilitate Algo transfers is `algod.send.payment(params)` (immediately send a single payment transaction), `algod.create_transaction.payment(params)` (construct a payment transaction), or `algod.new_group().add_payment(params)` (add payment to a group of transactions) per [`AlgorandClient`](./algorand-client.md) [transaction semantics](./algorand-client.md#creating-and-issuing-transactions).
+The key function to facilitate Algo transfers is `algorand.send.payment(params)` (immediately send a single payment transaction), `algorand.create_transaction.payment(params)` (construct a payment transaction), or `algorand.new_group().add_payment(params)` (add payment to a group of transactions) per [`AlgorandClient`](./algorand-client.md) [transaction semantics](./algorand-client.md#creating-and-issuing-transactions).
 
 The base type for specifying a payment transaction is `PaymentParams`, which has the following parameters in addition to the [common transaction parameters](./algorand-client.md#transaction-parameters):
 
