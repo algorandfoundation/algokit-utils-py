@@ -78,8 +78,8 @@ As well as allowing you to control creation and deployment of apps, the `AppFact
 
 This is possible via two methods on the app factory:
 
-- `factory.get_app_client_by_id(params)` - Returns a new `AppClient` client for an app instance of the given ID. Automatically populates app_name, default_sender and source maps from the factory if not specified in the params.
-- `factory.get_app_client_by_creator_and_name(params)` - Returns a new `AppClient` client, resolving the app by creator address and name using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note). Automatically populates app_name, default_sender and source maps from the factory if not specified in the params.
+- `factory.get_app_client_by_id` - Returns a new `AppClient` client for an app instance of the given ID. Automatically populates app_name, default_sender and source maps from the factory if not specified in the params.
+- `factory.get_app_client_by_creator_and_name` - Returns a new `AppClient` client, resolving the app by creator address and name using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note). Automatically populates app_name, default_sender and source maps from the factory if not specified in the params.
 
 ```python
 # Get clients by ID
@@ -129,7 +129,22 @@ create_response = factory.send.bare.create()
 create_response = factory.send.bare.create(
     params=factory.params.bare.create(
         args=[bytes([1, 2, 3, 4])],
-        on_complete=OnComplete.OptIn,
+        on_complete=OnComplete.OptInOC,
+        deploy_time_params={
+            "ONE": 1,
+            "TWO": "two",
+        },
+        updatable=True,
+        deletable=False,
+        populate_app_call_resources=True,
+    )
+)
+
+## Or passing params directly
+create_response = factory.send.bare.create(
+    AppFactoryCreateWithSendParams(
+        args=[bytes([1, 2, 3, 4])],
+        on_complete=OnComplete.OptInOC,
         deploy_time_params={
             "ONE": 1,
             "TWO": "two",
@@ -283,8 +298,8 @@ The ARC4 ABI specification supports ABI method calls as arguments to other ABI m
 
 To illustrate this, let's consider an example of two ABI methods with the following signatures:
 
-- `myMethod(pay, appl): void`
-- `myOtherMethod(pay): void`
+- `myMethod(pay,appl)void`
+- `myOtherMethod(pay)void`
 
 These signatures are compatible, so `myOtherMethod` can be passed as an ABI method call argument to `myMethod`, which would look like:
 

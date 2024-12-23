@@ -9,11 +9,11 @@ The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `Al
 # if no environment variables it will point to the default LocalNet configuration
 algorand = AlgorandClient.from_environment()
 # Point to default LocalNet configuration
-algorand = AlgorandClient.default_local_net()
+algorand = AlgorandClient.default_localnet()
 # Point to TestNet using AlgoNode free tier
-algorand = AlgorandClient.test_net()
+algorand = AlgorandClient.testnet()
 # Point to MainNet using AlgoNode free tier
-algorand = AlgorandClient.main_net()
+algorand = AlgorandClient.mainnet()
 # Point to a pre-created algod client(s)
 algorand = AlgorandClient.from_clients(
     AlgoSdkClients(
@@ -39,7 +39,7 @@ algorand = AlgorandClient.from_config(
 Once you have an `AlgorandClient` instance, you can access the SDK clients for the various Algorand APIs via the `algorand.client` property.
 
 ```python
-algorand = AlgorandClient.default_local_net()
+algorand = AlgorandClient.default_localnet()
 
 algod_client = algorand.client.algod
 indexer_client = algorand.client.indexer
@@ -83,14 +83,3 @@ result = (
     .send()
 )
 ```
-
-### Transaction Parameters
-
-Common transaction parameters in Python follow similar patterns to TypeScript but use Python idioms:
-
-- Sender addresses are passed as strings
-- Amounts are typically passed as integers (microAlgos)
-- Signers can be `algosdk.TransactionSigner` instances
-- Notes and leases can be `bytes` or `str`
-- Fee management uses integers for microAlgos
-- Round validity uses integers for round numbers

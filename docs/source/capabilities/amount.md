@@ -8,7 +8,7 @@ To see some usage examples check out the automated tests in the repository. Alte
 
 ## `AlgoAmount`
 
-The `AlgoAmount` class provides a safe wrapper around an underlying amount of microAlgo where any value entering or existing the `AlgoAmount` class must be explicitly stated to be in microAlgo or Algo. This makes it much safer to handle Algo amounts rather than passing them around as raw numbers where it's easy to make a (potentially costly!) mistake and not perform a conversion when one is needed (or perform one when it shouldn't be!).
+The `AlgoAmount` class provides a safe wrapper around an underlying amount of microAlgo where any value entering or exiting the `AlgoAmount` class must be explicitly stated to be in microAlgo or Algo. This makes it much safer to handle Algo amounts rather than passing them around as raw numbers where it's easy to make a (potentially costly!) mistake and not perform a conversion when one is needed (or perform one when it shouldn't be!).
 
 To import the AlgoAmount class you can access it via:
 

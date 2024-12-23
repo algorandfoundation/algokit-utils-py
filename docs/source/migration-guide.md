@@ -32,7 +32,7 @@ indexer = algokit_utils.get_indexer_client()
 
 """After"""
 from algokit_utils import AlgorandClient
-algorand = AlgorandClient.from_environment()  # or .test_net(), .main_net(), etc.
+algorand = AlgorandClient.from_environment()  # or .testnet(), .mainnet(), etc.
 ```
 
 During migration, you can still access SDK clients if needed:
@@ -64,7 +64,7 @@ Key changes:
 - `get_account` → `account.from_environment`
 - `get_account_from_mnemonic` → `account.from_mnemonic`
 - `get_dispenser_account` → `account.dispenser_from_environment`
-- `get_localnet_default_account` → `account.local_net_dispenser`
+- `get_localnet_default_account` → `account.localnet_dispenser`
 
 ### Step 3 - Update Transaction Management
 

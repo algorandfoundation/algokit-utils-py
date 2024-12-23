@@ -16,7 +16,7 @@ from tests.conftest import generate_test_asset
 
 @pytest.fixture
 def algorand() -> AlgorandClient:
-    return AlgorandClient.default_local_net()
+    return AlgorandClient.default_localnet()
 
 
 @pytest.fixture
@@ -352,7 +352,7 @@ def test_ensure_funded_respects_minimum_funding_increment(algorand: AlgorandClie
 
 
 def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock) -> None:
-    algorand = AlgorandClient.test_net()
+    algorand = AlgorandClient.testnet()
     account_to_fund = algorand.account.random()
     monkeypatch.setenv(
         "ALGOKIT_DISPENSER_ACCESS_TOKEN",
@@ -375,7 +375,7 @@ def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, http
 
 
 def test_ensure_funded_testnet_api_bad_response(monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock) -> None:
-    algorand = AlgorandClient.test_net()
+    algorand = AlgorandClient.testnet()
     account_to_fund = algorand.account.random()
     monkeypatch.setenv(
         "ALGOKIT_DISPENSER_ACCESS_TOKEN",

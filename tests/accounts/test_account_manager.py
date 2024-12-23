@@ -9,7 +9,7 @@ from tests.conftest import get_unique_name
 
 @pytest.fixture
 def algorand() -> AlgorandClient:
-    return AlgorandClient.default_local_net()
+    return AlgorandClient.default_localnet()
 
 
 @pytest.fixture

@@ -372,7 +372,7 @@ class AccountManager:
             private_key = mnemonic.to_private_key(account_mnemonic)
             return self._register_account(private_key)
 
-        if self._client_manager.is_local_net():
+        if self._client_manager.is_localnet():
             kmd_account = self._kmd_account_manager.get_or_create_wallet_account(name, fund_with)
             return self._register_account(kmd_account.private_key)
 
@@ -851,7 +851,7 @@ class AccountManager:
         """
         account_to_fund = self._get_address(account_to_fund)
 
-        if not self._client_manager.is_test_net():
+        if not self._client_manager.is_testnet():
             raise ValueError("Attempt to fund using TestNet dispenser API on non TestNet network.")
 
         amount_funded = self._get_ensure_funded_amount(account_to_fund, min_spending_balance, min_funding_increment)

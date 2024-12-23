@@ -3,14 +3,17 @@ import time
 
 import typing_extensions
 from algosdk.atomic_transaction_composer import TransactionSigner
+from algosdk.kmd import KMDClient
 from algosdk.transaction import SuggestedParams
+from algosdk.v2client.algod import AlgodClient
+from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
-from algokit_utils.models.network import AlgoClientConfigs
+from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
 from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
@@ -160,7 +163,7 @@ class AlgorandClient:
         return self._transaction_creator
 
     @staticmethod
-    def default_local_net() -> "AlgorandClient":
+    def default_localnet() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at default LocalNet ports and API token.
 
@@ -168,14 +171,14 @@ class AlgorandClient:
         """
         return AlgorandClient(
             AlgoClientConfigs(
-                algod_config=ClientManager.get_default_local_net_config("algod"),
-                indexer_config=ClientManager.get_default_local_net_config("indexer"),
-                kmd_config=ClientManager.get_default_local_net_config("kmd"),
+                algod_config=ClientManager.get_default_localnet_config("algod"),
+                indexer_config=ClientManager.get_default_localnet_config("indexer"),
+                kmd_config=ClientManager.get_default_localnet_config("kmd"),
             )
         )
 
     @staticmethod
-    def test_net() -> "AlgorandClient":
+    def testnet() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at TestNet using AlgoNode.
 
@@ -190,7 +193,7 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def main_net() -> "AlgorandClient":
+    def mainnet() -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing at MainNet using AlgoNode.
 
@@ -205,14 +208,18 @@ class AlgorandClient:
         )
 
     @staticmethod
-    def from_clients(clients: AlgoSdkClients) -> "AlgorandClient":
+    def from_clients(
+        algod: AlgodClient, indexer: IndexerClient | None = None, kmd: KMDClient | None = None
+    ) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing to the given client(s).
 
-        :param clients: The clients to use
+        :param algod: The algod client to use
+        :param indexer: The indexer client to use
+        :param kmd: The kmd client to use
         :return: The `AlgorandClient`
         """
-        return AlgorandClient(clients)
+        return AlgorandClient(AlgoSdkClients(algod=algod, indexer=indexer, kmd=kmd))
 
     @staticmethod
     def from_environment() -> "AlgorandClient":
@@ -228,11 +235,19 @@ class AlgorandClient:
         return AlgorandClient(ClientManager.get_config_from_environment_or_localnet())
 
     @staticmethod
-    def from_config(config: AlgoClientConfigs) -> "AlgorandClient":
+    def from_config(
+        algod_config: AlgoClientConfig,
+        indexer_config: AlgoClientConfig | None = None,
+        kmd_config: AlgoClientConfig | None = None,
+    ) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` from the given config.
 
-        :param config: The config to use
+        :param algod_config: The config to use for the algod client
+        :param indexer_config: The config to use for the indexer client
+        :param kmd_config: The config to use for the kmd client
         :return: The `AlgorandClient`
         """
-        return AlgorandClient(config)
+        return AlgorandClient(
+            AlgoClientConfigs(algod_config=algod_config, indexer_config=indexer_config, kmd_config=kmd_config)
+        )

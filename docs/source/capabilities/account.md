@@ -6,7 +6,7 @@ Account management is one of the core capabilities provided by AlgoKit Utils. It
 
 The `AccountManager` is a class that is used to get, create, and fund accounts and perform account-related actions such as funding. The `AccountManager` also keeps track of signers for each address so when using transaction composition to send transactions, a signer function does not need to manually be specified for each transaction - instead it can be inferred from the sender address automatically!
 
-To get an instance of `AccountManager`, you can use either use the `AlgorandClient` via `algorand.account` or instantiate it directly:
+To get an instance of `AccountManager`, you can either use the `AlgorandClient` via `algorand.account` or instantiate it directly:
 
 ```python
 from algokit_utils import AccountManager
@@ -82,7 +82,7 @@ While `Account` is the main class used to represent an account that can sign, th
 ### Dispenser
 
 - `dispenser_from_environment() -> Account` - Returns an account (with private key loaded) that can act as a dispenser from environment variables, or against default LocalNet if no environment variables present
-- `local_net_dispenser() -> Account` - Returns an account with private key loaded that can act as a dispenser for the default LocalNet dispenser account
+- `localnet_dispenser() -> Account` - Returns an account with private key loaded that can act as a dispenser for the default LocalNet dispenser account
 
 ## Rekey account
 
@@ -166,7 +166,7 @@ The methods that are available are:
 
 - `get_wallet_account(wallet_name: str, predicate: Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None) -> Account` - Returns an Algorand signing account with private key loaded from the given KMD wallet (identified by name).
 - `get_or_create_wallet_account(name: str, fund_with: AlgoAmount | None = None) -> Account` - Gets an account with private key loaded from a KMD wallet of the given name, or alternatively creates one with funds in it via a KMD wallet of the given name.
-- `get_local_net_dispenser_account() -> Account` - Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts)
+- `get_localnet_dispenser_account() -> Account` - Returns an Algorand account with private key loaded for the default LocalNet dispenser account (that can be used to fund other accounts)
 
 ```python
 # Get a wallet account that seeded the LocalNet network
@@ -175,7 +175,7 @@ default_dispenser_account = kmd_account_manager.get_wallet_account(
     lambda a: a.status != "Offline" and a.amount > 1_000_000_000,
 )
 # Same as above, but dedicated method call for convenience
-local_net_dispenser_account = kmd_account_manager.get_local_net_dispenser_account()
+localnet_dispenser_account = kmd_account_manager.get_localnet_dispenser_account()
 # Idempotently get (if exists) or create (if it doesn't exist yet) an account by name using KMD
 # if creating it then fund it with 2 ALGO from the default dispenser account
 new_account = kmd_account_manager.get_or_create_wallet_account("account1", AlgoAmount.from_algo(2))
@@ -187,7 +187,7 @@ Some of this functionality is directly exposed from `AccountManager`, which has 
 
 ```python
 # Get and register LocalNet dispenser
-local_net_dispenser = account_manager.local_net_dispenser()
+localnet_dispenser = account_manager.localnet_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = account_manager.dispenser_from_environment()
 # Get / create and register account from KMD idempotently by name

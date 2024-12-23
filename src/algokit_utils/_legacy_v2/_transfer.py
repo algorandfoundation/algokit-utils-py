@@ -6,6 +6,7 @@ import algosdk.transaction
 from algosdk.account import address_from_private_key
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.transaction import AssetTransferTxn, PaymentTxn, SuggestedParams
+from typing_extensions import deprecated
 
 from algokit_utils.models.account import Account
 
@@ -80,6 +81,7 @@ def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) 
             )
 
 
+@deprecated("Use the `TransactionComposer` abstraction instead to construct appropriate transfer transactions")
 def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTxn:
     """Transfer µALGOs between accounts"""
 
@@ -100,6 +102,7 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
     return result
 
 
+@deprecated("Use the `TransactionComposer` abstraction instead to construct appropriate transfer transactions")
 def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -> AssetTransferTxn:
     """Transfer assets between accounts"""
 

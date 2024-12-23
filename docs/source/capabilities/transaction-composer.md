@@ -22,7 +22,7 @@ To get an instance of `TransactionComposer` you can either get it from an app cl
 composer_from_algorand = algorand.new_group()
 
 # From AppClient
-composer_from_app_client = app_client.new_group()
+composer_from_app_client = app_client.algorand.new_group()
 
 # From constructor
 composer_from_constructor = TransactionComposer(

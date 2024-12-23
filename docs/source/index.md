@@ -65,11 +65,11 @@ The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `Al
 # if no environment variables it will point to the default LocalNet configuration
 algorand = AlgorandClient.from_environment()
 # Point to default LocalNet configuration
-algorand = AlgorandClient.default_local_net()
+algorand = AlgorandClient.default_localnet()
 # Point to TestNet using AlgoNode free tier
-algorand = AlgorandClient.test_net()
+algorand = AlgorandClient.testnet()
 # Point to MainNet using AlgoNode free tier
-algorand = AlgorandClient.main_net()
+algorand = AlgorandClient.mainnet()
 ```
 
 # Config and logging
