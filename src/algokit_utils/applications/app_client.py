@@ -63,7 +63,6 @@ if TYPE_CHECKING:
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
     from algokit_utils.protocols.client import AlgorandClientProtocol
-    from algokit_utils.transactions.transaction_composer import TransactionComposer
 
 __all__ = [
     "AppClient",
@@ -1298,9 +1297,6 @@ class AppClient:
 
         # Return list of BoxABIValue objects
         return [BoxABIValue(name=name, value=values[i]) for i, name in enumerate(names)]
-
-    def new_group(self) -> TransactionComposer:
-        return self._algorand.new_group()
 
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
         return self.send.fund_app_account(params)

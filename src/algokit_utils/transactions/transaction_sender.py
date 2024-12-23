@@ -28,6 +28,7 @@ from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
     AssetOptOutParams,
     AssetTransferParams,
+    OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
     SendAtomicTransactionComposerResults,
@@ -395,5 +396,14 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_online_key_registration,
             pre_log=lambda params, transaction: (
                 f"Registering online key for {params.sender} via transaction {transaction.get_txid()}"
+            ),
+        )(params)
+
+    def offline_key_registration(self, params: OfflineKeyRegistrationParams) -> SendSingleTransactionResult:
+        """Register an offline key."""
+        return self._send(
+            lambda c: c.add_offline_key_registration,
+            pre_log=lambda params, transaction: (
+                f"Registering offline key for {params.sender} via transaction {transaction.get_txid()}"
             ),
         )(params)
