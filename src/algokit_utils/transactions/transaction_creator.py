@@ -20,6 +20,7 @@ from algokit_utils.transactions.transaction_composer import (
     AssetOptOutParams,
     AssetTransferParams,
     BuiltTransactions,
+    OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
     TransactionComposer,
@@ -152,3 +153,8 @@ class AlgorandClientTransactionCreator:
     def online_key_registration(self) -> Callable[[OnlineKeyRegistrationParams], Transaction]:
         """Create an online key registration transaction."""
         return self._transaction(lambda c: c.add_online_key_registration)
+
+    @property
+    def offline_key_registration(self) -> Callable[[OfflineKeyRegistrationParams], Transaction]:
+        """Create an offline key registration transaction."""
+        return self._transaction(lambda c: c.add_offline_key_registration)
