@@ -54,7 +54,7 @@ class KmdAccountManager:
             Exception: If KMD is not configured
         """
         if self._kmd is None:
-            if self._client_manager.is_local_net():
+            if self._client_manager.is_localnet():
                 kmd_config = ClientManager.get_config_from_environment_or_localnet()
                 self._kmd = ClientManager.get_kmd_client(kmd_config.kmd_config)
                 return self._kmd
@@ -179,7 +179,7 @@ class KmdAccountManager:
             dispenser = kmd_manager.get_localnet_dispenser_account()
             ```
         """
-        if not self._client_manager.is_local_net():
+        if not self._client_manager.is_localnet():
             raise Exception("Can't get LocalNet dispenser account from non LocalNet network")
 
         dispenser = self.get_wallet_account(

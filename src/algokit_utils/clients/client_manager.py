@@ -42,9 +42,9 @@ class AlgoSdkClients:
 
 @dataclass(kw_only=True, frozen=True)
 class NetworkDetail:
-    is_test_net: bool
-    is_main_net: bool
-    is_local_net: bool
+    is_testnet: bool
+    is_mainnet: bool
+    is_localnet: bool
     genesis_id: str
     genesis_hash: str
 
@@ -105,21 +105,21 @@ class ClientManager:
     def network(self) -> NetworkDetail:
         sp = self._algod.suggested_params()  # TODO: cache it
         return NetworkDetail(
-            is_test_net=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
-            is_main_net=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
-            is_local_net=ClientManager.genesis_id_is_local_net(str(sp.gen)),
+            is_testnet=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
+            is_mainnet=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
+            is_localnet=ClientManager.genesis_id_is_localnet(str(sp.gen)),
             genesis_id=str(sp.gen),
             genesis_hash=sp.gh,
         )
 
-    def is_local_net(self) -> bool:
-        return self.network().is_local_net
+    def is_localnet(self) -> bool:
+        return self.network().is_localnet
 
-    def is_test_net(self) -> bool:
-        return self.network().is_test_net
+    def is_testnet(self) -> bool:
+        return self.network().is_testnet
 
-    def is_main_net(self) -> bool:
-        return self.network().is_main_net
+    def is_mainnet(self) -> bool:
+        return self.network().is_mainnet
 
     def get_testnet_dispenser(
         self, auth_token: str | None = None, request_timeout: int | None = None
@@ -270,7 +270,7 @@ class ClientManager:
         return ClientManager.get_indexer_client(ClientManager.get_indexer_config_from_environment())
 
     @staticmethod
-    def genesis_id_is_local_net(genesis_id: str) -> bool:
+    def genesis_id_is_localnet(genesis_id: str) -> bool:
         return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
     @staticmethod
@@ -304,9 +304,9 @@ class ClientManager:
             )
         else:
             # Use localnet defaults
-            algod_config = ClientManager.get_default_local_net_config("algod")
-            indexer_config = ClientManager.get_default_local_net_config("indexer")
-            kmd_config = ClientManager.get_default_local_net_config("kmd")
+            algod_config = ClientManager.get_default_localnet_config("algod")
+            indexer_config = ClientManager.get_default_localnet_config("indexer")
+            kmd_config = ClientManager.get_default_localnet_config("kmd")
 
         return AlgoClientConfigs(
             algod_config=algod_config,
@@ -315,7 +315,7 @@ class ClientManager:
         )
 
     @staticmethod
-    def get_default_local_net_config(config_or_port: Literal["algod", "indexer", "kmd"] | int) -> AlgoClientConfig:
+    def get_default_localnet_config(config_or_port: Literal["algod", "indexer", "kmd"] | int) -> AlgoClientConfig:
         port = (
             config_or_port
             if isinstance(config_or_port, int)

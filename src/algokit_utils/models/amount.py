@@ -9,7 +9,19 @@ __all__ = ["AlgoAmount"]
 
 
 class AlgoAmount:
+    """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers."""
+
     def __init__(self, amount: dict[str, int | Decimal]):
+        """Create a new AlgoAmount instance.
+
+        :param amount: A dictionary containing either algos, algo, microAlgos, or microAlgo as key
+                     and their corresponding value as an integer or Decimal.
+        :raises ValueError: If an invalid amount format is provided.
+
+        :example:
+        >>> amount = AlgoAmount({"algos": 1})
+        >>> amount = AlgoAmount({"microAlgos": 1_000_000})
+        """
         if "microAlgos" in amount:
             self.amount_in_micro_algo = int(amount["microAlgos"])
         elif "microAlgo" in amount:
@@ -23,42 +35,88 @@ class AlgoAmount:
 
     @property
     def micro_algos(self) -> int:
+        """Return the amount as a number in µAlgo.
+
+        :returns: The amount in µAlgo.
+        """
         return self.amount_in_micro_algo
 
     @property
     def micro_algo(self) -> int:
+        """Return the amount as a number in µAlgo.
+
+        :returns: The amount in µAlgo.
+        """
         return self.amount_in_micro_algo
 
     @property
     def algos(self) -> int | Decimal:
+        """Return the amount as a number in Algo.
+
+        :returns: The amount in Algo.
+        """
         return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
 
     @property
     def algo(self) -> int | Decimal:
+        """Return the amount as a number in Algo.
+
+        :returns: The amount in Algo.
+        """
         return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
 
     @staticmethod
     def from_algos(amount: int | Decimal) -> AlgoAmount:
+        """Create an AlgoAmount object representing the given number of Algo.
+
+        :param amount: The amount in Algo.
+        :returns: An AlgoAmount instance.
+
+        :example:
+        >>> amount = AlgoAmount.from_algos(1)
+        """
         return AlgoAmount({"algos": amount})
 
     @staticmethod
     def from_algo(amount: int | Decimal) -> AlgoAmount:
+        """Create an AlgoAmount object representing the given number of Algo.
+
+        :param amount: The amount in Algo.
+        :returns: An AlgoAmount instance.
+
+        :example:
+        >>> amount = AlgoAmount.from_algo(1)
+        """
         return AlgoAmount({"algo": amount})
 
     @staticmethod
     def from_micro_algos(amount: int | Decimal) -> AlgoAmount:
+        """Create an AlgoAmount object representing the given number of µAlgo.
+
+        :param amount: The amount in µAlgo.
+        :returns: An AlgoAmount instance.
+
+        :example:
+        >>> amount = AlgoAmount.from_micro_algos(1_000_000)
+        """
         return AlgoAmount({"microAlgos": amount})
 
     @staticmethod
     def from_micro_algo(amount: int | Decimal) -> AlgoAmount:
+        """Create an AlgoAmount object representing the given number of µAlgo.
+
+        :param amount: The amount in µAlgo.
+        :returns: An AlgoAmount instance.
+
+        :example:
+        >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+        """
         return AlgoAmount({"microAlgo": amount})
 
     def __str__(self) -> str:
-        """Return a string representation of the amount."""
         return f"{self.micro_algo:,} µALGO"
 
     def __int__(self) -> int:
-        """Return the amount as an integer number of microAlgos."""
         return self.micro_algos
 
     def __add__(self, other: int | Decimal | AlgoAmount) -> AlgoAmount:

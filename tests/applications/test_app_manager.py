@@ -9,7 +9,7 @@ from tests.conftest import check_output_stability
 
 @pytest.fixture
 def algorand() -> AlgorandClient:
-    return AlgorandClient.default_local_net()
+    return AlgorandClient.default_localnet()
 
 
 @pytest.fixture

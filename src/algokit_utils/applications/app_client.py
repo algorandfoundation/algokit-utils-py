@@ -910,6 +910,10 @@ class AppClient:
         self._create_transaction_accessor = _AppClientMethodCallTransactionCreator(self)
 
     @property
+    def algorand(self) -> AlgorandClientProtocol:
+        return self._algorand
+
+    @property
     def app_id(self) -> int:
         return self._app_id
 
@@ -973,11 +977,11 @@ class AppClient:
         app_spec = AppClient.normalise_app_spec(app_spec)
         network_names = [network.genesis_hash]
 
-        if network.is_local_net:
+        if network.is_localnet:
             network_names.append("localnet")
-        if network.is_main_net:
+        if network.is_mainnet:
             network_names.append("mainnet")
-        if network.is_test_net:
+        if network.is_testnet:
             network_names.append("testnet")
 
         available_app_spec_networks = list(app_spec.networks.keys()) if app_spec.networks else []

@@ -48,7 +48,7 @@ def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> A
     return AlgoClientConfig(server=f"http://localhost:{port}", token="a" * 64)
 
 
-@deprecated("Use AlgorandClient.client.test_net() or AlgorandClient.main_net() instead")
+@deprecated("Use AlgorandClient.client.testnet() or AlgorandClient.mainnet() instead")
 def get_algonode_config(
     network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"], token: str
 ) -> AlgoClientConfig:
@@ -69,7 +69,7 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     return AlgodClient(config.token, config.server, headers)
 
 
-@deprecated("Use AlgorandClient.client.default_local_net().kmd instead")
+@deprecated("Use AlgorandClient.client.default_localnet().kmd instead")
 def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from `config` or environment
 
@@ -88,28 +88,28 @@ def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
     return IndexerClient(config.token, config.server, headers)
 
 
-@deprecated("Use AlgorandClient.client.is_local_net() instead")
+@deprecated("Use AlgorandClient.client.is_localnet() instead")
 def is_localnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `devnet-v1` or `sandnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
 
-@deprecated("Use AlgorandClient.client.is_main_net() instead")
+@deprecated("Use AlgorandClient.client.is_mainnet() instead")
 def is_mainnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `mainnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"]
 
 
-@deprecated("Use AlgorandClient.client.is_test_net() instead")
+@deprecated("Use AlgorandClient.client.is_testnet() instead")
 def is_testnet(client: AlgodClient) -> bool:
     """Returns True if client genesis is `testnet-v1`"""
     params = client.suggested_params()
     return params.gen in ["testnet-v1.0", "testnet-v1", "testnet"]
 
 
-@deprecated("Use AlgorandClient.client.default_local_net().kmd instead")
+@deprecated("Use AlgorandClient.client.default_localnet().kmd instead")
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from supplied `client`
 

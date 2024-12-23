@@ -1,58 +1,145 @@
-# Algo transfers
+# Algo transfers (payments)
 
-Algo transfers is a higher-order use case capability provided by AlgoKit Utils allows you to easily initiate algo transfers between accounts, including dispenser management and
-idempotent account funding.
+Algo transfers, or [payments](https://developer.algorand.org/docs/get-details/transactions/#payment-transaction), is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly [Algo amount handling](./amount.md) and [Transaction management](./transaction.md). It allows you to easily initiate Algo transfers between accounts, including dispenser management and idempotent account funding.
 
-To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_transfer.py).
+To see some usage examples check out the automated tests in the repository.
 
-## Transferring Algos
+## `payment`
 
-The key function to facilitate Algo transfers is `algokit.transfer(algod_client, transfer_parameters)`, which returns the underlying `EnsureFundedResponse` and takes a `TransferParameters`
+The key function to facilitate Algo transfers is `algorand.send.payment(params)` (immediately send a single payment transaction), `algorand.create_transaction.payment(params)` (construct a payment transaction), or `algorand.new_group().add_payment(params)` (add payment to a group of transactions) per [`AlgorandClient`](./algorand-client.md) [transaction semantics](./algorand-client.md#creating-and-issuing-transactions).
 
-The following fields on `TransferParameters` are required to transfer ALGOs:
+The base type for specifying a payment transaction is `PaymentParams`, which has the following parameters in addition to the [common transaction parameters](./algorand-client.md#transaction-parameters):
 
-- `from_account`: The account or signer that will send the ALGOs
-- `to_address`: The address of the account that will receive the ALGOs
-- `micro_algos`: The amount of micro ALGOs to send
+- `receiver: str` - The address of the account that will receive the Algo
+- `amount: AlgoAmount` - The amount of Algo to send
+- `close_remainder_to: Optional[str]` - If given, close the sender account and send the remaining balance to this address (**warning:** use this carefully as it can result in loss of funds if used incorrectly)
 
-## Ensuring minimum Algos
+```python
+# Minimal example
+result = algod.send.payment(
+    PaymentParams(
+        sender="SENDERADDRESS",
+        receiver="RECEIVERADDRESS",
+        amount=AlgoAmount(4, "algo")
+    )
+)
 
-The ability to automatically fund an account to have a minimum amount of disposable ALGOs to spend is incredibly useful for automation and deployment scripts.
-The function to facilitate this is `ensure_funded(client, parameters)`, which takes an `EnsureBalanceParameters` instance and returns the underlying `EnsureFundedResponse` if a payment was made, a string if the dispenser API was used, or None otherwise.
+# Advanced example
+result2 = algod.send.payment(
+    PaymentParams(
+        sender="SENDERADDRESS",
+        receiver="RECEIVERADDRESS",
+        amount=AlgoAmount(4, "algo"),
+        close_remainder_to="CLOSEREMAINDERTOADDRESS",
+        lease="lease",
+        note=b"note",
+        # Use this with caution, it's generally better to use algod.account.rekey_account
+        rekey_to="REKEYTOADDRESS",
+        # You wouldn't normally set this field
+        first_valid_round=1000,
+        validity_window=10,
+        extra_fee=AlgoAmount(1000, "microalgo"),
+        static_fee=AlgoAmount(1000, "microalgo"),
+        # Max fee doesn't make sense with extra_fee AND static_fee
+        # already specified, but here for completeness
+        max_fee=AlgoAmount(3000, "microalgo"),
+        # Signer only needed if you want to provide one,
+        # generally you'd register it with AlgorandClient
+        # against the sender and not need to pass it in
+        signer=transaction_signer,
+        max_rounds_to_wait=5,
+        suppress_log=True,
+    )
+)
+```
 
-The following fields on `EnsureBalanceParameters` are required to ensure minimum ALGOs:
+## `ensure_funded`
 
-- `account_to_fund`: The account address that will receive the ALGOs. This can be an `Account` instance, an `AccountTransactionSigner` instance, or a string.
-- `min_spending_balance_micro_algos`: The minimum balance of micro ALGOs that the account should have available to spend (i.e. on top of minimum balance requirement).
-- `min_funding_increment_micro_algos`: When issuing a funding amount, the minimum amount to transfer (avoids many small transfers if this gets called often on an active account). Default is 0.
-- `funding_source`: The account (with private key) or signer that will send the ALGOs. If not set, it will use `get_dispenser_account`. This can be an `Account` instance, an `AccountTransactionSigner` instance, [`TestNetDispenserApiClient`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/docs/source/capabilities/dispenser-client.md) instance, or None.
-- `suggested_params`: (optional) Transaction parameters, an instance of `SuggestedParams`.
-- `note`: (optional) The transaction note, default is "Funding account to meet minimum requirement".
-- `fee_micro_algos`: (optional) The flat fee you want to pay, useful for covering extra fees in a transaction group or app call.
-- `max_fee_micro_algos`: (optional) The maximum fee that you are happy to pay (default: unbounded). If this is set it's possible the transaction could get rejected during network congestion.
+The `ensure_funded` function automatically funds an account to maintain a minimum amount of [disposable Algo](https://developer.algorand.org/docs/get-details/accounts/#minimum-balance). This is particularly useful for automation and deployment scripts that get run multiple times and consume Algo when run.
 
-The function calls Algod to find the current balance and minimum balance requirement, gets the difference between those two numbers and checks to see if it's more than the `min_spending_balance_micro_algos`. If so, it will send the difference, or the `min_funding_increment_micro_algos` if that is specified. If the account is on TestNet and `use_dispenser_api` is True, the [AlgoKit TestNet Dispenser API](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md) will be used to fund the account.
+There are 3 variants of this function:
 
-> Please note, if you are attempting to fund via Dispenser API, make sure to set `ALGOKIT_DISPENSER_ACCESS_TOKEN` environment variable prior to invoking `ensure_funded`. To generate the token refer to [AlgoKit CLI documentation](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/dispenser.md#login)
+- `algod.account.ensure_funded(account_to_fund, dispenser_account, min_spending_balance, options?)` - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algod.account.ensure_funded_from_environment(account_to_fund, min_spending_balance, options?)` - Funds a given account using a dispenser account retrieved from the environment, per the `dispenser_from_environment` method, as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+  - **Note:** requires environment variables to be set.
+  - The dispenser account is retrieved from the account mnemonic stored in `DISPENSER_MNEMONIC` and optionally `DISPENSER_SENDER`
+    if it's a rekeyed account, or against default LocalNet if no environment variables present.
+- `algod.account.ensure_funded_from_testnet_dispenser_api(account_to_fund, dispenser_client, min_spending_balance, options)` - Funds a given account using the [TestNet Dispenser API](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md) as a funding source such that the account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
 
-## Transfering Assets
+The general structure of these calls is similar, they all take:
 
-The key function to facilitate asset transfers is `transfer_asset(algod_client, transfer_parameters)`, which returns a `AssetTransferTxn` and takes a `TransferAssetParameters`:
+- `account_to_fund: str | Account` - Address or signing account of the account to fund
+- The source (dispenser):
+  - In `ensure_funded`: `dispenser_account: str | Account` - the address or signing account of the account to use as a dispenser
+  - In `ensure_funded_from_environment`: Not specified, loaded automatically from the ephemeral environment
+  - In `ensure_funded_from_testnet_dispenser_api`: `dispenser_client: TestNetDispenserApiClient` - a client instance of the TestNet dispenser API
+- `min_spending_balance: AlgoAmount` - The minimum balance of Algo that the account should have available to spend (i.e., on top of the minimum balance requirement)
+- An `options` object, which has:
+  - [Common transaction parameters](./algorand-client.md#transaction-parameters) (not for TestNet Dispenser API)
+  - [Execution parameters](./algorand-client.md#sending-a-single-transaction) (not for TestNet Dispenser API)
+  - `min_funding_increment: Optional[AlgoAmount]` - When issuing a funding amount, the minimum amount to transfer; this avoids many small transfers if this function gets called often on an active account
 
-The following fields on `TransferAssetParameters` are required to transfer assets:
+### Examples
 
-- `from_account`: The account or signer that will send the ALGOs
-- `to_address`: The address of the account that will receive the ALGOs
-- `asset_id`: The asset id that will be transfered
-- `amount`: The amount to send as the smallest divisible unit value
+```python
+# From account
+
+# Basic example
+algod.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount(1, "algo"))
+# With configuration
+algod.account.ensure_funded(
+    "ACCOUNTADDRESS",
+    "DISPENSERADDRESS",
+    AlgoAmount(1, "algo"),
+    min_funding_increment=AlgoAmount(2, "algo"),
+    fee=AlgoAmount(1000, "microalgo"),
+    suppress_log=True,
+)
+
+# From environment
+
+# Basic example
+algod.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount(1, "algo"))
+# With configuration
+algod.account.ensure_funded_from_environment(
+    "ACCOUNTADDRESS",
+    AlgoAmount(1, "algo"),
+    min_funding_increment=AlgoAmount(2, "algo"),
+    fee=AlgoAmount(1000, "microalgo"),
+    suppress_log=True,
+)
+
+# TestNet Dispenser API
+
+# Basic example
+algod.account.ensure_funded_from_testnet_dispenser_api(
+    "ACCOUNTADDRESS",
+    algod.client.get_testnet_dispenser_from_environment(),
+    AlgoAmount(1, "algo")
+)
+# With configuration
+algod.account.ensure_funded_from_testnet_dispenser_api(
+    "ACCOUNTADDRESS",
+    algod.client.get_testnet_dispenser_from_environment(),
+    AlgoAmount(1, "algo"),
+    min_funding_increment=AlgoAmount(2, "algo"),
+)
+```
+
+All 3 variants return an `EnsureFundedResponse` (and the first two also return a [single transaction result](./algorand-client.md#sending-a-single-transaction)) if a funding transaction was needed, or `None` if no transaction was required:
+
+- `amount_funded: AlgoAmount` - The number of Algo that was paid
+- `transaction_id: str` - The ID of the transaction that funded the account
+
+If you are using the TestNet Dispenser API then the `transaction_id` is useful if you want to use the [refund functionality](./dispenser-client.md#registering-a-refund).
 
 ## Dispenser
 
-If you want to programmatically send funds then you will often need a "dispenser" account that has a store of ALGOs that can be sent and a private key available for that dispenser account.
+If you want to programmatically send funds to an account so it can transact then you will often need a "dispenser" account that has a store of Algo that can be sent and a private key available for that dispenser account.
 
-There is a standard AlgoKit Utils function to get access to a [dispenser account](./account.md#account): `get_dispenser_account`. When running against
-[LocalNet](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md), the dispenser account can be automatically determined using the
-[Kmd API](https://developer.algorand.org/docs/rest-apis/kmd). When running against other networks like TestNet or MainNet the mnemonic of the dispenser account can be provided via environment
-variable `DISPENSER_MNEMONIC`
+There's a number of ways to get a dispensing account in AlgoKit Utils:
 
-Please note that this does not refer to the [AlgoKit TestNet Dispenser API](./dispenser-client.md) which is a separate abstraction that can be used to fund accounts on TestNet via dedicated API service.
+- Get a dispenser via [account manager](./account.md#dispenser) - either automatically from [LocalNet](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md) or from the environment
+- By programmatically creating one of the many account types via [account manager](./account.md#accounts)
+- By programmatically interacting with [KMD](./account.md#kmd-account-management) if running against LocalNet
+- By using the [AlgoKit TestNet Dispenser API client](./dispenser-client.md) which can be used to fund accounts on TestNet via a dedicated API service

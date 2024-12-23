@@ -32,7 +32,7 @@ from algokit_utils.transactions.transaction_sender import AlgorandClientTransact
 
 @pytest.fixture
 def algorand() -> AlgorandClient:
-    return AlgorandClient.default_local_net()
+    return AlgorandClient.default_localnet()
 
 
 @pytest.fixture
