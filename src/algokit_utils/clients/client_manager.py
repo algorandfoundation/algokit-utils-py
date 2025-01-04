@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, TypeVar
 from urllib import parse
 
 import algosdk
@@ -12,9 +12,9 @@ from algosdk.v2client.indexer import IndexerClient
 
 # from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_client import AppClient, AppClientParams
+from algokit_utils.applications.app_client import AppClient, AppClientParams, TypedAppClientProtocol
 from algokit_utils.applications.app_deployer import AppLookup
-from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
+from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams, TypedAppFactoryProtocol
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
@@ -26,6 +26,8 @@ __all__ = [
     "ClientManager",
     "NetworkDetail",
 ]
+
+TFactory = TypeVar("TFactory", bound=TypedAppFactoryProtocol)
 
 
 class AlgoSdkClients:
@@ -272,6 +274,115 @@ class ClientManager:
     @staticmethod
     def genesis_id_is_localnet(genesis_id: str) -> bool:
         return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
+
+    def get_typed_app_client_by_creator_and_name(
+        self,
+        typed_client: type[TypedAppClientProtocol],
+        *,
+        creator_address: str,
+        app_name: str,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+    ) -> TypedAppClientProtocol:
+        if not self._algorand:
+            raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
+
+        return typed_client.from_creator_and_name(
+            creator_address=creator_address,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            ignore_cache=ignore_cache,
+            app_lookup_cache=app_lookup_cache,
+            algorand=self._algorand,
+        )
+
+    def get_typed_app_client_by_id(
+        self,
+        typed_client: type[TypedAppClientProtocol],
+        *,
+        app_id: int,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> TypedAppClientProtocol:
+        if not self._algorand:
+            raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
+
+        return typed_client(
+            app_id=app_id,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
+        )
+
+    def get_typed_app_client_by_network(
+        self,
+        typed_client: type[TypedAppClientProtocol],
+        *,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> TypedAppClientProtocol:
+        """Returns a new typed client, resolves the app ID for the current network.
+
+        Uses pre-determined network-specific app IDs specified in the ARC-56 app spec.
+        If no IDs are in the app spec or the network isn't recognised, an error is thrown.
+
+        Args:
+            typed_client: The typed client class to instantiate
+            default_sender: Optional default sender address
+            default_signer: Optional default transaction signer
+
+        Returns:
+            The typed client instance
+        """
+        if not self._algorand:
+            raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
+
+        return typed_client.from_network(
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
+        )
+
+    def get_typed_app_factory(
+        self,
+        typed_factory: type[TFactory],
+        *,
+        app_name: str | None = None,
+        default_sender: str | bytes | None = None,
+        default_signer: TransactionSigner | None = None,
+        version: str | None = None,
+        updatable: bool | None = None,
+        deletable: bool | None = None,
+        deploy_time_params: TealTemplateParams | None = None,
+    ) -> TFactory:
+        if not self._algorand:
+            raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
+
+        return typed_factory(
+            algorand=self._algorand,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            version=version,
+            updatable=updatable,
+            deletable=deletable,
+            deploy_time_params=deploy_time_params,
+        )
 
     @staticmethod
     def get_config_from_environment_or_localnet() -> AlgoClientConfigs:

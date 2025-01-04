@@ -53,6 +53,7 @@ __all__ = [
     "AssetOptInParams",
     "AssetOptOutParams",
     "AssetTransferParams",
+    "BuiltTransactions",
     "MethodCallParams",
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",

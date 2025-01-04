@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 import algosdk
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
+from typing_extensions import Self
 
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
@@ -81,6 +82,7 @@ __all__ = [
     "AppClientParams",
     "AppSourceMaps",
     "FundAppAccountParams",
+    "TypedAppClientProtocol",
 ]
 
 # TEAL opcodes for constant blocks
@@ -150,6 +152,45 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
     # Return maximum offset
     return max(bytecblock_offset or 0, intcblock_offset or 0)
+
+
+class TypedAppClientProtocol(Protocol):
+    @classmethod
+    def from_creator_and_name(
+        cls,
+        *,
+        creator_address: str,
+        app_name: str,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+        algorand: AlgorandClientProtocol,
+    ) -> Self: ...
+
+    @classmethod
+    def from_network(
+        cls,
+        *,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+        algorand: AlgorandClientProtocol,
+    ) -> Self: ...
+
+    def __init__(
+        self,
+        *,
+        app_id: int,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        algorand: AlgorandClientProtocol,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> None: ...
 
 
 @dataclass(kw_only=True, frozen=True)

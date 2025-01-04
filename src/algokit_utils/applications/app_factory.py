@@ -1,7 +1,7 @@
 import base64
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
-from typing import Any, TypeVar
+from typing import Any, Protocol, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
@@ -26,6 +26,7 @@ from algokit_utils.applications.app_client import (
     AppClientCompilationResult,
     AppClientMethodCallParams,
     AppClientParams,
+    TypedAppClientProtocol,
 )
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
@@ -75,6 +76,7 @@ __all__ = [
     "SendAppCreateFactoryTransactionResult",
     "SendAppFactoryTransactionResult",
     "SendAppUpdateFactoryTransactionResult",
+    "TypedAppFactoryProtocol",
 ]
 
 
@@ -457,6 +459,30 @@ class _AppFactorySendAccessor:
                 returns=result.returns,
             ),
         )
+
+
+class TypedAppFactoryProtocol(Protocol):
+    def __init__(
+        self,
+        algorand: AlgorandClientProtocol,
+        **kwargs: Any,
+    ) -> None: ...
+
+    def deploy(  # noqa: PLR0913
+        self,
+        *,
+        deploy_time_params: TealTemplateParams | None = None,
+        on_update: OnUpdate = OnUpdate.Fail,
+        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        existing_deployments: AppLookup | None = None,
+        ignore_cache: bool = False,
+        updatable: bool | None = None,
+        deletable: bool | None = None,
+        app_name: str | None = None,
+        max_rounds_to_wait: int | None = None,
+        suppress_log: bool = False,
+        populate_app_call_resources: bool = False,
+    ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResponse"]: ...
 
 
 class AppFactory:
