@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import math
+import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Union
 
@@ -1000,7 +1002,19 @@ class TransactionComposer:
         :param note: The ARC-2 note to encode.
         """
 
-        arc2_payload = f"{note['dapp_name']}:{note['format']}{note['data']}"
+        pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_/@.-]{4,31}$"
+        if not re.match(pattern, note["dapp_name"]):
+            raise ValueError(
+                "dapp_name must be 5-32 chars, start with alphanumeric, "
+                "and contain only alphanumeric, _, /, @, ., or -"
+            )
+
+        data = note["data"]
+        if note["format"] == "j" and isinstance(data, (dict | list)):
+            # Ensure JSON data uses double quotes
+            data = json.dumps(data)
+
+        arc2_payload = f"{note['dapp_name']}:{note['format']}{data}"
         return arc2_payload.encode("utf-8")
 
     def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSigner]:

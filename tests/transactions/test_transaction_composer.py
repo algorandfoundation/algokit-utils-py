@@ -273,6 +273,39 @@ def test_arc2_note() -> None:
     assert encoded_note == expected_note
 
 
+def test_arc2_note_dapp_name_validation() -> None:
+    invalid_names = [
+        "_TestDApp",  # starts with underscore
+        "Test",  # too short
+        "a" * 33,  # too long
+        "Test@App!",  # invalid character !
+        "Test App",  # contains space
+    ]
+
+    for invalid_name in invalid_names:
+        note_data: Arc2TransactionNote = {"dapp_name": invalid_name, "format": "j", "data": {"key": "value"}}
+        with pytest.raises(ValueError, match="dapp_name must be"):
+            TransactionComposer.arc2_note(note_data)
+
+
+def test_arc2_note_valid_dapp_names() -> None:
+    valid_names = [
+        "TestDApp",  # simple case
+        "test-dapp",  # with hyphen
+        "test_dapp",  # with underscore
+        "test.dapp",  # with dot
+        "test@dapp",  # with @
+        "test/dapp",  # with /
+        "a" * 32,  # maximum length
+        "12345",  # minimum length, numeric
+    ]
+
+    for valid_name in valid_names:
+        note_data: Arc2TransactionNote = {"dapp_name": valid_name, "format": "j", "data": {"key": "value"}}
+        encoded_note = TransactionComposer.arc2_note(note_data)
+        assert encoded_note.startswith(valid_name.encode())
+
+
 def _get_test_transaction(
     default_account: Account, amount: AlgoAmount | None = None, sender: Account | None = None
 ) -> dict[str, Any]:
