@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any, Protocol, TypeVar
 
@@ -774,7 +774,7 @@ class AppFactory:
     def _get_create_abi_args_with_default_values(
         self,
         method_name_or_signature: str,
-        user_args: list[Any] | None,
+        user_args: Sequence[Any] | None,
     ) -> list[Any]:
         """
         Builds a list of ABI argument values for creation calls, applying default

@@ -4,6 +4,7 @@ import base64
 import copy
 import json
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
@@ -246,11 +247,11 @@ class AppClientCallParams:
 @dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallParams:
     method: str
-    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
+    args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference | BoxIdentifier] | None = None
+    box_references: Sequence[BoxReference | BoxIdentifier] | None = None
     extra_fee: AlgoAmount | None = None
     first_valid_round: int | None = None
     lease: bytes | None = None
@@ -1424,7 +1425,7 @@ class AppClient:
         self,
         *,
         method_name_or_signature: str,
-        args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
+        args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
         sender: str,
     ) -> list[Any]:
         """Get ABI args with default values filled in.
