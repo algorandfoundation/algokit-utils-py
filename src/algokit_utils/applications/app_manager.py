@@ -149,7 +149,7 @@ class AppManager:
         self,
         teal_template_code: str,
         template_params: TealTemplateParams | None = None,
-        deployment_metadata: Mapping[str, bool] | None = None,
+        deployment_metadata: Mapping[str, bool | None] | None = None,
     ) -> CompiledTeal:
         teal_code = AppManager.strip_teal_comments(teal_template_code)
         teal_code = AppManager.replace_template_variables(teal_code, template_params or {})
@@ -323,22 +323,26 @@ class AppManager:
         return "\n".join(program_lines)
 
     @staticmethod
-    def replace_teal_template_deploy_time_control_params(teal_template_code: str, params: Mapping[str, bool]) -> str:
-        if params.get("updatable") is not None:
+    def replace_teal_template_deploy_time_control_params(
+        teal_template_code: str, params: Mapping[str, bool | None]
+    ) -> str:
+        updatable = params.get("updatable")
+        if updatable is not None:
             if UPDATABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
                     f"Deploy-time updatability control requested for app deployment, but {UPDATABLE_TEMPLATE_NAME} "
                     "not present in TEAL code"
                 )
-            teal_template_code = teal_template_code.replace(UPDATABLE_TEMPLATE_NAME, str(int(params["updatable"])))
+            teal_template_code = teal_template_code.replace(UPDATABLE_TEMPLATE_NAME, str(int(updatable)))
 
-        if params.get("deletable") is not None:
+        deletable = params.get("deletable")
+        if deletable is not None:
             if DELETABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
                     f"Deploy-time deletability control requested for app deployment, but {DELETABLE_TEMPLATE_NAME} "
                     "not present in TEAL code"
                 )
-            teal_template_code = teal_template_code.replace(DELETABLE_TEMPLATE_NAME, str(int(params["deletable"])))
+            teal_template_code = teal_template_code.replace(DELETABLE_TEMPLATE_NAME, str(int(deletable)))
 
         return teal_template_code
 

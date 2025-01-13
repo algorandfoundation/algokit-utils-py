@@ -1108,7 +1108,7 @@ class AppClient:
             app_spec.source.get_decoded_approval(),
             template_params=deploy_time_params,
             deployment_metadata=(
-                {"updatable": updatable or False, "deletable": deletable or False}
+                {"updatable": updatable, "deletable": deletable}
                 if updatable is not None or deletable is not None
                 else None
             ),
