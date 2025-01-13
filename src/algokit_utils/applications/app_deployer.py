@@ -8,6 +8,7 @@ from typing import Literal
 from algosdk.logic import get_application_address
 from algosdk.v2client.indexer import IndexerClient
 
+from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
 from algokit_utils.models.state import TealTemplateParams
@@ -176,9 +177,9 @@ class AppDeployParams:
 class AppDeployResponse:
     app: AppMetaData
     operation_performed: OperationPerformed
-    create_response: SendAppCreateTransactionResult | None = None
-    update_response: SendAppUpdateTransactionResult | None = None
-    delete_response: SendAppTransactionResult | None = None
+    create_response: SendAppCreateTransactionResult[ABIReturn] | None = None
+    update_response: SendAppUpdateTransactionResult[ABIReturn] | None = None
+    delete_response: SendAppTransactionResult[ABIReturn] | None = None
 
 
 class AppDeployer:
@@ -432,8 +433,8 @@ class AppDeployer:
 
         result = composer.send()
 
-        create_response = SendAppCreateTransactionResult.from_composer_result(result, create_txn_index)
-        delete_response = SendAppTransactionResult.from_composer_result(result, delete_txn_index)
+        create_response = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
+        delete_response = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
 
         app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
         app_metadata = AppMetaData(

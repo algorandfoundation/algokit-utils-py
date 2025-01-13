@@ -1,7 +1,7 @@
 import base64
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
-from typing import Any, Protocol, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 from algosdk import transaction
 from algosdk.abi import Method
@@ -13,8 +13,6 @@ from typing_extensions import Self
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.abi import (
     ABIReturn,
-    ABIStruct,
-    ABIValue,
     Arc56ReturnValueType,
     get_abi_decoded_value,
     get_abi_tuple_from_abi_struct,
@@ -112,13 +110,19 @@ class AppFactoryCreateMethodCallParams(AppClientMethodCallParams, AppClientCompi
     extra_program_pages: int | None = None
 
 
+ABIReturnT = TypeVar(
+    "ABIReturnT",
+    bound=Arc56ReturnValueType,
+)
+
+
 @dataclass(frozen=True, kw_only=True)
-class AppFactoryCreateMethodCallResult(SendSingleTransactionResult):
+class AppFactoryCreateMethodCallResult(SendSingleTransactionResult, Generic[ABIReturnT]):
     app_id: int
     app_address: str
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
-    abi_return: ABIValue | ABIStruct | None = None
+    abi_return: ABIReturnT | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -387,7 +391,7 @@ class _AppFactoryBareSendAccessor:
             self._factory.get_app_client_by_id(
                 app_id=result.app_id,
             ),
-            SendAppCreateTransactionResult(
+            SendAppCreateTransactionResult[ABIReturn](
                 transaction=result.transaction,
                 confirmation=result.confirmation,
                 app_id=result.app_id,
@@ -412,7 +416,9 @@ class _AppFactorySendAccessor:
     def bare(self) -> _AppFactoryBareSendAccessor:
         return self._bare
 
-    def create(self, params: AppFactoryCreateMethodCallParams) -> tuple[AppClient, AppFactoryCreateMethodCallResult]:
+    def create(
+        self, params: AppFactoryCreateMethodCallParams
+    ) -> tuple[AppClient, AppFactoryCreateMethodCallResult[Arc56ReturnValueType]]:
         create_params = replace(
             params,
             updatable=params.updatable if params.updatable is not None else self._factory._updatable,
@@ -443,7 +449,7 @@ class _AppFactorySendAccessor:
             self._factory.get_app_client_by_id(
                 app_id=result.app_id,
             ),
-            AppFactoryCreateMethodCallResult(
+            AppFactoryCreateMethodCallResult[Arc56ReturnValueType](
                 transaction=result.transaction,
                 confirmation=result.confirmation,
                 tx_id=result.tx_id,
@@ -760,9 +766,9 @@ class AppFactory:
             [], SendAppTransactionResult | SendAppCreateTransactionResult | SendAppUpdateTransactionResult
         ],
         method: Method,
-    ) -> AppFactoryCreateMethodCallResult:
+    ) -> AppFactoryCreateMethodCallResult[Arc56ReturnValueType]:
         result_value = result()
-        return AppFactoryCreateMethodCallResult(
+        return AppFactoryCreateMethodCallResult[Arc56ReturnValueType](
             **{
                 **result_value.__dict__,
                 "abi_return": result_value.abi_return.get_arc56_value(method, self._app_spec.structs)

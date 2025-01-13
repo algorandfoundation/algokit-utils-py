@@ -15,6 +15,7 @@ ABIValue: TypeAlias = (
 ABIStruct: TypeAlias = dict[str, list[dict[str, "ABIValue"]]]
 Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
+
 ABIType: TypeAlias = algosdk.abi.ABIType
 ABIArgumentType: TypeAlias = algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType
 
@@ -56,13 +57,13 @@ class ABIReturn:
 
     def get_arc56_value(
         self, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
-    ) -> ABIValue | ABIStruct | None:
+    ) -> Arc56ReturnValueType:
         return get_arc56_value(self, method, structs)
 
 
 def get_arc56_value(
     abi_return: ABIReturn, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
-) -> ABIValue | ABIStruct | None:
+) -> Arc56ReturnValueType:
     if isinstance(method, AlgorandABIMethod):
         type_str = method.returns.type
         struct = None  # AlgorandABIMethod doesn't have struct info
