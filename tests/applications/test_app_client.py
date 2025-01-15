@@ -67,9 +67,9 @@ def hello_world_arc32_app_id(
             clear_state_program=hello_world_arc32_app_spec.clear_program,
             schema={
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
             },
         )
     )
@@ -108,9 +108,9 @@ def testing_app_arc32_app_id(
             approval_program=approval,
             clear_state_program=testing_app_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
             },
         )
@@ -178,9 +178,9 @@ def testing_app_puya_arc32_app_id(
             approval_program=testing_app_puya_arc32_app_spec.approval_program,
             clear_state_program=testing_app_puya_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
             },
         )

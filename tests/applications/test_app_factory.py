@@ -7,6 +7,7 @@ from algosdk.transaction import OnComplete
 
 from algokit_utils.applications.app_client import (
     AppClient,
+    AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientMethodCallWithCompilationAndSendParams,
     AppClientMethodCallWithSendParams,
@@ -164,7 +165,7 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
         deploy_time_params={
             "VALUE": 1,
         },
-        create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
+        create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
     )
 
     assert deploy_result.operation_performed == OperationPerformed.Create
@@ -295,7 +296,7 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
             "VALUE": 2,
         },
         on_update=OnUpdate.ReplaceApp,
-        create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
+        create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
         delete_params=AppClientMethodCallParams(method="delete_abi", args=["arg2_io"]),
     )
 
@@ -471,7 +472,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
 ) -> None:
     app_client, _ = arc56_factory.deploy(
-        create_params=AppClientMethodCallParams(method="createApplication"),
+        create_params=AppClientMethodCallCreateParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
             "uint64TmplVar": 123,
@@ -491,7 +492,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
 ) -> None:
     # Deploy app with template parameters
     app_client, _ = arc56_factory.deploy(
-        create_params=AppClientMethodCallParams(method="createApplication"),
+        create_params=AppClientMethodCallCreateParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
             "uint64TmplVar": 0,

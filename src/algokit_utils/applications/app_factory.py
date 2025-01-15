@@ -1,9 +1,8 @@
 import base64
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, Generic, Literal, Protocol, TypeVar
 
-from algosdk import transaction
 from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
@@ -19,9 +18,12 @@ from algokit_utils.applications.abi import (
 )
 from algokit_utils.applications.app_client import (
     AppClient,
+    AppClientBareCallCreateParams,
     AppClientBareCallParams,
     AppClientCompilationParams,
     AppClientCompilationResult,
+    AppClientCreateSchema,
+    AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientParams,
     TypedAppClientProtocol,
@@ -92,10 +94,22 @@ class AppFactoryParams:
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateParams(AppClientBareCallParams, AppClientCompilationParams):
-    on_complete: transaction.OnComplete | None = None
-    schema: dict[str, int] | None = None
-    extra_program_pages: int | None = None
+class _AppFactoryCreateBaseParams(AppClientCreateSchema, AppClientBareCallParams, AppClientCompilationParams):
+    on_complete: (
+        Literal[
+            OnComplete.NoOpOC,
+            OnComplete.UpdateApplicationOC,
+            OnComplete.DeleteApplicationOC,
+            OnComplete.OptInOC,
+            OnComplete.CloseOutOC,
+        ]
+        | None
+    ) = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppFactoryCreateParams(_AppFactoryCreateBaseParams):
+    pass
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -104,10 +118,8 @@ class AppFactoryCreateWithSendParams(AppFactoryCreateParams, SendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateMethodCallParams(AppClientMethodCallParams, AppClientCompilationParams):
-    on_complete: transaction.OnComplete | None = None
-    schema: dict[str, int] | None = None
-    extra_program_pages: int | None = None
+class AppFactoryCreateMethodCallParams(_AppFactoryCreateBaseParams, AppClientMethodCallParams):
+    pass
 
 
 ABIReturnT = TypeVar(
@@ -226,9 +238,9 @@ class _AppFactoryBareParamsAccessor:
             clear_state_program=compiled.clear_state_program,
             schema=base_params.schema
             or {
-                "global_bytes": self._factory._app_spec.state.schema.global_state.bytes,
+                "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
                 "global_ints": self._factory._app_spec.state.schema.global_state.ints,
-                "local_bytes": self._factory._app_spec.state.schema.local_state.bytes,
+                "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
                 "local_ints": self._factory._app_spec.state.schema.local_state.ints,
             },
             sender=self._factory._get_sender(base_params.sender),
@@ -288,9 +300,9 @@ class _AppFactoryParamsAccessor:
             clear_state_program=compiled.clear_state_program,
             schema=params.schema
             or {
-                "global_bytes": self._factory._app_spec.state.schema.global_state.bytes,
+                "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
                 "global_ints": self._factory._app_spec.state.schema.global_state.ints,
-                "local_bytes": self._factory._app_spec.state.schema.local_state.bytes,
+                "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
                 "local_ints": self._factory._app_spec.state.schema.local_state.ints,
             },
             sender=self._factory._get_sender(params.sender),
@@ -301,6 +313,7 @@ class _AppFactoryParamsAccessor:
             note=params.note,
             lease=params.lease,
             rekey_to=params.rekey_to,
+            extra_program_pages=params.extra_program_pages,
         )
 
     def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCallParams:
@@ -480,6 +493,9 @@ class TypedAppFactoryProtocol(Protocol):
         deploy_time_params: TealTemplateParams | None = None,
         on_update: OnUpdate = OnUpdate.Fail,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        create_params: AppClientMethodCallCreateParams | AppClientBareCallCreateParams | None = None,
+        update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
+        delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         existing_deployments: AppLookup | None = None,
         ignore_cache: bool = False,
         updatable: bool | None = None,
@@ -538,7 +554,7 @@ class AppFactory:
         deploy_time_params: TealTemplateParams | None = None,
         on_update: OnUpdate = OnUpdate.Fail,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
-        create_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
+        create_params: AppClientMethodCallCreateParams | AppClientBareCallCreateParams | None = None,
         update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         existing_deployments: AppLookup | None = None,
@@ -551,7 +567,6 @@ class AppFactory:
         populate_app_call_resources: bool = False,
     ) -> tuple[AppClient, AppFactoryDeployResponse]:
         """Deploy the application with the specified parameters."""
-
         # Resolve control parameters with factory defaults
         resolved_updatable = (
             updatable if updatable is not None else self._updatable or self._get_deploy_time_control("updatable")
@@ -563,7 +578,7 @@ class AppFactory:
 
         def prepare_create_args() -> AppCreateMethodCallParams | AppCreateParams:
             """Prepare create arguments based on parameter type."""
-            if create_params and isinstance(create_params, AppClientMethodCallParams):
+            if create_params and isinstance(create_params, AppClientMethodCallCreateParams):
                 return self.params.create(
                     AppFactoryCreateMethodCallParams(
                         **asdict(create_params),
@@ -573,7 +588,7 @@ class AppFactory:
                     )
                 )
 
-            base_params = create_params or AppClientBareCallParams()
+            base_params = create_params or AppClientBareCallCreateParams()
             return self.params.bare.create(
                 AppFactoryCreateParams(
                     **asdict(base_params) if base_params else {},

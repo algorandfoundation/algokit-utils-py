@@ -6,7 +6,7 @@ import json
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 import algosdk
 from algosdk.source_map import SourceMap
@@ -16,6 +16,9 @@ from typing_extensions import Self
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
     ABIReturn,
+    ABIStruct,
+    ABIType,
+    ABIValue,
     BoxABIValue,
     get_abi_decoded_value,
     get_abi_encoded_value,
@@ -42,6 +45,7 @@ from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
+    AppCreateSchema,
     AppDeleteMethodCallParams,
     AppMethodCallTransactionArgument,
     AppUpdateMethodCallParams,
@@ -60,7 +64,6 @@ if TYPE_CHECKING:
 
     from algosdk.atomic_transaction_composer import TransactionSigner
 
-    from algokit_utils.applications.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.applications.app_deployer import AppLookup
     from algokit_utils.applications.app_manager import AppManager
     from algokit_utils.models.amount import AlgoAmount
@@ -69,6 +72,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "AppClient",
+    "AppClientBareCallCreateParams",
     "AppClientBareCallParams",
     "AppClientBareCallWithCallOnCompleteParams",
     "AppClientBareCallWithCompilationAndSendParams",
@@ -77,12 +81,16 @@ __all__ = [
     "AppClientCallParams",
     "AppClientCompilationParams",
     "AppClientCompilationResult",
+    "AppClientCreateSchema",
+    "AppClientMethodCallCreateParams",
     "AppClientMethodCallParams",
     "AppClientMethodCallWithCompilationAndSendParams",
     "AppClientMethodCallWithCompilationParams",
     "AppClientMethodCallWithSendParams",
     "AppClientParams",
     "AppSourceMaps",
+    "BaseAppClientMethodCallParams",
+    "BaseOnCompleteParams",
     "FundAppAccountParams",
     "TypedAppClientProtocol",
 ]
@@ -245,10 +253,15 @@ class AppClientCallParams:
     send_params: dict | None = None  # Parameters to control transaction sending
 
 
+ArgsT = TypeVar("ArgsT")
+MethodT = TypeVar("MethodT")
+OnCompleteT = TypeVar("OnCompleteT")
+
+
 @dataclass(kw_only=True, frozen=True)
-class AppClientMethodCallParams:
-    method: str
-    args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
+class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT, OnCompleteT]):
+    method: MethodT
+    args: ArgsT | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
@@ -264,7 +277,16 @@ class AppClientMethodCallParams:
     static_fee: AlgoAmount | None = None
     validity_window: int | None = None
     last_valid_round: int | None = None
-    on_complete: algosdk.transaction.OnComplete | None = None
+    on_complete: OnCompleteT | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientMethodCallParams(
+    BaseAppClientMethodCallParams[
+        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None], str, algosdk.transaction.OnComplete
+    ]
+):
+    pass
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -304,9 +326,10 @@ class AppClientBareCallParams:
     box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
-@dataclass(kw_only=True, frozen=True)
-class _CallOnComplete:
-    on_complete: algosdk.transaction.OnComplete
+@dataclass(frozen=True)
+class AppClientCreateSchema:
+    extra_program_pages: int | None = None
+    schema: AppCreateSchema | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -325,8 +348,27 @@ class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, App
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams, _CallOnComplete):
+class BaseOnCompleteParams(Generic[OnCompleteT]):
     """Combined parameters for bare calls with an OnComplete value"""
+
+    on_complete: OnCompleteT | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientBareCallWithCallOnCompleteParams(
+    AppClientBareCallParams, BaseOnCompleteParams[algosdk.transaction.OnComplete]
+):
+    """Combined parameters for bare calls with an OnComplete value"""
+
+
+@dataclass(frozen=True)
+class AppClientBareCallCreateParams(AppClientCreateSchema, AppClientBareCallWithCallOnCompleteParams):
+    pass
+
+
+@dataclass(frozen=True)
+class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCallParams):
+    pass
 
 
 class _AppClientStateMethodsProtocol(Protocol):

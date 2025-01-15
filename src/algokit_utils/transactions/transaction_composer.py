@@ -4,7 +4,7 @@ import json
 import math
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -44,6 +44,7 @@ __all__ = [
     "AppCallParams",
     "AppCreateMethodCallParams",
     "AppCreateParams",
+    "AppCreateSchema",
     "AppDeleteMethodCallParams",
     "AppDeleteParams",
     "AppUpdateMethodCallParams",
@@ -327,6 +328,13 @@ class AppCallParams(_CommonTxnWithSendParams):
     box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
+class AppCreateSchema(TypedDict):
+    global_ints: int
+    global_byte_slices: int
+    local_ints: int
+    local_byte_slices: int
+
+
 @dataclass(kw_only=True, frozen=True)
 class AppCreateParams(_CommonTxnWithSendParams):
     """
@@ -348,7 +356,7 @@ class AppCreateParams(_CommonTxnWithSendParams):
 
     approval_program: str | bytes
     clear_state_program: str | bytes
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
     on_complete: OnComplete | None = None
     args: list[bytes] | None = None
     account_references: list[str] | None = None
@@ -413,7 +421,7 @@ class _BaseAppMethodCall(_CommonTxnWithSendParams):
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
     box_references: list[BoxReference | BoxIdentifier] | None = None
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -469,7 +477,7 @@ class AppCreateMethodCallParams(_BaseAppMethodCall):
 
     approval_program: str | bytes
     clear_state_program: str | bytes
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
     on_complete: OnComplete | None = None
     extra_program_pages: int | None = None
 
@@ -1146,13 +1154,13 @@ class TransactionComposer:
             "accounts": params.account_references,
             "global_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("global_ints", 0),
-                num_byte_slices=params.schema.get("global_bytes", 0),
+                num_byte_slices=params.schema.get("global_byte_slices", 0),
             )
             if params.schema
             else None,
             "local_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("local_ints", 0),
-                num_byte_slices=params.schema.get("local_bytes", 0),
+                num_byte_slices=params.schema.get("local_byte_slices", 0),
             )
             if params.schema
             else None,
@@ -1253,11 +1261,11 @@ class TransactionComposer:
                 **txn_params,
                 "global_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("global_ints", 0),
-                    num_byte_slices=params.schema.get("global_bytes", 0),
+                    num_byte_slices=params.schema.get("global_byte_slices", 0),
                 ),
                 "local_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("local_ints", 0),
-                    num_byte_slices=params.schema.get("local_bytes", 0),
+                    num_byte_slices=params.schema.get("local_byte_slices", 0),
                 ),
                 "extra_pages": params.extra_program_pages
                 or math.floor((approval_program_len + clear_program_len) / algosdk.constants.APP_PAGE_MAX_SIZE)

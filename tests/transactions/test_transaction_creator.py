@@ -207,7 +207,7 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
             sender=funded_account.address,
             approval_program=approval_program,
             clear_state_program=clear_state_program,
-            schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
+            schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
 
@@ -227,7 +227,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
             sender=funded_account.address,
             approval_program=approval_program,
             clear_state_program=clear_state_program,
-            schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
+            schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
     app_id = algorand.client.algod.pending_transaction_info(create_result.tx_ids[0])["application-index"]  # type: ignore[call-overload]

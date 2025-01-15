@@ -173,7 +173,7 @@ def test_add_app_create(algorand: AlgorandClient, funded_account: Account) -> No
         sender=funded_account.address,
         approval_program=approval_program,
         clear_state_program=clear_state_program,
-        schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
+        schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
     )
     composer.add_app_create(params)
     built = composer.build_transactions()
@@ -199,7 +199,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
             sender=funded_account.address,
             approval_program=approval_program,
             clear_state_program=clear_state_program,
-            schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
+            schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
     response = composer.send()
