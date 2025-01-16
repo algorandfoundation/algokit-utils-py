@@ -27,7 +27,8 @@ __all__ = [
     "NetworkDetail",
 ]
 
-TFactory = TypeVar("TFactory", bound=TypedAppFactoryProtocol)
+TypedFactoryT = TypeVar("TypedFactoryT", bound=TypedAppFactoryProtocol)
+TypedAppClientT = TypeVar("TypedAppClientT", bound=TypedAppClientProtocol)
 
 
 class AlgoSdkClients:
@@ -277,7 +278,7 @@ class ClientManager:
 
     def get_typed_app_client_by_creator_and_name(
         self,
-        typed_client: type[TypedAppClientProtocol],
+        typed_client: type[TypedAppClientT],
         *,
         creator_address: str,
         app_name: str,
@@ -285,7 +286,7 @@ class ClientManager:
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: AppLookup | None = None,
-    ) -> TypedAppClientProtocol:
+    ) -> TypedAppClientT:
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -301,7 +302,7 @@ class ClientManager:
 
     def get_typed_app_client_by_id(
         self,
-        typed_client: type[TypedAppClientProtocol],
+        typed_client: type[TypedAppClientT],
         *,
         app_id: int,
         app_name: str | None = None,
@@ -309,7 +310,7 @@ class ClientManager:
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
-    ) -> TypedAppClientProtocol:
+    ) -> TypedAppClientT:
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -325,14 +326,14 @@ class ClientManager:
 
     def get_typed_app_client_by_network(
         self,
-        typed_client: type[TypedAppClientProtocol],
+        typed_client: type[TypedAppClientT],
         *,
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
-    ) -> TypedAppClientProtocol:
+    ) -> TypedAppClientT:
         """Returns a new typed client, resolves the app ID for the current network.
 
         Uses pre-determined network-specific app IDs specified in the ARC-56 app spec.
@@ -360,7 +361,7 @@ class ClientManager:
 
     def get_typed_app_factory(
         self,
-        typed_factory: type[TFactory],
+        typed_factory: type[TypedFactoryT],
         *,
         app_name: str | None = None,
         default_sender: str | bytes | None = None,
@@ -369,7 +370,7 @@ class ClientManager:
         updatable: bool | None = None,
         deletable: bool | None = None,
         deploy_time_params: TealTemplateParams | None = None,
-    ) -> TFactory:
+    ) -> TypedFactoryT:
         if not self._algorand:
             raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
 
