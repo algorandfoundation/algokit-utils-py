@@ -143,18 +143,18 @@ class AppFactoryCreateMethodCallWithSendParams(AppFactoryCreateMethodCallParams,
 
 
 @dataclass(frozen=True)
-class SendAppFactoryTransactionResult(SendAppTransactionResult):
-    abi_value: Arc56ReturnValueType | None = None
+class SendAppFactoryTransactionResult(SendAppTransactionResult[Arc56ReturnValueType]):
+    pass
 
 
 @dataclass(frozen=True)
-class SendAppUpdateFactoryTransactionResult(SendAppUpdateTransactionResult):
-    abi_value: Arc56ReturnValueType | None = None
+class SendAppUpdateFactoryTransactionResult(SendAppUpdateTransactionResult[Arc56ReturnValueType]):
+    pass
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateFactoryTransactionResult(SendAppCreateTransactionResult):
-    abi_value: Arc56ReturnValueType | None = None
+class SendAppCreateFactoryTransactionResult(SendAppCreateTransactionResult[Arc56ReturnValueType]):
+    pass
 
 
 @dataclass(frozen=True)
@@ -176,7 +176,7 @@ class AppFactoryDeployResponse:
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
         def to_factory_response(
-            response_data: SendAppTransactionResult
+            response_data: SendAppTransactionResult[ABIReturn]
             | SendAppCreateTransactionResult
             | SendAppUpdateTransactionResult
             | None,
@@ -185,25 +185,24 @@ class AppFactoryDeployResponse:
             if not response_data:
                 return None
 
-            abi_value = None
+            response_data_dict = asdict(response_data)
             abi_return = response_data.abi_return
             if abi_return and abi_return.method:
-                abi_value = abi_return.get_arc56_value(params.method, app_spec.structs)
+                response_data_dict["abi_return"] = abi_return.get_arc56_value(params.method, app_spec.structs)
 
             match response_data:
                 case SendAppCreateTransactionResult():
-                    return SendAppCreateFactoryTransactionResult(**asdict(response_data), abi_value=abi_value)
+                    return SendAppCreateFactoryTransactionResult(**response_data_dict)
                 case SendAppUpdateTransactionResult():
-                    raw_response = asdict(response_data)
-                    raw_response["compiled_approval"] = (
+                    response_data_dict["compiled_approval"] = (
                         app_compilation_data.compiled_approval if app_compilation_data else None
                     )
-                    raw_response["compiled_clear"] = (
+                    response_data_dict["compiled_clear"] = (
                         app_compilation_data.compiled_clear if app_compilation_data else None
                     )
-                    return SendAppUpdateFactoryTransactionResult(**raw_response, abi_value=abi_value)
+                    return SendAppUpdateFactoryTransactionResult(**response_data_dict)
                 case SendAppTransactionResult():
-                    return SendAppFactoryTransactionResult(**asdict(response_data), abi_value=abi_value)
+                    return SendAppFactoryTransactionResult(**response_data_dict)
 
         return cls(
             app=response.app,

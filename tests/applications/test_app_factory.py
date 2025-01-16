@@ -241,8 +241,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert (
         update_deploy_result.update_response.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
     )
-    assert update_deploy_result.update_response.abi_return
-    assert update_deploy_result.update_response.abi_value == "args_io"
+    assert update_deploy_result.update_response.abi_return == "args_io"
 
 
 def test_deploy_app_replace(factory: AppFactory) -> None:
@@ -316,10 +315,8 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     assert (
         replace_deploy_result.delete_response.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
     )
-    assert replace_deploy_result.create_response.abi_return
-    assert replace_deploy_result.create_response.abi_value == "arg_io"
-    assert replace_deploy_result.delete_response.abi_return
-    assert replace_deploy_result.delete_response.abi_value == "arg2_io"
+    assert replace_deploy_result.create_response.abi_return == "arg_io"
+    assert replace_deploy_result.delete_response.abi_return == "arg2_io"
 
 
 def test_create_then_call_app(factory: AppFactory) -> None:
