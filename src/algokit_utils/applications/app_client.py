@@ -660,25 +660,33 @@ class _AppClientBareParamsAccessor:
         return call_params
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.OptInOC))
-        return call_params
-
-    def delete(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__, OnComplete.DeleteApplicationOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.OptInOC)
         )
         return call_params
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.ClearStateOC))
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.DeleteApplicationOC)
+        )
         return call_params
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.CloseOutOC))
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.ClearStateOC)
+        )
         return call_params
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.NoOpOC))
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.CloseOutOC)
+        )
+        return call_params
+
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.NoOpOC)
+        )
         return call_params
 
 
@@ -783,23 +791,35 @@ class _AppClientBareCreateTransactionMethods:
         self._client = client
         self._algorand = client._algorand
 
-    def update(self, params: AppClientBareCallWithCompilationAndSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_update(self._client.params.bare.update(params))
+    def update(self, params: AppClientBareCallWithCompilationAndSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_update(
+            self._client.params.bare.update(params or AppClientBareCallWithCompilationAndSendParams())
+        )
 
-    def opt_in(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.opt_in(params))
+    def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
+        )
 
-    def delete(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.delete(params))
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
+        )
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.clear_state(params))
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
+        )
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.close_out(params))
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
+        )
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.call(params))
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
+        )
 
 
 class _AppClientMethodCallTransactionCreator:
@@ -842,7 +862,7 @@ class _AppClientBareSendAccessor:
 
     def update(
         self,
-        params: AppClientBareCallWithCompilationAndSendParams,
+        params: AppClientBareCallWithCompilationAndSendParams | None = None,
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application update transaction.
 
@@ -856,6 +876,7 @@ class _AppClientBareSendAccessor:
         Returns:
             The result of sending the transaction
         """
+        params = params or AppClientBareCallWithCompilationAndSendParams()
         compiled = self._client.compile_sourcemaps(params.deploy_time_params, params.updatable, params.deletable)
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
@@ -866,29 +887,41 @@ class _AppClientBareSendAccessor:
             abi_return=AppManager.get_abi_return(call_result.confirmation, getattr(params, "method", None)),
         )
 
-    def opt_in(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.opt_in(params))
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def delete(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.delete(params))
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.clear_state(params))
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.close_out(params))
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> SendAppTransactionResult[ABIReturn]:
+    def call(
+        self, params: AppClientBareCallWithCallOnCompleteParams | None = None
+    ) -> SendAppTransactionResult[ABIReturn]:
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.call(params))
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
+            )
         )
 
 
