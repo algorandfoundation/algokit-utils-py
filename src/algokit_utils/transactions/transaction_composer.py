@@ -11,6 +11,7 @@ import algosdk.atomic_transaction_composer
 import algosdk.v2client.models
 from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
+    SimulateAtomicTransactionResponse,
     TransactionSigner,
     TransactionWithSigner,
 )
@@ -928,6 +929,18 @@ class TransactionComposer:
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
 
+    def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
+        # const failedGroup = simulateResponse?.txnGroups[0]
+        failed_group = simulate_response.simulate_response.get("txn-groups", [{}])[0]
+        failure_message = failed_group.get("failure-message")
+        failed_at = [str(x) for x in failed_group.get("failed-at", [])]
+        if failure_message:
+            error_message = (
+                f"Transaction failed at transaction(s) {', '.join(failed_at) if failed_at else 'N/A'} in the group. "
+                f"{failure_message}"
+            )
+            raise Exception(error_message)
+
     def simulate(
         self,
         allow_more_logs: bool | None = None,
@@ -963,7 +976,7 @@ class TransactionComposer:
                 simulation_round,
                 skip_signatures,
             )
-
+            self._handle_simulate_error(response)
             return SendAtomicTransactionComposerResults(
                 confirmations=response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
                     "txn-results"
@@ -986,7 +999,7 @@ class TransactionComposer:
             simulation_round,
             skip_signatures,
         )
-
+        self._handle_simulate_error(response)
         confirmation_results = response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
             "txn-results"
         ]
