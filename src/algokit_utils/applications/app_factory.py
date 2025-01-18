@@ -94,7 +94,7 @@ class AppFactoryParams:
 
 
 @dataclass(kw_only=True, frozen=True)
-class _AppFactoryCreateBaseParams(AppClientCreateSchema, AppClientBareCallParams, AppClientCompilationParams):
+class _AppFactoryCreateBaseParams(AppClientCreateSchema, AppClientCompilationParams):
     on_complete: (
         Literal[
             OnComplete.NoOpOC,
@@ -108,7 +108,7 @@ class _AppFactoryCreateBaseParams(AppClientCreateSchema, AppClientBareCallParams
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateParams(_AppFactoryCreateBaseParams):
+class AppFactoryCreateParams(_AppFactoryCreateBaseParams, AppClientBareCallParams):
     pass
 
 

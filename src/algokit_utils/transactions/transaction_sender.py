@@ -112,13 +112,13 @@ class SendAppTransactionResult(SendSingleTransactionResult, Generic[ABIReturnT])
 
 
 @dataclass(frozen=True)
-class SendAppUpdateTransactionResult(SendAppTransactionResult, Generic[ABIReturnT]):
+class SendAppUpdateTransactionResult(SendAppTransactionResult[ABIReturnT]):
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResult(SendAppUpdateTransactionResult, Generic[ABIReturnT]):
+class SendAppCreateTransactionResult(SendAppUpdateTransactionResult[ABIReturnT]):
     app_id: int
     app_address: str
 

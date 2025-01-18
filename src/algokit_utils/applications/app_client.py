@@ -887,28 +887,28 @@ class _AppClientBareSendAccessor:
         )
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
             )
         )
 
     def delete(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
             )
         )
 
     def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
             )
         )
 
     def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
             )
@@ -917,7 +917,7 @@ class _AppClientBareSendAccessor:
     def call(
         self, params: AppClientBareCallWithCallOnCompleteParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
             )
@@ -942,24 +942,24 @@ class _AppClientSendAccessor:
         )
 
     def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
         )
 
     def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params))
         )
 
     def update(
         self, params: AppClientMethodCallWithCompilationAndSendParams
     ) -> SendAppUpdateTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_update_method_call(self._client.params.update(params))
         )
 
     def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
+        return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params))
         )
 
