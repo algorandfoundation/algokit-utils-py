@@ -1550,10 +1550,9 @@ class AppClient:
                         # Get method return value
                         default_method = self._app_spec.get_arc56_method(default_value.data)
                         empty_args = [None] * len(default_method.args)
-                        call_result = self._algorand.send.app_call_method_call(
-                            AppCallMethodCallParams(
-                                app_id=self._app_id,
-                                method=algosdk.abi.Method.from_signature(default_value.data),
+                        call_result = self.send.call(
+                            AppClientMethodCallWithSendParams(
+                                method=default_value.data,
                                 args=empty_args,
                                 sender=sender,
                             )
@@ -1567,7 +1566,7 @@ class AppClient:
                             result.append(
                                 get_abi_tuple_from_abi_struct(
                                     call_result.abi_return,
-                                    self._app_spec.structs[str(default_method.returns.type)],
+                                    self._app_spec.structs[str(default_method.returns.struct)],
                                     self._app_spec.structs,
                                 )
                             )
