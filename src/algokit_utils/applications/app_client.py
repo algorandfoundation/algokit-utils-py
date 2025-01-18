@@ -776,12 +776,11 @@ class _AppClientMethodCallParamsAccessor:
 
         if params.get("method"):
             input_params["method"] = self._app_spec.get_arc56_method(params["method"]).to_abi_method()
-            if params.get("args"):
-                input_params["args"] = self._client._get_abi_args_with_default_values(
-                    method_name_or_signature=params["method"],
-                    args=params["args"],
-                    sender=self._client._get_sender(input_params["sender"]),
-                )
+            input_params["args"] = self._client._get_abi_args_with_default_values(
+                method_name_or_signature=params["method"],
+                args=params.get("args"),
+                sender=self._client._get_sender(input_params["sender"]),
+            )
 
         return input_params
 
