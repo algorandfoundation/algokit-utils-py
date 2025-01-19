@@ -49,6 +49,7 @@ __all__ = [
     "AppCreateSchema",
     "AppDeleteMethodCallParams",
     "AppDeleteParams",
+    "AppMethodCallTransactionArgument",
     "AppUpdateMethodCallParams",
     "AppUpdateParams",
     "AssetConfigParams",
