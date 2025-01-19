@@ -687,7 +687,7 @@ class Arc56Contract:
         data["methods"] = [Method.from_dict(item) for item in data["methods"]]
         data["state"] = State.from_dict(data["state"])
         data["structs"] = {
-            key: [StructField.from_dict(item) for item in value] for key, value in data["structs"].items()
+            key: [StructField.from_dict(item) for item in value] for key, value in application_spec["structs"].items()
         }
         if data.get("byte_code"):
             data["byte_code"] = ByteCode.from_dict(data["byte_code"])
