@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import math
 import re
@@ -625,7 +626,9 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Get group ID if multiple transactions
         group_id = None
         if len(transactions_to_send) > 1:
-            group_id = transactions_to_send[0].group.hex() if transactions_to_send[0].group else None
+            group_id = (
+                base64.b64encode(transactions_to_send[0].group).decode("utf-8") if transactions_to_send[0].group else ""
+            )
 
             if not suppress_log:
                 logger.info(f"Sending group of {len(transactions_to_send)} transactions ({group_id})")
