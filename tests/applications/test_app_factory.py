@@ -331,9 +331,7 @@ def test_create_then_call_app(factory: AppFactory) -> None:
     )
 
     call = app_client.send.call(AppClientMethodCallWithSendParams(method="call_abi", args=["test"]))
-
-    assert call.abi_return
-    assert call.abi_return.value == "Hello, test"
+    assert call.abi_return == "Hello, test"
 
 
 def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, factory: AppFactory) -> None:
@@ -395,8 +393,7 @@ def test_update_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.abi_return
-    assert call_return.abi_return.value == "string_io"
+    assert call_return.abi_return == "string_io"
     # assert call_return.compiled_approval is not None # TODO: centralize approval/clear compilation
 
 
@@ -418,8 +415,7 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.abi_return
-    assert call_return.abi_return.value == "string_io"
+    assert call_return.abi_return == "string_io"
 
 
 def test_export_import_sourcemaps(

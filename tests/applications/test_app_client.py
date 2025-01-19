@@ -353,10 +353,9 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
         result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
     )
     expected_return = f"Sent {amount.micro_algos}. test"
-    assert result.abi_return
-    assert result.abi_return.value == expected_return
+    assert result.abi_return == expected_return
     assert response
-    assert response.value == result.abi_return.value
+    assert response.value == result.abi_return
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
@@ -450,10 +449,9 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
         test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
     )
     assert result.abi_return
-    assert result.abi_return.value
-    assert str(result.abi_return.value).startswith("App: 345, Asset: 567, Account: ")
+    assert str(result.abi_return).startswith("App: 345, Asset: 567, Account: ")
     assert expected_return
-    assert expected_return.value == result.abi_return.value
+    assert expected_return.value == result.abi_return
 
 
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
@@ -710,14 +708,12 @@ def test_abi_with_default_arg_method(
         AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
     )
 
-    assert defined_value_result.abi_return
-    assert defined_value_result.abi_return.value == "Local state, defined value"
+    assert defined_value_result.abi_return == "Local state, defined value"
 
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
     assert default_value_result
-    assert default_value_result.abi_return
-    assert default_value_result.abi_return.value == "Local state, banana"
+    assert default_value_result.abi_return == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:

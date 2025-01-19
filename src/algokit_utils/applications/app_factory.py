@@ -3,7 +3,6 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any, Generic, Literal, Protocol, TypeVar
 
-from algosdk.abi import Method
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
@@ -39,7 +38,7 @@ from algokit_utils.applications.app_deployer import (
     OperationPerformed,
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Method
 from algokit_utils.models.application import (
     AppSourceMaps,
 )
@@ -453,7 +452,7 @@ class _AppFactorySendAccessor:
         result = self._factory._handle_call_errors(
             lambda: self._factory._parse_method_call_return(
                 lambda: self._algorand.send.app_create_method_call(self._factory.params.create(create_params)),
-                self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
+                self._factory._app_spec.get_arc56_method(params.method),
             )
         )
 

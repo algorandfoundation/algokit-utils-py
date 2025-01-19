@@ -19,6 +19,7 @@ from algokit_utils.applications.abi import (
     ABIStruct,
     ABIType,
     ABIValue,
+    Arc56ReturnValueType,
     BoxABIValue,
     get_abi_decoded_value,
     get_abi_encoded_value,
@@ -27,6 +28,7 @@ from algokit_utils.applications.abi import (
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.applications.app_spec.arc56 import (
     Arc56Contract,
+    Method,
     PcOffsetMethod,
     ProgramSourceInfo,
     SourceInfo,
@@ -941,29 +943,43 @@ class _AppClientSendAccessor:
             lambda: self._algorand.send.payment(self._client.params.fund_app_account(params))
         )
 
-    def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
         return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
-    def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
         return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params))
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
     def update(
         self, params: AppClientMethodCallWithCompilationAndSendParams
-    ) -> SendAppUpdateTransactionResult[ABIReturn]:
+    ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType]:
+        result = self._client._handle_call_errors(
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_update_method_call(self._client.params.update(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
+        )
+        assert isinstance(result, SendAppUpdateTransactionResult)
+        return result
+
+    def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
         return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_update_method_call(self._client.params.update(params))
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
-    def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
-        return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params))
-        )
-
-    def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[ABIReturn]:
+    def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
         ) and self._app_spec.get_arc56_method(params.method).readonly
@@ -985,7 +1001,7 @@ class _AppClientSendAccessor:
                 )
             )
 
-            return SendAppTransactionResult[ABIReturn](
+            return SendAppTransactionResult[Arc56ReturnValueType](
                 tx_ids=simulate_response.tx_ids,
                 transactions=simulate_response.transactions,
                 transaction=simulate_response.transactions[-1],
@@ -993,11 +1009,16 @@ class _AppClientSendAccessor:
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
-                abi_return=simulate_response.returns[-1],
+                abi_return=simulate_response.returns[-1].get_arc56_value(
+                    self._app_spec.get_arc56_method(params.method), self._app_spec.structs
+                ),
             )
 
         return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_call_method_call(self._client.params.call(params))
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.call(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
 
@@ -1570,8 +1591,8 @@ class AppClient:
                                     self._app_spec.structs,
                                 )
                             )
-                        elif call_result.abi_return.value:
-                            result.append(call_result.abi_return.value)
+                        elif call_result.abi_return:
+                            result.append(call_result.abi_return)
 
                     case "local" | "global":
                         # Get state value
@@ -1624,3 +1645,21 @@ class AppClient:
             "onComplete": on_complete,
             "args": args,
         }
+
+    def _process_method_call_return(
+        self,
+        result: Callable[[], SendAppUpdateTransactionResult[ABIReturn] | SendAppTransactionResult[ABIReturn]],
+        method: Method,
+    ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType] | SendAppTransactionResult[Arc56ReturnValueType]:
+        result_value = result()
+        abi_return = (
+            result_value.abi_return.get_arc56_value(method, self._app_spec.structs)
+            if isinstance(result_value.abi_return, ABIReturn)
+            else None
+        )
+
+        if isinstance(result_value, SendAppUpdateTransactionResult):
+            return SendAppUpdateTransactionResult[Arc56ReturnValueType](
+                **{**result_value.__dict__, "abi_return": abi_return}
+            )
+        return SendAppTransactionResult[Arc56ReturnValueType](**{**result_value.__dict__, "abi_return": abi_return})
