@@ -373,27 +373,7 @@ class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCall
     pass
 
 
-class _AppClientStateMethodsProtocol(Protocol):
-    def get_all(self) -> dict[str, Any]: ...
-
-    def get_value(self, name: str, app_state: dict[str, AppState] | None = None) -> ABIValue | None: ...
-
-    def get_map_value(self, map_name: str, key: bytes | Any, app_state: dict[str, AppState] | None = None) -> Any: ...  # noqa: ANN401
-
-    def get_map(self, map_name: str) -> dict[str, ABIValue]: ...
-
-
-class _AppClientBoxMethodsProtocol(Protocol):
-    def get_all(self) -> dict[str, Any]: ...
-
-    def get_value(self, name: str) -> ABIValue | None: ...
-
-    def get_map_value(self, map_name: str, key: bytes | Any) -> Any: ...  # noqa: ANN401
-
-    def get_map(self, map_name: str) -> dict[str, ABIValue]: ...
-
-
-class _AppClientStateMethods(_AppClientStateMethodsProtocol):
+class _AppClientStateMethods:
     def __init__(
         self,
         *,
@@ -420,7 +400,7 @@ class _AppClientStateMethods(_AppClientStateMethodsProtocol):
         return self._get_map(map_name)
 
 
-class _AppClientBoxMethods(_AppClientBoxMethodsProtocol):
+class _AppClientBoxMethods:
     def __init__(
         self,
         *,
@@ -454,7 +434,7 @@ class _AppClientStateAccessor:
         self._app_id = client._app_id
         self._app_spec = client._app_spec
 
-    def local_state(self, address: str) -> _AppClientStateMethodsProtocol:
+    def local_state(self, address: str) -> _AppClientStateMethods:
         """Methods to access local state for the current app for a given address"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_local_state(self._app_id, address),
@@ -463,7 +443,7 @@ class _AppClientStateAccessor:
         )
 
     @property
-    def global_state(self) -> _AppClientStateMethodsProtocol:
+    def global_state(self) -> _AppClientStateMethods:
         """Methods to access global state for the current app"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_global_state(self._app_id),
@@ -472,11 +452,11 @@ class _AppClientStateAccessor:
         )
 
     @property
-    def box(self) -> _AppClientBoxMethodsProtocol:
+    def box(self) -> _AppClientBoxMethods:
         """Methods to access box storage for the current app"""
         return self._get_box_methods()
 
-    def _get_box_methods(self) -> _AppClientBoxMethodsProtocol:
+    def _get_box_methods(self) -> _AppClientBoxMethods:
         """Get methods to access box storage for the current app."""
 
         def get_all() -> dict[str, Any]:
@@ -553,7 +533,7 @@ class _AppClientStateAccessor:
         state_getter: Callable[[], dict[str, AppState]],
         key_getter: Callable[[], dict[str, StorageKey]],
         map_getter: Callable[[], dict[str, StorageMap]],
-    ) -> _AppClientStateMethodsProtocol:
+    ) -> _AppClientStateMethods:
         def get_all() -> dict[str, Any]:
             state = state_getter()
             keys = key_getter()
@@ -573,7 +553,7 @@ class _AppClientStateAccessor:
             state = app_state or state_getter()
             metadata = map_getter()[map_name]
 
-            prefix = bytes(metadata.prefix or "", "base64")
+            prefix = base64.b64decode(metadata.prefix or "")
             encoded_key = get_abi_encoded_value(key, metadata.key_type, self._app_spec.structs)
             full_key = base64.b64encode(prefix + encoded_key).decode("utf-8")
             value = next((s for s in state.values() if s.key_base64 == full_key), None)
