@@ -270,10 +270,16 @@ class AppManager:
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
         state_values: dict[str, AppState] = {}
 
+        def decode_bytes_to_str(value: bytes) -> str:
+            try:
+                return value.decode("utf-8")
+            except UnicodeDecodeError:
+                return value.hex()
+
         for state_val in state:
             key_base64 = state_val["key"]
             key_raw = base64.b64decode(key_base64)
-            key = key_raw.decode("utf-8")
+            key = decode_bytes_to_str(key_raw)
             teal_value = state_val["value"]
 
             data_type_flag = teal_value.get("action", teal_value.get("type"))
@@ -286,7 +292,7 @@ class AppManager:
                     key_base64=key_base64,
                     value_raw=value_raw,
                     value_base64=value_base64,
-                    value=value_raw.decode("utf-8"),
+                    value=decode_bytes_to_str(value_raw),
                 )
             elif data_type_flag == DataTypeFlag.UINT:
                 value = teal_value.get("uint", 0)
