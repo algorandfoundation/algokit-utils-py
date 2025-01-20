@@ -742,8 +742,8 @@ class Arc56Contract:
             result[key] = value
         return result
 
-    def to_json(self) -> str:
-        return json.dumps(self.dictify(), indent=4)
+    def to_json(self, indent: int | None = None) -> str:
+        return json.dumps(self.dictify(), indent=indent)
 
     def dictify(self) -> dict:
         return asdict(self, dict_factory=_arc56_dict_factory())

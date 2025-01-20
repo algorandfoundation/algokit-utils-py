@@ -14,7 +14,7 @@ def test_arc56_from_arc32_json() -> None:
 
     assert arc56_app_spec
 
-    check_output_stability(arc56_app_spec.to_json())
+    check_output_stability(arc56_app_spec.to_json(indent=4))
 
 
 def test_arc56_from_arc32_instance() -> None:
@@ -26,7 +26,7 @@ def test_arc56_from_arc32_instance() -> None:
 
     assert arc56_app_spec
 
-    check_output_stability(arc56_app_spec.to_json())
+    check_output_stability(arc56_app_spec.to_json(indent=4))
 
 
 def test_arc56_from_json() -> None:
@@ -34,7 +34,7 @@ def test_arc56_from_json() -> None:
 
     assert arc56_app_spec
 
-    check_output_stability(arc56_app_spec.to_json())
+    check_output_stability(arc56_app_spec.to_json(indent=4))
 
 
 def test_arc56_from_dict() -> None:
@@ -42,4 +42,4 @@ def test_arc56_from_dict() -> None:
 
     assert arc56_app_spec
 
-    check_output_stability(arc56_app_spec.to_json())
+    check_output_stability(arc56_app_spec.to_json(indent=4))
