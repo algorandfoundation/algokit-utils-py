@@ -1,4 +1,5 @@
 import base64
+import dataclasses
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
 from typing import Any, Generic, Literal, Protocol, TypeVar
@@ -232,51 +233,61 @@ class _AppFactoryBareParamsAccessor:
         compiled = self._factory.compile(base_params)
 
         return AppCreateParams(
-            approval_program=compiled.approval_program,
-            clear_state_program=compiled.clear_state_program,
-            schema=base_params.schema
-            or {
-                "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
-                "global_ints": self._factory._app_spec.state.schema.global_state.ints,
-                "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
-                "local_ints": self._factory._app_spec.state.schema.local_state.ints,
-            },
-            sender=self._factory._get_sender(base_params.sender),
-            signer=self._factory._get_signer(base_params.sender, base_params.signer),
-            on_complete=base_params.on_complete or OnComplete.NoOpOC,
-            extra_program_pages=base_params.extra_program_pages,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(base_params).items()
+                    if param in {f.name for f in dataclasses.fields(AppCreateParams)}
+                },
+                "approval_program": compiled.approval_program,
+                "clear_state_program": compiled.clear_state_program,
+                "schema": base_params.schema
+                or {
+                    "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
+                    "global_ints": self._factory._app_spec.state.schema.global_state.ints,
+                    "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
+                    "local_ints": self._factory._app_spec.state.schema.local_state.ints,
+                },
+                "sender": self._factory._get_sender(base_params.sender),
+                "signer": self._factory._get_signer(base_params.sender, base_params.signer),
+                "on_complete": base_params.on_complete or OnComplete.NoOpOC,
+            }
         )
 
     def deploy_update(self, params: AppClientBareCallParams | None = None) -> AppUpdateParams:
         return AppUpdateParams(
-            app_id=0,
-            approval_program="",
-            clear_state_program="",
-            sender=self._factory._get_sender(params.sender if params else None),
-            on_complete=OnComplete.UpdateApplicationOC,
-            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            note=params.note if params else None,
-            lease=params.lease if params else None,
-            rekey_to=params.rekey_to if params else None,
-            account_references=params.account_references if params else None,
-            app_references=params.app_references if params else None,
-            asset_references=params.asset_references if params else None,
-            box_references=params.box_references if params else None,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(params or AppClientBareCallParams()).items()
+                    if param in {f.name for f in dataclasses.fields(AppUpdateParams)}
+                },
+                "app_id": 0,
+                "approval_program": "",
+                "clear_state_program": "",
+                "sender": self._factory._get_sender(params.sender if params else None),
+                "on_complete": OnComplete.UpdateApplicationOC,
+                "signer": self._factory._get_signer(
+                    params.sender if params else None, params.signer if params else None
+                ),
+            }
         )
 
     def deploy_delete(self, params: AppClientBareCallParams | None = None) -> AppDeleteParams:
         return AppDeleteParams(
-            app_id=0,
-            sender=self._factory._get_sender(params.sender if params else None),
-            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            on_complete=OnComplete.DeleteApplicationOC,
-            note=params.note if params else None,
-            lease=params.lease if params else None,
-            rekey_to=params.rekey_to if params else None,
-            account_references=params.account_references if params else None,
-            app_references=params.app_references if params else None,
-            asset_references=params.asset_references if params else None,
-            box_references=params.box_references if params else None,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(params or AppClientBareCallParams()).items()
+                    if param in {f.name for f in dataclasses.fields(AppDeleteParams)}
+                },
+                "app_id": 0,
+                "sender": self._factory._get_sender(params.sender if params else None),
+                "signer": self._factory._get_signer(
+                    params.sender if params else None, params.signer if params else None
+                ),
+                "on_complete": OnComplete.DeleteApplicationOC,
+            }
         )
 
 
@@ -293,53 +304,70 @@ class _AppFactoryParamsAccessor:
         compiled = self._factory.compile(params)
 
         return AppCreateMethodCallParams(
-            app_id=0,
-            approval_program=compiled.approval_program,
-            clear_state_program=compiled.clear_state_program,
-            schema=params.schema
-            or {
-                "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
-                "global_ints": self._factory._app_spec.state.schema.global_state.ints,
-                "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
-                "local_ints": self._factory._app_spec.state.schema.local_state.ints,
-            },
-            sender=self._factory._get_sender(params.sender),
-            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
-            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-            on_complete=params.on_complete or OnComplete.NoOpOC,
-            note=params.note,
-            lease=params.lease,
-            rekey_to=params.rekey_to,
-            extra_program_pages=params.extra_program_pages,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(params).items()
+                    if param in {f.name for f in dataclasses.fields(AppCreateMethodCallParams)}
+                },
+                "app_id": 0,
+                "approval_program": compiled.approval_program,
+                "clear_state_program": compiled.clear_state_program,
+                "schema": params.schema
+                or {
+                    "global_byte_slices": self._factory._app_spec.state.schema.global_state.bytes,
+                    "global_ints": self._factory._app_spec.state.schema.global_state.ints,
+                    "local_byte_slices": self._factory._app_spec.state.schema.local_state.bytes,
+                    "local_ints": self._factory._app_spec.state.schema.local_state.ints,
+                },
+                "sender": self._factory._get_sender(params.sender),
+                "signer": self._factory._get_signer(
+                    params.sender if params else None, params.signer if params else None
+                ),
+                "method": self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
+                "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+                "on_complete": params.on_complete or OnComplete.NoOpOC,
+            }
         )
 
     def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCallParams:
         return AppUpdateMethodCallParams(
-            app_id=0,
-            approval_program="",
-            clear_state_program="",
-            sender=self._factory._get_sender(params.sender),
-            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
-            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-            on_complete=OnComplete.UpdateApplicationOC,
-            note=params.note,
-            lease=params.lease,
-            rekey_to=params.rekey_to,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(params).items()
+                    if param in {f.name for f in dataclasses.fields(AppUpdateMethodCallParams)}
+                },
+                "app_id": 0,
+                "approval_program": "",
+                "clear_state_program": "",
+                "sender": self._factory._get_sender(params.sender),
+                "signer": self._factory._get_signer(
+                    params.sender if params else None, params.signer if params else None
+                ),
+                "method": self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
+                "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+                "on_complete": OnComplete.UpdateApplicationOC,
+            }
         )
 
     def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCallParams:
         return AppDeleteMethodCallParams(
-            app_id=0,
-            sender=self._factory._get_sender(params.sender),
-            signer=self._factory._get_signer(params.sender if params else None, params.signer if params else None),
-            method=self._factory.app_spec.get_arc56_method(params.method).to_abi_method(),
-            args=self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-            on_complete=OnComplete.DeleteApplicationOC,
-            note=params.note,
-            lease=params.lease,
-            rekey_to=params.rekey_to,
+            **{
+                **{
+                    param: value
+                    for param, value in asdict(params).items()
+                    if param in {f.name for f in dataclasses.fields(AppDeleteMethodCallParams)}
+                },
+                "app_id": 0,
+                "sender": self._factory._get_sender(params.sender),
+                "signer": self._factory._get_signer(
+                    params.sender if params else None, params.signer if params else None
+                ),
+                "method": self._factory.app_spec.get_arc56_method(params.method).to_abi_method(),
+                "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
+                "on_complete": OnComplete.DeleteApplicationOC,
+            }
         )
 
 
