@@ -565,7 +565,7 @@ class _AppClientStateAccessor:
             state = state_getter()
             metadata = map_getter()[map_name]
 
-            prefix = metadata.prefix or ""
+            prefix = base64.b64decode(metadata.prefix or "").decode("utf-8")
 
             prefixed_state = {k: v for k, v in state.items() if k.startswith(prefix)}
 

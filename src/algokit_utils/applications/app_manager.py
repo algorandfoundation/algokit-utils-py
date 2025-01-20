@@ -207,7 +207,7 @@ class AppManager:
         name = AppManager.get_box_reference(box_name)[1]
         box_result = self._algod.application_box_by_name(app_id, name)
         assert isinstance(box_result, dict)
-        return bytes(box_result["value"], "utf-8")
+        return base64.b64decode(box_result["value"])
 
     def get_box_values(self, app_id: int, box_names: list[BoxIdentifier]) -> list[bytes]:
         return [self.get_box_value(app_id, box_name) for box_name in box_names]
