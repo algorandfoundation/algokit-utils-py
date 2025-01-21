@@ -506,7 +506,14 @@ class _AppFactorySendAccessor:
         )
 
 
-class TypedAppFactoryProtocol(Protocol):
+CreateParamsT = TypeVar(  # noqa: PLC0105
+    "CreateParamsT", bound=AppClientMethodCallCreateParams | AppClientBareCallCreateParams, contravariant=True
+)
+UpdateParamsT = TypeVar("UpdateParamsT", bound=AppClientMethodCallParams | AppClientBareCallParams, contravariant=True)  # noqa: PLC0105
+DeleteParamsT = TypeVar("DeleteParamsT", bound=AppClientMethodCallParams | AppClientBareCallParams, contravariant=True)  # noqa: PLC0105
+
+
+class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, DeleteParamsT]):
     def __init__(
         self,
         algorand: AlgorandClientProtocol,
@@ -519,9 +526,9 @@ class TypedAppFactoryProtocol(Protocol):
         deploy_time_params: TealTemplateParams | None = None,
         on_update: OnUpdate = OnUpdate.Fail,
         on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
-        create_params: AppClientMethodCallCreateParams | AppClientBareCallCreateParams | None = None,
-        update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
-        delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
+        create_params: CreateParamsT | None = None,
+        update_params: UpdateParamsT | None = None,
+        delete_params: DeleteParamsT | None = None,
         existing_deployments: AppLookup | None = None,
         ignore_cache: bool = False,
         updatable: bool | None = None,

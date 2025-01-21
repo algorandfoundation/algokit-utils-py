@@ -517,11 +517,11 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
 
     assert sorted(b.name.name_base64 for b in box_values) == sorted([box_name1_base64, box_name2_base64])
     box1 = next(b for b in box_values if b.name.name_base64 == box_name1_base64)
-    assert box1.value == base64.b64encode(bytes("value1", "utf-8"))
+    assert box1.value == b"value1"
     assert box1_value == box1.value
 
     box2 = next(b for b in box_values if b.name.name_base64 == box_name2_base64)
-    assert box2.value == base64.b64encode(bytes("value2", "utf-8"))
+    assert box2.value == b"value2"
 
     # Legacy contract strips ABI prefix; manually encoded ABI string after
     # passing algosdk's atc results in \x00\n\x00\n1234524352.
@@ -659,8 +659,7 @@ def test_box_methods_with_arc4_returns_parametrized(
     )
 
     # Encode the expected value using the specified ABI type
-    value_encoded = ABIType.from_string(value_type).encode(arg_value)
-    expected_value = base64.b64encode(value_encoded)
+    expected_value = ABIType.from_string(value_type).encode(arg_value)
 
     # Retrieve the actual box value
     actual_box_value = test_app_client_puya.get_box_value(box_reference)

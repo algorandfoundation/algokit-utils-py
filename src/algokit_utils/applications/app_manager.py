@@ -216,7 +216,7 @@ class AppManager:
         value = self.get_box_value(app_id, box_name)
         try:
             parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
-            decoded_value = abi_type.decode(base64.b64decode(value))
+            decoded_value = abi_type.decode(value)
             return tuple(decoded_value) if parse_to_tuple else decoded_value
         except Exception as e:
             raise ValueError(f"Failed to decode box value {value.decode('utf-8')} with ABI type {abi_type}") from e
