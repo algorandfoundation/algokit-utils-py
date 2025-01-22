@@ -91,7 +91,6 @@ __all__ = [
     "AppClientParams",
     "AppSourceMaps",
     "BaseAppClientMethodCallParams",
-    "BaseOnCompleteParams",
     "FundAppAccountParams",
 ]
 
@@ -216,11 +215,10 @@ class AppClientCallParams:
 
 ArgsT = TypeVar("ArgsT")
 MethodT = TypeVar("MethodT")
-OnCompleteT = TypeVar("OnCompleteT")
 
 
 @dataclass(kw_only=True, frozen=True)
-class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT, OnCompleteT]):
+class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT]):
     method: MethodT
     args: ArgsT | None = None
     account_references: list[str] | None = None
@@ -238,13 +236,14 @@ class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT, OnCompleteT]):
     static_fee: AlgoAmount | None = None
     validity_window: int | None = None
     last_valid_round: int | None = None
-    on_complete: OnCompleteT | None = None
+    on_complete: algosdk.transaction.OnComplete | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallParams(
     BaseAppClientMethodCallParams[
-        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None], str, algosdk.transaction.OnComplete
+        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None],
+        str,
     ]
 ):
     pass
@@ -309,17 +308,8 @@ class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, App
 
 
 @dataclass(kw_only=True, frozen=True)
-class BaseOnCompleteParams(Generic[OnCompleteT]):
-    """Combined parameters for bare calls with an OnComplete value"""
-
-    on_complete: OnCompleteT | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppClientBareCallWithCallOnCompleteParams(
-    AppClientBareCallParams, BaseOnCompleteParams[algosdk.transaction.OnComplete]
-):
-    """Combined parameters for bare calls with an OnComplete value"""
+class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams):
+    on_complete: algosdk.transaction.OnComplete | None = None
 
 
 @dataclass(frozen=True)

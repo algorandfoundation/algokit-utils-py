@@ -7,8 +7,7 @@ from typing_extensions import Self
 from algokit_utils.applications.app_client import (
     AppClientBareCallCreateParams,
     AppClientBareCallParams,
-    AppClientMethodCallCreateParams,
-    AppClientMethodCallParams,
+    BaseAppClientMethodCallParams,
 )
 from algokit_utils.applications.app_deployer import (
     AppLookup,
@@ -68,17 +67,17 @@ class TypedAppClientProtocol(Protocol):
 
 CreateParamsT = TypeVar(  # noqa: PLC0105
     "CreateParamsT",
-    bound=AppClientMethodCallCreateParams | AppClientBareCallCreateParams,
+    bound=BaseAppClientMethodCallParams | AppClientBareCallCreateParams | None,
     contravariant=True,
 )
 UpdateParamsT = TypeVar(  # noqa: PLC0105
     "UpdateParamsT",
-    bound=AppClientMethodCallParams | AppClientBareCallParams,
+    bound=BaseAppClientMethodCallParams | AppClientBareCallParams | None,
     contravariant=True,
 )
 DeleteParamsT = TypeVar(  # noqa: PLC0105
     "DeleteParamsT",
-    bound=AppClientMethodCallParams | AppClientBareCallParams,
+    bound=BaseAppClientMethodCallParams | AppClientBareCallParams | None,
     contravariant=True,
 )
 
