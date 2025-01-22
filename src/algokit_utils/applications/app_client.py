@@ -6,12 +6,11 @@ import json
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 import algosdk
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
-from typing_extensions import Self
 
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
@@ -68,9 +67,9 @@ if TYPE_CHECKING:
 
     from algokit_utils.applications.app_deployer import AppLookup
     from algokit_utils.applications.app_manager import AppManager
+    from algokit_utils.clients.algorand_client import AlgorandClient
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
-    from algokit_utils.protocols.client import AlgorandClientProtocol
 
 __all__ = [
     "AppClient",
@@ -94,7 +93,6 @@ __all__ = [
     "BaseAppClientMethodCallParams",
     "BaseOnCompleteParams",
     "FundAppAccountParams",
-    "TypedAppClientProtocol",
 ]
 
 # TEAL opcodes for constant blocks
@@ -164,45 +162,6 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
     # Return maximum offset
     return max(bytecblock_offset or 0, intcblock_offset or 0)
-
-
-class TypedAppClientProtocol(Protocol):
-    @classmethod
-    def from_creator_and_name(
-        cls,
-        *,
-        creator_address: str,
-        app_name: str,
-        default_sender: str | None = None,
-        default_signer: TransactionSigner | None = None,
-        ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
-        algorand: AlgorandClientProtocol,
-    ) -> Self: ...
-
-    @classmethod
-    def from_network(
-        cls,
-        *,
-        app_name: str | None = None,
-        default_sender: str | None = None,
-        default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
-        algorand: AlgorandClientProtocol,
-    ) -> Self: ...
-
-    def __init__(
-        self,
-        *,
-        app_id: int,
-        app_name: str | None = None,
-        default_sender: str | None = None,
-        default_signer: TransactionSigner | None = None,
-        algorand: AlgorandClientProtocol,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
-    ) -> None: ...
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -1006,11 +965,11 @@ class _AppClientSendAccessor:
 class AppClientParams:
     """Full parameters for creating an app client"""
 
-    app_spec: Arc56Contract | Arc32Contract | str  # Using string quotes since these types may be defined elsewhere
-    algorand: AlgorandClientProtocol  # Using string quotes since this type may be defined elsewhere
+    app_spec: Arc56Contract | Arc32Contract | str
+    algorand: AlgorandClient
     app_id: int
     app_name: str | None = None
-    default_sender: str | bytes | None = None  # Address can be string or bytes
+    default_sender: str | bytes | None = None
     default_signer: TransactionSigner | None = None
     approval_source_map: SourceMap | None = None
     clear_source_map: SourceMap | None = None
@@ -1033,7 +992,7 @@ class AppClient:
         self._create_transaction_accessor = _AppClientMethodCallTransactionCreator(self)
 
     @property
-    def algorand(self) -> AlgorandClientProtocol:
+    def algorand(self) -> AlgorandClient:
         return self._algorand
 
     @property
@@ -1089,7 +1048,7 @@ class AppClient:
     @staticmethod
     def from_network(
         app_spec: Arc56Contract | Arc32Contract | str,
-        algorand: AlgorandClientProtocol,
+        algorand: AlgorandClient,
         app_name: str | None = None,
         default_sender: str | bytes | None = None,
         default_signer: TransactionSigner | None = None,
@@ -1133,7 +1092,7 @@ class AppClient:
         creator_address: str,
         app_name: str,
         app_spec: Arc56Contract | Arc32Contract | str,
-        algorand: AlgorandClientProtocol,
+        algorand: AlgorandClient,
         default_sender: str | bytes | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,

@@ -1,1 +1,1 @@
-from algokit_utils.protocols.client import *  # noqa: F403
+from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol  # noqa: F401

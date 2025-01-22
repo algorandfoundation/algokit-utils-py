@@ -14,7 +14,6 @@ from algokit_utils.models.account import Account
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.clients.algorand_client import AlgorandClient
-from algokit_utils.protocols import AlgorandClientProtocol
 
 # Common managers/clients that are frequently used entry points
 from algokit_utils.accounts.account_manager import AccountManager
@@ -139,7 +138,6 @@ __all__ = [
     "AlgorandClient",
     "DELETABLE_TEMPLATE_NAME",
     "UPDATABLE_TEMPLATE_NAME",
-    "AlgorandClientProtocol",
     # Common managers/clients
     "AccountManager",
     "AppClient",

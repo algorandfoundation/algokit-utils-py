@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Literal, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeVar
 from urllib import parse
 
 import algosdk
@@ -10,16 +10,18 @@ from algosdk.source_map import SourceMap
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-# from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_client import AppClient, AppClientParams, TypedAppClientProtocol
+from algokit_utils.applications.app_client import AppClient, AppClientParams
 from algokit_utils.applications.app_deployer import AppLookup
-from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams, TypedAppFactoryProtocol
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.protocols.client import AlgorandClientProtocol
+from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
+
+if TYPE_CHECKING:
+    from algokit_utils.applications.app_factory import AppFactory
+    from algokit_utils.clients.algorand_client import AlgorandClient
 
 __all__ = [
     "AlgoSdkClients",
@@ -64,7 +66,7 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
 
 
 class ClientManager:
-    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: AlgorandClientProtocol):
+    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: "AlgorandClient"):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
         elif isinstance(clients_or_configs, AlgoClientConfigs):
@@ -142,7 +144,9 @@ class ClientManager:
         updatable: bool | None = None,
         deletable: bool | None = None,
         deploy_time_params: TealTemplateParams | None = None,
-    ) -> AppFactory:
+    ) -> "AppFactory":
+        from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
+
         if not self._algorand:
             raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
 

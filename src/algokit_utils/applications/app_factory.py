@@ -2,7 +2,7 @@ import base64
 import dataclasses
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, replace
-from typing import Any, Generic, Literal, Protocol, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
@@ -26,7 +26,6 @@ from algokit_utils.applications.app_client import (
     AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientParams,
-    TypedAppClientProtocol,
 )
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
@@ -40,12 +39,12 @@ from algokit_utils.applications.app_deployer import (
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Method
+from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.application import (
     AppSourceMaps,
 )
 from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.client import AlgorandClientProtocol
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -76,13 +75,12 @@ __all__ = [
     "SendAppCreateFactoryTransactionResult",
     "SendAppFactoryTransactionResult",
     "SendAppUpdateFactoryTransactionResult",
-    "TypedAppFactoryProtocol",
 ]
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppFactoryParams:
-    algorand: AlgorandClientProtocol
+    algorand: AlgorandClient
     app_spec: Arc56Contract | ApplicationSpecification | str
     app_name: str | None = None
     default_sender: str | bytes | None = None
@@ -506,40 +504,6 @@ class _AppFactorySendAccessor:
         )
 
 
-CreateParamsT = TypeVar(  # noqa: PLC0105
-    "CreateParamsT", bound=AppClientMethodCallCreateParams | AppClientBareCallCreateParams, contravariant=True
-)
-UpdateParamsT = TypeVar("UpdateParamsT", bound=AppClientMethodCallParams | AppClientBareCallParams, contravariant=True)  # noqa: PLC0105
-DeleteParamsT = TypeVar("DeleteParamsT", bound=AppClientMethodCallParams | AppClientBareCallParams, contravariant=True)  # noqa: PLC0105
-
-
-class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, DeleteParamsT]):
-    def __init__(
-        self,
-        algorand: AlgorandClientProtocol,
-        **kwargs: Any,
-    ) -> None: ...
-
-    def deploy(  # noqa: PLR0913
-        self,
-        *,
-        deploy_time_params: TealTemplateParams | None = None,
-        on_update: OnUpdate = OnUpdate.Fail,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
-        create_params: CreateParamsT | None = None,
-        update_params: UpdateParamsT | None = None,
-        delete_params: DeleteParamsT | None = None,
-        existing_deployments: AppLookup | None = None,
-        ignore_cache: bool = False,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
-        app_name: str | None = None,
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool = False,
-        populate_app_call_resources: bool = False,
-    ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResponse"]: ...
-
-
 class AppFactory:
     def __init__(self, params: AppFactoryParams) -> None:
         self._app_spec = AppClient.normalise_app_spec(params.app_spec)
@@ -566,7 +530,7 @@ class AppFactory:
         return self._app_spec
 
     @property
-    def algorand(self) -> AlgorandClientProtocol:
+    def algorand(self) -> AlgorandClient:
         return self._algorand
 
     @property
