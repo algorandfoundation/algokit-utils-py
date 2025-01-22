@@ -86,9 +86,9 @@ def test_hello_world_arc32_app_id(
             clear_state_program=test_hello_world_arc32_app_spec.clear_program,
             schema={
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
             },
         )
     )
@@ -384,7 +384,7 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
         sender=sender.address,
         approval_program=approval_program,
         clear_state_program=clear_state_program,
-        schema={"global_ints": 0, "global_bytes": 0, "local_ints": 0, "local_bytes": 0},
+        schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
     )
 
     result = transaction_sender.app_create(params)

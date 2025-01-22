@@ -169,7 +169,7 @@ def _build_avm_sourcemap(
         source_map = compiled_teal.source_map.__dict__
         teal_content = compiled_teal.teal
     elif isinstance(compiled_teal, CompiledTeal):
-        program_hash = base64.b64encode(checksum(compiled_teal.compiled)).decode()
+        program_hash = base64.b64encode(checksum(compiled_teal.compiled_base64_to_bytes)).decode()
         source_map = compiled_teal.source_map.__dict__ if compiled_teal.source_map else {}
         teal_content = compiled_teal.teal
     else:

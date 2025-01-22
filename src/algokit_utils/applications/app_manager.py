@@ -149,7 +149,7 @@ class AppManager:
         self,
         teal_template_code: str,
         template_params: TealTemplateParams | None = None,
-        deployment_metadata: Mapping[str, bool] | None = None,
+        deployment_metadata: Mapping[str, bool | None] | None = None,
     ) -> CompiledTeal:
         teal_code = AppManager.strip_teal_comments(teal_template_code)
         teal_code = AppManager.replace_template_variables(teal_code, template_params or {})
@@ -207,7 +207,7 @@ class AppManager:
         name = AppManager.get_box_reference(box_name)[1]
         box_result = self._algod.application_box_by_name(app_id, name)
         assert isinstance(box_result, dict)
-        return bytes(box_result["value"], "utf-8")
+        return base64.b64decode(box_result["value"])
 
     def get_box_values(self, app_id: int, box_names: list[BoxIdentifier]) -> list[bytes]:
         return [self.get_box_value(app_id, box_name) for box_name in box_names]
@@ -216,7 +216,7 @@ class AppManager:
         value = self.get_box_value(app_id, box_name)
         try:
             parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
-            decoded_value = abi_type.decode(base64.b64decode(value))
+            decoded_value = abi_type.decode(value)
             return tuple(decoded_value) if parse_to_tuple else decoded_value
         except Exception as e:
             raise ValueError(f"Failed to decode box value {value.decode('utf-8')} with ABI type {abi_type}") from e
@@ -270,10 +270,16 @@ class AppManager:
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
         state_values: dict[str, AppState] = {}
 
+        def decode_bytes_to_str(value: bytes) -> str:
+            try:
+                return value.decode("utf-8")
+            except UnicodeDecodeError:
+                return value.hex()
+
         for state_val in state:
             key_base64 = state_val["key"]
             key_raw = base64.b64decode(key_base64)
-            key = key_raw.decode("utf-8")
+            key = decode_bytes_to_str(key_raw)
             teal_value = state_val["value"]
 
             data_type_flag = teal_value.get("action", teal_value.get("type"))
@@ -286,7 +292,7 @@ class AppManager:
                     key_base64=key_base64,
                     value_raw=value_raw,
                     value_base64=value_base64,
-                    value=value_raw.decode("utf-8"),
+                    value=decode_bytes_to_str(value_raw),
                 )
             elif data_type_flag == DataTypeFlag.UINT:
                 value = teal_value.get("uint", 0)
@@ -323,22 +329,26 @@ class AppManager:
         return "\n".join(program_lines)
 
     @staticmethod
-    def replace_teal_template_deploy_time_control_params(teal_template_code: str, params: Mapping[str, bool]) -> str:
-        if params.get("updatable") is not None:
+    def replace_teal_template_deploy_time_control_params(
+        teal_template_code: str, params: Mapping[str, bool | None]
+    ) -> str:
+        updatable = params.get("updatable")
+        if updatable is not None:
             if UPDATABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
                     f"Deploy-time updatability control requested for app deployment, but {UPDATABLE_TEMPLATE_NAME} "
                     "not present in TEAL code"
                 )
-            teal_template_code = teal_template_code.replace(UPDATABLE_TEMPLATE_NAME, str(int(params["updatable"])))
+            teal_template_code = teal_template_code.replace(UPDATABLE_TEMPLATE_NAME, str(int(updatable)))
 
-        if params.get("deletable") is not None:
+        deletable = params.get("deletable")
+        if deletable is not None:
             if DELETABLE_TEMPLATE_NAME not in teal_template_code:
                 raise ValueError(
                     f"Deploy-time deletability control requested for app deployment, but {DELETABLE_TEMPLATE_NAME} "
                     "not present in TEAL code"
                 )
-            teal_template_code = teal_template_code.replace(DELETABLE_TEMPLATE_NAME, str(int(params["deletable"])))
+            teal_template_code = teal_template_code.replace(DELETABLE_TEMPLATE_NAME, str(int(deletable)))
 
         return teal_template_code
 

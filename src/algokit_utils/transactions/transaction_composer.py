@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import base64
+import json
 import math
+import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 import algosdk
 import algosdk.atomic_transaction_composer
 import algosdk.v2client.models
 from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
+    SimulateAtomicTransactionResponse,
     TransactionSigner,
     TransactionWithSigner,
 )
@@ -42,8 +46,10 @@ __all__ = [
     "AppCallParams",
     "AppCreateMethodCallParams",
     "AppCreateParams",
+    "AppCreateSchema",
     "AppDeleteMethodCallParams",
     "AppDeleteParams",
+    "AppMethodCallTransactionArgument",
     "AppUpdateMethodCallParams",
     "AppUpdateParams",
     "AssetConfigParams",
@@ -53,6 +59,7 @@ __all__ = [
     "AssetOptInParams",
     "AssetOptOutParams",
     "AssetTransferParams",
+    "BuiltTransactions",
     "MethodCallParams",
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
@@ -324,6 +331,13 @@ class AppCallParams(_CommonTxnWithSendParams):
     box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
+class AppCreateSchema(TypedDict):
+    global_ints: int
+    global_byte_slices: int
+    local_ints: int
+    local_byte_slices: int
+
+
 @dataclass(kw_only=True, frozen=True)
 class AppCreateParams(_CommonTxnWithSendParams):
     """
@@ -345,7 +359,7 @@ class AppCreateParams(_CommonTxnWithSendParams):
 
     approval_program: str | bytes
     clear_state_program: str | bytes
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
     on_complete: OnComplete | None = None
     args: list[bytes] | None = None
     account_references: list[str] | None = None
@@ -410,7 +424,7 @@ class _BaseAppMethodCall(_CommonTxnWithSendParams):
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
     box_references: list[BoxReference | BoxIdentifier] | None = None
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -466,7 +480,7 @@ class AppCreateMethodCallParams(_BaseAppMethodCall):
 
     approval_program: str | bytes
     clear_state_program: str | bytes
-    schema: dict[str, int] | None = None
+    schema: AppCreateSchema | None = None
     on_complete: OnComplete | None = None
     extra_program_pages: int | None = None
 
@@ -613,7 +627,9 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Get group ID if multiple transactions
         group_id = None
         if len(transactions_to_send) > 1:
-            group_id = transactions_to_send[0].group.hex() if transactions_to_send[0].group else None
+            group_id = (
+                base64.b64encode(transactions_to_send[0].group).decode("utf-8") if transactions_to_send[0].group else ""
+            )
 
             if not suppress_log:
                 logger.info(f"Sending group of {len(transactions_to_send)} transactions ({group_id})")
@@ -917,6 +933,18 @@ class TransactionComposer:
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
 
+    def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
+        # const failedGroup = simulateResponse?.txnGroups[0]
+        failed_group = simulate_response.simulate_response.get("txn-groups", [{}])[0]
+        failure_message = failed_group.get("failure-message")
+        failed_at = [str(x) for x in failed_group.get("failed-at", [])]
+        if failure_message:
+            error_message = (
+                f"Transaction failed at transaction(s) {', '.join(failed_at) if failed_at else 'N/A'} in the group. "
+                f"{failure_message}"
+            )
+            raise Exception(error_message)
+
     def simulate(
         self,
         allow_more_logs: bool | None = None,
@@ -952,7 +980,7 @@ class TransactionComposer:
                 simulation_round,
                 skip_signatures,
             )
-
+            self._handle_simulate_error(response)
             return SendAtomicTransactionComposerResults(
                 confirmations=response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
                     "txn-results"
@@ -975,7 +1003,7 @@ class TransactionComposer:
             simulation_round,
             skip_signatures,
         )
-
+        self._handle_simulate_error(response)
         confirmation_results = response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
             "txn-results"
         ]
@@ -999,7 +1027,19 @@ class TransactionComposer:
         :param note: The ARC-2 note to encode.
         """
 
-        arc2_payload = f"{note['dapp_name']}:{note['format']}{note['data']}"
+        pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_/@.-]{4,31}$"
+        if not re.match(pattern, note["dapp_name"]):
+            raise ValueError(
+                "dapp_name must be 5-32 chars, start with alphanumeric, "
+                "and contain only alphanumeric, _, /, @, ., or -"
+            )
+
+        data = note["data"]
+        if note["format"] == "j" and isinstance(data, (dict | list)):
+            # Ensure JSON data uses double quotes
+            data = json.dumps(data)
+
+        arc2_payload = f"{note['dapp_name']}:{note['format']}{data}"
         return arc2_payload.encode("utf-8")
 
     def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSigner]:
@@ -1131,13 +1171,13 @@ class TransactionComposer:
             "accounts": params.account_references,
             "global_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("global_ints", 0),
-                num_byte_slices=params.schema.get("global_bytes", 0),
+                num_byte_slices=params.schema.get("global_byte_slices", 0),
             )
             if params.schema
             else None,
             "local_schema": algosdk.transaction.StateSchema(
                 num_uints=params.schema.get("local_ints", 0),
-                num_byte_slices=params.schema.get("local_bytes", 0),
+                num_byte_slices=params.schema.get("local_byte_slices", 0),
             )
             if params.schema
             else None,
@@ -1238,11 +1278,11 @@ class TransactionComposer:
                 **txn_params,
                 "global_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("global_ints", 0),
-                    num_byte_slices=params.schema.get("global_bytes", 0),
+                    num_byte_slices=params.schema.get("global_byte_slices", 0),
                 ),
                 "local_schema": algosdk.transaction.StateSchema(
                     num_uints=params.schema.get("local_ints", 0),
-                    num_byte_slices=params.schema.get("local_bytes", 0),
+                    num_byte_slices=params.schema.get("local_byte_slices", 0),
                 ),
                 "extra_pages": params.extra_program_pages
                 or math.floor((approval_program_len + clear_program_len) / algosdk.constants.APP_PAGE_MAX_SIZE)

@@ -8,6 +8,7 @@ from typing import Literal
 from algosdk.logic import get_application_address
 from algosdk.v2client.indexer import IndexerClient
 
+from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
 from algokit_utils.models.state import TealTemplateParams
@@ -18,6 +19,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppDeleteParams,
     AppUpdateMethodCallParams,
     AppUpdateParams,
+    TransactionComposer,
 )
 from algokit_utils.transactions.transaction_sender import (
     AlgorandClientTransactionSender,
@@ -46,7 +48,20 @@ APP_DEPLOY_NOTE_DAPP: str = "ALGOKIT_DEPLOYER"
 logger = config.logger
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
+class AppDeployMetaData:
+    """Metadata about an application stored in a transaction note during creation."""
+
+    name: str
+    version: str
+    deletable: bool | None
+    updatable: bool | None
+
+    def dictify(self) -> dict[str, str | bool]:
+        return {k: v for k, v in asdict(self).items() if v is not None}
+
+
+@dataclasses.dataclass(frozen=True)
 class AppReference:
     """Information about an Algorand app"""
 
@@ -54,28 +69,39 @@ class AppReference:
     app_address: str
 
 
-@dataclasses.dataclass
-class AppDeployMetaData:
-    """Metadata about an application stored in a transaction note during creation.
+@dataclasses.dataclass(frozen=True)
+class AppMetaData:
+    """Complete metadata about a deployed app"""
 
-    The note is serialized as JSON and prefixed with {py:data}`NOTE_PREFIX` and stored in the transaction note field
-    as part of {py:meth}`ApplicationClient.deploy`
-    """
-
-    name: str
-    version: str
-    deletable: bool | None
-    updatable: bool | None
-
-
-@dataclasses.dataclass
-class AppMetaData(AppReference, AppDeployMetaData):
-    """Metadata about a deployed app"""
-
+    reference: AppReference
+    deploy_metadata: AppDeployMetaData
     created_round: int
     updated_round: int
-    created_metadata: AppDeployMetaData
-    deleted: bool
+    deleted: bool = False
+
+    @property
+    def app_id(self) -> int:
+        return self.reference.app_id
+
+    @property
+    def app_address(self) -> str:
+        return self.reference.app_address
+
+    @property
+    def name(self) -> str:
+        return self.deploy_metadata.name
+
+    @property
+    def version(self) -> str:
+        return self.deploy_metadata.version
+
+    @property
+    def deletable(self) -> bool | None:
+        return self.deploy_metadata.deletable
+
+    @property
+    def updatable(self) -> bool | None:
+        return self.deploy_metadata.updatable
 
 
 @dataclasses.dataclass
@@ -151,9 +177,9 @@ class AppDeployParams:
 class AppDeployResponse:
     app: AppMetaData
     operation_performed: OperationPerformed
-    create_response: SendAppCreateTransactionResult | None = None
-    update_response: SendAppUpdateTransactionResult | None = None
-    delete_response: SendAppTransactionResult | None = None
+    create_response: SendAppCreateTransactionResult[ABIReturn] | None = None
+    update_response: SendAppUpdateTransactionResult[ABIReturn] | None = None
+    delete_response: SendAppTransactionResult[ABIReturn] | None = None
 
 
 class AppDeployer:
@@ -170,14 +196,6 @@ class AppDeployer:
         self._indexer = indexer
         self._app_lookups: dict[str, AppLookup] = {}
 
-    def _create_deploy_note(self, metadata: AppDeployMetaData) -> bytes:
-        note = {
-            "dapp_name": APP_DEPLOY_NOTE_DAPP,
-            "format": "j",
-            "data": metadata.__dict__,
-        }
-        return json.dumps(note).encode()
-
     def deploy(self, deployment: AppDeployParams) -> AppDeployResponse:
         # Create new instances with updated notes
         logger.info(
@@ -188,7 +206,13 @@ class AppDeployer:
             f"{'teal code' if isinstance(deployment.create_params.clear_state_program, str) else 'AVM bytecode'}",
             suppress_log=deployment.suppress_log,
         )
-        note = self._create_deploy_note(deployment.metadata)
+        note = TransactionComposer.arc2_note(
+            {
+                "dapp_name": APP_DEPLOY_NOTE_DAPP,
+                "format": "j",
+                "data": deployment.metadata.dictify(),
+            }
+        )
         create_params = dataclasses.replace(deployment.create_params, note=note)
         update_params = dataclasses.replace(deployment.update_params, note=note)
 
@@ -335,10 +359,10 @@ class AppDeployer:
             )
 
         app_metadata = AppMetaData(
-            app_id=create_response.app_id,
-            app_address=get_application_address(create_response.app_id),
-            **asdict(deployment.metadata),
-            created_metadata=deployment.metadata,
+            reference=AppReference(
+                app_id=create_response.app_id, app_address=get_application_address(create_response.app_id)
+            ),
+            deploy_metadata=deployment.metadata,
             created_round=create_response.confirmation.get("confirmed-round", 0)
             if isinstance(create_response.confirmation, dict)
             else 0,
@@ -409,15 +433,13 @@ class AppDeployer:
 
         result = composer.send()
 
-        create_response = SendAppCreateTransactionResult.from_composer_result(result, create_txn_index)
-        delete_response = SendAppTransactionResult.from_composer_result(result, delete_txn_index)
+        create_response = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
+        delete_response = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
 
         app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
         app_metadata = AppMetaData(
-            app_id=app_id,
-            app_address=get_application_address(app_id),
-            **deployment.metadata.__dict__,
-            created_metadata=deployment.metadata,
+            reference=AppReference(app_id=app_id, app_address=get_application_address(app_id)),
+            deploy_metadata=deployment.metadata,
             created_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
             updated_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
             deleted=False,
@@ -465,12 +487,10 @@ class AppDeployer:
             )
 
         app_metadata = AppMetaData(
-            app_id=existing_app.app_id,
-            app_address=existing_app.app_address,
-            created_metadata=existing_app.created_metadata,
+            reference=AppReference(app_id=existing_app.app_id, app_address=existing_app.app_address),
+            deploy_metadata=deployment.metadata,
             created_round=existing_app.created_round,
             updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
-            **deployment.metadata.__dict__,
             deleted=False,
         )
 
@@ -571,7 +591,7 @@ class AppDeployer:
                 min_round=app["created-at-round"],
                 address=creator_address,
                 address_role="sender",
-                note_prefix=base64.b64encode(APP_DEPLOY_NOTE_DAPP.encode()),
+                note_prefix=APP_DEPLOY_NOTE_DAPP.encode(),
                 limit=1,
             )
 
@@ -589,11 +609,14 @@ class AppDeployer:
 
                 if metadata.get("name"):
                     app_lookup[metadata["name"]] = AppMetaData(
-                        app_id=app_id,
-                        app_address=get_application_address(app_id),
-                        created_metadata=metadata,
+                        reference=AppReference(app_id=app_id, app_address=get_application_address(app_id)),
+                        deploy_metadata=AppDeployMetaData(
+                            name=metadata["name"],
+                            version=metadata.get("version", "1.0"),
+                            deletable=metadata.get("deletable"),
+                            updatable=metadata.get("updatable"),
+                        ),
                         created_round=creation_txn["confirmed-round"],
-                        **metadata,
                         updated_round=creation_txn["confirmed-round"],
                         deleted=app.get("deleted", False),
                     )

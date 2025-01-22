@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
 import algosdk
 import algosdk.atomic_transaction_composer
@@ -103,19 +103,22 @@ class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
     asset_id: int
 
 
-@dataclass(frozen=True)
-class SendAppTransactionResult(SendSingleTransactionResult):
-    abi_return: ABIReturn | None = None
+ABIReturnT = TypeVar("ABIReturnT")
 
 
 @dataclass(frozen=True)
-class SendAppUpdateTransactionResult(SendAppTransactionResult):
+class SendAppTransactionResult(SendSingleTransactionResult, Generic[ABIReturnT]):
+    abi_return: ABIReturnT | None = None
+
+
+@dataclass(frozen=True)
+class SendAppUpdateTransactionResult(SendAppTransactionResult[ABIReturnT]):
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
-class SendAppCreateTransactionResult(SendAppUpdateTransactionResult):
+class SendAppCreateTransactionResult(SendAppUpdateTransactionResult[ABIReturnT]):
     app_id: int
     app_address: str
 
@@ -180,10 +183,10 @@ class AlgorandClientTransactionSender:
         c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
         pre_log: Callable[[T, Transaction], str] | None = None,
         post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[T], SendAppTransactionResult]:
-        def send_app_call(params: T) -> SendAppTransactionResult:
+    ) -> Callable[[T], SendAppTransactionResult[ABIReturn]]:
+        def send_app_call(params: T) -> SendAppTransactionResult[ABIReturn]:
             result = self._send(c, pre_log, post_log)(params)
-            return SendAppTransactionResult(
+            return SendAppTransactionResult[ABIReturn](
                 **result.__dict__,
                 abi_return=AppManager.get_abi_return(result.confirmation, getattr(params, "method", None)),
             )
@@ -195,8 +198,8 @@ class AlgorandClientTransactionSender:
         c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
         pre_log: Callable[[T, Transaction], str] | None = None,
         post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[T], SendAppUpdateTransactionResult]:
-        def send_app_update_call(params: T) -> SendAppUpdateTransactionResult:
+    ) -> Callable[[T], SendAppUpdateTransactionResult[ABIReturn]]:
+        def send_app_update_call(params: T) -> SendAppUpdateTransactionResult[ABIReturn]:
             result = self._send_app_call(c, pre_log, post_log)(params)
 
             if not isinstance(
@@ -215,7 +218,7 @@ class AlgorandClientTransactionSender:
                 else None
             )
 
-            return SendAppUpdateTransactionResult(
+            return SendAppUpdateTransactionResult[ABIReturn](
                 **result.__dict__,
                 compiled_approval=compiled_approval,
                 compiled_clear=compiled_clear,
@@ -228,12 +231,12 @@ class AlgorandClientTransactionSender:
         c: Callable[[TransactionComposer], Callable[[T], TransactionComposer]],
         pre_log: Callable[[T, Transaction], str] | None = None,
         post_log: Callable[[T, SendSingleTransactionResult], str] | None = None,
-    ) -> Callable[[T], SendAppCreateTransactionResult]:
-        def send_app_create_call(params: T) -> SendAppCreateTransactionResult:
+    ) -> Callable[[T], SendAppCreateTransactionResult[ABIReturn]]:
+        def send_app_create_call(params: T) -> SendAppCreateTransactionResult[ABIReturn]:
             result = self._send_app_update_call(c, pre_log, post_log)(params)
             app_id = int(result.confirmation["application-index"])  # type: ignore[call-overload]
 
-            return SendAppCreateTransactionResult(
+            return SendAppCreateTransactionResult[ABIReturn](
                 **result.__dict__,
                 app_id=app_id,
                 app_address=algosdk.logic.get_application_address(app_id),
@@ -358,35 +361,35 @@ class AlgorandClientTransactionSender:
             ),
         )(params)
 
-    def app_create(self, params: AppCreateParams) -> SendAppCreateTransactionResult:
+    def app_create(self, params: AppCreateParams) -> SendAppCreateTransactionResult[ABIReturn]:
         """Create a new application."""
         return self._send_app_create_call(lambda c: c.add_app_create)(params)
 
-    def app_update(self, params: AppUpdateParams) -> SendAppUpdateTransactionResult:
+    def app_update(self, params: AppUpdateParams) -> SendAppUpdateTransactionResult[ABIReturn]:
         """Update an application."""
         return self._send_app_update_call(lambda c: c.add_app_update)(params)
 
-    def app_delete(self, params: AppDeleteParams) -> SendAppTransactionResult:
+    def app_delete(self, params: AppDeleteParams) -> SendAppTransactionResult[ABIReturn]:
         """Delete an application."""
         return self._send_app_call(lambda c: c.add_app_delete)(params)
 
-    def app_call(self, params: AppCallParams) -> SendAppTransactionResult:
+    def app_call(self, params: AppCallParams) -> SendAppTransactionResult[ABIReturn]:
         """Call an application."""
         return self._send_app_call(lambda c: c.add_app_call)(params)
 
-    def app_create_method_call(self, params: AppCreateMethodCallParams) -> SendAppCreateTransactionResult:
+    def app_create_method_call(self, params: AppCreateMethodCallParams) -> SendAppCreateTransactionResult[ABIReturn]:
         """Call an application's create method."""
         return self._send_app_create_call(lambda c: c.add_app_create_method_call)(params)
 
-    def app_update_method_call(self, params: AppUpdateMethodCallParams) -> SendAppUpdateTransactionResult:
+    def app_update_method_call(self, params: AppUpdateMethodCallParams) -> SendAppUpdateTransactionResult[ABIReturn]:
         """Call an application's update method."""
         return self._send_app_update_call(lambda c: c.add_app_update_method_call)(params)
 
-    def app_delete_method_call(self, params: AppDeleteMethodCallParams) -> SendAppTransactionResult:
+    def app_delete_method_call(self, params: AppDeleteMethodCallParams) -> SendAppTransactionResult[ABIReturn]:
         """Call an application's delete method."""
         return self._send_app_call(lambda c: c.add_app_delete_method_call)(params)
 
-    def app_call_method_call(self, params: AppCallMethodCallParams) -> SendAppTransactionResult:
+    def app_call_method_call(self, params: AppCallMethodCallParams) -> SendAppTransactionResult[ABIReturn]:
         """Call an application's call method."""
         return self._send_app_call(lambda c: c.add_app_call_method_call)(params)
 

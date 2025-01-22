@@ -4,15 +4,22 @@ import base64
 import copy
 import json
 import os
+from collections.abc import Sequence
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Any, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 import algosdk
 from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
+from typing_extensions import Self
 
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
+    ABIReturn,
+    ABIStruct,
+    ABIType,
+    ABIValue,
+    Arc56ReturnValueType,
     BoxABIValue,
     get_abi_decoded_value,
     get_abi_encoded_value,
@@ -21,6 +28,7 @@ from algokit_utils.applications.abi import (
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.applications.app_spec.arc56 import (
     Arc56Contract,
+    Method,
     PcOffsetMethod,
     ProgramSourceInfo,
     SourceInfo,
@@ -39,6 +47,7 @@ from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
+    AppCreateSchema,
     AppDeleteMethodCallParams,
     AppMethodCallTransactionArgument,
     AppUpdateMethodCallParams,
@@ -57,7 +66,6 @@ if TYPE_CHECKING:
 
     from algosdk.atomic_transaction_composer import TransactionSigner
 
-    from algokit_utils.applications.abi import ABIStruct, ABIType, ABIValue
     from algokit_utils.applications.app_deployer import AppLookup
     from algokit_utils.applications.app_manager import AppManager
     from algokit_utils.models.amount import AlgoAmount
@@ -66,6 +74,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "AppClient",
+    "AppClientBareCallCreateParams",
     "AppClientBareCallParams",
     "AppClientBareCallWithCallOnCompleteParams",
     "AppClientBareCallWithCompilationAndSendParams",
@@ -74,13 +83,18 @@ __all__ = [
     "AppClientCallParams",
     "AppClientCompilationParams",
     "AppClientCompilationResult",
+    "AppClientCreateSchema",
+    "AppClientMethodCallCreateParams",
     "AppClientMethodCallParams",
     "AppClientMethodCallWithCompilationAndSendParams",
     "AppClientMethodCallWithCompilationParams",
     "AppClientMethodCallWithSendParams",
     "AppClientParams",
     "AppSourceMaps",
+    "BaseAppClientMethodCallParams",
+    "BaseOnCompleteParams",
     "FundAppAccountParams",
+    "TypedAppClientProtocol",
 ]
 
 # TEAL opcodes for constant blocks
@@ -152,6 +166,45 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     return max(bytecblock_offset or 0, intcblock_offset or 0)
 
 
+class TypedAppClientProtocol(Protocol):
+    @classmethod
+    def from_creator_and_name(
+        cls,
+        *,
+        creator_address: str,
+        app_name: str,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        ignore_cache: bool | None = None,
+        app_lookup_cache: AppLookup | None = None,
+        algorand: AlgorandClientProtocol,
+    ) -> Self: ...
+
+    @classmethod
+    def from_network(
+        cls,
+        *,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+        algorand: AlgorandClientProtocol,
+    ) -> Self: ...
+
+    def __init__(
+        self,
+        *,
+        app_id: int,
+        app_name: str | None = None,
+        default_sender: str | None = None,
+        default_signer: TransactionSigner | None = None,
+        algorand: AlgorandClientProtocol,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
+    ) -> None: ...
+
+
 @dataclass(kw_only=True, frozen=True)
 class AppClientCompilationResult:
     approval_program: bytes
@@ -202,14 +255,19 @@ class AppClientCallParams:
     send_params: dict | None = None  # Parameters to control transaction sending
 
 
+ArgsT = TypeVar("ArgsT")
+MethodT = TypeVar("MethodT")
+OnCompleteT = TypeVar("OnCompleteT")
+
+
 @dataclass(kw_only=True, frozen=True)
-class AppClientMethodCallParams:
-    method: str
-    args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None = None
+class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT, OnCompleteT]):
+    method: MethodT
+    args: ArgsT | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
-    box_references: list[BoxReference | BoxIdentifier] | None = None
+    box_references: Sequence[BoxReference | BoxIdentifier] | None = None
     extra_fee: AlgoAmount | None = None
     first_valid_round: int | None = None
     lease: bytes | None = None
@@ -221,7 +279,16 @@ class AppClientMethodCallParams:
     static_fee: AlgoAmount | None = None
     validity_window: int | None = None
     last_valid_round: int | None = None
-    on_complete: algosdk.transaction.OnComplete | None = None
+    on_complete: OnCompleteT | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientMethodCallParams(
+    BaseAppClientMethodCallParams[
+        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None], str, algosdk.transaction.OnComplete
+    ]
+):
+    pass
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -261,9 +328,10 @@ class AppClientBareCallParams:
     box_references: list[BoxReference | BoxIdentifier] | None = None
 
 
-@dataclass(kw_only=True, frozen=True)
-class _CallOnComplete:
-    on_complete: algosdk.transaction.OnComplete
+@dataclass(frozen=True)
+class AppClientCreateSchema:
+    extra_program_pages: int | None = None
+    schema: AppCreateSchema | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -282,31 +350,30 @@ class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, App
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams, _CallOnComplete):
+class BaseOnCompleteParams(Generic[OnCompleteT]):
+    """Combined parameters for bare calls with an OnComplete value"""
+
+    on_complete: OnCompleteT | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientBareCallWithCallOnCompleteParams(
+    AppClientBareCallParams, BaseOnCompleteParams[algosdk.transaction.OnComplete]
+):
     """Combined parameters for bare calls with an OnComplete value"""
 
 
-class _AppClientStateMethodsProtocol(Protocol):
-    def get_all(self) -> dict[str, Any]: ...
-
-    def get_value(self, name: str, app_state: dict[str, AppState] | None = None) -> ABIValue | None: ...
-
-    def get_map_value(self, map_name: str, key: bytes | Any, app_state: dict[str, AppState] | None = None) -> Any: ...  # noqa: ANN401
-
-    def get_map(self, map_name: str) -> dict[str, ABIValue]: ...
+@dataclass(frozen=True)
+class AppClientBareCallCreateParams(AppClientCreateSchema, AppClientBareCallWithCallOnCompleteParams):
+    pass
 
 
-class _AppClientBoxMethodsProtocol(Protocol):
-    def get_all(self) -> dict[str, Any]: ...
-
-    def get_value(self, name: str) -> ABIValue | None: ...
-
-    def get_map_value(self, map_name: str, key: bytes | Any) -> Any: ...  # noqa: ANN401
-
-    def get_map(self, map_name: str) -> dict[str, ABIValue]: ...
+@dataclass(frozen=True)
+class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCallParams):
+    pass
 
 
-class _AppClientStateMethods(_AppClientStateMethodsProtocol):
+class _AppClientStateMethods:
     def __init__(
         self,
         *,
@@ -333,7 +400,7 @@ class _AppClientStateMethods(_AppClientStateMethodsProtocol):
         return self._get_map(map_name)
 
 
-class _AppClientBoxMethods(_AppClientBoxMethodsProtocol):
+class _AppClientBoxMethods:
     def __init__(
         self,
         *,
@@ -367,7 +434,7 @@ class _AppClientStateAccessor:
         self._app_id = client._app_id
         self._app_spec = client._app_spec
 
-    def local_state(self, address: str) -> _AppClientStateMethodsProtocol:
+    def local_state(self, address: str) -> _AppClientStateMethods:
         """Methods to access local state for the current app for a given address"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_local_state(self._app_id, address),
@@ -376,7 +443,7 @@ class _AppClientStateAccessor:
         )
 
     @property
-    def global_state(self) -> _AppClientStateMethodsProtocol:
+    def global_state(self) -> _AppClientStateMethods:
         """Methods to access global state for the current app"""
         return self._get_state_methods(
             state_getter=lambda: self._algorand.app.get_global_state(self._app_id),
@@ -385,11 +452,11 @@ class _AppClientStateAccessor:
         )
 
     @property
-    def box(self) -> _AppClientBoxMethodsProtocol:
+    def box(self) -> _AppClientBoxMethods:
         """Methods to access box storage for the current app"""
         return self._get_box_methods()
 
-    def _get_box_methods(self) -> _AppClientBoxMethodsProtocol:
+    def _get_box_methods(self) -> _AppClientBoxMethods:
         """Get methods to access box storage for the current app."""
 
         def get_all() -> dict[str, Any]:
@@ -466,7 +533,7 @@ class _AppClientStateAccessor:
         state_getter: Callable[[], dict[str, AppState]],
         key_getter: Callable[[], dict[str, StorageKey]],
         map_getter: Callable[[], dict[str, StorageMap]],
-    ) -> _AppClientStateMethodsProtocol:
+    ) -> _AppClientStateMethods:
         def get_all() -> dict[str, Any]:
             state = state_getter()
             keys = key_getter()
@@ -486,7 +553,7 @@ class _AppClientStateAccessor:
             state = app_state or state_getter()
             metadata = map_getter()[map_name]
 
-            prefix = bytes(metadata.prefix or "", "base64")
+            prefix = base64.b64decode(metadata.prefix or "")
             encoded_key = get_abi_encoded_value(key, metadata.key_type, self._app_spec.structs)
             full_key = base64.b64encode(prefix + encoded_key).decode("utf-8")
             value = next((s for s in state.values() if s.key_base64 == full_key), None)
@@ -498,7 +565,7 @@ class _AppClientStateAccessor:
             state = state_getter()
             metadata = map_getter()[map_name]
 
-            prefix = metadata.prefix or ""
+            prefix = base64.b64decode(metadata.prefix or "").decode("utf-8")
 
             prefixed_state = {k: v for k, v in state.items() if k.startswith(prefix)}
 
@@ -575,25 +642,33 @@ class _AppClientBareParamsAccessor:
         return call_params
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.OptInOC))
-        return call_params
-
-    def delete(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__, OnComplete.DeleteApplicationOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.OptInOC)
         )
         return call_params
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.ClearStateOC))
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.DeleteApplicationOC)
+        )
         return call_params
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.CloseOutOC))
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.ClearStateOC)
+        )
         return call_params
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> AppCallParams:
-        call_params: AppCallParams = AppCallParams(**self._get_bare_params(params.__dict__, OnComplete.NoOpOC))
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.CloseOutOC)
+        )
+        return call_params
+
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> AppCallParams:
+        call_params: AppCallParams = AppCallParams(
+            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.NoOpOC)
+        )
         return call_params
 
 
@@ -683,12 +758,11 @@ class _AppClientMethodCallParamsAccessor:
 
         if params.get("method"):
             input_params["method"] = self._app_spec.get_arc56_method(params["method"]).to_abi_method()
-            if params.get("args"):
-                input_params["args"] = self._client._get_abi_args_with_default_values(
-                    method_name_or_signature=params["method"],
-                    args=params["args"],
-                    sender=self._client._get_sender(input_params["sender"]),
-                )
+            input_params["args"] = self._client._get_abi_args_with_default_values(
+                method_name_or_signature=params["method"],
+                args=params.get("args"),
+                sender=self._client._get_sender(input_params["sender"]),
+            )
 
         return input_params
 
@@ -698,23 +772,35 @@ class _AppClientBareCreateTransactionMethods:
         self._client = client
         self._algorand = client._algorand
 
-    def update(self, params: AppClientBareCallWithCompilationAndSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_update(self._client.params.bare.update(params))
+    def update(self, params: AppClientBareCallWithCompilationAndSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_update(
+            self._client.params.bare.update(params or AppClientBareCallWithCompilationAndSendParams())
+        )
 
-    def opt_in(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.opt_in(params))
+    def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
+        )
 
-    def delete(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.delete(params))
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
+        )
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.clear_state(params))
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
+        )
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.close_out(params))
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
+        )
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> Transaction:
-        return self._algorand.create_transaction.app_call(self._client.params.bare.call(params))
+    def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> Transaction:
+        return self._algorand.create_transaction.app_call(
+            self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
+        )
 
 
 class _AppClientMethodCallTransactionCreator:
@@ -757,8 +843,8 @@ class _AppClientBareSendAccessor:
 
     def update(
         self,
-        params: AppClientBareCallWithCompilationAndSendParams,
-    ) -> SendAppTransactionResult:
+        params: AppClientBareCallWithCompilationAndSendParams | None = None,
+    ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application update transaction.
 
         Args:
@@ -771,36 +857,52 @@ class _AppClientBareSendAccessor:
         Returns:
             The result of sending the transaction
         """
+        params = params or AppClientBareCallWithCompilationAndSendParams()
         compiled = self._client.compile_sourcemaps(params.deploy_time_params, params.updatable, params.deletable)
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
         bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
         call_result = self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_params))
-        return SendAppTransactionResult(**{**call_result.__dict__, **(compiled.__dict__ if compiled else {})})
-
-    def opt_in(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.opt_in(params))
+        return SendAppTransactionResult[ABIReturn](
+            **{**call_result.__dict__, **(compiled.__dict__ if compiled else {})},
+            abi_return=AppManager.get_abi_return(call_result.confirmation, getattr(params, "method", None)),
         )
 
-    def delete(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.delete(params))
+    def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def clear_state(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.clear_state(params))
+    def delete(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def close_out(self, params: AppClientBareCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.close_out(params))
+    def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
+            )
         )
 
-    def call(self, params: AppClientBareCallWithCallOnCompleteParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call(self._client.params.bare.call(params))
+    def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
+            )
+        )
+
+    def call(
+        self, params: AppClientBareCallWithCallOnCompleteParams | None = None
+    ) -> SendAppTransactionResult[ABIReturn]:
+        return self._client._handle_call_errors(
+            lambda: self._algorand.send.app_call(
+                self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
+            )
         )
 
 
@@ -821,27 +923,43 @@ class _AppClientSendAccessor:
             lambda: self._algorand.send.payment(self._client.params.fund_app_account(params))
         )
 
-    def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params))
+    def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        return self._client._handle_call_errors(
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
-    def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params))
+    def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        return self._client._handle_call_errors(
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
-    def update(self, params: AppClientMethodCallWithCompilationAndSendParams) -> SendAppUpdateTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_update_method_call(self._client.params.update(params))
+    def update(
+        self, params: AppClientMethodCallWithCompilationAndSendParams
+    ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType]:
+        result = self._client._handle_call_errors(
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_update_method_call(self._client.params.update(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
+        )
+        assert isinstance(result, SendAppUpdateTransactionResult)
+        return result
+
+    def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        return self._client._handle_call_errors(
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
-    def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
-        return self._client._handle_call_errors(  # type: ignore[no-any-return]
-            lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params))
-        )
-
-    def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult:
+    def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
         ) and self._app_spec.get_arc56_method(params.method).readonly
@@ -863,7 +981,7 @@ class _AppClientSendAccessor:
                 )
             )
 
-            return SendAppTransactionResult(
+            return SendAppTransactionResult[Arc56ReturnValueType](
                 tx_ids=simulate_response.tx_ids,
                 transactions=simulate_response.transactions,
                 transaction=simulate_response.transactions[-1],
@@ -871,11 +989,16 @@ class _AppClientSendAccessor:
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
-                abi_return=simulate_response.returns[-1],
+                abi_return=simulate_response.returns[-1].get_arc56_value(
+                    self._app_spec.get_arc56_method(params.method), self._app_spec.structs
+                ),
             )
 
         return self._client._handle_call_errors(
-            lambda: self._algorand.send.app_call_method_call(self._client.params.call(params))
+            lambda: self._client._process_method_call_return(
+                lambda: self._algorand.send.app_call_method_call(self._client.params.call(params)),
+                self._app_spec.get_arc56_method(params.method),
+            )
         )
 
 
@@ -1066,7 +1189,7 @@ class AppClient:
             app_spec.source.get_decoded_approval(),
             template_params=deploy_time_params,
             deployment_metadata=(
-                {"updatable": updatable or False, "deletable": deletable or False}
+                {"updatable": updatable, "deletable": deletable}
                 if updatable is not None or deletable is not None
                 else None
             ),
@@ -1383,7 +1506,7 @@ class AppClient:
         self,
         *,
         method_name_or_signature: str,
-        args: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
+        args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
         sender: str,
     ) -> list[Any]:
         """Get ABI args with default values filled in.
@@ -1428,10 +1551,9 @@ class AppClient:
                         # Get method return value
                         default_method = self._app_spec.get_arc56_method(default_value.data)
                         empty_args = [None] * len(default_method.args)
-                        call_result = self._algorand.send.app_call_method_call(
-                            AppCallMethodCallParams(
-                                app_id=self._app_id,
-                                method=algosdk.abi.Method.from_signature(default_value.data),
+                        call_result = self.send.call(
+                            AppClientMethodCallWithSendParams(
+                                method=default_value.data,
                                 args=empty_args,
                                 sender=sender,
                             )
@@ -1445,12 +1567,12 @@ class AppClient:
                             result.append(
                                 get_abi_tuple_from_abi_struct(
                                     call_result.abi_return,
-                                    self._app_spec.structs[str(default_method.returns.type)],
+                                    self._app_spec.structs[str(default_method.returns.struct)],
                                     self._app_spec.structs,
                                 )
                             )
-                        elif call_result.abi_return.value:
-                            result.append(call_result.abi_return.value)
+                        elif call_result.abi_return:
+                            result.append(call_result.abi_return)
 
                     case "local" | "global":
                         # Get state value
@@ -1503,3 +1625,21 @@ class AppClient:
             "onComplete": on_complete,
             "args": args,
         }
+
+    def _process_method_call_return(
+        self,
+        result: Callable[[], SendAppUpdateTransactionResult[ABIReturn] | SendAppTransactionResult[ABIReturn]],
+        method: Method,
+    ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType] | SendAppTransactionResult[Arc56ReturnValueType]:
+        result_value = result()
+        abi_return = (
+            result_value.abi_return.get_arc56_value(method, self._app_spec.structs)
+            if isinstance(result_value.abi_return, ABIReturn)
+            else None
+        )
+
+        if isinstance(result_value, SendAppUpdateTransactionResult):
+            return SendAppUpdateTransactionResult[Arc56ReturnValueType](
+                **{**result_value.__dict__, "abi_return": abi_return}
+            )
+        return SendAppTransactionResult[Arc56ReturnValueType](**{**result_value.__dict__, "abi_return": abi_return})

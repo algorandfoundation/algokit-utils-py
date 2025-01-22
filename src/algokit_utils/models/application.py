@@ -43,7 +43,7 @@ class AppInformation:
 @dataclass(kw_only=True, frozen=True)
 class CompiledTeal:
     teal: str
-    compiled: bytes
+    compiled: str
     compiled_hash: str
     compiled_base64_to_bytes: bytes
     source_map: algosdk.source_map.SourceMap | None

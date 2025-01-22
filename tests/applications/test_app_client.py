@@ -67,9 +67,9 @@ def hello_world_arc32_app_id(
             clear_state_program=hello_world_arc32_app_spec.clear_program,
             schema={
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
             },
         )
     )
@@ -108,9 +108,9 @@ def testing_app_arc32_app_id(
             approval_program=approval,
             clear_state_program=testing_app_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
             },
         )
@@ -178,9 +178,9 @@ def testing_app_puya_arc32_app_id(
             approval_program=testing_app_puya_arc32_app_spec.approval_program,
             clear_state_program=testing_app_puya_arc32_app_spec.clear_program,
             schema={
-                "global_bytes": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
+                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
                 "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "local_bytes": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
                 "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
             },
         )
@@ -353,10 +353,9 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
         result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
     )
     expected_return = f"Sent {amount.micro_algos}. test"
-    assert result.abi_return
-    assert result.abi_return.value == expected_return
+    assert result.abi_return == expected_return
     assert response
-    assert response.value == result.abi_return.value
+    assert response.value == result.abi_return
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
@@ -450,10 +449,9 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
         test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
     )
     assert result.abi_return
-    assert result.abi_return.value
-    assert str(result.abi_return.value).startswith("App: 345, Asset: 567, Account: ")
+    assert str(result.abi_return).startswith("App: 345, Asset: 567, Account: ")
     assert expected_return
-    assert expected_return.value == result.abi_return.value
+    assert expected_return.value == result.abi_return
 
 
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
@@ -519,11 +517,11 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
 
     assert sorted(b.name.name_base64 for b in box_values) == sorted([box_name1_base64, box_name2_base64])
     box1 = next(b for b in box_values if b.name.name_base64 == box_name1_base64)
-    assert box1.value == base64.b64encode(bytes("value1", "utf-8"))
+    assert box1.value == b"value1"
     assert box1_value == box1.value
 
     box2 = next(b for b in box_values if b.name.name_base64 == box_name2_base64)
-    assert box2.value == base64.b64encode(bytes("value2", "utf-8"))
+    assert box2.value == b"value2"
 
     # Legacy contract strips ABI prefix; manually encoded ABI string after
     # passing algosdk's atc results in \x00\n\x00\n1234524352.
@@ -661,8 +659,7 @@ def test_box_methods_with_arc4_returns_parametrized(
     )
 
     # Encode the expected value using the specified ABI type
-    value_encoded = ABIType.from_string(value_type).encode(arg_value)
-    expected_value = base64.b64encode(value_encoded)
+    expected_value = ABIType.from_string(value_type).encode(arg_value)
 
     # Retrieve the actual box value
     actual_box_value = test_app_client_puya.get_box_value(box_reference)
@@ -710,14 +707,12 @@ def test_abi_with_default_arg_method(
         AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
     )
 
-    assert defined_value_result.abi_return
-    assert defined_value_result.abi_return.value == "Local state, defined value"
+    assert defined_value_result.abi_return == "Local state, defined value"
 
     # Test with default value
     default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
     assert default_value_result
-    assert default_value_result.abi_return
-    assert default_value_result.abi_return.value == "Local state, banana"
+    assert default_value_result.abi_return == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:

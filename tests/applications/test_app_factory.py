@@ -7,6 +7,7 @@ from algosdk.transaction import OnComplete
 
 from algokit_utils.applications.app_client import (
     AppClient,
+    AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientMethodCallWithCompilationAndSendParams,
     AppClientMethodCallWithSendParams,
@@ -164,7 +165,7 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
         deploy_time_params={
             "VALUE": 1,
         },
-        create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
+        create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
     )
 
     assert deploy_result.operation_performed == OperationPerformed.Create
@@ -240,8 +241,7 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert (
         update_deploy_result.update_response.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
     )
-    assert update_deploy_result.update_response.abi_return
-    assert update_deploy_result.update_response.abi_value == "args_io"
+    assert update_deploy_result.update_response.abi_return == "args_io"
 
 
 def test_deploy_app_replace(factory: AppFactory) -> None:
@@ -295,7 +295,7 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
             "VALUE": 2,
         },
         on_update=OnUpdate.ReplaceApp,
-        create_params=AppClientMethodCallParams(method="create_abi", args=["arg_io"]),
+        create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
         delete_params=AppClientMethodCallParams(method="delete_abi", args=["arg2_io"]),
     )
 
@@ -315,10 +315,8 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     assert (
         replace_deploy_result.delete_response.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
     )
-    assert replace_deploy_result.create_response.abi_return
-    assert replace_deploy_result.create_response.abi_value == "arg_io"
-    assert replace_deploy_result.delete_response.abi_return
-    assert replace_deploy_result.delete_response.abi_value == "arg2_io"
+    assert replace_deploy_result.create_response.abi_return == "arg_io"
+    assert replace_deploy_result.delete_response.abi_return == "arg2_io"
 
 
 def test_create_then_call_app(factory: AppFactory) -> None:
@@ -333,9 +331,7 @@ def test_create_then_call_app(factory: AppFactory) -> None:
     )
 
     call = app_client.send.call(AppClientMethodCallWithSendParams(method="call_abi", args=["test"]))
-
-    assert call.abi_return
-    assert call.abi_return.value == "Hello, test"
+    assert call.abi_return == "Hello, test"
 
 
 def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, factory: AppFactory) -> None:
@@ -397,8 +393,7 @@ def test_update_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.abi_return
-    assert call_return.abi_return.value == "string_io"
+    assert call_return.abi_return == "string_io"
     # assert call_return.compiled_approval is not None # TODO: centralize approval/clear compilation
 
 
@@ -420,8 +415,7 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
         )
     )
 
-    assert call_return.abi_return
-    assert call_return.abi_return.value == "string_io"
+    assert call_return.abi_return == "string_io"
 
 
 def test_export_import_sourcemaps(
@@ -471,7 +465,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
 ) -> None:
     app_client, _ = arc56_factory.deploy(
-        create_params=AppClientMethodCallParams(method="createApplication"),
+        create_params=AppClientMethodCallCreateParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
             "uint64TmplVar": 123,
@@ -491,7 +485,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
 ) -> None:
     # Deploy app with template parameters
     app_client, _ = arc56_factory.deploy(
-        create_params=AppClientMethodCallParams(method="createApplication"),
+        create_params=AppClientMethodCallCreateParams(method="createApplication"),
         deploy_time_params={
             "bytes64TmplVar": "0" * 64,
             "uint64TmplVar": 0,

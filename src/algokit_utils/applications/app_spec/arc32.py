@@ -169,8 +169,8 @@ class Arc32Contract:
             "bare_call_config": _encode_method_config(self.bare_call_config),
         }
 
-    def to_json(self) -> str:
-        return json.dumps(self.dictify(), indent=4)
+    def to_json(self, indent: int | None = None) -> str:
+        return json.dumps(self.dictify(), indent=indent)
 
     @staticmethod
     def from_json(application_spec: str) -> "Arc32Contract":

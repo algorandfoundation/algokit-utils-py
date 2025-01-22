@@ -687,7 +687,7 @@ class Arc56Contract:
         data["methods"] = [Method.from_dict(item) for item in data["methods"]]
         data["state"] = State.from_dict(data["state"])
         data["structs"] = {
-            key: [StructField.from_dict(item) for item in value] for key, value in data["structs"].items()
+            key: [StructField.from_dict(item) for item in value] for key, value in application_spec["structs"].items()
         }
         if data.get("byte_code"):
             data["byte_code"] = ByteCode.from_dict(data["byte_code"])
@@ -742,8 +742,8 @@ class Arc56Contract:
             result[key] = value
         return result
 
-    def to_json(self) -> str:
-        return json.dumps(self.dictify(), indent=4)
+    def to_json(self, indent: int | None = None) -> str:
+        return json.dumps(self.dictify(), indent=indent)
 
     def dictify(self) -> dict:
         return asdict(self, dict_factory=_arc56_dict_factory())
