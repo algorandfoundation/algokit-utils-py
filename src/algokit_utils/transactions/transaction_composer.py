@@ -953,8 +953,12 @@ class TransactionComposer:
         extra_opcode_budget: int | None = None,
         exec_trace_config: SimulateTraceConfig | None = None,
         simulation_round: int | None = None,
-        skip_signatures: int | None = None,
+        skip_signatures: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
+        """
+        Simulate transaction group execution with configurable validation rules.
+        """
+
         atc = AtomicTransactionComposer() if skip_signatures else self._atc
 
         if skip_signatures:

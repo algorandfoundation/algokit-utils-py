@@ -9,6 +9,7 @@ import pytest
 from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -18,7 +19,6 @@ from algokit_utils.applications.app_client import (
 )
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
@@ -252,6 +252,10 @@ def test_clone_overriding_app_name(
     cloned_app_client = app_client.clone(app_name=cloned_app_name)
     assert app_client.app_name == hello_world_arc32_app_spec.contract.name == "HelloWorld"
     assert cloned_app_client.app_name == cloned_app_name
+
+    # Test for explicit None when closning
+    cloned_app_client = app_client.clone(app_name=None)
+    assert cloned_app_client.app_name == app_client.app_name
 
 
 def test_clone_inheriting_app_name_based_on_default_handling(

@@ -123,7 +123,6 @@ allow-star-arg-any = true
 suppress-none-returning = true
 
 [tool.ruff.lint.per-file-ignores]
-"src/algokit_utils/beta/*" = ["ERA001", "E501", "PLR0911"]
 "src/algokit_utils/applications/app_client.py" = ["SLF001"]
 "src/algokit_utils/applications/app_factory.py" = ["SLF001"]
 "tests/clients/test_algorand_client.py" = ["ERA001"]  

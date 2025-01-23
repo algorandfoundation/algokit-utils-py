@@ -175,7 +175,7 @@ def _parse_note(metadata_b64: str | None) -> AppDeployMetaData | None:
         return None
 
 
-@deprecated("Deprecated")
+@deprecated("Use algorand.appDeployer.get_creator_apps_by_name() instead. ")
 def get_creator_apps(indexer: "IndexerClient", creator_account: Account | str) -> AppLookup:
     """Returns a mapping of Application names to {py:class}`AppMetaData` for all Applications created by specified
     creator that have a transaction note containing {py:class}`AppDeployMetaData`
@@ -256,7 +256,7 @@ class AppChanges:
     schema_change_description: str | None
 
 
-@deprecated("Deprecated")
+@deprecated("The algokit_utils.AppDeployer now handles checking for app changes implicitly as part of `deploy` method")
 def check_for_app_changes(
     algod_client: "AlgodClient",
     *,

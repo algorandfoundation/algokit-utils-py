@@ -230,18 +230,9 @@ def simulate_response(
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
     simulation_round: int | None = None,
-    skip_signatures: int | None = None,  # noqa: ARG001 TODO: revisit
+    skip_signatures: bool | None = None,  # noqa: ARG001 TODO: revisit
 ) -> SimulateAtomicTransactionResponse:
-    """
-    Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
-
-    Args:
-        atc (AtomicTransactionComposer): An AtomicTransactionComposer object.
-        algod_client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
-
-    Returns:
-        SimulateAtomicTransactionResponse: The simulated response.
-    """
+    """Simulate atomic transaction group execution"""
 
     unsigned_txn_groups = atc.build_group()
     empty_signer = EmptySigner()
@@ -274,7 +265,7 @@ def simulate_and_persist_response(  # noqa: PLR0913
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
     simulation_round: int | None = None,
-    skip_signatures: int | None = None,
+    skip_signatures: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """
     Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,

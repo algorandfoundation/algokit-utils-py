@@ -7,6 +7,7 @@ import algosdk
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.kmd import KMDClient
 from algosdk.source_map import SourceMap
+from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
@@ -20,8 +21,8 @@ from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
 
 if TYPE_CHECKING:
+    from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_factory import AppFactory
-    from algokit_utils.clients.algorand_client import AlgorandClient
 
 __all__ = [
     "AlgoSdkClients",
@@ -83,6 +84,7 @@ class ClientManager:
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
         self._algorand = algorand_client
+        self._suggested_params: SuggestedParams | None = None
 
     @property
     def algod(self) -> AlgodClient:
@@ -108,7 +110,9 @@ class ClientManager:
         return self._kmd
 
     def network(self) -> NetworkDetail:
-        sp = self._algod.suggested_params()  # TODO: cache it
+        if self._suggested_params is None:
+            self._suggested_params = self._algod.suggested_params()
+        sp = self._suggested_params
         return NetworkDetail(
             is_testnet=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
             is_mainnet=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],

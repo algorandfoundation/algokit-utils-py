@@ -70,7 +70,7 @@ def _ensure_asset_balance_conditions(
 
 
 @deprecated(
-    "Use TransactionComposer.add_asset_opt_in() or AlgorandClient.asset.opt_in() instead. "
+    "Use TransactionComposer.add_asset_opt_in() or AlgorandClient.asset.bulk_opt_in() instead. "
     "Example: composer.add_asset_opt_in(AssetOptInParams(sender=account.address, asset_id=123))"
 )
 def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:
@@ -122,7 +122,7 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
 
 
 @deprecated(
-    "Use TransactionComposer.add_asset_opt_out() or AlgorandClient.asset.opt_out() instead. "
+    "Use TransactionComposer.add_asset_opt_out() or AlgorandClient.asset.bulk_opt_out() instead. "
     "Example: composer.add_asset_opt_out(AssetOptOutParams(sender=account.address, asset_id=123, creator=creator_address))"
 )
 def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) -> dict[int, str]:

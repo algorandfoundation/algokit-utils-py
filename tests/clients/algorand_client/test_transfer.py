@@ -2,7 +2,7 @@ import httpx
 import pytest
 from pytest_httpx._httpx_mock import HTTPXMock
 
-from algokit_utils.clients.algorand_client import AlgorandClient
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.clients.dispenser_api_client import DispenserApiConfig, TestNetDispenserApiClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
@@ -208,6 +208,9 @@ def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_accoun
         min_spending_balance=AlgoAmount.from_algos(1),
         min_funding_increment=AlgoAmount.from_algos(1),
     )
+
+    with pytest.raises(Exception, match="account asset info not found"):
+        algorand.asset.get_account_information(second_account, test_asset_id)
 
     algorand.send.asset_opt_in(
         AssetOptInParams(

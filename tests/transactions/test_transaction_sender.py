@@ -7,9 +7,9 @@ from algosdk.transaction import OnComplete
 
 from algokit_utils import Account
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,

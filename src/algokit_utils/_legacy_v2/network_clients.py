@@ -48,7 +48,7 @@ def get_default_localnet_config(config: Literal["algod", "indexer", "kmd"]) -> A
     return AlgoClientConfig(server=f"http://localhost:{port}", token="a" * 64)
 
 
-@deprecated("Use AlgorandClient.client.testnet() or AlgorandClient.mainnet() instead")
+@deprecated("Use AlgorandClient.testnet() or AlgorandClient.mainnet() instead")
 def get_algonode_config(
     network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"], token: str
 ) -> AlgoClientConfig:
@@ -59,7 +59,7 @@ def get_algonode_config(
     )
 
 
-@deprecated("Use AlgorandClient.client.from_environment() instead. Example: client = AlgorandClient.from_environment()")
+@deprecated("Use AlgorandClient.from_environment() instead.")
 def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
 
@@ -69,7 +69,7 @@ def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
     return AlgodClient(config.token, config.server, headers)
 
 
-@deprecated("Use AlgorandClient.client.default_localnet().kmd instead")
+@deprecated("Use AlgorandClient.default_localnet().kmd instead")
 def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from `config` or environment
 
@@ -109,7 +109,7 @@ def is_testnet(client: AlgodClient) -> bool:
     return params.gen in ["testnet-v1.0", "testnet-v1", "testnet"]
 
 
-@deprecated("Use AlgorandClient.client.default_localnet().kmd instead")
+@deprecated("Use AlgorandClient.default_localnet().kmd instead")
 def get_kmd_client_from_algod_client(client: AlgodClient) -> KMDClient:
     """Returns an {py:class}`algosdk.kmd.KMDClient` from supplied `client`
 

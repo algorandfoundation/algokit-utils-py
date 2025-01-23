@@ -2,7 +2,7 @@ import algosdk
 import pytest
 
 from algokit_utils import Account
-from algokit_utils.clients.algorand_client import AlgorandClient
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import get_unique_name
 

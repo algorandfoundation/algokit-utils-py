@@ -2,12 +2,12 @@ import pytest
 from algosdk.atomic_transaction_composer import AccountTransactionSigner
 
 from algokit_utils import Account
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.assets.asset_manager import (
     AccountAssetInformation,
     AssetInformation,
     BulkAssetOptInOutResult,
 )
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AssetCreateParams,

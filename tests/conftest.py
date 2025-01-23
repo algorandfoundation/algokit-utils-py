@@ -17,8 +17,8 @@ from algokit_utils import (
     ensure_funded,
     replace_template_variables,
 )
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.transactions.transaction_composer import AssetCreateParams
 
 if TYPE_CHECKING:

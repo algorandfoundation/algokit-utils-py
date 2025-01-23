@@ -1,7 +1,7 @@
 import pytest
 
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import check_output_stability

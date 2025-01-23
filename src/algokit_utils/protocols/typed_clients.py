@@ -17,8 +17,8 @@ from algokit_utils.applications.app_deployer import (
 from algokit_utils.models.state import TealTemplateParams
 
 if TYPE_CHECKING:
+    from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_factory import AppFactoryDeployResponse
-    from algokit_utils.clients.algorand_client import AlgorandClient
 
 __all__ = [
     "TypedAppClientProtocol",

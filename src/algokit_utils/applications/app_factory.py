@@ -10,6 +10,7 @@ from algosdk.transaction import OnComplete, Transaction
 from typing_extensions import Self
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import (
     ABIReturn,
     Arc56ReturnValueType,
@@ -39,7 +40,6 @@ from algokit_utils.applications.app_deployer import (
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Method
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.models.application import (
     AppSourceMaps,
 )
@@ -220,7 +220,7 @@ class AppFactoryDeployResponse:
         )
 
 
-class _AppFactoryBareParamsAccessor:
+class _BareParamsBuilder:
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._algorand = factory._algorand
@@ -289,13 +289,13 @@ class _AppFactoryBareParamsAccessor:
         )
 
 
-class _AppFactoryParamsAccessor:
+class _MethodParamsBuilder:
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
-        self._bare = _AppFactoryBareParamsAccessor(factory)
+        self._bare = _BareParamsBuilder(factory)
 
     @property
-    def bare(self) -> _AppFactoryBareParamsAccessor:
+    def bare(self) -> _BareParamsBuilder:
         return self._bare
 
     def create(self, params: AppFactoryCreateMethodCallParams) -> AppCreateMethodCallParams:
@@ -377,7 +377,7 @@ class _AppFactoryBareCreateTransactionAccessor:
         return self._factory._algorand.create_transaction.app_create(self._factory.params.bare.create(params))
 
 
-class _AppFactoryCreateTransactionAccessor:
+class _TransactionCreator:
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._bare = _AppFactoryBareCreateTransactionAccessor(factory)
@@ -443,7 +443,7 @@ class _AppFactoryBareSendAccessor:
         )
 
 
-class _AppFactorySendAccessor:
+class _TransactionSender:
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._algorand = factory._algorand
@@ -517,9 +517,9 @@ class AppFactory:
         self._deletable = params.deletable
         self._approval_source_map: SourceMap | None = None
         self._clear_source_map: SourceMap | None = None
-        self._params_accessor = _AppFactoryParamsAccessor(self)
-        self._send_accessor = _AppFactorySendAccessor(self)
-        self._create_transaction_accessor = _AppFactoryCreateTransactionAccessor(self)
+        self._params_accessor = _MethodParamsBuilder(self)
+        self._send_accessor = _TransactionSender(self)
+        self._create_transaction_accessor = _TransactionCreator(self)
 
     @property
     def app_name(self) -> str:
@@ -534,15 +534,15 @@ class AppFactory:
         return self._algorand
 
     @property
-    def params(self) -> _AppFactoryParamsAccessor:
+    def params(self) -> _MethodParamsBuilder:
         return self._params_accessor
 
     @property
-    def send(self) -> _AppFactorySendAccessor:
+    def send(self) -> _TransactionSender:
         return self._send_accessor
 
     @property
-    def create_transaction(self) -> _AppFactoryCreateTransactionAccessor:
+    def create_transaction(self) -> _TransactionCreator:
         return self._create_transaction_accessor
 
     def deploy(  # noqa: PLR0913

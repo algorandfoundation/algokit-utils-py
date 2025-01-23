@@ -65,9 +65,9 @@ if TYPE_CHECKING:
 
     from algosdk.atomic_transaction_composer import TransactionSigner
 
+    from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_deployer import AppLookup
     from algokit_utils.applications.app_manager import AppManager
-    from algokit_utils.clients.algorand_client import AlgorandClient
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
 
@@ -99,6 +99,9 @@ BYTE_CBLOCK = 38  # bytecblock opcode
 INT_CBLOCK = 32  # intcblock opcode
 
 T = TypeVar("T")  # For generic return type in _handle_call_errors
+
+# Sentinel to detect missing arguments in clone() method of AppClient
+_MISSING = object()
 
 
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
@@ -376,7 +379,7 @@ class _AppClientBoxMethods:
         return self._get_map(map_name)
 
 
-class _AppClientStateAccessor:
+class _StateAccessor:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
@@ -555,7 +558,7 @@ class _AppClientStateAccessor:
         return self._algorand.app.get_global_state(self._app_id)
 
 
-class _AppClientBareParamsAccessor:
+class _BareParamsBuilder:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
@@ -621,16 +624,16 @@ class _AppClientBareParamsAccessor:
         return call_params
 
 
-class _AppClientMethodCallParamsAccessor:
+class _MethodParamsBuilder:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
         self._app_spec = client._app_spec
-        self._bare_params_accessor = _AppClientBareParamsAccessor(client)
+        self._bare_params_accessor = _BareParamsBuilder(client)
 
     @property
-    def bare(self) -> _AppClientBareParamsAccessor:
+    def bare(self) -> _BareParamsBuilder:
         return self._bare_params_accessor
 
     def fund_app_account(self, params: FundAppAccountParams) -> PaymentParams:
@@ -701,7 +704,6 @@ class _AppClientMethodCallParamsAccessor:
 
         input_params["app_id"] = self._app_id
         input_params["on_complete"] = on_complete
-
         input_params["sender"] = self._client._get_sender(params["sender"])
         input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
@@ -716,7 +718,7 @@ class _AppClientMethodCallParamsAccessor:
         return input_params
 
 
-class _AppClientBareCreateTransactionMethods:
+class _AppClientBareCallCreateTransactionMethods:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
@@ -752,16 +754,16 @@ class _AppClientBareCreateTransactionMethods:
         )
 
 
-class _AppClientMethodCallTransactionCreator:
+class _TransactionCreator:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
         self._app_spec = client._app_spec
-        self._bare_create_transaction_methods = _AppClientBareCreateTransactionMethods(client)
+        self._bare_create_transaction_methods = _AppClientBareCallCreateTransactionMethods(client)
 
     @property
-    def bare(self) -> _AppClientBareCreateTransactionMethods:
+    def bare(self) -> _AppClientBareCallCreateTransactionMethods:
         return self._bare_create_transaction_methods
 
     def fund_app_account(self, params: FundAppAccountParams) -> Transaction:
@@ -807,7 +809,7 @@ class _AppClientBareSendAccessor:
             The result of sending the transaction
         """
         params = params or AppClientBareCallWithCompilationAndSendParams()
-        compiled = self._client.compile_sourcemaps(params.deploy_time_params, params.updatable, params.deletable)
+        compiled = self._client.compile_app(params.deploy_time_params, params.updatable, params.deletable)
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
         bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
@@ -855,7 +857,7 @@ class _AppClientBareSendAccessor:
         )
 
 
-class _AppClientSendAccessor:
+class _TransactionSender:
     def __init__(self, client: AppClient) -> None:
         self._client = client
         self._algorand = client._algorand
@@ -976,10 +978,10 @@ class AppClient:
         self._default_signer = params.default_signer
         self._approval_source_map = params.approval_source_map
         self._clear_source_map = params.clear_source_map
-        self._state_accessor = _AppClientStateAccessor(self)
-        self._params_accessor = _AppClientMethodCallParamsAccessor(self)
-        self._send_accessor = _AppClientSendAccessor(self)
-        self._create_transaction_accessor = _AppClientMethodCallTransactionCreator(self)
+        self._state_accessor = _StateAccessor(self)
+        self._params_accessor = _MethodParamsBuilder(self)
+        self._send_accessor = _TransactionSender(self)
+        self._create_transaction_accessor = _TransactionCreator(self)
 
     @property
     def algorand(self) -> AlgorandClient:
@@ -1002,19 +1004,19 @@ class AppClient:
         return self._app_spec
 
     @property
-    def state(self) -> _AppClientStateAccessor:
+    def state(self) -> _StateAccessor:
         return self._state_accessor
 
     @property
-    def params(self) -> _AppClientMethodCallParamsAccessor:
+    def params(self) -> _MethodParamsBuilder:
         return self._params_accessor
 
     @property
-    def send(self) -> _AppClientSendAccessor:
+    def send(self) -> _TransactionSender:
         return self._send_accessor
 
     @property
-    def create_transaction(self) -> _AppClientMethodCallTransactionCreator:
+    def create_transaction(self) -> _TransactionCreator:
         return self._create_transaction_accessor
 
     @staticmethod
@@ -1264,7 +1266,7 @@ class AppClient:
         return e
 
     # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
-    def compile_sourcemaps(
+    def compile_app(
         self,
         deploy_time_params: TealTemplateParams | None = None,
         updatable: bool | None = None,
@@ -1281,22 +1283,25 @@ class AppClient:
 
     def clone(
         self,
-        app_name: str | None = None,
-        default_sender: str | bytes | None = None,
-        default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        app_name: str | None = _MISSING,  # type: ignore[assignment]
+        default_sender: str | bytes | None = _MISSING,  # type: ignore[assignment]
+        default_signer: TransactionSigner | None = _MISSING,  # type: ignore[assignment]
+        approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
+        clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
     ) -> AppClient:
+        """Create a cloned AppClient instance with optionally overridden parameters."""
         return AppClient(
             AppClientParams(
                 app_id=self._app_id,
                 algorand=self._algorand,
                 app_spec=self._app_spec,
-                app_name=app_name or self._app_name,
-                default_sender=default_sender or self._default_sender,
-                default_signer=default_signer or self._default_signer,
-                approval_source_map=approval_source_map or self._approval_source_map,
-                clear_source_map=clear_source_map or self._clear_source_map,
+                app_name=self._app_name if app_name is _MISSING else app_name,
+                default_sender=self._default_sender if default_sender is _MISSING else default_sender,
+                default_signer=self._default_signer if default_signer is _MISSING else default_signer,
+                approval_source_map=(
+                    self._approval_source_map if approval_source_map is _MISSING else approval_source_map
+                ),
+                clear_source_map=(self._clear_source_map if clear_source_map is _MISSING else clear_source_map),
             )
         )
 

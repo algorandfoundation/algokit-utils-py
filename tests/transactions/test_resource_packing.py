@@ -7,13 +7,13 @@ from algosdk.atomic_transaction_composer import TransactionWithSigner
 from algosdk.transaction import OnComplete, PaymentTxn
 
 from algokit_utils import Account
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallWithSendParams,
     FundAppAccountParams,
 )
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount

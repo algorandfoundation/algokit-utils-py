@@ -87,7 +87,7 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
 @deprecated(
     "Use AppClient from algokit_utils.applications instead. Example:\n"
     "```python\n"
-    "from algokit_utils.clients import AlgorandClient\n"
+    "from algokit_utils import AlgorandClient\n"
     "from algokit_utils.models.application import Arc56Contract\n"
     "algorand_client = AlgorandClient.from_environment()\n"
     "app_client = AppClient.from_network(app_spec=Arc56Contract.from_json(app_spec_json), "

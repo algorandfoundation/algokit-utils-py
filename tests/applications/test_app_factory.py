@@ -5,6 +5,7 @@ import pytest
 from algosdk.logic import get_application_address
 from algosdk.transaction import OnComplete
 
+from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallCreateParams,
@@ -19,7 +20,6 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateMethodCallParams,
     AppFactoryCreateWithSendParams,
 )
-from algokit_utils.clients.algorand_client import AlgorandClient
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
