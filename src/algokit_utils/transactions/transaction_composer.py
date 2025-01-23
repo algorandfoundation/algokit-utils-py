@@ -1028,7 +1028,7 @@ class TransactionComposer:
         """Simulate transaction group execution with configurable validation rules.
 
         :param allow_more_logs: Whether to allow more logs than the standard limit
-        :param allow_empty_signatures: Whether to allow transactions without signatures
+        :param allow_empty_signatures: Whether to allow transactions with empty signatures
         :param allow_unnamed_resources: Whether to allow unnamed resources
         :param extra_opcode_budget: Additional opcode budget to allocate
         :param exec_trace_config: Configuration for execution tracing

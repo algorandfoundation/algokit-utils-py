@@ -28,7 +28,7 @@ SOURCES_FILE = "sources.avm.json"
 TRACES_FILE_EXT = ".trace.avm.json"
 DEBUG_TRACES_DIR = "debug_traces"
 TEAL_FILE_EXT = ".teal"
-TEAL_SOURCEMAP_EXT = ".teal.tok.map"
+TEAL_SOURCEMAP_EXT = ".teal.map"
 
 
 @dataclass
@@ -114,33 +114,6 @@ def _load_or_create_sources(sources_path: Path) -> AVMDebuggerSourceMap:
         return AVMDebuggerSourceMap.from_dict(json.load(f))
 
 
-def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry], project_root: Path) -> None:
-    """
-    This function updates or inserts debug sourcemaps. If path in the sourcemap during iteration leads to non
-    existing file, removes it. Otherwise upserts.
-
-    :param sourcemaps: A list of AVMDebuggerSourceMapEntry objects.
-    :param project_root: The root directory of the project.
-    """
-
-    sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
-    sources = _load_or_create_sources(sources_path)
-
-    for sourcemap in sourcemaps:
-        source_file_path = Path(sourcemap.location)
-        if not source_file_path.exists() and sourcemap in sources.txn_group_sources:
-            sources.txn_group_sources.remove(sourcemap)
-        elif source_file_path.exists():
-            if sourcemap not in sources.txn_group_sources:
-                sources.txn_group_sources.append(sourcemap)
-            else:
-                index = sources.txn_group_sources.index(sourcemap)
-                sources.txn_group_sources[index] = sourcemap
-
-    with sources_path.open("w") as f:
-        json.dump(sources.to_dict(), f)
-
-
 def _write_to_file(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
@@ -188,8 +161,29 @@ def _build_avm_sourcemap(
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
 
+def cleanup_old_trace_files(output_dir: Path, buffer_size_mb: float) -> None:
+    """
+    Cleanup old trace files if total size exceeds buffer size limit.
+
+    Args:
+        output_dir (Path): Directory containing trace files
+        buffer_size_mb (float): Maximum allowed size in megabytes
+    """
+    total_size = sum(f.stat().st_size for f in output_dir.glob("*") if f.is_file())
+    if total_size > buffer_size_mb * 1024 * 1024:
+        sorted_files = sorted(output_dir.glob("*"), key=lambda p: p.stat().st_mtime)
+        while total_size > buffer_size_mb * 1024 * 1024 and sorted_files:
+            oldest_file = sorted_files.pop(0)
+            total_size -= oldest_file.stat().st_size
+            oldest_file.unlink()
+
+
 def persist_sourcemaps(
-    *, sources: list[PersistSourceMapInput], project_root: Path, client: "AlgodClient", with_sources: bool = True
+    *,
+    sources: list[PersistSourceMapInput],
+    project_root: Path,
+    client: "AlgodClient",
+    with_sources: bool = True,
 ) -> None:
     """
     Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
@@ -200,7 +194,7 @@ def persist_sourcemaps(
     :param with_sources: If True, it will dump teal source files along with sourcemaps.
     """
 
-    sourcemaps = [
+    for source in sources:
         _build_avm_sourcemap(
             raw_teal=source.raw_teal,
             compiled_teal=source.compiled_teal,
@@ -210,10 +204,6 @@ def persist_sourcemaps(
             client=client,
             with_sources=with_sources,
         )
-        for source in sources
-    ]
-
-    _upsert_debug_sourcemaps(sourcemaps, project_root)
 
 
 def simulate_response(
@@ -301,24 +291,20 @@ def simulate_and_persist_response(  # noqa: PLR0913
     )
     txn_results = response.simulate_response["txn-groups"]
 
-    txn_types = [txn_result["txn-results"][0]["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results]
-    txn_types_count = {txn_type: txn_types.count(txn_type) for txn_type in set(txn_types)}
-    txn_types_str = "_".join([f"{count}#{txn_type}" for txn_type, count in txn_types_count.items()])
+    txn_types = [
+        txn["txn-result"]["txn"]["txn"]["type"] for txn_result in txn_results for txn in txn_result["txn-results"]
+    ]
+    txn_types_count = {}
+    for txn_type in txn_types:
+        if txn_type not in txn_types_count:
+            txn_types_count[txn_type] = txn_types.count(txn_type)
+    txn_types_str = "_".join([f"{count}{txn_type}" for txn_type, count in txn_types_count.items()])
 
     last_round = response.simulate_response["last-round"]
     timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
     output_file = project_root / DEBUG_TRACES_DIR / f"{timestamp}_lr{last_round}_{txn_types_str}{TRACES_FILE_EXT}"
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # cleanup old files if buffer size is exceeded
-    total_size = sum(f.stat().st_size for f in output_file.parent.glob("*") if f.is_file())
-    if total_size > buffer_size_mb * 1024 * 1024:
-        sorted_files = sorted(output_file.parent.glob("*"), key=lambda p: p.stat().st_mtime)
-        while total_size > buffer_size_mb * 1024 * 1024:
-            oldest_file = sorted_files.pop(0)
-            total_size -= oldest_file.stat().st_size
-            oldest_file.unlink()
-
+    cleanup_old_trace_files(output_file.parent, buffer_size_mb)
     output_file.write_text(json.dumps(response.simulate_response, indent=2))
     return response
