@@ -633,16 +633,6 @@ def test_box_methods_with_arc4_returns_parametrized(
     arg_value: Any,  # noqa: ANN401
     value_type: str,
 ) -> None:
-    """
-    Test setting and retrieving box values with different data types and box prefixes.
-
-    Args:
-        test_app_client_puya (AppClient): The AppClient instance for testing.
-        box_prefix_str (str): The string prefix for the box.
-        method (str): The method name to call for setting the box.
-        arg_value (Any): The value to set in the box.
-        value_type (str): The ABI type of the value.
-    """
     # Encode the box prefix
     box_prefix = box_prefix_str.encode()
 

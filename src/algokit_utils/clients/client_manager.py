@@ -35,6 +35,15 @@ TypedAppClientT = TypeVar("TypedAppClientT", bound=TypedAppClientProtocol)
 
 
 class AlgoSdkClients:
+    """Container for Algorand SDK client instances.
+
+    Holds references to Algod, Indexer and KMD clients.
+
+    :param algod: Algod client instance
+    :param indexer: Optional Indexer client instance
+    :param kmd: Optional KMD client instance
+    """
+
     def __init__(
         self,
         algod: algosdk.v2client.algod.AlgodClient,
@@ -48,6 +57,11 @@ class AlgoSdkClients:
 
 @dataclass(kw_only=True, frozen=True)
 class NetworkDetail:
+    """Details about an Algorand network.
+
+    Contains network type flags and genesis information.
+    """
+
     is_testnet: bool
     is_mainnet: bool
     is_localnet: bool
@@ -67,6 +81,14 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
 
 
 class ClientManager:
+    """Manager for Algorand SDK clients.
+
+    Provides access to Algod, Indexer and KMD clients and helper methods for working with them.
+
+    :param clients_or_configs: Either client instances or client configurations
+    :param algorand_client: AlgorandClient instance
+    """
+
     def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: "AlgorandClient"):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
@@ -88,28 +110,47 @@ class ClientManager:
 
     @property
     def algod(self) -> AlgodClient:
-        """Returns an algosdk Algod API client."""
+        """Returns an algosdk Algod API client.
+
+        :return: Algod client instance
+        """
         return self._algod
 
     @property
     def indexer(self) -> IndexerClient:
-        """Returns an algosdk Indexer API client or raises an error if it's not been provided."""
+        """Returns an algosdk Indexer API client.
+
+        :raises ValueError: If no Indexer client is configured
+        :return: Indexer client instance
+        """
         if not self._indexer:
             raise ValueError("Attempt to use Indexer client in AlgoKit instance with no Indexer configured")
         return self._indexer
 
     @property
     def indexer_if_present(self) -> IndexerClient | None:
+        """Returns the Indexer client if configured, otherwise None.
+
+        :return: Indexer client instance or None
+        """
         return self._indexer
 
     @property
     def kmd(self) -> KMDClient:
-        """Returns an algosdk KMD API client or raises an error if it's not been provided."""
+        """Returns an algosdk KMD API client.
+
+        :raises ValueError: If no KMD client is configured
+        :return: KMD client instance
+        """
         if not self._kmd:
             raise ValueError("Attempt to use Kmd client in AlgoKit instance with no Kmd configured")
         return self._kmd
 
     def network(self) -> NetworkDetail:
+        """Get details about the connected Algorand network.
+
+        :return: Network details including type and genesis information
+        """
         if self._suggested_params is None:
             self._suggested_params = self._algod.suggested_params()
         sp = self._suggested_params
@@ -122,17 +163,35 @@ class ClientManager:
         )
 
     def is_localnet(self) -> bool:
+        """Check if connected to a local network.
+
+        :return: True if connected to a local network
+        """
         return self.network().is_localnet
 
     def is_testnet(self) -> bool:
+        """Check if connected to TestNet.
+
+        :return: True if connected to TestNet
+        """
         return self.network().is_testnet
 
     def is_mainnet(self) -> bool:
+        """Check if connected to MainNet.
+
+        :return: True if connected to MainNet
+        """
         return self.network().is_mainnet
 
     def get_testnet_dispenser(
         self, auth_token: str | None = None, request_timeout: int | None = None
     ) -> TestNetDispenserApiClient:
+        """Get a TestNet dispenser API client.
+
+        :param auth_token: Optional authentication token
+        :param request_timeout: Optional request timeout in seconds
+        :return: TestNet dispenser client instance
+        """
         if request_timeout:
             return TestNetDispenserApiClient(auth_token=auth_token, request_timeout=request_timeout)
 
@@ -149,6 +208,19 @@ class ClientManager:
         deletable: bool | None = None,
         deploy_time_params: TealTemplateParams | None = None,
     ) -> "AppFactory":
+        """Get an application factory for deploying smart contracts.
+
+        :param app_spec: Application specification
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param version: Optional version string
+        :param updatable: Optional flag to make app updatable
+        :param deletable: Optional flag to make app deletable
+        :param deploy_time_params: Optional deployment parameters
+        :raises ValueError: If no Algorand client is configured
+        :return: Application factory instance
+        """
         from algokit_utils.applications.app_factory import AppFactory, AppFactoryParams
 
         if not self._algorand:
@@ -178,6 +250,18 @@ class ClientManager:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Get an application client for an existing application by ID.
+
+        :param app_spec: Application specification
+        :param app_id: Application ID
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :raises ValueError: If no Algorand client is configured
+        :return: Application client instance
+        """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -203,6 +287,17 @@ class ClientManager:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Get an application client for an existing application by network.
+
+        :param app_spec: Application specification
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :raises ValueError: If no Algorand client is configured
+        :return: Application client instance
+        """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -228,6 +323,19 @@ class ClientManager:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Get an application client by creator address and name.
+
+        :param creator_address: Creator address
+        :param app_name: Application name
+        :param app_spec: Application specification
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param ignore_cache: Optional flag to ignore cache
+        :param app_lookup_cache: Optional app lookup cache
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :return: Application client instance
+        """
         return AppClient.from_creator_and_name(
             creator_address=creator_address,
             app_name=app_name,
@@ -243,45 +351,67 @@ class ClientManager:
 
     @staticmethod
     def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
-        """Returns an {py:class}`algosdk.v2client.algod.AlgodClient` from `config` or environment
+        """Get an Algod client from config or environment.
 
-        If no configuration provided will use environment variables `ALGOD_SERVER`, `ALGOD_PORT` and `ALGOD_TOKEN`"""
+        :param config: Optional client configuration
+        :return: Algod client instance
+        """
         config = config or _get_config_from_environment("ALGOD")
         headers = {"X-Algo-API-Token": config.token or ""}
         return AlgodClient(algod_token=config.token or "", algod_address=config.server, headers=headers)
 
     @staticmethod
     def get_algod_client_from_environment() -> AlgodClient:
+        """Get an Algod client from environment variables.
+
+        :return: Algod client instance
+        """
         return ClientManager.get_algod_client(ClientManager.get_algod_config_from_environment())
 
     @staticmethod
     def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
-        """Returns an {py:class}`algosdk.kmd.KMDClient` from `config` or environment
+        """Get a KMD client from config or environment.
 
-        If no configuration provided will use environment variables `KMD_SERVER`, `KMD_PORT` and `KMD_TOKEN`"""
+        :param config: Optional client configuration
+        :return: KMD client instance
+        """
         config = config or _get_config_from_environment("KMD")
         return KMDClient(config.token, config.server)
 
     @staticmethod
     def get_kmd_client_from_environment() -> KMDClient:
+        """Get a KMD client from environment variables.
+
+        :return: KMD client instance
+        """
         return ClientManager.get_kmd_client(ClientManager.get_kmd_config_from_environment())
 
     @staticmethod
     def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
-        """Returns an {py:class}`algosdk.v2client.indexer.IndexerClient` from `config` or environment.
+        """Get an Indexer client from config or environment.
 
-        If no configuration provided will use environment variables `INDEXER_SERVER`, `INDEXER_PORT` and
-        `INDEXER_TOKEN`"""
+        :param config: Optional client configuration
+        :return: Indexer client instance
+        """
         config = config or _get_config_from_environment("INDEXER")
         headers = {"X-Indexer-API-Token": config.token}
         return IndexerClient(indexer_token=config.token, indexer_address=config.server, headers=headers)
 
     @staticmethod
     def get_indexer_client_from_environment() -> IndexerClient:
+        """Get an Indexer client from environment variables.
+
+        :return: Indexer client instance
+        """
         return ClientManager.get_indexer_client(ClientManager.get_indexer_config_from_environment())
 
     @staticmethod
     def genesis_id_is_localnet(genesis_id: str) -> bool:
+        """Check if a genesis ID indicates a local network.
+
+        :param genesis_id: Genesis ID to check
+        :return: True if genesis ID indicates a local network
+        """
         return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
     def get_typed_app_client_by_creator_and_name(
@@ -295,6 +425,18 @@ class ClientManager:
         ignore_cache: bool | None = None,
         app_lookup_cache: AppLookup | None = None,
     ) -> TypedAppClientT:
+        """Get a typed application client by creator address and name.
+
+        :param typed_client: Typed client class
+        :param creator_address: Creator address
+        :param app_name: Application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param ignore_cache: Optional flag to ignore cache
+        :param app_lookup_cache: Optional app lookup cache
+        :raises ValueError: If no Algorand client is configured
+        :return: Typed application client instance
+        """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -319,6 +461,18 @@ class ClientManager:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> TypedAppClientT:
+        """Get a typed application client by ID.
+
+        :param typed_client: Typed client class
+        :param app_id: Application ID
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :raises ValueError: If no Algorand client is configured
+        :return: Typed application client instance
+        """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -347,13 +501,14 @@ class ClientManager:
         Uses pre-determined network-specific app IDs specified in the ARC-56 app spec.
         If no IDs are in the app spec or the network isn't recognised, an error is thrown.
 
-        Args:
-            typed_client: The typed client class to instantiate
-            default_sender: Optional default sender address
-            default_signer: Optional default transaction signer
-
-        Returns:
-            The typed client instance
+        :param typed_client: The typed client class to instantiate
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :raises ValueError: If no Algorand client is configured
+        :return: The typed client instance
         """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
@@ -379,6 +534,19 @@ class ClientManager:
         deletable: bool | None = None,
         deploy_time_params: TealTemplateParams | None = None,
     ) -> TypedFactoryT:
+        """Get a typed application factory.
+
+        :param typed_factory: Typed factory class
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param version: Optional version string
+        :param updatable: Optional flag to make app updatable
+        :param deletable: Optional flag to make app deletable
+        :param deploy_time_params: Optional deployment parameters
+        :raises ValueError: If no Algorand client is configured
+        :return: Typed application factory instance
+        """
         if not self._algorand:
             raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
 
@@ -400,8 +568,7 @@ class ClientManager:
         If ALGOD_SERVER is set in environment variables, it will use environment configuration,
         otherwise it will use default localnet configuration.
 
-        Returns:
-            AlgoClientConfigs: Configuration for algod, indexer, and optionally kmd
+        :return: Configuration for algod, indexer, and optionally kmd
         """
         algod_server = os.getenv("ALGOD_SERVER")
 
@@ -436,6 +603,11 @@ class ClientManager:
 
     @staticmethod
     def get_default_localnet_config(config_or_port: Literal["algod", "indexer", "kmd"] | int) -> AlgoClientConfig:
+        """Get default configuration for local network services.
+
+        :param config_or_port: Service name or port number
+        :return: Client configuration for local network
+        """
         port = (
             config_or_port
             if isinstance(config_or_port, int)
@@ -447,24 +619,18 @@ class ClientManager:
     @staticmethod
     def get_algod_config_from_environment() -> AlgoClientConfig:
         """Retrieve the algod configuration from environment variables.
+        Will raise an error if ALGOD_SERVER environment variable is not set
 
-        Expects ALGOD_SERVER to be defined in environment variables.
-        ALGOD_PORT and ALGOD_TOKEN are optional.
-
-        Raises:
-            ValueError: If ALGOD_SERVER environment variable is not set
+        :return: Algod client configuration
         """
         return _get_config_from_environment("ALGOD")
 
     @staticmethod
     def get_indexer_config_from_environment() -> AlgoClientConfig:
         """Retrieve the indexer configuration from environment variables.
+        Will raise an error if INDEXER_SERVER environment variable is not set
 
-        Expects INDEXER_SERVER to be defined in environment variables.
-        INDEXER_PORT and INDEXER_TOKEN are optional.
-
-        Raises:
-            ValueError: If INDEXER_SERVER environment variable is not set
+        :return: Indexer client configuration
         """
         return _get_config_from_environment("INDEXER")
 
@@ -472,8 +638,7 @@ class ClientManager:
     def get_kmd_config_from_environment() -> AlgoClientConfig:
         """Retrieve the kmd configuration from environment variables.
 
-        Expects KMD_SERVER to be defined in environment variables.
-        KMD_PORT and KMD_TOKEN are optional.
+        :return: KMD client configuration
         """
         return _get_config_from_environment("KMD")
 
@@ -483,12 +648,9 @@ class ClientManager:
     ) -> AlgoClientConfig:
         """Returns the Algorand configuration to point to the free tier of the AlgoNode service.
 
-        Args:
-            network: Which network to connect to - TestNet or MainNet
-            config: Which algod config to return - Algod or Indexer
-
-        Returns:
-            AlgoClientConfig: Configuration for the specified network and service
+        :param network: Which network to connect to - TestNet or MainNet
+        :param config: Which algod config to return - Algod or Indexer
+        :return: Configuration for the specified network and service
         """
         service_type = "api" if config == "algod" else "idx"
         return AlgoClientConfig(

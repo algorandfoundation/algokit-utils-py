@@ -14,13 +14,13 @@ if typing.TYPE_CHECKING:
 
 
 class Program:
-    """A compiled TEAL program"""
+    """A compiled TEAL program
+
+    :param program: The TEAL program source code
+    :param client: The AlgodClient instance to use for compiling the program
+    """
 
     def __init__(self, program: str, client: "AlgodClient"):
-        """
-        Fully compile the program source to binary and generate a
-        source map for matching pc to line number
-        """
         self.teal = program
         result: dict = client.compile(strip_comments(self.teal), source_map=True)
         self.raw_binary = base64.b64decode(result["result"])

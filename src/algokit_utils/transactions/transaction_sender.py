@@ -53,6 +53,11 @@ T = TypeVar("T", bound=TxnParams)
 
 @dataclass(frozen=True, kw_only=True)
 class SendSingleTransactionResult:
+    """Base class for transaction results.
+
+    Represents the result of sending a single transaction.
+    """
+
     transaction: TransactionWrapper  # Last transaction
     confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
 
@@ -100,6 +105,11 @@ class SendSingleTransactionResult:
 
 @dataclass(frozen=True, kw_only=True)
 class SendSingleAssetCreateTransactionResult(SendSingleTransactionResult):
+    """Result of creating a new ASA (Algorand Standard Asset).
+
+    Contains the asset ID of the newly created asset.
+    """
+
     asset_id: int
 
 
@@ -108,23 +118,42 @@ ABIReturnT = TypeVar("ABIReturnT")
 
 @dataclass(frozen=True)
 class SendAppTransactionResult(SendSingleTransactionResult, Generic[ABIReturnT]):
+    """Result of an application transaction.
+
+    Contains the ABI return value if applicable.
+    """
+
     abi_return: ABIReturnT | None = None
 
 
 @dataclass(frozen=True)
 class SendAppUpdateTransactionResult(SendAppTransactionResult[ABIReturnT]):
+    """Result of updating an application.
+
+    Contains the compiled approval and clear programs.
+    """
+
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
 
 
 @dataclass(frozen=True, kw_only=True)
 class SendAppCreateTransactionResult(SendAppUpdateTransactionResult[ABIReturnT]):
+    """Result of creating a new application.
+
+    Contains the app ID and address of the newly created application.
+    """
+
     app_id: int
     app_address: str
 
 
 class AlgorandClientTransactionSender:
-    """Orchestrates sending transactions for AlgorandClient."""
+    """Orchestrates sending transactions for AlgorandClient.
+
+    Provides methods to send various types of transactions including payments,
+    asset operations, and application calls.
+    """
 
     def __init__(
         self,
@@ -139,6 +168,10 @@ class AlgorandClientTransactionSender:
         self._algod = algod_client
 
     def new_group(self) -> TransactionComposer:
+        """Create a new transaction group.
+
+        :return: A new TransactionComposer instance
+        """
         return self._new_group()
 
     def _send(
@@ -250,7 +283,11 @@ class AlgorandClientTransactionSender:
         return f"{method.name}({args_str})"
 
     def payment(self, params: PaymentParams) -> SendSingleTransactionResult:
-        """Send a payment transaction to transfer Algo between accounts."""
+        """Send a payment transaction to transfer Algo between accounts.
+
+        :param params: Payment transaction parameters
+        :return: Result of the payment transaction
+        """
         return self._send(
             lambda c: c.add_payment,
             pre_log=lambda params, transaction: (
@@ -260,7 +297,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def asset_create(self, params: AssetCreateParams) -> SendSingleAssetCreateTransactionResult:
-        """Create a new Algorand Standard Asset."""
+        """Create a new Algorand Standard Asset.
+
+        :param params: Asset creation parameters
+        :return: Result containing the new asset ID
+        """
         result = self._send(
             lambda c: c.add_asset_create,
             post_log=lambda params, result: (
@@ -278,7 +319,11 @@ class AlgorandClientTransactionSender:
         )
 
     def asset_config(self, params: AssetConfigParams) -> SendSingleTransactionResult:
-        """Configure an existing Algorand Standard Asset."""
+        """Configure an existing Algorand Standard Asset.
+
+        :param params: Asset configuration parameters
+        :return: Result of the configuration transaction
+        """
         return self._send(
             lambda c: c.add_asset_config,
             pre_log=lambda params, transaction: (
@@ -287,7 +332,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def asset_freeze(self, params: AssetFreezeParams) -> SendSingleTransactionResult:
-        """Freeze or unfreeze an Algorand Standard Asset for an account."""
+        """Freeze or unfreeze an Algorand Standard Asset for an account.
+
+        :param params: Asset freeze parameters
+        :return: Result of the freeze transaction
+        """
         return self._send(
             lambda c: c.add_asset_freeze,
             pre_log=lambda params, transaction: (
@@ -296,7 +345,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def asset_destroy(self, params: AssetDestroyParams) -> SendSingleTransactionResult:
-        """Destroys an Algorand Standard Asset."""
+        """Destroys an Algorand Standard Asset.
+
+        :param params: Asset destruction parameters
+        :return: Result of the destroy transaction
+        """
         return self._send(
             lambda c: c.add_asset_destroy,
             pre_log=lambda params, transaction: (
@@ -305,7 +358,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def asset_transfer(self, params: AssetTransferParams) -> SendSingleTransactionResult:
-        """Transfer an Algorand Standard Asset."""
+        """Transfer an Algorand Standard Asset.
+
+        :param params: Asset transfer parameters
+        :return: Result of the transfer transaction
+        """
         return self._send(
             lambda c: c.add_asset_transfer,
             pre_log=lambda params, transaction: (
@@ -315,7 +372,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def asset_opt_in(self, params: AssetOptInParams) -> SendSingleTransactionResult:
-        """Opt an account into an Algorand Standard Asset."""
+        """Opt an account into an Algorand Standard Asset.
+
+        :param params: Asset opt-in parameters
+        :return: Result of the opt-in transaction
+        """
         return self._send(
             lambda c: c.add_asset_opt_in,
             pre_log=lambda params, transaction: (
@@ -330,7 +391,13 @@ class AlgorandClientTransactionSender:
         params: AssetOptOutParams,
         ensure_zero_balance: bool = True,
     ) -> SendSingleTransactionResult:
-        """Opt an account out of an Algorand Standard Asset."""
+        """Opt an account out of an Algorand Standard Asset.
+
+        :param params: Asset opt-out parameters
+        :param ensure_zero_balance: Check if account has zero balance before opt-out, defaults to True
+        :raises ValueError: If account has non-zero balance or is not opted in
+        :return: Result of the opt-out transaction
+        """
         if ensure_zero_balance:
             try:
                 account_asset_info = self._asset_manager.get_account_information(params.sender, params.asset_id)
@@ -362,39 +429,75 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def app_create(self, params: AppCreateParams) -> SendAppCreateTransactionResult[ABIReturn]:
-        """Create a new application."""
+        """Create a new application.
+
+        :param params: Application creation parameters
+        :return: Result containing the new application ID and address
+        """
         return self._send_app_create_call(lambda c: c.add_app_create)(params)
 
     def app_update(self, params: AppUpdateParams) -> SendAppUpdateTransactionResult[ABIReturn]:
-        """Update an application."""
+        """Update an application.
+
+        :param params: Application update parameters
+        :return: Result containing the compiled programs
+        """
         return self._send_app_update_call(lambda c: c.add_app_update)(params)
 
     def app_delete(self, params: AppDeleteParams) -> SendAppTransactionResult[ABIReturn]:
-        """Delete an application."""
+        """Delete an application.
+
+        :param params: Application deletion parameters
+        :return: Result of the deletion transaction
+        """
         return self._send_app_call(lambda c: c.add_app_delete)(params)
 
     def app_call(self, params: AppCallParams) -> SendAppTransactionResult[ABIReturn]:
-        """Call an application."""
+        """Call an application.
+
+        :param  params: Application call parameters
+        :return: Result containing any ABI return value
+        """
         return self._send_app_call(lambda c: c.add_app_call)(params)
 
     def app_create_method_call(self, params: AppCreateMethodCallParams) -> SendAppCreateTransactionResult[ABIReturn]:
-        """Call an application's create method."""
+        """Call an application's create method.
+
+        :param params: Method call parameters for application creation
+        :return: Result containing the new application ID and address
+        """
         return self._send_app_create_call(lambda c: c.add_app_create_method_call)(params)
 
     def app_update_method_call(self, params: AppUpdateMethodCallParams) -> SendAppUpdateTransactionResult[ABIReturn]:
-        """Call an application's update method."""
+        """Call an application's update method.
+
+        :param params: Method call parameters for application update
+        :return: Result containing the compiled programs
+        """
         return self._send_app_update_call(lambda c: c.add_app_update_method_call)(params)
 
     def app_delete_method_call(self, params: AppDeleteMethodCallParams) -> SendAppTransactionResult[ABIReturn]:
-        """Call an application's delete method."""
+        """Call an application's delete method.
+
+        :param params: Method call parameters for application deletion
+        :return: Result of the deletion transaction
+        """
         return self._send_app_call(lambda c: c.add_app_delete_method_call)(params)
 
     def app_call_method_call(self, params: AppCallMethodCallParams) -> SendAppTransactionResult[ABIReturn]:
-        """Call an application's call method."""
+        """Call an application's call method.
+
+        :param params: Method call parameters
+        :return: Result containing any ABI return value
+        """
         return self._send_app_call(lambda c: c.add_app_call_method_call)(params)
 
     def online_key_registration(self, params: OnlineKeyRegistrationParams) -> SendSingleTransactionResult:
-        """Register an online key."""
+        """Register an online key.
+
+        :param params: Key registration parameters
+        :return: Result of the registration transaction
+        """
         return self._send(
             lambda c: c.add_online_key_registration,
             pre_log=lambda params, transaction: (
@@ -403,7 +506,11 @@ class AlgorandClientTransactionSender:
         )(params)
 
     def offline_key_registration(self, params: OfflineKeyRegistrationParams) -> SendSingleTransactionResult:
-        """Register an offline key."""
+        """Register an offline key.
+
+        :param params: Key registration parameters
+        :return: Result of the registration transaction
+        """
         return self._send(
             lambda c: c.add_offline_key_registration,
             pre_log=lambda params, transaction: (

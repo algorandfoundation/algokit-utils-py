@@ -58,6 +58,12 @@ class _ActionType(str, Enum):
 
 @dataclass
 class StructField:
+    """Represents a field in a struct type.
+
+    :ivar name: Name of the struct field
+    :ivar type: Type of the struct field, either a string or list of StructFields
+    """
+
     name: str
     type: list[StructField] | str
 
@@ -69,6 +75,8 @@ class StructField:
 
 
 class CallEnum(str, Enum):
+    """Enum representing different call types for application transactions."""
+
     CLEAR_STATE = "ClearState"
     CLOSE_OUT = "CloseOut"
     DELETE_APPLICATION = "DeleteApplication"
@@ -78,6 +86,8 @@ class CallEnum(str, Enum):
 
 
 class CreateEnum(str, Enum):
+    """Enum representing different create types for application transactions."""
+
     DELETE_APPLICATION = "DeleteApplication"
     NO_OP = "NoOp"
     OPT_IN = "OptIn"
@@ -85,6 +95,12 @@ class CreateEnum(str, Enum):
 
 @dataclass
 class BareActions:
+    """Represents bare call and create actions for an application.
+
+    :ivar call: List of allowed call actions
+    :ivar create: List of allowed create actions
+    """
+
     call: list[CallEnum]
     create: list[CreateEnum]
 
@@ -95,6 +111,12 @@ class BareActions:
 
 @dataclass
 class ByteCode:
+    """Represents the approval and clear program bytecode.
+
+    :ivar approval: Base64 encoded approval program bytecode
+    :ivar clear: Base64 encoded clear program bytecode
+    """
+
     approval: str
     clear: str
 
@@ -104,12 +126,22 @@ class ByteCode:
 
 
 class Compiler(str, Enum):
+    """Enum representing different compiler types."""
+
     ALGOD = "algod"
     PUYA = "puya"
 
 
 @dataclass
 class CompilerVersion:
+    """Represents compiler version information.
+
+    :ivar commit_hash: Git commit hash of the compiler
+    :ivar major: Major version number
+    :ivar minor: Minor version number
+    :ivar patch: Patch version number
+    """
+
     commit_hash: str | None = None
     major: int | None = None
     minor: int | None = None
@@ -122,6 +154,12 @@ class CompilerVersion:
 
 @dataclass
 class CompilerInfo:
+    """Information about the compiler used.
+
+    :ivar compiler: Type of compiler used
+    :ivar compiler_version: Version information for the compiler
+    """
+
     compiler: Compiler
     compiler_version: CompilerVersion
 
@@ -133,6 +171,11 @@ class CompilerInfo:
 
 @dataclass
 class Network:
+    """Network-specific application information.
+
+    :ivar app_id: Application ID on the network
+    """
+
     app_id: int
 
     @staticmethod
@@ -142,6 +185,12 @@ class Network:
 
 @dataclass
 class ScratchVariables:
+    """Information about scratch space variables.
+
+    :ivar slot: Scratch slot number
+    :ivar type: Type of the scratch variable
+    """
+
     slot: int
     type: str
 
@@ -152,6 +201,12 @@ class ScratchVariables:
 
 @dataclass
 class Source:
+    """Source code for approval and clear programs.
+
+    :ivar approval: Base64 encoded approval program source
+    :ivar clear: Base64 encoded clear program source
+    """
+
     approval: str
     clear: str
 
@@ -160,9 +215,17 @@ class Source:
         return Source(**data)
 
     def get_decoded_approval(self) -> str:
+        """Get decoded approval program source.
+
+        :return: Decoded approval program source code
+        """
         return self._decode_source(self.approval)
 
     def get_decoded_clear(self) -> str:
+        """Get decoded clear program source.
+
+        :return: Decoded clear program source code
+        """
         return self._decode_source(self.clear)
 
     def _decode_source(self, b64_text: str) -> str:
@@ -171,6 +234,12 @@ class Source:
 
 @dataclass
 class Global:
+    """Global state schema.
+
+    :ivar bytes: Number of byte slices in global state
+    :ivar ints: Number of integers in global state
+    """
+
     bytes: int
     ints: int
 
@@ -181,6 +250,12 @@ class Global:
 
 @dataclass
 class Local:
+    """Local state schema.
+
+    :ivar bytes: Number of byte slices in local state
+    :ivar ints: Number of integers in local state
+    """
+
     bytes: int
     ints: int
 
@@ -191,6 +266,12 @@ class Local:
 
 @dataclass
 class Schema:
+    """Application state schema.
+
+    :ivar global_state: Global state schema
+    :ivar local_state: Local state schema
+    """
+
     global_state: Global  # actual schema field is "global" since it's a reserved word
     local_state: Local  # actual schema field is "local" for consistency with renamed "global"
 
@@ -203,6 +284,12 @@ class Schema:
 
 @dataclass
 class TemplateVariables:
+    """Template variable information.
+
+    :ivar type: Type of the template variable
+    :ivar value: Optional value of the template variable
+    """
+
     type: str
     value: str | None = None
 
@@ -213,6 +300,14 @@ class TemplateVariables:
 
 @dataclass
 class EventArg:
+    """Event argument information.
+
+    :ivar type: Type of the event argument
+    :ivar desc: Optional description of the argument
+    :ivar name: Optional name of the argument
+    :ivar struct: Optional struct type name
+    """
+
     type: str
     desc: str | None = None
     name: str | None = None
@@ -225,6 +320,13 @@ class EventArg:
 
 @dataclass
 class Event:
+    """Event information.
+
+    :ivar args: List of event arguments
+    :ivar name: Name of the event
+    :ivar desc: Optional description of the event
+    """
+
     args: list[EventArg]
     name: str
     desc: str | None = None
@@ -237,6 +339,12 @@ class Event:
 
 @dataclass
 class Actions:
+    """Method actions information.
+
+    :ivar call: Optional list of allowed call actions
+    :ivar create: Optional list of allowed create actions
+    """
+
     call: list[CallEnum] | None = None
     create: list[CreateEnum] | None = None
 
@@ -247,6 +355,13 @@ class Actions:
 
 @dataclass
 class DefaultValue:
+    """Default value information for method arguments.
+
+    :ivar data: Default value data
+    :ivar source: Source of the default value
+    :ivar type: Optional type of the default value
+    """
+
     data: str
     source: Literal["box", "global", "local", "literal", "method"]
     type: str | None = None
@@ -258,6 +373,15 @@ class DefaultValue:
 
 @dataclass
 class MethodArg:
+    """Method argument information.
+
+    :ivar type: Type of the argument
+    :ivar default_value: Optional default value
+    :ivar desc: Optional description
+    :ivar name: Optional name
+    :ivar struct: Optional struct type name
+    """
+
     type: str
     default_value: DefaultValue | None = None
     desc: str | None = None
@@ -273,6 +397,14 @@ class MethodArg:
 
 @dataclass
 class Boxes:
+    """Box storage requirements.
+
+    :ivar key: Box key
+    :ivar read_bytes: Number of bytes to read
+    :ivar write_bytes: Number of bytes to write
+    :ivar app: Optional application ID
+    """
+
     key: str
     read_bytes: int
     write_bytes: int
@@ -285,6 +417,15 @@ class Boxes:
 
 @dataclass
 class Recommendations:
+    """Method execution recommendations.
+
+    :ivar accounts: Optional list of accounts
+    :ivar apps: Optional list of applications
+    :ivar assets: Optional list of assets
+    :ivar boxes: Optional box storage requirements
+    :ivar inner_transaction_count: Optional inner transaction count
+    """
+
     accounts: list[str] | None = None
     apps: list[int] | None = None
     assets: list[int] | None = None
@@ -300,6 +441,13 @@ class Recommendations:
 
 @dataclass
 class Returns:
+    """Method return information.
+
+    :ivar type: Return type
+    :ivar desc: Optional description
+    :ivar struct: Optional struct type name
+    """
+
     type: str
     desc: str | None = None
     struct: str | None = None
@@ -311,6 +459,18 @@ class Returns:
 
 @dataclass
 class Method:
+    """Method information.
+
+    :ivar actions: Allowed actions
+    :ivar args: Method arguments
+    :ivar name: Method name
+    :ivar returns: Return information
+    :ivar desc: Optional description
+    :ivar events: Optional list of events
+    :ivar readonly: Optional readonly flag
+    :ivar recommendations: Optional execution recommendations
+    """
+
     actions: Actions
     args: list[MethodArg]
     name: str
@@ -326,6 +486,11 @@ class Method:
         self._abi_method = AlgosdkMethod.undictify(asdict(self))
 
     def to_abi_method(self) -> AlgosdkMethod:
+        """Convert to ABI method.
+
+        :raises ValueError: If underlying ABI method is not initialized
+        :return: ABI method
+        """
         if self._abi_method is None:
             raise ValueError("Underlying core ABI method class is not initialized!")
         return self._abi_method
@@ -343,12 +508,22 @@ class Method:
 
 
 class PcOffsetMethod(str, Enum):
+    """PC offset method types."""
+
     CBLOCKS = "cblocks"
     NONE = "none"
 
 
 @dataclass
 class SourceInfo:
+    """Source code location information.
+
+    :ivar pc: List of program counter values
+    :ivar error_message: Optional error message
+    :ivar source: Optional source code
+    :ivar teal: Optional TEAL version
+    """
+
     pc: list[int]
     error_message: str | None = None
     source: str | None = None
@@ -361,6 +536,14 @@ class SourceInfo:
 
 @dataclass
 class StorageKey:
+    """Storage key information.
+
+    :ivar key: Storage key
+    :ivar key_type: Type of the key
+    :ivar value_type: Type of the value
+    :ivar desc: Optional description
+    """
+
     key: str
     key_type: str
     value_type: str
@@ -373,6 +556,14 @@ class StorageKey:
 
 @dataclass
 class StorageMap:
+    """Storage map information.
+
+    :ivar key_type: Type of map keys
+    :ivar value_type: Type of map values
+    :ivar desc: Optional description
+    :ivar prefix: Optional key prefix
+    """
+
     key_type: str
     value_type: str
     desc: str | None = None
@@ -385,6 +576,13 @@ class StorageMap:
 
 @dataclass
 class Keys:
+    """Storage keys for different storage types.
+
+    :ivar box: Box storage keys
+    :ivar global_state: Global state storage keys
+    :ivar local_state: Local state storage keys
+    """
+
     box: dict[str, StorageKey]
     global_state: dict[str, StorageKey]  # actual schema field is "global" since it's a reserved word
     local_state: dict[str, StorageKey]  # actual schema field is "local" for consistency with renamed "global"
@@ -399,6 +597,13 @@ class Keys:
 
 @dataclass
 class Maps:
+    """Storage maps for different storage types.
+
+    :ivar box: Box storage maps
+    :ivar global_state: Global state storage maps
+    :ivar local_state: Local state storage maps
+    """
+
     box: dict[str, StorageMap]
     global_state: dict[str, StorageMap]  # actual schema field is "global" since it's a reserved word
     local_state: dict[str, StorageMap]  # actual schema field is "local" for consistency with renamed "global"
@@ -413,6 +618,13 @@ class Maps:
 
 @dataclass
 class State:
+    """Application state information.
+
+    :ivar keys: Storage keys
+    :ivar maps: Storage maps
+    :ivar schema: State schema
+    """
+
     keys: Keys
     maps: Maps
     schema: Schema
@@ -427,6 +639,12 @@ class State:
 
 @dataclass
 class ProgramSourceInfo:
+    """Program source information.
+
+    :ivar pc_offset_method: PC offset method
+    :ivar source_info: List of source info entries
+    """
+
     pc_offset_method: PcOffsetMethod
     source_info: list[SourceInfo]
 
@@ -438,6 +656,12 @@ class ProgramSourceInfo:
 
 @dataclass
 class SourceInfoModel:
+    """Source information for approval and clear programs.
+
+    :ivar approval: Approval program source info
+    :ivar clear: Clear program source info
+    """
+
     approval: ProgramSourceInfo
     clear: ProgramSourceInfo
 
@@ -660,8 +884,25 @@ def _arc56_dict_factory() -> Callable[[list[tuple[str, Any]]], dict[str, Any]]:
 
 @dataclass
 class Arc56Contract:
-    """ARC-0056 application specification
+    """ARC-0056 application specification.
+
     See https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md
+
+    :ivar arcs: List of supported ARC version numbers
+    :ivar bare_actions: Bare call and create actions
+    :ivar methods: List of contract methods
+    :ivar name: Contract name
+    :ivar state: Contract state information
+    :ivar structs: Contract struct definitions
+    :ivar byte_code: Optional bytecode for approval and clear programs
+    :ivar compiler_info: Optional compiler information
+    :ivar desc: Optional contract description
+    :ivar events: Optional list of contract events
+    :ivar networks: Optional network deployment information
+    :ivar scratch_variables: Optional scratch variable information
+    :ivar source: Optional source code
+    :ivar source_info: Optional source code information
+    :ivar template_variables: Optional template variable information
     """
 
     arcs: list[int]
@@ -682,6 +923,11 @@ class Arc56Contract:
 
     @staticmethod
     def from_dict(application_spec: dict) -> Arc56Contract:
+        """Create Arc56Contract from dictionary.
+
+        :param application_spec: Dictionary containing contract specification
+        :return: Arc56Contract instance
+        """
         data = _dict_keys_to_snake_case(application_spec)
         data["bare_actions"] = BareActions.from_dict(data["bare_actions"])
         data["methods"] = [Method.from_dict(item) for item in data["methods"]]

@@ -140,16 +140,13 @@ class UpdatableConfig:
         If you are executing the config from an algokit compliant project, you can simply call
         `config.configure(debug=True)`.
 
-        Args:
-            debug (bool): Indicates whether debug mode is enabled.
-            project_root (Path | None, optional): The path to the project root directory. Defaults to None.
-            trace_all (bool, optional): Indicates whether to trace all operations. Defaults to False. Which implies that
+        :param debug: Indicates whether debug mode is enabled.
+        :param project_root: The path to the project root directory. Defaults to None.
+        :param trace_all: Indicates whether to trace all operations. Defaults to False. Which implies that
                 only the operations that are failed will be traced by default.
-            trace_buffer_size_mb (float, optional): The size of the trace buffer in megabytes. Defaults to 512mb.
-            max_search_depth (int, optional): The maximum depth to search for a specific file. Defaults to 10.
-
-        Returns:
-            None
+        :param trace_buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256
+        :param max_search_depth: The maximum depth to search for a specific file. Defaults to 10
+        :param populate_app_call_resources: Indicates whether to populate app call resources. Defaults to False
         """
 
         if debug is not None:

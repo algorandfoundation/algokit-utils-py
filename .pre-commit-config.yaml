@@ -35,3 +35,10 @@ repos:
         minimum_pre_commit_version: "2.9.2"
         files: "^(src|tests)/"
         exclude: "^tests/artifacts/"
+      - id: docstrings-check
+        name: docstrings-check
+        description: "Check docstrings for correctness"
+        entry: poetry run poe docstrings-check
+        language: system
+        types: [python]
+        files: "^(src)/"

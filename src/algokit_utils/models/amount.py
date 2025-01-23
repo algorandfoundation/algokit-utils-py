@@ -7,19 +7,18 @@ __all__ = ["AlgoAmount"]
 
 
 class AlgoAmount:
-    """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers."""
+    """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
+
+    :param amount: A dictionary containing either algos, algo, microAlgos, or microAlgo as key
+                    and their corresponding value as an integer or Decimal.
+    :raises ValueError: If an invalid amount format is provided.
+
+    :example:
+    >>> amount = AlgoAmount({"algos": 1})
+    >>> amount = AlgoAmount({"microAlgos": 1_000_000})
+    """
 
     def __init__(self, amount: dict[str, int]):
-        """Create a new AlgoAmount instance.
-
-        :param amount: A dictionary containing either algos, algo, microAlgos, or microAlgo as key
-                     and their corresponding value as an integer or Decimal.
-        :raises ValueError: If an invalid amount format is provided.
-
-        :example:
-        >>> amount = AlgoAmount({"algos": 1})
-        >>> amount = AlgoAmount({"microAlgos": 1_000_000})
-        """
         if "microAlgos" in amount:
             self.amount_in_micro_algo = int(amount["microAlgos"])
         elif "microAlgo" in amount:

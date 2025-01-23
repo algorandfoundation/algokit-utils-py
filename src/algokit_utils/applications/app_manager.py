@@ -46,9 +46,6 @@ def _last_token_base64(line: str, idx: int) -> bool:
 
 
 def _find_template_token(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
-    """Find the first template token within a line of TEAL. Only matches outside of quotes are returned.
-    Only full token matches are returned, i.e. TMPL_STR will not match against TMPL_STRING
-    Returns None if not found"""
     if end < 0:
         end = len(line)
 
@@ -58,8 +55,8 @@ def _find_template_token(line: str, token: str, start: int = 0, end: int = -1) -
         if token_idx is None:
             break
         trailing_idx = token_idx + len(token)
-        if (token_idx == 0 or not _is_valid_token_character(line[token_idx - 1])) and (  # word boundary at start
-            trailing_idx >= len(line) or not _is_valid_token_character(line[trailing_idx])  # word boundary at end
+        if (token_idx == 0 or not _is_valid_token_character(line[token_idx - 1])) and (
+            trailing_idx >= len(line) or not _is_valid_token_character(line[trailing_idx])
         ):
             return token_idx
         idx = trailing_idx
@@ -67,9 +64,6 @@ def _find_template_token(line: str, token: str, start: int = 0, end: int = -1) -
 
 
 def _find_unquoted_string(line: str, token: str, start: int = 0, end: int = -1) -> int | None:
-    """Find the first string within a line of TEAL. Only matches outside of quotes and base64 are returned.
-    Returns None if not found"""
-
     if end < 0:
         end = len(line)
     idx = start
@@ -77,22 +71,15 @@ def _find_unquoted_string(line: str, token: str, start: int = 0, end: int = -1) 
     while idx < end:
         current_char = line[idx]
         match current_char:
-            # enter base64
             case " " | "(" if not in_quotes and _last_token_base64(line, idx):
                 in_base64 = True
-            # exit base64
             case " " | ")" if not in_quotes and in_base64:
                 in_base64 = False
-            # escaped char
             case "\\" if in_quotes:
-                # skip next character
                 idx += 1
-            # quote boundary
             case '"':
                 in_quotes = not in_quotes
-            # can test for match
             case _ if not in_quotes and not in_base64 and line.startswith(token, idx):
-                # only match if not in quotes and string matches
                 return idx
         idx += 1
     return None
@@ -126,11 +113,25 @@ def _replace_template_variable(program_lines: list[str], template_variable: str,
 
 
 class AppManager:
+    """A manager class for interacting with Algorand applications.
+
+    Provides functionality for compiling TEAL code, managing application state,
+    and interacting with application boxes.
+
+    :param algod_client: The Algorand client instance to use for interacting with the network
+    """
+
     def __init__(self, algod_client: algod.AlgodClient):
         self._algod = algod_client
         self._compilation_results: dict[str, CompiledTeal] = {}
 
     def compile_teal(self, teal_code: str) -> CompiledTeal:
+        """Compile TEAL source code.
+
+        :param teal_code: The TEAL source code to compile
+        :return: The compiled TEAL code and associated metadata
+        """
+
         if teal_code in self._compilation_results:
             return self._compilation_results[teal_code]
 
@@ -151,6 +152,14 @@ class AppManager:
         template_params: TealTemplateParams | None = None,
         deployment_metadata: Mapping[str, bool | None] | None = None,
     ) -> CompiledTeal:
+        """Compile a TEAL template with parameters.
+
+        :param teal_template_code: The TEAL template code to compile
+        :param template_params: Parameters to substitute in the template
+        :param deployment_metadata: Deployment control parameters
+        :return: The compiled TEAL code and associated metadata
+        """
+
         teal_code = AppManager.strip_teal_comments(teal_template_code)
         teal_code = AppManager.replace_template_variables(teal_code, template_params or {})
 
@@ -160,9 +169,21 @@ class AppManager:
         return self.compile_teal(teal_code)
 
     def get_compilation_result(self, teal_code: str) -> CompiledTeal | None:
+        """Get cached compilation result for TEAL code if available.
+
+        :param teal_code: The TEAL source code
+        :return: The cached compilation result if available, None otherwise
+        """
+
         return self._compilation_results.get(teal_code)
 
     def get_by_id(self, app_id: int) -> AppInformation:
+        """Get information about an application by ID.
+
+        :param app_id: The application ID
+        :return: Information about the application
+        """
+
         app = self._algod.application_info(app_id)
         assert isinstance(app, dict)
         app_params = app["params"]
@@ -182,9 +203,23 @@ class AppManager:
         )
 
     def get_global_state(self, app_id: int) -> dict[str, AppState]:
+        """Get the global state of an application.
+
+        :param app_id: The application ID
+        :return: The application's global state
+        """
+
         return self.get_by_id(app_id).global_state
 
     def get_local_state(self, app_id: int, address: str) -> dict[str, AppState]:
+        """Get the local state for an account in an application.
+
+        :param app_id: The application ID
+        :param address: The account address
+        :return: The account's local state for the application
+        :raises ValueError: If local state is not found
+        """
+
         app_info = self._algod.account_application_info(address, app_id)
         assert isinstance(app_info, dict)
         if not app_info.get("app-local-state", {}).get("key-value"):
@@ -192,6 +227,12 @@ class AppManager:
         return self.decode_app_state(app_info["app-local-state"]["key-value"])
 
     def get_box_names(self, app_id: int) -> list[BoxName]:
+        """Get names of all boxes for an application.
+
+        :param app_id: The application ID
+        :return: List of box names
+        """
+
         box_result = self._algod.application_boxes(app_id)
         assert isinstance(box_result, dict)
         return [
@@ -204,15 +245,38 @@ class AppManager:
         ]
 
     def get_box_value(self, app_id: int, box_name: BoxIdentifier) -> bytes:
+        """Get the value stored in a box.
+
+        :param app_id: The application ID
+        :param box_name: The box identifier
+        :return: The box value as bytes
+        """
+
         name = AppManager.get_box_reference(box_name)[1]
         box_result = self._algod.application_box_by_name(app_id, name)
         assert isinstance(box_result, dict)
         return base64.b64decode(box_result["value"])
 
     def get_box_values(self, app_id: int, box_names: list[BoxIdentifier]) -> list[bytes]:
+        """Get values for multiple boxes.
+
+        :param app_id: The application ID
+        :param box_names: List of box identifiers
+        :return: List of box values as bytes
+        """
+
         return [self.get_box_value(app_id, box_name) for box_name in box_names]
 
     def get_box_value_from_abi_type(self, app_id: int, box_name: BoxIdentifier, abi_type: ABIType) -> ABIValue:
+        """Get and decode a box value using an ABI type.
+
+        :param app_id: The application ID
+        :param box_name: The box identifier
+        :param abi_type: The ABI type to decode with
+        :return: The decoded box value
+        :raises ValueError: If decoding fails
+        """
+
         value = self.get_box_value(app_id, box_name)
         try:
             parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
@@ -224,10 +288,25 @@ class AppManager:
     def get_box_values_from_abi_type(
         self, app_id: int, box_names: list[BoxIdentifier], abi_type: ABIType
     ) -> list[ABIValue]:
+        """Get and decode multiple box values using an ABI type.
+
+        :param app_id: The application ID
+        :param box_names: List of box identifiers
+        :param abi_type: The ABI type to decode with
+        :return: List of decoded box values
+        """
+
         return [self.get_box_value_from_abi_type(app_id, box_name, abi_type) for box_name in box_names]
 
     @staticmethod
     def get_box_reference(box_id: BoxIdentifier | BoxReference) -> tuple[int, bytes]:
+        """Get standardized box reference from various identifier types.
+
+        :param box_id: The box identifier
+        :return: Tuple of (app_id, box_name_bytes)
+        :raises ValueError: If box identifier type is invalid
+        """
+
         if isinstance(box_id, (BoxReference | AlgosdkBoxReference)):
             return box_id.app_index, box_id.name
 
@@ -249,15 +328,20 @@ class AppManager:
     def get_abi_return(
         confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None
     ) -> ABIReturn | None:
-        """Get the ABI return value from a transaction confirmation."""
+        """Get the ABI return value from a transaction confirmation.
+
+        :param confirmation: The transaction confirmation
+        :param method: The ABI method
+        :return: The parsed ABI return value, or None if not available
+        """
+
         if not method:
             return None
 
-        # Use the SDK's built-in ABI result parsing
         atc = algosdk.atomic_transaction_composer.AtomicTransactionComposer()
         abi_result = atc.parse_result(
-            method,  # Map of transaction index to ABI method
-            "dummy_txn",  # List of transaction info
+            method,
+            "dummy_txn",
             confirmation,  # type: ignore[arg-type]
         )
 
@@ -268,6 +352,13 @@ class AppManager:
 
     @staticmethod
     def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
+        """Decode application state from raw format.
+
+        :param state: The raw application state
+        :return: Decoded application state
+        :raises ValueError: If unknown state data type is encountered
+        """
+
         state_values: dict[str, AppState] = {}
 
         def decode_bytes_to_str(value: bytes) -> str:
@@ -310,6 +401,14 @@ class AppManager:
 
     @staticmethod
     def replace_template_variables(program: str, template_values: TealTemplateParams) -> str:
+        """Replace template variables in TEAL code.
+
+        :param program: The TEAL program code
+        :param template_values: Template variable values to substitute
+        :return: TEAL code with substituted values
+        :raises ValueError: If template value type is unexpected
+        """
+
         program_lines = program.splitlines()
         for template_variable_name, template_value in template_values.items():
             match template_value:
@@ -332,6 +431,14 @@ class AppManager:
     def replace_teal_template_deploy_time_control_params(
         teal_template_code: str, params: Mapping[str, bool | None]
     ) -> str:
+        """Replace deploy-time control parameters in TEAL template.
+
+        :param teal_template_code: The TEAL template code
+        :param params: The deploy-time control parameters
+        :return: TEAL code with substituted control parameters
+        :raises ValueError: If template variables not found in code
+        """
+
         updatable = params.get("updatable")
         if updatable is not None:
             if UPDATABLE_TEMPLATE_NAME not in teal_template_code:

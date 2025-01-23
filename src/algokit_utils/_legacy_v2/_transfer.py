@@ -19,18 +19,16 @@ logger = logging.getLogger(__name__)
 
 @dataclasses.dataclass(kw_only=True)
 class TransferParametersBase:
-    """Parameters for transferring µALGOs between accounts
+    """Parameters for transferring µALGOs between accounts.
 
-    Args:
-        from_account (Account | AccountTransactionSigner): The account (with private key) or signer that will send
-            the µALGOs
-        to_address (str): The account address that will receive the µALGOs
-        suggested_params (SuggestedParams | None): (optional) transaction parameters
-        note (str | bytes | None): (optional) transaction note
-        fee_micro_algos (int | None): (optional) The flat fee you want to pay, useful for covering extra fees in a
-            transaction group or app call
-        max_fee_micro_algos (int | None): (optional) The maximum fee that you are happy to pay (default: unbounded)
-            - if this is set it's possible the transaction could get rejected during network congestion
+    This class contains the base parameters needed for transferring µALGOs between Algorand accounts.
+
+    :ivar from_account: The account (with private key) or signer that will send the µALGOs
+    :ivar to_address: The account address that will receive the µALGOs
+    :ivar suggested_params: Transaction parameters, defaults to None
+    :ivar note: Transaction note, defaults to None
+    :ivar fee_micro_algos: The flat fee you want to pay, useful for covering extra fees in a transaction group or app call, defaults to None
+    :ivar max_fee_micro_algos: The maximum fee that you are happy to pay - if this is set it's possible the transaction could get rejected during network congestion, defaults to None
     """
 
     from_account: Account | AccountTransactionSigner
@@ -50,13 +48,13 @@ class TransferParameters(TransferParametersBase):
 
 @dataclasses.dataclass(kw_only=True)
 class TransferAssetParameters(TransferParametersBase):
-    """Parameters for transferring assets between accounts
+    """Parameters for transferring assets between accounts.
 
-    Args:
-       asset_id (int): The asset id that will be transfered
-       amount (int): The amount to send
-       clawback_from (str | None): An address of a target account from which to perform a clawback operation. Please
-           note, in such cases senderAccount must be equal to clawback field on ASA metadata.
+    Defines the parameters needed to transfer Algorand Standard Assets (ASAs) between accounts.
+
+    :param asset_id: The asset id that will be transferred
+    :param amount: The amount of the asset to send
+    :param clawback_from: An address of a target account from which to perform a clawback operation. Please note, in such cases senderAccount must be equal to clawback field on ASA metadata, defaults to None
     """
 
     asset_id: int

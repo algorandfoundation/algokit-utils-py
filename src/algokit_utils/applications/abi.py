@@ -38,6 +38,17 @@ __all__ = [
 
 @dataclass(kw_only=True)
 class ABIReturn:
+    """Represents the return value from an ABI method call.
+
+    Wraps the raw return value and decoded value along with any decode errors.
+
+    :ivar result: The ABIResult object containing the method call results
+    :ivar raw_value: The raw return value from the method call
+    :ivar value: The decoded return value from the method call
+    :ivar method: The ABI method definition
+    :ivar decode_error: The exception that occurred during decoding, if any
+    """
+
     raw_value: bytes | None = None
     value: ABIValue | None = None
     method: AlgorandABIMethod | None = None
@@ -52,18 +63,35 @@ class ABIReturn:
 
     @property
     def is_success(self) -> bool:
-        """Returns True if the ABI call was successful (no decode error)"""
+        """Returns True if the ABI call was successful (no decode error)
+
+        :return: True if no decode error occurred, False otherwise
+        """
         return self.decode_error is None
 
     def get_arc56_value(
         self, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
     ) -> Arc56ReturnValueType:
+        """Gets the ARC-56 formatted return value.
+
+        :param method: The ABI method definition
+        :param structs: Dictionary of struct definitions
+        :return: The decoded return value in ARC-56 format
+        """
         return get_arc56_value(self, method, structs)
 
 
 def get_arc56_value(
     abi_return: ABIReturn, method: Arc56Method | AlgorandABIMethod, structs: dict[str, list[StructField]]
 ) -> Arc56ReturnValueType:
+    """Gets the ARC-56 formatted return value from an ABI return.
+
+    :param abi_return: The ABI return value to decode
+    :param method: The ABI method definition
+    :param structs: Dictionary of struct definitions
+    :raises ValueError: If there was an error decoding the return value
+    :return: The decoded return value in ARC-56 format
+    """
     if isinstance(method, AlgorandABIMethod):
         type_str = method.returns.type
         struct = None  # AlgorandABIMethod doesn't have struct info
@@ -97,6 +125,14 @@ def get_arc56_value(
 
 
 def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[StructField]]) -> bytes:  # noqa: PLR0911, ANN401
+    """Encodes a value according to its ABI type.
+
+    :param value: The value to encode
+    :param type_str: The ABI type string
+    :param structs: Dictionary of struct definitions
+    :raises ValueError: If the value cannot be encoded for the given type
+    :return: The ABI encoded bytes
+    """
     if isinstance(value, (bytes | bytearray)):
         return value
     if type_str == "AVMUint64":
@@ -122,6 +158,13 @@ def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[Str
 def get_abi_decoded_value(
     value: bytes | int | str, type_str: str | ABIArgumentType, structs: dict[str, list[StructField]]
 ) -> ABIValue:
+    """Decodes a value according to its ABI type.
+
+    :param value: The value to decode
+    :param type_str: The ABI type string or type object
+    :param structs: Dictionary of struct definitions
+    :return: The decoded ABI value
+    """
     type_value = str(type_str)
 
     if type_value == "AVMBytes" or not isinstance(value, bytes):
@@ -142,6 +185,14 @@ def get_abi_tuple_from_abi_struct(
     struct_fields: list[StructField],
     structs: dict[str, list[StructField]],
 ) -> list[Any]:
+    """Converts an ABI struct to a tuple representation.
+
+    :param struct_value: The struct value as a dictionary
+    :param struct_fields: List of struct field definitions
+    :param structs: Dictionary of struct definitions
+    :raises ValueError: If a required field is missing from the struct
+    :return: The struct as a tuple
+    """
     result = []
     for field in struct_fields:
         key = field.name
@@ -161,6 +212,13 @@ def get_abi_tuple_from_abi_struct(
 def get_abi_tuple_type_from_abi_struct_definition(
     struct_def: list[StructField], structs: dict[str, list[StructField]]
 ) -> algosdk.abi.TupleType:
+    """Creates a TupleType from a struct definition.
+
+    :param struct_def: The struct field definitions
+    :param structs: Dictionary of struct definitions
+    :raises ValueError: If a field type is invalid
+    :return: The TupleType representing the struct
+    """
     types = []
     for field in struct_def:
         field_type = field.type
@@ -181,6 +239,13 @@ def get_abi_struct_from_abi_tuple(
     struct_fields: list[StructField],
     structs: dict[str, list[StructField]],
 ) -> dict[str, Any]:
+    """Converts a decoded tuple to an ABI struct.
+
+    :param decoded_tuple: The tuple to convert
+    :param struct_fields: List of struct field definitions
+    :param structs: Dictionary of struct definitions
+    :return: The tuple as a struct dictionary
+    """
     result = {}
     for i, field in enumerate(struct_fields):
         key = field.name
@@ -197,5 +262,11 @@ def get_abi_struct_from_abi_tuple(
 
 @dataclass(kw_only=True, frozen=True)
 class BoxABIValue:
+    """Represents an ABI value stored in a box.
+
+    :ivar name: The name of the box
+    :ivar value: The ABI value stored in the box
+    """
+
     name: BoxName
     value: ABIValue

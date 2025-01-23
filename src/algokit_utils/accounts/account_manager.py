@@ -63,36 +63,36 @@ class AccountInformation:
 
     See `https://developer.algorand.org/docs/rest-apis/algod/#account` for detailed field descriptions.
 
-    :param str address: The account's address
-    :param int amount: The account's current balance in microAlgos
-    :param int amount_without_pending_rewards: The account's balance in microAlgos without the pending rewards
-    :param int min_balance: The account's minimum required balance in microAlgos
-    :param int pending_rewards: The amount of pending rewards in microAlgos
-    :param int rewards: The amount of rewards earned in microAlgos
-    :param int round: The round for which this information is relevant
-    :param str status: The account's status (e.g., 'Offline', 'Online')
-    :param int|None total_apps_opted_in: Number of applications this account has opted into
-    :param int|None total_assets_opted_in: Number of assets this account has opted into
-    :param int|None total_box_bytes: Total number of box bytes used by this account
-    :param int|None total_boxes: Total number of boxes used by this account
-    :param int|None total_created_apps: Number of applications created by this account
-    :param int|None total_created_assets: Number of assets created by this account
-    :param list[dict]|None apps_local_state: Local state of applications this account has opted into
-    :param int|None apps_total_extra_pages: Number of extra pages allocated to applications
-    :param dict|None apps_total_schema: Total schema for all applications
-    :param list[dict]|None assets: Assets held by this account
-    :param str|None auth_addr: If rekeyed, the authorized address
-    :param int|None closed_at_round: Round when this account was closed
-    :param list[dict]|None created_apps: Applications created by this account
-    :param list[dict]|None created_assets: Assets created by this account
-    :param int|None created_at_round: Round when this account was created
-    :param bool|None deleted: Whether this account is deleted
-    :param bool|None incentive_eligible: Whether this account is eligible for incentives
-    :param int|None last_heartbeat: Last heartbeat round for this account
-    :param int|None last_proposed: Last round this account proposed a block
-    :param dict|None participation: Participation information for this account
-    :param int|None reward_base: Base reward for this account
-    :param str|None sig_type: Signature type for this account
+    :ivar str address: The account's address
+    :ivar int amount: The account's current balance in microAlgos
+    :ivar int amount_without_pending_rewards: The account's balance in microAlgos without the pending rewards
+    :ivar int min_balance: The account's minimum required balance in microAlgos
+    :ivar int pending_rewards: The amount of pending rewards in microAlgos
+    :ivar int rewards: The amount of rewards earned in microAlgos
+    :ivar int round: The round for which this information is relevant
+    :ivar str status: The account's status (e.g., 'Offline', 'Online')
+    :ivar int|None total_apps_opted_in: Number of applications this account has opted into
+    :ivar int|None total_assets_opted_in: Number of assets this account has opted into
+    :ivar int|None total_box_bytes: Total number of box bytes used by this account
+    :ivar int|None total_boxes: Total number of boxes used by this account
+    :ivar int|None total_created_apps: Number of applications created by this account
+    :ivar int|None total_created_assets: Number of assets created by this account
+    :ivar list[dict]|None apps_local_state: Local state of applications this account has opted into
+    :ivar int|None apps_total_extra_pages: Number of extra pages allocated to applications
+    :ivar dict|None apps_total_schema: Total schema for all applications
+    :ivar list[dict]|None assets: Assets held by this account
+    :ivar str|None auth_addr: If rekeyed, the authorized address
+    :ivar int|None closed_at_round: Round when this account was closed
+    :ivar list[dict]|None created_apps: Applications created by this account
+    :ivar list[dict]|None created_assets: Assets created by this account
+    :ivar int|None created_at_round: Round when this account was created
+    :ivar bool|None deleted: Whether this account is deleted
+    :ivar bool|None incentive_eligible: Whether this account is eligible for incentives
+    :ivar int|None last_heartbeat: Last heartbeat round for this account
+    :ivar int|None last_proposed: Last round this account proposed a block
+    :ivar dict|None participation: Participation information for this account
+    :ivar int|None reward_base: Base reward for this account
+    :ivar str|None sig_type: Signature type for this account
     """
 
     address: str
@@ -133,17 +133,14 @@ class AccountManager:
 
     This class provides functionality to create, track, and manage various types of accounts including
     mnemonic-based, rekeyed, multisig, and logic signature accounts.
+
+    :param client_manager: The ClientManager client to use for algod and kmd clients
+
+    :example:
+    >>> account_manager = AccountManager(client_manager)
     """
 
     def __init__(self, client_manager: ClientManager):
-        """
-        Create a new account manager.
-
-        :param ClientManager client_manager: The ClientManager client to use for algod and kmd clients
-
-        :example:
-        >>> account_manager = AccountManager(client_manager)
-        """
         self._client_manager = client_manager
         self._kmd_account_manager = KmdAccountManager(client_manager)
         self._signers = dict[str, TransactionSigner]()
@@ -156,7 +153,7 @@ class AccountManager:
         If this isn't set and a transaction needs signing for a given sender
         then an error will be thrown from `get_signer` / `get_account`.
 
-        :param TransactionSigner signer: A `TransactionSigner` signer to use.
+        :param signer: A `TransactionSigner` signer to use.
         :returns: The `AccountManager` so method calls can be chained
 
         :example:
@@ -173,8 +170,8 @@ class AccountManager:
         """
         Tracks the given `TransactionSigner` against the given sender address for later signing.
 
-        :param str sender: The sender address to use this signer for
-        :param TransactionSigner signer: The `TransactionSigner` to sign transactions with for the given sender
+        :param sender: The sender address to use this signer for
+        :param signer: The `TransactionSigner` to sign transactions with for the given sender
         :returns: The `AccountManager` instance for method chaining
 
         :example:
@@ -190,7 +187,7 @@ class AccountManager:
         Note: If you are generating accounts via the various methods on `AccountManager`
         (like `random`, `from_mnemonic`, `logic_sig`, etc.) then they automatically get tracked.
 
-        :param Account|LogicSigAccount|MultiSigAccount account: The account to register
+        :param account: The account to register
         :returns: The `AccountManager` instance for method chaining
 
         :example:
@@ -213,7 +210,7 @@ class AccountManager:
 
         If no signer has been registered for that address then the default signer is used if registered.
 
-        :param str|Account|LogicSigAccount sender: The sender address or account
+        :param sender: The sender address or account
         :returns: The `TransactionSigner`
         :raises ValueError: If no signer is found and no default signer is set
 
@@ -229,7 +226,7 @@ class AccountManager:
         """
         Returns the `Account` for the given sender address.
 
-        :param str sender: The sender address
+        :param sender: The sender address
         :returns: The `Account`
         :raises ValueError: If no account is found or if the account is not a regular account
 
@@ -250,7 +247,7 @@ class AccountManager:
         """
         Returns the `LogicSigAccount` for the given sender address.
 
-        :param str sender: The sender address
+        :param sender: The sender address
         :returns: The `LogicSigAccount`
         :raises ValueError: If no account is found or if the account is not a logic signature account
         """
@@ -268,7 +265,7 @@ class AccountManager:
         See `<https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress>`_
         for response data schema details.
 
-        :param str|Account sender: The address of the sender/account to look up
+        :param sender: The address of the sender/account to look up
         :returns: The account information
 
         :example:
@@ -284,7 +281,7 @@ class AccountManager:
         """
         Helper method to create and register an account with its signer.
 
-        :param str private_key: The private key for the account
+        :param private_key: The private key for the account
         :returns: The registered Account instance
         """
         account = Account(private_key=private_key)
@@ -295,8 +292,8 @@ class AccountManager:
         """
         Helper method to create and register a logic signature account.
 
-        :param bytes program: The bytes that make up the compiled logic signature
-        :param list[bytes]|None args: The (binary) arguments to pass into the logic signature
+        :param program: The bytes that make up the compiled logic signature
+        :param args: The (binary) arguments to pass into the logic signature
         :returns: The registered LogicSigAccount instance
         """
         logic_sig = LogicSigAccount(program, args)
@@ -309,10 +306,10 @@ class AccountManager:
         """
         Helper method to create and register a multisig account.
 
-        :param int version: The version of the multisig account
-        :param int threshold: The threshold number of signatures required
-        :param list[str] addrs: The list of addresses that can sign
-        :param list[Account] signing_accounts: The list of accounts that are present to sign
+        :param version: The version of the multisig account
+        :param threshold: The threshold number of signatures required
+        :param addrs: The list of addresses that can sign
+        :param signing_accounts: The list of accounts that are present to sign
         :returns: The registered MultisigAccount instance
         """
         msig_account = MultiSigAccount(
@@ -326,7 +323,7 @@ class AccountManager:
         """
         Tracks and returns an Algorand account with secret key loaded by taking the mnemonic secret.
 
-        :param str mnemonic: The mnemonic secret representing the private key of an account
+        :param mnemonic: The mnemonic secret representing the private key of an account
         :returns: The account
 
         .. warning::
@@ -346,8 +343,8 @@ class AccountManager:
         This allows you to write code that will work seamlessly in production and local development (LocalNet)
         without manual config locally (including when you reset the LocalNet).
 
-        :param str name: The name identifier of the account
-        :param AlgoAmount|None fund_with: Optional amount to fund the account with when it gets created
+        :param name: The name identifier of the account
+        :param fund_with: Optional amount to fund the account with when it gets created
         (when targeting LocalNet)
         :returns: The account
         :raises ValueError: If environment variable {NAME}_MNEMONIC is missing when looking for account {NAME}
@@ -384,9 +381,9 @@ class AccountManager:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet.
 
-        :param str name: The name of the wallet to retrieve an account from
-        :param Callable[[dict[str, Any]], bool]|None predicate: Optional filter to use to find the account
-        :param str|None sender: Optional sender address to use this signer for (aka a rekeyed account)
+        :param name: The name of the wallet to retrieve an account from
+        :param predicate: Optional filter to use to find the account
+        :param sender: Optional sender address to use this signer for (aka a rekeyed account)
         :returns: The account
         :raises ValueError: If unable to find KMD account with given name and predicate
 
@@ -406,8 +403,8 @@ class AccountManager:
         """
         Tracks and returns an account that represents a logic signature.
 
-        :param bytes program: The bytes that make up the compiled logic signature
-        :param list[bytes]|None args: Optional (binary) arguments to pass into the logic signature
+        :param program: The bytes that make up the compiled logic signature
+        :param args: Optional (binary) arguments to pass into the logic signature
         :returns: A logic signature account wrapper
 
         :example:
@@ -421,10 +418,10 @@ class AccountManager:
         """
         Tracks and returns an account that supports partial or full multisig signing.
 
-        :param int version: The version of the multisig account
-        :param int threshold: The threshold number of signatures required
-        :param list[str] addrs: The list of addresses that can sign
-        :param list[Account] signing_accounts: The signers that are currently present
+        :param version: The version of the multisig account
+        :param threshold: The threshold number of signatures required
+        :param addrs: The list of addresses that can sign
+        :param signing_accounts: The signers that are currently present
         :returns: A multisig account wrapper
 
         :example:
@@ -483,8 +480,8 @@ class AccountManager:
         """
         Tracks and returns an Algorand account that is a rekeyed version of the given account to a new sender.
 
-        :param Account|str sender: The account or address to use as the sender
-        :param Account account: The account to use as the signer for this new rekeyed account
+        :param sender: The account or address to use as the sender
+        :param account: The account to use as the signer for this new rekeyed account
         :returns: The rekeyed account
 
         :example:
@@ -514,18 +511,18 @@ class AccountManager:
         """
         Rekey an account to a new address.
 
-        :param str|Account account: The account to rekey
-        :param str|Account rekey_to: The address or account to rekey to
-        :param TransactionSigner|None signer: Optional transaction signer
-        :param bytes|None note: Optional transaction note
-        :param bytes|None lease: Optional transaction lease
-        :param AlgoAmount|None static_fee: Optional static fee
-        :param AlgoAmount|None extra_fee: Optional extra fee
-        :param AlgoAmount|None max_fee: Optional max fee
-        :param int|None validity_window: Optional validity window
-        :param int|None first_valid_round: Optional first valid round
-        :param int|None last_valid_round: Optional last valid round
-        :param bool|None suppress_log: Optional flag to suppress logging
+        :param account: The account to rekey
+        :param rekey_to: The address or account to rekey to
+        :param signer: Optional transaction signer
+        :param note: Optional transaction note
+        :param lease: Optional transaction lease
+        :param static_fee: Optional static fee
+        :param extra_fee: Optional extra fee
+        :param max_fee: Optional max fee
+        :param validity_window: Optional validity window
+        :param first_valid_round: Optional first valid round
+        :param last_valid_round: Optional last valid round
+        :param suppress_log: Optional flag to suppress logging
         :returns: The result of the transaction and the transaction that was sent
 
         .. warning::
@@ -616,24 +613,24 @@ class AccountManager:
 
         See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
 
-        :param str|Account account_to_fund: The account to fund
-        :param str|Account dispenser_account: The account to use as a dispenser funding source
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account
+        :param account_to_fund: The account to fund
+        :param dispenser_account: The account to use as a dispenser funding source
+        :param min_spending_balance: The minimum balance of Algo that the account
         should have available to spend
-        :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
-        :param int|None max_rounds_to_wait: Optional maximum rounds to wait for transaction
-        :param bool|None suppress_log: Optional flag to suppress logging
-        :param bool|None populate_app_call_resources: Optional flag to populate app call resources
-        :param TransactionSigner|None signer: Optional transaction signer
-        :param str|None rekey_to: Optional rekey address
-        :param bytes|None note: Optional transaction note
-        :param bytes|None lease: Optional transaction lease
-        :param AlgoAmount|None static_fee: Optional static fee
-        :param AlgoAmount|None extra_fee: Optional extra fee
-        :param AlgoAmount|None max_fee: Optional maximum fee
-        :param int|None validity_window: Optional validity window
-        :param int|None first_valid_round: Optional first valid round
-        :param int|None last_valid_round: Optional last valid round
+        :param min_funding_increment: Optional minimum funding increment
+        :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
+        :param suppress_log: Optional flag to suppress logging
+        :param populate_app_call_resources: Optional flag to populate app call resources
+        :param signer: Optional transaction signer
+        :param rekey_to: Optional rekey address
+        :param note: Optional transaction note
+        :param lease: Optional transaction lease
+        :param static_fee: Optional static fee
+        :param extra_fee: Optional extra fee
+        :param max_fee: Optional maximum fee
+        :param validity_window: Optional validity window
+        :param first_valid_round: Optional first valid round
+        :param last_valid_round: Optional last valid round
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed,
         or None if no funds were needed
 
@@ -726,23 +723,23 @@ class AccountManager:
 
         See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
 
-        :param str|Account account_to_fund: The account to fund
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have available to
+        :param account_to_fund: The account to fund
+        :param min_spending_balance: The minimum balance of Algo that the account should have available to
         spend
-        :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
-        :param int|None max_rounds_to_wait: Optional maximum rounds to wait for transaction
-        :param bool|None suppress_log: Optional flag to suppress logging
-        :param bool|None populate_app_call_resources: Optional flag to populate app call resources
-        :param TransactionSigner|None signer: Optional transaction signer
-        :param str|None rekey_to: Optional rekey address
-        :param bytes|None note: Optional transaction note
-        :param bytes|None lease: Optional transaction lease
-        :param AlgoAmount|None static_fee: Optional static fee
-        :param AlgoAmount|None extra_fee: Optional extra fee
-        :param AlgoAmount|None max_fee: Optional maximum fee
-        :param int|None validity_window: Optional validity window
-        :param int|None first_valid_round: Optional first valid round
-        :param int|None last_valid_round: Optional last valid round
+        :param min_funding_increment: Optional minimum funding increment
+        :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
+        :param suppress_log: Optional flag to suppress logging
+        :param populate_app_call_resources: Optional flag to populate app call resources
+        :param signer: Optional transaction signer
+        :param rekey_to: Optional rekey address
+        :param note: Optional transaction note
+        :param lease: Optional transaction lease
+        :param static_fee: Optional static fee
+        :param extra_fee: Optional extra fee
+        :param max_fee: Optional maximum fee
+        :param validity_window: Optional validity window
+        :param first_valid_round: Optional first valid round
+        :param last_valid_round: Optional last valid round
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
         None if no funds were needed
 
@@ -814,7 +811,7 @@ class AccountManager:
         account_to_fund: str | Account,
         dispenser_client: TestNetDispenserApiClient,
         min_spending_balance: AlgoAmount,
-        *,  # Force remaining params to be keyword-only
+        *,
         min_funding_increment: AlgoAmount | None = None,
     ) -> EnsureFundedFromTestnetDispenserApiResponse | None:
         """
@@ -825,11 +822,11 @@ class AccountManager:
 
         See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
 
-        :param str|Account account_to_fund: The account to fund
-        :param TestNetDispenserApiClient dispenser_client: The TestNet dispenser funding client
-        :param AlgoAmount min_spending_balance: The minimum balance of Algo that the account should have
+        :param account_to_fund: The account to fund
+        :param dispenser_client: The TestNet dispenser funding client
+        :param min_spending_balance: The minimum balance of Algo that the account should have
         available to spend
-        :param AlgoAmount|None min_funding_increment: Optional minimum funding increment
+        :param min_funding_increment: Optional minimum funding increment
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
         None if no funds were needed
         :raises ValueError: If attempting to fund on non-TestNet network

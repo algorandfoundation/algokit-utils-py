@@ -119,12 +119,8 @@ def _upsert_debug_sourcemaps(sourcemaps: list[AVMDebuggerSourceMapEntry], projec
     This function updates or inserts debug sourcemaps. If path in the sourcemap during iteration leads to non
     existing file, removes it. Otherwise upserts.
 
-    Args:
-        sourcemaps (list[AVMDebuggerSourceMapEntry]): A list of AVMDebuggerSourceMapEntry objects.
-        project_root (Path): The root directory of the project.
-
-    Returns:
-        None
+    :param sourcemaps: A list of AVMDebuggerSourceMapEntry objects.
+    :param project_root: The root directory of the project.
     """
 
     sources_path = project_root / ALGOKIT_DIR / SOURCES_DIR / SOURCES_FILE
@@ -197,12 +193,11 @@ def persist_sourcemaps(
 ) -> None:
     """
     Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
-    Args:
-        sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
-        project_root (Path): The root directory of the project.
-        client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
-        with_sources (bool): If True, it will dump teal source files along with sourcemaps.
-        Default is True, as needed by an AlgoKit AVM debugger.
+
+    :param sources: A list of PersistSourceMapInput objects.
+    :param project_root: The root directory of the project.
+    :param client: An AlgodClient object for interacting with the Algorand blockchain.
+    :param with_sources: If True, it will dump teal source files along with sourcemaps.
     """
 
     sourcemaps = [
@@ -267,20 +262,23 @@ def simulate_and_persist_response(  # noqa: PLR0913
     simulation_round: int | None = None,
     skip_signatures: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:
-    """
-    Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
-    and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
+    """Simulates atomic transactions and persists simulation response to a JSON file.
 
-    :param atc: An `AtomicTransactionComposer` object representing the atomic transactions to be
-    simulated and persisted.
-    :param project_root: A `Path` object representing the root directory of the project.
-    :param algod_client: An `AlgodClient` object representing the Algorand client.
-    :param buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256mb.
-    :return: None
+    Simulates the atomic transactions using the provided AtomicTransactionComposer and AlgodClient,
+    then persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
 
-    Returns:
-        SimulateAtomicTransactionResponse: The simulated response after persisting it
-        for AlgoKit AVM Debugger consumption.
+    :param atc: AtomicTransactionComposer containing transactions to simulate and persist
+    :param project_root: Root directory path of the project
+    :param algod_client: Algorand client instance
+    :param buffer_size_mb: Size of trace buffer in megabytes, defaults to 256
+    :param allow_more_logs: Flag to allow additional logs, defaults to None
+    :param allow_empty_signatures: Flag to allow empty signatures, defaults to None
+    :param allow_unnamed_resources: Flag to allow unnamed resources, defaults to None
+    :param extra_opcode_budget: Additional opcode budget, defaults to None
+    :param exec_trace_config: Execution trace configuration, defaults to None
+    :param simulation_round: Round number for simulation, defaults to None
+    :param skip_signatures: Flag to skip signatures, defaults to None
+    :return: Simulated response after persisting for AlgoKit AVM Debugger consumption
     """
     atc_to_simulate = atc.clone()
     sp = algod_client.suggested_params()

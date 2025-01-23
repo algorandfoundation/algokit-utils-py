@@ -1,15 +1,11 @@
 import logging
-from typing import TYPE_CHECKING
+from enum import Enum, auto
 
 from algosdk.atomic_transaction_composer import AtomicTransactionComposer, TransactionWithSigner
 from algosdk.constants import TX_GROUP_LIMIT
 from algosdk.transaction import AssetTransferTxn
+from algosdk.v2client.algod import AlgodClient
 from typing_extensions import deprecated
-
-if TYPE_CHECKING:
-    from algosdk.v2client.algod import AlgodClient
-
-from enum import Enum, auto
 
 from algokit_utils.models.account import Account
 
@@ -79,13 +75,11 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
     it must `opt-in` to receive it. An opt-in transaction places an asset holding of 0 into the account and increases
     its minimum balance by [100,000 microAlgos](https://developer.algorand.org/docs/get-details/asa/#assets-overview).
 
-    Args:
-        algod_client (AlgodClient): An instance of the AlgodClient class from the algosdk library.
-        account (Account): An instance of the Account class representing the account that wants to opt-in to the assets.
-        asset_ids (list[int]): A list of integers representing the asset IDs to opt-in to.
-    Returns:
-        dict[int, str]: A dictionary where the keys are the asset IDs and the values
-        are the transaction IDs for opting-in to each asset.
+    :param algod_client: An instance of the AlgodClient class from the algosdk library.
+    :param account: An instance of the Account class representing the account that wants to opt-in to the assets.
+    :param asset_ids: A list of integers representing the asset IDs to opt-in to.
+    :return: A dictionary where the keys are the asset IDs and the values are the transaction IDs for opting-in to each asset.
+    :rtype: dict[int, str]
     """
     _ensure_account_is_valid(algod_client, account)
     _ensure_asset_balance_conditions(algod_client, account, asset_ids, ValidationType.OPTIN)
@@ -133,14 +127,11 @@ def opt_out(algod_client: "AlgodClient", account: Account, asset_ids: list[int])
 
     It's essential to note that an account can only opt_out of an asset if its balance of that asset is zero.
 
-    Args:
-        algod_client (AlgodClient): An instance of the AlgodClient class from the `algosdk` library.
-        account (Account): An instance of the Account class that holds the private key and address for an account.
-        asset_ids (list[int]): A list of integers representing the asset IDs of the ASAs to opt out from.
-    Returns:
-        dict[int, str]: A dictionary where the keys are the asset IDs and the values are the transaction IDs of
+    :param AlgodClient algod_client: An instance of the AlgodClient class from the algosdk library.
+    :param Account account: An instance of the Account class representing the account that wants to opt-out from the assets.
+    :param list[int] asset_ids: A list of integers representing the asset IDs to opt-out from.
+    :return dict[int, str]: A dictionary where the keys are the asset IDs and the values are the transaction IDs of
         the executed transactions.
-
     """
     _ensure_account_is_valid(algod_client, account)
     _ensure_asset_balance_conditions(algod_client, account, asset_ids, ValidationType.OPTOUT)

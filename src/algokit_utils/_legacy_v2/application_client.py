@@ -95,7 +95,28 @@ def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     "```"
 )
 class ApplicationClient:
-    """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app"""
+    """A class that wraps an ARC-0032 app spec and provides high productivity methods to deploy and call the app
+
+    ApplicationClient can be created with an app_id to interact with an existing application, alternatively
+        it can be created with a creator and indexer_client specified to find existing applications by name and creator.
+
+    :param AlgodClient algod_client: AlgoSDK algod client
+    :param ApplicationSpecification | Path app_spec: An Application Specification or the path to one
+    :param int app_id: The app_id of an existing application, to instead find the application by creator and name
+    use the creator and indexer_client parameters
+    :param str | Account creator: The address or Account of the app creator to resolve the app_id
+    :param IndexerClient indexer_client: AlgoSDK indexer client, only required if deploying or finding app_id by
+    creator and app name
+    :param AppLookup existing_deployments:
+    :param TransactionSigner | Account signer: Account or signer to use to sign transactions, if not specified and
+    creator was passed as an Account will use that.
+    :param str sender: Address to use as the sender for all transactions, will use the address associated with the
+    signer if not specified.
+    :param TemplateValueMapping template_values: Values to use for TMPL_* template variables, dictionary keys should
+    *NOT* include the TMPL_ prefix
+    :param str | None app_name: Name of application to use when deploying, defaults to name defined on the
+    Application Specification
+    """
 
     @overload
     def __init__(
@@ -141,26 +162,6 @@ class ApplicationClient:
         template_values: au_deploy.TemplateValueMapping | None = None,
         app_name: str | None = None,
     ):
-        """ApplicationClient can be created with an app_id to interact with an existing application, alternatively
-        it can be created with a creator and indexer_client specified to find existing applications by name and creator.
-
-        :param AlgodClient algod_client: AlgoSDK algod client
-        :param ApplicationSpecification | Path app_spec: An Application Specification or the path to one
-        :param int app_id: The app_id of an existing application, to instead find the application by creator and name
-        use the creator and indexer_client parameters
-        :param str | Account creator: The address or Account of the app creator to resolve the app_id
-        :param IndexerClient indexer_client: AlgoSDK indexer client, only required if deploying or finding app_id by
-        creator and app name
-        :param AppLookup existing_deployments:
-        :param TransactionSigner | Account signer: Account or signer to use to sign transactions, if not specified and
-        creator was passed as an Account will use that.
-        :param str sender: Address to use as the sender for all transactions, will use the address associated with the
-        signer if not specified.
-        :param TemplateValueMapping template_values: Values to use for TMPL_* template variables, dictionary keys should
-        *NOT* include the TMPL_ prefix
-        :param str | None app_name: Name of application to use when deploying, defaults to name defined on the
-        Application Specification
-        """
         self.algod_client = algod_client
         self.app_spec = (
             au_spec.ApplicationSpecification.from_json(app_spec.read_text()) if isinstance(app_spec, Path) else app_spec

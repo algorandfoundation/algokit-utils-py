@@ -125,19 +125,15 @@ def ensure_funded(
     parameters: EnsureBalanceParameters,
 ) -> EnsureFundedResponse | None:
     """
-    Funds a given account using a funding source such that it has a certain amount of algos free to spend
-    (accounting for ALGOs locked in minimum balance requirement)
-    see <https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>
+    Funds a given account using a funding source to ensure it has sufficient spendable ALGOs.
 
+    Ensures the target account has enough ALGOs free to spend after accounting for ALGOs locked in minimum balance
+    requirements. See https://developer.algorand.org/docs/get-details/accounts/#minimum-balance for details on minimum
+    balance requirements.
 
-    Args:
-        client (AlgodClient): An instance of the AlgodClient class from the AlgoSDK library.
-        parameters (EnsureBalanceParameters): An instance of the EnsureBalanceParameters class that
-        specifies the account to fund and the minimum spending balance.
-
-    Returns:
-        PaymentTxn | str | None: If funds are needed, the function returns a payment transaction or a
-        string indicating that the dispenser API was used. If no funds are needed, the function returns None.
+    :param client: An instance of the AlgodClient class from the AlgoSDK library
+    :param parameters: Parameters specifying the account to fund and minimum spending balance requirements
+    :return: If funds are needed, returns payment transaction details or dispenser API response. Returns None if no funding needed
     """
 
     address_to_fund = _get_address_to_fund(parameters)

@@ -171,28 +171,23 @@ def get_account(
     client: "AlgodClient", name: str, fund_with_algos: float = 1000, kmd_client: "KMDClient | None" = None
 ) -> Account:
     """Returns an Algorand account with private key loaded by convention based on the given name identifier.
+    Returns an Algorand account with private key loaded by convention based on the given name identifier.
 
-    # Convention
+    For non-LocalNet environments, loads the mnemonic secret from environment variable {name}_MNEMONIC.
+    For LocalNet environments, loads or creates an account from a KMD wallet named {name}.
 
-    **Non-LocalNet:** will load `os.environ[f"{name}_MNEMONIC"]` as a mnemonic secret
-    Be careful how the mnemonic is handled, never commit it into source control and ideally load it via a
-    secret storage service rather than the file system.
+    :example:
+    >>> # If you have a mnemonic secret loaded into `os.environ["ACCOUNT_MNEMONIC"]` then you can call:
+    >>> account = get_account('ACCOUNT', algod)
+    >>> # If that code runs against LocalNet then a wallet called 'ACCOUNT' will automatically be created
+    >>> # with an account that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
 
-    **LocalNet:** will load the account from a KMD wallet called {name} and if that wallet doesn't exist it will
-    create it and fund the account for you
-
-    This allows you to write code that will work seamlessly in production and local development (LocalNet) without
-    manual config locally (including when you reset the LocalNet).
-
-    # Example
-    If you have a mnemonic secret loaded into `os.environ["ACCOUNT_MNEMONIC"]` then you can call the following to get
-    that private key loaded into an account object:
-    ```python
-    account = get_account('ACCOUNT', algod)
-    ```
-
-    If that code runs against LocalNet then a wallet called 'ACCOUNT' will automatically be created with an account
-    that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
+    :param client: The Algorand client to use
+    :param name: The name identifier to use for loading/creating the account
+    :param fund_with_algos: Amount of Algos to fund new LocalNet accounts with, defaults to 1000
+    :param kmd_client: Optional KMD client to use for LocalNet wallet operations
+    :raises Exception: If required environment variable is missing in non-LocalNet environment
+    :return: An Account object with loaded private key
     """
 
     mnemonic_key = f"{name.upper()}_MNEMONIC"

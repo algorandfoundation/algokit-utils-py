@@ -34,6 +34,7 @@ pytest-xdist = "^3.4.0"
 sphinx-markdown-builder = "^0.6.6"
 linkify-it-py = "^2.0.3"
 setuptools = "^75.2.0"
+pydoclint = "^0.6.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -134,6 +135,7 @@ suppress-none-returning = true
 docs = ["docs-html-only", "docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docs-html-only = "sphinx-build docs/source docs/html"
+docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false --exclude src/algokit_utils/_legacy_v2"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

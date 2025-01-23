@@ -35,22 +35,20 @@ TxnResult = TypeVar("TxnResult")
 
 
 class AlgorandClientTransactionCreator:
-    """A creator for Algorand transactions."""
+    """A creator for Algorand transactions.
+
+    Provides methods to create various types of Algorand transactions including payments,
+    asset operations, application calls and key registrations.
+
+    :param new_group: A lambda that starts a new TransactionComposer transaction group
+    """
 
     def __init__(self, new_group: Callable[[], TransactionComposer]) -> None:
-        """
-        Creates a new `AlgorandClientTransactionCreator`.
-
-        Args:
-            new_group: A lambda that starts a new `TransactionComposer` transaction group
-        """
         self._new_group = new_group
 
     def _transaction(
         self, c: Callable[[TransactionComposer], Callable[[TxnParam], TransactionComposer]]
     ) -> Callable[[TxnParam], Transaction]:
-        """Generic method to create a single transaction."""
-
         def create_transaction(params: TxnParam) -> Transaction:
             composer = self._new_group()
             result = c(composer)(params).build_transactions()
@@ -61,8 +59,6 @@ class AlgorandClientTransactionCreator:
     def _transactions(
         self, c: Callable[[TransactionComposer], Callable[[TxnParam], TransactionComposer]]
     ) -> Callable[[TxnParam], BuiltTransactions]:
-        """Generic method to create multiple transactions."""
-
         def create_transactions(params: TxnParam) -> BuiltTransactions:
             composer = self._new_group()
             return c(composer)(params).build_transactions()

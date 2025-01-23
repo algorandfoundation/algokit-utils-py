@@ -15,15 +15,15 @@ logger = config.logger
 
 
 class KmdAccount(Account):
-    """Account retrieved from KMD with signing capabilities, extending base Account"""
+    """Account retrieved from KMD with signing capabilities, extending base Account.
+
+    Provides an account implementation that can be used to sign transactions using keys stored in KMD.
+
+    :param private_key: Base64 encoded private key
+    :param address: Optional address override for rekeyed accounts, defaults to None
+    """
 
     def __init__(self, private_key: str, address: str | None = None) -> None:
-        """Initialize KMD account with private key and optional address override
-
-        Args:
-            private_key: Base64 encoded private key
-            address: Optional address override (for rekeyed accounts)
-        """
         super().__init__(private_key=private_key, address=address or "")
 
 
@@ -33,11 +33,6 @@ class KmdAccountManager:
     _kmd: KMDClient | None
 
     def __init__(self, client_manager: ClientManager) -> None:
-        """Create a new KMD manager.
-
-        Args:
-            client_manager: ClientManager to use for account management
-        """
         self._client_manager = client_manager
         try:
             self._kmd = client_manager.kmd
@@ -45,13 +40,10 @@ class KmdAccountManager:
             self._kmd = None
 
     def kmd(self) -> KMDClient:
-        """Get the KMD client, initializing it if needed.
+        """Returns the KMD client, initializing it if needed.
 
-        Returns:
-            KMDClient: The initialized KMD client
-
-        Raises:
-            Exception: If KMD is not configured
+        :raises Exception: If KMD client is not configured and not running against LocalNet
+        :return: The KMD client
         """
         if self._kmd is None:
             if self._client_manager.is_localnet():
@@ -69,23 +61,15 @@ class KmdAccountManager:
     ) -> KmdAccount | None:
         """Returns an Algorand signing account with private key loaded from the given KMD wallet.
 
-        Args:
-            wallet_name: The name of the wallet to retrieve an account from
-            predicate: Optional filter to use to find the account (otherwise returns a random account from the wallet)
-            sender: Optional sender address to use this signer for (aka a rekeyed account)
+        Retrieves an account from a KMD wallet that matches the given predicate, or a random account
+        if no predicate is provided.
 
-        Returns:
-            Optional[KmdAccount]: The signing account or None if no matching wallet or account was found
-
-        Example:
-            ```python
-            # Get default funded account in a LocalNet
-            default_dispenser = kmd_manager.get_wallet_account(
-                "unencrypted-default-wallet",
-                lambda a: a["status"] != "Offline" and a["amount"] > 1_000_000_000
-            )
-            ```
+        :param wallet_name: The name of the wallet to retrieve an account from
+        :param predicate: Optional filter to use to find the account (otherwise gets a random account from the wallet)
+        :param sender: Optional sender address to use this signer for (aka a rekeyed account)
+        :return: The signing account or None if no matching wallet or account was found
         """
+
         kmd_client = self.kmd()
         wallets = kmd_client.list_wallets()
         wallet = next((w for w in wallets if w["name"] == wallet_name), None)
@@ -115,25 +99,13 @@ class KmdAccountManager:
     def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> KmdAccount:
         """Gets or creates a funded account in a KMD wallet of the given name.
 
-        This is useful to get idempotent accounts from LocalNet without having to specify the private key
-        (which will change when resetting the LocalNet).
+        Provides idempotent access to accounts from LocalNet without specifying the private key.
 
-        Args:
-            name: The name of the wallet to retrieve / create
-            fund_with: The number of Algos to fund the account with when created (default: 1000)
-
-        Returns:
-            KmdAccount: An Algorand account with private key loaded
-
-        Example:
-            ```python
-            # Idempotently get (if exists) or create (if doesn't exist) an account by name using KMD
-            # if creating it then fund it with 2 ALGO from the default dispenser account
-            new_account = kmd_manager.get_or_create_wallet_account("account1", 2)
-            # This will return the same account as above since the name matches
-            existing_account = kmd_manager.get_or_create_wallet_account("account1")
-            ```
+        :param name: The name of the wallet to retrieve / create
+        :param fund_with: The number of Algos to fund the account with when created
+        :return: An Algorand account with private key loaded
         """
+
         existing = self.get_wallet_account(name)
         if existing:
             return existing
@@ -168,16 +140,10 @@ class KmdAccountManager:
     def get_localnet_dispenser_account(self) -> KmdAccount:
         """Returns an Algorand account with private key loaded for the default LocalNet dispenser account.
 
-        Returns:
-            KmdAccount: The default LocalNet dispenser account
+        Retrieves the default funded account from LocalNet that can be used to fund other accounts.
 
-        Raises:
-            Exception: If not running against LocalNet or dispenser account not found
-
-        Example:
-            ```python
-            dispenser = kmd_manager.get_localnet_dispenser_account()
-            ```
+        :raises Exception: If not running against LocalNet or dispenser account not found
+        :return: The default LocalNet dispenser account
         """
         if not self._client_manager.is_localnet():
             raise Exception("Can't get LocalNet dispenser account from non LocalNet network")

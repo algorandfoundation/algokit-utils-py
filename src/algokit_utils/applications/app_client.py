@@ -92,6 +92,7 @@ __all__ = [
     "AppSourceMaps",
     "BaseAppClientMethodCallParams",
     "FundAppAccountParams",
+    "get_constant_block_offset",
 ]
 
 # TEAL opcodes for constant blocks
@@ -107,11 +108,10 @@ _MISSING = object()
 def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     """Calculate the offset after constant blocks in TEAL program.
 
-    Args:
-        program: The compiled TEAL program bytes
+    Analyzes a compiled TEAL program to find the ending offset position after any bytecblock and intcblock operations.
 
-    Returns:
-        The maximum offset after bytecblock/intcblock operations
+    :param program: The compiled TEAL program as bytes
+    :return: The maximum offset position after any constant block operations
     """
     bytes_list = list(program)
     program_size = len(bytes_list)
@@ -168,6 +168,16 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientCompilationResult:
+    """Result of compiling an application's TEAL code.
+
+    Contains the compiled approval and clear state programs along with optional compilation artifacts.
+
+    :ivar approval_program: The compiled approval program bytes
+    :ivar clear_state_program: The compiled clear state program bytes
+    :ivar compiled_approval: Optional compilation artifacts for approval program
+    :ivar compiled_clear: Optional compilation artifacts for clear state program
+    """
+
     approval_program: bytes
     clear_state_program: bytes
     compiled_approval: CompiledTeal | None = None
@@ -176,6 +186,13 @@ class AppClientCompilationResult:
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientCompilationParams:
+    """Parameters for compiling an application's TEAL code.
+
+    :ivar deploy_time_params: Optional template parameters to use during compilation
+    :ivar updatable: Optional flag indicating if app should be updatable
+    :ivar deletable: Optional flag indicating if app should be deletable
+    """
+
     deploy_time_params: TealTemplateParams | None = None
     updatable: bool | None = None
     deletable: bool | None = None
@@ -183,6 +200,27 @@ class AppClientCompilationParams:
 
 @dataclass(kw_only=True)
 class FundAppAccountParams:
+    """Parameters for funding an application's account.
+
+    :ivar sender: Optional sender address
+    :ivar signer: Optional transaction signer
+    :ivar rekey_to: Optional address to rekey to
+    :ivar note: Optional transaction note
+    :ivar lease: Optional lease
+    :ivar static_fee: Optional static fee
+    :ivar extra_fee: Optional extra fee
+    :ivar max_fee: Optional maximum fee
+    :ivar validity_window: Optional validity window in rounds
+    :ivar first_valid_round: Optional first valid round
+    :ivar last_valid_round: Optional last valid round
+    :ivar amount: Amount to fund
+    :ivar close_remainder_to: Optional address to close remainder to
+    :ivar max_rounds_to_wait: Optional maximum rounds to wait
+    :ivar suppress_log: Optional flag to suppress logging
+    :ivar populate_app_call_resources: Optional flag to populate app call resources
+    :ivar on_complete: Optional on complete action
+    """
+
     sender: str | None = None
     signer: TransactionSigner | None = None
     rekey_to: str | None = None
@@ -204,16 +242,30 @@ class FundAppAccountParams:
 
 @dataclass(kw_only=True)
 class AppClientCallParams:
-    method: str | None = None  # If calling ABI method, name or signature
-    args: list | None = None  # Arguments to pass to the method
-    boxes: list | None = None  # Box references to load
-    accounts: list[str] | None = None  # Account addresses to load
-    apps: list[int] | None = None  # App IDs to load
-    assets: list[int] | None = None  # Asset IDs to load
-    lease: (str | bytes) | None = None  # Optional lease
-    sender: str | None = None  # Optional sender account
-    note: (bytes | dict | str) | None = None  # Transaction note
-    send_params: dict | None = None  # Parameters to control transaction sending
+    """Parameters for calling an application.
+
+    :ivar method: Optional ABI method name or signature
+    :ivar args: Optional arguments to pass to method
+    :ivar boxes: Optional box references to load
+    :ivar accounts: Optional account addresses to load
+    :ivar apps: Optional app IDs to load
+    :ivar assets: Optional asset IDs to load
+    :ivar lease: Optional lease
+    :ivar sender: Optional sender address
+    :ivar note: Optional transaction note
+    :ivar send_params: Optional parameters to control transaction sending
+    """
+
+    method: str | None = None
+    args: list | None = None
+    boxes: list | None = None
+    accounts: list[str] | None = None
+    apps: list[int] | None = None
+    assets: list[int] | None = None
+    lease: (str | bytes) | None = None
+    sender: str | None = None
+    note: (bytes | dict | str) | None = None
+    send_params: dict | None = None
 
 
 ArgsT = TypeVar("ArgsT")
@@ -222,6 +274,28 @@ MethodT = TypeVar("MethodT")
 
 @dataclass(kw_only=True, frozen=True)
 class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT]):
+    """Base parameters for application method calls.
+
+    :ivar method: Method to call
+    :ivar args: Optional arguments to pass to method
+    :ivar account_references: Optional account references
+    :ivar app_references: Optional application references
+    :ivar asset_references: Optional asset references
+    :ivar box_references: Optional box references
+    :ivar extra_fee: Optional extra fee
+    :ivar first_valid_round: Optional first valid round
+    :ivar lease: Optional lease
+    :ivar max_fee: Optional maximum fee
+    :ivar note: Optional note
+    :ivar rekey_to: Optional rekey to address
+    :ivar sender: Optional sender address
+    :ivar signer: Optional transaction signer
+    :ivar static_fee: Optional static fee
+    :ivar validity_window: Optional validity window
+    :ivar last_valid_round: Optional last valid round
+    :ivar on_complete: Optional on complete action
+    """
+
     method: MethodT
     args: ArgsT | None = None
     account_references: list[str] | None = None
@@ -249,28 +323,48 @@ class AppClientMethodCallParams(
         str,
     ]
 ):
-    pass
+    """Parameters for application method calls."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithCompilationParams(AppClientMethodCallParams, AppClientCompilationParams):
-    """Combined parameters for method calls with compilation"""
+    """Combined parameters for method calls with compilation."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithSendParams(AppClientMethodCallParams, SendParams):
-    """Combined parameters for method calls with send options"""
+    """Combined parameters for method calls with send options."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientMethodCallWithCompilationAndSendParams(
     AppClientMethodCallParams, AppClientCompilationParams, SendParams
 ):
-    """Combined parameters for method calls with compilation and send options"""
+    """Combined parameters for method calls with compilation and send options."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallParams:
+    """Parameters for bare application calls.
+
+    :ivar signer: Optional transaction signer
+    :ivar rekey_to: Optional rekey to address
+    :ivar lease: Optional lease
+    :ivar static_fee: Optional static fee
+    :ivar extra_fee: Optional extra fee
+    :ivar max_fee: Optional maximum fee
+    :ivar validity_window: Optional validity window
+    :ivar first_valid_round: Optional first valid round
+    :ivar last_valid_round: Optional last valid round
+    :ivar sender: Optional sender address
+    :ivar note: Optional note
+    :ivar args: Optional arguments
+    :ivar account_references: Optional account references
+    :ivar app_references: Optional application references
+    :ivar asset_references: Optional asset references
+    :ivar box_references: Optional box references
+    """
+
     signer: TransactionSigner | None = None
     rekey_to: str | None = None
     lease: bytes | None = None
@@ -291,38 +385,49 @@ class AppClientBareCallParams:
 
 @dataclass(frozen=True)
 class AppClientCreateSchema:
+    """Schema for application creation.
+
+    :ivar extra_program_pages: Optional number of extra program pages
+    :ivar schema: Optional application creation schema
+    """
+
     extra_program_pages: int | None = None
     schema: AppCreateSchema | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCompilationParams(AppClientBareCallParams, AppClientCompilationParams):
-    """Combined parameters for bare calls with compilation"""
+    """Combined parameters for bare calls with compilation."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithSendParams(AppClientBareCallParams, SendParams):
-    """Combined parameters for bare calls with send options"""
+    """Combined parameters for bare calls with send options."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCompilationAndSendParams(AppClientBareCallParams, AppClientCompilationParams, SendParams):
-    """Combined parameters for bare calls with compilation and send options"""
+    """Combined parameters for bare calls with compilation and send options."""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallWithCallOnCompleteParams(AppClientBareCallParams):
+    """Parameters for bare calls with on complete action.
+
+    :ivar on_complete: Optional on complete action
+    """
+
     on_complete: algosdk.transaction.OnComplete | None = None
 
 
 @dataclass(frozen=True)
 class AppClientBareCallCreateParams(AppClientCreateSchema, AppClientBareCallWithCallOnCompleteParams):
-    pass
+    """Parameters for creating application with bare call."""
 
 
 @dataclass(frozen=True)
 class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCallParams):
-    pass
+    """Parameters for creating application with method call."""
 
 
 class _AppClientStateMethods:
@@ -409,8 +514,6 @@ class _StateAccessor:
         return self._get_box_methods()
 
     def _get_box_methods(self) -> _AppClientBoxMethods:
-        """Get methods to access box storage for the current app."""
-
         def get_all() -> dict[str, Any]:
             """Returns all single-key box values in a dict keyed by the key name."""
             return {key: get_value(key) for key in self._app_spec.state.keys.box}
@@ -418,8 +521,8 @@ class _StateAccessor:
         def get_value(name: str) -> ABIValue | None:
             """Returns a single box value for the current app with the value a decoded ABI value.
 
-            Args:
-                name: The name of the box value to retrieve
+            :param name: The name of the box value to retrieve
+            :return: The decoded ABI value from the box storage, or None if not found
             """
             metadata = self._app_spec.state.keys.box[name]
             value = self._algorand.app.get_box_value(self._app_id, base64.b64decode(metadata.key))
@@ -428,10 +531,12 @@ class _StateAccessor:
         def get_map_value(map_name: str, key: bytes | Any) -> Any:  # noqa: ANN401
             """Get a value from a box map.
 
-            Args:
-                map_name: The name of the map to read from
-                key: The key within the map (without any map prefix) as either bytes or a value
-                    that will be converted to bytes by encoding it using the specified ABI key type
+            Retrieves a value from a box map storage using the provided map name and key.
+
+            :param map_name: The name of the map to read from
+            :param key: The key within the map (without any map prefix) as either bytes or a value
+                     that will be converted to bytes by encoding it using the specified ABI key type
+            :return: The decoded value from the box map storage
             """
             metadata = self._app_spec.state.maps.box[map_name]
             prefix = base64.b64decode(metadata.prefix or "")
@@ -443,8 +548,11 @@ class _StateAccessor:
         def get_map(map_name: str) -> dict[str, ABIValue]:
             """Get all key-value pairs from a box map.
 
-            Args:
-                map_name: The name of the map to read from
+            Retrieves all key-value pairs stored in a box map for the current app.
+
+            :param map_name: The name of the map to read from
+            :return: A dictionary mapping string keys to their corresponding ABI-decoded values
+            :raises ValueError: If there is an error decoding any key or value in the map
             """
             metadata = self._app_spec.state.maps.box[map_name]
             prefix = base64.b64decode(metadata.prefix or "")
@@ -568,15 +676,6 @@ class _BareParamsBuilder:
     def _get_bare_params(
         self, params: dict[str, Any] | None, on_complete: algosdk.transaction.OnComplete
     ) -> dict[str, Any]:
-        """Get bare parameters for application calls.
-
-        Args:
-            params: The parameters to process
-            on_complete: The OnComplete value for the transaction
-
-        Returns:
-            The processed parameters with defaults filled in
-        """
         params = params or {}
         sender = self._client._get_sender(params.get("sender"))
         return {
@@ -588,36 +687,66 @@ class _BareParamsBuilder:
         }
 
     def update(self, params: AppClientBareCallWithCompilationAndSendParams | None = None) -> AppUpdateParams:
+        """Create parameters for updating an application.
+
+        :param params: Optional compilation and send parameters, defaults to None
+        :return: Parameters for updating the application
+        """
         call_params: AppUpdateParams = AppUpdateParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.UpdateApplicationOC)
         )
         return call_params
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        """Create parameters for opting into an application.
+
+        :param params: Optional send parameters, defaults to None
+        :return: Parameters for opting into the application
+        """
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.OptInOC)
         )
         return call_params
 
     def delete(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        """Create parameters for deleting an application.
+
+        :param params: Optional send parameters, defaults to None
+        :return: Parameters for deleting the application
+        """
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.DeleteApplicationOC)
         )
         return call_params
 
     def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        """Create parameters for clearing application state.
+
+        :param params: Optional send parameters, defaults to None
+        :return: Parameters for clearing application state
+        """
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.ClearStateOC)
         )
         return call_params
 
     def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> AppCallParams:
+        """Create parameters for closing out of an application.
+
+        :param params: Optional send parameters, defaults to None
+        :return: Parameters for closing out of the application
+        """
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.CloseOutOC)
         )
         return call_params
 
     def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> AppCallParams:
+        """Create parameters for calling an application.
+
+        :param params: Optional call parameters with on complete action, defaults to None
+        :return: Parameters for calling the application
+        """
         call_params: AppCallParams = AppCallParams(
             **self._get_bare_params(params.__dict__ if params else {}, OnComplete.NoOpOC)
         )
@@ -637,6 +766,12 @@ class _MethodParamsBuilder:
         return self._bare_params_accessor
 
     def fund_app_account(self, params: FundAppAccountParams) -> PaymentParams:
+        """Create parameters for funding an application account.
+
+        :param params: Parameters for funding the application account
+        :return: Parameters for sending a payment transaction to fund the application account
+        """
+
         def random_note() -> bytes:
             return base64.b64encode(os.urandom(16))
 
@@ -658,14 +793,29 @@ class _MethodParamsBuilder:
         )
 
     def opt_in(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
+        """Create parameters for opting into an application.
+
+        :param params: Parameters for the opt-in call
+        :return: Parameters for opting into the application
+        """
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.OptInOC)
         return AppCallMethodCallParams(**input_params)
 
     def call(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
+        """Create parameters for calling an application method.
+
+        :param params: Parameters for the method call
+        :return: Parameters for calling the application method
+        """
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.NoOpOC)
         return AppCallMethodCallParams(**input_params)
 
     def delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCallParams:
+        """Create parameters for deleting an application.
+
+        :param params: Parameters for the delete call
+        :return: Parameters for deleting the application
+        """
         input_params = self._get_abi_params(
             params.__dict__, on_complete=algosdk.transaction.OnComplete.DeleteApplicationOC
         )
@@ -674,6 +824,11 @@ class _MethodParamsBuilder:
     def update(
         self, params: AppClientMethodCallParams | AppClientMethodCallWithCompilationAndSendParams
     ) -> AppUpdateMethodCallParams:
+        """Create parameters for updating an application.
+
+        :param params: Parameters for the update call, optionally including compilation parameters
+        :return: Parameters for updating the application
+        """
         compile_params = (
             self._client.compile(
                 app_spec=self._client.app_spec,
@@ -696,6 +851,11 @@ class _MethodParamsBuilder:
         return AppUpdateMethodCallParams(**filtered_input_params)
 
     def close_out(self, params: AppClientMethodCallParams) -> AppCallMethodCallParams:
+        """Create parameters for closing out of an application.
+
+        :param params: Parameters for the close-out call
+        :return: Parameters for closing out of the application
+        """
         input_params = self._get_abi_params(params.__dict__, on_complete=algosdk.transaction.OnComplete.CloseOutOC)
         return AppCallMethodCallParams(**input_params)
 
@@ -724,31 +884,73 @@ class _AppClientBareCallCreateTransactionMethods:
         self._algorand = client._algorand
 
     def update(self, params: AppClientBareCallWithCompilationAndSendParams | None = None) -> Transaction:
+        """Create a transaction to update an application.
+
+        Creates a transaction that will update an existing application with new approval and clear state programs.
+
+        :param params: Parameters for the update call including compilation and transaction options, defaults to None
+        :return: The constructed application update transaction
+        """
         return self._algorand.create_transaction.app_update(
             self._client.params.bare.update(params or AppClientBareCallWithCompilationAndSendParams())
         )
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        """Create a transaction to opt into an application.
+
+        Creates a transaction that will opt the sender account into using this application.
+
+        :param params: Parameters for the opt-in call including transaction options, defaults to None
+        :return: The constructed opt-in transaction
+        """
         return self._algorand.create_transaction.app_call(
             self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
         )
 
     def delete(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        """Create a transaction to delete an application.
+
+        Creates a transaction that will delete this application from the blockchain.
+
+        :param params: Parameters for the delete call including transaction options, defaults to None
+        :return: The constructed delete transaction
+        """
         return self._algorand.create_transaction.app_call(
             self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
         )
 
     def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        """Create a transaction to clear application state.
+
+        Creates a transaction that will clear the sender's local state for this application.
+
+        :param params: Parameters for the clear state call including transaction options, defaults to None
+        :return: The constructed clear state transaction
+        """
         return self._algorand.create_transaction.app_call(
             self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
         )
 
     def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> Transaction:
+        """Create a transaction to close out of an application.
+
+        Creates a transaction that will close out the sender's participation in this application.
+
+        :param params: Parameters for the close out call including transaction options, defaults to None
+        :return: The constructed close out transaction
+        """
         return self._algorand.create_transaction.app_call(
             self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
         )
 
     def call(self, params: AppClientBareCallWithCallOnCompleteParams | None = None) -> Transaction:
+        """Create a transaction to call an application.
+
+        Creates a transaction that will call this application with the specified parameters.
+
+        :param params: Parameters for the application call including on complete action, defaults to None
+        :return: The constructed application call transaction
+        """
         return self._algorand.create_transaction.app_call(
             self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
         )
@@ -767,21 +969,63 @@ class _TransactionCreator:
         return self._bare_create_transaction_methods
 
     def fund_app_account(self, params: FundAppAccountParams) -> Transaction:
+        """Create a transaction to fund an application account.
+
+        Creates a payment transaction to fund the application account with the specified parameters.
+
+        :param params: Parameters for funding the application account including amount and transaction options
+        :return: The constructed payment transaction
+        """
         return self._algorand.create_transaction.payment(self._client.params.fund_app_account(params))
 
     def opt_in(self, params: AppClientMethodCallParams) -> BuiltTransactions:
+        """Create a transaction to opt into an application.
+
+        Creates a transaction that will opt the sender into this application with the specified parameters.
+
+        :param params: Parameters for the opt-in call including method arguments and transaction options
+        :return: The constructed opt-in transaction(s)
+        """
         return self._algorand.create_transaction.app_call_method_call(self._client.params.opt_in(params))
 
     def update(self, params: AppClientMethodCallParams) -> BuiltTransactions:
+        """Create a transaction to update an application.
+
+        Creates a transaction that will update this application with new approval and clear state programs.
+
+        :param params: Parameters for the update call including method arguments and transaction options
+        :return: The constructed update transaction(s)
+        """
         return self._algorand.create_transaction.app_update_method_call(self._client.params.update(params))
 
     def delete(self, params: AppClientMethodCallParams) -> BuiltTransactions:
+        """Create a transaction to delete an application.
+
+        Creates a transaction that will delete this application.
+
+        :param params: Parameters for the delete call including method arguments and transaction options
+        :return: The constructed delete transaction(s)
+        """
         return self._algorand.create_transaction.app_delete_method_call(self._client.params.delete(params))
 
     def close_out(self, params: AppClientMethodCallParams) -> BuiltTransactions:
+        """Create a transaction to close out of an application.
+
+        Creates a transaction that will close out the sender's participation in this application.
+
+        :param params: Parameters for the close out call including method arguments and transaction options
+        :return: The constructed close out transaction(s)
+        """
         return self._algorand.create_transaction.app_call_method_call(self._client.params.close_out(params))
 
     def call(self, params: AppClientMethodCallParams) -> BuiltTransactions:
+        """Create a transaction to call an application.
+
+        Creates a transaction that will call this application with the specified parameters.
+
+        :param params: Parameters for the application call including method arguments and transaction options
+        :return: The constructed application call transaction(s)
+        """
         return self._algorand.create_transaction.app_call_method_call(self._client.params.call(params))
 
 
@@ -798,15 +1042,12 @@ class _AppClientBareSendAccessor:
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application update transaction.
 
-        Args:
-            params: The parameters for the update call
-            compilation: Optional compilation parameters
-            max_rounds_to_wait: The maximum number of rounds to wait for confirmation
-            suppress_log: Whether to suppress log output
-            populate_app_call_resources: Whether to populate app call resources
+        Sends a transaction to update an existing application with new approval and clear state programs.
 
-        Returns:
-            The result of sending the transaction
+        :param params: The parameters for the update call, including optional compilation parameters,
+        deploy time parameters, and transaction configuration
+        :return: The result of sending the transaction, including compilation artifacts and ABI return
+        value if applicable
         """
         params = params or AppClientBareCallWithCompilationAndSendParams()
         compiled = self._client.compile_app(params.deploy_time_params, params.updatable, params.deletable)
@@ -820,6 +1061,13 @@ class _AppClientBareSendAccessor:
         )
 
     def opt_in(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        """Send an application opt-in transaction.
+
+        Creates and sends a transaction that will opt the sender's account into this application.
+
+        :param params: Parameters for the opt-in call including transaction options, defaults to None
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.opt_in(params or AppClientBareCallWithSendParams())
@@ -827,6 +1075,13 @@ class _AppClientBareSendAccessor:
         )
 
     def delete(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        """Send an application delete transaction.
+
+        Creates and sends a transaction that will delete this application.
+
+        :param params: Parameters for the delete call including transaction options, defaults to None
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.delete(params or AppClientBareCallWithSendParams())
@@ -834,6 +1089,13 @@ class _AppClientBareSendAccessor:
         )
 
     def clear_state(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        """Send an application clear state transaction.
+
+        Creates and sends a transaction that will clear the sender's local state for this application.
+
+        :param params: Parameters for the clear state call including transaction options, defaults to None
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.clear_state(params or AppClientBareCallWithSendParams())
@@ -841,6 +1103,13 @@ class _AppClientBareSendAccessor:
         )
 
     def close_out(self, params: AppClientBareCallWithSendParams | None = None) -> SendAppTransactionResult[ABIReturn]:
+        """Send an application close out transaction.
+
+        Creates and sends a transaction that will close out the sender's participation in this application.
+
+        :param params: Parameters for the close out call including transaction options, defaults to None
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.close_out(params or AppClientBareCallWithSendParams())
@@ -850,6 +1119,13 @@ class _AppClientBareSendAccessor:
     def call(
         self, params: AppClientBareCallWithCallOnCompleteParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
+        """Send an application call transaction.
+
+        Creates and sends a transaction that will call this application with the specified parameters.
+
+        :param params: Parameters for the application call including transaction options, defaults to None
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._algorand.send.app_call(
                 self._client.params.bare.call(params or AppClientBareCallWithCallOnCompleteParams())
@@ -867,14 +1143,32 @@ class _TransactionSender:
 
     @property
     def bare(self) -> _AppClientBareSendAccessor:
+        """Get accessor for bare application calls.
+
+        :return: Accessor for making bare application calls without ABI encoding
+        """
         return self._bare_send_accessor
 
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
+        """Send funds to the application account.
+
+        Creates and sends a payment transaction to fund the application account.
+
+        :param params: Parameters for funding the app account including amount and transaction options
+        :return: The result of sending the payment transaction
+        """
         return self._client._handle_call_errors(  # type: ignore[no-any-return]
             lambda: self._algorand.send.payment(self._client.params.fund_app_account(params))
         )
 
     def opt_in(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        """Send an application opt-in transaction.
+
+        Creates and sends a transaction that will opt the sender into this application.
+
+        :param params: Parameters for the opt-in call including method and transaction options
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params)),
@@ -883,6 +1177,13 @@ class _TransactionSender:
         )
 
     def delete(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        """Send an application delete transaction.
+
+        Creates and sends a transaction that will delete this application.
+
+        :param params: Parameters for the delete call including method and transaction options
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params)),
@@ -893,6 +1194,13 @@ class _TransactionSender:
     def update(
         self, params: AppClientMethodCallWithCompilationAndSendParams
     ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType]:
+        """Send an application update transaction.
+
+        Creates and sends a transaction that will update this application's program.
+
+        :param params: Parameters for the update call including method, compilation and transaction options
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         result = self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_update_method_call(self._client.params.update(params)),
@@ -903,6 +1211,13 @@ class _TransactionSender:
         return result
 
     def close_out(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        """Send an application close out transaction.
+
+        Creates and sends a transaction that will close out the sender's participation in this application.
+
+        :param params: Parameters for the close out call including method and transaction options
+        :return: The result of sending the transaction, including ABI return value if applicable
+        """
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params)),
@@ -911,6 +1226,14 @@ class _TransactionSender:
         )
 
     def call(self, params: AppClientMethodCallWithSendParams) -> SendAppTransactionResult[Arc56ReturnValueType]:
+        """Send an application call transaction.
+
+        Creates and sends a transaction that will call this application with the specified parameters.
+        For read-only calls, simulates the transaction instead of sending it.
+
+        :param params: Parameters for the application call including method and transaction options
+        :return: The result of sending or simulating the transaction, including ABI return value if applicable
+        """
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
         ) and self._app_spec.get_arc56_method(params.method).readonly
@@ -968,6 +1291,14 @@ class AppClientParams:
 
 
 class AppClient:
+    """A client for interacting with an Algorand smart contract application.
+
+    Provides a high-level interface for interacting with Algorand smart contracts, including
+    methods for calling application methods, managing state, and handling transactions.
+
+    :param params: Parameters for creating the app client
+    """
+
     def __init__(self, params: AppClientParams) -> None:
         self._app_id = params.app_id
         self._app_spec = self.normalise_app_spec(params.app_spec)
@@ -985,42 +1316,84 @@ class AppClient:
 
     @property
     def algorand(self) -> AlgorandClient:
+        """Get the Algorand client instance.
+
+        :return: The Algorand client used by this app client
+        """
         return self._algorand
 
     @property
     def app_id(self) -> int:
+        """Get the application ID.
+
+        :return: The ID of the Algorand application
+        """
         return self._app_id
 
     @property
     def app_address(self) -> str:
+        """Get the application's Algorand address.
+
+        :return: The Algorand address associated with this application
+        """
         return self._app_address
 
     @property
     def app_name(self) -> str:
+        """Get the application name.
+
+        :return: The name of the application
+        """
         return self._app_name
 
     @property
     def app_spec(self) -> Arc56Contract:
+        """Get the application specification.
+
+        :return: The ARC-56 contract specification for this application
+        """
         return self._app_spec
 
     @property
     def state(self) -> _StateAccessor:
+        """Get the state accessor.
+
+        :return: The state accessor for this application
+        """
         return self._state_accessor
 
     @property
     def params(self) -> _MethodParamsBuilder:
+        """Get the method parameters builder.
+
+        :return: The method parameters builder for this application
+        """
         return self._params_accessor
 
     @property
     def send(self) -> _TransactionSender:
+        """Get the transaction sender.
+
+        :return: The transaction sender for this application
+        """
         return self._send_accessor
 
     @property
     def create_transaction(self) -> _TransactionCreator:
+        """Get the transaction creator.
+
+        :return: The transaction creator for this application
+        """
         return self._create_transaction_accessor
 
     @staticmethod
     def normalise_app_spec(app_spec: Arc56Contract | Arc32Contract | str) -> Arc56Contract:
+        """Normalize an application specification to ARC-56 format.
+
+        :param app_spec: The application specification to normalize
+        :return: The normalized ARC-56 contract specification
+        :raises ValueError: If the app spec format is invalid
+        """
         if isinstance(app_spec, str):
             spec_dict = json.loads(app_spec)
             spec = Arc32Contract.from_json(app_spec) if "hints" in spec_dict else spec_dict
@@ -1047,6 +1420,18 @@ class AppClient:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Create an AppClient instance from network information.
+
+        :param app_spec: The application specification
+        :param algorand: The Algorand client instance
+        :param app_name: Optional application name
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :return: A new AppClient instance
+        :raises Exception: If no app ID is found for the network
+        """
         network = algorand.client.network()
         app_spec = AppClient.normalise_app_spec(app_spec)
         network_names = [network.genesis_hash]
@@ -1092,6 +1477,21 @@ class AppClient:
         ignore_cache: bool | None = None,
         app_lookup_cache: AppLookup | None = None,
     ) -> AppClient:
+        """Create an AppClient instance from creator address and application name.
+
+        :param creator_address: The address of the application creator
+        :param app_name: The name of the application
+        :param app_spec: The application specification
+        :param algorand: The Algorand client instance
+        :param default_sender: Optional default sender address
+        :param default_signer: Optional default transaction signer
+        :param approval_source_map: Optional approval program source map
+        :param clear_source_map: Optional clear program source map
+        :param ignore_cache: Optional flag to ignore cache
+        :param app_lookup_cache: Optional app lookup cache
+        :return: A new AppClient instance
+        :raises ValueError: If the app is not found for the creator and name
+        """
         app_spec_ = AppClient.normalise_app_spec(app_spec)
         app_lookup = app_lookup_cache or algorand.app_deployer.get_creator_apps_by_name(
             creator_address=creator_address, ignore_cache=ignore_cache or False
@@ -1121,6 +1521,17 @@ class AppClient:
         updatable: bool | None = None,
         deletable: bool | None = None,
     ) -> AppClientCompilationResult:
+        """Compile the application's TEAL code.
+
+        :param app_spec: The application specification
+        :param app_manager: The application manager instance
+        :param deploy_time_params: Optional deployment time parameters
+        :param updatable: Optional flag indicating if app is updatable
+        :param deletable: Optional flag indicating if app is deletable
+        :return: The compilation result
+        :raises ValueError: If attempting to compile without source or byte code
+        """
+
         def is_base64(s: str) -> bool:
             try:
                 return base64.b64encode(base64.b64decode(s)).decode() == s
@@ -1183,7 +1594,6 @@ class AppClient:
         approval_source_info: ProgramSourceInfo | None = None,
         clear_source_info: ProgramSourceInfo | None = None,
     ) -> Exception:
-        """Takes an error that may include a logic error and re-exposes it with source info."""
         source_map = clear_source_map if is_clear_state_program else approval_source_map
 
         error_details = parse_logic_error(str(e))
@@ -1265,13 +1675,19 @@ class AppClient:
 
         return e
 
-    # NOTE: No method overloads hence slightly different name, in TS its both instance/static methods named 'compile'
     def compile_app(
         self,
         deploy_time_params: TealTemplateParams | None = None,
         updatable: bool | None = None,
         deletable: bool | None = None,
     ) -> AppClientCompilationResult:
+        """Compile the application's TEAL code.
+
+        :param deploy_time_params: Optional deployment time parameters
+        :param updatable: Optional flag indicating if app is updatable
+        :param deletable: Optional flag indicating if app is deletable
+        :return: The compilation result
+        """
         result = AppClient.compile(self._app_spec, self._algorand.app, deploy_time_params, updatable, deletable)
 
         if result.compiled_approval:
@@ -1289,7 +1705,15 @@ class AppClient:
         approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
         clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
     ) -> AppClient:
-        """Create a cloned AppClient instance with optionally overridden parameters."""
+        """Create a cloned AppClient instance with optionally overridden parameters.
+
+        :param app_name: Optional new application name
+        :param default_sender: Optional new default sender
+        :param default_signer: Optional new default signer
+        :param approval_source_map: Optional new approval source map
+        :param clear_source_map: Optional new clear source map
+        :return: A new AppClient instance with the specified parameters
+        """
         return AppClient(
             AppClientParams(
                 app_id=self._app_id,
@@ -1306,6 +1730,11 @@ class AppClient:
         )
 
     def export_source_maps(self) -> AppSourceMaps:
+        """Export the application's source maps.
+
+        :return: The application's source maps
+        :raises ValueError: If source maps haven't been loaded
+        """
         if not self._approval_source_map or not self._clear_source_map:
             raise ValueError(
                 "Unable to export source maps; they haven't been loaded into this client - "
@@ -1318,6 +1747,11 @@ class AppClient:
         )
 
     def import_source_maps(self, source_maps: AppSourceMaps) -> None:
+        """Import source maps for the application.
+
+        :param source_maps: The source maps to import
+        :raises ValueError: If source maps are invalid or missing
+        """
         if not source_maps.approval_source_map:
             raise ValueError("Approval source map is required")
         if not source_maps.clear_source_map:
@@ -1344,21 +1778,50 @@ class AppClient:
         )
 
     def get_local_state(self, address: str) -> dict[str, AppState]:
+        """Get local state for an account.
+
+        :param address: The account address
+        :return: The account's local state for this application
+        """
         return self._state_accessor.get_local_state(address)
 
     def get_global_state(self) -> dict[str, AppState]:
+        """Get the application's global state.
+
+        :return: The application's global state
+        """
         return self._state_accessor.get_global_state()
 
     def get_box_names(self) -> list[BoxName]:
+        """Get all box names for the application.
+
+        :return: List of box names
+        """
         return self._algorand.app.get_box_names(self._app_id)
 
     def get_box_value(self, name: BoxIdentifier) -> bytes:
+        """Get the value of a box.
+
+        :param name: The box identifier
+        :return: The box value as bytes
+        """
         return self._algorand.app.get_box_value(self._app_id, name)
 
     def get_box_value_from_abi_type(self, name: BoxIdentifier, abi_type: ABIType) -> ABIValue:
+        """Get a box value decoded according to an ABI type.
+
+        :param name: The box identifier
+        :param abi_type: The ABI type to decode as
+        :return: The decoded box value
+        """
         return self._algorand.app.get_box_value_from_abi_type(self._app_id, name, abi_type)
 
     def get_box_values(self, filter_func: Callable[[BoxName], bool] | None = None) -> list[BoxValue]:
+        """Get values for multiple boxes.
+
+        :param filter_func: Optional function to filter box names
+        :return: List of box values
+        """
         names = [n for n in self.get_box_names() if not filter_func or filter_func(n)]
         values = self._algorand.app.get_box_values(self.app_id, [n.name_raw for n in names])
         return [BoxValue(name=n, value=v) for n, v in zip(names, values, strict=False)]
@@ -1366,35 +1829,31 @@ class AppClient:
     def get_box_values_from_abi_type(
         self, abi_type: ABIType, filter_func: Callable[[BoxName], bool] | None = None
     ) -> list[BoxABIValue]:
-        # Get box names and apply filter if provided
+        """Get multiple box values decoded according to an ABI type.
+
+        :param abi_type: The ABI type to decode as
+        :param filter_func: Optional function to filter box names
+        :return: List of decoded box values
+        """
         names = self.get_box_names()
         if filter_func:
             names = [name for name in names if filter_func(name)]
 
-        # Get values for filtered names and decode them
         values = self._algorand.app.get_box_values_from_abi_type(
             self.app_id, [name.name_raw for name in names], abi_type
         )
 
-        # Return list of BoxABIValue objects
         return [BoxABIValue(name=name, value=values[i]) for i, name in enumerate(names)]
 
     def fund_app_account(self, params: FundAppAccountParams) -> SendSingleTransactionResult:
+        """Fund the application's account.
+
+        :param params: The funding parameters
+        :return: The transaction result
+        """
         return self.send.fund_app_account(params)
 
-    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT001, FBT002
-        """Takes an error that may include a logic error from a call to the current app and re-exposes the
-        error to include source code information via the source map and ARC-56 spec.
-
-        Args:
-            e: The error to parse
-            is_clear_state_program: Whether the code was running the clear state program (defaults to approval program)
-
-        Returns:
-            The new error, or if there was no logic error or source map then the wrapped error with source details
-        """
-
-        # Get source info based on program type
+    def _expose_logic_error(self, e: Exception, *, is_clear_state_program: bool = False) -> Exception:
         source_info = None
         if hasattr(self._app_spec, "source_info") and self._app_spec.source_info:
             source_info = (
@@ -1405,7 +1864,6 @@ class AppClient:
 
         program: bytes | None = None
         if pc_offset_method == "cblocks":
-            # TODO: Cache this if we deploy the app and it's not updateable
             app_info = self._algorand.app.get_by_id(self.app_id)
             program = app_info.clear_state_program if is_clear_state_program else app_info.approval_program
 
@@ -1421,7 +1879,6 @@ class AppClient:
         )
 
     def _handle_call_errors(self, call: Callable[[], T]) -> T:
-        """Make the given call and catch any errors, augmenting with debugging information before re-throwing."""
         try:
             return call()
         except Exception as e:
@@ -1438,15 +1895,6 @@ class AppClient:
         return signer or self._default_signer if not sender or sender == self._default_sender else None
 
     def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
-        """Get bare parameters for application calls.
-
-        Args:
-            params: The parameters to process
-            on_complete: The OnComplete value for the transaction
-
-        Returns:
-            The processed parameters with defaults filled in
-        """
         sender = self._get_sender(params.get("sender"))
         return {
             **params,
@@ -1463,28 +1911,13 @@ class AppClient:
         args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
         sender: str,
     ) -> list[Any]:
-        """Get ABI args with default values filled in.
-
-        Args:
-            method_name_or_signature: Method name or ABI signature
-            args: Optional list of argument values
-            sender: Sender address
-
-        Returns:
-            List of argument values with defaults filled in
-
-        Raises:
-            ValueError: If required argument is missing or default value lookup fails
-        """
         method = self._app_spec.get_arc56_method(method_name_or_signature)
         result = []
 
         for i, method_arg in enumerate(method.args):
-            # Get provided arg value if any
             arg_value = args[i] if args and i < len(args) else None
 
             if arg_value is not None:
-                # Convert struct to tuple if needed
                 if method_arg.struct and isinstance(arg_value, dict):
                     arg_value = get_abi_tuple_from_abi_struct(
                         arg_value, self._app_spec.structs[method_arg.struct], self._app_spec.structs
@@ -1492,7 +1925,6 @@ class AppClient:
                 result.append(arg_value)
                 continue
 
-            # Handle default value if arg not provided
             default_value = method_arg.default_value
             if default_value:
                 match default_value.source:
@@ -1502,7 +1934,6 @@ class AppClient:
                         result.append(get_abi_decoded_value(value_raw, value_type, self._app_spec.structs))
 
                     case "method":
-                        # Get method return value
                         default_method = self._app_spec.get_arc56_method(default_value.data)
                         empty_args = [None] * len(default_method.args)
                         call_result = self.send.call(
@@ -1517,7 +1948,6 @@ class AppClient:
                             raise ValueError("Default value method call did not return a value")
 
                         if isinstance(call_result.abi_return, dict):
-                            # Convert struct return value to tuple
                             result.append(
                                 get_abi_tuple_from_abi_struct(
                                     call_result.abi_return,
@@ -1529,7 +1959,6 @@ class AppClient:
                             result.append(call_result.abi_return)
 
                     case "local" | "global":
-                        # Get state value
                         state = (
                             self.get_global_state()
                             if default_value.source == "global"
@@ -1549,14 +1978,12 @@ class AppClient:
                             result.append(value.value)
 
                     case "box":
-                        # Get box value
                         box_name = base64.b64decode(default_value.data)
                         box_value = self._algorand.app.get_box_value(self._app_id, box_name)
                         value_type = default_value.type or method_arg.type
                         result.append(get_abi_decoded_value(box_value, value_type, self._app_spec.structs))
 
             elif not algosdk.abi.is_abi_transaction_type(method_arg.type):
-                # Error if required non-txn arg missing
                 raise ValueError(
                     f"No value provided for required argument "
                     f"{method_arg.name or f'arg{i+1}'} in call to method {method.name}"
