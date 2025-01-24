@@ -106,4 +106,5 @@ class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, De
         max_rounds_to_wait: int | None = None,
         suppress_log: bool = False,
         populate_app_call_resources: bool = False,
+        cover_app_call_inner_txn_fees: bool | None = None,
     ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResponse"]: ...

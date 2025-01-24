@@ -406,7 +406,7 @@ class ClientManager:
         return ClientManager.get_indexer_client(ClientManager.get_indexer_config_from_environment())
 
     @staticmethod
-    def genesis_id_is_localnet(genesis_id: str) -> bool:
+    def genesis_id_is_localnet(genesis_id: str | None) -> bool:
         """Check if a genesis ID indicates a local network.
 
         :param genesis_id: Genesis ID to check

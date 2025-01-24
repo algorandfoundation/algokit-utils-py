@@ -190,6 +190,7 @@ class AlgorandClientTransactionSender:
 
             raw_result = composer.send(
                 populate_app_call_resources=params.populate_app_call_resources,
+                cover_app_call_inner_txn_fees=params.cover_app_call_inner_txn_fees,
                 max_rounds_to_wait=params.max_rounds_to_wait,
                 suppress_log=params.suppress_log,
             )

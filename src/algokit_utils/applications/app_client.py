@@ -218,6 +218,7 @@ class FundAppAccountParams:
     :ivar max_rounds_to_wait: Optional maximum rounds to wait
     :ivar suppress_log: Optional flag to suppress logging
     :ivar populate_app_call_resources: Optional flag to populate app call resources
+    :ivar cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
     :ivar on_complete: Optional on complete action
     """
 
@@ -237,6 +238,7 @@ class FundAppAccountParams:
     max_rounds_to_wait: int | None = None
     suppress_log: bool | None = None
     populate_app_call_resources: bool | None = None
+    cover_app_call_inner_txn_fees: bool | None = None
     on_complete: algosdk.transaction.OnComplete | None = None
 
 
@@ -1892,7 +1894,7 @@ class AppClient:
         return sender or self._default_sender  # type: ignore[return-value]
 
     def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
-        return signer or self._default_signer if not sender or sender == self._default_sender else None
+        return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
     def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))

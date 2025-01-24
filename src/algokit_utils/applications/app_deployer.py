@@ -170,6 +170,7 @@ class AppDeployParams:
     max_rounds_to_wait: int | None = None
     suppress_log: bool = False
     populate_app_call_resources: bool = False
+    cover_app_call_inner_txn_fees: bool | None = None
 
 
 # Union type for all possible deploy results

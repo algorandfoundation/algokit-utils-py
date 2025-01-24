@@ -4,12 +4,14 @@ import base64
 import json
 import math
 import re
+from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypedDict, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import algosdk
 import algosdk.atomic_transaction_composer
 import algosdk.v2client.models
+from algosdk import logic, transaction
 from algosdk.atomic_transaction_composer import (
     AtomicTransactionComposer,
     SimulateAtomicTransactionResponse,
@@ -18,6 +20,7 @@ from algosdk.atomic_transaction_composer import (
 )
 from algosdk.transaction import OnComplete
 from algosdk.v2client.algod import AlgodClient
+from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
 
 from algokit_utils._debugging import simulate_and_persist_response, simulate_response
@@ -25,8 +28,8 @@ from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
 from algokit_utils.config import config
+from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
-from algokit_utils.transactions.utils import encode_lease, populate_app_call_resources
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -37,7 +40,6 @@ if TYPE_CHECKING:
 
     from algokit_utils.applications.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
-    from algokit_utils.models.state import BoxIdentifier, BoxReference
     from algokit_utils.models.transaction import Arc2TransactionNote
 
 
@@ -73,6 +75,10 @@ __all__ = [
 
 
 logger = config.logger
+
+MAX_TRANSACTION_GROUP_SIZE = 16
+MAX_APP_CALL_FOREIGN_REFERENCES = 8
+MAX_APP_CALL_ACCOUNT_REFERENCES = 4
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -499,6 +505,42 @@ TxnParams = Union[  # noqa: UP007
 ]
 
 
+@dataclass(frozen=True, kw_only=True)
+class TransactionContext:
+    """Contextual information for a transaction."""
+
+    max_fee: AlgoAmount | None = None
+    abi_method: Method | None = None
+
+    @staticmethod
+    def empty() -> TransactionContext:
+        return TransactionContext(max_fee=None, abi_method=None)
+
+
+class TransactionWithContext:
+    """Combines Transaction with additional context."""
+
+    def __init__(self, txn: algosdk.transaction.Transaction, context: TransactionContext):
+        self.txn = txn
+        self.context = context
+
+
+class TransactionWithSignerAndContext(TransactionWithSigner):
+    """Combines TransactionWithSigner with additional context."""
+
+    def __init__(self, txn: algosdk.transaction.Transaction, signer: TransactionSigner, context: TransactionContext):
+        super().__init__(txn, signer)
+        self.context = context
+
+    @staticmethod
+    def from_txn_with_context(
+        txn_with_context: TransactionWithContext, signer: TransactionSigner
+    ) -> TransactionWithSignerAndContext:
+        return TransactionWithSignerAndContext(
+            txn=txn_with_context.txn, signer=signer, context=txn_with_context.context
+        )
+
+
 @dataclass(frozen=True)
 class BuiltTransactions:
     """Set of transactions built by TransactionComposer.
@@ -547,6 +589,573 @@ class SendAtomicTransactionComposerResults:
     simulate_response: dict[str, Any] | None = None
 
 
+@dataclass
+class ExecutionInfoTxn:
+    unnamed_resources_accessed: dict | None = None
+    required_fee_delta: int = 0
+
+
+@dataclass
+class ExecutionInfo:
+    """Information about transaction execution from simulation."""
+
+    group_unnamed_resources_accessed: dict[str, Any] | None = None
+    txns: list[ExecutionInfoTxn] | None = None
+
+
+@dataclass
+class _TransactionWithPriority:
+    txn: algosdk.transaction.Transaction
+    priority: int
+    fee_delta: int
+    index: int
+
+
+MAX_LEASE_LENGTH = 32
+NULL_SIGNER: TransactionSigner = algosdk.atomic_transaction_composer.EmptySigner()
+
+
+def _encode_lease(lease: str | bytes | None) -> bytes | None:
+    if lease is None:
+        return None
+    elif isinstance(lease, bytes):
+        if not (1 <= len(lease) <= MAX_LEASE_LENGTH):
+            raise ValueError(
+                f"Received invalid lease; expected something with length between 1 and {MAX_LEASE_LENGTH}, "
+                f"but received bytes with length {len(lease)}"
+            )
+        if len(lease) == MAX_LEASE_LENGTH:
+            return lease
+        lease32 = bytearray(32)
+        lease32[: len(lease)] = lease
+        return bytes(lease32)
+    elif isinstance(lease, str):
+        encoded = lease.encode("utf-8")
+        if not (1 <= len(encoded) <= MAX_LEASE_LENGTH):
+            raise ValueError(
+                f"Received invalid lease; expected something with length between 1 and {MAX_LEASE_LENGTH}, "
+                f"but received '{lease}' with length {len(lease)}"
+            )
+        lease32 = bytearray(MAX_LEASE_LENGTH)
+        lease32[: len(encoded)] = encoded
+        return bytes(lease32)
+    else:
+        raise TypeError(f"Unknown lease type received of {type(lease)}")
+
+
+def _get_group_execution_info(  # noqa: C901, PLR0912
+    atc: AtomicTransactionComposer,
+    algod: AlgodClient,
+    populate_app_call_resources: bool | None = None,
+    cover_app_call_inner_txn_fees: bool | None = None,
+    max_fees: dict[int, AlgoAmount] | None = None,
+    suggested_params: algosdk.transaction.SuggestedParams | None = None,
+) -> ExecutionInfo:
+    # Create simulation request
+    simulate_request = SimulateRequest(
+        txn_groups=[],
+        allow_unnamed_resources=True,
+        allow_empty_signatures=True,
+    )
+
+    # Clone ATC with null signers
+    empty_signer_atc = atc.clone()
+
+    # Track app call indexes without max fees
+    app_call_indexes_without_max_fees = []
+
+    # Copy transactions with null signers
+    for i, txn in enumerate(empty_signer_atc.txn_list):
+        txn_with_signer = TransactionWithSigner(txn=txn.txn, signer=NULL_SIGNER)
+
+        if cover_app_call_inner_txn_fees and isinstance(txn.txn, algosdk.transaction.ApplicationCallTxn):
+            if not suggested_params:
+                raise ValueError("suggested_params required when cover_app_call_inner_txn_fees enabled")
+
+            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+            if max_fee is None:
+                app_call_indexes_without_max_fees.append(i)
+            else:
+                txn_with_signer.txn.fee = max_fee
+
+    if cover_app_call_inner_txn_fees and app_call_indexes_without_max_fees:
+        raise ValueError(
+            f"Please provide a `max_fee` for each app call transaction when `cover_app_call_inner_txn_fees` is enabled. "  # noqa: E501
+            f"Required for transactions: {', '.join(str(i) for i in app_call_indexes_without_max_fees)}"
+        )
+
+    # Get fee parameters
+    per_byte_txn_fee = suggested_params.fee if suggested_params else 0
+    min_txn_fee = int(suggested_params.min_fee) if suggested_params else 1000
+
+    # Simulate transactions
+    result = empty_signer_atc.simulate(algod, simulate_request)
+
+    group_response = result.simulate_response["txn-groups"][0]
+
+    if group_response.get("failure-message"):
+        msg = group_response["failure-message"]
+        if cover_app_call_inner_txn_fees and "fee too small" in msg:
+            raise ValueError(
+                "Fees were too small to resolve execution info via simulate. "
+                "You may need to increase an app call transaction maxFee."
+            )
+        failed_at = group_response.get("failed-at", [0])[0]
+        raise ValueError(
+            f"Error during resource population simulation in transaction {failed_at}: "
+            f"{group_response['failure-message']}"
+        )
+
+    # Build execution info
+    txn_results = []
+    for i, txn_result_raw in enumerate(group_response["txn-results"]):
+        txn_result = txn_result_raw.get("txn-result")
+        if not txn_result:
+            continue
+
+        original_txn = atc.build_group()[i].txn
+
+        required_fee_delta = 0
+        if cover_app_call_inner_txn_fees:
+            # Calculate parent transaction fee
+            parent_per_byte_fee = per_byte_txn_fee * (original_txn.estimate_size() + 75)
+            parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
+            parent_fee_delta = parent_min_fee - original_txn.fee
+
+            if isinstance(original_txn, algosdk.transaction.ApplicationCallTxn):
+                # Calculate inner transaction fees recursively
+                def calculate_inner_fee_delta(inner_txns: list[dict], acc: int = 0) -> int:
+                    for inner_txn in reversed(inner_txns):
+                        current_fee_delta = (
+                            calculate_inner_fee_delta(inner_txn["inner-txns"], acc)
+                            if inner_txn.get("inner-txns")
+                            else acc
+                        ) + (min_txn_fee - inner_txn["txn"]["txn"].get("fee", 0))
+                        acc = max(0, current_fee_delta)
+                    return acc
+
+                inner_fee_delta = calculate_inner_fee_delta(txn_result.get("inner-txns", []))
+                required_fee_delta = inner_fee_delta + parent_fee_delta
+            else:
+                required_fee_delta = parent_fee_delta
+
+        txn_results.append(
+            ExecutionInfoTxn(
+                unnamed_resources_accessed=txn_result_raw.get("unnamed-resources-accessed")
+                if populate_app_call_resources
+                else None,
+                required_fee_delta=required_fee_delta,
+            )
+        )
+
+    return ExecutionInfo(
+        group_unnamed_resources_accessed=group_response.get("unnamed-resources-accessed")
+        if populate_app_call_resources
+        else None,
+        txns=txn_results,
+    )
+
+
+def _find_available_transaction_index(
+    txns: list[TransactionWithSigner], reference_type: str, reference: str | dict[str, Any] | int
+) -> int:
+    """Find index of first transaction that can accommodate the new reference."""
+
+    def check_transaction(txn: TransactionWithSigner) -> bool:
+        # Skip if not an application call transaction
+        if txn.txn.type != "appl":
+            return False
+
+        # Get current counts (using get() with default 0 for Pythonic null handling)
+        accounts = len(getattr(txn.txn, "accounts", []) or [])
+        assets = len(getattr(txn.txn, "foreign_assets", []) or [])
+        apps = len(getattr(txn.txn, "foreign_apps", []) or [])
+        boxes = len(getattr(txn.txn, "boxes", []) or [])
+
+        # For account references, only check account limit
+        if reference_type == "account":
+            return accounts < MAX_APP_CALL_ACCOUNT_REFERENCES
+
+        # For asset holdings or local state, need space for both account and other reference
+        if reference_type in ("asset_holding", "app_local"):
+            return (
+                accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES - 1
+                and accounts < MAX_APP_CALL_ACCOUNT_REFERENCES
+            )
+
+        # For boxes with non-zero app ID, need space for box and app reference
+        if reference_type == "box" and reference and int(getattr(reference, "app", 0)) != 0:
+            return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES - 1
+
+        # Default case - just check total references
+        return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES
+
+    # Return first matching index or -1 if none found
+    return next((i for i, txn in enumerate(txns) if check_transaction(txn)), -1)
+
+
+def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:
+    """Populate application call resources based on simulation results.
+
+    :param atc: The AtomicTransactionComposer containing transactions
+    :param algod: Algod client for simulation
+    :return: Modified AtomicTransactionComposer with populated resources
+    """
+    return prepare_group_for_sending(atc, algod, populate_app_call_resources=True)
+
+
+def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
+    atc: AtomicTransactionComposer,
+    algod: AlgodClient,
+    populate_app_call_resources: bool | None = None,
+    cover_app_call_inner_txn_fees: bool | None = None,
+    max_fees: dict[int, AlgoAmount] | None = None,
+    suggested_params: algosdk.transaction.SuggestedParams | None = None,
+) -> AtomicTransactionComposer:
+    """Prepare a transaction group for sending by handling execution info and resources.
+
+    :param atc: The AtomicTransactionComposer containing transactions
+    :param algod: Algod client for simulation
+    :param populate_app_call_resources: Whether to populate app call resources
+    :param cover_app_call_inner_txn_fees: Whether to cover inner txn fees
+    :param max_fees: Max fees allowed per transaction index
+    :param suggested_params: Suggested transaction parameters
+    :return: Modified AtomicTransactionComposer ready for sending
+    """
+    # Get execution info via simulation
+    execution_info = _get_group_execution_info(
+        atc, algod, populate_app_call_resources, cover_app_call_inner_txn_fees, max_fees, suggested_params
+    )
+
+    group = atc.build_group()
+
+    # Handle transaction fees if needed
+    if cover_app_call_inner_txn_fees:
+        # Sort transactions by fee priority
+        txns_with_priority: list[_TransactionWithPriority] = []
+        for i, txn_info in enumerate(execution_info.txns or []):
+            if not txn_info:
+                continue
+            txn = group[i].txn
+            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+            immutable_fee = max_fee is not None and max_fee == txn.fee
+            priority_multiplier = (
+                1000
+                if (
+                    txn_info.required_fee_delta > 0
+                    and (immutable_fee or not isinstance(txn, algosdk.transaction.ApplicationCallTxn))
+                )
+                else 1
+            )
+
+            txns_with_priority.append(
+                _TransactionWithPriority(
+                    txn=txn,
+                    index=i,
+                    fee_delta=txn_info.required_fee_delta,
+                    priority=txn_info.required_fee_delta * priority_multiplier
+                    if txn_info.required_fee_delta > 0
+                    else -1,
+                )
+            )
+
+        # Sort by priority descending
+        txns_with_priority.sort(key=lambda x: x.priority, reverse=True)
+
+        # Calculate surplus fees and additional fees needed
+        surplus_fees = sum(
+            txn_info.required_fee_delta * -1
+            for txn_info in execution_info.txns or []
+            if txn_info is not None and txn_info.required_fee_delta < 0
+        )
+
+        additional_fees = {}
+
+        # Distribute surplus fees to cover deficits
+        for txn_obj in txns_with_priority:
+            if txn_obj.fee_delta > 0:
+                if surplus_fees >= txn_obj.fee_delta:
+                    surplus_fees -= txn_obj.fee_delta
+                else:
+                    additional_fees[txn_obj.index] = txn_obj.fee_delta - surplus_fees
+                    surplus_fees = 0
+
+    def populate_group_resource(  # noqa: PLR0915, PLR0912, C901
+        txns: list[TransactionWithSigner], reference: str | dict[str, Any] | int, ref_type: str
+    ) -> None:
+        """Helper function to populate group-level resources."""
+
+        def is_appl_below_limit(t: TransactionWithSigner) -> bool:
+            if not isinstance(t.txn, transaction.ApplicationCallTxn):
+                return False
+
+            accounts = len(getattr(t.txn, "accounts", []) or [])
+            assets = len(getattr(t.txn, "foreign_assets", []) or [])
+            apps = len(getattr(t.txn, "foreign_apps", []) or [])
+            boxes = len(getattr(t.txn, "boxes", []) or [])
+
+            return accounts + assets + apps + boxes < MAX_APP_CALL_FOREIGN_REFERENCES
+
+        # Handle asset holding and app local references first
+        if ref_type in ("assetHolding", "appLocal"):
+            ref_dict = cast(dict[str, Any], reference)
+            account = ref_dict["account"]
+
+            # First try to find transaction with account already available
+            txn_idx = next(
+                (
+                    i
+                    for i, t in enumerate(txns)
+                    if is_appl_below_limit(t)
+                    and isinstance(t.txn, transaction.ApplicationCallTxn)
+                    and (
+                        account in (getattr(t.txn, "accounts", []) or [])
+                        or account
+                        in (
+                            logic.get_application_address(app_id)
+                            for app_id in (getattr(t.txn, "foreign_apps", []) or [])
+                        )
+                        or any(str(account) in str(v) for v in t.txn.__dict__.values())
+                    )
+                ),
+                -1,
+            )
+
+            if txn_idx >= 0:
+                app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+                if ref_type == "assetHolding":
+                    asset_id = ref_dict["asset"]
+                    app_txn.foreign_assets = [*list(getattr(app_txn, "foreign_assets", []) or []), asset_id]
+                else:
+                    app_id = ref_dict["app"]
+                    app_txn.foreign_apps = [*list(getattr(app_txn, "foreign_apps", []) or []), app_id]
+                return
+
+            # Try to find transaction that already has the app/asset available
+            txn_idx = next(
+                (
+                    i
+                    for i, t in enumerate(txns)
+                    if is_appl_below_limit(t)
+                    and isinstance(t.txn, transaction.ApplicationCallTxn)
+                    and len(getattr(t.txn, "accounts", []) or []) < MAX_APP_CALL_ACCOUNT_REFERENCES
+                    and (
+                        (
+                            ref_type == "assetHolding"
+                            and ref_dict["asset"] in (getattr(t.txn, "foreign_assets", []) or [])
+                        )
+                        or (
+                            ref_type == "appLocal"
+                            and (
+                                ref_dict["app"] in (getattr(t.txn, "foreign_apps", []) or [])
+                                or t.txn.index == ref_dict["app"]
+                            )
+                        )
+                    )
+                ),
+                -1,
+            )
+
+            if txn_idx >= 0:
+                app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+                accounts = list(getattr(app_txn, "accounts", []) or [])
+                accounts.append(account)
+                app_txn.accounts = accounts
+                return
+
+        # Handle box references
+        if ref_type == "box":
+            box_ref = (reference["app"], base64.b64decode(reference["name"]))  # type: ignore[index]
+
+            # Try to find transaction that already has the app available
+            txn_idx = next(
+                (
+                    i
+                    for i, t in enumerate(txns)
+                    if is_appl_below_limit(t)
+                    and isinstance(t.txn, transaction.ApplicationCallTxn)
+                    and (box_ref[0] in (getattr(t.txn, "foreign_apps", []) or []) or t.txn.index == box_ref[0])
+                ),
+                -1,
+            )
+
+            if txn_idx >= 0:
+                app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+                boxes = list(getattr(app_txn, "boxes", []) or [])
+                boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))  # type: ignore[arg-type]
+                app_txn.boxes = boxes
+                return
+
+        # Find available transaction for the resource
+        txn_idx = _find_available_transaction_index(txns, ref_type, reference)
+
+        if txn_idx == -1:
+            raise ValueError("No more transactions below reference limit. Add another app call to the group.")
+
+        app_txn = cast(transaction.ApplicationCallTxn, txns[txn_idx].txn)
+
+        if ref_type == "account":
+            accounts = list(getattr(app_txn, "accounts", []) or [])
+            accounts.append(cast(str, reference))
+            app_txn.accounts = accounts
+        elif ref_type == "app":
+            app_id = int(cast(str | int, reference))
+            foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
+            foreign_apps.append(app_id)
+            app_txn.foreign_apps = foreign_apps
+        elif ref_type == "box":
+            boxes = list(getattr(app_txn, "boxes", []) or [])
+            boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))  # type: ignore[arg-type]
+            app_txn.boxes = boxes
+            if box_ref[0] != 0:
+                foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
+                foreign_apps.append(box_ref[0])
+                app_txn.foreign_apps = foreign_apps
+        elif ref_type == "asset":
+            asset_id = int(cast(str | int, reference))
+            foreign_assets = list(getattr(app_txn, "foreign_assets", []) or [])
+            foreign_assets.append(asset_id)
+            app_txn.foreign_assets = foreign_assets
+        elif ref_type == "assetHolding":
+            ref_dict = cast(dict[str, Any], reference)
+            foreign_assets = list(getattr(app_txn, "foreign_assets", []) or [])
+            foreign_assets.append(ref_dict["asset"])
+            app_txn.foreign_assets = foreign_assets
+            accounts = list(getattr(app_txn, "accounts", []) or [])
+            accounts.append(ref_dict["account"])
+            app_txn.accounts = accounts
+        elif ref_type == "appLocal":
+            ref_dict = cast(dict[str, Any], reference)
+            foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
+            foreign_apps.append(ref_dict["app"])
+            app_txn.foreign_apps = foreign_apps
+            accounts = list(getattr(app_txn, "accounts", []) or [])
+            accounts.append(ref_dict["account"])
+            app_txn.accounts = accounts
+
+    # Process transaction-level resources
+    for i, txn_info in enumerate(execution_info.txns or []):
+        if not txn_info:
+            continue
+
+        # Validate no unexpected resources
+        is_app_txn = isinstance(group[i].txn, algosdk.transaction.ApplicationCallTxn)
+        resources = txn_info.unnamed_resources_accessed
+        if resources and is_app_txn:
+            app_txn = group[i].txn
+            if resources.get("boxes") or resources.get("extra-box-refs"):
+                raise ValueError("Unexpected boxes at transaction level")
+            if resources.get("appLocals"):
+                raise ValueError("Unexpected app local at transaction level")
+            if resources.get("assetHoldings"):
+                raise ValueError("Unexpected asset holding at transaction level")
+
+            # Update application call fields
+            accounts = list(getattr(app_txn, "accounts", []) or [])
+            foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
+            foreign_assets = list(getattr(app_txn, "foreign_assets", []) or [])
+            boxes = list(getattr(app_txn, "boxes", []) or [])
+
+            # Add new resources
+            accounts.extend(resources.get("accounts", []))
+            foreign_apps.extend(resources.get("apps", []))
+            foreign_assets.extend(resources.get("assets", []))
+            boxes.extend(resources.get("boxes", []))
+
+            # Validate limits
+            if len(accounts) > MAX_APP_CALL_ACCOUNT_REFERENCES:
+                raise ValueError(
+                    f"Account reference limit of {MAX_APP_CALL_ACCOUNT_REFERENCES} exceeded in transaction {i}"
+                )
+
+            total_refs = len(accounts) + len(foreign_assets) + len(foreign_apps) + len(boxes)
+            if total_refs > MAX_APP_CALL_FOREIGN_REFERENCES:
+                raise ValueError(
+                    f"Resource reference limit of {MAX_APP_CALL_FOREIGN_REFERENCES} exceeded in transaction {i}"
+                )
+
+            # Update transaction
+            app_txn.accounts = accounts  # type: ignore[attr-defined]
+            app_txn.foreign_apps = foreign_apps  # type: ignore[attr-defined]
+            app_txn.foreign_assets = foreign_assets  # type: ignore[attr-defined]
+            app_txn.boxes = boxes  # type: ignore[attr-defined]
+
+        # Update fees if needed
+        if cover_app_call_inner_txn_fees and i in additional_fees:
+            cur_txn = group[i].txn
+            additional_fee = additional_fees[i]
+            if not isinstance(cur_txn, algosdk.transaction.ApplicationCallTxn):
+                raise ValueError(
+                    f"An additional fee of {additional_fee} µALGO is required for non app call transaction {i}"
+                )
+
+            transaction_fee = cur_txn.fee + additional_fee
+            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+
+            if max_fee is None or transaction_fee > max_fee:
+                raise ValueError(
+                    f"Calculated transaction fee {transaction_fee} µALGO is greater "
+                    f"than max of {max_fee or 'undefined'} "
+                    f"for transaction {i}"
+                )
+            cur_txn.fee = transaction_fee
+
+    # Process group-level resources
+    group_resources = execution_info.group_unnamed_resources_accessed
+    if group_resources:
+        # Handle cross-reference resources first
+        for app_local in group_resources.get("appLocals", []):
+            populate_group_resource(group, app_local, "appLocal")
+            # Remove processed resources
+            if "accounts" in group_resources:
+                group_resources["accounts"] = [
+                    acc for acc in group_resources["accounts"] if acc != app_local["account"]
+                ]
+            if "apps" in group_resources:
+                group_resources["apps"] = [app for app in group_resources["apps"] if int(app) != int(app_local["app"])]
+
+        for asset_holding in group_resources.get("assetHoldings", []):
+            populate_group_resource(group, asset_holding, "assetHolding")
+            # Remove processed resources
+            if "accounts" in group_resources:
+                group_resources["accounts"] = [
+                    acc for acc in group_resources["accounts"] if acc != asset_holding["account"]
+                ]
+            if "assets" in group_resources:
+                group_resources["assets"] = [
+                    asset for asset in group_resources["assets"] if int(asset) != int(asset_holding["asset"])
+                ]
+
+        # Handle remaining resources
+        for account in group_resources.get("accounts", []):
+            populate_group_resource(group, account, "account")
+
+        for box in group_resources.get("boxes", []):
+            populate_group_resource(group, box, "box")
+            if "apps" in group_resources:
+                group_resources["apps"] = [app for app in group_resources["apps"] if int(app) != int(box["app"])]
+
+        for asset in group_resources.get("assets", []):
+            populate_group_resource(group, asset, "asset")
+
+        for app in group_resources.get("apps", []):
+            populate_group_resource(group, app, "app")
+
+        # Handle extra box references
+        extra_box_refs = group_resources.get("extra-box-refs", 0)
+        for _ in range(extra_box_refs):
+            populate_group_resource(group, {"app": 0, "name": ""}, "box")
+
+    # Create new ATC with updated transactions
+    new_atc = AtomicTransactionComposer()
+    for txn_with_signer in group:
+        txn_with_signer.txn.group = None
+        new_atc.add_transaction(txn_with_signer)
+    new_atc.method_dict = deepcopy(atc.method_dict)
+
+    return new_atc
+
+
 def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
@@ -554,7 +1163,10 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     max_rounds_to_wait: int | None = 5,
     skip_waiting: bool = False,
     suppress_log: bool | None = None,
-    populate_resources: bool | None = None,
+    populate_app_call_resources: bool | None = None,
+    cover_app_call_inner_txn_fees: bool | None = None,
+    max_fees: dict[int, AlgoAmount] | None = None,
+    suggested_params: algosdk.transaction.SuggestedParams | None = None,
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group.
 
@@ -565,7 +1177,10 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     :param max_rounds_to_wait: Maximum number of rounds to wait for confirmation, defaults to 5
     :param skip_waiting: If True, don't wait for transaction confirmation, defaults to False
     :param suppress_log: If True, suppress logging, defaults to None
-    :param populate_resources: If True, populate app call resources, defaults to None
+    :param populate_app_call_resources: If True, populate app call resources, defaults to None
+    :param cover_app_call_inner_txn_fees: If True, cover app call inner transaction fees, defaults to None
+    :param max_fees: Optional max fees for each transaction, defaults to None
+    :param suggested_params: Optional suggested params for each transaction, defaults to None
     :return: Results from sending the transaction group
     :raises Exception: If there is an error sending the transactions
     :raises error: If there is an error from the Algorand node
@@ -575,12 +1190,23 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Build transactions
         transactions_with_signer = atc.build_group()
 
-        if populate_resources or (
-            populate_resources is None
-            and config.populate_app_call_resource
-            and any(isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer)
+        populate_app_call_resources = (
+            populate_app_call_resources
+            if populate_app_call_resources is not None
+            else config.populate_app_call_resource
+        )
+
+        if (populate_app_call_resources or cover_app_call_inner_txn_fees) and any(
+            isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer
         ):
-            atc = populate_app_call_resources(atc, algod)
+            atc = prepare_group_for_sending(
+                atc,
+                algod,
+                populate_app_call_resources,
+                cover_app_call_inner_txn_fees,
+                max_fees,
+                suggested_params,
+            )
 
         transactions_to_send = [t.txn for t in transactions_with_signer]
 
@@ -592,8 +1218,14 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             )
 
             if not suppress_log:
-                logger.info(f"Sending group of {len(transactions_to_send)} transactions ({group_id})")
-                logger.debug(f"Transaction IDs ({group_id}): {[t.get_txid() for t in transactions_to_send]}")
+                logger.info(
+                    f"Sending group of {len(transactions_to_send)} transactions ({group_id})",
+                    suppress_log=suppress_log or False,
+                )
+                logger.debug(
+                    f"Transaction IDs ({group_id}): {[t.get_txid() for t in transactions_to_send]}",
+                    suppress_log=suppress_log or False,
+                )
 
         # Simulate if debug enabled
         if config.debug and config.trace_all and config.project_root:
@@ -610,9 +1242,15 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Log results
         if not suppress_log:
             if len(transactions_to_send) > 1:
-                logger.info(f"Group transaction ({group_id}) sent with {len(transactions_to_send)} transactions")
+                logger.info(
+                    f"Group transaction ({group_id}) sent with {len(transactions_to_send)} transactions",
+                    suppress_log=suppress_log or False,
+                )
             else:
-                logger.info(f"Sent transaction ID {transactions_to_send[0].get_txid()}")
+                logger.info(
+                    f"Sent transaction ID {transactions_to_send[0].get_txid()}",
+                    suppress_log=suppress_log or False,
+                )
 
         # Get confirmations if not skipping
         confirmations = None
@@ -633,7 +1271,8 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         if config.debug:
             logger.error(
                 "Received error executing Atomic Transaction Composer and debug flag enabled; "
-                "attempting simulation to get more information"
+                "attempting simulation to get more information",
+                suppress_log=suppress_log or False,
             )
 
             simulate = None
@@ -665,7 +1304,10 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             error.traces = traces  # type: ignore[attr-defined]
             raise error from e
 
-        logger.error("Received error executing Atomic Transaction Composer, for more information enable the debug flag")
+        logger.error(
+            "Received error executing Atomic Transaction Composer, for more information enable the debug flag",
+            suppress_log=suppress_log or False,
+        )
         raise e
 
 
@@ -675,8 +1317,6 @@ class TransactionComposer:
     Provides a high-level interface for building and executing transaction groups using the Algosdk library.
     Supports various transaction types including payments, asset operations, application calls, and key registrations.
 
-    :cvar _NULL_SIGNER: A constant TransactionSigner representing an empty signer
-    :vartype _NULL_SIGNER: TransactionSigner
     :param algod: An instance of AlgodClient used to get suggested params and send transactions
     :param get_signer: A function that takes an address and returns a TransactionSigner for that address
     :param get_suggested_params: Optional function to get suggested transaction parameters,
@@ -684,8 +1324,6 @@ class TransactionComposer:
     :param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
     :param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
     """
-
-    _NULL_SIGNER: TransactionSigner = algosdk.atomic_transaction_composer.EmptySigner()
 
     def __init__(
         self,
@@ -695,7 +1333,9 @@ class TransactionComposer:
         default_validity_window: int | None = None,
         app_manager: AppManager | None = None,
     ):
-        self._txn_method_map: dict[str, algosdk.abi.Method] = {}
+        # Map of transaction index in the atc to a max logical fee.
+        # This is set using the value of either maxFee or staticFee.
+        self._txn_max_fees: dict[int, AlgoAmount] = {}
         self._txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
         self._atc: AtomicTransactionComposer = AtomicTransactionComposer()
         self._algod: AlgodClient = algod
@@ -703,6 +1343,7 @@ class TransactionComposer:
         self._get_suggested_params = get_suggested_params or self._default_get_send_params
         self._get_signer: Callable[[str], TransactionSigner] = get_signer
         self._default_validity_window: int = default_validity_window or 10
+        self._default_validity_window_is_explicit: bool = default_validity_window is not None
         self._app_manager = app_manager or AppManager(algod)
 
     def add_transaction(
@@ -902,16 +1543,17 @@ class TransactionComposer:
         """
         if self._atc.get_status() == algosdk.atomic_transaction_composer.AtomicTransactionComposerStatus.BUILDING:
             suggested_params = self._get_suggested_params()
-            txn_with_signers: list[TransactionWithSigner] = []
+            txn_with_signers: list[TransactionWithSignerAndContext] = []
 
             for txn in self._txns:
                 txn_with_signers.extend(self._build_txn(txn, suggested_params))
 
             for ts in txn_with_signers:
                 self._atc.add_transaction(ts)
-                method = self._txn_method_map.get(ts.txn.get_txid())
-                if method:
-                    self._atc.method_dict[len(self._atc.txn_list) - 1] = method
+                if ts.context.abi_method:
+                    self._atc.method_dict[len(self._atc.txn_list) - 1] = ts.context.abi_method
+                if ts.context.max_fee:
+                    self._txn_max_fees[len(self._atc.txn_list) - 1] = ts.context.max_fee
 
         return TransactionComposerBuildResult(
             atc=self._atc,
@@ -950,11 +1592,10 @@ class TransactionComposer:
 
             for ts in txn_with_signers:
                 transactions.append(ts.txn)
-                if ts.signer and ts.signer != self._NULL_SIGNER:
+                if ts.signer and ts.signer != NULL_SIGNER:
                     signers[idx] = ts.signer
-                method = self._txn_method_map.get(ts.txn.get_txid())
-                if method:
-                    method_calls[idx] = method
+                if isinstance(ts, TransactionWithSignerAndContext) and ts.context.abi_method:
+                    method_calls[idx] = ts.context.abi_method
                 idx += 1
 
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
@@ -975,21 +1616,24 @@ class TransactionComposer:
         max_rounds_to_wait: int | None = None,
         suppress_log: bool | None = None,
         populate_app_call_resources: bool | None = None,
+        cover_app_call_inner_txn_fees: bool | None = None,
     ) -> SendAtomicTransactionComposerResults:
         """Send the transaction group to the network.
 
         :param max_rounds_to_wait: Maximum number of rounds to wait for confirmation
         :param suppress_log: Whether to suppress transaction logging
         :param populate_app_call_resources: Whether to populate app call resources
+        :param cover_app_call_inner_txn_fees: Whether to cover inner transaction fees for app calls
         :return: The transaction send results
         :raises Exception: If the transaction fails
         """
         group = self.build().transactions
-
         wait_rounds = max_rounds_to_wait
+        sp = self._get_suggested_params() if not wait_rounds or cover_app_call_inner_txn_fees else None
         if wait_rounds is None:
             last_round = max(txn.txn.last_valid_round for txn in group)
-            first_round = self._get_suggested_params().first
+            assert sp is not None
+            first_round = sp.first
             wait_rounds = last_round - first_round + 1
 
         try:
@@ -997,8 +1641,11 @@ class TransactionComposer:
                 self._atc,
                 self._algod,
                 max_rounds_to_wait=wait_rounds,
+                max_fees=self._txn_max_fees,
                 suppress_log=suppress_log,
-                populate_resources=populate_app_call_resources,
+                populate_app_call_resources=populate_app_call_resources,
+                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+                suggested_params=sp,
             )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
@@ -1043,7 +1690,7 @@ class TransactionComposer:
             allow_empty_signatures = True
             transactions = self.build_transactions()
             for txn in transactions.transactions:
-                atc.add_transaction(TransactionWithSigner(txn=txn, signer=TransactionComposer._NULL_SIGNER))
+                atc.add_transaction(TransactionWithSigner(txn=txn, signer=NULL_SIGNER))
             atc.method_dict = transactions.method_calls
         else:
             self.build()
@@ -1125,35 +1772,67 @@ class TransactionComposer:
         arc2_payload = f"{note['dapp_name']}:{note['format']}{data}"
         return arc2_payload.encode("utf-8")
 
-    def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSigner]:
+    def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSignerAndContext]:
         group = atc.build_group()
 
-        for ts in group:
+        txn_with_signers = []
+        for idx, ts in enumerate(group):
             ts.txn.group = None
+            if atc.method_dict.get(idx):
+                txn_with_signers.append(
+                    TransactionWithSignerAndContext(
+                        txn=ts.txn,
+                        signer=ts.signer,
+                        context=TransactionContext(abi_method=atc.method_dict.get(idx)),
+                    )
+                )
+            else:
+                txn_with_signers.append(
+                    TransactionWithSignerAndContext(
+                        txn=ts.txn,
+                        signer=ts.signer,
+                        context=TransactionContext(abi_method=None),
+                    )
+                )
 
-        method = atc.method_dict.get(len(group) - 1)
-        if method:
-            self._txn_method_map[group[-1].txn.get_txid()] = method
+        return txn_with_signers
 
-        return group
-
-    def _common_txn_build_step(
+    def _common_txn_build_step(  # noqa: C901
         self,
         build_txn: Callable[[dict], algosdk.transaction.Transaction],
         params: _CommonTxnWithSendParams,
         txn_params: dict,
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         # Clone suggested params
         txn_params["sp"] = (
             algosdk.transaction.SuggestedParams(**txn_params["sp"].__dict__) if "sp" in txn_params else None
         )
 
         if params.lease:
-            txn_params["lease"] = encode_lease(params.lease)
+            txn_params["lease"] = _encode_lease(params.lease)
         if params.rekey_to:
             txn_params["rekey_to"] = params.rekey_to
         if params.note:
             txn_params["note"] = params.note
+
+        if txn_params["sp"]:
+            if params.first_valid_round:
+                txn_params["sp"].first = params.first_valid_round
+
+            if params.last_valid_round:
+                txn_params["sp"].last = params.last_valid_round
+            else:
+                # If the validity window isn't set in this transaction or by default and we are pointing at
+                #  LocalNet set a bigger window to avoid dead transactions
+                from algokit_utils.clients import ClientManager
+
+                is_localnet = ClientManager.genesis_id_is_localnet(txn_params["sp"].gen)
+                window = params.validity_window or (
+                    1000
+                    if is_localnet and not self._default_validity_window_is_explicit
+                    else self._default_validity_window
+                )
+                txn_params["sp"].last = txn_params["sp"].first + window
 
         if params.static_fee is not None and txn_params["sp"]:
             txn_params["sp"].fee = params.static_fee.micro_algos
@@ -1169,17 +1848,24 @@ class TransactionComposer:
 
         if params.max_fee and txn.fee > params.max_fee.micro_algos:
             raise ValueError(f"Transaction fee {txn.fee} is greater than max_fee {params.max_fee}")
+        use_max_fee = params.max_fee and params.max_fee.micro_algo > (
+            params.static_fee.micro_algo if params.static_fee else 0
+        )
+        logical_max_fee = params.max_fee if use_max_fee else params.static_fee
 
-        return txn
+        return TransactionWithContext(
+            txn=txn,
+            context=TransactionContext(max_fee=logical_max_fee),
+        )
 
-    def _build_method_call(  # noqa: C901, PLR0912
+    def _build_method_call(  # noqa: C901, PLR0912, PLR0915
         self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> list[TransactionWithSigner]:
+    ) -> list[TransactionWithSignerAndContext]:
         method_args: list[ABIValue | TransactionWithSigner] = []
-        arg_offset = 0
+        txns_for_group: list[TransactionWithSignerAndContext] = []
 
         if params.args:
-            for _, arg in enumerate(params.args):
+            for _, arg in enumerate(reversed(params.args)):
                 if self._is_abi_value(arg):
                     method_args.append(arg)
                     continue
@@ -1191,7 +1877,11 @@ class TransactionComposer:
                 if isinstance(arg, algosdk.transaction.Transaction):
                     # Wrap in TransactionWithSigner
                     method_args.append(
-                        TransactionWithSigner(txn=arg, signer=params.signer or self._get_signer(params.sender))
+                        TransactionWithSignerAndContext(
+                            txn=arg,
+                            signer=params.signer if params.signer is not None else self._get_signer(params.sender),
+                            context=TransactionContext(abi_method=None),
+                        )
                     )
                     continue
                 match arg:
@@ -1202,8 +1892,10 @@ class TransactionComposer:
                         | AppDeleteMethodCallParams()
                     ):
                         temp_txn_with_signers = self._build_method_call(arg, suggested_params)
-                        method_args.extend(temp_txn_with_signers)
-                        arg_offset += len(temp_txn_with_signers) - 1
+                        # Add all transactions except the last one in reverse order
+                        txns_for_group.extend(temp_txn_with_signers[:-1])
+                        # Add the last transaction to method_args
+                        method_args.append(temp_txn_with_signers[-1])
                         continue
                     case AppCallParams():
                         txn = self._build_app_call(arg, suggested_params)
@@ -1229,20 +1921,45 @@ class TransactionComposer:
                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
 
                 method_args.append(
-                    TransactionWithSigner(txn=txn, signer=params.signer or self._get_signer(params.sender))
+                    TransactionWithSignerAndContext(
+                        txn=txn.txn,
+                        signer=params.signer or self._get_signer(params.sender),
+                        context=TransactionContext(abi_method=params.method),
+                    )
                 )
 
                 continue
 
         method_atc = AtomicTransactionComposer()
+        max_fees: dict[int, AlgoAmount] = {}
+
+        # Process in reverse order
+        for arg in reversed(txns_for_group):
+            atc_index = method_atc.get_tx_count() - 1
+
+            if isinstance(arg, TransactionWithSignerAndContext) and arg.context:
+                if arg.context.abi_method:
+                    method_atc.method_dict[atc_index] = arg.context.abi_method
+
+                if arg.context.max_fee is not None:
+                    max_fees[atc_index] = arg.context.max_fee
+
+        # Process method args that are transactions with ABI method info
+        for i, arg in enumerate(reversed([a for a in method_args if isinstance(a, TransactionWithSignerAndContext)])):
+            atc_index = method_atc.get_tx_count() + i
+            if arg.context:
+                if arg.context.abi_method:
+                    method_atc.method_dict[atc_index] = arg.context.abi_method
+                if arg.context.max_fee is not None:
+                    max_fees[atc_index] = arg.context.max_fee
 
         txn_params = {
-            "app_id": params.app_id or 0,
+            "app_id": params.app_id if params.app_id is not None else 0,
             "method": params.method,
             "sender": params.sender,
             "sp": suggested_params,
-            "signer": params.signer or self._get_signer(params.sender),
-            "method_args": method_args,
+            "signer": params.signer if params.signer is not None else self._get_signer(params.sender),
+            "method_args": list(reversed(method_args)),
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             "note": params.note,
             "lease": params.lease,
@@ -1273,13 +1990,20 @@ class TransactionComposer:
             method_atc.add_method_call(**x)
             return method_atc.build_group()[-1].txn
 
-        self._common_txn_build_step(lambda x: _add_method_call_and_return_txn(x), params, txn_params)
+        result = self._common_txn_build_step(lambda x: _add_method_call_and_return_txn(x), params, txn_params)
 
-        return self._build_atc(method_atc)
+        build_atc_resp = self._build_atc(method_atc)
+        response = []
+        for i, v in enumerate(build_atc_resp):
+            max_fee = result.context.max_fee if i == method_atc.get_tx_count() - 1 else max_fees.get(i)
+            context = TransactionContext(abi_method=v.context.abi_method, max_fee=max_fee)
+            response.append(TransactionWithSignerAndContext(txn=v.txn, signer=v.signer, context=context))
+
+        return response
 
     def _build_payment(
         self, params: PaymentParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1292,7 +2016,7 @@ class TransactionComposer:
 
     def _build_asset_create(
         self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1315,7 +2039,7 @@ class TransactionComposer:
         self,
         params: AppCallParams | AppUpdateParams | AppCreateParams | AppDeleteParams,
         suggested_params: algosdk.transaction.SuggestedParams,
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         app_id = getattr(params, "app_id", 0)
 
         approval_program = None
@@ -1377,7 +2101,7 @@ class TransactionComposer:
 
     def _build_asset_config(
         self, params: AssetConfigParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1393,7 +2117,7 @@ class TransactionComposer:
 
     def _build_asset_destroy(
         self, params: AssetDestroyParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1404,7 +2128,7 @@ class TransactionComposer:
 
     def _build_asset_freeze(
         self, params: AssetFreezeParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1417,7 +2141,7 @@ class TransactionComposer:
 
     def _build_asset_transfer(
         self, params: AssetTransferParams, suggested_params: algosdk.transaction.SuggestedParams
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         txn_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -1434,7 +2158,7 @@ class TransactionComposer:
         self,
         params: OnlineKeyRegistrationParams | OfflineKeyRegistrationParams,
         suggested_params: algosdk.transaction.SuggestedParams,
-    ) -> algosdk.transaction.Transaction:
+    ) -> TransactionWithContext:
         if isinstance(params, OnlineKeyRegistrationParams):
             txn_params = {
                 "sender": params.sender,
@@ -1476,15 +2200,17 @@ class TransactionComposer:
         self,
         txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
         suggested_params: algosdk.transaction.SuggestedParams,
-    ) -> list[TransactionWithSigner]:
+    ) -> list[TransactionWithSignerAndContext]:
         match txn:
             case TransactionWithSigner():
-                return [txn]
+                return [
+                    TransactionWithSignerAndContext(txn=txn.txn, signer=txn.signer, context=TransactionContext.empty())
+                ]
             case AtomicTransactionComposer():
                 return self._build_atc(txn)
             case algosdk.transaction.Transaction():
                 signer = self._get_signer(txn.sender)
-                return [TransactionWithSigner(txn=txn, signer=signer)]
+                return [TransactionWithSignerAndContext(txn=txn, signer=signer, context=TransactionContext.empty())]
             case (
                 AppCreateMethodCallParams()
                 | AppCallMethodCallParams()
@@ -1498,30 +2224,30 @@ class TransactionComposer:
         match txn:
             case PaymentParams():
                 payment = self._build_payment(txn, suggested_params)
-                return [TransactionWithSigner(txn=payment, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(payment, signer)]
             case AssetCreateParams():
                 asset_create = self._build_asset_create(txn, suggested_params)
-                return [TransactionWithSigner(txn=asset_create, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_create, signer)]
             case AppCallParams() | AppUpdateParams() | AppCreateParams() | AppDeleteParams():
                 app_call = self._build_app_call(txn, suggested_params)
-                return [TransactionWithSigner(txn=app_call, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(app_call, signer)]
             case AssetConfigParams():
                 asset_config = self._build_asset_config(txn, suggested_params)
-                return [TransactionWithSigner(txn=asset_config, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_config, signer)]
             case AssetDestroyParams():
                 asset_destroy = self._build_asset_destroy(txn, suggested_params)
-                return [TransactionWithSigner(txn=asset_destroy, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_destroy, signer)]
             case AssetFreezeParams():
                 asset_freeze = self._build_asset_freeze(txn, suggested_params)
-                return [TransactionWithSigner(txn=asset_freeze, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_freeze, signer)]
             case AssetTransferParams():
                 asset_transfer = self._build_asset_transfer(txn, suggested_params)
-                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_transfer, signer)]
             case AssetOptInParams():
                 asset_transfer = self._build_asset_transfer(
                     AssetTransferParams(**txn.__dict__, receiver=txn.sender, amount=0), suggested_params
                 )
-                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_transfer, signer)]
             case AssetOptOutParams():
                 txn_dict = txn.__dict__
                 creator = txn_dict.pop("creator")
@@ -1529,9 +2255,9 @@ class TransactionComposer:
                     AssetTransferParams(**txn_dict, receiver=txn.sender, amount=0, close_asset_to=creator),
                     suggested_params,
                 )
-                return [TransactionWithSigner(txn=asset_transfer, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(asset_transfer, signer)]
             case OnlineKeyRegistrationParams() | OfflineKeyRegistrationParams():
                 key_reg = self._build_key_reg(txn, suggested_params)
-                return [TransactionWithSigner(txn=key_reg, signer=signer)]
+                return [TransactionWithSignerAndContext.from_txn_with_context(key_reg, signer)]
             case _:
                 raise ValueError(f"Unsupported txn: {txn}")

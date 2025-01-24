@@ -228,12 +228,12 @@ def simulate_response(
 
     simulate_request = SimulateRequest(
         txn_groups=txn_group,
-        allow_more_logs=allow_more_logs or True,
+        allow_more_logs=allow_more_logs if allow_more_logs is not None else True,
         round=simulation_round,
-        extra_opcode_budget=extra_opcode_budget or 0,
-        allow_unnamed_resources=allow_unnamed_resources or True,
-        allow_empty_signatures=allow_empty_signatures or True,
-        exec_trace_config=exec_trace_config or trace_config,
+        extra_opcode_budget=extra_opcode_budget if extra_opcode_budget is not None else 0,
+        allow_unnamed_resources=allow_unnamed_resources if allow_unnamed_resources is not None else True,
+        allow_empty_signatures=allow_empty_signatures if allow_empty_signatures is not None else True,
+        exec_trace_config=exec_trace_config if exec_trace_config is not None else trace_config,
     )
 
     return atc.simulate(algod_client, simulate_request)

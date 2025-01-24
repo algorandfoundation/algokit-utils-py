@@ -49,8 +49,7 @@ class AlgorandClient:
         self._cached_suggested_params: SuggestedParams | None = None
         self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
-
-        self._default_validity_window: int = 10
+        self._default_validity_window: int | None = None
 
     def set_default_validity_window(self, validity_window: int) -> typing_extensions.Self:
         """

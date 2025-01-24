@@ -562,6 +562,7 @@ class AppFactory:
         max_rounds_to_wait: int | None = None,
         suppress_log: bool = False,
         populate_app_call_resources: bool = False,
+        cover_app_call_inner_txn_fees: bool | None = None,
     ) -> tuple[AppClient, AppFactoryDeployResponse]:
         """Deploy the application with the specified parameters."""
         # Resolve control parameters with factory defaults
@@ -630,6 +631,7 @@ class AppFactory:
             suppress_log=suppress_log,
             max_rounds_to_wait=max_rounds_to_wait,
             populate_app_call_resources=populate_app_call_resources,
+            cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
         )
         deploy_response = self._algorand.app_deployer.deploy(deploy_params)
 

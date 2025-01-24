@@ -593,6 +593,7 @@ class AccountManager:
         max_rounds_to_wait: int | None = None,
         suppress_log: bool | None = None,
         populate_app_call_resources: bool | None = None,
+        cover_app_call_inner_txn_fees: bool | None = None,
         # Common txn params
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
@@ -621,6 +622,7 @@ class AccountManager:
         :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
         :param suppress_log: Optional flag to suppress logging
         :param populate_app_call_resources: Optional flag to populate app call resources
+        :param cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
         :param signer: Optional transaction signer
         :param rekey_to: Optional rekey address
         :param note: Optional transaction note
@@ -671,6 +673,7 @@ class AccountManager:
                     validity_window=validity_window,
                     first_valid_round=first_valid_round,
                     last_valid_round=last_valid_round,
+                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                 )
             )
             .send(
@@ -702,6 +705,7 @@ class AccountManager:
         max_rounds_to_wait: int | None = None,
         suppress_log: bool | None = None,
         populate_app_call_resources: bool | None = None,
+        cover_app_call_inner_txn_fees: bool | None = None,
         # Common transaction params (omitting sender)
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
@@ -730,6 +734,7 @@ class AccountManager:
         :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
         :param suppress_log: Optional flag to suppress logging
         :param populate_app_call_resources: Optional flag to populate app call resources
+        :param cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
         :param signer: Optional transaction signer
         :param rekey_to: Optional rekey address
         :param note: Optional transaction note
@@ -785,6 +790,8 @@ class AccountManager:
                     validity_window=validity_window,
                     first_valid_round=first_valid_round,
                     last_valid_round=last_valid_round,
+                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+                    populate_app_call_resources=populate_app_call_resources,
                 )
             )
             .send(

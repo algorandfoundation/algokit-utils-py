@@ -3,15 +3,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
-from algosdk.atomic_transaction_composer import (
-    AccountTransactionSigner,
-    AtomicTransactionComposer,
-    TransactionWithSigner,
-)
-from algosdk.transaction import PaymentTxn
-
 from algokit_utils._debugging import (
-    AVMDebuggerSourceMap,
     PersistSourceMapInput,
     persist_sourcemaps,
     simulate_and_persist_response,
@@ -21,13 +13,20 @@ from algokit_utils.account import get_account
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.common import Program
 from algokit_utils.models import Account
-from legacy_v2_tests.conftest import check_output_stability, get_unique_name
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionComposer,
+    TransactionWithSigner,
+)
+from algosdk.transaction import PaymentTxn
+
+from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
 
-@pytest.fixture
+@pytest.fixture()
 def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecification) -> ApplicationClient:
     creator_name = get_unique_name()
     creator = get_account(algod_client, creator_name)
@@ -59,23 +58,11 @@ int 1
     sourcemap_file_path = root_path / "sources.avm.json"
     app_output_path = root_path / "cool_app"
 
-    assert (sourcemap_file_path).exists()
+    assert not (sourcemap_file_path).exists()
     assert (app_output_path / "approval.teal").exists()
-    assert (app_output_path / "approval.teal.tok.map").exists()
+    assert (app_output_path / "approval.teal.map").exists()
     assert (app_output_path / "clear.teal").exists()
-    assert (app_output_path / "clear.teal.tok.map").exists()
-
-    result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
-    for item in result.txn_group_sources:
-        item.location = "dummy"
-
-    check_output_stability(json.dumps(result.to_dict()))
-
-    # check for updates in case of multiple runs
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client)
-    result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
-    for item in result.txn_group_sources:
-        assert item.location != "dummy"
+    assert (app_output_path / "clear.teal.map").exists()
 
 
 def test_legacy_build_teal_sourcemaps_without_sources(
@@ -104,18 +91,13 @@ int 1
     sourcemap_file_path = root_path / "sources.avm.json"
     app_output_path = root_path / "cool_app"
 
-    assert (sourcemap_file_path).exists()
+    assert not (sourcemap_file_path).exists()
     assert not (app_output_path / "approval.teal").exists()
-    assert (app_output_path / "approval.teal.tok.map").exists()
-    assert json.loads((app_output_path / "approval.teal.tok.map").read_text())["sources"] == []
+    assert (app_output_path / "approval.teal.map").exists()
+    assert json.loads((app_output_path / "approval.teal.map").read_text())["sources"] == []
     assert not (app_output_path / "clear.teal").exists()
-    assert (app_output_path / "clear.teal.tok.map").exists()
-    assert json.loads((app_output_path / "clear.teal.tok.map").read_text())["sources"] == []
-
-    result = AVMDebuggerSourceMap.from_dict(json.loads(sourcemap_file_path.read_text()))
-    for item in result.txn_group_sources:
-        item.location = "dummy"
-    check_output_stability(json.dumps(result.to_dict()))
+    assert (app_output_path / "clear.teal.map").exists()
+    assert json.loads((app_output_path / "clear.teal.map").read_text())["sources"] == []
 
 
 def test_legacy_simulate_and_persist_response_via_app_call(

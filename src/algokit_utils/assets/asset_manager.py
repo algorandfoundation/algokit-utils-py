@@ -157,6 +157,7 @@ class AssetManager:
         suppress_log: bool = False,
         max_rounds_to_wait: int | None = None,
         populate_app_call_resources: bool | None = None,
+        cover_app_call_inner_txn_fees: bool | None = None,
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
         note: bytes | None = None,
@@ -176,6 +177,7 @@ class AssetManager:
         :param max_rounds_to_wait: The maximum number of rounds to wait for the transaction to be confirmed,
         defaults to None
         :param populate_app_call_resources: Whether to populate app call resources, defaults to None
+        :param cover_app_call_inner_txn_fees: Whether to cover app call inner transaction fees, defaults to None
         :param signer: The signer to use for the transaction, defaults to None
         :param rekey_to: The address to rekey the account to, defaults to None
         :param note: The note to include in the transaction, defaults to None
@@ -201,6 +203,7 @@ class AssetManager:
                     max_rounds_to_wait=max_rounds_to_wait,
                     suppress_log=suppress_log,
                     populate_app_call_resources=populate_app_call_resources,
+                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                     signer=signer,
                     rekey_to=rekey_to,
                     note=note,
@@ -230,6 +233,7 @@ class AssetManager:
         suppress_log: bool = False,
         max_rounds_to_wait: int | None = None,
         populate_app_call_resources: bool | None = None,
+        cover_app_call_inner_txn_fees: bool | None = None,
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
         note: bytes | None = None,
@@ -250,6 +254,7 @@ class AssetManager:
         :param max_rounds_to_wait: The maximum number of rounds to wait for the transaction to be confirmed,
         defaults to None
         :param populate_app_call_resources: Whether to populate app call resources, defaults to None
+        :param cover_app_call_inner_txn_fees: Whether to cover app call inner transaction fees, defaults to None
         :param signer: The signer to use for the transaction, defaults to None
         :param rekey_to: The address to rekey the account to, defaults to None
         :param note: The note to include in the transaction, defaults to None
@@ -301,6 +306,7 @@ class AssetManager:
                     max_rounds_to_wait=max_rounds_to_wait,
                     suppress_log=suppress_log,
                     populate_app_call_resources=populate_app_call_resources,
+                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                     signer=signer,
                     rekey_to=rekey_to,
                     note=note,
