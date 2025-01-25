@@ -686,7 +686,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
 
     # Get fee parameters
     per_byte_txn_fee = suggested_params.fee if suggested_params else 0
-    min_txn_fee = int(suggested_params.min_fee) if suggested_params else 1000
+    min_txn_fee = int(suggested_params.min_fee) if suggested_params else 1000  # type: ignore[unused-ignore]
 
     # Simulate transactions
     result = empty_signer_atc.simulate(algod, simulate_request)
@@ -1865,7 +1865,12 @@ class TransactionComposer:
         txns_for_group: list[TransactionWithSignerAndContext] = []
 
         if params.args:
-            for _, arg in enumerate(reversed(params.args)):
+            for arg in reversed(params.args):
+                if arg is None and len(txns_for_group) > 0:
+                    # Pull last transaction from group as placeholder
+                    placeholder_transaction = txns_for_group.pop()
+                    method_args.append(placeholder_transaction)
+                    continue
                 if self._is_abi_value(arg):
                     method_args.append(arg)
                     continue

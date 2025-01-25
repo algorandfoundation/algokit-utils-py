@@ -217,7 +217,12 @@ class AssetManager:
                 )
                 composer.add_asset_opt_in(params)
 
-            result = composer.send(suppress_log=suppress_log)
+            result = composer.send(
+                max_rounds_to_wait=max_rounds_to_wait,
+                suppress_log=suppress_log,
+                populate_app_call_resources=populate_app_call_resources,
+                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+            )
 
             for i, asset_id in enumerate(asset_group):
                 results.append(BulkAssetOptInOutResult(asset_id=asset_id, transaction_id=result.tx_ids[i]))
@@ -320,7 +325,12 @@ class AssetManager:
                 )
                 composer.add_asset_opt_out(params)
 
-            result = composer.send(suppress_log=suppress_log)
+            result = composer.send(
+                max_rounds_to_wait=max_rounds_to_wait,
+                suppress_log=suppress_log,
+                populate_app_call_resources=populate_app_call_resources,
+                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+            )
 
             for i, asset_id in enumerate(asset_group):
                 results.append(BulkAssetOptInOutResult(asset_id=asset_id, transaction_id=result.tx_ids[i]))

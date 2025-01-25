@@ -3,6 +3,13 @@ from typing import TYPE_CHECKING
 from unittest.mock import Mock
 
 import pytest
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionComposer,
+    TransactionWithSigner,
+)
+from algosdk.transaction import PaymentTxn
+
 from algokit_utils._debugging import (
     PersistSourceMapInput,
     persist_sourcemaps,
@@ -13,20 +20,13 @@ from algokit_utils.account import get_account
 from algokit_utils.application_specification import ApplicationSpecification
 from algokit_utils.common import Program
 from algokit_utils.models import Account
-from algosdk.atomic_transaction_composer import (
-    AccountTransactionSigner,
-    AtomicTransactionComposer,
-    TransactionWithSigner,
-)
-from algosdk.transaction import PaymentTxn
-
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
 
-@pytest.fixture()
+@pytest.fixture
 def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecification) -> ApplicationClient:
     creator_name = get_unique_name()
     creator = get_account(algod_client, creator_name)

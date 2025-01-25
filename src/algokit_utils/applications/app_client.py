@@ -1914,7 +1914,7 @@ class AppClient:
         sender: str,
     ) -> list[Any]:
         method = self._app_spec.get_arc56_method(method_name_or_signature)
-        result = []
+        result: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] = []
 
         for i, method_arg in enumerate(method.args):
             arg_value = args[i] if args and i < len(args) else None
@@ -1990,6 +1990,9 @@ class AppClient:
                     f"No value provided for required argument "
                     f"{method_arg.name or f'arg{i+1}'} in call to method {method.name}"
                 )
+            elif arg_value is None and default_value is None:
+                # At this point only allow explicit None values if no default value was identified
+                result.append(None)
 
         return result
 

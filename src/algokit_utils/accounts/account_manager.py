@@ -680,6 +680,7 @@ class AccountManager:
                 max_rounds_to_wait=max_rounds_to_wait,
                 suppress_log=suppress_log,
                 populate_app_call_resources=populate_app_call_resources,
+                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
             )
         )
 
