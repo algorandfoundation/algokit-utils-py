@@ -1958,12 +1958,29 @@ class TransactionComposer:
                 if arg.context.max_fee is not None:
                     max_fees[atc_index] = arg.context.max_fee
 
+        app_id = params.app_id or 0
+        approval_program = getattr(params, "approval_program", None)
+        clear_program = getattr(params, "clear_state_program", None)
+        extra_pages = None
+
+        if app_id == 0:
+            extra_pages = getattr(params, "extra_program_pages", None)
+            if extra_pages is None and approval_program is not None:
+                approval_len, clear_len = len(approval_program), len(clear_program or b"")
+                extra_pages = (
+                    int(math.floor((approval_len + clear_len) / algosdk.constants.APP_PAGE_MAX_SIZE))
+                    if approval_len
+                    else 0
+                )
+
         txn_params = {
-            "app_id": params.app_id if params.app_id is not None else 0,
+            "app_id": app_id,
             "method": params.method,
             "sender": params.sender,
             "sp": suggested_params,
-            "signer": params.signer if params.signer is not None else self._get_signer(params.sender),
+            "signer": params.signer
+            if params.signer is not None
+            else self._get_signer(params.sender) or algosdk.atomic_transaction_composer.EmptySigner(),
             "method_args": list(reversed(method_args)),
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             "note": params.note,
@@ -1986,9 +2003,10 @@ class TransactionComposer:
             )
             if params.schema
             else None,
-            "approval_program": getattr(params, "approval_program", None),
-            "clear_program": getattr(params, "clear_state_program", None),
+            "approval_program": approval_program,
+            "clear_program": clear_program,
             "rekey_to": params.rekey_to,
+            "extra_pages": extra_pages,
         }
 
         def _add_method_call_and_return_txn(x: dict) -> algosdk.transaction.Transaction:
