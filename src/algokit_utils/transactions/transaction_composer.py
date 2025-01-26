@@ -18,7 +18,7 @@ from algosdk.atomic_transaction_composer import (
     TransactionSigner,
     TransactionWithSigner,
 )
-from algosdk.transaction import OnComplete
+from algosdk.transaction import ApplicationCallTxn, OnComplete, SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
@@ -28,7 +28,7 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
 from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
-from algokit_utils.models.transaction import SendParams, TransactionWrapper
+from algokit_utils.models.transaction import AppCallSendParams, SendParams, TransactionWrapper
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -96,12 +96,13 @@ class _CommonTxnParams:
 
 
 @dataclass(kw_only=True, frozen=True)
-class _CommonTxnWithSendParams(_CommonTxnParams, SendParams):
-    pass
+class AdditionalAtcContext:
+    max_fees: dict[int, AlgoAmount] | None = None
+    suggested_params: SuggestedParams | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
-class PaymentParams(_CommonTxnWithSendParams):
+class PaymentParams(_CommonTxnParams):
     """Parameters for a payment transaction.
 
     :ivar receiver: The account that will receive the ALGO
@@ -116,7 +117,7 @@ class PaymentParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetCreateParams(_CommonTxnWithSendParams):
+class AssetCreateParams(_CommonTxnParams):
     """Parameters for creating a new asset.
 
     :ivar total: The total amount of the smallest divisible unit to create
@@ -146,7 +147,7 @@ class AssetCreateParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetConfigParams(_CommonTxnWithSendParams):
+class AssetConfigParams(_CommonTxnParams):
     """Parameters for configuring an existing asset.
 
     :ivar asset_id: ID of the asset
@@ -164,7 +165,7 @@ class AssetConfigParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetFreezeParams(_CommonTxnWithSendParams):
+class AssetFreezeParams(_CommonTxnParams):
     """Parameters for freezing an asset.
 
     :ivar asset_id: The ID of the asset
@@ -178,7 +179,7 @@ class AssetFreezeParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetDestroyParams(_CommonTxnWithSendParams):
+class AssetDestroyParams(_CommonTxnParams):
     """Parameters for destroying an asset.
 
     :ivar asset_id: ID of the asset
@@ -188,7 +189,7 @@ class AssetDestroyParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class OnlineKeyRegistrationParams(_CommonTxnWithSendParams):
+class OnlineKeyRegistrationParams(_CommonTxnParams):
     """Parameters for online key registration.
 
     :ivar vote_key: The root participation public key
@@ -208,7 +209,7 @@ class OnlineKeyRegistrationParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class OfflineKeyRegistrationParams(_CommonTxnWithSendParams):
+class OfflineKeyRegistrationParams(_CommonTxnParams):
     """Parameters for offline key registration.
 
     :ivar prevent_account_from_ever_participating_again: Whether to prevent the account from ever participating again
@@ -218,7 +219,7 @@ class OfflineKeyRegistrationParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetTransferParams(_CommonTxnWithSendParams):
+class AssetTransferParams(_CommonTxnParams):
     """Parameters for transferring an asset.
 
     :ivar asset_id: ID of the asset
@@ -236,7 +237,7 @@ class AssetTransferParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetOptInParams(_CommonTxnWithSendParams):
+class AssetOptInParams(_CommonTxnParams):
     """Parameters for opting into an asset.
 
     :ivar asset_id: ID of the asset
@@ -246,7 +247,7 @@ class AssetOptInParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AssetOptOutParams(_CommonTxnWithSendParams):
+class AssetOptOutParams(_CommonTxnParams):
     """Parameters for opting out of an asset.
 
     :ivar asset_id: ID of the asset
@@ -258,7 +259,7 @@ class AssetOptOutParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCallParams(_CommonTxnWithSendParams):
+class AppCallParams(_CommonTxnParams):
     """Parameters for calling an application.
 
     :ivar on_complete: The OnComplete action
@@ -295,7 +296,7 @@ class AppCreateSchema(TypedDict):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppCreateParams(_CommonTxnWithSendParams):
+class AppCreateParams(_CommonTxnParams):
     """Parameters for creating an application.
 
     :ivar approval_program: The program to execute for all OnCompletes other than ClearState as raw teal (string)
@@ -325,7 +326,7 @@ class AppCreateParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppUpdateParams(_CommonTxnWithSendParams):
+class AppUpdateParams(_CommonTxnParams):
     """Parameters for updating an application.
 
     :ivar app_id: ID of the application
@@ -353,7 +354,7 @@ class AppUpdateParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppDeleteParams(_CommonTxnWithSendParams):
+class AppDeleteParams(_CommonTxnParams):
     """Parameters for deleting an application.
 
     :ivar app_id: ID of the application
@@ -375,7 +376,7 @@ class AppDeleteParams(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class _BaseAppMethodCall(_CommonTxnWithSendParams):
+class _BaseAppMethodCall(_CommonTxnParams):
     app_id: int
     method: Method
     args: list | None = None
@@ -387,7 +388,7 @@ class _BaseAppMethodCall(_CommonTxnWithSendParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppMethodCallParams(_CommonTxnWithSendParams):
+class AppMethodCallParams(_CommonTxnParams):
     """Parameters for calling an application method.
 
     :ivar app_id: ID of the application
@@ -647,10 +648,12 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
     cover_app_call_inner_txn_fees: bool | None = None,
-    max_fees: dict[int, AlgoAmount] | None = None,
-    suggested_params: algosdk.transaction.SuggestedParams | None = None,
+    additional_atc_context: AdditionalAtcContext | None = None,
 ) -> ExecutionInfo:
     # Create simulation request
+    suggested_params = additional_atc_context.suggested_params if additional_atc_context else None
+    max_fees = additional_atc_context.max_fees if additional_atc_context else None
+
     simulate_request = SimulateRequest(
         txn_groups=[],
         allow_unnamed_resources=True,
@@ -808,8 +811,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
     cover_app_call_inner_txn_fees: bool | None = None,
-    max_fees: dict[int, AlgoAmount] | None = None,
-    suggested_params: algosdk.transaction.SuggestedParams | None = None,
+    additional_atc_context: AdditionalAtcContext | None = None,
 ) -> AtomicTransactionComposer:
     """Prepare a transaction group for sending by handling execution info and resources.
 
@@ -817,14 +819,14 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     :param algod: Algod client for simulation
     :param populate_app_call_resources: Whether to populate app call resources
     :param cover_app_call_inner_txn_fees: Whether to cover inner txn fees
-    :param max_fees: Max fees allowed per transaction index
-    :param suggested_params: Suggested transaction parameters
+    :param additional_atc_context: Additional context for the AtomicTransactionComposer
     :return: Modified AtomicTransactionComposer ready for sending
     """
     # Get execution info via simulation
     execution_info = _get_group_execution_info(
-        atc, algod, populate_app_call_resources, cover_app_call_inner_txn_fees, max_fees, suggested_params
+        atc, algod, populate_app_call_resources, cover_app_call_inner_txn_fees, additional_atc_context
     )
+    max_fees = additional_atc_context.max_fees if additional_atc_context else None
 
     group = atc.build_group()
 
@@ -1164,8 +1166,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     suppress_log: bool | None = None,
     populate_app_call_resources: bool | None = None,
     cover_app_call_inner_txn_fees: bool | None = None,
-    max_fees: dict[int, AlgoAmount] | None = None,
-    suggested_params: algosdk.transaction.SuggestedParams | None = None,
+    additional_atc_context: AdditionalAtcContext | None = None,
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group.
 
@@ -1178,8 +1179,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     :param suppress_log: If True, suppress logging, defaults to None
     :param populate_app_call_resources: If True, populate app call resources, defaults to None
     :param cover_app_call_inner_txn_fees: If True, cover app call inner transaction fees, defaults to None
-    :param max_fees: Optional max fees for each transaction, defaults to None
-    :param suggested_params: Optional suggested params for each transaction, defaults to None
+    :param additional_atc_context: Additional context for the AtomicTransactionComposer
     :return: Results from sending the transaction group
     :raises Exception: If there is an error sending the transactions
     :raises error: If there is an error from the Algorand node
@@ -1204,8 +1204,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
                 algod,
                 populate_app_call_resources,
                 cover_app_call_inner_txn_fees,
-                max_fees,
-                suggested_params,
+                additional_atc_context,
             )
 
         transactions_to_send = [t.txn for t in transactions_with_signer]
@@ -1606,29 +1605,28 @@ class TransactionComposer:
         *,
         max_rounds_to_wait: int | None = None,
     ) -> SendAtomicTransactionComposerResults:
-        return self.send(
-            max_rounds_to_wait=max_rounds_to_wait,
-        )
+        return self.send(SendParams(max_rounds_to_wait=max_rounds_to_wait))
 
     def send(
         self,
-        *,
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool | None = None,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
+        params: SendParams | AppCallSendParams | None = None,
     ) -> SendAtomicTransactionComposerResults:
         """Send the transaction group to the network.
 
-        :param max_rounds_to_wait: Maximum number of rounds to wait for confirmation
-        :param suppress_log: Whether to suppress transaction logging
-        :param populate_app_call_resources: Whether to populate app call resources
-        :param cover_app_call_inner_txn_fees: Whether to cover inner transaction fees for app calls
+        :param params: Parameters for the send operation
         :return: The transaction send results
         :raises Exception: If the transaction fails
         """
         group = self.build().transactions
-        wait_rounds = max_rounds_to_wait
+
+        if not params:
+            has_app_call = any(isinstance(txn.txn, ApplicationCallTxn) for txn in group)
+            params = AppCallSendParams() if has_app_call else SendParams()
+
+        cover_app_call_inner_txn_fees: bool | None = params.get("cover_app_call_inner_txn_fees")  # type: ignore[assignment]
+        populate_app_call_resources: bool | None = params.get("populate_app_call_resources")  # type: ignore[assignment]
+
+        wait_rounds = params.get("max_rounds_to_wait")
         sp = self._get_suggested_params() if not wait_rounds or cover_app_call_inner_txn_fees else None
         if wait_rounds is None:
             last_round = max(txn.txn.last_valid_round for txn in group)
@@ -1641,11 +1639,13 @@ class TransactionComposer:
                 self._atc,
                 self._algod,
                 max_rounds_to_wait=wait_rounds,
-                max_fees=self._txn_max_fees,
-                suppress_log=suppress_log,
+                suppress_log=params.get("suppress_log"),
                 populate_app_call_resources=populate_app_call_resources,
                 cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
-                suggested_params=sp,
+                additional_atc_context=AdditionalAtcContext(
+                    suggested_params=sp,
+                    max_fees=self._txn_max_fees,
+                ),
             )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
@@ -1801,7 +1801,7 @@ class TransactionComposer:
     def _common_txn_build_step(  # noqa: C901
         self,
         build_txn: Callable[[dict], algosdk.transaction.Transaction],
-        params: _CommonTxnWithSendParams,
+        params: _CommonTxnParams,
         txn_params: dict,
     ) -> TransactionWithContext:
         # Clone suggested params

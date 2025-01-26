@@ -23,10 +23,7 @@ from algokit_utils._debugging import (
 )
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
-from algokit_utils.applications.app_client import (
-    AppClient,
-    AppClientMethodCallWithSendParams,
-)
+from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams
 from algokit_utils.common import Program
 from algokit_utils.models import Account
 from algokit_utils.models.amount import AlgoAmount
@@ -64,9 +61,12 @@ def client_fixture(algorand: AlgorandClient, funded_account: Account) -> AppClie
         app_spec=app_spec, default_sender=funded_account.address, default_signer=funded_account.signer
     )
     app_client, _ = app_factory.send.create(
-        AppFactoryCreateMethodCallParams(
-            method="create", deletable=True, updatable=True, deploy_time_params={"VERSION": 1}
-        )
+        AppFactoryCreateMethodCallParams(method="create"),
+        compilation_params={
+            "deletable": True,
+            "updatable": True,
+            "deploy_time_params": {"VERSION": 1},
+        },
     )
     return app_client
 
@@ -154,7 +154,7 @@ def test_simulate_and_persist_response_via_app_call(
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
 
-    client_fixture.send.call(AppClientMethodCallWithSendParams(method="hello", args=["test"]))
+    client_fixture.send.call(AppClientMethodCallParams(method="hello", args=["test"]))
 
     output_path = cwd / "debug_traces"
 

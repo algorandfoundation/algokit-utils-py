@@ -105,6 +105,7 @@ class KmdAccountManager:
         :param fund_with: The number of Algos to fund the account with when created
         :return: An Algorand account with private key loaded
         """
+        fund_with = fund_with or AlgoAmount.from_algo(1000)
 
         existing = self.get_wallet_account(name)
         if existing:
@@ -132,7 +133,7 @@ class KmdAccountManager:
             PaymentParams(
                 sender=dispenser.address,
                 receiver=account.address,
-                amount=fund_with or AlgoAmount.from_algo(1000),
+                amount=fund_with,
             )
         ).send()
         return account

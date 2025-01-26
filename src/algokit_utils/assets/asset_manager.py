@@ -7,6 +7,7 @@ from algosdk.v2client import algod
 
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
     AssetOptOutParams,
@@ -153,11 +154,6 @@ class AssetManager:
         self,
         account: str | Account | TransactionSigner,
         asset_ids: list[int],
-        *,
-        suppress_log: bool = False,
-        max_rounds_to_wait: int | None = None,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
         note: bytes | None = None,
@@ -168,16 +164,12 @@ class AssetManager:
         validity_window: int | None = None,
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
+        send_params: SendParams | None = None,
     ) -> list[BulkAssetOptInOutResult]:
         """Opt an account in to a list of Algorand Standard Assets.
 
         :param account: The account to opt-in
         :param asset_ids: The list of asset IDs to opt-in to
-        :param suppress_log: Whether to suppress logging, defaults to False
-        :param max_rounds_to_wait: The maximum number of rounds to wait for the transaction to be confirmed,
-        defaults to None
-        :param populate_app_call_resources: Whether to populate app call resources, defaults to None
-        :param cover_app_call_inner_txn_fees: Whether to cover app call inner transaction fees, defaults to None
         :param signer: The signer to use for the transaction, defaults to None
         :param rekey_to: The address to rekey the account to, defaults to None
         :param note: The note to include in the transaction, defaults to None
@@ -188,6 +180,7 @@ class AssetManager:
         :param validity_window: The validity window to include in the transaction, defaults to None
         :param first_valid_round: The first valid round to include in the transaction, defaults to None
         :param last_valid_round: The last valid round to include in the transaction, defaults to None
+        :param send_params: The send parameters to use for the transaction, defaults to None
         :return: An array of records matching asset ID to transaction ID of the opt in
         """
         results: list[BulkAssetOptInOutResult] = []
@@ -200,10 +193,6 @@ class AssetManager:
                 params = AssetOptInParams(
                     sender=sender,
                     asset_id=asset_id,
-                    max_rounds_to_wait=max_rounds_to_wait,
-                    suppress_log=suppress_log,
-                    populate_app_call_resources=populate_app_call_resources,
-                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                     signer=signer,
                     rekey_to=rekey_to,
                     note=note,
@@ -217,12 +206,7 @@ class AssetManager:
                 )
                 composer.add_asset_opt_in(params)
 
-            result = composer.send(
-                max_rounds_to_wait=max_rounds_to_wait,
-                suppress_log=suppress_log,
-                populate_app_call_resources=populate_app_call_resources,
-                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
-            )
+            result = composer.send(send_params)
 
             for i, asset_id in enumerate(asset_group):
                 results.append(BulkAssetOptInOutResult(asset_id=asset_id, transaction_id=result.tx_ids[i]))
@@ -231,14 +215,10 @@ class AssetManager:
 
     def bulk_opt_out(  # noqa: C901, PLR0913
         self,
+        *,
         account: str | Account | TransactionSigner,
         asset_ids: list[int],
-        *,
         ensure_zero_balance: bool = True,
-        suppress_log: bool = False,
-        max_rounds_to_wait: int | None = None,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
         note: bytes | None = None,
@@ -249,17 +229,13 @@ class AssetManager:
         validity_window: int | None = None,
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
+        send_params: SendParams | None = None,
     ) -> list[BulkAssetOptInOutResult]:
         """Opt an account out of a list of Algorand Standard Assets.
 
         :param account: The account to opt-out
         :param asset_ids: The list of asset IDs to opt-out of
         :param ensure_zero_balance: Whether to check if the account has a zero balance first, defaults to True
-        :param suppress_log: Whether to suppress logging, defaults to False
-        :param max_rounds_to_wait: The maximum number of rounds to wait for the transaction to be confirmed,
-        defaults to None
-        :param populate_app_call_resources: Whether to populate app call resources, defaults to None
-        :param cover_app_call_inner_txn_fees: Whether to cover app call inner transaction fees, defaults to None
         :param signer: The signer to use for the transaction, defaults to None
         :param rekey_to: The address to rekey the account to, defaults to None
         :param note: The note to include in the transaction, defaults to None
@@ -270,6 +246,7 @@ class AssetManager:
         :param validity_window: The validity window to include in the transaction, defaults to None
         :param first_valid_round: The first valid round to include in the transaction, defaults to None
         :param last_valid_round: The last valid round to include in the transaction, defaults to None
+        :param send_params: The send parameters to use for the transaction, defaults to None
         :raises ValueError: If ensure_zero_balance is True and account has non-zero balance or is not opted in
         :return: An array of records matching asset ID to transaction ID of the opt out
         """
@@ -308,10 +285,6 @@ class AssetManager:
                     sender=sender,
                     asset_id=asset_id,
                     creator=asset_info.creator,
-                    max_rounds_to_wait=max_rounds_to_wait,
-                    suppress_log=suppress_log,
-                    populate_app_call_resources=populate_app_call_resources,
-                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                     signer=signer,
                     rekey_to=rekey_to,
                     note=note,
@@ -325,12 +298,7 @@ class AssetManager:
                 )
                 composer.add_asset_opt_out(params)
 
-            result = composer.send(
-                max_rounds_to_wait=max_rounds_to_wait,
-                suppress_log=suppress_log,
-                populate_app_call_resources=populate_app_call_resources,
-                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
-            )
+            result = composer.send(send_params)
 
             for i, asset_id in enumerate(asset_group):
                 results.append(BulkAssetOptInOutResult(asset_id=asset_id, transaction_id=result.tx_ids[i]))

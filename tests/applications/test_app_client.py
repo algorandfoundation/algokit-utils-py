@@ -13,7 +13,7 @@ from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
     AppClient,
-    AppClientMethodCallWithSendParams,
+    AppClientMethodCallParams,
     AppClientParams,
     FundAppAccountParams,
 )
@@ -307,7 +307,7 @@ def test_resolve_from_network(
 
 def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
     call = test_app_client.create_transaction.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi",
             args=["test"],
             box_references=[BoxReference(app_id=0, name=b"1")],
@@ -319,7 +319,7 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
 
     # Test with string box reference
     call2 = test_app_client.create_transaction.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi",
             args=["test"],
             box_references=["1"],
@@ -345,7 +345,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     # Call the ABI method with the payment transaction
     result = test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi_txn",
             args=[payment_txn, "test"],
         )
@@ -386,7 +386,7 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
             return original_signer.sign_transactions(txn_group, indexes)
 
     test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi_txn",
             args=[txn, "test"],
             sender=funded_account.address,
@@ -420,7 +420,7 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
 
     # Call method with transaction and signer
     test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi_txn",
             args=[TransactionWithSigner(txn=txn, signer=test_account.signer), "test"],
         )
@@ -439,7 +439,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     )
 
     result = test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="call_abi_foreign_refs",
             app_references=[345],
             account_references=[test_account.address],
@@ -460,9 +460,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
 
 def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
     # Test global state
-    test_app_client.send.call(
-        AppClientMethodCallWithSendParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
-    )
+    test_app_client.send.call(AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
     global_state = test_app_client.get_global_state()
 
     assert "int1" in global_state
@@ -477,10 +475,8 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     assert global_state["bytes2"].value_raw == bytes([1, 2, 3, 4])
 
     # Test local state
-    test_app_client.send.opt_in(AppClientMethodCallWithSendParams(method="opt_in"))
-    test_app_client.send.call(
-        AppClientMethodCallWithSendParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
-    )
+    test_app_client.send.opt_in(AppClientMethodCallParams(method="opt_in"))
+    test_app_client.send.call(AppClientMethodCallParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
     local_state = test_app_client.get_local_state(funded_account.address)
 
     assert "local_int1" in local_state
@@ -502,14 +498,14 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     test_app_client.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algos(1)))
 
     test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="set_box",
             args=[box_name1, "value1"],
             box_references=[box_name1],
         )
     )
     test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="set_box",
             args=[box_name2, "value2"],
             box_references=[box_name2],
@@ -532,7 +528,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> 
     expected_value_decoded = "1234524352"
     expected_value = "\x00\n" + expected_value_decoded
     test_app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="set_box",
             args=[box_name1, expected_value],
             box_references=[box_name1],
@@ -602,7 +598,7 @@ def test_box_methods_with_manually_encoded_abi_args(
 
     # Call the method to set the box value
     test_app_client_puya.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="set_box_bytes",
             args=[box_name, ABIType.from_string(value_type).encode(box_value)],
             box_references=[box_identifier],
@@ -645,7 +641,7 @@ def test_box_methods_with_arc4_returns_parametrized(
 
     # Send the transaction to set the box value
     test_app_client_puya.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method=method,
             args=["box1", arg_value],
             box_references=[box_reference],
@@ -685,9 +681,9 @@ def test_abi_with_default_arg_method(
         default_signer=funded_account.signer,
     )
     # app_client.send.
-    app_client.send.opt_in(AppClientMethodCallWithSendParams(method="opt_in"))
+    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in"))
     app_client.send.call(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="set_local",
             args=[1, 2, "banana", [1, 2, 3, 4]],
         )
@@ -698,20 +694,20 @@ def test_abi_with_default_arg_method(
 
     # Test with defined value
     defined_value_result = app_client.send.call(
-        AppClientMethodCallWithSendParams(method=method_signature, args=[defined_value])
+        AppClientMethodCallParams(method=method_signature, args=[defined_value])
     )
 
     assert defined_value_result.abi_return == "Local state, defined value"
 
     # Test with default value
-    default_value_result = app_client.send.call(AppClientMethodCallWithSendParams(method=method_signature, args=[None]))
+    default_value_result = app_client.send.call(AppClientMethodCallParams(method=method_signature, args=[None]))
     assert default_value_result
     assert default_value_result.abi_return == "Local state, banana"
 
 
 def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> None:
     with pytest.raises(LogicError) as exc_info:
-        test_app_client_with_sourcemaps.send.call(AppClientMethodCallWithSendParams(method="error"))
+        test_app_client_with_sourcemaps.send.call(AppClientMethodCallParams(method="error"))
 
     error = exc_info.value
     assert error.pc == 885

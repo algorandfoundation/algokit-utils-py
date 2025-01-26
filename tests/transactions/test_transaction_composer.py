@@ -101,7 +101,7 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: Account) -> 
 
     composer.add_asset_create(params)
     built = composer.build_transactions()
-    response = composer.send(max_rounds_to_wait=20)
+    response = composer.send({"max_rounds_to_wait": 20})
     created_asset = algorand.client.algod.asset_info(
         algorand.client.algod.pending_transaction_info(response.tx_ids[0])["asset-index"]  # type: ignore[call-overload]
     )["params"]
@@ -157,7 +157,7 @@ def test_add_asset_config(algorand: AlgorandClient, funded_account: Account, fun
     assert txn.index == asset_before_config_index
     assert txn.manager == funded_secondary_account.address
 
-    composer.send(max_rounds_to_wait=20)
+    composer.send({"max_rounds_to_wait": 20})
     updated_asset = algorand.client.algod.asset_info(asset_id=asset_before_config_index)["params"]  # type: ignore[call-overload]
     assert updated_asset["manager"] == funded_secondary_account.address
 
@@ -184,7 +184,7 @@ def test_add_app_create(algorand: AlgorandClient, funded_account: Account) -> No
     assert txn.sender == funded_account.address
     assert txn.approval_program == b"\x06\x81\x01"
     assert txn.clear_program == b"\x06\x81\x01"
-    composer.send(max_rounds_to_wait=20)
+    composer.send({"max_rounds_to_wait": 20})
 
 
 def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Account) -> None:
@@ -223,7 +223,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
     assert isinstance(built.transactions[0], ApplicationCallTxn)
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
-    response = composer.send(max_rounds_to_wait=20)
+    response = composer.send({"max_rounds_to_wait": 20})
     assert response.returns[-1].value == "Hello, world"
 
 

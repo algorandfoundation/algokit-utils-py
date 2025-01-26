@@ -10,17 +10,15 @@ from algokit_utils.applications.app_client import (
     AppClient,
     AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
-    AppClientMethodCallWithCompilationAndSendParams,
-    AppClientMethodCallWithSendParams,
     AppClientParams,
 )
 from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_factory import (
     AppFactory,
     AppFactoryCreateMethodCallParams,
-    AppFactoryCreateWithSendParams,
+    AppFactoryCreateParams,
 )
-from algokit_utils.errors.logic_error import LogicError
+from algokit_utils.errors import LogicError
 from algokit_utils.models.account import Account
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
@@ -68,14 +66,15 @@ def arc56_factory(
 def test_create_app(factory: AppFactory) -> None:
     """Test creating an app using the factory"""
     app_client, result = factory.send.bare.create(
-        params=AppFactoryCreateWithSendParams(
-            deploy_time_params={
+        params=AppFactoryCreateParams(),
+        compilation_params={
+            "deploy_time_params": {
                 # It should strip off the TMPL_
                 "TMPL_UPDATABLE": 0,
                 "DELETABLE": 0,
                 "VALUE": 1,
             }
-        )
+        },
     )
 
     assert app_client.app_id > 0
@@ -116,14 +115,16 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
 
 def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
     app_client, result = factory.send.bare.create(
-        params=AppFactoryCreateWithSendParams(
+        params=AppFactoryCreateParams(
             on_complete=OnComplete.OptInOC,
-            updatable=True,
-            deletable=True,
-            deploy_time_params={
+        ),
+        compilation_params={
+            "updatable": True,
+            "deletable": True,
+            "deploy_time_params": {
                 "VALUE": 1,
             },
-        )
+        },
     )
 
     assert result.transaction.application_call
@@ -321,16 +322,16 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
 
 def test_create_then_call_app(factory: AppFactory) -> None:
     app_client, _ = factory.send.bare.create(
-        AppFactoryCreateWithSendParams(
-            deploy_time_params={
-                "UPDATABLE": 1,
-                "DELETABLE": 1,
+        compilation_params={
+            "updatable": True,
+            "deletable": True,
+            "deploy_time_params": {
                 "VALUE": 1,
             },
-        )
+        },
     )
 
-    call = app_client.send.call(AppClientMethodCallWithSendParams(method="call_abi", args=["test"]))
+    call = app_client.send.call(AppClientMethodCallParams(method="call_abi", args=["test"]))
     assert call.abi_return == "Hello, test"
 
 
@@ -338,16 +339,16 @@ def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, 
     rekey_to = algorand.account.random()
 
     app_client, _ = factory.send.bare.create(
-        AppFactoryCreateWithSendParams(
-            deploy_time_params={
-                "UPDATABLE": 1,
-                "DELETABLE": 1,
+        compilation_params={
+            "updatable": True,
+            "deletable": True,
+            "deploy_time_params": {
                 "VALUE": 1,
             },
-        )
+        },
     )
 
-    app_client.send.opt_in(AppClientMethodCallWithSendParams(method="opt_in", rekey_to=rekey_to.address))
+    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.address))
 
     # If the rekey didn't work this will throw
     rekeyed_account = algorand.account.rekeyed(funded_account.address, rekey_to)
@@ -361,12 +362,14 @@ def test_create_app_with_abi(factory: AppFactory) -> None:
         AppFactoryCreateMethodCallParams(
             method="create_abi",
             args=["string_io"],
-            deploy_time_params={
+        ),
+        compilation_params={
+            "deploy_time_params": {
                 "UPDATABLE": 0,
                 "DELETABLE": 0,
                 "VALUE": 1,
             },
-        )
+        },
     )
 
     assert call_return.abi_return
@@ -380,17 +383,19 @@ def test_update_app_with_abi(factory: AppFactory) -> None:
         "VALUE": 1,
     }
     app_client, _ = factory.send.bare.create(
-        AppFactoryCreateWithSendParams(
-            deploy_time_params=deploy_time_params,
-        )
+        compilation_params={
+            "deploy_time_params": deploy_time_params,
+        },
     )
 
     call_return = app_client.send.update(
-        AppClientMethodCallWithCompilationAndSendParams(
+        AppClientMethodCallParams(
             method="update_abi",
             args=["string_io"],
-            deploy_time_params=deploy_time_params,
-        )
+        ),
+        compilation_params={
+            "deploy_time_params": deploy_time_params,
+        },
     )
 
     assert call_return.abi_return == "string_io"
@@ -399,17 +404,17 @@ def test_update_app_with_abi(factory: AppFactory) -> None:
 
 def test_delete_app_with_abi(factory: AppFactory) -> None:
     app_client, _ = factory.send.bare.create(
-        AppFactoryCreateWithSendParams(
-            deploy_time_params={
+        compilation_params={
+            "deploy_time_params": {
                 "UPDATABLE": 0,
                 "DELETABLE": 1,
                 "VALUE": 1,
             },
-        )
+        },
     )
 
     call_return = app_client.send.delete(
-        AppClientMethodCallWithSendParams(
+        AppClientMethodCallParams(
             method="delete_abi",
             args=["string_io"],
         )
@@ -440,7 +445,7 @@ def test_export_import_sourcemaps(
 
     # Test error handling before importing source maps
     with pytest.raises(LogicError) as exc_info:
-        new_client.send.call(AppClientMethodCallWithSendParams(method="error"))
+        new_client.send.call(AppClientMethodCallParams(method="error"))
 
     assert "assert failed" in exc_info.value.message
 
@@ -449,7 +454,7 @@ def test_export_import_sourcemaps(
 
     # Test error handling after importing source maps
     with pytest.raises(LogicError) as exc_info:
-        new_client.send.call(AppClientMethodCallWithSendParams(method="error"))
+        new_client.send.call(AppClientMethodCallParams(method="error"))
 
     error = exc_info.value
     assert (
@@ -475,7 +480,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
     )
 
     with pytest.raises(Exception, match="this is an error"):
-        app_client.send.call(AppClientMethodCallWithSendParams(method="throwError"))
+        app_client.send.call(AppClientMethodCallParams(method="throwError"))
 
 
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
@@ -508,7 +513,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
 
     # Test error handling
     with pytest.raises(LogicError) as exc_info:
-        app_client.send.call(AppClientMethodCallWithSendParams(method="tmpl"))
+        app_client.send.call(AppClientMethodCallParams(method="tmpl"))
 
     assert (
         exc_info.value.trace().strip()

@@ -211,4 +211,4 @@ def test_bulk_opt_out_not_opted_in_fails(algorand: AlgorandClient, sender: Accou
 
     # Then attempt to opt-out
     with pytest.raises(ValueError, match="is not opted-in"):
-        algorand.asset.bulk_opt_out(receiver.address, [asset_id])
+        algorand.asset.bulk_opt_out(account=receiver.address, asset_ids=[asset_id])

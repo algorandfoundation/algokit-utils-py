@@ -15,6 +15,7 @@ from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestN
 from algokit_utils.config import config
 from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account, MultiSigAccount, MultisigMetadata
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendAtomicTransactionComposerResults,
@@ -568,7 +569,6 @@ class AccountManager:
                     validity_window=validity_window,
                     first_valid_round=first_valid_round,
                     last_valid_round=last_valid_round,
-                    suppress_log=suppress_log,
                 )
             )
             .send()
@@ -590,10 +590,7 @@ class AccountManager:
         min_spending_balance: AlgoAmount,
         min_funding_increment: AlgoAmount | None = None,
         # Sender params
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool | None = None,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
+        send_params: SendParams | None = None,
         # Common txn params
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
@@ -619,10 +616,7 @@ class AccountManager:
         :param min_spending_balance: The minimum balance of Algo that the account
         should have available to spend
         :param min_funding_increment: Optional minimum funding increment
-        :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
-        :param suppress_log: Optional flag to suppress logging
-        :param populate_app_call_resources: Optional flag to populate app call resources
-        :param cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
+        :param send_params: Parameters for the send operation, defaults to None
         :param signer: Optional transaction signer
         :param rekey_to: Optional rekey address
         :param note: Optional transaction note
@@ -673,15 +667,9 @@ class AccountManager:
                     validity_window=validity_window,
                     first_valid_round=first_valid_round,
                     last_valid_round=last_valid_round,
-                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
                 )
             )
-            .send(
-                max_rounds_to_wait=max_rounds_to_wait,
-                suppress_log=suppress_log,
-                populate_app_call_resources=populate_app_call_resources,
-                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
-            )
+            .send(send_params)
         )
 
         return EnsureFundedResponse(
@@ -703,10 +691,7 @@ class AccountManager:
         *,  # Force remaining params to be keyword-only
         min_funding_increment: AlgoAmount | None = None,
         # SendParams
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool | None = None,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
+        send_params: SendParams | None = None,
         # Common transaction params (omitting sender)
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
@@ -732,10 +717,7 @@ class AccountManager:
         :param min_spending_balance: The minimum balance of Algo that the account should have available to
         spend
         :param min_funding_increment: Optional minimum funding increment
-        :param max_rounds_to_wait: Optional maximum rounds to wait for transaction
-        :param suppress_log: Optional flag to suppress logging
-        :param populate_app_call_resources: Optional flag to populate app call resources
-        :param cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
+        :param send_params: Parameters for the send operation, defaults to None
         :param signer: Optional transaction signer
         :param rekey_to: Optional rekey address
         :param note: Optional transaction note
@@ -791,15 +773,9 @@ class AccountManager:
                     validity_window=validity_window,
                     first_valid_round=first_valid_round,
                     last_valid_round=last_valid_round,
-                    cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
-                    populate_app_call_resources=populate_app_call_resources,
                 )
             )
-            .send(
-                max_rounds_to_wait=max_rounds_to_wait,
-                suppress_log=suppress_log,
-                populate_app_call_resources=populate_app_call_resources,
-            )
+            .send(send_params)
         )
 
         return EnsureFundedResponse(

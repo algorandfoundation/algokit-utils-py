@@ -1,8 +1,8 @@
 import base64
 import dataclasses
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass, replace
-from typing import Any, Generic, Literal, TypeVar
+from dataclasses import asdict, dataclass
+from typing import Any, Generic, TypeVar
 
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
@@ -27,6 +27,7 @@ from algokit_utils.applications.app_client import (
     AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientParams,
+    CreateOnComplete,
 )
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
@@ -44,7 +45,7 @@ from algokit_utils.models.application import (
     AppSourceMaps,
 )
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.models.transaction import SendParams
+from algokit_utils.models.transaction import AppCallSendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -67,9 +68,7 @@ __all__ = [
     "AppFactory",
     "AppFactoryCreateMethodCallParams",
     "AppFactoryCreateMethodCallResult",
-    "AppFactoryCreateMethodCallWithSendParams",
     "AppFactoryCreateParams",
-    "AppFactoryCreateWithSendParams",
     "AppFactoryDeployResponse",
     "AppFactoryParams",
     "SendAppCreateFactoryTransactionResult",
@@ -92,26 +91,12 @@ class AppFactoryParams:
 
 
 @dataclass(kw_only=True, frozen=True)
-class _AppFactoryCreateBaseParams(AppClientCreateSchema, AppClientCompilationParams):
-    on_complete: (
-        Literal[
-            OnComplete.NoOpOC,
-            OnComplete.UpdateApplicationOC,
-            OnComplete.DeleteApplicationOC,
-            OnComplete.OptInOC,
-            OnComplete.CloseOutOC,
-        ]
-        | None
-    ) = None
+class _AppFactoryCreateBaseParams(AppClientCreateSchema):
+    on_complete: CreateOnComplete | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppFactoryCreateParams(_AppFactoryCreateBaseParams, AppClientBareCallParams):
-    pass
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateWithSendParams(AppFactoryCreateParams, SendParams):
     pass
 
 
@@ -133,11 +118,6 @@ class AppFactoryCreateMethodCallResult(SendSingleTransactionResult, Generic[ABIR
     compiled_approval: Any | None = None
     compiled_clear: Any | None = None
     abi_return: ABIReturnT | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateMethodCallWithSendParams(AppFactoryCreateMethodCallParams, SendParams):
-    pass
 
 
 @dataclass(frozen=True)
@@ -225,10 +205,11 @@ class _BareParamsBuilder:
         self._factory = factory
         self._algorand = factory._algorand
 
-    def create(self, params: AppFactoryCreateParams | None = None) -> AppCreateParams:
+    def create(
+        self, params: AppFactoryCreateParams | None = None, compilation_params: AppClientCompilationParams | None = None
+    ) -> AppCreateParams:
         base_params = params or AppFactoryCreateParams()
-
-        compiled = self._factory.compile(base_params)
+        compiled = self._factory.compile(compilation_params)
 
         return AppCreateParams(
             **{
@@ -298,8 +279,10 @@ class _MethodParamsBuilder:
     def bare(self) -> _BareParamsBuilder:
         return self._bare
 
-    def create(self, params: AppFactoryCreateMethodCallParams) -> AppCreateMethodCallParams:
-        compiled = self._factory.compile(params)
+    def create(
+        self, params: AppFactoryCreateMethodCallParams, compilation_params: AppClientCompilationParams | None = None
+    ) -> AppCreateMethodCallParams:
+        compiled = self._factory.compile(compilation_params)
 
         return AppCreateMethodCallParams(
             **{
@@ -396,32 +379,34 @@ class _AppFactoryBareSendAccessor:
         self._algorand = factory._algorand
 
     def create(
-        self, params: AppFactoryCreateWithSendParams | None = None
+        self,
+        params: AppFactoryCreateParams | None = None,
+        send_params: AppCallSendParams | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, SendAppCreateTransactionResult]:
-        base_params = params or AppFactoryCreateWithSendParams()
-
-        # Use replace() to create new instance with overridden values
-        create_params = replace(
-            base_params,
-            updatable=base_params.updatable if base_params.updatable is not None else self._factory._updatable,
-            deletable=base_params.deletable if base_params.deletable is not None else self._factory._deletable,
-            deploy_time_params=(
-                base_params.deploy_time_params
-                if base_params.deploy_time_params is not None
-                else self._factory._deploy_time_params
-            ),
+        compilation_params = compilation_params or AppClientCompilationParams()
+        compilation_params["updatable"] = (
+            compilation_params.get("updatable")
+            if compilation_params.get("updatable") is not None
+            else self._factory._updatable
+        )
+        compilation_params["deletable"] = (
+            compilation_params.get("deletable")
+            if compilation_params.get("deletable") is not None
+            else self._factory._deletable
+        )
+        compilation_params["deploy_time_params"] = (
+            compilation_params.get("deploy_time_params")
+            if compilation_params.get("deploy_time_params") is not None
+            else self._factory._deploy_time_params
         )
 
-        compiled = self._factory.compile(
-            AppClientCompilationParams(
-                deploy_time_params=create_params.deploy_time_params,
-                updatable=create_params.updatable,
-                deletable=create_params.deletable,
-            )
-        )
+        compiled = self._factory.compile(compilation_params)
 
         result = self._factory._handle_call_errors(
-            lambda: self._algorand.send.app_create(self._factory.params.bare.create(create_params))
+            lambda: self._algorand.send.app_create(
+                self._factory.params.bare.create(params, compilation_params), send_params
+            )
         )
 
         return (
@@ -454,30 +439,34 @@ class _TransactionSender:
         return self._bare
 
     def create(
-        self, params: AppFactoryCreateMethodCallParams
+        self,
+        params: AppFactoryCreateMethodCallParams,
+        send_params: AppCallSendParams | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, AppFactoryCreateMethodCallResult[Arc56ReturnValueType]]:
-        create_params = replace(
-            params,
-            updatable=params.updatable if params.updatable is not None else self._factory._updatable,
-            deletable=params.deletable if params.deletable is not None else self._factory._deletable,
-            deploy_time_params=(
-                params.deploy_time_params
-                if params.deploy_time_params is not None
-                else self._factory._deploy_time_params
-            ),
+        compilation_params = compilation_params or AppClientCompilationParams()
+        compilation_params["updatable"] = (
+            compilation_params.get("updatable")
+            if compilation_params.get("updatable") is not None
+            else self._factory._updatable
+        )
+        compilation_params["deletable"] = (
+            compilation_params.get("deletable")
+            if compilation_params.get("deletable") is not None
+            else self._factory._deletable
+        )
+        compilation_params["deploy_time_params"] = (
+            compilation_params.get("deploy_time_params")
+            if compilation_params.get("deploy_time_params") is not None
+            else self._factory._deploy_time_params
         )
 
-        compiled = self._factory.compile(
-            AppClientCompilationParams(
-                deploy_time_params=create_params.deploy_time_params,
-                updatable=create_params.updatable,
-                deletable=create_params.deletable,
-            )
-        )
-
+        compiled = self._factory.compile(compilation_params)
         result = self._factory._handle_call_errors(
             lambda: self._factory._parse_method_call_return(
-                lambda: self._algorand.send.app_create_method_call(self._factory.params.create(create_params)),
+                lambda: self._algorand.send.app_create_method_call(
+                    self._factory.params.create(params, compilation_params), send_params
+                ),
                 self._factory._app_spec.get_arc56_method(params.method),
             )
         )
@@ -561,7 +550,7 @@ class AppFactory:
         app_name: str | None = None,
         max_rounds_to_wait: int | None = None,
         suppress_log: bool = False,
-        populate_app_call_resources: bool = False,
+        populate_app_call_resources: bool | None = None,
         cover_app_call_inner_txn_fees: bool | None = None,
     ) -> tuple[AppClient, AppFactoryDeployResponse]:
         """Deploy the application with the specified parameters."""
@@ -580,20 +569,24 @@ class AppFactory:
                 return self.params.create(
                     AppFactoryCreateMethodCallParams(
                         **asdict(create_params),
-                        updatable=resolved_updatable,
-                        deletable=resolved_deletable,
-                        deploy_time_params=resolved_deploy_time_params,
-                    )
+                    ),
+                    compilation_params={
+                        "updatable": resolved_updatable,
+                        "deletable": resolved_deletable,
+                        "deploy_time_params": resolved_deploy_time_params,
+                    },
                 )
 
             base_params = create_params or AppClientBareCallCreateParams()
             return self.params.bare.create(
                 AppFactoryCreateParams(
                     **asdict(base_params) if base_params else {},
-                    updatable=resolved_updatable,
-                    deletable=resolved_deletable,
-                    deploy_time_params=resolved_deploy_time_params,
-                )
+                ),
+                compilation_params={
+                    "updatable": resolved_updatable,
+                    "deletable": resolved_deletable,
+                    "deploy_time_params": resolved_deploy_time_params,
+                },
             )
 
         def prepare_update_args() -> AppUpdateMethodCallParams | AppUpdateParams:
@@ -718,13 +711,14 @@ class AppFactory:
         self._approval_source_map = source_maps.approval_source_map
         self._clear_source_map = source_maps.clear_source_map
 
-    def compile(self, compilation: AppClientCompilationParams | None = None) -> AppClientCompilationResult:
+    def compile(self, compilation_params: AppClientCompilationParams | None = None) -> AppClientCompilationResult:
+        compilation = compilation_params or AppClientCompilationParams()
         result = AppClient.compile(
             app_spec=self._app_spec,
             app_manager=self._algorand.app,
-            deploy_time_params=compilation.deploy_time_params if compilation else None,
-            updatable=compilation.updatable if compilation else None,
-            deletable=compilation.deletable if compilation else None,
+            deploy_time_params=compilation.get("deploy_time_params") if compilation else None,
+            updatable=compilation.get("updatable") if compilation else None,
+            deletable=compilation.get("deletable") if compilation else None,
         )
 
         if result.compiled_approval:

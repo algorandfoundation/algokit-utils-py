@@ -169,7 +169,7 @@ class AppDeployParams:
     max_fee: int | None = None
     max_rounds_to_wait: int | None = None
     suppress_log: bool = False
-    populate_app_call_resources: bool = False
+    populate_app_call_resources: bool | None = None
     cover_app_call_inner_txn_fees: bool | None = None
 
 
