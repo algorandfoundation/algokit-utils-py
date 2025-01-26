@@ -215,7 +215,6 @@ def simulate_response(
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
     simulation_round: int | None = None,
-    skip_signatures: bool | None = None,  # noqa: ARG001 TODO: revisit
 ) -> SimulateAtomicTransactionResponse:
     """Simulate atomic transaction group execution"""
 
@@ -239,7 +238,7 @@ def simulate_response(
     return atc.simulate(algod_client, simulate_request)
 
 
-def simulate_and_persist_response(  # noqa: PLR0913
+def simulate_and_persist_response(
     atc: AtomicTransactionComposer,
     project_root: Path,
     algod_client: "AlgodClient",
@@ -250,7 +249,6 @@ def simulate_and_persist_response(  # noqa: PLR0913
     extra_opcode_budget: int | None = None,
     exec_trace_config: SimulateTraceConfig | None = None,
     simulation_round: int | None = None,
-    skip_signatures: bool | None = None,
 ) -> SimulateAtomicTransactionResponse:
     """Simulates atomic transactions and persists simulation response to a JSON file.
 
@@ -266,8 +264,7 @@ def simulate_and_persist_response(  # noqa: PLR0913
     :param allow_unnamed_resources: Flag to allow unnamed resources, defaults to None
     :param extra_opcode_budget: Additional opcode budget, defaults to None
     :param exec_trace_config: Execution trace configuration, defaults to None
-    :param simulation_round: Round number for simulation, defaults to None
-    :param skip_signatures: Flag to skip signatures, defaults to None
+    :param simulation_round: Round number for simulation, defa  ults to None
     :return: Simulated response after persisting for AlgoKit AVM Debugger consumption
     """
     atc_to_simulate = atc.clone()
@@ -287,7 +284,6 @@ def simulate_and_persist_response(  # noqa: PLR0913
         extra_opcode_budget,
         exec_trace_config,
         simulation_round,
-        skip_signatures,
     )
     txn_results = response.simulate_response["txn-groups"]
 

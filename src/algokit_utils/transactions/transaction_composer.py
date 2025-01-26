@@ -1708,7 +1708,6 @@ class TransactionComposer:
                 extra_opcode_budget,
                 exec_trace_config,
                 simulation_round,
-                skip_signatures,
             )
             self._handle_simulate_error(response)
             return SendAtomicTransactionComposerResults(
@@ -1731,7 +1730,6 @@ class TransactionComposer:
             extra_opcode_budget,
             exec_trace_config,
             simulation_round,
-            skip_signatures,
         )
         self._handle_simulate_error(response)
         confirmation_results = response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
