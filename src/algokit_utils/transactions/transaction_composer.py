@@ -23,7 +23,6 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
 
-from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
@@ -1185,6 +1184,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     :raises Exception: If there is an error sending the transactions
     :raises error: If there is an error from the Algorand node
     """
+    from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 
     try:
         # Build transactions
@@ -1683,6 +1683,7 @@ class TransactionComposer:
         :param skip_signatures: Whether to skip signature validation
         :return: The simulation results
         """
+        from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 
         atc = AtomicTransactionComposer() if skip_signatures else self._atc
 

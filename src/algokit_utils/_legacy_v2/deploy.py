@@ -4,7 +4,6 @@ import json
 import logging
 import re
 from collections.abc import Iterable, Mapping, Sequence
-from enum import Enum
 from typing import TYPE_CHECKING, TypeAlias, TypedDict
 
 import algosdk
@@ -25,6 +24,7 @@ from algokit_utils._legacy_v2.models import (
     CreateCallParameters,
     TransactionResponse,
 )
+from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.models.account import Account
 
@@ -456,43 +456,6 @@ def get_call_config(method_config: MethodConfigDict, on_complete: transaction.On
             return get("close_out")
         case transaction.OnComplete.ClearStateOC:
             return get("clear_state")
-
-
-class OnUpdate(Enum):
-    """Action to take if an Application has been updated"""
-
-    Fail = 0
-    """Fail the deployment"""
-    UpdateApp = 1
-    """Update the Application with the new approval and clear programs"""
-    ReplaceApp = 2
-    """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = 3
-    """Create a new application"""
-
-
-class OnSchemaBreak(Enum):
-    """Action to take if an Application's schema has breaking changes"""
-
-    Fail = 0
-    """Fail the deployment"""
-    ReplaceApp = 2
-    """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = 3
-    """Create a new Application"""
-
-
-class OperationPerformed(Enum):
-    """Describes the actions taken during deployment"""
-
-    Nothing = 0
-    """An existing Application was found"""
-    Create = 1
-    """No existing Application was found, created a new Application"""
-    Update = 2
-    """An existing Application was found, but was out of date, updated to latest version"""
-    Replace = 3
-    """An existing Application was found, but was out of date, created a new Application and deleted the original"""
 
 
 @dataclasses.dataclass(kw_only=True)

@@ -11,6 +11,7 @@ For more specific functionality, import directly from the relevant submodules:
 
 # Core types and utilities that are commonly used
 from algokit_utils.models.account import Account
+from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.algorand import AlgorandClient
@@ -87,9 +88,6 @@ from algokit_utils._legacy_v2.deploy import (
     DeployCreateCallArgsDict,
     DeploymentFailedError,
     DeployResponse,
-    OnSchemaBreak,
-    OnUpdate,
-    OperationPerformed,
     TemplateValueDict,
     TemplateValueMapping,
     get_app_id_from_tx_id,

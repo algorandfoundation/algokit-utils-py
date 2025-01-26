@@ -116,40 +116,40 @@ class AppLookup:
     apps: dict[str, AppMetaData] = dataclasses.field(default_factory=dict)
 
 
-class OnSchemaBreak(str, Enum):
+class OnSchemaBreak(Enum):
     """Action to take if an Application's schema has breaking changes"""
 
-    Fail = "fail"
+    Fail = 0
     """Fail the deployment"""
-    ReplaceApp = "replace_app"
+    ReplaceApp = 2
     """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = "append_app"
+    AppendApp = 3
     """Create a new Application"""
 
 
-class OnUpdate(str, Enum):
+class OnUpdate(Enum):
     """Action to take if an Application has been updated"""
 
-    Fail = "fail"
+    Fail = 0
     """Fail the deployment"""
-    UpdateApp = "update_app"
+    UpdateApp = 1
     """Update the Application with the new approval and clear programs"""
-    ReplaceApp = "replace_app"
+    ReplaceApp = 2
     """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = "append_app"
+    AppendApp = 3
     """Create a new application"""
 
 
-class OperationPerformed(str, Enum):
+class OperationPerformed(Enum):
     """Describes the actions taken during deployment"""
 
-    Nothing = "nothing"
+    Nothing = 0
     """An existing Application was found"""
-    Create = "create"
+    Create = 1
     """No existing Application was found, created a new Application"""
-    Update = "update"
+    Update = 2
     """An existing Application was found, but was out of date, updated to latest version"""
-    Replace = "replace"
+    Replace = 3
     """An existing Application was found, but was out of date, created a new Application and deleted the original"""
 
 
