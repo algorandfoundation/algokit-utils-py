@@ -4,7 +4,6 @@ from typing import Any, Literal, TypedDict, TypeVar
 import algosdk
 
 __all__ = [
-    "AppCallSendParams",
     "Arc2TransactionNote",
     "BaseArc2Note",
     "JsonFormatArc2Note",
@@ -96,9 +95,6 @@ class TransactionWrapper(algosdk.transaction.Transaction):
 class SendParams(TypedDict, total=False):
     max_rounds_to_wait: int | None
     suppress_log: bool | None
-
-
-class AppCallSendParams(SendParams, total=False):
     populate_app_call_resources: bool | None
     cover_app_call_inner_txn_fees: bool | None
 

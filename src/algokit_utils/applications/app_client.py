@@ -42,7 +42,7 @@ from algokit_utils.models.application import (
     CompiledTeal,
 )
 from algokit_utils.models.state import BoxName, BoxValue
-from algokit_utils.models.transaction import AppCallSendParams, SendParams
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -1023,7 +1023,7 @@ class _AppClientBareSendAccessor:
     def update(
         self,
         params: AppClientBareCallParams | None = None,
-        send_params: AppCallSendParams | None = None,
+        send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application update transaction.
@@ -1052,7 +1052,7 @@ class _AppClientBareSendAccessor:
         )
 
     def opt_in(
-        self, params: AppClientBareCallParams | None = None, send_params: AppCallSendParams | None = None
+        self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application opt-in transaction.
 
@@ -1069,7 +1069,7 @@ class _AppClientBareSendAccessor:
         )
 
     def delete(
-        self, params: AppClientBareCallParams | None = None, send_params: AppCallSendParams | None = None
+        self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application delete transaction.
 
@@ -1086,7 +1086,7 @@ class _AppClientBareSendAccessor:
         )
 
     def clear_state(
-        self, params: AppClientBareCallParams | None = None, send_params: AppCallSendParams | None = None
+        self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application clear state transaction.
 
@@ -1103,7 +1103,7 @@ class _AppClientBareSendAccessor:
         )
 
     def close_out(
-        self, params: AppClientBareCallParams | None = None, send_params: AppCallSendParams | None = None
+        self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application close out transaction.
 
@@ -1123,7 +1123,7 @@ class _AppClientBareSendAccessor:
         self,
         params: AppClientBareCallParams | None = None,
         on_complete: OnComplete | None = None,
-        send_params: AppCallSendParams | None = None,
+        send_params: SendParams | None = None,
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application call transaction.
 
@@ -1173,7 +1173,7 @@ class _TransactionSender:
         )
 
     def opt_in(
-        self, params: AppClientMethodCallParams, send_params: AppCallSendParams | None = None
+        self, params: AppClientMethodCallParams, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[Arc56ReturnValueType]:
         """Send an application opt-in transaction.
 
@@ -1191,7 +1191,7 @@ class _TransactionSender:
         )
 
     def delete(
-        self, params: AppClientMethodCallParams, send_params: AppCallSendParams | None = None
+        self, params: AppClientMethodCallParams, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[Arc56ReturnValueType]:
         """Send an application delete transaction.
 
@@ -1212,7 +1212,7 @@ class _TransactionSender:
         self,
         params: AppClientMethodCallParams,
         compilation_params: AppClientCompilationParams | None = None,
-        send_params: AppCallSendParams | None = None,
+        send_params: SendParams | None = None,
     ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType]:
         """Send an application update transaction.
 
@@ -1235,7 +1235,7 @@ class _TransactionSender:
         return result
 
     def close_out(
-        self, params: AppClientMethodCallParams, send_params: AppCallSendParams | None = None
+        self, params: AppClientMethodCallParams, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[Arc56ReturnValueType]:
         """Send an application close out transaction.
 
@@ -1253,7 +1253,7 @@ class _TransactionSender:
         )
 
     def call(
-        self, params: AppClientMethodCallParams, send_params: AppCallSendParams | None = None
+        self, params: AppClientMethodCallParams, send_params: SendParams | None = None
     ) -> SendAppTransactionResult[Arc56ReturnValueType]:
         """Send an application call transaction.
 
@@ -1272,7 +1272,7 @@ class _TransactionSender:
             method_call_to_simulate = self._algorand.new_group().add_app_call_method_call(
                 self._client.params.call(params)
             )
-            send_params = send_params or AppCallSendParams()
+            send_params = send_params or SendParams()
             simulate_response = self._client._handle_call_errors(
                 lambda: method_call_to_simulate.simulate(
                     allow_unnamed_resources=send_params.get("populate_app_call_resources") or True,

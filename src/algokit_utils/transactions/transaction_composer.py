@@ -28,7 +28,7 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
 from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
-from algokit_utils.models.transaction import AppCallSendParams, SendParams, TransactionWrapper
+from algokit_utils.models.transaction import SendParams, TransactionWrapper
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -1609,7 +1609,7 @@ class TransactionComposer:
 
     def send(
         self,
-        params: SendParams | AppCallSendParams | None = None,
+        params: SendParams | None = None,
     ) -> SendAtomicTransactionComposerResults:
         """Send the transaction group to the network.
 
@@ -1621,13 +1621,13 @@ class TransactionComposer:
 
         if not params:
             has_app_call = any(isinstance(txn.txn, ApplicationCallTxn) for txn in group)
-            params = AppCallSendParams() if has_app_call else SendParams()
+            params = SendParams() if has_app_call else SendParams()
 
-        cover_app_call_inner_txn_fees: bool | None = params.get("cover_app_call_inner_txn_fees")  # type: ignore[assignment]
-        populate_app_call_resources: bool | None = params.get("populate_app_call_resources")  # type: ignore[assignment]
-
+        cover_app_call_inner_txn_fees = params.get("cover_app_call_inner_txn_fees")
+        populate_app_call_resources = params.get("populate_app_call_resources")
         wait_rounds = params.get("max_rounds_to_wait")
         sp = self._get_suggested_params() if not wait_rounds or cover_app_call_inner_txn_fees else None
+
         if wait_rounds is None:
             last_round = max(txn.txn.last_valid_round for txn in group)
             assert sp is not None

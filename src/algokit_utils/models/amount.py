@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from decimal import Decimal
+
 import algosdk
 from typing_extensions import Self
 
@@ -18,15 +20,15 @@ class AlgoAmount:
     >>> amount = AlgoAmount({"microAlgos": 1_000_000})
     """
 
-    def __init__(self, amount: dict[str, int]):
+    def __init__(self, amount: dict[str, int | Decimal]):
         if "microAlgos" in amount:
             self.amount_in_micro_algo = int(amount["microAlgos"])
         elif "microAlgo" in amount:
             self.amount_in_micro_algo = int(amount["microAlgo"])
         elif "algos" in amount:
-            self.amount_in_micro_algo = algosdk.util.algos_to_microalgos(float(amount["algos"]))
+            self.amount_in_micro_algo = int(amount["algos"] * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
         elif "algo" in amount:
-            self.amount_in_micro_algo = algosdk.util.algos_to_microalgos(float(amount["algo"]))
+            self.amount_in_micro_algo = int(amount["algo"] * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
         else:
             raise ValueError("Invalid amount provided")
 
@@ -47,7 +49,7 @@ class AlgoAmount:
         return self.amount_in_micro_algo
 
     @property
-    def algos(self) -> int:
+    def algos(self) -> Decimal:
         """Return the amount as a number in Algo.
 
         :returns: The amount in Algo.
@@ -55,7 +57,7 @@ class AlgoAmount:
         return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
 
     @property
-    def algo(self) -> int:
+    def algo(self) -> Decimal:
         """Return the amount as a number in Algo.
 
         :returns: The amount in Algo.
@@ -63,7 +65,7 @@ class AlgoAmount:
         return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
 
     @staticmethod
-    def from_algos(amount: int) -> AlgoAmount:
+    def from_algos(amount: int | Decimal) -> AlgoAmount:
         """Create an AlgoAmount object representing the given number of Algo.
 
         :param amount: The amount in Algo.
@@ -75,7 +77,7 @@ class AlgoAmount:
         return AlgoAmount({"algos": amount})
 
     @staticmethod
-    def from_algo(amount: int) -> AlgoAmount:
+    def from_algo(amount: int | Decimal) -> AlgoAmount:
         """Create an AlgoAmount object representing the given number of Algo.
 
         :param amount: The amount in Algo.

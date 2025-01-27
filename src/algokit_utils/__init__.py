@@ -11,6 +11,7 @@ For more specific functionality, import directly from the relevant submodules:
 
 # Core types and utilities that are commonly used
 from algokit_utils.models.account import Account
+from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.errors.logic_error import LogicError
@@ -132,6 +133,7 @@ from algokit_utils._debugging import (
 __all__ = [
     # Core types and utilities
     "Account",
+    "AlgoAmount",
     "LogicError",
     "AlgorandClient",
     "DELETABLE_TEMPLATE_NAME",

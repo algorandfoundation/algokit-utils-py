@@ -45,7 +45,7 @@ from algokit_utils.models.application import (
     AppSourceMaps,
 )
 from algokit_utils.models.state import TealTemplateParams
-from algokit_utils.models.transaction import AppCallSendParams
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -381,7 +381,7 @@ class _AppFactoryBareSendAccessor:
     def create(
         self,
         params: AppFactoryCreateParams | None = None,
-        send_params: AppCallSendParams | None = None,
+        send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, SendAppCreateTransactionResult]:
         compilation_params = compilation_params or AppClientCompilationParams()
@@ -441,7 +441,7 @@ class _TransactionSender:
     def create(
         self,
         params: AppFactoryCreateMethodCallParams,
-        send_params: AppCallSendParams | None = None,
+        send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, AppFactoryCreateMethodCallResult[Arc56ReturnValueType]]:
         compilation_params = compilation_params or AppClientCompilationParams()
