@@ -13,7 +13,8 @@ from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
-from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
+from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
+from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.transactions.transaction_composer import (
     TransactionComposer,
 )
@@ -61,11 +62,13 @@ class AlgorandClient:
         self._default_validity_window = validity_window
         return self
 
-    def set_default_signer(self, signer: TransactionSigner) -> typing_extensions.Self:
+    def set_default_signer(
+        self, signer: TransactionSigner | TransactionSignerAccountProtocol
+    ) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
-        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccount`
+        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
         :return: The `AlgorandClient` so method calls can be chained
         """
         self._account_manager.set_default_signer(signer)
@@ -80,6 +83,16 @@ class AlgorandClient:
         :return: The `AlgorandClient` so method calls can be chained
         """
         self._account_manager.set_signer(sender, signer)
+        return self
+
+    def set_signer_account(self, signer: TransactionSignerAccountProtocol) -> typing_extensions.Self:
+        """
+        Sets the default signer to use if no other signer is specified.
+
+        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
+        :return: The `AlgorandClient` so method calls can be chained
+        """
+        self._account_manager.set_default_signer(signer)
         return self
 
     def set_suggested_params(
@@ -235,9 +248,9 @@ class AlgorandClient:
 
     @staticmethod
     def from_config(
-        algod_config: AlgoClientConfig,
-        indexer_config: AlgoClientConfig | None = None,
-        kmd_config: AlgoClientConfig | None = None,
+        algod_config: AlgoClientNetworkConfig,
+        indexer_config: AlgoClientNetworkConfig | None = None,
+        kmd_config: AlgoClientNetworkConfig | None = None,
     ) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` from the given config.

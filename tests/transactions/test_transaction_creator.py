@@ -15,7 +15,7 @@ from algosdk.transaction import (
 
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -39,7 +39,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -50,7 +50,7 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 
 @pytest.fixture
-def funded_secondary_account(algorand: AlgorandClient, funded_account: Account) -> Account:
+def funded_secondary_account(algorand: AlgorandClient, funded_account: SigningAccount) -> SigningAccount:
     secondary_name = get_unique_name()
     account = get_account(algorand.client.algod, secondary_name)
     algorand.send.payment(
@@ -59,7 +59,7 @@ def funded_secondary_account(algorand: AlgorandClient, funded_account: Account) 
     return account
 
 
-def test_create_payment_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_payment_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn = algorand.create_transaction.payment(
         PaymentParams(
             sender=funded_account.address,
@@ -74,7 +74,7 @@ def test_create_payment_transaction(algorand: AlgorandClient, funded_account: Ac
     assert txn.amt == AlgoAmount.from_algos(1).micro_algos
 
 
-def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     expected_total = 1000
     txn = algorand.create_transaction.asset_create(
         AssetCreateParams(
@@ -99,7 +99,7 @@ def test_create_asset_create_transaction(algorand: AlgorandClient, funded_accoun
 
 
 def test_create_asset_config_transaction(
-    algorand: AlgorandClient, funded_account: Account, funded_secondary_account: Account
+    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
 ) -> None:
     txn = algorand.create_transaction.asset_config(
         AssetConfigParams(
@@ -116,7 +116,7 @@ def test_create_asset_config_transaction(
 
 
 def test_create_asset_freeze_transaction(
-    algorand: AlgorandClient, funded_account: Account, funded_secondary_account: Account
+    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
 ) -> None:
     txn = algorand.create_transaction.asset_freeze(
         AssetFreezeParams(
@@ -134,7 +134,7 @@ def test_create_asset_freeze_transaction(
     assert txn.new_freeze_state is True
 
 
-def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn = algorand.create_transaction.asset_destroy(
         AssetDestroyParams(
             sender=funded_account.address,
@@ -148,7 +148,7 @@ def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_accou
 
 
 def test_create_asset_transfer_transaction(
-    algorand: AlgorandClient, funded_account: Account, funded_secondary_account: Account
+    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
 ) -> None:
     expected_amount = 100
     txn = algorand.create_transaction.asset_transfer(
@@ -167,7 +167,7 @@ def test_create_asset_transfer_transaction(
     assert txn.receiver == funded_secondary_account.address
 
 
-def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn = algorand.create_transaction.asset_opt_in(
         AssetOptInParams(
             sender=funded_account.address,
@@ -182,7 +182,7 @@ def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_accoun
     assert txn.receiver == funded_account.address
 
 
-def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn = algorand.create_transaction.asset_opt_out(
         AssetOptOutParams(
             sender=funded_account.address,
@@ -199,7 +199,7 @@ def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_accou
     assert txn.close_assets_to == funded_account.address
 
 
-def test_create_app_create_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_app_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
     txn = algorand.create_transaction.app_create(
@@ -217,7 +217,7 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
     assert txn.clear_program == b"\x06\x81\x01"
 
 
-def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
     clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
 
@@ -248,7 +248,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
     assert result.transactions[0].index == app_id
 
 
-def test_create_online_key_registration_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_create_online_key_registration_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     sp = algorand.get_suggested_params()
     expected_dilution = 100
     expected_first = sp.first

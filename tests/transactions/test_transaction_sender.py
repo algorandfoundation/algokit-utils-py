@@ -5,7 +5,7 @@ import algosdk
 import pytest
 from algosdk.transaction import OnComplete
 
-from algokit_utils import Account
+from algokit_utils import SigningAccount
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
@@ -36,7 +36,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -47,12 +47,12 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 
 @pytest.fixture
-def sender(funded_account: Account) -> Account:
+def sender(funded_account: SigningAccount) -> SigningAccount:
     return funded_account
 
 
 @pytest.fixture
-def receiver(algorand: AlgorandClient) -> Account:
+def receiver(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -75,7 +75,7 @@ def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
 
 @pytest.fixture
 def test_hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: Account, test_hello_world_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: SigningAccount, test_hello_world_arc32_app_spec: ApplicationSpecification
 ) -> int:
     global_schema = test_hello_world_arc32_app_spec.global_state_schema
     local_schema = test_hello_world_arc32_app_spec.local_state_schema
@@ -96,7 +96,7 @@ def test_hello_world_arc32_app_id(
 
 
 @pytest.fixture
-def transaction_sender(algorand: AlgorandClient, sender: Account) -> AlgorandClientTransactionSender:
+def transaction_sender(algorand: AlgorandClient, sender: SigningAccount) -> AlgorandClientTransactionSender:
     def new_group() -> TransactionComposer:
         return TransactionComposer(
             algod=algorand.client.algod,
@@ -111,7 +111,9 @@ def transaction_sender(algorand: AlgorandClient, sender: Account) -> AlgorandCli
     )
 
 
-def test_payment(transaction_sender: AlgorandClientTransactionSender, sender: Account, receiver: Account) -> None:
+def test_payment(
+    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+) -> None:
     amount = AlgoAmount.from_algos(1)
     result = transaction_sender.payment(
         PaymentParams(
@@ -130,7 +132,7 @@ def test_payment(transaction_sender: AlgorandClientTransactionSender, sender: Ac
     assert txn.amt == amount.micro_algos
 
 
-def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
+def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
     total = 1000
     params = AssetCreateParams(
         sender=sender.address,
@@ -156,7 +158,9 @@ def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sende
     assert txn.url == "https://example.com"
 
 
-def test_asset_config(transaction_sender: AlgorandClientTransactionSender, sender: Account, receiver: Account) -> None:
+def test_asset_config(
+    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
@@ -191,7 +195,7 @@ def test_asset_config(transaction_sender: AlgorandClientTransactionSender, sende
 
 def test_asset_freeze(
     transaction_sender: AlgorandClientTransactionSender,
-    sender: Account,
+    sender: SigningAccount,
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
@@ -228,7 +232,7 @@ def test_asset_freeze(
     assert txn.new_freeze_state is True
 
 
-def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
+def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
@@ -259,7 +263,7 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
 
 
 def test_asset_transfer(
-    transaction_sender: AlgorandClientTransactionSender, sender: Account, receiver: Account
+    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
@@ -303,7 +307,9 @@ def test_asset_transfer(
     assert txn.amount == amount
 
 
-def test_asset_opt_in(transaction_sender: AlgorandClientTransactionSender, sender: Account, receiver: Account) -> None:
+def test_asset_opt_in(
+    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
@@ -335,7 +341,9 @@ def test_asset_opt_in(transaction_sender: AlgorandClientTransactionSender, sende
     assert txn.receiver == receiver.address
 
 
-def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, sender: Account, receiver: Account) -> None:
+def test_asset_opt_out(
+    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
@@ -377,7 +385,7 @@ def test_asset_opt_out(transaction_sender: AlgorandClientTransactionSender, send
     assert txn.close_assets_to == sender.address
 
 
-def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
+def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
     params = AppCreateParams(
@@ -399,7 +407,7 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
 
 
 def test_app_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
 ) -> None:
     params = AppCallParams(
         app_id=test_hello_world_arc32_app_id,
@@ -413,7 +421,7 @@ def test_app_call(
 
 
 def test_app_call_method_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: Account
+    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
 ) -> None:
     params = AppCallMethodCallParams(
         app_id=test_hello_world_arc32_app_id,
@@ -431,8 +439,8 @@ def test_app_call_method_call(
 def test_payment_logging(
     mock_debug: MagicMock,
     transaction_sender: AlgorandClientTransactionSender,
-    sender: Account,
-    receiver: Account,
+    sender: SigningAccount,
+    receiver: SigningAccount,
 ) -> None:
     amount = AlgoAmount.from_algos(1)
     transaction_sender.payment(
@@ -450,7 +458,7 @@ def test_payment_logging(
     assert receiver.address in log_message
 
 
-def test_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: Account) -> None:
+def test_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
     sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
 
     params = OnlineKeyRegistrationParams(

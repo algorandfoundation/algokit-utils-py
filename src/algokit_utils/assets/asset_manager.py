@@ -5,7 +5,7 @@ import algosdk
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
 from algosdk.v2client import algod
 
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
@@ -131,7 +131,7 @@ class AssetManager:
         )
 
     def get_account_information(
-        self, sender: str | Account | TransactionSigner, asset_id: int
+        self, sender: str | SigningAccount | TransactionSigner, asset_id: int
     ) -> AccountAssetInformation:
         """Returns the given sender account's asset holding for a given asset.
 
@@ -152,7 +152,7 @@ class AssetManager:
 
     def bulk_opt_in(  # noqa: PLR0913
         self,
-        account: str | Account | TransactionSigner,
+        account: str,
         asset_ids: list[int],
         signer: TransactionSigner | None = None,
         rekey_to: str | None = None,
@@ -216,7 +216,7 @@ class AssetManager:
     def bulk_opt_out(  # noqa: C901, PLR0913
         self,
         *,
-        account: str | Account | TransactionSigner,
+        account: str,
         asset_ids: list[int],
         ensure_zero_balance: bool = True,
         signer: TransactionSigner | None = None,
@@ -306,10 +306,10 @@ class AssetManager:
         return results
 
     @staticmethod
-    def _get_address_from_sender(sender: str | Account | TransactionSigner) -> str:
+    def _get_address_from_sender(sender: str | SigningAccount | TransactionSigner) -> str:
         if isinstance(sender, str):
             return sender
-        if isinstance(sender, Account):
+        if isinstance(sender, SigningAccount):
             return sender.address
         if isinstance(sender, AccountTransactionSigner):
             return str(algosdk.account.address_from_private_key(sender.private_key))

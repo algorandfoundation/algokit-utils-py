@@ -4,7 +4,7 @@ from pytest_httpx._httpx_mock import HTTPXMock
 
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.clients.dispenser_api_client import DispenserApiConfig, TestNetDispenserApiClient
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
@@ -20,7 +20,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -30,7 +30,7 @@ def funded_account(algorand: AlgorandClient) -> Account:
     return new_account
 
 
-def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     second_account = algorand.account.random()
 
     result = algorand.send.payment(
@@ -51,7 +51,7 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
     assert account_info.amount == 5_000_000
 
 
-def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     second_account = algorand.account.random()
 
     algorand.send.payment(
@@ -74,7 +74,7 @@ def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_ac
         )
 
 
-def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     second_account = algorand.account.random()
 
     algorand.send.payment(
@@ -97,7 +97,7 @@ def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funde
         )
 
 
-def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
 
     second_account = algorand.account.random()
@@ -139,7 +139,7 @@ def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: A
 
 def test_transfer_asa_receiver_not_opted_in(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
 ) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
@@ -156,7 +156,7 @@ def test_transfer_asa_receiver_not_opted_in(
         )
 
 
-def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -178,7 +178,7 @@ def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_accou
         )
 
 
-def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
         account_to_fund=second_account,
@@ -199,7 +199,7 @@ def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_accoun
         )
 
 
-def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -236,7 +236,7 @@ def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_accoun
     assert test_account_info.balance == 95
 
 
-def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     clawback_account = algorand.account.random()
@@ -307,7 +307,7 @@ MINIMUM_BALANCE = AlgoAmount.from_micro_algos(
 )  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
 
 
-def test_ensure_funded(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_ensure_funded(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     test_account = algorand.account.random()
     response = algorand.account.ensure_funded(
         account_to_fund=test_account,
@@ -340,7 +340,9 @@ def test_ensure_funded_uses_dispenser_by_default(
     assert account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
 
 
-def test_ensure_funded_respects_minimum_funding_increment(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_ensure_funded_respects_minimum_funding_increment(
+    algorand: AlgorandClient, funded_account: SigningAccount
+) -> None:
     test_account = algorand.account.random()
     response = algorand.account.ensure_funded(
         account_to_fund=test_account,
@@ -410,10 +412,10 @@ def test_ensure_funded_testnet_api_bad_response(monkeypatch: pytest.MonkeyPatch,
         )
 
 
-def test_rekey_works(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_rekey_works(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     second_account = algorand.account.random()
 
-    algorand.account.rekey_account(funded_account, second_account, note=b"rekey")
+    algorand.account.rekey_account(funded_account.address, second_account, note=b"rekey")
 
     # This will throw if the rekey wasn't successful
     algorand.send.payment(

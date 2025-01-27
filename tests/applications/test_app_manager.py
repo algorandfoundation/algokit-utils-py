@@ -2,7 +2,7 @@ import pytest
 
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import check_output_stability
 
@@ -13,7 +13,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(

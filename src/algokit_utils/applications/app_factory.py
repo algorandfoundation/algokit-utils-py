@@ -30,11 +30,11 @@ from algokit_utils.applications.app_client import (
     CreateOnComplete,
 )
 from algokit_utils.applications.app_deployer import (
-    AppDeployMetaData,
+    AppDeploymentMetaData,
     AppDeployParams,
     AppDeployResult,
-    AppLookup,
-    AppMetaData,
+    ApplicationLookup,
+    ApplicationMetaData,
     OnSchemaBreak,
     OnUpdate,
     OperationPerformed,
@@ -44,7 +44,6 @@ from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Method
 from algokit_utils.models.application import (
     AppSourceMaps,
 )
-from algokit_utils.models.state import TealTemplateParams
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
@@ -82,12 +81,10 @@ class AppFactoryParams:
     algorand: AlgorandClient
     app_spec: Arc56Contract | ApplicationSpecification | str
     app_name: str | None = None
-    default_sender: str | bytes | None = None
+    default_sender: str | None = None
     default_signer: TransactionSigner | None = None
     version: str | None = None
-    updatable: bool | None = None
-    deletable: bool | None = None
-    deploy_time_params: TealTemplateParams | None = None
+    compilation_params: AppClientCompilationParams | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -139,7 +136,7 @@ class SendAppCreateFactoryTransactionResult(SendAppCreateTransactionResult[Arc56
 class AppFactoryDeployResult:
     """Result from deploying an application via AppFactory"""
 
-    app: AppMetaData
+    app: ApplicationMetaData
     operation_performed: OperationPerformed
     create_result: SendAppCreateFactoryTransactionResult | None = None
     update_result: SendAppUpdateFactoryTransactionResult | None = None
@@ -501,14 +498,16 @@ class AppFactory:
         self._version = params.version or "1.0"
         self._default_sender = params.default_sender
         self._default_signer = params.default_signer
-        self._deploy_time_params = params.deploy_time_params
-        self._updatable = params.updatable
-        self._deletable = params.deletable
         self._approval_source_map: SourceMap | None = None
         self._clear_source_map: SourceMap | None = None
         self._params_accessor = _MethodParamsBuilder(self)
         self._send_accessor = _TransactionSender(self)
         self._create_transaction_accessor = _TransactionCreator(self)
+
+        compilation_params = params.compilation_params or AppClientCompilationParams()
+        self._deploy_time_params = compilation_params.get("deploy_time_params")
+        self._updatable = compilation_params.get("updatable")
+        self._deletable = compilation_params.get("deletable")
 
     @property
     def app_name(self) -> str:
@@ -534,34 +533,35 @@ class AppFactory:
     def create_transaction(self) -> _TransactionCreator:
         return self._create_transaction_accessor
 
-    def deploy(  # noqa: PLR0913
+    def deploy(
         self,
         *,
-        deploy_time_params: TealTemplateParams | None = None,
-        on_update: OnUpdate = OnUpdate.Fail,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        on_update: OnUpdate | None = None,
+        on_schema_break: OnSchemaBreak | None = None,
         create_params: AppClientMethodCallCreateParams | AppClientBareCallCreateParams | None = None,
         update_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
         delete_params: AppClientMethodCallParams | AppClientBareCallParams | None = None,
-        existing_deployments: AppLookup | None = None,
+        existing_deployments: ApplicationLookup | None = None,
         ignore_cache: bool = False,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
         app_name: str | None = None,
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool = False,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
+        send_params: SendParams | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, AppFactoryDeployResult]:
         """Deploy the application with the specified parameters."""
         # Resolve control parameters with factory defaults
+        send_params = send_params or SendParams()
+        compilation_params = compilation_params or AppClientCompilationParams()
         resolved_updatable = (
-            updatable if updatable is not None else self._updatable or self._get_deploy_time_control("updatable")
+            upd
+            if (upd := compilation_params.get("updatable")) is not None
+            else self._updatable or self._get_deploy_time_control("updatable")
         )
         resolved_deletable = (
-            deletable if deletable is not None else self._deletable or self._get_deploy_time_control("deletable")
+            dlb
+            if (dlb := compilation_params.get("deletable")) is not None
+            else self._deletable or self._get_deploy_time_control("deletable")
         )
-        resolved_deploy_time_params = deploy_time_params or self._deploy_time_params
+        resolved_deploy_time_params = compilation_params.get("deploy_time_params") or self._deploy_time_params
 
         def prepare_create_args() -> AppCreateMethodCallParams | AppCreateParams:
             """Prepare create arguments based on parameter type."""
@@ -615,16 +615,13 @@ class AppFactory:
             create_params=prepare_create_args(),
             update_params=prepare_update_args(),
             delete_params=prepare_delete_args(),
-            metadata=AppDeployMetaData(
+            metadata=AppDeploymentMetaData(
                 name=app_name or self._app_name,
                 version=self._version,
                 updatable=resolved_updatable,
                 deletable=resolved_deletable,
             ),
-            suppress_log=suppress_log,
-            max_rounds_to_wait=max_rounds_to_wait,
-            populate_app_call_resources=populate_app_call_resources,
-            cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+            send_params=send_params,
         )
         deploy_result = self._algorand.app_deployer.deploy(deploy_params)
 
@@ -654,7 +651,7 @@ class AppFactory:
         self,
         app_id: int,
         app_name: str | None = None,
-        default_sender: str | bytes | None = None,  # Address can be string or bytes
+        default_sender: str | None = None,  # Address can be string or bytes
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
@@ -676,10 +673,10 @@ class AppFactory:
         self,
         creator_address: str,
         app_name: str,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
+        app_lookup_cache: ApplicationLookup | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
@@ -716,9 +713,7 @@ class AppFactory:
         result = AppClient.compile(
             app_spec=self._app_spec,
             app_manager=self._algorand.app,
-            deploy_time_params=compilation.get("deploy_time_params") if compilation else None,
-            updatable=compilation.get("updatable") if compilation else None,
-            deletable=compilation.get("deletable") if compilation else None,
+            compilation_params=compilation,
         )
 
         if result.compiled_approval:

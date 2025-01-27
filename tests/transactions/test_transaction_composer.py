@@ -15,7 +15,7 @@ from algosdk.transaction import (
 
 from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import MultisigMetadata, SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -46,7 +46,7 @@ def mock_config() -> Generator[Mock, None, None]:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -57,12 +57,12 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 
 @pytest.fixture
-def funded_secondary_account(algorand: AlgorandClient) -> Account:
+def funded_secondary_account(algorand: AlgorandClient) -> SigningAccount:
     secondary_name = get_unique_name()
     return get_account(algorand.client.algod, secondary_name)
 
 
-def test_add_transaction(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_add_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -83,7 +83,7 @@ def test_add_transaction(algorand: AlgorandClient, funded_account: Account) -> N
     assert built.transactions[0].amt == AlgoAmount.from_algos(1).micro_algos
 
 
-def test_add_asset_create(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_add_asset_create(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -119,7 +119,9 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: Account) -> 
     assert txn.asset_name == created_asset["name"] == "Test Asset"
 
 
-def test_add_asset_config(algorand: AlgorandClient, funded_account: Account, funded_secondary_account: Account) -> None:
+def test_add_asset_config(
+    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
+) -> None:
     # First create an asset
     asset_txn = AssetCreateTxn(
         sender=funded_account.address,
@@ -162,7 +164,7 @@ def test_add_asset_config(algorand: AlgorandClient, funded_account: Account, fun
     assert updated_asset["manager"] == funded_secondary_account.address
 
 
-def test_add_app_create(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_add_app_create(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -187,7 +189,7 @@ def test_add_app_create(algorand: AlgorandClient, funded_account: Account) -> No
     composer.send({"max_rounds_to_wait": 20})
 
 
-def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -227,7 +229,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Acco
     assert response.returns[-1].value == "Hello, world"
 
 
-def test_simulate(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_simulate(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -244,7 +246,7 @@ def test_simulate(algorand: AlgorandClient, funded_account: Account) -> None:
     assert simulate_response
 
 
-def test_send(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -307,7 +309,7 @@ def test_arc2_note_valid_dapp_names() -> None:
 
 
 def _get_test_transaction(
-    default_account: Account, amount: AlgoAmount | None = None, sender: Account | None = None
+    default_account: SigningAccount, amount: AlgoAmount | None = None, sender: SigningAccount | None = None
 ) -> dict[str, Any]:
     return {
         "sender": sender.address if sender else default_account.address,
@@ -316,14 +318,16 @@ def _get_test_transaction(
     }
 
 
-def test_transaction_is_capped_by_low_min_txn_fee(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transaction_is_capped_by_low_min_txn_fee(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     with pytest.raises(ValueError, match="Transaction fee 1000 is greater than max_fee 1 µALGO"):
         algorand.send.payment(
             PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1))
         )
 
 
-def test_transaction_cap_is_ignored_if_higher_than_fee(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transaction_cap_is_ignored_if_higher_than_fee(
+    algorand: AlgorandClient, funded_account: SigningAccount
+) -> None:
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1_000_000))
     )
@@ -331,7 +335,7 @@ def test_transaction_cap_is_ignored_if_higher_than_fee(algorand: AlgorandClient,
     assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_micro_algo(1000)
 
 
-def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algos(1))
     )
@@ -339,7 +343,7 @@ def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account
     assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_algos(1)
 
 
-def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
@@ -367,9 +371,14 @@ def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: Acc
     )
 
 
-def test_multisig_single_account(algorand: AlgorandClient, funded_account: Account) -> None:
-    multisig = algorand.account.multi_sig(
-        version=1, threshold=1, addrs=[funded_account.address], signing_accounts=[funded_account]
+def test_multisig_single_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    multisig = algorand.account.multisig(
+        metadata=MultisigMetadata(
+            version=1,
+            threshold=1,
+            addresses=[funded_account.address],
+        ),
+        signing_accounts=[funded_account],
     )
     algorand.send.payment(
         PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algos(1))
@@ -379,15 +388,17 @@ def test_multisig_single_account(algorand: AlgorandClient, funded_account: Accou
     )
 
 
-def test_multisig_double_account(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_multisig_double_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     account2 = algorand.account.random()
     algorand.account.ensure_funded(account2, funded_account, AlgoAmount.from_algos(10))
 
     # Setup multisig
-    multisig = algorand.account.multi_sig(
-        version=1,
-        threshold=2,
-        addrs=[funded_account.address, account2.address],
+    multisig = algorand.account.multisig(
+        metadata=MultisigMetadata(
+            version=1,
+            threshold=2,
+            addresses=[funded_account.address, account2.address],
+        ),
         signing_accounts=[funded_account, account2],
     )
 
@@ -403,7 +414,7 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Accou
 
 
 @pytest.mark.usefixtures("mock_config")
-def test_transactions_fails_in_debug_mode(algorand: AlgorandClient, funded_account: Account) -> None:
+def test_transactions_fails_in_debug_mode(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn1 = algorand.create_transaction.payment(PaymentParams(**_get_test_transaction(funded_account)))
     txn2 = algorand.create_transaction.payment(
         PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_micro_algo(9999999999999)))

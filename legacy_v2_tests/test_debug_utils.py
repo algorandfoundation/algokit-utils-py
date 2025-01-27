@@ -15,11 +15,11 @@ from algokit_utils._debugging import (
     persist_sourcemaps,
     simulate_and_persist_response,
 )
+from algokit_utils._legacy_v2.account import get_account
 from algokit_utils._legacy_v2.application_client import ApplicationClient
-from algokit_utils.account import get_account
-from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_utils._legacy_v2.models import Account
 from algokit_utils.common import Program
-from algokit_utils.models import Account
 from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:

@@ -2,7 +2,8 @@ import warnings
 
 warnings.warn(
     """The legacy v2 account module is deprecated and will be removed in a future version.
-    Use `Account` abstraction from `algokit_utils.models` instead.
+    Use `SigningAccount` abstraction from `algokit_utils.models` instead or
+    classes compliant with `TransactionSignerAccountProtocol` obtained from `AccountManager`.
 """,
     DeprecationWarning,
     stacklevel=2,

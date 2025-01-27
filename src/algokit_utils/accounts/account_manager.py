@@ -3,19 +3,29 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+import algosdk
 from algosdk import mnemonic
-from algosdk.atomic_transaction_composer import LogicSigTransactionSigner, TransactionSigner
+from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.mnemonic import to_private_key
-from algosdk.transaction import LogicSigAccount, SuggestedParams
+from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
+from algosdk.transaction import SuggestedParams
 from typing_extensions import Self
 
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestNetDispenserApiClient
 from algokit_utils.config import config
-from algokit_utils.models.account import DISPENSER_ACCOUNT_NAME, Account, MultiSigAccount, MultisigMetadata
+from algokit_utils.models.account import (
+    DISPENSER_ACCOUNT_NAME,
+    LogicSigAccount,
+    MultiSigAccount,
+    MultisigMetadata,
+    SigningAccount,
+    TransactionSignerAccount,
+)
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
+from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendAtomicTransactionComposerResults,
@@ -65,11 +75,11 @@ class AccountInformation:
     See `https://developer.algorand.org/docs/rest-apis/algod/#account` for detailed field descriptions.
 
     :ivar str address: The account's address
-    :ivar int amount: The account's current balance in microAlgos
-    :ivar int amount_without_pending_rewards: The account's balance in microAlgos without the pending rewards
-    :ivar int min_balance: The account's minimum required balance in microAlgos
-    :ivar int pending_rewards: The amount of pending rewards in microAlgos
-    :ivar int rewards: The amount of rewards earned in microAlgos
+    :ivar AlgoAmount amount: The account's current balance
+    :ivar AlgoAmount amount_without_pending_rewards: The account's balance without the pending rewards
+    :ivar AlgoAmount min_balance: The account's minimum required balance
+    :ivar AlgoAmount pending_rewards: The amount of pending rewards
+    :ivar AlgoAmount rewards: The amount of rewards earned
     :ivar int round: The round for which this information is relevant
     :ivar str status: The account's status (e.g., 'Offline', 'Online')
     :ivar int|None total_apps_opted_in: Number of applications this account has opted into
@@ -97,11 +107,11 @@ class AccountInformation:
     """
 
     address: str
-    amount: int
-    amount_without_pending_rewards: int
-    min_balance: int
-    pending_rewards: int
-    rewards: int
+    amount: AlgoAmount
+    amount_without_pending_rewards: AlgoAmount
+    min_balance: AlgoAmount
+    pending_rewards: AlgoAmount
+    rewards: AlgoAmount
     round: int
     status: str
     total_apps_opted_in: int | None = None
@@ -144,10 +154,14 @@ class AccountManager:
     def __init__(self, client_manager: ClientManager):
         self._client_manager = client_manager
         self._kmd_account_manager = KmdAccountManager(client_manager)
-        self._signers = dict[str, TransactionSigner]()
+        self._accounts = dict[str, TransactionSignerAccountProtocol]()
         self._default_signer: TransactionSigner | None = None
 
-    def set_default_signer(self, signer: TransactionSigner) -> Self:
+    @property
+    def kmd(self) -> KmdAccountManager:
+        return self._kmd_account_manager
+
+    def set_default_signer(self, signer: TransactionSigner | TransactionSignerAccountProtocol) -> Self:
         """
         Sets the default signer to use if no other signer is specified.
 
@@ -164,7 +178,7 @@ class AccountManager:
         >>> # then the default signer will be used
         >>> signer = account_manager.get_signer("{SENDERADDRESS}")
         """
-        self._default_signer = signer
+        self._default_signer = signer if isinstance(signer, TransactionSigner) else signer.signer
         return self
 
     def set_signer(self, sender: str, signer: TransactionSigner) -> Self:
@@ -178,10 +192,25 @@ class AccountManager:
         :example:
         >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
         """
-        self._signers[sender] = signer
+        self._accounts[sender] = TransactionSignerAccount(address=sender, signer=signer)
         return self
 
-    def set_signer_from_account(self, account: Account | LogicSigAccount | MultiSigAccount) -> Self:
+    def set_signers(self, *, another_account_manager: "AccountManager", overwrite_existing: bool = True) -> Self:
+        """
+        Merges the given `AccountManager` into this one.
+
+        :param another_account_manager: The `AccountManager` to merge into this one
+        :param overwrite_existing: Whether to overwrite existing signers in this manager
+        :returns: The `AccountManager` instance for method chaining
+        """
+        self._accounts = (
+            {**self._accounts, **another_account_manager._accounts}  # noqa: SLF001
+            if overwrite_existing
+            else {**another_account_manager._accounts, **self._accounts}  # noqa: SLF001
+        )
+        return self
+
+    def set_signer_from_account(self, account: TransactionSignerAccountProtocol) -> Self:
         """
         Tracks the given account for later signing.
 
@@ -194,18 +223,13 @@ class AccountManager:
         :example:
         >>> account_manager = AccountManager(client_manager)
         >>> account_manager.set_signer_from_account(Account.new_account())
-        >>> account_manager.set_signer_from_account(LogicSigAccount(program, args))
+        >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
         >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
         """
-        if isinstance(account, LogicSigAccount):
-            addr = account.address()
-            self._signers[addr] = LogicSigTransactionSigner(account)
-        else:
-            addr = account.address
-            self._signers[addr] = account.signer
+        self._accounts[account.address] = account
         return self
 
-    def get_signer(self, sender: str | Account | LogicSigAccount) -> TransactionSigner:
+    def get_signer(self, sender: str | TransactionSignerAccountProtocol) -> TransactionSigner:
         """
         Returns the `TransactionSigner` for the given sender address.
 
@@ -218,55 +242,40 @@ class AccountManager:
         :example:
         >>> signer = account_manager.get_signer("SENDERADDRESS")
         """
-        signer = self._signers.get(self._get_address(sender)) or self._default_signer
+        signer = self._accounts.get(self._get_address(sender)) or self._default_signer
         if not signer:
             raise ValueError(f"No signer found for address {sender}")
-        return signer
+        return signer if isinstance(signer, TransactionSigner) else signer.signer
 
-    def get_account(self, sender: str) -> Account:
+    def get_account(self, sender: str) -> TransactionSignerAccountProtocol:
         """
-        Returns the `Account` for the given sender address.
+        Returns the `TransactionSignerAccountProtocol` for the given sender address.
 
         :param sender: The sender address
-        :returns: The `Account`
+        :returns: The `TransactionSignerAccountProtocol`
         :raises ValueError: If no account is found or if the account is not a regular account
 
         :example:
         >>> sender = account_manager.random()
         >>> # ...
-        >>> # Returns the `Account` for `sender` that has previously been registered
+        >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
         >>> account = account_manager.get_account(sender)
         """
-        account = self._signers.get(sender)
+        account = self._accounts.get(sender)
         if not account:
             raise ValueError(f"No account found for address {sender}")
-        if not isinstance(account, Account):
+        if not isinstance(account, SigningAccount):
             raise ValueError(f"Account {sender} is not a regular account")
         return account
 
-    def get_logic_sig_account(self, sender: str) -> LogicSigAccount:
-        """
-        Returns the `LogicSigAccount` for the given sender address.
-
-        :param sender: The sender address
-        :returns: The `LogicSigAccount`
-        :raises ValueError: If no account is found or if the account is not a logic signature account
-        """
-        account = self._signers.get(sender)
-        if not account:
-            raise ValueError(f"No account found for address {sender}")
-        if not isinstance(account, LogicSigAccount):
-            raise ValueError(f"Account {sender} is not a logic sig account")
-        return account
-
-    def get_information(self, sender: str | Account) -> AccountInformation:
+    def get_information(self, sender: str | TransactionSignerAccountProtocol) -> AccountInformation:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
         See `<https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress>`_
         for response data schema details.
 
-        :param sender: The address of the sender/account to look up
+        :param sender: The address or account compliant with `TransactionSignerAccountProtocol` protocol to look up
         :returns: The account information
 
         :example:
@@ -276,55 +285,56 @@ class AccountManager:
         info = self._client_manager.algod.account_info(self._get_address(sender))
         assert isinstance(info, dict)
         info = {k.replace("-", "_"): v for k, v in info.items()}
+        for key, value in info.items():
+            if key in ("amount", "amount_without_pending_rewards", "min_balance", "pending_rewards", "rewards"):
+                info[key] = AlgoAmount.from_micro_algo(value)
         return AccountInformation(**info)
 
-    def _register_account(self, private_key: str) -> Account:
+    def _register_account(self, private_key: str, address: str | None = None) -> SigningAccount:
         """
         Helper method to create and register an account with its signer.
 
         :param private_key: The private key for the account
+        :param address: The address for the account
         :returns: The registered Account instance
         """
-        account = Account(private_key=private_key)
-        self._signers[account.address] = account.signer
+        address = address or str(algosdk.account.address_from_private_key(private_key))
+        account = SigningAccount(private_key=private_key, address=address)
+        self._accounts[address or account.address] = TransactionSignerAccount(
+            address=account.address, signer=account.signer
+        )
         return account
 
-    def _register_logic_sig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
+    def _register_logicsig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
         """
         Helper method to create and register a logic signature account.
 
         :param program: The bytes that make up the compiled logic signature
         :param args: The (binary) arguments to pass into the logic signature
-        :returns: The registered LogicSigAccount instance
+        :returns: The registered AlgosdkLogicSigAccount instance
         """
-        logic_sig = LogicSigAccount(program, args)
-        self._signers[logic_sig.address()] = LogicSigTransactionSigner(logic_sig)
+        logic_sig = LogicSigAccount(AlgosdkLogicSigAccount(program, args))
+        self._accounts[logic_sig.address] = logic_sig
         return logic_sig
 
-    def _register_multi_sig(
-        self, version: int, threshold: int, addrs: list[str], signing_accounts: list[Account]
-    ) -> MultiSigAccount:
+    def _register_multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
         """
         Helper method to create and register a multisig account.
 
-        :param version: The version of the multisig account
-        :param threshold: The threshold number of signatures required
-        :param addrs: The list of addresses that can sign
+        :param metadata: The metadata for the multisig account
         :param signing_accounts: The list of accounts that are present to sign
         :returns: The registered MultisigAccount instance
         """
-        msig_account = MultiSigAccount(
-            MultisigMetadata(version=version, threshold=threshold, addresses=addrs),
-            signing_accounts,
-        )
-        self._signers[str(msig_account.address)] = msig_account.signer
+        msig_account = MultiSigAccount(metadata, signing_accounts)
+        self._accounts[str(msig_account.address)] = MultiSigAccount(metadata, signing_accounts)
         return msig_account
 
-    def from_mnemonic(self, mnemonic: str) -> Account:
+    def from_mnemonic(self, *, mnemonic: str, sender: str | None = None) -> SigningAccount:
         """
         Tracks and returns an Algorand account with secret key loaded by taking the mnemonic secret.
 
         :param mnemonic: The mnemonic secret representing the private key of an account
+        :param sender: Optional address to use as the sender
         :returns: The account
 
         .. warning::
@@ -334,10 +344,9 @@ class AccountManager:
         :example:
         >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        private_key = to_private_key(mnemonic)
-        return self._register_account(private_key)
+        return self._register_account(to_private_key(mnemonic), sender)
 
-    def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> Account:
+    def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> SigningAccount:
         """
         Tracks and returns an Algorand account with private key loaded by convention from environment variables.
 
@@ -378,7 +387,7 @@ class AccountManager:
 
     def from_kmd(
         self, name: str, predicate: Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None
-    ) -> Account:
+    ) -> SigningAccount:
         """
         Tracks and returns an Algorand account with private key loaded from the given KMD wallet.
 
@@ -400,7 +409,7 @@ class AccountManager:
 
         return self._register_account(kmd_account.private_key)
 
-    def logic_sig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
+    def logicsig(self, program: bytes, args: list[bytes] | None = None) -> LogicSigAccount:
         """
         Tracks and returns an account that represents a logic signature.
 
@@ -411,17 +420,13 @@ class AccountManager:
         :example:
         >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
         """
-        return self._register_logic_sig(program, args)
+        return self._register_logicsig(program, args)
 
-    def multi_sig(
-        self, version: int, threshold: int, addrs: list[str], signing_accounts: list[Account]
-    ) -> MultiSigAccount:
+    def multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
         """
         Tracks and returns an account that supports partial or full multisig signing.
 
-        :param version: The version of the multisig account
-        :param threshold: The threshold number of signatures required
-        :param addrs: The list of addresses that can sign
+        :param metadata: The metadata for the multisig account
         :param signing_accounts: The signers that are currently present
         :returns: A multisig account wrapper
 
@@ -433,9 +438,9 @@ class AccountManager:
         ...     signing_accounts=[account1, account2]
         ... )
         """
-        return self._register_multi_sig(version, threshold, addrs, signing_accounts)
+        return self._register_multisig(metadata, signing_accounts)
 
-    def random(self) -> Account:
+    def random(self) -> SigningAccount:
         """
         Tracks and returns a new, random Algorand account.
 
@@ -444,10 +449,10 @@ class AccountManager:
         :example:
         >>> account = account_manager.random()
         """
-        account = Account.new_account()
+        account = SigningAccount.new_account()
         return self._register_account(account.private_key)
 
-    def localnet_dispenser(self) -> Account:
+    def localnet_dispenser(self) -> SigningAccount:
         """
         Returns an Algorand account with private key loaded for the default LocalNet dispenser account.
 
@@ -461,7 +466,7 @@ class AccountManager:
         kmd_account = self._kmd_account_manager.get_localnet_dispenser_account()
         return self._register_account(kmd_account.private_key)
 
-    def dispenser_from_environment(self) -> Account:
+    def dispenser_from_environment(self) -> SigningAccount:
         """
         Returns an account (with private key loaded) that can act as a dispenser from environment variables.
 
@@ -477,7 +482,9 @@ class AccountManager:
             return self.from_environment(DISPENSER_ACCOUNT_NAME)
         return self.localnet_dispenser()
 
-    def rekeyed(self, sender: Account | str, account: Account) -> Account:
+    def rekeyed(
+        self, *, sender: str, account: TransactionSignerAccountProtocol
+    ) -> TransactionSignerAccount | SigningAccount:
         """
         Tracks and returns an Algorand account that is a rekeyed version of the given account to a new sender.
 
@@ -489,14 +496,16 @@ class AccountManager:
         >>> account = account.from_mnemonic("mnemonic secret ...")
         >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
         """
-        sender_address = sender.address if isinstance(sender, Account) else sender
-        self._signers[sender_address] = account.signer
-        return Account(address=sender_address, private_key=account.private_key)
+        sender_address = sender.address if isinstance(sender, SigningAccount) else sender
+        self._accounts[sender_address] = TransactionSignerAccount(address=sender_address, signer=account.signer)
+        if isinstance(account, SigningAccount):
+            return SigningAccount(address=sender_address, private_key=account.private_key)
+        return TransactionSignerAccount(address=sender_address, signer=account.signer)
 
     def rekey_account(  # noqa: PLR0913
         self,
-        account: str | Account,
-        rekey_to: str | Account,
+        account: str,
+        rekey_to: str | TransactionSignerAccountProtocol,
         *,  # Common transaction parameters
         signer: TransactionSigner | None = None,
         note: bytes | None = None,
@@ -575,8 +584,8 @@ class AccountManager:
         )
 
         # If rekey_to is a signing account, set it as the signer for this account
-        if isinstance(rekey_to, Account):
-            self.rekeyed(account, rekey_to)
+        if isinstance(rekey_to, SigningAccount):
+            self.rekeyed(sender=account, account=rekey_to)
 
         if not suppress_log:
             logger.info(f"Rekeyed {sender_address} to {rekey_address} via transaction {result.tx_ids[-1]}")
@@ -585,8 +594,8 @@ class AccountManager:
 
     def ensure_funded(  # noqa: PLR0913
         self,
-        account_to_fund: str | Account,
-        dispenser_account: str | Account,
+        account_to_fund: str | SigningAccount,
+        dispenser_account: str | SigningAccount,
         min_spending_balance: AlgoAmount,
         min_funding_increment: AlgoAmount | None = None,
         # Sender params
@@ -686,7 +695,7 @@ class AccountManager:
 
     def ensure_funded_from_environment(  # noqa: PLR0913
         self,
-        account_to_fund: str | Account,
+        account_to_fund: str | SigningAccount,
         min_spending_balance: AlgoAmount,
         *,  # Force remaining params to be keyword-only
         min_funding_increment: AlgoAmount | None = None,
@@ -792,7 +801,7 @@ class AccountManager:
 
     def ensure_funded_from_testnet_dispenser_api(
         self,
-        account_to_fund: str | Account,
+        account_to_fund: str | SigningAccount,
         dispenser_client: TestNetDispenserApiClient,
         min_spending_balance: AlgoAmount,
         *,
@@ -851,12 +860,10 @@ class AccountManager:
             amount_funded=AlgoAmount.from_micro_algo(result.amount),
         )
 
-    def _get_address(self, sender: str | Account | LogicSigAccount) -> str:
+    def _get_address(self, sender: str | TransactionSignerAccountProtocol) -> str:
         match sender:
-            case Account():
+            case TransactionSignerAccountProtocol():
                 return sender.address
-            case LogicSigAccount():
-                return sender.address()
             case str():
                 return sender
             case _:
@@ -877,11 +884,11 @@ class AccountManager:
     def _calculate_fund_amount(
         self,
         min_spending_balance: int,
-        current_spending_balance: int,
+        current_spending_balance: AlgoAmount,
         min_funding_increment: int,
     ) -> int | None:
         if min_spending_balance > current_spending_balance:
-            min_fund_amount = min_spending_balance - current_spending_balance
+            min_fund_amount = (min_spending_balance - current_spending_balance).micro_algo
             return max(min_fund_amount, min_funding_increment)
         return None
 

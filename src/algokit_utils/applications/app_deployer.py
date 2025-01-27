@@ -2,7 +2,6 @@ import base64
 import dataclasses
 import json
 from dataclasses import asdict, dataclass
-from enum import Enum
 from typing import Literal
 
 from algosdk.logic import get_application_address
@@ -10,8 +9,10 @@ from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.enums import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.config import config
 from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -30,13 +31,13 @@ from algokit_utils.transactions.transaction_sender import (
 
 __all__ = [
     "APP_DEPLOY_NOTE_DAPP",
-    "AppDeployMetaData",
     "AppDeployParams",
     "AppDeployResult",
     "AppDeployer",
-    "AppLookup",
-    "AppMetaData",
-    "AppReference",
+    "AppDeploymentMetaData",
+    "ApplicationLookup",
+    "ApplicationMetaData",
+    "ApplicationReference",
     "OnSchemaBreak",
     "OnUpdate",
     "OperationPerformed",
@@ -48,8 +49,8 @@ APP_DEPLOY_NOTE_DAPP: str = "ALGOKIT_DEPLOYER"
 logger = config.logger
 
 
-@dataclasses.dataclass(frozen=True)
-class AppDeployMetaData:
+@dataclasses.dataclass
+class AppDeploymentMetaData:
     """Metadata about an application stored in a transaction note during creation."""
 
     name: str
@@ -62,7 +63,7 @@ class AppDeployMetaData:
 
 
 @dataclasses.dataclass(frozen=True)
-class AppReference:
+class ApplicationReference:
     """Information about an Algorand app"""
 
     app_id: int
@@ -70,11 +71,11 @@ class AppReference:
 
 
 @dataclasses.dataclass(frozen=True)
-class AppMetaData:
+class ApplicationMetaData:
     """Complete metadata about a deployed app"""
 
-    reference: AppReference
-    deploy_metadata: AppDeployMetaData
+    reference: ApplicationReference
+    deploy_metadata: AppDeploymentMetaData
     created_round: int
     updated_round: int
     deleted: bool = False
@@ -105,78 +106,38 @@ class AppMetaData:
 
 
 @dataclasses.dataclass
-class AppLookup:
-    """Cache of {py:class}`AppMetaData` for a specific `creator`
+class ApplicationLookup:
+    """Cache of {py:class}`ApplicationMetaData` for a specific `creator`
 
     Can be used as an argument to {py:class}`ApplicationClient` to reduce the number of calls when deploying multiple
     apps or discovering multiple app_ids
     """
 
     creator: str
-    apps: dict[str, AppMetaData] = dataclasses.field(default_factory=dict)
-
-
-class OnSchemaBreak(Enum):
-    """Action to take if an Application's schema has breaking changes"""
-
-    Fail = 0
-    """Fail the deployment"""
-    ReplaceApp = 2
-    """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = 3
-    """Create a new Application"""
-
-
-class OnUpdate(Enum):
-    """Action to take if an Application has been updated"""
-
-    Fail = 0
-    """Fail the deployment"""
-    UpdateApp = 1
-    """Update the Application with the new approval and clear programs"""
-    ReplaceApp = 2
-    """Create a new Application and delete the old Application in a single transaction"""
-    AppendApp = 3
-    """Create a new application"""
-
-
-class OperationPerformed(Enum):
-    """Describes the actions taken during deployment"""
-
-    Nothing = 0
-    """An existing Application was found"""
-    Create = 1
-    """No existing Application was found, created a new Application"""
-    Update = 2
-    """An existing Application was found, but was out of date, updated to latest version"""
-    Replace = 3
-    """An existing Application was found, but was out of date, created a new Application and deleted the original"""
+    apps: dict[str, ApplicationMetaData] = dataclasses.field(default_factory=dict)
 
 
 @dataclass(kw_only=True)
 class AppDeployParams:
     """Parameters for deploying an app"""
 
-    metadata: AppDeployMetaData
+    metadata: AppDeploymentMetaData
     deploy_time_params: TealTemplateParams | None = None
-    on_schema_break: Literal["replace", "fail", "append"] | OnSchemaBreak = OnSchemaBreak.Fail
-    on_update: Literal["update", "replace", "fail", "append"] | OnUpdate = OnUpdate.Fail
+    on_schema_break: (Literal["replace", "fail", "append"] | OnSchemaBreak) | None = None
+    on_update: (Literal["update", "replace", "fail", "append"] | OnUpdate) | None = None
     create_params: AppCreateParams | AppCreateMethodCallParams
     update_params: AppUpdateParams | AppUpdateMethodCallParams
     delete_params: AppDeleteParams | AppDeleteMethodCallParams
-    existing_deployments: AppLookup | None = None
+    existing_deployments: ApplicationLookup | None = None
     ignore_cache: bool = False
     max_fee: int | None = None
-    max_rounds_to_wait: int | None = None
-    suppress_log: bool = False
-    populate_app_call_resources: bool | None = None
-    cover_app_call_inner_txn_fees: bool | None = None
+    send_params: SendParams | None = None
 
 
 # Union type for all possible deploy results
 @dataclass(frozen=True)
 class AppDeployResult:
-    app: AppMetaData
+    app: ApplicationMetaData
     operation_performed: OperationPerformed
     create_result: SendAppCreateTransactionResult[ABIReturn] | None = None
     update_result: SendAppUpdateTransactionResult[ABIReturn] | None = None
@@ -195,17 +156,20 @@ class AppDeployer:
         self._app_manager = app_manager
         self._transaction_sender = transaction_sender
         self._indexer = indexer
-        self._app_lookups: dict[str, AppLookup] = {}
+        self._app_lookups: dict[str, ApplicationLookup] = {}
 
     def deploy(self, deployment: AppDeployParams) -> AppDeployResult:
         # Create new instances with updated notes
+        send_params = deployment.send_params or SendParams()
+        suppress_log = send_params.get("suppress_log") or False
+
         logger.info(
             f"Idempotently deploying app \"{deployment.metadata.name}\" from creator "
             f"{deployment.create_params.sender} using {len(deployment.create_params.approval_program)} bytes of "
             f"{'teal code' if isinstance(deployment.create_params.approval_program, str) else 'AVM bytecode'} and "
             f"{len(deployment.create_params.clear_state_program)} bytes of "
             f"{'teal code' if isinstance(deployment.create_params.clear_state_program, str) else 'AVM bytecode'}",
-            suppress_log=deployment.suppress_log,
+            suppress_log=suppress_log,
         )
         note = TransactionComposer.arc2_note(
             {
@@ -306,7 +270,7 @@ class AppDeployer:
                     },
                     "to": deployment.create_params.schema,
                 },
-                suppress_log=deployment.suppress_log,
+                suppress_log=suppress_log,
             )
 
             return self._handle_schema_break(
@@ -324,7 +288,7 @@ class AppDeployer:
                 clear_program=clear_program,
             )
 
-        logger.debug("No detected changes in app, nothing to do.", suppress_log=deployment.suppress_log)
+        logger.debug("No detected changes in app, nothing to do.", suppress_log=suppress_log)
         return AppDeployResult(
             app=existing_app,
             operation_performed=OperationPerformed.Nothing,
@@ -346,7 +310,8 @@ class AppDeployer:
                         "approval_program": approval_program,
                         "clear_state_program": clear_program,
                     }
-                )
+                ),
+                send_params=deployment.send_params,
             )
         else:
             create_result = self._transaction_sender.app_create(
@@ -356,11 +321,12 @@ class AppDeployer:
                         "approval_program": approval_program,
                         "clear_state_program": clear_program,
                     }
-                )
+                ),
+                send_params=deployment.send_params,
             )
 
-        app_metadata = AppMetaData(
-            reference=AppReference(
+        app_metadata = ApplicationMetaData(
+            reference=ApplicationReference(
                 app_id=create_result.app_id, app_address=get_application_address(create_result.app_id)
             ),
             deploy_metadata=deployment.metadata,
@@ -384,7 +350,7 @@ class AppDeployer:
     def _replace_app(
         self,
         deployment: AppDeployParams,
-        existing_app: AppMetaData,
+        existing_app: ApplicationMetaData,
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
@@ -438,8 +404,8 @@ class AppDeployer:
         delete_result = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
 
         app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
-        app_metadata = AppMetaData(
-            reference=AppReference(app_id=app_id, app_address=get_application_address(app_id)),
+        app_metadata = ApplicationMetaData(
+            reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
             deploy_metadata=deployment.metadata,
             created_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
             updated_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
@@ -458,7 +424,7 @@ class AppDeployer:
     def _update_app(
         self,
         deployment: AppDeployParams,
-        existing_app: AppMetaData,
+        existing_app: ApplicationMetaData,
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
@@ -473,7 +439,8 @@ class AppDeployer:
                         "approval_program": approval_program,
                         "clear_state_program": clear_program,
                     }
-                )
+                ),
+                send_params=deployment.send_params,
             )
         else:
             result = self._transaction_sender.app_update(
@@ -484,11 +451,12 @@ class AppDeployer:
                         "approval_program": approval_program,
                         "clear_state_program": clear_program,
                     }
-                )
+                ),
+                send_params=deployment.send_params,
             )
 
-        app_metadata = AppMetaData(
-            reference=AppReference(app_id=existing_app.app_id, app_address=existing_app.app_address),
+        app_metadata = ApplicationMetaData(
+            reference=ApplicationReference(app_id=existing_app.app_id, app_address=existing_app.app_address),
             deploy_metadata=deployment.metadata,
             created_round=existing_app.created_round,
             updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
@@ -506,11 +474,11 @@ class AppDeployer:
     def _handle_schema_break(
         self,
         deployment: AppDeployParams,
-        existing_app: AppMetaData,
+        existing_app: ApplicationMetaData,
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
-        if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail"):
+        if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail") or deployment.on_schema_break is None:
             raise ValueError(
                 "Schema break detected and onSchemaBreak=OnSchemaBreak.Fail, stopping deployment. "
                 "If you want to try deleting and recreating the app then "
@@ -528,11 +496,11 @@ class AppDeployer:
     def _handle_update(
         self,
         deployment: AppDeployParams,
-        existing_app: AppMetaData,
+        existing_app: ApplicationMetaData,
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
-        if deployment.on_update in (OnUpdate.Fail, "fail"):
+        if deployment.on_update in (OnUpdate.Fail, "fail") or deployment.on_update is None:
             raise ValueError(
                 "Update detected and onUpdate=Fail, stopping deployment. " "Try a different onUpdate value to not fail."
             )
@@ -554,19 +522,19 @@ class AppDeployer:
 
         raise ValueError(f"Unsupported onUpdate value: {deployment.on_update}")
 
-    def _update_app_lookup(self, sender: str, app_metadata: AppMetaData) -> None:
+    def _update_app_lookup(self, sender: str, app_metadata: ApplicationMetaData) -> None:
         """Update the app lookup cache"""
 
         lookup = self._app_lookups.get(sender)
         if not lookup:
-            self._app_lookups[sender] = AppLookup(
+            self._app_lookups[sender] = ApplicationLookup(
                 creator=sender,
                 apps={app_metadata.name: app_metadata},
             )
         else:
             lookup.apps[app_metadata.name] = app_metadata
 
-    def get_creator_apps_by_name(self, *, creator_address: str, ignore_cache: bool = False) -> AppLookup:
+    def get_creator_apps_by_name(self, *, creator_address: str, ignore_cache: bool = False) -> ApplicationLookup:
         """Get apps created by an account"""
 
         if not ignore_cache and creator_address in self._app_lookups:
@@ -578,7 +546,7 @@ class AppDeployer:
                 "but received a call to get_creator_apps"
             )
 
-        app_lookup: dict[str, AppMetaData] = {}
+        app_lookup: dict[str, ApplicationMetaData] = {}
 
         # Get all apps created by account
         created_apps = self._indexer.search_applications(creator=creator_address)
@@ -609,9 +577,9 @@ class AppDeployer:
                 metadata = json.loads(note[len(APP_DEPLOY_NOTE_DAPP) + 2 :])
 
                 if metadata.get("name"):
-                    app_lookup[metadata["name"]] = AppMetaData(
-                        reference=AppReference(app_id=app_id, app_address=get_application_address(app_id)),
-                        deploy_metadata=AppDeployMetaData(
+                    app_lookup[metadata["name"]] = ApplicationMetaData(
+                        reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
+                        deploy_metadata=AppDeploymentMetaData(
                             name=metadata["name"],
                             version=metadata.get("version", "1.0"),
                             deletable=metadata.get("deletable"),
@@ -627,6 +595,6 @@ class AppDeployer:
                 )
                 continue
 
-        lookup = AppLookup(creator=creator_address, apps=app_lookup)
+        lookup = ApplicationLookup(creator=creator_address, apps=app_lookup)
         self._app_lookups[creator_address] = lookup
         return lookup

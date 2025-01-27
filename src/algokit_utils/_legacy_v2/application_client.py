@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import copy
 import json
@@ -31,12 +33,6 @@ from typing_extensions import deprecated
 
 import algokit_utils._legacy_v2.application_specification as au_spec
 import algokit_utils._legacy_v2.deploy as au_deploy
-from algokit_utils._debugging import (
-    PersistSourceMapInput,
-    persist_sourcemaps,
-    simulate_and_persist_response,
-    simulate_response,
-)
 from algokit_utils._legacy_v2.common import Program
 from algokit_utils._legacy_v2.logic_error import LogicError, parse_logic_error
 from algokit_utils._legacy_v2.models import (
@@ -44,6 +40,7 @@ from algokit_utils._legacy_v2.models import (
     ABIArgType,
     ABIMethod,
     ABITransactionResponse,
+    Account,
     CreateCallParameters,
     CreateCallParametersDict,
     OnCompleteCallParameters,
@@ -54,7 +51,6 @@ from algokit_utils._legacy_v2.models import (
     TransactionResponse,
 )
 from algokit_utils.config import config
-from algokit_utils.models.account import Account
 
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -121,7 +117,7 @@ class ApplicationClient:
     @overload
     def __init__(
         self,
-        algod_client: "AlgodClient",
+        algod_client: AlgodClient,
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
@@ -134,11 +130,11 @@ class ApplicationClient:
     @overload
     def __init__(
         self,
-        algod_client: "AlgodClient",
+        algod_client: AlgodClient,
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         creator: str | Account,
-        indexer_client: "IndexerClient | None" = None,
+        indexer_client: IndexerClient | None = None,
         existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -149,12 +145,12 @@ class ApplicationClient:
 
     def __init__(  # noqa: PLR0913
         self,
-        algod_client: "AlgodClient",
+        algod_client: AlgodClient,
         app_spec: au_spec.ApplicationSpecification | Path,
         *,
         app_id: int = 0,
         creator: str | Account | None = None,
-        indexer_client: "IndexerClient | None" = None,
+        indexer_client: IndexerClient | None = None,
         existing_deployments: au_deploy.AppLookup | None = None,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -242,7 +238,7 @@ class ApplicationClient:
         sender: str | None = None,
         app_id: int | None = None,
         template_values: au_deploy.TemplateValueDict | None = None,
-    ) -> "ApplicationClient":
+    ) -> ApplicationClient:
         """Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
         Will also substitute provided template_values into the associated app_spec in the copy"""
         new_client: ApplicationClient = copy.copy(self)
@@ -253,7 +249,7 @@ class ApplicationClient:
 
     def _prepare(
         self,
-        target: "ApplicationClient",
+        target: ApplicationClient,
         *,
         signer: TransactionSigner | Account | None = None,
         sender: str | None = None,
@@ -348,6 +344,8 @@ class ApplicationClient:
         )
 
         if config.debug and config.project_root:
+            from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
+
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
@@ -635,6 +633,8 @@ class ApplicationClient:
             hints = self._method_hints(method)
             if hints and hints.read_only:
                 if config.debug and config.project_root and config.trace_all:
+                    from algokit_utils._debugging import simulate_and_persist_response
+
                     simulate_and_persist_response(
                         atc, config.project_root, self.algod_client, config.trace_buffer_size_mb
                     )
@@ -870,6 +870,8 @@ class ApplicationClient:
             )
 
         if config.debug and config.project_root:
+            from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
+
             persist_sourcemaps(
                 sources=[
                     PersistSourceMapInput(
@@ -889,6 +891,8 @@ class ApplicationClient:
     def _simulate_readonly_call(
         self, method: Method, atc: AtomicTransactionComposer
     ) -> ABITransactionResponse | TransactionResponse:
+        from algokit_utils._debugging import simulate_response
+
         response = simulate_response(atc, self.algod_client)
         traces = None
         if config.debug:
@@ -1198,7 +1202,7 @@ class ApplicationClient:
 
 
 def substitute_template_and_compile(
-    algod_client: "AlgodClient",
+    algod_client: AlgodClient,
     app_spec: au_spec.ApplicationSpecification,
     template_values: au_deploy.TemplateValueMapping,
 ) -> tuple[Program, Program]:
@@ -1272,7 +1276,7 @@ def _try_convert_to_logic_error(
 )
 def execute_atc_with_logic_error(
     atc: AtomicTransactionComposer,
-    algod_client: "AlgodClient",
+    algod_client: AlgodClient,
     approval_program: str,
     wait_rounds: int = 4,
     approval_source_map: SourceMap | typing.Callable[[], SourceMap | None] | None = None,
@@ -1285,6 +1289,8 @@ def execute_atc_with_logic_error(
     {py:class}`LogicError`
     ```
     """
+    from algokit_utils._debugging import simulate_and_persist_response, simulate_response
+
     try:
         if config.debug and config.project_root and config.trace_all:
             simulate_and_persist_response(atc, config.project_root, algod_client, config.trace_buffer_size_mb)

@@ -7,7 +7,7 @@ from algosdk.transaction import AssetTransferTxn
 from algosdk.v2client.algod import AlgodClient
 from typing_extensions import deprecated
 
-from algokit_utils.models.account import Account
+from algokit_utils._legacy_v2.models import Account
 
 __all__ = ["opt_in", "opt_out"]
 logger = logging.getLogger(__name__)

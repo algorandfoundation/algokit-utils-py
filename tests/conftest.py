@@ -10,11 +10,9 @@ import pytest
 from dotenv import load_dotenv
 
 from algokit_utils import (
-    Account,
     ApplicationClient,
     ApplicationSpecification,
-    EnsureBalanceParameters,
-    ensure_funded,
+    SigningAccount,
     replace_template_variables,
 )
 from algokit_utils.algorand import AlgorandClient
@@ -22,7 +20,7 @@ from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDA
 from algokit_utils.transactions.transaction_composer import AssetCreateParams
 
 if TYPE_CHECKING:
-    from algosdk.v2client.algod import AlgodClient
+    pass
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -120,7 +118,7 @@ def is_opted_in(client_fixture: ApplicationClient) -> bool:
     return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
 
 
-def generate_test_asset(algorand: AlgorandClient, sender: Account, total: int | None) -> int:
+def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total: int | None) -> int:
     if total is None:
         total = math.floor(random.random() * 100) + 20
 
@@ -144,14 +142,3 @@ def generate_test_asset(algorand: AlgorandClient, sender: Account, total: int | 
     )
 
     return int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
-
-
-def assure_funds(algod_client: "AlgodClient", account: Account) -> None:
-    ensure_funded(
-        algod_client,
-        EnsureBalanceParameters(
-            account_to_fund=account,
-            min_spending_balance_micro_algos=300000,
-            min_funding_increment_micro_algos=1,
-        ),
-    )

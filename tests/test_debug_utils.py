@@ -25,7 +25,7 @@ from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams
 from algokit_utils.common import Program
-from algokit_utils.models import Account
+from algokit_utils.models import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -41,7 +41,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -55,7 +55,7 @@ def funded_account(algorand: AlgorandClient) -> Account:
 
 
 @pytest.fixture
-def client_fixture(algorand: AlgorandClient, funded_account: Account) -> AppClient:
+def client_fixture(algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
     app_spec = (Path(__file__).parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
     app_factory = algorand.client.get_app_factory(
         app_spec=app_spec, default_sender=funded_account.address, default_signer=funded_account.signer
@@ -167,7 +167,10 @@ def test_simulate_and_persist_response_via_app_call(
 
 
 def test_simulate_and_persist_response(
-    tmp_path_factory: pytest.TempPathFactory, algorand: AlgorandClient, mock_config: Mock, funded_account: Account
+    tmp_path_factory: pytest.TempPathFactory,
+    algorand: AlgorandClient,
+    mock_config: Mock,
+    funded_account: SigningAccount,
 ) -> None:
     mock_config.debug = True
     mock_config.trace_all = True
@@ -222,7 +225,7 @@ def test_simulate_response_filename_generation(
     expected_filename_part: str,
     tmp_path_factory: pytest.TempPathFactory,
     client_fixture: AppClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     monkeypatch: pytest.MonkeyPatch,
     mock_config: Mock,
 ) -> None:

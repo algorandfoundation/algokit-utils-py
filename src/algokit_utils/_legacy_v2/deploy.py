@@ -21,12 +21,12 @@ from algokit_utils._legacy_v2.application_specification import (
 from algokit_utils._legacy_v2.models import (
     ABIArgsDict,
     ABIMethod,
+    Account,
     CreateCallParameters,
     TransactionResponse,
 )
-from algokit_utils.applications.app_deployer import OnSchemaBreak, OnUpdate, OperationPerformed
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.models.account import Account
+from algokit_utils.applications.enums import OnSchemaBreak, OnUpdate, OperationPerformed
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient

@@ -1,13 +1,13 @@
 import dataclasses
 
 __all__ = [
-    "AlgoClientConfig",
     "AlgoClientConfigs",
+    "AlgoClientNetworkConfig",
 ]
 
 
 @dataclasses.dataclass
-class AlgoClientConfig:
+class AlgoClientNetworkConfig:
     """Connection details for connecting to an {py:class}`algosdk.v2client.algod.AlgodClient` or
     {py:class}`algosdk.v2client.indexer.IndexerClient`"""
 
@@ -20,6 +20,6 @@ class AlgoClientConfig:
 
 @dataclasses.dataclass
 class AlgoClientConfigs:
-    algod_config: AlgoClientConfig
-    indexer_config: AlgoClientConfig | None
-    kmd_config: AlgoClientConfig | None
+    algod_config: AlgoClientNetworkConfig
+    indexer_config: AlgoClientNetworkConfig | None
+    kmd_config: AlgoClientNetworkConfig | None

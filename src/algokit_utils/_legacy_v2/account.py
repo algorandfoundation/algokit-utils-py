@@ -8,8 +8,8 @@ from algosdk.util import algos_to_microalgos
 from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2._transfer import TransferParameters, transfer
+from algokit_utils._legacy_v2.models import Account
 from algokit_utils._legacy_v2.network_clients import get_kmd_client_from_algod_client, is_localnet
-from algokit_utils.models.account import Account
 
 if TYPE_CHECKING:
     from collections.abc import Callable

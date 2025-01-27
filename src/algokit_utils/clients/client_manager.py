@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, TypeVar
@@ -12,16 +14,15 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
-from algokit_utils.applications.app_client import AppClient, AppClientParams
-from algokit_utils.applications.app_deployer import AppLookup
+from algokit_utils.applications.app_deployer import ApplicationLookup
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
-from algokit_utils.models.network import AlgoClientConfig, AlgoClientConfigs
-from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
+    from algokit_utils.applications.app_client import AppClient, AppClientCompilationParams
     from algokit_utils.applications.app_factory import AppFactory
 
 __all__ = [
@@ -69,7 +70,7 @@ class NetworkDetail:
     genesis_hash: str
 
 
-def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
+def _get_config_from_environment(environment_prefix: str) -> AlgoClientNetworkConfig:
     server = os.getenv(f"{environment_prefix}_SERVER")
     if server is None:
         raise Exception(f"Server environment variable not set: {environment_prefix}_SERVER")
@@ -77,7 +78,7 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientConfig:
     if port:
         parsed = parse.urlparse(server)
         server = parsed._replace(netloc=f"{parsed.hostname}:{port}").geturl()
-    return AlgoClientConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""))
+    return AlgoClientNetworkConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""))
 
 
 class ClientManager:
@@ -89,7 +90,7 @@ class ClientManager:
     :param algorand_client: AlgorandClient instance
     """
 
-    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: "AlgorandClient"):
+    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: AlgorandClient):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
         elif isinstance(clients_or_configs, AlgoClientConfigs):
@@ -204,10 +205,8 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         version: str | None = None,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
-        deploy_time_params: TealTemplateParams | None = None,
-    ) -> "AppFactory":
+        compilation_params: AppClientCompilationParams | None = None,
+    ) -> AppFactory:
         """Get an application factory for deploying smart contracts.
 
         :param app_spec: Application specification
@@ -215,9 +214,7 @@ class ClientManager:
         :param default_sender: Optional default sender address
         :param default_signer: Optional default transaction signer
         :param version: Optional version string
-        :param updatable: Optional flag to make app updatable
-        :param deletable: Optional flag to make app deletable
-        :param deploy_time_params: Optional deployment parameters
+        :param compilation_params: Optional compilation parameters
         :raises ValueError: If no Algorand client is configured
         :return: Application factory instance
         """
@@ -234,9 +231,7 @@ class ClientManager:
                 default_sender=default_sender,
                 default_signer=default_signer,
                 version=version,
-                updatable=updatable,
-                deletable=deletable,
-                deploy_time_params=deploy_time_params,
+                compilation_params=compilation_params,
             )
         )
 
@@ -245,7 +240,7 @@ class ClientManager:
         app_spec: (Arc56Contract | ApplicationSpecification | str),
         app_id: int,
         app_name: str | None = None,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
@@ -262,6 +257,8 @@ class ClientManager:
         :raises ValueError: If no Algorand client is configured
         :return: Application client instance
         """
+        from algokit_utils.applications.app_client import AppClient, AppClientParams
+
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -282,7 +279,7 @@ class ClientManager:
         self,
         app_spec: (Arc56Contract | ApplicationSpecification | str),
         app_name: str | None = None,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
@@ -298,6 +295,8 @@ class ClientManager:
         :raises ValueError: If no Algorand client is configured
         :return: Application client instance
         """
+        from algokit_utils.applications.app_client import AppClient
+
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
@@ -316,10 +315,10 @@ class ClientManager:
         creator_address: str,
         app_name: str,
         app_spec: Arc56Contract | ApplicationSpecification | str,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
+        app_lookup_cache: ApplicationLookup | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
@@ -336,6 +335,8 @@ class ClientManager:
         :param clear_source_map: Optional clear program source map
         :return: Application client instance
         """
+        from algokit_utils.applications.app_client import AppClient
+
         return AppClient.from_creator_and_name(
             creator_address=creator_address,
             app_name=app_name,
@@ -350,7 +351,7 @@ class ClientManager:
         )
 
     @staticmethod
-    def get_algod_client(config: AlgoClientConfig | None = None) -> AlgodClient:
+    def get_algod_client(config: AlgoClientNetworkConfig | None = None) -> AlgodClient:
         """Get an Algod client from config or environment.
 
         :param config: Optional client configuration
@@ -369,7 +370,7 @@ class ClientManager:
         return ClientManager.get_algod_client(ClientManager.get_algod_config_from_environment())
 
     @staticmethod
-    def get_kmd_client(config: AlgoClientConfig | None = None) -> KMDClient:
+    def get_kmd_client(config: AlgoClientNetworkConfig | None = None) -> KMDClient:
         """Get a KMD client from config or environment.
 
         :param config: Optional client configuration
@@ -387,7 +388,7 @@ class ClientManager:
         return ClientManager.get_kmd_client(ClientManager.get_kmd_config_from_environment())
 
     @staticmethod
-    def get_indexer_client(config: AlgoClientConfig | None = None) -> IndexerClient:
+    def get_indexer_client(config: AlgoClientNetworkConfig | None = None) -> IndexerClient:
         """Get an Indexer client from config or environment.
 
         :param config: Optional client configuration
@@ -423,7 +424,7 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
+        app_lookup_cache: ApplicationLookup | None = None,
     ) -> TypedAppClientT:
         """Get a typed application client by creator address and name.
 
@@ -530,9 +531,7 @@ class ClientManager:
         default_sender: str | bytes | None = None,
         default_signer: TransactionSigner | None = None,
         version: str | None = None,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
-        deploy_time_params: TealTemplateParams | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> TypedFactoryT:
         """Get a typed application factory.
 
@@ -541,9 +540,7 @@ class ClientManager:
         :param default_sender: Optional default sender address
         :param default_signer: Optional default transaction signer
         :param version: Optional version string
-        :param updatable: Optional flag to make app updatable
-        :param deletable: Optional flag to make app deletable
-        :param deploy_time_params: Optional deployment parameters
+        :param compilation_params: Optional compilation parameters
         :raises ValueError: If no Algorand client is configured
         :return: Typed application factory instance
         """
@@ -556,9 +553,7 @@ class ClientManager:
             default_sender=default_sender,
             default_signer=default_signer,
             version=version,
-            updatable=updatable,
-            deletable=deletable,
-            deploy_time_params=deploy_time_params,
+            compilation_params=compilation_params,
         )
 
     @staticmethod
@@ -583,7 +578,7 @@ class ClientManager:
 
             # Include KMD config only for local networks (not mainnet/testnet)
             kmd_config = (
-                AlgoClientConfig(
+                AlgoClientNetworkConfig(
                     server=algod_config.server, token=algod_config.token, port=os.getenv("KMD_PORT", "4002")
                 )
                 if not any(net in algod_server.lower() for net in ["mainnet", "testnet"])
@@ -602,7 +597,9 @@ class ClientManager:
         )
 
     @staticmethod
-    def get_default_localnet_config(config_or_port: Literal["algod", "indexer", "kmd"] | int) -> AlgoClientConfig:
+    def get_default_localnet_config(
+        config_or_port: Literal["algod", "indexer", "kmd"] | int,
+    ) -> AlgoClientNetworkConfig:
         """Get default configuration for local network services.
 
         :param config_or_port: Service name or port number
@@ -614,10 +611,10 @@ class ClientManager:
             else {"algod": 4001, "indexer": 8980, "kmd": 4002}[config_or_port]
         )
 
-        return AlgoClientConfig(server=f"http://localhost:{port}", token="a" * 64)
+        return AlgoClientNetworkConfig(server=f"http://localhost:{port}", token="a" * 64)
 
     @staticmethod
-    def get_algod_config_from_environment() -> AlgoClientConfig:
+    def get_algod_config_from_environment() -> AlgoClientNetworkConfig:
         """Retrieve the algod configuration from environment variables.
         Will raise an error if ALGOD_SERVER environment variable is not set
 
@@ -626,7 +623,7 @@ class ClientManager:
         return _get_config_from_environment("ALGOD")
 
     @staticmethod
-    def get_indexer_config_from_environment() -> AlgoClientConfig:
+    def get_indexer_config_from_environment() -> AlgoClientNetworkConfig:
         """Retrieve the indexer configuration from environment variables.
         Will raise an error if INDEXER_SERVER environment variable is not set
 
@@ -635,7 +632,7 @@ class ClientManager:
         return _get_config_from_environment("INDEXER")
 
     @staticmethod
-    def get_kmd_config_from_environment() -> AlgoClientConfig:
+    def get_kmd_config_from_environment() -> AlgoClientNetworkConfig:
         """Retrieve the kmd configuration from environment variables.
 
         :return: KMD client configuration
@@ -645,7 +642,7 @@ class ClientManager:
     @staticmethod
     def get_algonode_config(
         network: Literal["testnet", "mainnet"], config: Literal["algod", "indexer"]
-    ) -> AlgoClientConfig:
+    ) -> AlgoClientNetworkConfig:
         """Returns the Algorand configuration to point to the free tier of the AlgoNode service.
 
         :param network: Which network to connect to - TestNet or MainNet
@@ -653,7 +650,7 @@ class ClientManager:
         :return: Configuration for the specified network and service
         """
         service_type = "api" if config == "algod" else "idx"
-        return AlgoClientConfig(
+        return AlgoClientNetworkConfig(
             server=f"https://{network}-{service_type}.algonode.cloud",
             port=443,
         )

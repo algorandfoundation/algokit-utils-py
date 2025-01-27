@@ -8,12 +8,12 @@ from typing_extensions import deprecated
 
 from algokit_utils._legacy_v2._transfer import TransferParameters, transfer
 from algokit_utils._legacy_v2.account import get_dispenser_account
+from algokit_utils._legacy_v2.models import Account
 from algokit_utils._legacy_v2.network_clients import is_testnet
 from algokit_utils.clients.dispenser_api_client import (
     DispenserAssetName,
     TestNetDispenserApiClient,
 )
-from algokit_utils.models.account import Account
 
 
 @dataclass(kw_only=True)

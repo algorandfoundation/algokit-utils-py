@@ -11,6 +11,7 @@ from algosdk.atomic_transaction_composer import (
 )
 from typing_extensions import deprecated
 
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.simulate import SimulationTrace
 
 # Imports from latest sdk version that rely on models previously used in legacy v2 (but moved to root models/*)
@@ -20,6 +21,7 @@ __all__ = [
     "ABIArgsDict",
     "ABIMethod",
     "ABITransactionResponse",
+    "Account",
     "CreateCallParameters",
     "CreateCallParametersDict",
     "CreateTransactionParameters",
@@ -31,6 +33,12 @@ __all__ = [
 ]
 
 ReturnType = TypeVar("ReturnType")
+
+
+@deprecated("Use 'SigningAccount' instead")
+@dataclasses.dataclass(kw_only=True)
+class Account(SigningAccount):
+    """An account that can be used to sign transactions"""
 
 
 @dataclasses.dataclass(kw_only=True)

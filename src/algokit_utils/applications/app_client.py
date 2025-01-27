@@ -43,6 +43,7 @@ from algokit_utils.models.application import (
 )
 from algokit_utils.models.state import BoxName, BoxValue
 from algokit_utils.models.transaction import SendParams
+from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -66,7 +67,7 @@ if TYPE_CHECKING:
     from algosdk.atomic_transaction_composer import TransactionSigner
 
     from algokit_utils.algorand import AlgorandClient
-    from algokit_utils.applications.app_deployer import AppLookup
+    from algokit_utils.applications.app_deployer import ApplicationLookup
     from algokit_utils.applications.app_manager import AppManager
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
@@ -217,10 +218,6 @@ class FundAppAccountParams:
     :ivar last_valid_round: Optional last valid round
     :ivar amount: Amount to fund
     :ivar close_remainder_to: Optional address to close remainder to
-    :ivar max_rounds_to_wait: Optional maximum rounds to wait
-    :ivar suppress_log: Optional flag to suppress logging
-    :ivar populate_app_call_resources: Optional flag to populate app call resources
-    :ivar cover_app_call_inner_txn_fees: Optional flag to cover app call inner transaction fees
     :ivar on_complete: Optional on complete action
     """
 
@@ -237,10 +234,6 @@ class FundAppAccountParams:
     last_valid_round: int | None = None
     amount: AlgoAmount
     close_remainder_to: str | None = None
-    max_rounds_to_wait: int | None = None
-    suppress_log: bool | None = None
-    populate_app_call_resources: bool | None = None
-    cover_app_call_inner_txn_fees: bool | None = None
     on_complete: algosdk.transaction.OnComplete | None = None
 
 
@@ -810,9 +803,7 @@ class _MethodParamsBuilder:
             self._client.compile(
                 app_spec=self._client.app_spec,
                 app_manager=self._algorand.app,
-                deploy_time_params=compilation_params.get("deploy_time_params"),
-                updatable=compilation_params.get("updatable"),
-                deletable=compilation_params.get("deletable"),
+                compilation_params=compilation_params,
             ).__dict__
             if compilation_params
             else {}
@@ -1040,7 +1031,11 @@ class _AppClientBareSendAccessor:
         params = params or AppClientBareCallParams()
         compilation = compilation_params or AppClientCompilationParams()
         compiled = self._client.compile_app(
-            compilation.get("deploy_time_params"), compilation.get("updatable"), compilation.get("deletable")
+            {
+                "deploy_time_params": compilation.get("deploy_time_params"),
+                "updatable": compilation.get("updatable"),
+                "deletable": compilation.get("deletable"),
+            }
         )
         bare_params = self._client.params.bare.update(params)
         bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
@@ -1314,7 +1309,7 @@ class AppClientParams:
     algorand: AlgorandClient
     app_id: int
     app_name: str | None = None
-    default_sender: str | bytes | None = None
+    default_sender: str | None = None
     default_signer: TransactionSigner | None = None
     approval_source_map: SourceMap | None = None
     clear_source_map: SourceMap | None = None
@@ -1445,7 +1440,7 @@ class AppClient:
         app_spec: Arc56Contract | Arc32Contract | str,
         algorand: AlgorandClient,
         app_name: str | None = None,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
@@ -1500,12 +1495,12 @@ class AppClient:
         app_name: str,
         app_spec: Arc56Contract | Arc32Contract | str,
         algorand: AlgorandClient,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
+        app_lookup_cache: ApplicationLookup | None = None,
     ) -> AppClient:
         """Create an AppClient instance from creator address and application name.
 
@@ -1547,20 +1542,20 @@ class AppClient:
     def compile(
         app_spec: Arc56Contract,
         app_manager: AppManager,
-        deploy_time_params: TealTemplateParams | None = None,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> AppClientCompilationResult:
         """Compile the application's TEAL code.
 
         :param app_spec: The application specification
         :param app_manager: The application manager instance
-        :param deploy_time_params: Optional deployment time parameters
-        :param updatable: Optional flag indicating if app is updatable
-        :param deletable: Optional flag indicating if app is deletable
+        :param compilation_params: Optional compilation parameters
         :return: The compilation result
         :raises ValueError: If attempting to compile without source or byte code
         """
+        compilation_params = compilation_params or AppClientCompilationParams()
+        deploy_time_params = compilation_params.get("deploy_time_params")
+        updatable = compilation_params.get("updatable")
+        deletable = compilation_params.get("deletable")
 
         def is_base64(s: str) -> bool:
             try:
@@ -1707,18 +1702,14 @@ class AppClient:
 
     def compile_app(
         self,
-        deploy_time_params: TealTemplateParams | None = None,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
     ) -> AppClientCompilationResult:
         """Compile the application's TEAL code.
 
-        :param deploy_time_params: Optional deployment time parameters
-        :param updatable: Optional flag indicating if app is updatable
-        :param deletable: Optional flag indicating if app is deletable
+        :param compilation_params: Optional compilation parameters
         :return: The compilation result
         """
-        result = AppClient.compile(self._app_spec, self._algorand.app, deploy_time_params, updatable, deletable)
+        result = AppClient.compile(self._app_spec, self._algorand.app, compilation_params)
 
         if result.compiled_approval:
             self._approval_source_map = result.compiled_approval.source_map
@@ -1730,7 +1721,7 @@ class AppClient:
     def clone(
         self,
         app_name: str | None = _MISSING,  # type: ignore[assignment]
-        default_sender: str | bytes | None = _MISSING,  # type: ignore[assignment]
+        default_sender: str | None = _MISSING,  # type: ignore[assignment]
         default_signer: TransactionSigner | None = _MISSING,  # type: ignore[assignment]
         approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
         clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
@@ -1924,7 +1915,9 @@ class AppClient:
             )
         return sender or self._default_sender  # type: ignore[return-value]
 
-    def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
+    def _get_signer(
+        self, sender: str | None, signer: TransactionSigner | TransactionSignerAccountProtocol | None
+    ) -> TransactionSigner | TransactionSignerAccountProtocol | None:
         return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
     def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:

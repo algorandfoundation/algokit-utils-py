@@ -23,12 +23,13 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
 
-from algokit_utils.applications.abi import ABIReturn
+from algokit_utils.applications.abi import ABIReturn, ABIValue
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
 from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
+from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -37,7 +38,6 @@ if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.models import SimulateTraceConfig
 
-    from algokit_utils.applications.abi import ABIValue
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.transaction import Arc2TransactionNote
 
@@ -83,7 +83,7 @@ MAX_APP_CALL_ACCOUNT_REFERENCES = 4
 @dataclass(kw_only=True, frozen=True)
 class _CommonTxnParams:
     sender: str
-    signer: TransactionSigner | None = None
+    signer: TransactionSigner | TransactionSignerAccountProtocol | None = None
     rekey_to: str | None = None
     note: bytes | None = None
     lease: bytes | None = None
@@ -1880,10 +1880,15 @@ class TransactionComposer:
 
                 if isinstance(arg, algosdk.transaction.Transaction):
                     # Wrap in TransactionWithSigner
+                    signer = (
+                        params.signer.signer
+                        if isinstance(params.signer, TransactionSignerAccountProtocol)
+                        else params.signer
+                    )
                     method_args.append(
                         TransactionWithSignerAndContext(
                             txn=arg,
-                            signer=params.signer if params.signer is not None else self._get_signer(params.sender),
+                            signer=signer if signer is not None else self._get_signer(params.sender),
                             context=TransactionContext(abi_method=None),
                         )
                     )
@@ -1924,10 +1929,15 @@ class TransactionComposer:
                     case _:
                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
 
+                signer = (
+                    params.signer.signer
+                    if isinstance(params.signer, TransactionSignerAccountProtocol)
+                    else params.signer
+                )
                 method_args.append(
                     TransactionWithSignerAndContext(
                         txn=txn.txn,
-                        signer=params.signer or self._get_signer(params.sender),
+                        signer=signer or self._get_signer(params.sender),
                         context=TransactionContext(abi_method=params.method),
                     )
                 )
@@ -2238,7 +2248,8 @@ class TransactionComposer:
             ):
                 return self._build_method_call(txn, suggested_params)
 
-        signer = txn.signer or self._get_signer(txn.sender)
+        signer = txn.signer.signer if isinstance(txn.signer, TransactionSignerAccountProtocol) else txn.signer  # type: ignore[assignment]
+        signer = signer or self._get_signer(txn.sender)
 
         match txn:
             case PaymentParams():

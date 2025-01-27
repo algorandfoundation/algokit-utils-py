@@ -2,17 +2,32 @@ import dataclasses
 
 import algosdk
 import algosdk.atomic_transaction_composer
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, LogicSigTransactionSigner, TransactionSigner
+from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
 from algosdk.transaction import Multisig, MultisigTransaction
 
-__all__ = ["DISPENSER_ACCOUNT_NAME", "Account", "MultiSigAccount", "MultisigMetadata"]
+__all__ = ["DISPENSER_ACCOUNT_NAME", "MultiSigAccount", "MultisigMetadata", "SigningAccount"]
 
 
 DISPENSER_ACCOUNT_NAME = "DISPENSER"
 
 
 @dataclasses.dataclass(kw_only=True)
-class Account:
+class TransactionSignerAccount:
+    """A basic transaction signer account."""
+
+    address: str
+    signer: TransactionSigner
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.address, str):
+            raise TypeError("Address must be a string")
+        if not isinstance(self.signer, TransactionSigner):
+            raise TypeError("Signer must be a TransactionSigner instance")
+
+
+@dataclasses.dataclass(kw_only=True)
+class SigningAccount:
     """Holds the private key and address for an account.
 
     Provides access to the account's private key, address, public key and transaction signer.
@@ -46,13 +61,13 @@ class Account:
         return AccountTransactionSigner(self.private_key)
 
     @staticmethod
-    def new_account() -> "Account":
+    def new_account() -> "SigningAccount":
         """Create a new random account.
 
         :return: A new Account instance
         """
         private_key, address = algosdk.account.generate_account()
-        return Account(private_key=private_key)
+        return SigningAccount(private_key=private_key)
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -78,12 +93,12 @@ class MultiSigAccount:
     """
 
     _params: MultisigMetadata
-    _signing_accounts: list[Account]
+    _signing_accounts: list[SigningAccount]
     _addr: str
     _signer: TransactionSigner
     _multisig: Multisig
 
-    def __init__(self, multisig_params: MultisigMetadata, signing_accounts: list[Account]) -> None:
+    def __init__(self, multisig_params: MultisigMetadata, signing_accounts: list[SigningAccount]) -> None:
         self._params = multisig_params
         self._signing_accounts = signing_accounts
         self._multisig = Multisig(multisig_params.version, multisig_params.threshold, multisig_params.addresses)
@@ -102,7 +117,7 @@ class MultiSigAccount:
         return self._params
 
     @property
-    def signing_accounts(self) -> list[Account]:
+    def signing_accounts(self) -> list[SigningAccount]:
         """Get the list of accounts that are present to sign.
 
         :return: The list of signing accounts
@@ -139,3 +154,34 @@ class MultiSigAccount:
             msig_txn.sign(signer.private_key)
 
         return msig_txn
+
+
+@dataclasses.dataclass(kw_only=True)
+class LogicSigAccount:
+    """Account wrapper that supports logic sig signing.
+
+    Provides functionality to manage and sign transactions for a logic sig account.
+    """
+
+    _account: AlgosdkLogicSigAccount
+    _signer: LogicSigTransactionSigner
+
+    def __init__(self, account: AlgosdkLogicSigAccount) -> None:
+        self._account = account
+        self._signer = LogicSigTransactionSigner(account)
+
+    @property
+    def address(self) -> str:
+        """Get the address of the multisig account.
+
+        :return: The multisig account address
+        """
+        return self._account.address()
+
+    @property
+    def signer(self) -> LogicSigTransactionSigner:
+        """Get the transaction signer for this multisig account.
+
+        :return: The multisig transaction signer
+        """
+        return self._signer

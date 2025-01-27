@@ -8,7 +8,7 @@ from algosdk.atomic_transaction_composer import AccountTransactionSigner
 from algosdk.transaction import AssetTransferTxn, PaymentTxn, SuggestedParams
 from typing_extensions import deprecated
 
-from algokit_utils.models.account import Account
+from algokit_utils._legacy_v2.models import Account
 
 if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient

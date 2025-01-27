@@ -8,7 +8,7 @@ import pytest
 from algosdk.atomic_transaction_composer import TransactionWithSigner
 from algosdk.transaction import OnComplete, PaymentTxn
 
-from algokit_utils import Account
+from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams, AppFactoryCreateParams
@@ -24,7 +24,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algos(100))
@@ -43,7 +43,7 @@ class BaseResourcePackerTest:
     version: int
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: Account) -> Generator[None, None, None]:
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
         config.configure(populate_app_call_resources=True)
 
         # Create app based on version
@@ -63,7 +63,7 @@ class BaseResourcePackerTest:
         config.configure(populate_app_call_resources=False)
 
     @pytest.fixture
-    def external_client(self, algorand: AlgorandClient, funded_account: Account) -> AppClient:
+    def external_client(self, algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
         external_spec = (
             Path(__file__).parent.parent / "artifacts" / "resource-packer" / "ExternalApp.arc32.json"
         ).read_text()
@@ -173,7 +173,7 @@ class BaseResourcePackerTest:
             },
         )
 
-    def test_cross_product_reference_has_asset(self, funded_account: Account) -> None:
+    def test_cross_product_reference_has_asset(self, funded_account: SigningAccount) -> None:
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="hasAsset",
@@ -184,7 +184,7 @@ class BaseResourcePackerTest:
             },
         )
 
-    def test_cross_product_reference_invalid_external_local(self, funded_account: Account) -> None:
+    def test_cross_product_reference_invalid_external_local(self, funded_account: SigningAccount) -> None:
         with pytest.raises(LogicError, match="unavailable App"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
@@ -197,7 +197,7 @@ class BaseResourcePackerTest:
             )
 
     def test_cross_product_reference_external_local(
-        self, external_client: AppClient, funded_account: Account, algorand: AlgorandClient
+        self, external_client: AppClient, funded_account: SigningAccount, algorand: AlgorandClient
     ) -> None:
         algorand.send.app_call_method_call(
             external_client.params.opt_in(
@@ -252,7 +252,7 @@ class BaseResourcePackerTest:
             },
         )
 
-    def test_cross_product_reference_invalid_has_asset(self, funded_account: Account) -> None:
+    def test_cross_product_reference_invalid_has_asset(self, funded_account: SigningAccount) -> None:
         with pytest.raises(LogicError, match="unavailable Asset"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
@@ -281,7 +281,7 @@ class TestResourcePackerMixed:
     """Test resource packing with mixed AVM versions"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: Account) -> Generator[None, None, None]:
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
         config.configure(populate_app_call_resources=True)
 
         # Create v8 app
@@ -304,9 +304,9 @@ class TestResourcePackerMixed:
 
         config.configure(populate_app_call_resources=False)
 
-    def test_same_account(self, algorand: AlgorandClient, funded_account: Account) -> None:
+    def test_same_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         rekeyed_to = algorand.account.random()
-        algorand.account.rekey_account(funded_account, rekeyed_to)
+        algorand.account.rekey_account(funded_account.address, rekeyed_to)
 
         random_account = algorand.account.random()
 
@@ -342,7 +342,7 @@ class TestResourcePackerMixed:
         v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
         assert len(v8_accounts) + len(v9_accounts) == 1
 
-    def test_app_account(self, algorand: AlgorandClient, funded_account: Account) -> None:
+    def test_app_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         self.v8_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(328500)))
         self.v8_client.send.call(
             AppClientMethodCallParams(
@@ -392,7 +392,7 @@ class TestResourcePackerMeta:
     """Test meta aspects of resource packing"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: Account) -> Generator[None, None, None]:
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
         config.configure(populate_app_call_resources=True)
 
         external_spec = (
@@ -422,7 +422,7 @@ class TestResourcePackerMeta:
             )
         assert "Error during resource population simulation in transaction 0" in exc_info.value.logic_error_str
 
-    def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: Account) -> None:
+    def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         payment = PaymentTxn(
             sender=funded_account.address,
             receiver=funded_account.address,
@@ -459,9 +459,9 @@ class TestResourcePackerMeta:
 
         assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
 
-    def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: Account) -> None:
+    def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         auth_addr = algorand.account.random()
-        algorand.account.rekey_account(funded_account, auth_addr)
+        algorand.account.rekey_account(funded_account.address, auth_addr)
 
         self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_001)))
 
@@ -483,7 +483,7 @@ class TestCoverAppCallInnerFees:
     """Test covering app call inner transaction fees"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: Account) -> Generator[None, None, None]:
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
         config.configure(populate_app_call_resources=True)
 
         # Load inner fee contract spec
@@ -789,7 +789,7 @@ class TestCoverAppCallInnerFees:
         assert result.transaction.raw.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
-    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: Account) -> None:
+    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: SigningAccount) -> None:
         """Test that fee is not altered when another transaction in group covers inner fees"""
 
         expected_fee = 8000
@@ -821,7 +821,7 @@ class TestCoverAppCallInnerFees:
         # and is probably unlikely to be a common use case
         assert result.transactions[1].raw.fee == 1000
 
-    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: Account) -> None:
+    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: SigningAccount) -> None:
         """Test that surplus fees are allocated to the most fee constrained transaction first"""
 
         result = (
@@ -858,7 +858,7 @@ class TestCoverAppCallInnerFees:
         assert result.transactions[1].raw.fee == 7500
         assert result.transactions[2].raw.fee == 0
 
-    def test_handles_nested_abi_method_calls(self, funded_account: Account) -> None:
+    def test_handles_nested_abi_method_calls(self, funded_account: SigningAccount) -> None:
         """Test fee handling with nested ABI method calls"""
 
         # Create nested contract app
@@ -942,7 +942,7 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_txn_fees": True})
             )
 
-    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: Account) -> None:
+    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: SigningAccount) -> None:
         """Test that error is thrown when nested max fee is below calculated fee"""
 
         # Create nested contract app
@@ -1016,7 +1016,7 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_txn_fees": True})
             )
 
-    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: Account) -> None:
+    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: SigningAccount) -> None:
         """Test that error is thrown when static fee for non-app-call transaction is too low"""
 
         with pytest.raises(

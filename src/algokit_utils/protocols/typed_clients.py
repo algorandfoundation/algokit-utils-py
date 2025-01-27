@@ -1,23 +1,26 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.source_map import SourceMap
 from typing_extensions import Self
 
-from algokit_utils.applications.app_client import (
-    AppClientBareCallCreateParams,
-    AppClientBareCallParams,
-    BaseAppClientMethodCallParams,
-)
-from algokit_utils.applications.app_deployer import (
-    AppLookup,
-    OnSchemaBreak,
-    OnUpdate,
-)
-from algokit_utils.models.state import TealTemplateParams
+from algokit_utils.models import SendParams
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
+    from algokit_utils.applications.app_client import (
+        AppClientBareCallCreateParams,
+        AppClientBareCallParams,
+        AppClientCompilationParams,
+        BaseAppClientMethodCallParams,
+    )
+    from algokit_utils.applications.app_deployer import (
+        ApplicationLookup,
+        OnSchemaBreak,
+        OnUpdate,
+    )
     from algokit_utils.applications.app_factory import AppFactoryDeployResult
 
 __all__ = [
@@ -36,8 +39,8 @@ class TypedAppClientProtocol(Protocol):
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: AppLookup | None = None,
-        algorand: "AlgorandClient",
+        app_lookup_cache: ApplicationLookup | None = None,
+        algorand: AlgorandClient,
     ) -> Self: ...
 
     @classmethod
@@ -49,7 +52,7 @@ class TypedAppClientProtocol(Protocol):
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
-        algorand: "AlgorandClient",
+        algorand: AlgorandClient,
     ) -> Self: ...
 
     def __init__(
@@ -59,7 +62,7 @@ class TypedAppClientProtocol(Protocol):
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        algorand: "AlgorandClient",
+        algorand: AlgorandClient,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> None: ...
@@ -67,17 +70,17 @@ class TypedAppClientProtocol(Protocol):
 
 CreateParamsT = TypeVar(  # noqa: PLC0105
     "CreateParamsT",
-    bound=BaseAppClientMethodCallParams | AppClientBareCallCreateParams | None,
+    bound="BaseAppClientMethodCallParams | AppClientBareCallCreateParams | None",
     contravariant=True,
 )
 UpdateParamsT = TypeVar(  # noqa: PLC0105
     "UpdateParamsT",
-    bound=BaseAppClientMethodCallParams | AppClientBareCallParams | None,
+    bound="BaseAppClientMethodCallParams | AppClientBareCallParams | None",
     contravariant=True,
 )
 DeleteParamsT = TypeVar(  # noqa: PLC0105
     "DeleteParamsT",
-    bound=BaseAppClientMethodCallParams | AppClientBareCallParams | None,
+    bound="BaseAppClientMethodCallParams | AppClientBareCallParams | None",
     contravariant=True,
 )
 
@@ -85,26 +88,21 @@ DeleteParamsT = TypeVar(  # noqa: PLC0105
 class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, DeleteParamsT]):
     def __init__(
         self,
-        algorand: "AlgorandClient",
+        algorand: AlgorandClient,
         **kwargs: Any,
     ) -> None: ...
 
-    def deploy(  # noqa: PLR0913
+    def deploy(
         self,
         *,
-        deploy_time_params: TealTemplateParams | None = None,
-        on_update: OnUpdate = OnUpdate.Fail,
-        on_schema_break: OnSchemaBreak = OnSchemaBreak.Fail,
+        on_update: OnUpdate | None = None,
+        on_schema_break: OnSchemaBreak | None = None,
         create_params: CreateParamsT | None = None,
         update_params: UpdateParamsT | None = None,
         delete_params: DeleteParamsT | None = None,
-        existing_deployments: AppLookup | None = None,
+        existing_deployments: ApplicationLookup | None = None,
         ignore_cache: bool = False,
-        updatable: bool | None = None,
-        deletable: bool | None = None,
         app_name: str | None = None,
-        max_rounds_to_wait: int | None = None,
-        suppress_log: bool = False,
-        populate_app_call_resources: bool | None = None,
-        cover_app_call_inner_txn_fees: bool | None = None,
-    ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResult"]: ...
+        send_params: SendParams | None = None,
+        compilation_params: AppClientCompilationParams | None = None,
+    ) -> tuple[TypedAppClientProtocol, AppFactoryDeployResult]: ...

@@ -19,7 +19,7 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateParams,
 )
 from algokit_utils.errors import LogicError
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
@@ -30,7 +30,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -46,7 +46,7 @@ def app_spec() -> str:
 
 
 @pytest.fixture
-def factory(algorand: AlgorandClient, funded_account: Account, app_spec: str) -> AppFactory:
+def factory(algorand: AlgorandClient, funded_account: SigningAccount, app_spec: str) -> AppFactory:
     """Create AppFactory fixture"""
     return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.address)
 
@@ -54,7 +54,7 @@ def factory(algorand: AlgorandClient, funded_account: Account, app_spec: str) ->
 @pytest.fixture
 def arc56_factory(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
 ) -> AppFactory:
     """Create AppFactory fixture"""
     arc56_raw_spec = (
@@ -99,11 +99,13 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
         default_sender=random_account.address,
-        deploy_time_params={
-            # It should strip off the TMPL_
-            "TMPL_UPDATABLE": 0,
-            "DELETABLE": 0,
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                # It should strip off the TMPL_
+                "TMPL_UPDATABLE": 0,
+                "DELETABLE": 0,
+                "VALUE": 1,
+            }
         },
     )
 
@@ -137,20 +139,24 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
 
 def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
     factory.deploy(
-        deletable=False,
-        updatable=False,
         on_schema_break=OnSchemaBreak.Fail,
         on_update=OnUpdate.Fail,
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deletable": False,
+            "updatable": False,
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
         },
     )
 
 
 def test_deploy_app_create(factory: AppFactory) -> None:
     app_client, deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
         },
     )
 
@@ -163,8 +169,10 @@ def test_deploy_app_create(factory: AppFactory) -> None:
 
 def test_deploy_app_create_abi(factory: AppFactory) -> None:
     app_client, deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
         },
         create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
     )
@@ -180,17 +188,21 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
 
 def test_deploy_app_update(factory: AppFactory) -> None:
     app_client, create_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
+            "updatable": True,
         },
-        updatable=True,
     )
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
     updated_app_client, update_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 2,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 2,
+            },
         },
         on_update=OnUpdate.UpdateApp,
     )
@@ -211,18 +223,22 @@ def test_deploy_app_update(factory: AppFactory) -> None:
 
 def test_deploy_app_update_abi(factory: AppFactory) -> None:
     _, create_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
+            "updatable": True,
         },
-        updatable=True,
     )
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
     created_app = create_deploy_result.create_result
 
     _, update_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 2,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 2,
+            },
         },
         on_update=OnUpdate.UpdateApp,
         update_params=AppClientMethodCallParams(method="update_abi", args=["args_io"]),
@@ -245,17 +261,21 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
 
 def test_deploy_app_replace(factory: AppFactory) -> None:
     _, create_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
+            "deletable": True,
         },
-        deletable=True,
     )
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
     _, replace_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 2,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 2,
+            },
         },
         on_update=OnUpdate.ReplaceApp,
     )
@@ -281,16 +301,23 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
 
 def test_deploy_app_replace_abi(factory: AppFactory) -> None:
     _, create_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 1,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
+            "deletable": True,
         },
-        deletable=True,
-        populate_app_call_resources=False,
+        send_params={
+            "populate_app_call_resources": False,
+        },
     )
 
     replaced_app_client, replace_deploy_result = factory.deploy(
-        deploy_time_params={
-            "VALUE": 2,
+        compilation_params={
+            "deploy_time_params": {
+                "VALUE": 2,
+            },
+            "deletable": True,
         },
         on_update=OnUpdate.ReplaceApp,
         create_params=AppClientMethodCallCreateParams(method="create_abi", args=["arg_io"]),
@@ -331,7 +358,7 @@ def test_create_then_call_app(factory: AppFactory) -> None:
     assert call.abi_return == "Hello, test"
 
 
-def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, factory: AppFactory) -> None:
+def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandClient, factory: AppFactory) -> None:
     rekey_to = algorand.account.random()
 
     app_client, _ = factory.send.bare.create(
@@ -347,7 +374,7 @@ def test_call_app_with_rekey(funded_account: Account, algorand: AlgorandClient, 
     app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.address))
 
     # If the rekey didn't work this will throw
-    rekeyed_account = algorand.account.rekeyed(funded_account.address, rekey_to)
+    rekeyed_account = algorand.account.rekeyed(sender=funded_account.address, account=rekey_to)
     algorand.send.payment(
         PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.address, receiver=funded_account.address)
     )
@@ -422,10 +449,10 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
 def test_export_import_sourcemaps(
     factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
 ) -> None:
     # Export source maps from original client
-    app_client, _ = factory.deploy(deploy_time_params={"VALUE": 1})
+    app_client, _ = factory.deploy(compilation_params={"deploy_time_params": {"VALUE": 1}})
     old_sourcemaps = app_client.export_source_maps()
 
     # Create new client instance
@@ -467,11 +494,13 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
 ) -> None:
     app_client, _ = arc56_factory.deploy(
         create_params=AppClientMethodCallCreateParams(method="createApplication"),
-        deploy_time_params={
-            "bytes64TmplVar": "0" * 64,
-            "uint64TmplVar": 123,
-            "bytes32TmplVar": "0" * 32,
-            "bytesTmplVar": "foo",
+        compilation_params={
+            "deploy_time_params": {
+                "bytes64TmplVar": "0" * 64,
+                "uint64TmplVar": 123,
+                "bytes32TmplVar": "0" * 32,
+                "bytesTmplVar": "foo",
+            },
         },
     )
 
@@ -482,16 +511,18 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
 ) -> None:
     # Deploy app with template parameters
     app_client, _ = arc56_factory.deploy(
         create_params=AppClientMethodCallCreateParams(method="createApplication"),
-        deploy_time_params={
-            "bytes64TmplVar": "0" * 64,
-            "uint64TmplVar": 0,
-            "bytes32TmplVar": "0" * 32,
-            "bytesTmplVar": "foo",
+        compilation_params={
+            "deploy_time_params": {
+                "bytes64TmplVar": "0" * 64,
+                "uint64TmplVar": 0,
+                "bytes32TmplVar": "0" * 32,
+                "bytesTmplVar": "foo",
+            },
         },
     )
     app_id = app_client.app_id

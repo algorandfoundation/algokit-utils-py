@@ -5,7 +5,7 @@ from algosdk.kmd import KMDClient
 
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer
 
@@ -14,7 +14,7 @@ __all__ = ["KmdAccount", "KmdAccountManager"]
 logger = config.logger
 
 
-class KmdAccount(Account):
+class KmdAccount(SigningAccount):
     """Account retrieved from KMD with signing capabilities, extending base Account.
 
     Provides an account implementation that can be used to sign transactions using keys stored in KMD.

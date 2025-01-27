@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
 import algosdk
 from algosdk.abi.method import Method as AlgorandABIMethod
@@ -7,7 +9,9 @@ from algosdk.atomic_transaction_composer import ABIResult
 
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, StructField
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
-from algokit_utils.models.state import BoxName
+
+if TYPE_CHECKING:
+    from algokit_utils.models.state import BoxName
 
 ABIValue: TypeAlias = (
     bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"]

@@ -20,7 +20,7 @@ from algokit_utils.applications.app_client import (
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
-from algokit_utils.models.account import Account
+from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.state import BoxReference
 from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
@@ -32,7 +32,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> Account:
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -56,7 +56,7 @@ def hello_world_arc32_app_spec() -> ApplicationSpecification:
 
 @pytest.fixture
 def hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: Account, hello_world_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc32_app_spec: ApplicationSpecification
 ) -> int:
     global_schema = hello_world_arc32_app_spec.global_state_schema
     local_schema = hello_world_arc32_app_spec.local_state_schema
@@ -90,7 +90,7 @@ def testing_app_arc32_app_spec() -> ApplicationSpecification:
 
 @pytest.fixture
 def testing_app_arc32_app_id(
-    algorand: AlgorandClient, funded_account: Account, testing_app_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_arc32_app_spec: ApplicationSpecification
 ) -> int:
     global_schema = testing_app_arc32_app_spec.global_state_schema
     local_schema = testing_app_arc32_app_spec.local_state_schema
@@ -121,7 +121,7 @@ def testing_app_arc32_app_id(
 @pytest.fixture
 def test_app_client(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     testing_app_arc32_app_spec: ApplicationSpecification,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
@@ -139,7 +139,7 @@ def test_app_client(
 @pytest.fixture
 def test_app_client_with_sourcemaps(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     testing_app_arc32_app_spec: ApplicationSpecification,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
@@ -167,7 +167,7 @@ def testing_app_puya_arc32_app_spec() -> ApplicationSpecification:
 
 @pytest.fixture
 def testing_app_puya_arc32_app_id(
-    algorand: AlgorandClient, funded_account: Account, testing_app_puya_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: ApplicationSpecification
 ) -> int:
     global_schema = testing_app_puya_arc32_app_spec.global_state_schema
     local_schema = testing_app_puya_arc32_app_spec.local_state_schema
@@ -191,7 +191,7 @@ def testing_app_puya_arc32_app_id(
 @pytest.fixture
 def test_app_client_puya(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     testing_app_puya_arc32_app_spec: ApplicationSpecification,
     testing_app_puya_arc32_app_id: int,
 ) -> AppClient:
@@ -208,7 +208,7 @@ def test_app_client_puya(
 
 def test_clone_overriding_default_sender_and_inheriting_app_name(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     hello_world_arc32_app_spec: ApplicationSpecification,
     hello_world_arc32_app_id: int,
 ) -> None:
@@ -234,7 +234,7 @@ def test_clone_overriding_default_sender_and_inheriting_app_name(
 
 def test_clone_overriding_app_name(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     hello_world_arc32_app_spec: ApplicationSpecification,
     hello_world_arc32_app_id: int,
 ) -> None:
@@ -260,7 +260,7 @@ def test_clone_overriding_app_name(
 
 def test_clone_inheriting_app_name_based_on_default_handling(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     hello_world_arc32_app_spec: ApplicationSpecification,
     hello_world_arc32_app_id: int,
 ) -> None:
@@ -331,7 +331,7 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
 
 
 def test_construct_transaction_with_abi_encoding_including_transaction(
-    algorand: AlgorandClient, funded_account: Account, test_app_client: AppClient
+    algorand: AlgorandClient, funded_account: SigningAccount, test_app_client: AppClient
 ) -> None:
     # Create a payment transaction with random amount
     amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
@@ -363,7 +363,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
 ) -> None:
     # Create a payment transaction with a random amount
     amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
@@ -398,7 +398,7 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
 
 
 def test_sign_transaction_in_group_with_different_signer_if_provided(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
 ) -> None:
     # Generate a new account
     test_account = algorand.account.random()
@@ -428,7 +428,7 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
 
 
 def test_construct_transaction_with_abi_encoding_including_foreign_references_not_in_signature(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: Account
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
 ) -> None:
     test_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -458,7 +458,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     assert expected_return.value == result.abi_return
 
 
-def test_retrieve_state(test_app_client: AppClient, funded_account: Account) -> None:
+def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccount) -> None:
     # Test global state
     test_app_client.send.call(AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
     global_state = test_app_client.get_global_state()
@@ -668,7 +668,7 @@ def test_box_methods_with_arc4_returns_parametrized(
 
 def test_abi_with_default_arg_method(
     algorand: AlgorandClient,
-    funded_account: Account,
+    funded_account: SigningAccount,
     testing_app_arc32_app_id: int,
     testing_app_arc32_app_spec: ApplicationSpecification,
 ) -> None:
