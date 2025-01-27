@@ -32,7 +32,7 @@ __all__ = [
     "APP_DEPLOY_NOTE_DAPP",
     "AppDeployMetaData",
     "AppDeployParams",
-    "AppDeployResponse",
+    "AppDeployResult",
     "AppDeployer",
     "AppLookup",
     "AppMetaData",
@@ -175,12 +175,12 @@ class AppDeployParams:
 
 # Union type for all possible deploy results
 @dataclass(frozen=True)
-class AppDeployResponse:
+class AppDeployResult:
     app: AppMetaData
     operation_performed: OperationPerformed
-    create_response: SendAppCreateTransactionResult[ABIReturn] | None = None
-    update_response: SendAppUpdateTransactionResult[ABIReturn] | None = None
-    delete_response: SendAppTransactionResult[ABIReturn] | None = None
+    create_result: SendAppCreateTransactionResult[ABIReturn] | None = None
+    update_result: SendAppUpdateTransactionResult[ABIReturn] | None = None
+    delete_result: SendAppTransactionResult[ABIReturn] | None = None
 
 
 class AppDeployer:
@@ -197,7 +197,7 @@ class AppDeployer:
         self._indexer = indexer
         self._app_lookups: dict[str, AppLookup] = {}
 
-    def deploy(self, deployment: AppDeployParams) -> AppDeployResponse:
+    def deploy(self, deployment: AppDeployParams) -> AppDeployResult:
         # Create new instances with updated notes
         logger.info(
             f"Idempotently deploying app \"{deployment.metadata.name}\" from creator "
@@ -325,7 +325,7 @@ class AppDeployer:
             )
 
         logger.debug("No detected changes in app, nothing to do.", suppress_log=deployment.suppress_log)
-        return AppDeployResponse(
+        return AppDeployResult(
             app=existing_app,
             operation_performed=OperationPerformed.Nothing,
         )
@@ -335,11 +335,11 @@ class AppDeployer:
         deployment: AppDeployParams,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeployResponse:
+    ) -> AppDeployResult:
         """Create a new application"""
 
         if isinstance(deployment.create_params, AppCreateMethodCallParams):
-            create_response = self._transaction_sender.app_create_method_call(
+            create_result = self._transaction_sender.app_create_method_call(
                 AppCreateMethodCallParams(
                     **{
                         **asdict(deployment.create_params),
@@ -349,7 +349,7 @@ class AppDeployer:
                 )
             )
         else:
-            create_response = self._transaction_sender.app_create(
+            create_result = self._transaction_sender.app_create(
                 AppCreateParams(
                     **{
                         **asdict(deployment.create_params),
@@ -361,24 +361,24 @@ class AppDeployer:
 
         app_metadata = AppMetaData(
             reference=AppReference(
-                app_id=create_response.app_id, app_address=get_application_address(create_response.app_id)
+                app_id=create_result.app_id, app_address=get_application_address(create_result.app_id)
             ),
             deploy_metadata=deployment.metadata,
-            created_round=create_response.confirmation.get("confirmed-round", 0)
-            if isinstance(create_response.confirmation, dict)
+            created_round=create_result.confirmation.get("confirmed-round", 0)
+            if isinstance(create_result.confirmation, dict)
             else 0,
-            updated_round=create_response.confirmation.get("confirmed-round", 0)
-            if isinstance(create_response.confirmation, dict)
+            updated_round=create_result.confirmation.get("confirmed-round", 0)
+            if isinstance(create_result.confirmation, dict)
             else 0,
             deleted=False,
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
-        return AppDeployResponse(
+        return AppDeployResult(
             app=app_metadata,
             operation_performed=OperationPerformed.Create,
-            create_response=create_response,
+            create_result=create_result,
         )
 
     def _replace_app(
@@ -387,7 +387,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeployResponse:
+    ) -> AppDeployResult:
         composer = self._transaction_sender.new_group()
 
         # Add create transaction
@@ -434,8 +434,8 @@ class AppDeployer:
 
         result = composer.send()
 
-        create_response = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
-        delete_response = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
+        create_result = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
+        delete_result = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
 
         app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
         app_metadata = AppMetaData(
@@ -447,12 +447,12 @@ class AppDeployer:
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
-        return AppDeployResponse(
+        return AppDeployResult(
             app=app_metadata,
             operation_performed=OperationPerformed.Replace,
-            create_response=create_response,
-            update_response=None,
-            delete_response=delete_response,
+            create_result=create_result,
+            update_result=None,
+            delete_result=delete_result,
         )
 
     def _update_app(
@@ -461,7 +461,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeployResponse:
+    ) -> AppDeployResult:
         """Update an existing application"""
 
         if isinstance(deployment.update_params, AppUpdateMethodCallParams):
@@ -497,10 +497,10 @@ class AppDeployer:
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
 
-        return AppDeployResponse(
+        return AppDeployResult(
             app=app_metadata,
             operation_performed=OperationPerformed.Update,
-            update_response=result,
+            update_result=result,
         )
 
     def _handle_schema_break(
@@ -509,7 +509,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeployResponse:
+    ) -> AppDeployResult:
         if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail"):
             raise ValueError(
                 "Schema break detected and onSchemaBreak=OnSchemaBreak.Fail, stopping deployment. "
@@ -531,7 +531,7 @@ class AppDeployer:
         existing_app: AppMetaData,
         approval_program: bytes,
         clear_program: bytes,
-    ) -> AppDeployResponse:
+    ) -> AppDeployResult:
         if deployment.on_update in (OnUpdate.Fail, "fail"):
             raise ValueError(
                 "Update detected and onUpdate=Fail, stopping deployment. " "Try a different onUpdate value to not fail."

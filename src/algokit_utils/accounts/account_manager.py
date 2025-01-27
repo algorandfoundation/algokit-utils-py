@@ -28,8 +28,8 @@ logger = config.logger
 __all__ = [
     "AccountInformation",
     "AccountManager",
-    "EnsureFundedFromTestnetDispenserApiResponse",
-    "EnsureFundedResponse",
+    "EnsureFundedFromTestnetDispenserApiResult",
+    "EnsureFundedResult",
 ]
 
 
@@ -44,16 +44,16 @@ class _CommonEnsureFundedParams:
 
 
 @dataclass(frozen=True, kw_only=True)
-class EnsureFundedResponse(SendSingleTransactionResult, _CommonEnsureFundedParams):
+class EnsureFundedResult(SendSingleTransactionResult, _CommonEnsureFundedParams):
     """
-    Response from performing an ensure funded call.
+    Result from performing an ensure funded call.
     """
 
 
 @dataclass(frozen=True, kw_only=True)
-class EnsureFundedFromTestnetDispenserApiResponse(_CommonEnsureFundedParams):
+class EnsureFundedFromTestnetDispenserApiResult(_CommonEnsureFundedParams):
     """
-    Response from performing an ensure funded call using TestNet dispenser API.
+    Result from performing an ensure funded call using TestNet dispenser API.
     """
 
 
@@ -602,7 +602,7 @@ class AccountManager:
         validity_window: int | None = None,
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
-    ) -> EnsureFundedResponse | None:
+    ) -> EnsureFundedResult | None:
         """
         Funds a given account using a dispenser account as a funding source.
 
@@ -672,7 +672,7 @@ class AccountManager:
             .send(send_params)
         )
 
-        return EnsureFundedResponse(
+        return EnsureFundedResult(
             returns=result.returns,
             transactions=result.transactions,
             confirmations=result.confirmations,
@@ -703,7 +703,7 @@ class AccountManager:
         validity_window: int | None = None,
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
-    ) -> EnsureFundedResponse | None:
+    ) -> EnsureFundedResult | None:
         """
         Ensure an account is funded from a dispenser account configured in environment.
 
@@ -778,7 +778,7 @@ class AccountManager:
             .send(send_params)
         )
 
-        return EnsureFundedResponse(
+        return EnsureFundedResult(
             returns=result.returns,
             transactions=result.transactions,
             confirmations=result.confirmations,
@@ -797,7 +797,7 @@ class AccountManager:
         min_spending_balance: AlgoAmount,
         *,
         min_funding_increment: AlgoAmount | None = None,
-    ) -> EnsureFundedFromTestnetDispenserApiResponse | None:
+    ) -> EnsureFundedFromTestnetDispenserApiResult | None:
         """
         Ensure an account is funded using the TestNet Dispenser API.
 
@@ -846,7 +846,7 @@ class AccountManager:
             asset_id=DispenserAssetName.ALGO,
         )
 
-        return EnsureFundedFromTestnetDispenserApiResponse(
+        return EnsureFundedFromTestnetDispenserApiResult(
             transaction_id=result.tx_id,
             amount_funded=AlgoAmount.from_micro_algo(result.amount),
         )

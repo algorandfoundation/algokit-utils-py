@@ -1982,8 +1982,6 @@ class TransactionComposer:
             else self._get_signer(params.sender) or algosdk.atomic_transaction_composer.EmptySigner(),
             "method_args": list(reversed(method_args)),
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
-            "note": params.note,
-            "lease": params.lease,
             "boxes": [AppManager.get_box_reference(ref) for ref in params.box_references]
             if params.box_references
             else None,
@@ -2004,7 +2002,6 @@ class TransactionComposer:
             else None,
             "approval_program": approval_program,
             "clear_program": clear_program,
-            "rekey_to": params.rekey_to,
             "extra_pages": extra_pages,
         }
 

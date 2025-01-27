@@ -32,7 +32,7 @@ from algokit_utils.applications.app_client import (
 from algokit_utils.applications.app_deployer import (
     AppDeployMetaData,
     AppDeployParams,
-    AppDeployResponse,
+    AppDeployResult,
     AppLookup,
     AppMetaData,
     OnSchemaBreak,
@@ -69,7 +69,7 @@ __all__ = [
     "AppFactoryCreateMethodCallParams",
     "AppFactoryCreateMethodCallResult",
     "AppFactoryCreateParams",
-    "AppFactoryDeployResponse",
+    "AppFactoryDeployResult",
     "AppFactoryParams",
     "SendAppCreateFactoryTransactionResult",
     "SendAppFactoryTransactionResult",
@@ -136,24 +136,24 @@ class SendAppCreateFactoryTransactionResult(SendAppCreateTransactionResult[Arc56
 
 
 @dataclass(frozen=True)
-class AppFactoryDeployResponse:
+class AppFactoryDeployResult:
     """Result from deploying an application via AppFactory"""
 
     app: AppMetaData
     operation_performed: OperationPerformed
-    create_response: SendAppCreateFactoryTransactionResult | None = None
-    update_response: SendAppUpdateFactoryTransactionResult | None = None
-    delete_response: SendAppFactoryTransactionResult | None = None
+    create_result: SendAppCreateFactoryTransactionResult | None = None
+    update_result: SendAppUpdateFactoryTransactionResult | None = None
+    delete_result: SendAppFactoryTransactionResult | None = None
 
     @classmethod
-    def from_deploy_response(
+    def from_deploy_result(
         cls,
-        response: AppDeployResponse,
+        response: AppDeployResult,
         deploy_params: AppDeployParams,
         app_spec: Arc56Contract,
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
-        def to_factory_response(
+        def to_factory_result(
             response_data: SendAppTransactionResult[ABIReturn]
             | SendAppCreateTransactionResult
             | SendAppUpdateTransactionResult
@@ -185,16 +185,16 @@ class AppFactoryDeployResponse:
         return cls(
             app=response.app,
             operation_performed=response.operation_performed,
-            create_response=to_factory_response(
-                response.create_response,
+            create_result=to_factory_result(
+                response.create_result,
                 deploy_params.create_params,
             ),
-            update_response=to_factory_response(
-                response.update_response,
+            update_result=to_factory_result(
+                response.update_result,
                 deploy_params.update_params,
             ),
-            delete_response=to_factory_response(
-                response.delete_response,
+            delete_result=to_factory_result(
+                response.delete_result,
                 deploy_params.delete_params,
             ),
         )
@@ -552,7 +552,7 @@ class AppFactory:
         suppress_log: bool = False,
         populate_app_call_resources: bool | None = None,
         cover_app_call_inner_txn_fees: bool | None = None,
-    ) -> tuple[AppClient, AppFactoryDeployResponse]:
+    ) -> tuple[AppClient, AppFactoryDeployResult]:
         """Deploy the application with the specified parameters."""
         # Resolve control parameters with factory defaults
         resolved_updatable = (
@@ -626,17 +626,17 @@ class AppFactory:
             populate_app_call_resources=populate_app_call_resources,
             cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
         )
-        deploy_response = self._algorand.app_deployer.deploy(deploy_params)
+        deploy_result = self._algorand.app_deployer.deploy(deploy_params)
 
         # Prepare app client and factory deploy response
         app_client = self.get_app_client_by_id(
-            app_id=deploy_response.app.app_id,
+            app_id=deploy_result.app.app_id,
             app_name=app_name,
             default_sender=self._default_sender,
             default_signer=self._default_signer,
         )
-        factory_deploy_response = AppFactoryDeployResponse.from_deploy_response(
-            response=deploy_response,
+        factory_deploy_result = AppFactoryDeployResult.from_deploy_result(
+            response=deploy_result,
             deploy_params=deploy_params,
             app_spec=app_client.app_spec,
             app_compilation_data=self.compile(
@@ -648,7 +648,7 @@ class AppFactory:
             ),
         )
 
-        return app_client, factory_deploy_response
+        return app_client, factory_deploy_result
 
     def get_app_client_by_id(
         self,

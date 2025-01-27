@@ -18,7 +18,7 @@ from algokit_utils.models.state import TealTemplateParams
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
-    from algokit_utils.applications.app_factory import AppFactoryDeployResponse
+    from algokit_utils.applications.app_factory import AppFactoryDeployResult
 
 __all__ = [
     "TypedAppClientProtocol",
@@ -107,4 +107,4 @@ class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, De
         suppress_log: bool = False,
         populate_app_call_resources: bool | None = None,
         cover_app_call_inner_txn_fees: bool | None = None,
-    ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResponse"]: ...
+    ) -> tuple[TypedAppClientProtocol, "AppFactoryDeployResult"]: ...
