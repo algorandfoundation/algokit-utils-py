@@ -313,16 +313,16 @@ The app client and app factory automatically provide this functionality for all 
 
 When an error is thrown then the resulting error that is re-thrown will be a [`LogicError` object](todo_paste_url), which has the following fields:
 
-- `message: str` - The formatted error message `{ERROR_MESSAGE}. at:{TEAL_LINE}. {ERROR_DESCRIPTION}`
-- `stack: str` - A stack trace of the TEAL code showing where the error was with the 5 lines either side of it
-- `led: LogicErrorDetails` - The parsed [logic error details](todo_paste_url) from the error message, with the following properties:
-  - `tx_id: str` - The transaction ID that triggered the error
-  - `pc: int` - The program counter
-  - `msg: str` - The raw error message
-  - `desc: str` - The full error description
-  - `traces: List[Dict[str, Any]]` - Any traces that were included in the error
-- `program: List[str]` - The TEAL program split by line
-- `teal_line: int` - The line number in the TEAL program that triggered the error
+- `logic_error: Exception` - The original logic error exception
+- `logic_error_str: str` - The string representation of the logic error
+- `program: str` - The TEAL program source code
+- `source_map: AlgoSourceMap | None` - The source map if available
+- `transaction_id: str` - The transaction ID that triggered the error
+- `message: str` - Combined error message with debugging information
+- `pc: int` - The program counter value where error occurred
+- `traces: list[SimulationTrace] | None` - Simulation traces if debug enabled
+- `line_no: int | None` - The line number in the TEAL source code
+- `lines: list[str]` - The TEAL program split into individual lines
 
 Note: This information will only show if the app client / app factory has a source map. This will occur if:
 
