@@ -16,11 +16,11 @@ class SendSingleTransactionResult:
     transaction: TransactionWrapper  # Last transaction
     confirmation: AlgodResponseType  # Last confirmation
     group_id: str
-    tx_id: str | None = None
-    tx_ids: list[str]  # Full array of transaction IDs
+    tx_id: str | None = None  # Transaction ID of the last transaction
+    tx_ids: list[str]  # All transaction IDs in the group
     transactions: list[TransactionWrapper]
     confirmations: list[AlgodResponseType]
-    returns: list[ABIReturn] | None = None
+    returns: list[ABIReturn] | None = None  # ABI returns if applicable
 ```
 
 Common variations include:
@@ -72,9 +72,9 @@ Different interfaces return different result types:
 
    - `.send.payment()` → `SendSingleTransactionResult`
    - `.send.asset_create()` → `SendSingleAssetCreateTransactionResult`
-   - `.send.app_call()` → `SendAppTransactionResult`
-   - `.send.app_create()` → `SendAppCreateTransactionResult`
-   - `.send.app_update()` → `SendAppUpdateTransactionResult`
+   - `.send.app_call()` → `SendAppTransactionResult` (contains raw ABI return)
+   - `.send.app_create()` → `SendAppCreateTransactionResult` (with app ID/address)
+   - `.send.app_update()` → `SendAppUpdateTransactionResult` (with compilation info)
 
 3. **AppClient Methods**
 

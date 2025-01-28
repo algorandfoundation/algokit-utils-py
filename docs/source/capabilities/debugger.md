@@ -48,24 +48,29 @@ config.configure(
 
 When debug mode is enabled, AlgoKit Utils will automatically:
 
-- `simulate_and_persist_response`: This method simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object, and persists the simulation response to an AVM Debugger compliant JSON file. It takes an `AtomicTransactionComposer` object representing the atomic transactions to be simulated and persisted, a `Path` object representing the root directory of the project, an `AlgodClient` object representing the Algorand client, and a float representing the size of the trace buffer in megabytes.
+- Generate transaction traces compatible with the AVM Debugger
+- Manage trace file storage with automatic cleanup
+- Provide source map generation for TEAL contracts
 
-The following methods are provided for scenarios where you want to manually persist sourcemaps and traces:
+The following methods are provided for manual debugging operations:
 
-- `persist_sourcemaps`: This method persists the sourcemaps for the
-  given sources as AVM Debugger compliant artifacts. It takes a list of
-  `PersistSourceMapInput` objects, a `Path` object representing the root
-  directory of the project, an `AlgodClient` object for interacting with the
-  Algorand blockchain, and a boolean indicating whether to dump teal source
-  files along with sourcemaps.
-- `simulate_and_persist_response`: This method simulates the atomic
-  transactions using the provided `AtomicTransactionComposer` object and
-  `AlgodClient` object, and persists the simulation response to an AVM
-  Debugger compliant JSON file. It takes an `AtomicTransactionComposer`
-  object representing the atomic transactions to be simulated and persisted,
-  a `Path` object representing the root directory of the project, an
-  `AlgodClient` object representing the Algorand client, and a float
-  representing the size of the trace buffer in megabytes.
+- `persist_sourcemaps`: Persists sourcemaps for given TEAL contracts as AVM Debugger-compliant artifacts. Parameters:
+
+  - `sources`: List of TEAL sources to generate sourcemaps for
+  - `project_root`: Project root directory for storage
+  - `client`: AlgodClient instance
+  - `with_sources`: Whether to include TEAL source files (default: True)
+
+- `simulate_and_persist_response`: Simulates transactions and persists debug traces. Parameters:
+  - `atc`: AtomicTransactionComposer containing transactions
+  - `project_root`: Project root directory for storage
+  - `algod_client`: AlgodClient instance
+  - `buffer_size_mb`: Maximum trace storage in MB (default: 256)
+  - `allow_empty_signatures`: Allow unsigned transactions (default: True)
+  - `allow_unnamed_resources`: Allow unnamed resources (default: True)
+  - `extra_opcode_budget`: Additional opcode budget
+  - `exec_trace_config`: Custom trace configuration
+  - `simulation_round`: Specific round to simulate
 
 ### Trace filename format
 

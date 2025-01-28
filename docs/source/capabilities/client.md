@@ -14,15 +14,23 @@ To get an instance of `ClientManager` you can instantiate it directly:
 
 ```python
 from algokit_utils import ClientManager
+from algosdk.v2client.algod import AlgodClient
 
-# Algod client only
-client_manager = ClientManager(algod=algod_client)
-# All clients
-client_manager = ClientManager(algod=algod_client, indexer=indexer_client, kmd=kmd_client)
-# Algod config only
-client_manager = ClientManager(algod_config=algod_config)
-# All client configs
-client_manager = ClientManager(algod_config=algod_config, indexer_config=indexer_config, kmd_config=kmd_config)
+algod_client = AlgodClient(...)
+algorand_client = ...  # Get AlgorandClient instance from somewhere
+
+# Using existing client instances
+client_manager = ClientManager(
+    {"algod": algod_client, "indexer": indexer_client, "kmd": kmd_client},
+    algorand_client=algorand_client
+)
+
+# Using configs
+algod_config = {"server": "https://..."}
+client_manager = ClientManager(
+    {"algod_config": algod_config},
+    algorand_client=algorand_client
+)
 ```
 
 ## Network configuration

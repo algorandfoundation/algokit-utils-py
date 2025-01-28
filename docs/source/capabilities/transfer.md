@@ -16,7 +16,7 @@ The base type for specifying a payment transaction is `PaymentParams`, which has
 
 ```python
 # Minimal example
-result = algod.send.payment(
+result = algorand_client.send.payment(
     PaymentParams(
         sender="SENDERADDRESS",
         receiver="RECEIVERADDRESS",
@@ -25,7 +25,7 @@ result = algod.send.payment(
 )
 
 # Advanced example
-result2 = algod.send.payment(
+result2 = algorand_client.send.payment(
     PaymentParams(
         sender="SENDERADDRESS",
         receiver="RECEIVERADDRESS",
@@ -33,7 +33,7 @@ result2 = algod.send.payment(
         close_remainder_to="CLOSEREMAINDERTOADDRESS",
         lease="lease",
         note=b"note",
-        # Use this with caution, it's generally better to use algod.account.rekey_account
+        # Use this with caution, it's generally better to use algorand_client.account.rekey_account
         rekey_to="REKEYTOADDRESS",
         # You wouldn't normally set this field
         first_valid_round=1000,
@@ -59,12 +59,12 @@ The `ensure_funded` function automatically funds an account to maintain a minimu
 
 There are 3 variants of this function:
 
-- `algod.account.ensure_funded(account_to_fund, dispenser_account, min_spending_balance, options?)` - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
-- `algod.account.ensure_funded_from_environment(account_to_fund, min_spending_balance, options?)` - Funds a given account using a dispenser account retrieved from the environment, per the `dispenser_from_environment` method, as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algorand_client.account.ensure_funded(account_to_fund, dispenser_account, min_spending_balance, options?)` - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algorand_client.account.ensure_funded_from_environment(account_to_fund, min_spending_balance, options?)` - Funds a given account using a dispenser account retrieved from the environment, per the `dispenser_from_environment` method, as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
   - **Note:** requires environment variables to be set.
   - The dispenser account is retrieved from the account mnemonic stored in `DISPENSER_MNEMONIC` and optionally `DISPENSER_SENDER`
     if it's a rekeyed account, or against default LocalNet if no environment variables present.
-- `algod.account.ensure_funded_from_testnet_dispenser_api(account_to_fund, dispenser_client, min_spending_balance, options)` - Funds a given account using the [TestNet Dispenser API](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md) as a funding source such that the account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algorand_client.account.ensure_funded_from_testnet_dispenser_api(account_to_fund, dispenser_client, min_spending_balance, options)` - Funds a given account using the [TestNet Dispenser API](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md) as a funding source such that the account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
 
 The general structure of these calls is similar, they all take:
 
@@ -85,9 +85,9 @@ The general structure of these calls is similar, they all take:
 # From account
 
 # Basic example
-algod.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount(1, "algo"))
+algorand_client.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount(1, "algo"))
 # With configuration
-algod.account.ensure_funded(
+algorand_client.account.ensure_funded(
     "ACCOUNTADDRESS",
     "DISPENSERADDRESS",
     AlgoAmount(1, "algo"),
@@ -99,9 +99,9 @@ algod.account.ensure_funded(
 # From environment
 
 # Basic example
-algod.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount(1, "algo"))
+algorand_client.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount(1, "algo"))
 # With configuration
-algod.account.ensure_funded_from_environment(
+algorand_client.account.ensure_funded_from_environment(
     "ACCOUNTADDRESS",
     AlgoAmount(1, "algo"),
     min_funding_increment=AlgoAmount(2, "algo"),
@@ -112,15 +112,15 @@ algod.account.ensure_funded_from_environment(
 # TestNet Dispenser API
 
 # Basic example
-algod.account.ensure_funded_from_testnet_dispenser_api(
+algorand_client.account.ensure_funded_from_testnet_dispenser_api(
     "ACCOUNTADDRESS",
-    algod.client.get_testnet_dispenser_from_environment(),
+    algorand_client.client.get_testnet_dispenser_from_environment(),
     AlgoAmount(1, "algo")
 )
 # With configuration
-algod.account.ensure_funded_from_testnet_dispenser_api(
+algorand_client.account.ensure_funded_from_testnet_dispenser_api(
     "ACCOUNTADDRESS",
-    algod.client.get_testnet_dispenser_from_environment(),
+    algorand_client.client.get_testnet_dispenser_from_environment(),
     AlgoAmount(1, "algo"),
     min_funding_increment=AlgoAmount(2, "algo"),
 )

@@ -38,10 +38,13 @@ compilation_result = app_manager.compile_teal_template(
     template_params=template_params
 )
 
-# Compile with deployment metadata (for updatable/deletable control)
+# Compile with deployment control (updatable/deletable)
+control_template = f"""#pragma version 8
+int {UPDATABLE_TEMPLATE_NAME}
+int {DELETABLE_TEMPLATE_NAME}"""
 deployment_metadata = {"updatable": True, "deletable": True}
 compilation_result = app_manager.compile_teal_template(
-    template_code,
+    control_template,
     deployment_metadata=deployment_metadata
 )
 ```
@@ -134,7 +137,7 @@ box_ref = b"my_box"
 box_ref = account_signer
 
 # Box reference with app ID
-box_ref = BoxReference(app_id=123, name="my_box")
+box_ref = BoxReference(app_id=123, name=b"my_box")
 ```
 
 ## Common app parameters
