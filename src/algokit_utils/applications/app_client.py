@@ -1688,12 +1688,13 @@ class AppClient:
         if error_message:
             import re
 
-            app_id = re.search(r"(?<=app=)\d+", str(e))
-            tx_id = re.search(r"(?<=transaction )\S+(?=:)", str(e))
+            message = e.logic_error_str if isinstance(e, LogicError) else str(e)
+            app_id = re.search(r"(?<=app=)\d+", message)
+            tx_id = re.search(r"(?<=transaction )\S+(?=:)", message)
             error = Exception(
                 f"Runtime error when executing {app_spec.name} "
-                f"(appId: {app_id.group() if app_id else ''}) in transaction "
-                f"{tx_id.group() if tx_id else ''}: {error_message}"
+                f"(appId: {app_id.group() if app_id else 'N/A'}) in transaction "
+                f"{tx_id.group() if tx_id else 'N/A'}: {error_message}"
             )
             error.__cause__ = e
             return error

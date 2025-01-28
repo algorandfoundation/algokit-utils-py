@@ -747,7 +747,7 @@ class AppFactory:
             on_complete in m.actions.call for m in self._app_spec.methods if m.actions and m.actions.call
         )
 
-    def _get_sender(self, sender: str | bytes | None) -> str:
+    def _get_sender(self, sender: str | None) -> str:
         if not sender and not self._default_sender:
             raise Exception(
                 f"No sender provided and no default sender present in app client for call to app {self._app_name}"

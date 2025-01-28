@@ -1,5 +1,7 @@
 import warnings
 
+from deprecated import deprecated
+
 warnings.warn(
     """The legacy v2 application_specification module is deprecated and will be removed in a future version.
     Use `from algokit_utils.applications.app_spec.arc32 import ...` to access Arc32 app spec instead.
@@ -11,8 +13,9 @@ warnings.warn(
     stacklevel=2,
 )
 
-from algokit_utils.applications.app_spec.arc32 import (  # noqa: E402
+from algokit_utils.applications.app_spec.arc32 import (  # noqa: E402  # noqa: E402
     AppSpecStateDict,
+    Arc32Contract,
     CallConfig,
     DefaultArgumentDict,
     DefaultArgumentType,
@@ -20,9 +23,18 @@ from algokit_utils.applications.app_spec.arc32 import (  # noqa: E402
     MethodHints,
     OnCompleteActionName,
 )
-from algokit_utils.applications.app_spec.arc32 import (  # noqa: E402
-    Arc32Contract as ApplicationSpecification,
+
+
+@deprecated(
+    "Use `Arc32Contract` from algokit_utils.applications instead. Example:\n"
+    "```python\n"
+    "from algokit_utils.applications import Arc32Contract\n"
+    "app_spec = Arc32Contract.from_json(app_spec_json)\n"
+    "```"
 )
+class ApplicationSpecification(Arc32Contract):
+    """Deprecated class for ARC-0032 application specification"""
+
 
 __all__ = [
     "AppSpecStateDict",

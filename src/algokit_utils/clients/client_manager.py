@@ -528,7 +528,7 @@ class ClientManager:
         typed_factory: type[TypedFactoryT],
         *,
         app_name: str | None = None,
-        default_sender: str | bytes | None = None,
+        default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         version: str | None = None,
         compilation_params: AppClientCompilationParams | None = None,

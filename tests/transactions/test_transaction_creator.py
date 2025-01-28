@@ -13,7 +13,6 @@ from algosdk.transaction import (
     PaymentTxn,
 )
 
-from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -30,7 +29,6 @@ from algokit_utils.transactions.transaction_composer import (
     OnlineKeyRegistrationParams,
     PaymentParams,
 )
-from legacy_v2_tests.conftest import get_unique_name
 
 
 @pytest.fixture
@@ -51,8 +49,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
 
 @pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient, funded_account: SigningAccount) -> SigningAccount:
-    secondary_name = get_unique_name()
-    account = get_account(algorand.client.algod, secondary_name)
+    account = algorand.account.random()
     algorand.send.payment(
         PaymentParams(sender=funded_account.address, receiver=account.address, amount=AlgoAmount.from_algos(1))
     )
