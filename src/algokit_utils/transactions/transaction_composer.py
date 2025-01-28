@@ -647,7 +647,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
-    cover_app_call_inner_txn_fees: bool | None = None,
+    cover_app_call_inner_transaction_fees: bool | None = None,
     additional_atc_context: AdditionalAtcContext | None = None,
 ) -> ExecutionInfo:
     # Create simulation request
@@ -670,9 +670,9 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
     for i, txn in enumerate(empty_signer_atc.txn_list):
         txn_with_signer = TransactionWithSigner(txn=txn.txn, signer=NULL_SIGNER)
 
-        if cover_app_call_inner_txn_fees and isinstance(txn.txn, algosdk.transaction.ApplicationCallTxn):
+        if cover_app_call_inner_transaction_fees and isinstance(txn.txn, algosdk.transaction.ApplicationCallTxn):
             if not suggested_params:
-                raise ValueError("suggested_params required when cover_app_call_inner_txn_fees enabled")
+                raise ValueError("suggested_params required when cover_app_call_inner_transaction_fees enabled")
 
             max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
             if max_fee is None:
@@ -680,9 +680,9 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
             else:
                 txn_with_signer.txn.fee = max_fee
 
-    if cover_app_call_inner_txn_fees and app_call_indexes_without_max_fees:
+    if cover_app_call_inner_transaction_fees and app_call_indexes_without_max_fees:
         raise ValueError(
-            f"Please provide a `max_fee` for each app call transaction when `cover_app_call_inner_txn_fees` is enabled. "  # noqa: E501
+            f"Please provide a `max_fee` for each app call transaction when `cover_app_call_inner_transaction_fees` is enabled. "  # noqa: E501
             f"Required for transactions: {', '.join(str(i) for i in app_call_indexes_without_max_fees)}"
         )
 
@@ -697,7 +697,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
 
     if group_response.get("failure-message"):
         msg = group_response["failure-message"]
-        if cover_app_call_inner_txn_fees and "fee too small" in msg:
+        if cover_app_call_inner_transaction_fees and "fee too small" in msg:
             raise ValueError(
                 "Fees were too small to resolve execution info via simulate. "
                 "You may need to increase an app call transaction maxFee."
@@ -718,7 +718,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
         original_txn = atc.build_group()[i].txn
 
         required_fee_delta = 0
-        if cover_app_call_inner_txn_fees:
+        if cover_app_call_inner_transaction_fees:
             # Calculate parent transaction fee
             parent_per_byte_fee = per_byte_txn_fee * (original_txn.estimate_size() + 75)
             parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
@@ -810,7 +810,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
-    cover_app_call_inner_txn_fees: bool | None = None,
+    cover_app_call_inner_transaction_fees: bool | None = None,
     additional_atc_context: AdditionalAtcContext | None = None,
 ) -> AtomicTransactionComposer:
     """Prepare a transaction group for sending by handling execution info and resources.
@@ -818,20 +818,20 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     :param atc: The AtomicTransactionComposer containing transactions
     :param algod: Algod client for simulation
     :param populate_app_call_resources: Whether to populate app call resources
-    :param cover_app_call_inner_txn_fees: Whether to cover inner txn fees
+    :param cover_app_call_inner_transaction_fees: Whether to cover inner txn fees
     :param additional_atc_context: Additional context for the AtomicTransactionComposer
     :return: Modified AtomicTransactionComposer ready for sending
     """
     # Get execution info via simulation
     execution_info = _get_group_execution_info(
-        atc, algod, populate_app_call_resources, cover_app_call_inner_txn_fees, additional_atc_context
+        atc, algod, populate_app_call_resources, cover_app_call_inner_transaction_fees, additional_atc_context
     )
     max_fees = additional_atc_context.max_fees if additional_atc_context else None
 
     group = atc.build_group()
 
     # Handle transaction fees if needed
-    if cover_app_call_inner_txn_fees:
+    if cover_app_call_inner_transaction_fees:
         # Sort transactions by fee priority
         txns_with_priority: list[_TransactionWithPriority] = []
         for i, txn_info in enumerate(execution_info.txns or []):
@@ -1082,7 +1082,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
             app_txn.boxes = boxes  # type: ignore[attr-defined]
 
         # Update fees if needed
-        if cover_app_call_inner_txn_fees and i in additional_fees:
+        if cover_app_call_inner_transaction_fees and i in additional_fees:
             cur_txn = group[i].txn
             additional_fee = additional_fees[i]
             if not isinstance(cur_txn, algosdk.transaction.ApplicationCallTxn):
@@ -1165,7 +1165,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     skip_waiting: bool = False,
     suppress_log: bool | None = None,
     populate_app_call_resources: bool | None = None,
-    cover_app_call_inner_txn_fees: bool | None = None,
+    cover_app_call_inner_transaction_fees: bool | None = None,
     additional_atc_context: AdditionalAtcContext | None = None,
 ) -> SendAtomicTransactionComposerResults:
     """Send an AtomicTransactionComposer transaction group.
@@ -1178,7 +1178,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     :param skip_waiting: If True, don't wait for transaction confirmation, defaults to False
     :param suppress_log: If True, suppress logging, defaults to None
     :param populate_app_call_resources: If True, populate app call resources, defaults to None
-    :param cover_app_call_inner_txn_fees: If True, cover app call inner transaction fees, defaults to None
+    :param cover_app_call_inner_transaction_fees: If True, cover app call inner transaction fees, defaults to None
     :param additional_atc_context: Additional context for the AtomicTransactionComposer
     :return: Results from sending the transaction group
     :raises Exception: If there is an error sending the transactions
@@ -1196,14 +1196,14 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             else config.populate_app_call_resource
         )
 
-        if (populate_app_call_resources or cover_app_call_inner_txn_fees) and any(
+        if (populate_app_call_resources or cover_app_call_inner_transaction_fees) and any(
             isinstance(t.txn, algosdk.transaction.ApplicationCallTxn) for t in transactions_with_signer
         ):
             atc = prepare_group_for_sending(
                 atc,
                 algod,
                 populate_app_call_resources,
-                cover_app_call_inner_txn_fees,
+                cover_app_call_inner_transaction_fees,
                 additional_atc_context,
             )
 
@@ -1623,10 +1623,10 @@ class TransactionComposer:
             has_app_call = any(isinstance(txn.txn, ApplicationCallTxn) for txn in group)
             params = SendParams() if has_app_call else SendParams()
 
-        cover_app_call_inner_txn_fees = params.get("cover_app_call_inner_txn_fees")
+        cover_app_call_inner_transaction_fees = params.get("cover_app_call_inner_transaction_fees")
         populate_app_call_resources = params.get("populate_app_call_resources")
         wait_rounds = params.get("max_rounds_to_wait")
-        sp = self._get_suggested_params() if not wait_rounds or cover_app_call_inner_txn_fees else None
+        sp = self._get_suggested_params() if not wait_rounds or cover_app_call_inner_transaction_fees else None
 
         if wait_rounds is None:
             last_round = max(txn.txn.last_valid_round for txn in group)
@@ -1641,7 +1641,7 @@ class TransactionComposer:
                 max_rounds_to_wait=wait_rounds,
                 suppress_log=params.get("suppress_log"),
                 populate_app_call_resources=populate_app_call_resources,
-                cover_app_call_inner_txn_fees=cover_app_call_inner_txn_fees,
+                cover_app_call_inner_transaction_fees=cover_app_call_inner_transaction_fees,
                 additional_atc_context=AdditionalAtcContext(
                     suggested_params=sp,
                     max_fees=self._txn_max_fees,

@@ -514,7 +514,7 @@ class TestCoverAppCallInnerFees:
                     method="no_op",
                 ),
                 send_params={
-                    "cover_app_call_inner_txn_fees": True,
+                    "cover_app_call_inner_transaction_fees": True,
                 },
             )
 
@@ -532,7 +532,7 @@ class TestCoverAppCallInnerFees:
             self.app_client1.send.call(
                 params,
                 send_params={
-                    "cover_app_call_inner_txn_fees": False,
+                    "cover_app_call_inner_transaction_fees": False,
                 },
             )
 
@@ -547,7 +547,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -568,7 +568,7 @@ class TestCoverAppCallInnerFees:
             self.app_client1.send.call(
                 params,
                 send_params={
-                    "cover_app_call_inner_txn_fees": True,
+                    "cover_app_call_inner_transaction_fees": True,
                 },
             )
 
@@ -586,7 +586,7 @@ class TestCoverAppCallInnerFees:
             self.app_client1.send.call(
                 params,
                 send_params={
-                    "cover_app_call_inner_txn_fees": True,
+                    "cover_app_call_inner_transaction_fees": True,
                 },
             )
 
@@ -602,7 +602,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -621,7 +621,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -640,7 +640,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -659,7 +659,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
         assert result.transaction.raw.fee == expected_fee
@@ -688,7 +688,7 @@ class TestCoverAppCallInnerFees:
             self.app_client1.algorand.new_group()
             .add_app_call_method_call(self.app_client1.params.call(txn_1_params))
             .add_app_call_method_call(self.app_client1.params.call(txn_2_params))
-            .send({"cover_app_call_inner_txn_fees": True})
+            .send({"cover_app_call_inner_transaction_fees": True})
         )
 
         assert result.transactions[0].raw.fee == txn_1_expected_fee
@@ -708,7 +708,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -726,7 +726,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -745,7 +745,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -764,7 +764,7 @@ class TestCoverAppCallInnerFees:
         result = self.app_client1.send.call(
             params,
             send_params={
-                "cover_app_call_inner_txn_fees": True,
+                "cover_app_call_inner_transaction_fees": True,
             },
         )
 
@@ -784,7 +784,7 @@ class TestCoverAppCallInnerFees:
             ],
             max_fee=AlgoAmount.from_micro_algos(expected_fee),
         )
-        result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_txn_fees": True})
+        result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
         assert result.transaction.raw.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
@@ -813,7 +813,7 @@ class TestCoverAppCallInnerFees:
                     )
                 )
             )
-            .send({"cover_app_call_inner_txn_fees": True})
+            .send({"cover_app_call_inner_transaction_fees": True})
         )
 
         assert result.transactions[0].raw.fee == expected_fee
@@ -851,7 +851,7 @@ class TestCoverAppCallInnerFees:
                     static_fee=AlgoAmount.from_micro_algos(0),
                 )
             )
-            .send({"cover_app_call_inner_txn_fees": True})
+            .send({"cover_app_call_inner_transaction_fees": True})
         )
 
         assert result.transactions[0].raw.fee == 1500
@@ -896,7 +896,7 @@ class TestCoverAppCallInnerFees:
             ],
             static_fee=AlgoAmount.from_micro_algos(expected_fee),
         )
-        result = nested_client.send.call(params, send_params={"cover_app_call_inner_txn_fees": True})
+        result = nested_client.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
         assert len(result.transactions) == 3
         assert result.transactions[0].raw.fee == 1500
@@ -939,7 +939,7 @@ class TestCoverAppCallInnerFees:
                         )
                     )
                 )
-                .send({"cover_app_call_inner_txn_fees": True})
+                .send({"cover_app_call_inner_transaction_fees": True})
             )
 
     def test_throws_when_nested_max_fee_below_calculated(self, funded_account: SigningAccount) -> None:
@@ -982,7 +982,7 @@ class TestCoverAppCallInnerFees:
                     max_fee=AlgoAmount.from_micro_algos(10_000),
                 ),
                 send_params={
-                    "cover_app_call_inner_txn_fees": True,
+                    "cover_app_call_inner_transaction_fees": True,
                 },
             )
 
@@ -1013,7 +1013,7 @@ class TestCoverAppCallInnerFees:
                         )
                     )
                 )
-                .send({"cover_app_call_inner_txn_fees": True})
+                .send({"cover_app_call_inner_transaction_fees": True})
             )
 
     def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: SigningAccount) -> None:
@@ -1051,7 +1051,7 @@ class TestCoverAppCallInnerFees:
                         static_fee=AlgoAmount.from_micro_algos(500),
                     )
                 )
-                .send({"cover_app_call_inner_txn_fees": True})
+                .send({"cover_app_call_inner_transaction_fees": True})
             )
 
     def test_handles_expensive_abi_calls_with_ensure_budget(self) -> None:
@@ -1063,7 +1063,7 @@ class TestCoverAppCallInnerFees:
             args=[6200],
             max_fee=AlgoAmount.from_micro_algos(12_000),
         )
-        result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_txn_fees": True})
+        result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
         assert result.transaction.raw.fee == expected_fee
         assert len(result.confirmation.get("inner-txns", [])) == 9  # type: ignore[union-attr]
