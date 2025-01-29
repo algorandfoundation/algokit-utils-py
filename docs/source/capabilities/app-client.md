@@ -158,7 +158,7 @@ result, app_client = factory.send.create(
 
 ## Updating and deleting an app
 
-Deploy method aside, the ability to make update and delete calls happens after there is an instance of an app so are done via `AppClient`. The semantics of this are no different than other calls, with the caveat that the update call is a bit different since the code will be compiled when constructing the update params and the update calls thus optionally takes compilation parameters (`compilation_params`) for deploy-time parameter replacements and deploy-time immutability and permanence control.
+Deploy method aside, the ability to make update and delete calls happens after there is an instance of an app created via `AppClient`. The semantics of this are no different than other calls, with the caveat that the update call is a bit different since the code will be compiled when constructing the update params and the update calls thus optionally takes compilation parameters (`compilation_params`) for deploy-time parameter replacements and deploy-time immutability and permanence control.
 
 ## Calling the app
 

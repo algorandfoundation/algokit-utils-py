@@ -191,7 +191,7 @@ result = (
         args=[1, 2, 3]
         # Resources will be automatically populated!
     ))
-    .send(send_params=SendParams(populate_app_call_resources=True))
+    .send(params=SendParams(populate_app_call_resources=True))
 )
 
 # Or disable automatic population
@@ -208,7 +208,7 @@ result = (
         asset_references=[789],
         box_references=[box_reference]
     ))
-    .send(send_params=SendParams(populate_app_call_resources=False))
+    .send(params=SendParams(populate_app_call_resources=False))
 )
 ```
 

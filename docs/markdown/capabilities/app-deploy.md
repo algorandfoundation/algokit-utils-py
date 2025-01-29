@@ -33,7 +33,7 @@ The App deployment capability provided by AlgoKit Utils helps implement **#2 Dep
 Furthermore, the implementation contains the following implementation characteristics per the original architecture design:
 
 - Deploy-time parameters can be provided and substituted into a TEAL Template by convention (by replacing `TMPL_{KEY}`)
-- Contracts can be built by any smart contract framework that supports [ARC-56](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md), [ARC-32](https://github.com/algorandfoundation/ARCs/pull/150) and [ARC-4](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0004.md) ([Beaker](https://beaker.algo.xyz/) or otherwise), which also means the deployment language can be different to the development language e.g. you can deploy a Python smart contract with TypeScript for instance
+- Contracts can be built by any smart contract framework that supports [ARC-56](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md) and [ARC-32](https://github.com/algorandfoundation/ARCs/pull/150), which also means the deployment language can be different to the development language e.g. you can deploy a Python smart contract with TypeScript for instance
 - There is explicit control of the immutability (updatability / upgradeability) and permanence (deletability) of the smart contract, which can be varied per environment to allow for easier development and testing in non-MainNet environments (by replacing `TMPL_UPDATABLE` and `TMPL_DELETABLE` at deploy-time by convention, if present)
 - Contracts are resolvable by a string “name” for a given creator to allow automated determination of whether that contract had been deployed previously or not, but can also be resolved by ID instead
 
@@ -175,7 +175,7 @@ When compiling TEAL template code, the capabilities described in the [above desi
 
 In order for a smart contract to opt-in to use this functionality, it must have a TEAL Template that contains the following:
 
-- `TMPL_{key}` - Which can be replaced with a number or a string / byte array which wil be automatically hexadecimal encoded (for any number of `{key}` => `{value}` pairs)
+- `TMPL_{key}` - Which can be replaced with a number or a string / byte array which will be automatically hexadecimal encoded (for any number of `{key}` => `{value}` pairs)
 - `TMPL_UPDATABLE` - Which will be replaced with a `1` if an app should be updatable and `0` if it shouldn’t (immutable)
 - `TMPL_DELETABLE` - Which will be replaced with a `1` if an app should be deletable and `0` if it shouldn’t (permanent)
 

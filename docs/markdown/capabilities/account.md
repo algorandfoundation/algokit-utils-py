@@ -188,7 +188,7 @@ default_dispenser_account = kmd_account_manager.get_wallet_account(
     lambda a: a["status"] != "Offline" and a["amount"] > 1_000_000_000
 )
 # Same as above, but dedicated method call for convenience
-local_net_dispenser_account = kmd_account_manager.get_localnet_dispenser_account()
+localnet_dispenser_account = kmd_account_manager.get_localnet_dispenser_account()
 # Idempotently get (if exists) or create (if it doesn't exist yet) an account by name using KMD
 # if creating it then fund it with 2 ALGO from the default dispenser account
 new_account = kmd_account_manager.get_or_create_wallet_account(
@@ -205,7 +205,7 @@ Some of this functionality is directly exposed from [`AccountManager`](), which 
 
 ```python
 # Get and register LocalNet dispenser
-local_net_dispenser = algorand.account.localnet_dispenser()
+localnet_dispenser = algorand.account.localnet_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = algorand.account.dispenser_from_environment()
 # Get / create and register account from KMD idempotently by name
