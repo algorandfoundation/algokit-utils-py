@@ -6,30 +6,21 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
-import algosdk.transaction
 import pytest
-from algokit_utils import (
-    DELETABLE_TEMPLATE_NAME,
-    UPDATABLE_TEMPLATE_NAME,
-    Account,
-    ApplicationClient,
-    ApplicationSpecification,
-    EnsureBalanceParameters,
-    ensure_funded,
-    get_account,
-    get_algod_client,
-    get_indexer_client,
-    get_kmd_client_from_algod_client,
-    replace_template_variables,
-)
 from dotenv import load_dotenv
 
-from tests import app_client_test
+from algokit_utils import (
+    ApplicationClient,
+    ApplicationSpecification,
+    SigningAccount,
+    replace_template_variables,
+)
+from algokit_utils.algorand import AlgorandClient
+from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
+from algokit_utils.transactions.transaction_composer import AssetCreateParams
 
 if TYPE_CHECKING:
-    from algosdk.kmd import KMDClient
-    from algosdk.v2client.algod import AlgodClient
-    from algosdk.v2client.indexer import IndexerClient
+    pass
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -45,7 +36,7 @@ def check_output_stability(logs: str, *, test_name: str | None = None) -> None:
     caller_dir = caller_path.parent
     test_name = test_name or caller_frame.function
     caller_stem = Path(caller_frame.filename).stem
-    output_dir = caller_dir / f"{caller_stem}.approvals"
+    output_dir = caller_dir / "_snapshots" / f"{caller_stem}.approvals"
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / f"{test_name}.approved.txt"
     output_file_str = str(output_file)
@@ -127,85 +118,27 @@ def is_opted_in(client_fixture: ApplicationClient) -> bool:
     return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
 
 
-@pytest.fixture(scope="session")
-def algod_client() -> "AlgodClient":
-    return get_algod_client()
-
-
-@pytest.fixture(scope="session")
-def kmd_client(algod_client: "AlgodClient") -> "KMDClient":
-    return get_kmd_client_from_algod_client(algod_client)
-
-
-@pytest.fixture(scope="session")
-def indexer_client() -> "IndexerClient":
-    return get_indexer_client()
-
-
-@pytest.fixture()
-def creator(algod_client: "AlgodClient") -> Account:
-    creator_name = get_unique_name()
-    return get_account(algod_client, creator_name)
-
-
-@pytest.fixture(scope="session")
-def funded_account(algod_client: "AlgodClient") -> Account:
-    creator_name = get_unique_name()
-    return get_account(algod_client, creator_name)
-
-
-@pytest.fixture(scope="session")
-def app_spec() -> ApplicationSpecification:
-    app_spec = app_client_test.app.build()
-    path = Path(__file__).parent / "app_client_test.json"
-    path.write_text(app_spec.to_json())
-    return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
-
-
-def generate_test_asset(algod_client: "AlgodClient", sender: Account, total: int | None) -> int:
+def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total: int | None) -> int:
     if total is None:
         total = math.floor(random.random() * 100) + 20
 
     decimals = 0
     asset_name = f"ASA ${math.floor(random.random() * 100) + 1}_${math.floor(random.random() * 100) + 1}_${total}"
 
-    params = algod_client.suggested_params()
-
-    txn = algosdk.transaction.AssetConfigTxn(
-        sender=sender.address,
-        sp=params,
-        total=total * 10**decimals,
-        decimals=decimals,
-        default_frozen=False,
-        unit_name="",
-        asset_name=asset_name,
-        manager=sender.address,
-        reserve=sender.address,
-        freeze=sender.address,
-        clawback=sender.address,
-        url="https://path/to/my/asset/details",
-        metadata_hash=None,
-        note=None,
-        lease=None,
-        rekey_to=None,
-    )  # type: ignore[no-untyped-call]
-
-    signed_transaction = txn.sign(sender.private_key)  # type: ignore[no-untyped-call]
-    algod_client.send_transaction(signed_transaction)
-    ptx = algod_client.pending_transaction_info(txn.get_txid())  # type: ignore[no-untyped-call]
-
-    if isinstance(ptx, dict) and "asset-index" in ptx and isinstance(ptx["asset-index"], int):
-        return ptx["asset-index"]
-    else:
-        raise ValueError("Unexpected response from pending_transaction_info")
-
-
-def assure_funds(algod_client: "AlgodClient", account: Account) -> None:
-    ensure_funded(
-        algod_client,
-        EnsureBalanceParameters(
-            account_to_fund=account,
-            min_spending_balance_micro_algos=300000,
-            min_funding_increment_micro_algos=1,
-        ),
+    create_result = algorand.send.asset_create(
+        AssetCreateParams(
+            sender=sender.address,
+            total=total,
+            decimals=decimals,
+            default_frozen=False,
+            unit_name="CFG",
+            asset_name=asset_name,
+            url="https://example.com",
+            manager=sender.address,
+            reserve=sender.address,
+            freeze=sender.address,
+            clawback=sender.address,
+        )
     )
+
+    return int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]

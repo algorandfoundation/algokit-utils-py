@@ -14,7 +14,8 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.encoding import checksum
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
-from algokit_utils.common import Program
+from algokit_utils._legacy_v2.common import Program
+from algokit_utils.models.application import CompiledTeal
 
 if typing.TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
@@ -64,7 +65,11 @@ class AVMDebuggerSourceMap:
 @dataclass
 class PersistSourceMapInput:
     def __init__(
-        self, app_name: str, file_name: str, raw_teal: str | None = None, compiled_teal: Program | None = None
+        self,
+        app_name: str,
+        file_name: str,
+        raw_teal: str | None = None,
+        compiled_teal: CompiledTeal | Program | None = None,
     ):
         self.compiled_teal = compiled_teal
         self.app_name = app_name
@@ -76,7 +81,9 @@ class PersistSourceMapInput:
         return cls(app_name, file_name, raw_teal=raw_teal)
 
     @classmethod
-    def from_compiled_teal(cls, compiled_teal: Program, app_name: str, file_name: str) -> "PersistSourceMapInput":
+    def from_compiled_teal(
+        cls, compiled_teal: CompiledTeal | Program, app_name: str, file_name: str
+    ) -> "PersistSourceMapInput":
         return cls(app_name, file_name, compiled_teal=compiled_teal)
 
     @property
@@ -112,24 +119,35 @@ def _write_to_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def _build_avm_sourcemap(  # noqa: PLR0913
+def _build_avm_sourcemap(
     *,
     app_name: str,
     file_name: str,
     output_path: Path,
     client: "AlgodClient",
     raw_teal: str | None = None,
-    compiled_teal: Program | None = None,
+    compiled_teal: CompiledTeal | Program | None = None,
     with_sources: bool = True,
 ) -> AVMDebuggerSourceMapEntry:
     if not raw_teal and not compiled_teal:
         raise ValueError("Either raw teal or compiled teal must be provided")
 
-    result = compiled_teal if compiled_teal else Program(str(raw_teal), client=client)
-    program_hash = base64.b64encode(
-        checksum(result.raw_binary)  # type: ignore[no-untyped-call]
-    ).decode()
-    source_map = result.source_map.__dict__
+    # Handle both legacy Program and new CompiledTeal
+    if isinstance(compiled_teal, Program):
+        program_hash = base64.b64encode(checksum(compiled_teal.raw_binary)).decode()
+        source_map = compiled_teal.source_map.__dict__
+        teal_content = compiled_teal.teal
+    elif isinstance(compiled_teal, CompiledTeal):
+        program_hash = base64.b64encode(checksum(compiled_teal.compiled_base64_to_bytes)).decode()
+        source_map = compiled_teal.source_map.__dict__ if compiled_teal.source_map else {}
+        teal_content = compiled_teal.teal
+    else:
+        # Handle raw TEAL case
+        result = Program(str(raw_teal), client=client)
+        program_hash = base64.b64encode(checksum(result.raw_binary)).decode()
+        source_map = result.source_map.__dict__
+        teal_content = result.teal
+
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
 
     output_dir_path = output_path / ALGOKIT_DIR / SOURCES_DIR / app_name
@@ -138,7 +156,7 @@ def _build_avm_sourcemap(  # noqa: PLR0913
     _write_to_file(source_map_output_path, json.dumps(source_map))
 
     if with_sources:
-        _write_to_file(teal_output_path, result.teal)
+        _write_to_file(teal_output_path, teal_content)
 
     return AVMDebuggerSourceMapEntry(str(source_map_output_path), program_hash)
 
@@ -169,12 +187,11 @@ def persist_sourcemaps(
 ) -> None:
     """
     Persist the sourcemaps for the given sources as an AlgoKit AVM Debugger compliant artifacts.
-    Args:
-        sources (list[PersistSourceMapInput]): A list of PersistSourceMapInput objects.
-        project_root (Path): The root directory of the project.
-        client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
-        with_sources (bool): If True, it will dump teal source files along with sourcemaps.
-        Default is True, as needed by an AlgoKit AVM debugger.
+
+    :param sources: A list of PersistSourceMapInput objects.
+    :param project_root: The root directory of the project.
+    :param client: An AlgodClient object for interacting with the Algorand blockchain.
+    :param with_sources: If True, it will dump teal source files along with sourcemaps.
     """
 
     for source in sources:
@@ -189,17 +206,17 @@ def persist_sourcemaps(
         )
 
 
-def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient") -> SimulateAtomicTransactionResponse:
-    """
-    Simulate and fetch response for the given AtomicTransactionComposer and AlgodClient.
-
-    Args:
-        atc (AtomicTransactionComposer): An AtomicTransactionComposer object.
-        algod_client (AlgodClient): An AlgodClient object for interacting with the Algorand blockchain.
-
-    Returns:
-        SimulateAtomicTransactionResponse: The simulated response.
-    """
+def simulate_response(
+    atc: AtomicTransactionComposer,
+    algod_client: "AlgodClient",
+    allow_more_logs: bool | None = None,
+    allow_empty_signatures: bool | None = None,
+    allow_unnamed_resources: bool | None = None,
+    extra_opcode_budget: int | None = None,
+    exec_trace_config: SimulateTraceConfig | None = None,
+    simulation_round: int | None = None,
+) -> SimulateAtomicTransactionResponse:
+    """Simulate atomic transaction group execution"""
 
     unsigned_txn_groups = atc.build_group()
     empty_signer = EmptySigner()
@@ -209,28 +226,46 @@ def simulate_response(atc: AtomicTransactionComposer, algod_client: "AlgodClient
     trace_config = SimulateTraceConfig(enable=True, stack_change=True, scratch_change=True, state_change=True)
 
     simulate_request = SimulateRequest(
-        txn_groups=txn_group, allow_more_logs=True, allow_empty_signatures=True, exec_trace_config=trace_config
+        txn_groups=txn_group,
+        allow_more_logs=allow_more_logs if allow_more_logs is not None else True,
+        round=simulation_round,
+        extra_opcode_budget=extra_opcode_budget if extra_opcode_budget is not None else 0,
+        allow_unnamed_resources=allow_unnamed_resources if allow_unnamed_resources is not None else True,
+        allow_empty_signatures=allow_empty_signatures if allow_empty_signatures is not None else True,
+        exec_trace_config=exec_trace_config if exec_trace_config is not None else trace_config,
     )
+
     return atc.simulate(algod_client, simulate_request)
 
 
 def simulate_and_persist_response(
-    atc: AtomicTransactionComposer, project_root: Path, algod_client: "AlgodClient", buffer_size_mb: float = 256
+    atc: AtomicTransactionComposer,
+    project_root: Path,
+    algod_client: "AlgodClient",
+    buffer_size_mb: float = 256,
+    allow_more_logs: bool | None = None,
+    allow_empty_signatures: bool | None = None,
+    allow_unnamed_resources: bool | None = None,
+    extra_opcode_budget: int | None = None,
+    exec_trace_config: SimulateTraceConfig | None = None,
+    simulation_round: int | None = None,
 ) -> SimulateAtomicTransactionResponse:
-    """
-    Simulates the atomic transactions using the provided `AtomicTransactionComposer` object and `AlgodClient` object,
-    and persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
+    """Simulates atomic transactions and persists simulation response to a JSON file.
 
-    :param atc: An `AtomicTransactionComposer` object representing the atomic transactions to be
-    simulated and persisted.
-    :param project_root: A `Path` object representing the root directory of the project.
-    :param algod_client: An `AlgodClient` object representing the Algorand client.
-    :param buffer_size_mb: The size of the trace buffer in megabytes. Defaults to 256mb.
-    :return: None
+    Simulates the atomic transactions using the provided AtomicTransactionComposer and AlgodClient,
+    then persists the simulation response to an AlgoKit AVM Debugger compliant JSON file.
 
-    Returns:
-        SimulateAtomicTransactionResponse: The simulated response after persisting it
-        for AlgoKit AVM Debugger consumption.
+    :param atc: AtomicTransactionComposer containing transactions to simulate and persist
+    :param project_root: Root directory path of the project
+    :param algod_client: Algorand client instance
+    :param buffer_size_mb: Size of trace buffer in megabytes, defaults to 256
+    :param allow_more_logs: Flag to allow additional logs, defaults to None
+    :param allow_empty_signatures: Flag to allow empty signatures, defaults to None
+    :param allow_unnamed_resources: Flag to allow unnamed resources, defaults to None
+    :param extra_opcode_budget: Additional opcode budget, defaults to None
+    :param exec_trace_config: Execution trace configuration, defaults to None
+    :param simulation_round: Round number for simulation, defa  ults to None
+    :return: Simulated response after persisting for AlgoKit AVM Debugger consumption
     """
     atc_to_simulate = atc.clone()
     sp = algod_client.suggested_params()
@@ -240,7 +275,16 @@ def simulate_and_persist_response(
         txn_with_sign.txn.last_valid_round = sp.last
         txn_with_sign.txn.genesis_hash = sp.gh
 
-    response = simulate_response(atc_to_simulate, algod_client)
+    response = simulate_response(
+        atc_to_simulate,
+        algod_client,
+        allow_more_logs,
+        allow_empty_signatures,
+        allow_unnamed_resources,
+        extra_opcode_budget,
+        exec_trace_config,
+        simulation_round,
+    )
     txn_results = response.simulate_response["txn-groups"]
 
     txn_types = [

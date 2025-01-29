@@ -1,47 +1,85 @@
 import json
 import os
+from collections.abc import Generator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import pytest
+from algosdk.abi.method import Method
+from algosdk.atomic_transaction_composer import (
+    AccountTransactionSigner,
+    AtomicTransactionComposer,
+    TransactionWithSigner,
+)
+from algosdk.transaction import PaymentTxn
+
 from algokit_utils._debugging import (
     PersistSourceMapInput,
     cleanup_old_trace_files,
     persist_sourcemaps,
     simulate_and_persist_response,
 )
-from algokit_utils.account import get_account
-from algokit_utils.application_client import ApplicationClient
-from algokit_utils.application_specification import ApplicationSpecification
+from algokit_utils.algorand import AlgorandClient
+from algokit_utils.applications import AppFactoryCreateMethodCallParams
+from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams
 from algokit_utils.common import Program
-from algokit_utils.models import Account
-from algosdk.atomic_transaction_composer import (
-    AccountTransactionSigner,
-    AtomicTransactionComposer,
-    TransactionWithSigner,
+from algokit_utils.models import SigningAccount
+from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import (
+    AppCallMethodCallParams,
+    AssetCreateParams,
+    AssetTransferParams,
+    PaymentParams,
 )
-from algosdk.transaction import AssetTransferTxn, PaymentTxn
-
-from tests.conftest import get_unique_name
-
-if TYPE_CHECKING:
-    from algosdk.v2client.algod import AlgodClient
 
 
-@pytest.fixture()
-def client_fixture(algod_client: "AlgodClient", app_spec: ApplicationSpecification) -> ApplicationClient:
-    creator_name = get_unique_name()
-    creator = get_account(algod_client, creator_name)
-    client = ApplicationClient(algod_client, app_spec, signer=creator)
-    create_response = client.create("create")
-    assert create_response.tx_id
-    return client
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
 
 
-def test_build_teal_sourcemaps(algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory) -> None:
+@pytest.fixture
+def funded_account(algorand: AlgorandClient) -> SigningAccount:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(100),
+        min_funding_increment=AlgoAmount.from_algo(100),
+    )
+    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    return new_account
+
+
+@pytest.fixture
+def client_fixture(algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
+    app_spec = (Path(__file__).parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
+    app_factory = algorand.client.get_app_factory(
+        app_spec=app_spec, default_sender=funded_account.address, default_signer=funded_account.signer
+    )
+    app_client, _ = app_factory.send.create(
+        AppFactoryCreateMethodCallParams(method="create"),
+        compilation_params={
+            "deletable": True,
+            "updatable": True,
+            "deploy_time_params": {"VERSION": 1},
+        },
+    )
+    return app_client
+
+
+@pytest.fixture
+def mock_config() -> Generator[Mock, None, None]:
+    with patch("algokit_utils.transactions.transaction_composer.config", new_callable=Mock) as mock_config:
+        mock_config.debug = True
+        mock_config.project_root = None
+        yield mock_config
+
+
+def test_build_teal_sourcemaps(algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
@@ -57,7 +95,7 @@ int 1
         PersistSourceMapInput(raw_teal=clear, app_name="cool_app", file_name="clear"),
     ]
 
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client)
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algorand.client.algod)
 
     root_path = cwd / ".algokit" / "sources"
     sourcemap_file_path = root_path / "sources.avm.json"
@@ -71,7 +109,7 @@ int 1
 
 
 def test_build_teal_sourcemaps_without_sources(
-    algod_client: "AlgodClient", tmp_path_factory: pytest.TempPathFactory
+    algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory
 ) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
 
@@ -83,14 +121,14 @@ int 1
 #pragma version 9
 int 1
 """
-    compiled_approval = Program(approval, algod_client)
-    compiled_clear = Program(clear, algod_client)
+    compiled_approval = Program(approval, algorand.client.algod)
+    compiled_clear = Program(clear, algorand.client.algod)
     sources = [
         PersistSourceMapInput(compiled_teal=compiled_approval, app_name="cool_app", file_name="approval.teal"),
         PersistSourceMapInput(compiled_teal=compiled_clear, app_name="cool_app", file_name="clear"),
     ]
 
-    persist_sourcemaps(sources=sources, project_root=cwd, client=algod_client, with_sources=False)
+    persist_sourcemaps(sources=sources, project_root=cwd, client=algorand.client.algod, with_sources=False)
 
     root_path = cwd / ".algokit" / "sources"
     sourcemap_file_path = root_path / "sources.avm.json"
@@ -107,17 +145,16 @@ int 1
 
 def test_simulate_and_persist_response_via_app_call(
     tmp_path_factory: pytest.TempPathFactory,
-    client_fixture: ApplicationClient,
-    mocker: Mock,
+    client_fixture: AppClient,
+    mock_config: Mock,
 ) -> None:
-    mock_config = mocker.patch("algokit_utils.application_client.config")
     mock_config.debug = True
     mock_config.trace_all = True
     mock_config.trace_buffer_size_mb = 256
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
 
-    client_fixture.call("hello", name="test")
+    client_fixture.send.call(AppClientMethodCallParams(method="hello", args=["test"]))
 
     output_path = cwd / "debug_traces"
 
@@ -130,26 +167,29 @@ def test_simulate_and_persist_response_via_app_call(
 
 
 def test_simulate_and_persist_response(
-    tmp_path_factory: pytest.TempPathFactory, client_fixture: ApplicationClient, mocker: Mock, funded_account: Account
+    tmp_path_factory: pytest.TempPathFactory,
+    algorand: AlgorandClient,
+    mock_config: Mock,
+    funded_account: SigningAccount,
 ) -> None:
-    mock_config = mocker.patch("algokit_utils.application_client.config")
     mock_config.debug = True
     mock_config.trace_all = True
     cwd = tmp_path_factory.mktemp("cwd")
     mock_config.project_root = cwd
+    algod = algorand.client.algod
 
     payment = PaymentTxn(
         sender=funded_account.address,
-        receiver=client_fixture.app_address,
+        receiver=funded_account.address,
         amt=1_000_000,
         note=b"Payment",
-        sp=client_fixture.algod_client.suggested_params(),
-    )  # type: ignore[no-untyped-call]
+        sp=algod.suggested_params(),
+    )
     txn_with_signer = TransactionWithSigner(payment, AccountTransactionSigner(funded_account.private_key))
     atc = AtomicTransactionComposer()
     atc.add_transaction(txn_with_signer)
 
-    simulate_and_persist_response(atc, cwd, client_fixture.algod_client)
+    simulate_and_persist_response(atc, cwd, algod)
 
     output_path = cwd / "debug_traces"
     content = list(output_path.iterdir())
@@ -161,7 +201,7 @@ def test_simulate_and_persist_response(
     trace_file_path = content[0]
     while trace_file_path.exists():
         tmp_atc = atc.clone()
-        simulate_and_persist_response(tmp_atc, cwd, client_fixture.algod_client, buffer_size_mb=0.01)
+        simulate_and_persist_response(tmp_atc, cwd, algod, buffer_size_mb=0.003)
 
 
 @pytest.mark.parametrize(
@@ -180,44 +220,66 @@ def test_simulate_and_persist_response(
         ({"pay": 1, "axfer": 1, "appl": 1}, "1pay_1axfer_1appl"),
     ],
 )
-def test_simulate_response_filename_generation(  # noqa: PLR0913
+def test_simulate_response_filename_generation(
     transactions: dict[str, int],
     expected_filename_part: str,
     tmp_path_factory: pytest.TempPathFactory,
-    client_fixture: ApplicationClient,
-    funded_account: Account,
+    client_fixture: AppClient,
+    funded_account: SigningAccount,
     monkeypatch: pytest.MonkeyPatch,
+    mock_config: Mock,
 ) -> None:
+    asset_id = 1
+    if "axfer" in transactions:
+        asset_id = client_fixture.algorand.send.asset_create(
+            AssetCreateParams(
+                sender=funded_account.address,
+                total=100_000_000,
+                decimals=0,
+                unit_name="TEST",
+                asset_name="Test Asset",
+            )
+        ).asset_id
+
     cwd = tmp_path_factory.mktemp("cwd")
-    sp = client_fixture.algod_client.suggested_params()
-    atc = AtomicTransactionComposer()
-    signer = AccountTransactionSigner(funded_account.private_key)
+    mock_config.debug = True
+    mock_config.trace_all = True
+    mock_config.trace_buffer_size_mb = 256
+    mock_config.project_root = cwd
+    atc = client_fixture.algorand.new_group()
 
     # Add payment transactions
     for i in range(transactions.get("pay", 0)):
-        payment = PaymentTxn(
-            sender=funded_account.address,
-            receiver=client_fixture.app_address,
-            amt=1_000_000 * (i + 1),
-            note=f"Payment{i+1}".encode(),
-            sp=sp,
-        )  # type: ignore[no-untyped-call]
-        atc.add_transaction(TransactionWithSigner(payment, signer))
+        atc.add_payment(
+            PaymentParams(
+                sender=funded_account.address,
+                receiver=client_fixture.app_address,
+                amount=AlgoAmount.from_micro_algos(1_000_000 * (i + 1)),
+                note=f"Payment{i+1}".encode(),
+            )
+        )
 
     # Add asset transfer transactions
     for i in range(transactions.get("axfer", 0)):
-        asset_transfer = AssetTransferTxn(
-            sender=funded_account.address,
-            receiver=client_fixture.app_address,
-            amt=1_000 * (i + 1),
-            index=1,  # Using asset ID 1 for test
-            sp=sp,
-        )  # type: ignore[no-untyped-call]
-        atc.add_transaction(TransactionWithSigner(asset_transfer, signer))
+        atc.add_asset_transfer(
+            AssetTransferParams(
+                sender=funded_account.address,
+                receiver=funded_account.address,
+                amount=1_000 * (i + 1),
+                asset_id=asset_id,
+            )
+        )
 
     # Add app calls
     for i in range(transactions.get("appl", 0)):
-        client_fixture.compose_call(atc, "hello", name=f"test{i+1}")
+        atc.add_app_call_method_call(
+            AppCallMethodCallParams(
+                method=Method.from_signature("hello(string)string"),
+                args=[f"test{i+1}"],
+                sender=funded_account.address,
+                app_id=client_fixture.app_id,
+            )
+        )
 
     # Mock datetime
     mock_datetime = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
@@ -229,7 +291,8 @@ def test_simulate_response_filename_generation(  # noqa: PLR0913
 
     monkeypatch.setattr("algokit_utils._debugging.datetime", MockDateTime)
 
-    response = simulate_and_persist_response(atc, cwd, client_fixture.algod_client)
+    response = atc.simulate()
+    assert response.simulate_response
     last_round = response.simulate_response["last-round"]
     expected_filename = f"20230101_120000_lr{last_round}_{expected_filename_part}.trace.avm.json"
 
@@ -253,10 +316,16 @@ class TestFile:
     mtime: datetime
 
 
-def test_removes_oldest_files_when_buffer_size_exceeded(tmp_path: Path) -> None:
-    # Create test directory
-    trace_dir = tmp_path / "debug_traces"
-    trace_dir.mkdir()
+def test_removes_oldest_files_when_buffer_size_exceeded(
+    tmp_path_factory: pytest.TempPathFactory, mock_config: Mock
+) -> None:
+    cwd = tmp_path_factory.mktemp("cwd")
+    trace_dir = cwd / "debug_traces"
+    trace_dir.mkdir(exist_ok=True)
+    mock_config.debug = True
+    mock_config.trace_all = True
+    mock_config.trace_buffer_size_mb = 256
+    mock_config.project_root = cwd
 
     # Create test files with different timestamps and sizes
     test_files: list[TestFile] = [
@@ -278,15 +347,23 @@ def test_removes_oldest_files_when_buffer_size_exceeded(tmp_path: Path) -> None:
     remaining_files = list(trace_dir.iterdir())
     remaining_names = [f.name for f in remaining_files]
 
-    assert len(remaining_files) == 2  # noqa: PLR2004
+    assert len(remaining_files) == 2
     assert "newer.json" in remaining_names
     assert "newest.json" in remaining_names
     assert "old.json" not in remaining_names
 
 
-def test_does_nothing_when_total_size_within_buffer_limit(tmp_path: Path) -> None:
+def test_does_nothing_when_total_size_within_buffer_limit(
+    tmp_path_factory: pytest.TempPathFactory, mock_config: Mock
+) -> None:
+    cwd = tmp_path_factory.mktemp("cwd")
+    mock_config.debug = True
+    mock_config.trace_all = True
+    mock_config.trace_buffer_size_mb = 256
+    mock_config.project_root = cwd
+
     # Create test directory
-    trace_dir = tmp_path / "debug_traces"
+    trace_dir = cwd / "debug_traces"
     trace_dir.mkdir()
 
     # Create two 512KB files (total 1MB)
@@ -298,4 +375,4 @@ def test_does_nothing_when_total_size_within_buffer_limit(tmp_path: Path) -> Non
     cleanup_old_trace_files(trace_dir, buffer_size_mb=2.0)
 
     remaining_files = list(trace_dir.iterdir())
-    assert len(remaining_files) == 2  # noqa: PLR2004
+    assert len(remaining_files) == 2
