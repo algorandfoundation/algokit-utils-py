@@ -3,7 +3,7 @@
 > [!NOTE]
 > This page covers the untyped app client, but we recommend using typed clients (coming soon), which will give you a better developer experience with strong typing specific to the app itself.
 
-App client and App factory are higher-order use case capabilities provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App deployment](../../markdown/capabilities/app-deploy.md) and [App management](../../markdown/capabilities/app.md). They allow you to access high productivity application clients that work with [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) and [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) application spec defined smart contracts, which you can use to create, update, delete, deploy and call a smart contract and access state data for it.
+App client and App factory are higher-order use case capabilities provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App deployment](./app-deploy.md) and [App management](./app.md). They allow you to access high productivity application clients that work with [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) and [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) application spec defined smart contracts, which you can use to create, update, delete, deploy and call a smart contract and access state data for it.
 
 > [!NOTE]
 > If you are confused about when to use the factory vs client the mental model is: use the client if you know the app ID, use the factory if you don't know the app ID (deferred knowledge or the instance doesn't exist yet on the blockchain) or you have multiple app IDs
@@ -113,8 +113,10 @@ app_client6 = factory.get_app_client_by_creator_and_name(
 
 Once you have an app factory you can perform the following actions:
 
-- `factory.send.bare.create(params?)` - Signs and sends a transaction to create an app and returns the result of that call and an `AppClient` instance for the created app
-- `factory.deploy(params)` - Uses the creator address and app name pattern to find if the app has already been deployed or not and either creates, updates or replaces that app based on the deployment rules (i.e. it's an idempotent deployment) and returns the result of the deployment and an `AppClient` instance for the created/updated/existing app
+- `factory.send.bare.create(...)` - Signs and sends a transaction to create an app and returns the result of that call and an `AppClient` instance for the created app
+- `factory.deploy(...)` - Uses the creator address and app name pattern to find if the app has already been deployed or not and either creates, updates or replaces that app based on the deployment rules (i.e. it's an idempotent deployment) and returns the result of the deployment and an `AppClient` instance for the created/updated/existing app.
+
+> See [API docs](../api/app-factory.md#deploy) for details on parameter signatures.
 
 ### Create
 
@@ -122,7 +124,7 @@ The create method is a wrapper over the `app_create` (bare calls) and `app_creat
 
 - You don't need to specify the `approval_program`, `clear_state_program`, or `schema` because these are all specified or calculated from the app spec
 - `sender` is optional and if not specified then the `default_sender` from the `AppFactory` constructor is used
-- `deploy_time_params`, `updatable` and `deletable` can be passed in to control deploy-time parameter replacements and deploy-time immutability and permanence control
+- `deploy_time_params`, `updatable` and `deletable` can be passed in to control deploy-time parameter replacements and deploy-time immutability and permanence control. Note these are consolidated under the `compilation_params` `TypedDict`, see [API docs](../api/app-factory.md#deploy) for details.
 
 ```python
 # Use no-argument bare-call
@@ -156,7 +158,7 @@ result, app_client = factory.send.create(
 
 ## Updating and deleting an app
 
-Deploy method aside, the ability to make update and delete calls happens after there is an instance of an app so are done via `AppClient`. The semantics of this are no different than other calls, with the caveat that the update call is a bit different since the code will be compiled when constructing the update params and the update calls thus optionally takes compilation parameters (`deploy_time_params`, `updatable` and `deletable`) for deploy-time parameter replacements and deploy-time immutability and permanence control.
+Deploy method aside, the ability to make update and delete calls happens after there is an instance of an app so are done via `AppClient`. The semantics of this are no different than other calls, with the caveat that the update call is a bit different since the code will be compiled when constructing the update params and the update calls thus optionally takes compilation parameters (`compilation_params`) for deploy-time parameter replacements and deploy-time immutability and permanence control.
 
 ## Calling the app
 
@@ -273,20 +275,20 @@ map_dict = app_client.state.global_state.get_map("myMap")
 
 There are various methods defined that let you read state from the smart contract app:
 
-- `get_global_state()` - Gets the current global state using [`algorand.app.get_global_state`](todo_paste_url)
-- `get_local_state(address: str)` - Gets the current local state for the given account address using [`algorand.app.get_local_state`](todo_paste_url).
-- `get_box_names()` - Gets the current box names using [`algorand.app.get_box_names`](todo_paste_url).
-- `get_box_value(name)` - Gets the current value of the given box using [`algorand.app.get_box_value`](todo_paste_url).
-- `get_box_value_from_abi_type(name)` - Gets the current value of the given box from an ABI type using [`algorand.app.get_box_value_from_abi_type`](todo_paste_url).
-- `get_box_values(filter)` - Gets the current values of the boxes using [`algorand.app.get_box_values`](todo_paste_url).
-- `get_box_values_from_abi_type(type, filter)` - Gets the current values of the boxes from an ABI type using [`algorand.app.get_box_values_from_abi_type`](todo_paste_url).
+- `get_global_state()` - Gets the current global state using [`algorand.app.get_global_state`](../api/app.md#get_global_state)
+- `get_local_state(address: str)` - Gets the current local state for the given account address using [`algorand.app.get_local_state`](../api/app.md#get_local_state).
+- `get_box_names()` - Gets the current box names using [`algorand.app.get_box_names`](../api/app.md#get_box_names).
+- `get_box_value(name)` - Gets the current value of the given box using [`algorand.app.get_box_value`](../api/app.md#get_box_value).
+- `get_box_value_from_abi_type(name)` - Gets the current value of the given box from an ABI type using [`algorand.app.get_box_value_from_abi_type`](../api/app.md#get_box_value_from_abi_type).
+- `get_box_values(filter)` - Gets the current values of the boxes using [`algorand.app.get_box_values`](../api/app.md#get_box_values).
+- `get_box_values_from_abi_type(type, filter)` - Gets the current values of the boxes from an ABI type using [`algorand.app.get_box_values_from_abi_type`](../api/app.md#get_box_values_from_abi_type).
 
 ```python
 global_state = app_client.get_global_state()
 local_state = app_client.get_local_state("ACCOUNTADDRESS")
 
-box_name: BoxReference = "my-box"
-box_name2: BoxReference = "my-box2"
+box_name: BoxReference = BoxReference(app_id=app_client.app_id, name="my-box")
+box_name2: BoxReference = BoxReference(app_id=app_client.app_id, name="my-box2")
 
 box_names = app_client.get_box_names()
 box_value = app_client.get_box_value(box_name)
@@ -307,7 +309,7 @@ Often when calling a smart contract during development you will get logic errors
 
 When this occurs, you will generally get an error that looks something like: `TransactionPool.Remember: transaction {TRANSACTION_ID}: logic eval error: {ERROR_MESSAGE}. Details: pc={PROGRAM_COUNTER_VALUE}, opcodes={LIST_OF_OP_CODES}`.
 
-The information in that error message can be parsed and when combined with the [source map from compilation](todo_paste_url) you can expose debugging information that makes it much easier to understand what's happening. The ARC-56 app spec, if provided, can also specify human-readable error messages against certain program counter values and further augment the error message.
+The information in that error message can be parsed and when combined with the [source map from compilation](../api/app-deploy.md#compilation-and-template-substitution) you can expose debugging information that makes it much easier to understand what's happening. The ARC-56 app spec, if provided, can also specify human-readable error messages against certain program counter values and further augment the error message.
 
 The app client and app factory automatically provide this functionality for all smart contract calls. They also expose a function that can be used for any custom calls you manually construct and need to add into your own try/catch `expose_logic_error(e: Error, is_clear: bool = False)`.
 
@@ -328,17 +330,17 @@ Note: This information will only show if the app client / app factory has a sour
 
 - You have called `create`, `update` or `deploy`
 - You have called `import_source_maps(source_maps)` and provided the source maps (which you can get by calling `export_source_maps()` after variously calling `create`, `update`, or `deploy` and it returns a serialisable value)
-- You had source maps present in an app factory and then used it to [create an app client](todo_paste_url) (they are automatically passed through)
+- You had source maps present in an app factory and then used it to [create an app client](#dynamically-creating-clients-for-a-given-app-spec) (they are automatically passed through)
 
 If you want to go a step further and automatically issue a [simulated transaction](https://algorand.github.io/js-algorand-sdk/classes/modelsv2.SimulateTransactionResult.html) and get trace information when there is an error when an ABI method is called you can turn on debug mode:
 
 ```python
-Config.configure({"debug": True})
+config.configure(debug=True)
 ```
 
 If you do that then the exception will have the `traces` property within the underlying exception will have key information from the simulation within it and this will get populated into the `led.traces` property of the thrown error.
 
-When this debug flag is set, it will also emit debugging symbols to allow break-point debugging of the calls if the [project root is also configured](todo_paste_url).
+When this debug flag is set, it will also emit debugging symbols to allow break-point debugging of the calls if the [project root is also configured](./debugging.md).
 
 ## Default arguments
 

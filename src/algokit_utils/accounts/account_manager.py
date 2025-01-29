@@ -222,7 +222,7 @@ class AccountManager:
 
         :example:
         >>> account_manager = AccountManager(client_manager)
-        >>> account_manager.set_signer_from_account(Account.new_account())
+        >>> account_manager.set_signer_from_account(SigningAccount.new_account())
         >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
         >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
         """

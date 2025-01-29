@@ -22,21 +22,21 @@ python-semantic-release = "^7.34.3"
 pytest-cov = "^6"
 pre-commit = "^3.4.0"
 python-dotenv = "^1.0.0"
-sphinx = "^6.1.3"
-myst-parser = "^1.0.0"
-sphinx-copybutton = "^0.5.1"
-sphinx-rtd-theme = "^1.2.0"
-sphinx-autodoc2 = ">=0.4.2,<0.6.0"
+sphinx = "^8.0.0"
 poethepoet = ">=0.19,<0.26"
 beaker-pyteal = "^1.1.1"
 pytest-httpx = "^0.35"
 pytest-xdist = "^3.6.1"
-sphinx-markdown-builder = "^0.6.6"
 linkify-it-py = "^2.0.3"
 setuptools = "^75.2.0"
 pydoclint = "^0.6.0"
 pytest-sugar = "^1.0.0"
 types-deprecated = "^1.2.15.20241117"
+sphinx-autobuild = "^2024.10.3"
+furo = "^2024.8.6"
+myst-parser = "^4.0.0"
+sphinx-autoapi = "^3.4.0"
+sphinx-markdown-builder = "^0.6.8"
 
 [build-system]
 requires = ["poetry-core"]
@@ -138,6 +138,7 @@ docs = ["docs-html-only", "docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docs-html-only = "sphinx-build docs/source docs/html"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false --exclude src/algokit_utils/_legacy_v2"
+docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests"]

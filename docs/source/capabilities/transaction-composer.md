@@ -68,6 +68,7 @@ Parameter types include:
 - `AppDeleteParams` - For deleting applications
 - `AppDeleteMethodCallParams` - For deleting applications with ABI method calls
 - `OnlineKeyRegistrationParams` - For online key registration transactions
+- `OfflineKeyRegistrationParams` - For offline key registration transactions
 
 The methods to construct a transaction are all named `add_{transaction_type}` and return an instance of the composer so they can be chained together fluently to construct a transaction group.
 
@@ -190,7 +191,7 @@ result = (
         args=[1, 2, 3]
         # Resources will be automatically populated!
     ))
-    .send(populate_app_call_resources=True)
+    .send(send_params=SendParams(populate_app_call_resources=True))
 )
 
 # Or disable automatic population
@@ -207,7 +208,7 @@ result = (
         asset_references=[789],
         box_references=[box_reference]
     ))
-    .send(populate_app_call_resources=False)
+    .send(send_params=SendParams(populate_app_call_resources=False))
 )
 ```
 

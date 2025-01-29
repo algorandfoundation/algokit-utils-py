@@ -45,13 +45,7 @@ jobs:
       - name: Check types with mypy
         run: poetry run mypy
 
-      # TODO: uncomment after bulk of feature parity with ts is addressed
-      # - name: Check docs are up to date
-      #   run: |
-      #     poetry run poe docs
-      #     git diff --quiet --exit-code \
-      #       ':!docs/html/_sources/apidocs/algokit_utils/algokit_utils.md.txt' \
-      #       ':!docs/html/apidocs/algokit_utils/algokit_utils.html' \
-      #       ':!docs/html/searchindex.js' \
-      #       ':!docs/markdown/apidocs/algokit_utils/algokit_utils.md' \
-      #       docs/
+      - name: Check docs are up to date
+        run: |
+          poetry run poe docs-md-only
+          git diff --exit-code ':!docs/markdown/autoapi/index.md' docs

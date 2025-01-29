@@ -6,7 +6,13 @@ from algosdk.atomic_transaction_composer import AccountTransactionSigner, LogicS
 from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
 from algosdk.transaction import Multisig, MultisigTransaction
 
-__all__ = ["DISPENSER_ACCOUNT_NAME", "MultiSigAccount", "MultisigMetadata", "SigningAccount"]
+__all__ = [
+    "DISPENSER_ACCOUNT_NAME",
+    "MultiSigAccount",
+    "MultisigMetadata",
+    "SigningAccount",
+    "TransactionSignerAccount",
+]
 
 
 DISPENSER_ACCOUNT_NAME = "DISPENSER"

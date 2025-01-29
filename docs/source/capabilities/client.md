@@ -13,24 +13,19 @@ The `ClientManager` is a class that is used to manage client instances.
 To get an instance of `ClientManager` you can instantiate it directly:
 
 ```python
-from algokit_utils import ClientManager
+from algokit_utils import ClientManager, AlgoSdkClients, AlgoClientConfigs
 from algosdk.v2client.algod import AlgodClient
 
+# Using AlgoSdkClients
 algod_client = AlgodClient(...)
 algorand_client = ...  # Get AlgorandClient instance from somewhere
+clients = AlgoSdkClients(algod=algod_client, indexer=indexer_client, kmd=kmd_client)
+client_manager = ClientManager(clients, algorand_client)
 
-# Using existing client instances
-client_manager = ClientManager(
-    {"algod": algod_client, "indexer": indexer_client, "kmd": kmd_client},
-    algorand_client=algorand_client
-)
-
-# Using configs
-algod_config = {"server": "https://..."}
-client_manager = ClientManager(
-    {"algod_config": algod_config},
-    algorand_client=algorand_client
-)
+# Using AlgoClientConfigs
+algod_config = AlgoClientNetworkConfig(server="https://...", token="")
+configs = AlgoClientConfigs(algod_config=algod_config)
+client_manager = ClientManager(configs, algorand_client)
 ```
 
 ## Network configuration
@@ -39,18 +34,17 @@ The network configuration is specified using the `AlgoClientConfig` type. This s
 
 There are a number of ways to produce one of these configuration objects:
 
-- Manually specifying a dictionary that conforms with the type, e.g.
+- Manually specifying a dataclass, e.g.
+
   ```python
-  {
-      "server": "https://myalgodnode.com"
-  }
-  # Or with the optional values:
-  {
-      "server": "https://myalgodnode.com",
-      "port": 443,
-      "token": "SECRET_TOKEN"
-  }
+  from algokit_utils import AlgoClientNetworkConfig
+
+  config = AlgoClientNetworkConfig(
+      server="https://myalgodnode.com",
+      token="SECRET_TOKEN"  # optional
+  )
   ```
+
 - `ClientManager.get_config_from_environment_or_localnet()` - Loads the Algod client config, the Indexer client config and the Kmd config from well-known environment variables or if not found then default LocalNet; this is useful to have code that can work across multiple blockchain environments (including LocalNet), without having to change
 - `ClientManager.get_algod_config_from_environment()` - Loads an Algod client config from well-known environment variables
 - `ClientManager.get_indexer_config_from_environment()` - Loads an Indexer client config from well-known environment variables; useful to have code that can work across multiple blockchain environments (including LocalNet), without having to change
@@ -102,11 +96,13 @@ You can get information about the current network you are connected to:
 ```python
 # Get network information
 network = client_manager.network()
-print(f"Connected to: {network.name}")  # e.g., "mainnet", "testnet", "localnet"
+print(f"Is mainnet: {network.is_mainnet}")
+print(f"Is testnet: {network.is_testnet}")
+print(f"Is localnet: {network.is_localnet}")
 print(f"Genesis ID: {network.genesis_id}")
 print(f"Genesis hash: {network.genesis_hash}")
 
-# Check specific network types
+# Convenience methods
 is_mainnet = client_manager.is_mainnet()
 is_testnet = client_manager.is_testnet()
 is_localnet = client_manager.is_localnet()

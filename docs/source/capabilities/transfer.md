@@ -47,6 +47,8 @@ result2 = algorand_client.send.payment(
         # generally you'd register it with AlgorandClient
         # against the sender and not need to pass it in
         signer=transaction_signer,
+    ),
+    send_params=SendParams(
         max_rounds_to_wait=5,
         suppress_log=True,
     )
@@ -59,8 +61,8 @@ The `ensure_funded` function automatically funds an account to maintain a minimu
 
 There are 3 variants of this function:
 
-- `algorand_client.account.ensure_funded(account_to_fund, dispenser_account, min_spending_balance, options?)` - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
-- `algorand_client.account.ensure_funded_from_environment(account_to_fund, min_spending_balance, options?)` - Funds a given account using a dispenser account retrieved from the environment, per the `dispenser_from_environment` method, as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algorand_client.account.ensure_funded(account_to_fund, dispenser_account, min_spending_balance, options)` - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
+- `algorand_client.account.ensure_funded_from_environment(account_to_fund, min_spending_balance, options)` - Funds a given account using a dispenser account retrieved from the environment, per the `dispenser_from_environment` method, as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).
   - **Note:** requires environment variables to be set.
   - The dispenser account is retrieved from the account mnemonic stored in `DISPENSER_MNEMONIC` and optionally `DISPENSER_SENDER`
     if it's a rekeyed account, or against default LocalNet if no environment variables present.
@@ -93,7 +95,9 @@ algorand_client.account.ensure_funded(
     AlgoAmount(1, "algo"),
     min_funding_increment=AlgoAmount(2, "algo"),
     fee=AlgoAmount(1000, "microalgo"),
-    suppress_log=True,
+    send_params=SendParams(
+        suppress_log=True,
+    ),
 )
 
 # From environment
@@ -106,7 +110,9 @@ algorand_client.account.ensure_funded_from_environment(
     AlgoAmount(1, "algo"),
     min_funding_increment=AlgoAmount(2, "algo"),
     fee=AlgoAmount(1000, "microalgo"),
-    suppress_log=True,
+    send_params=SendParams(
+        suppress_log=True,
+    ),
 )
 
 # TestNet Dispenser API
