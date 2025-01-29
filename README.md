@@ -21,7 +21,7 @@ pip install algokit-utils
 
 ## Migration from `v2.x` to `v3.x`
 
-Refer to the [v3 migration guide](./docs/source/v3-migration-guide.md) for more information on how to migrate to latest version of `algokit-utils-py`.
+Refer to the [v3 migration](./docs/source/v3-migration-guide.md) for more information on how to migrate to latest version of `algokit-utils-py`.
 
 ## Guiding principles
 
