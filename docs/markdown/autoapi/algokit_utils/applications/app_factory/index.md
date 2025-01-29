@@ -4,12 +4,12 @@
 
 | [`AppFactoryParams`](#algokit_utils.applications.app_factory.AppFactoryParams)                                           |                                                     |
 |--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| [`AppFactoryCreateParams`](#algokit_utils.applications.app_factory.AppFactoryCreateParams)                               | Schema for application creation.                    |
-| [`AppFactoryCreateMethodCallParams`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams)           | Schema for application creation.                    |
+| [`AppFactoryCreateParams`](#algokit_utils.applications.app_factory.AppFactoryCreateParams)                               |                                                     |
+| [`AppFactoryCreateMethodCallParams`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams)           |                                                     |
 | [`AppFactoryCreateMethodCallResult`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallResult)           | Base class for transaction results.                 |
-| [`SendAppFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppFactoryTransactionResult)             | Result of an application transaction.               |
-| [`SendAppUpdateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppUpdateFactoryTransactionResult) | Result of updating an application.                  |
-| [`SendAppCreateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppCreateFactoryTransactionResult) | Result of creating a new application.               |
+| [`SendAppFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppFactoryTransactionResult)             |                                                     |
+| [`SendAppUpdateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppUpdateFactoryTransactionResult) |                                                     |
+| [`SendAppCreateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppCreateFactoryTransactionResult) |                                                     |
 | [`AppFactoryDeployResult`](#algokit_utils.applications.app_factory.AppFactoryDeployResult)                               | Result from deploying an application via AppFactory |
 | [`AppFactory`](#algokit_utils.applications.app_factory.AppFactory)                                                       |                                                     |
 
@@ -35,21 +35,9 @@
 
 Bases: `_AppFactoryCreateBaseParams`, [`algokit_utils.applications.app_client.AppClientBareCallParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientBareCallParams)
 
-Schema for application creation.
-
-* **Variables:**
-  * **extra_program_pages** – Optional number of extra program pages
-  * **schema** – Optional application creation schema
-
 ### *class* algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams
 
 Bases: `_AppFactoryCreateBaseParams`, [`algokit_utils.applications.app_client.AppClientMethodCallParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientMethodCallParams)
-
-Schema for application creation.
-
-* **Variables:**
-  * **extra_program_pages** – Optional number of extra program pages
-  * **schema** – Optional application creation schema
 
 ### *class* algokit_utils.applications.app_factory.AppFactoryCreateMethodCallResult
 
@@ -73,25 +61,13 @@ Represents the result of sending a single transaction.
 
 Bases: [`algokit_utils.transactions.transaction_sender.SendAppTransactionResult`](../../transactions/transaction_sender/index.md#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[`algokit_utils.applications.abi.Arc56ReturnValueType`](../abi/index.md#algokit_utils.applications.abi.Arc56ReturnValueType)]
 
-Result of an application transaction.
-
-Contains the ABI return value if applicable.
-
 ### *class* algokit_utils.applications.app_factory.SendAppUpdateFactoryTransactionResult
 
 Bases: [`algokit_utils.transactions.transaction_sender.SendAppUpdateTransactionResult`](../../transactions/transaction_sender/index.md#algokit_utils.transactions.transaction_sender.SendAppUpdateTransactionResult)[[`algokit_utils.applications.abi.Arc56ReturnValueType`](../abi/index.md#algokit_utils.applications.abi.Arc56ReturnValueType)]
 
-Result of updating an application.
-
-Contains the compiled approval and clear programs.
-
 ### *class* algokit_utils.applications.app_factory.SendAppCreateFactoryTransactionResult
 
 Bases: [`algokit_utils.transactions.transaction_sender.SendAppCreateTransactionResult`](../../transactions/transaction_sender/index.md#algokit_utils.transactions.transaction_sender.SendAppCreateTransactionResult)[[`algokit_utils.applications.abi.Arc56ReturnValueType`](../abi/index.md#algokit_utils.applications.abi.Arc56ReturnValueType)]
-
-Result of creating a new application.
-
-Contains the app ID and address of the newly created application.
 
 ### *class* algokit_utils.applications.app_factory.AppFactoryDeployResult
 

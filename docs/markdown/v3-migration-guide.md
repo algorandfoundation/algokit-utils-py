@@ -12,7 +12,7 @@ Version 3 of `algokit-utils-ts` moved from a stateless function-based interface 
 
 The entry point to most functionality in AlgoKit Utils is now available via a single entry-point, the `AlgorandClient` class.
 
-The v2 interfaces and abstractions will be removed in future major version bumps, however in order to ensure gradual migration, _all v2 abstractions are available_ with respective deprecation warnings. The new way to use AlgoKit Utils is via the `AlgorandClient` class, which is easier, simpler, and more convenient to use and has powerful new features.
+The v2 interfaces and abstractions will be removed in future major version bumps, however in order to ensure gradual migration, *all v2 abstractions are available* with respective deprecation warnings. The new way to use AlgoKit Utils is via the `AlgorandClient` class, which is easier, simpler, and more convenient to use and has powerful new features.
 
 > BREAKING CHANGE: the `beta` module is now removed, any imports from `algokit_utils.beta` will now raise an error with a link to a new expected import path. This is due to the fact that the interfaces introduced in `beta` are now refined and available in the main module.
 
