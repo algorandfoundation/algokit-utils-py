@@ -9,7 +9,7 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
 > **Note**
 > If you prefer TypeScript there's an equivalent [TypeScript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
 
-[Install](https://github.com/algorandfoundation/algokit-utils-py#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py/html/index.html)
+[Install](https://github.com/algorandfoundation/algokit-utils-py#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py)
 
 ## Install
 

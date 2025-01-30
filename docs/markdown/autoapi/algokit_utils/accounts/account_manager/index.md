@@ -198,7 +198,7 @@ Note: If you are generating accounts via the various methods on AccountManager
 
 ```pycon
 >>> account_manager = AccountManager(client_manager)
->>> account_manager.set_signer_from_account(SigningAccount.new_account())
+>>> account_manager.set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
 >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
 >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
 ```

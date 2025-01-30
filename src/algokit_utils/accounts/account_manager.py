@@ -222,7 +222,7 @@ class AccountManager:
 
         :example:
         >>> account_manager = AccountManager(client_manager)
-        >>> account_manager.set_signer_from_account(SigningAccount.new_account())
+        >>> account_manager.set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
         >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
         >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
         """
@@ -449,8 +449,8 @@ class AccountManager:
         :example:
         >>> account = account_manager.random()
         """
-        account = SigningAccount.new_account()
-        return self._register_account(account.private_key)
+        private_key, _ = algosdk.account.generate_account()
+        return self._register_account(private_key)
 
     def localnet_dispenser(self) -> SigningAccount:
         """
