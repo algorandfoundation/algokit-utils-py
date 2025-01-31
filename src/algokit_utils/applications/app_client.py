@@ -5,7 +5,7 @@ import copy
 import json
 import os
 from collections.abc import Sequence
-from dataclasses import dataclass, fields
+from dataclasses import asdict, dataclass, fields
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 import algosdk
@@ -799,14 +799,12 @@ class _MethodParamsBuilder:
         :param compilation_params: Parameters for the compilation, defaults to None
         :return: Parameters for updating the application
         """
-        compile_params = (
+        compile_params = asdict(
             self._client.compile(
                 app_spec=self._client.app_spec,
                 app_manager=self._algorand.app,
                 compilation_params=compilation_params,
-            ).__dict__
-            if compilation_params
-            else {}
+            )
         )
 
         input_params = {
