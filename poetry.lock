@@ -77,21 +77,6 @@ docs = ["furo", "jaraco.packaging (>=9.3)", "rst.linker (>=1.9)", "sphinx (>=3.5
 testing = ["jaraco.test", "pytest (!=8.0.*)", "pytest (>=6,!=8.1.*)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)"]
 
 [[package]]
-name = "beaker-pyteal"
-version = "1.1.1"
-description = "A Framework for building PyTeal Applications"
-optional = false
-python-versions = ">=3.10,<4.0"
-files = [
-    {file = "beaker_pyteal-1.1.1-py3-none-any.whl", hash = "sha256:a85a4568213acbd097cd70d8acd71d0e7187b71a4dc5c1fd9760ae8c1433571e"},
-]
-
-[package.dependencies]
-algokit-utils = ">=2.0.0,<3.0.0"
-py-algorand-sdk = ">=2.0.0"
-pyteal = ">=0.24,<0.25"
-
-[[package]]
 name = "beautifulsoup4"
 version = "4.12.3"
 description = "Screen-scraping library"
@@ -556,17 +541,6 @@ files = [
 ]
 
 [[package]]
-name = "docstring-parser"
-version = "0.14.1"
-description = "Parse Python docstrings in reST, Google and Numpydoc format"
-optional = false
-python-versions = ">=3.6,<4.0"
-files = [
-    {file = "docstring_parser-0.14.1-py3-none-any.whl", hash = "sha256:14ac6ec1f1ba6905c4d8cb90fd0bc55394f5678183752c90e44812bf28d7a515"},
-    {file = "docstring_parser-0.14.1.tar.gz", hash = "sha256:2c77522e31b7c88b1ab457a1f3c9ae38947ad719732260ba77ee8a3deb58622a"},
-]
-
-[[package]]
 name = "docstring-parser-fork"
 version = "0.0.12"
 description = "Parse Python docstrings in reST, Google and Numpydoc format"
@@ -626,20 +600,6 @@ files = [
 
 [package.extras]
 testing = ["hatch", "pre-commit", "pytest", "tox"]
-
-[[package]]
-name = "executing"
-version = "1.2.0"
-description = "Get the currently executing AST node of a frame, and other information"
-optional = false
-python-versions = "*"
-files = [
-    {file = "executing-1.2.0-py2.py3-none-any.whl", hash = "sha256:0314a69e37426e3608aada02473b4161d4caf5a4b244d1d0c48072b8fee7bacc"},
-    {file = "executing-1.2.0.tar.gz", hash = "sha256:19da64c18d2d851112f09c287f8d3dbbdf725ab0e569077efb6cdcbd3497c107"},
-]
-
-[package.extras]
-tests = ["asttokens", "littleutils", "pytest", "rich"]
 
 [[package]]
 name = "filelock"
@@ -1720,24 +1680,6 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
-name = "pyteal"
-version = "0.24.1"
-description = "Algorand Smart Contracts in Python"
-optional = false
-python-versions = ">=3.10"
-files = [
-    {file = "pyteal-0.24.1-py3-none-any.whl", hash = "sha256:19c601f0ea4d1a0be41a3fe48cd3807558a0e907cd47d0dca5df60977d78f2c4"},
-    {file = "pyteal-0.24.1.tar.gz", hash = "sha256:172d796981f8f9d3a9a8fbe71a71a49cf185509780f46d82e29aaa692386d1fa"},
-]
-
-[package.dependencies]
-docstring-parser = "0.14.1"
-executing = "1.2.0"
-py-algorand-sdk = ">=2.0.0,<3.0.0"
-semantic-version = ">=2.9.0,<3.0.0"
-tabulate = ">=0.9.0,<0.10.0"
-
-[[package]]
 name = "pytest"
 version = "8.3.4"
 description = "pytest: simple powerful testing with Python"
@@ -2116,21 +2058,6 @@ files = [
 [package.dependencies]
 cryptography = ">=2.0"
 jeepney = ">=0.6"
-
-[[package]]
-name = "semantic-version"
-version = "2.10.0"
-description = "A library implementing the 'SemVer' scheme."
-optional = false
-python-versions = ">=2.7"
-files = [
-    {file = "semantic_version-2.10.0-py2.py3-none-any.whl", hash = "sha256:de78a3b8e0feda74cabc54aab2da702113e33ac9d9eb9d2389bcf1f58b7d9177"},
-    {file = "semantic_version-2.10.0.tar.gz", hash = "sha256:bdabb6d336998cbb378d4b9db3a4b56a1e3235701dc05ea2690d9a997ed5041c"},
-]
-
-[package.extras]
-dev = ["Django (>=1.11)", "check-manifest", "colorama (<=0.4.1)", "coverage", "flake8", "nose2", "readme-renderer (<25.0)", "tox", "wheel", "zest.releaser[recommended]"]
-doc = ["Sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 name = "semver"
@@ -2888,4 +2815,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c831facca8536a1b7d018cd049682ee762ee374ed77ddec03c9a0acd62086b19"
+content-hash = "fe358878f59fa576e63385a47abc9a76fb813bf22e584bfce569552ad6d331a8"

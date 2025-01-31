@@ -1,3 +1,4 @@
+# type: ignore  # noqa: PGH003
 from typing import Literal
 
 import beaker

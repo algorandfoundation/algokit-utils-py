@@ -24,7 +24,6 @@ from algokit_utils import (
     get_kmd_client_from_algod_client,
     replace_template_variables,
 )
-from legacy_v2_tests import app_client_test
 
 if TYPE_CHECKING:
     from algosdk.kmd import KMDClient
@@ -156,9 +155,6 @@ def funded_account(algod_client: "AlgodClient") -> Account:
 
 @pytest.fixture(scope="session")
 def app_spec() -> ApplicationSpecification:
-    app_spec = app_client_test.app.build()
-    path = Path(__file__).parent / "app_client_test.json"
-    path.write_text(app_spec.to_json())
     return read_spec("app_client_test.json", deletable=True, updatable=True, template_values={"VERSION": 1})
 
 
