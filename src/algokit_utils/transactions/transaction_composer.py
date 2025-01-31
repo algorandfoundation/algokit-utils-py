@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import base64
 import json
-import math
 import re
 from copy import deepcopy
 from dataclasses import dataclass
@@ -794,6 +793,12 @@ def _find_available_transaction_index(
 
     # Return first matching index or -1 if none found
     return next((i for i, txn in enumerate(txns) if check_transaction(txn)), -1)
+
+
+def _num_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int:
+    """Calculate minimum number of extra_pages required for provided approval and clear programs"""
+    total = len(approval or b"") + len(clear or b"")
+    return max(0, (total - 1) // algosdk.constants.APP_PAGE_MAX_SIZE)
 
 
 def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:
@@ -1975,12 +1980,7 @@ class TransactionComposer:
         if app_id == 0:
             extra_pages = getattr(params, "extra_program_pages", None)
             if extra_pages is None and approval_program is not None:
-                approval_len, clear_len = len(approval_program), len(clear_program or b"")
-                extra_pages = (
-                    int(math.floor((approval_len + clear_len) / algosdk.constants.APP_PAGE_MAX_SIZE))
-                    if approval_len
-                    else 0
-                )
+                extra_pages = _num_extra_program_pages(approval_program, clear_program)
 
         txn_params = {
             "app_id": app_id,
@@ -2085,9 +2085,6 @@ class TransactionComposer:
             elif isinstance(params.clear_state_program, bytes):
                 clear_program = params.clear_state_program
 
-        approval_program_len = len(approval_program) if approval_program else 0
-        clear_program_len = len(clear_program) if clear_program else 0
-
         sdk_params = {
             "sender": params.sender,
             "sp": suggested_params,
@@ -2120,10 +2117,7 @@ class TransactionComposer:
                     num_uints=params.schema.get("local_ints", 0),
                     num_byte_slices=params.schema.get("local_byte_slices", 0),
                 ),
-                "extra_pages": params.extra_program_pages
-                or math.floor((approval_program_len + clear_program_len) / algosdk.constants.APP_PAGE_MAX_SIZE)
-                if params.extra_program_pages
-                else 0,
+                "extra_pages": params.extra_program_pages or _num_extra_program_pages(approval_program, clear_program),
             }
 
         return self._common_txn_build_step(lambda x: algosdk.transaction.ApplicationCallTxn(**x), params, txn_params)

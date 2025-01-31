@@ -5,6 +5,7 @@ import algosdk.atomic_transaction_composer
 from algosdk.atomic_transaction_composer import AccountTransactionSigner, LogicSigTransactionSigner, TransactionSigner
 from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
 from algosdk.transaction import Multisig, MultisigTransaction
+from typing_extensions import deprecated
 
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
@@ -66,6 +67,9 @@ class SigningAccount:
         """
         return AccountTransactionSigner(self.private_key)
 
+    @deprecated(
+        "Use `algorand.account.random()` or `SigningAccount(private_key=algosdk.account.generate_account()[0])` instead"
+    )
     @staticmethod
     def new_account() -> "SigningAccount":
         """Create a new random account.

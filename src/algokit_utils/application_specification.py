@@ -1,6 +1,6 @@
 import warnings
 
-from deprecated import deprecated
+from typing_extensions import deprecated
 
 warnings.warn(
     """The legacy v2 application_specification module is deprecated and will be removed in a future version.

@@ -245,12 +245,12 @@ class AlgorandClientTransactionSender:
             compiled_approval = (
                 self._app_manager.get_compilation_result(params.approval_program)
                 if isinstance(params.approval_program, str)
-                else None
+                else params.approval_program
             )
             compiled_clear = (
                 self._app_manager.get_compilation_result(params.clear_state_program)
                 if isinstance(params.clear_state_program, str)
-                else None
+                else params.clear_state_program
             )
 
             return SendAppUpdateTransactionResult[ABIReturn](
