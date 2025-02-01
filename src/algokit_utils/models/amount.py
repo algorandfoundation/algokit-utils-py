@@ -5,7 +5,7 @@ from decimal import Decimal
 import algosdk
 from typing_extensions import Self
 
-__all__ = ["AlgoAmount"]
+__all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transaction_fees"]
 
 
 class AlgoAmount:
@@ -196,3 +196,36 @@ class AlgoAmount:
         else:
             raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
         return self
+
+
+# Helper functions
+def algo(algos: int) -> AlgoAmount:
+    """Create an AlgoAmount object representing the given number of Algo.
+
+    :param int algos: The number of Algo to create an AlgoAmount object for.
+    :return AlgoAmount: An AlgoAmount object representing the given number of Algo.
+    """
+    return AlgoAmount.from_algos(algos)
+
+
+def micro_algo(microalgos: int) -> AlgoAmount:
+    """Create an AlgoAmount object representing the given number of µAlgo.
+
+    :param int microalgos: The number of µAlgo to create an AlgoAmount object for.
+    :return AlgoAmount: An AlgoAmount object representing the given number of µAlgo.
+    """
+    return AlgoAmount.from_micro_algos(microalgos)
+
+
+ALGORAND_MIN_TX_FEE = micro_algo(1_000)
+
+
+def transaction_fees(number_of_transactions: int) -> AlgoAmount:
+    """Calculate the total transaction fees for a given number of transactions.
+
+    :param int number_of_transactions: The number of transactions to calculate the fees for.
+    :return AlgoAmount: The total transaction fees.
+    """
+
+    total_micro_algos = number_of_transactions * ALGORAND_MIN_TX_FEE.micro_algos
+    return micro_algo(total_micro_algos)

@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.amount import ALGORAND_MIN_TX_FEE, AlgoAmount, algo, micro_algo, transaction_fees
 
 
 def test_initialization() -> None:
@@ -100,3 +100,10 @@ def test_type_safety() -> None:
 
     with pytest.raises(TypeError, match="Unsupported operand type"):
         AlgoAmount.from_algos(5) - "invalid"  # type: ignore  # noqa: PGH003
+
+
+def test_helper_functions() -> None:
+    assert algo(1).micro_algos == 1_000_000
+    assert micro_algo(1_000_000).micro_algos == 1_000_000
+    assert ALGORAND_MIN_TX_FEE.micro_algos == 1_000
+    assert transaction_fees(1).micro_algos == 1_000

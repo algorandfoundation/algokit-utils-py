@@ -311,6 +311,8 @@ def test_simulate_response_filename_generation(
 
 @dataclass
 class TestFile:
+    __test__ = False
+
     name: str
     content: bytes
     mtime: datetime
