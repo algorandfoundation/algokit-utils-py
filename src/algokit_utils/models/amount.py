@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import overload
 
 import algosdk
 from typing_extensions import Self
@@ -11,24 +12,48 @@ __all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transacti
 class AlgoAmount:
     """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
 
-    :param amount: A dictionary containing either algos, algo, microAlgos, or microAlgo as key
-                    and their corresponding value as an integer or Decimal.
-    :raises ValueError: If an invalid amount format is provided.
-
     :example:
-    >>> amount = AlgoAmount({"algos": 1})
-    >>> amount = AlgoAmount({"microAlgos": 1_000_000})
+    >>> amount = AlgoAmount(algos=1)
+    >>> amount = AlgoAmount(algo=1)
+    >>> amount = AlgoAmount.from_algos(1)
+    >>> amount = AlgoAmount.from_algo(1)
+    >>> amount = AlgoAmount(micro_algos=1_000_000)
+    >>> amount = AlgoAmount(micro_algo=1_000_000)
+    >>> amount = AlgoAmount.from_micro_algos(1_000_000)
+    >>> amount = AlgoAmount.from_micro_algo(1_000_000)
     """
 
-    def __init__(self, amount: dict[str, int | Decimal]):
-        if "microAlgos" in amount:
-            self.amount_in_micro_algo = int(amount["microAlgos"])
-        elif "microAlgo" in amount:
-            self.amount_in_micro_algo = int(amount["microAlgo"])
-        elif "algos" in amount:
-            self.amount_in_micro_algo = int(amount["algos"] * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
-        elif "algo" in amount:
-            self.amount_in_micro_algo = int(amount["algo"] * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
+    @overload
+    def __init__(self, *, micro_algos: int) -> None: ...
+
+    @overload
+    def __init__(self, *, micro_algo: int) -> None: ...
+
+    @overload
+    def __init__(self, *, algos: int | Decimal) -> None: ...
+
+    @overload
+    def __init__(self, *, algo: int | Decimal) -> None: ...
+
+    def __init__(
+        self,
+        *,
+        micro_algos: int | None = None,
+        micro_algo: int | None = None,
+        algos: int | Decimal | None = None,
+        algo: int | Decimal | None = None,
+    ):
+        if micro_algos is None and micro_algo is None and algos is None and algo is None:
+            raise ValueError("No amount provided")
+
+        if micro_algos is not None:
+            self.amount_in_micro_algo = int(micro_algos)
+        elif micro_algo is not None:
+            self.amount_in_micro_algo = int(micro_algo)
+        elif algos is not None:
+            self.amount_in_micro_algo = int(algos * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
+        elif algo is not None:
+            self.amount_in_micro_algo = int(algo * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
         else:
             raise ValueError("Invalid amount provided")
 
@@ -74,7 +99,7 @@ class AlgoAmount:
         :example:
         >>> amount = AlgoAmount.from_algos(1)
         """
-        return AlgoAmount({"algos": amount})
+        return AlgoAmount(algos=amount)
 
     @staticmethod
     def from_algo(amount: int | Decimal) -> AlgoAmount:
@@ -86,7 +111,7 @@ class AlgoAmount:
         :example:
         >>> amount = AlgoAmount.from_algo(1)
         """
-        return AlgoAmount({"algo": amount})
+        return AlgoAmount(algo=amount)
 
     @staticmethod
     def from_micro_algos(amount: int) -> AlgoAmount:
@@ -98,7 +123,7 @@ class AlgoAmount:
         :example:
         >>> amount = AlgoAmount.from_micro_algos(1_000_000)
         """
-        return AlgoAmount({"microAlgos": amount})
+        return AlgoAmount(micro_algos=amount)
 
     @staticmethod
     def from_micro_algo(amount: int) -> AlgoAmount:
@@ -110,7 +135,7 @@ class AlgoAmount:
         :example:
         >>> amount = AlgoAmount.from_micro_algo(1_000_000)
         """
-        return AlgoAmount({"microAlgo": amount})
+        return AlgoAmount(micro_algo=amount)
 
     def __str__(self) -> str:
         return f"{self.micro_algo:,} µALGO"
@@ -202,8 +227,8 @@ class AlgoAmount:
 def algo(algos: int) -> AlgoAmount:
     """Create an AlgoAmount object representing the given number of Algo.
 
-    :param int algos: The number of Algo to create an AlgoAmount object for.
-    :return AlgoAmount: An AlgoAmount object representing the given number of Algo.
+    :param algos: The number of Algo to create an AlgoAmount object for.
+    :return: An AlgoAmount object representing the given number of Algo.
     """
     return AlgoAmount.from_algos(algos)
 
@@ -211,8 +236,8 @@ def algo(algos: int) -> AlgoAmount:
 def micro_algo(microalgos: int) -> AlgoAmount:
     """Create an AlgoAmount object representing the given number of µAlgo.
 
-    :param int microalgos: The number of µAlgo to create an AlgoAmount object for.
-    :return AlgoAmount: An AlgoAmount object representing the given number of µAlgo.
+    :param microalgos: The number of µAlgo to create an AlgoAmount object for.
+    :return: An AlgoAmount object representing the given number of µAlgo.
     """
     return AlgoAmount.from_micro_algos(microalgos)
 
@@ -223,8 +248,8 @@ ALGORAND_MIN_TX_FEE = micro_algo(1_000)
 def transaction_fees(number_of_transactions: int) -> AlgoAmount:
     """Calculate the total transaction fees for a given number of transactions.
 
-    :param int number_of_transactions: The number of transactions to calculate the fees for.
-    :return AlgoAmount: The total transaction fees.
+    :param number_of_transactions: The number of transactions to calculate the fees for.
+    :return: The total transaction fees.
     """
 
     total_micro_algos = number_of_transactions * ALGORAND_MIN_TX_FEE.micro_algos
