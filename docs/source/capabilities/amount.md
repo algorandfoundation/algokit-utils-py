@@ -21,10 +21,10 @@ from algokit_utils import AlgoAmount
 There are a few ways to create an `AlgoAmount`:
 
 - Algo
-  - Constructor: `AlgoAmount({"algo": 10})` or `AlgoAmount({"algos": 10})`
+  - Constructor: `AlgoAmount(algo=10)` or `AlgoAmount(algos=10)`
   - Static helper: `AlgoAmount.from_algo(10)` or `AlgoAmount.from_algos(10)`
 - microAlgo
-  - Constructor: `AlgoAmount({"microAlgo": 10_000})` or `AlgoAmount({"microAlgos": 10_000})`
+  - Constructor: `AlgoAmount(micro_algo=10_000)` or `AlgoAmount(micro_algos=10_000)`
   - Static helper: `AlgoAmount.from_micro_algo(10_000)` or `AlgoAmount.from_micro_algos(10_000)`
 
 ### Extracting a value from `AlgoAmount`
@@ -49,7 +49,7 @@ The `AlgoAmount` class supports arithmetic operations:
 Example:
 
 ```python
-amount1 = AlgoAmount({"algo": 1})
-amount2 = AlgoAmount({"microAlgo": 500_000})
+amount1 = AlgoAmount(algo=1)
+amount2 = AlgoAmount(micro_algo=500_000)
 total = amount1 + amount2  # Results in 1.5 Algo
 ```

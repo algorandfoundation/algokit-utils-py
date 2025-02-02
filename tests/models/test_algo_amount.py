@@ -7,18 +7,14 @@ from algokit_utils.models.amount import ALGORAND_MIN_TX_FEE, AlgoAmount, algo, m
 
 def test_initialization() -> None:
     # Test valid initialization formats
-    assert AlgoAmount({"microAlgos": 1_000_000}).micro_algos == 1_000_000
-    assert AlgoAmount({"microAlgo": 500_000}).micro_algos == 500_000
-    assert AlgoAmount({"algos": 1}).micro_algos == 1_000_000
-    assert AlgoAmount({"algo": Decimal("0.5")}).micro_algos == 500_000
+    assert AlgoAmount(micro_algos=1_000_000).micro_algos == 1_000_000
+    assert AlgoAmount(micro_algo=500_000).micro_algos == 500_000
+    assert AlgoAmount(algos=1).micro_algos == 1_000_000
+    assert AlgoAmount(algo=Decimal("0.5")).micro_algos == 500_000
 
     # Test decimal precision
-    assert AlgoAmount({"algos": Decimal("0.000001")}).micro_algos == 1
-    assert AlgoAmount({"algo": Decimal("123.456789")}).micro_algos == 123_456_789
-
-    # Test invalid initialization
-    with pytest.raises(ValueError, match="Invalid amount provided"):
-        AlgoAmount({"invalid": 100})
+    assert AlgoAmount(algos=Decimal("0.000001")).micro_algos == 1
+    assert AlgoAmount(algo=Decimal("123.456789")).micro_algos == 123_456_789
 
 
 def test_from_methods() -> None:
@@ -84,7 +80,7 @@ def test_edge_cases() -> None:
     assert large.micro_algos == 1e9 * 1e6
 
     # Decimal precision limits
-    precise = AlgoAmount({"algos": Decimal("0.123456789")})
+    precise = AlgoAmount(algos=Decimal("0.123456789"))
     assert precise.micro_algos == 123_456
 
 

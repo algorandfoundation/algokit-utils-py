@@ -2,16 +2,16 @@
 
 ## Classes
 
-| [`AppFactoryParams`](#algokit_utils.applications.app_factory.AppFactoryParams)                                           |                                                     |
-|--------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| [`AppFactoryCreateParams`](#algokit_utils.applications.app_factory.AppFactoryCreateParams)                               | Schema for application creation.                    |
-| [`AppFactoryCreateMethodCallParams`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams)           | Schema for application creation.                    |
-| [`AppFactoryCreateMethodCallResult`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallResult)           | Base class for transaction results.                 |
-| [`SendAppFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppFactoryTransactionResult)             | Result of an application transaction.               |
-| [`SendAppUpdateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppUpdateFactoryTransactionResult) | Result of updating an application.                  |
-| [`SendAppCreateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppCreateFactoryTransactionResult) | Result of creating a new application.               |
-| [`AppFactoryDeployResult`](#algokit_utils.applications.app_factory.AppFactoryDeployResult)                               | Result from deploying an application via AppFactory |
-| [`AppFactory`](#algokit_utils.applications.app_factory.AppFactory)                                                       |                                                     |
+| [`AppFactoryParams`](#algokit_utils.applications.app_factory.AppFactoryParams)                                           |                                                      |
+|--------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------|
+| [`AppFactoryCreateParams`](#algokit_utils.applications.app_factory.AppFactoryCreateParams)                               | Parameters for creating application with bare call.  |
+| [`AppFactoryCreateMethodCallParams`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams)           | Parameters for creating application with method call |
+| [`AppFactoryCreateMethodCallResult`](#algokit_utils.applications.app_factory.AppFactoryCreateMethodCallResult)           | Base class for transaction results.                  |
+| [`SendAppFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppFactoryTransactionResult)             | Result of an application transaction.                |
+| [`SendAppUpdateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppUpdateFactoryTransactionResult) | Result of updating an application.                   |
+| [`SendAppCreateFactoryTransactionResult`](#algokit_utils.applications.app_factory.SendAppCreateFactoryTransactionResult) | Result of creating a new application.                |
+| [`AppFactoryDeployResult`](#algokit_utils.applications.app_factory.AppFactoryDeployResult)                               | Result from deploying an application via AppFactory  |
+| [`AppFactory`](#algokit_utils.applications.app_factory.AppFactory)                                                       |                                                      |
 
 ## Module Contents
 
@@ -33,23 +33,17 @@
 
 ### *class* algokit_utils.applications.app_factory.AppFactoryCreateParams
 
-Bases: `_AppFactoryCreateBaseParams`, [`algokit_utils.applications.app_client.AppClientBareCallParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientBareCallParams)
+Bases: [`algokit_utils.applications.app_client.AppClientBareCallCreateParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientBareCallCreateParams)
 
-Schema for application creation.
+Parameters for creating application with bare call.
 
-* **Variables:**
-  * **extra_program_pages** – Optional number of extra program pages
-  * **schema** – Optional application creation schema
+#### on_complete *: algokit_utils.applications.app_client.CreateOnComplete | None* *= None*
 
 ### *class* algokit_utils.applications.app_factory.AppFactoryCreateMethodCallParams
 
-Bases: `_AppFactoryCreateBaseParams`, [`algokit_utils.applications.app_client.AppClientMethodCallParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientMethodCallParams)
+Bases: [`algokit_utils.applications.app_client.AppClientMethodCallCreateParams`](../app_client/index.md#algokit_utils.applications.app_client.AppClientMethodCallCreateParams)
 
-Schema for application creation.
-
-* **Variables:**
-  * **extra_program_pages** – Optional number of extra program pages
-  * **schema** – Optional application creation schema
+Parameters for creating application with method call
 
 ### *class* algokit_utils.applications.app_factory.AppFactoryCreateMethodCallResult
 

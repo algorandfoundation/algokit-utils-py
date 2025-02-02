@@ -234,7 +234,7 @@ Returns the TransactionSignerAccountProtocol for the given sender address.
 * **Example:**
 
 ```pycon
->>> sender = account_manager.random()
+>>> sender = account_manager.random().address
 >>> # ...
 >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
 >>> account = account_manager.get_account(sender)
