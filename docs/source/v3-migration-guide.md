@@ -149,71 +149,41 @@ arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
 
 > Despite auto conversion of ARC-32 to ARC-56, we recommend recompiling your contract to a fully compliant ARC-56 specification given that auto conversion would skip populating information that can't be parsed from raw ARC-32.
 
-### Step 5 - Update `ApplicationClient` usage
+### Step 5 - Replace `ApplicationClient` usage
 
-The application client has been in v2 has been responsible for instantiation, deployment and calling of the application. In v3, this has been split into `AppClient`, `AppDeployer` and `AppFactory` to better reflect the different responsibilities:
+The existing `ApplicationClient` (untyped app client) class is still present until at least v4, but it's worthwhile migrating to the new [`AppClient` and `AppFactory` classes](./capabilities/app-client.md). These new clients are [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) compatible, but also support [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) app specs and will continue to support this indefinitely until such time the community deems they are deprecated.
 
-```python
-"""Before (v2 deployment)"""
-from algokit_utils import ApplicationClient, OnUpdate, OnSchemaBreak
+All of the functionality in `ApplicationClient` is available within the new classes, but their interface is slightly different to make it easier to use and more consistent with the new `AlgorandClient` functionality. The key existing methods that have changed all have `@deprecation` notices to help guide you on this, but broadly the changes are:
 
-# Initialize client with manual configuration
-app_client = ApplicationClient(
-    algod_client=algod,
-    app_spec=app_spec,
-    creator=creator,
-    app_name="MyApp"
-)
+- The app resolution semantics, now have static methods that determine different ways of constructing a client and the constructor itself is very simple (requiring `app_id`)
+- If you want to call `create` or `deploy` then you need an `AppFactory` to do that, and then it will in turn give you an `AppClient` instance that is connected to the app you just created / deployed. This significantly simplifies the app client because now the app client has a clear operating purpose: allow for calls and state management for an _instance_ of an app, whereas the app factory handles all of the calls when you don't have an instance yet (or may or may not have an instance in the case of `deploy`).
+- This means that you can simply access `client.app_id` and `client.app_address` on `AppClient` since these values are known statically and won't change (previously associated calls to `app_address`, `app_id` properties potentially required extra API calls as the values weren't always available).
+- Adding `fund_app_account` which serves as a convenience method to top up the balance of address associated with application.
+- All of the methods that return or execute a transaction (`update`, `call`, `opt_in`, etc.) are now exposed in an interface similar to the one in [`AlgorandClient`](./capabilities/algorand-client.md#creating-and-issuing-transactions), namely (where `{call_type}` is one of: `update` / `delete` / `opt_in` / `close_out` / `clear_state` / `call`):
+  - `appClient.create_transaction.{callType}` to get a transaction for an ABI method call
+  - `appClient.send.{call_type}` to sign and send a transaction for an ABI method call
+  - `appClient.params.{call_type}` to get a [params object](./capabilities/algorand-client.md#transaction-parameters) for an ABI method call
+  - `appClient.create_transaction.bare.{call_type}` to get a transaction for a bare app call
+  - `appClient.send.bare.{call_type}` to sign and send a transaction for a bare app call
+  - `appClient.params.bare.{call_type}` to get a [params object](./capabilities/algorand-client.md#transaction-parameters) for a bare app call
+- The semantics to resolve the application is now available via [simpler entrypoints within `algorand.client`](./capabilities/app-client.md#appclient)
+- When making an ABI method call, the method arguments property is are now passed via explicit `args` field in a parameters dataclass applicable to the method call.
+- The foreign reference arrays have been renamed to align with typed parameters on `ts` and related core `algosdk`:
+  - `boxes` -> `box_references`
+  - `apps` -> `app_references`
+  - `assets` -> `asset_references`
+  - `accounts` -> `account_references`
+- The return value for methods that send a transaction will have any ABI return value directly in the `abi_return` property rather than the low level algosdk `ABIResult` type while also automatically decoding values based on provided ARC56 spec.
 
-# Deployment with versioning and update policies
-deploy_result = app_client.deploy(
-    version="1.0",
-    allow_update=True,
-    allow_delete=False,
-    on_update=OnUpdate.UpdateApp,
-    on_schema_break=OnSchemaBreak.Fail
-)
+### Step 6 - Replace typed app client usage
 
-# Post-deployment calls
-response = app_client.call("initialize", args=["config"])
+Version 2 of the Python typed app client generator introduces breaking changes to the generated client that support the new `AppFactory` and `AppClient` functionality along with adding ARC-56 support. The generated client has better typing support for things like state commensurate with the new capabilities within ARC-56.
 
+It's worth noting that because we have maintained backwards compatibility with the pre v2 `algokit-utils-py` stateless functions, older typed clients generated using version 1 of the Python typed client generator will work against v3 of utils, however you won't have access to the new features or ARC-56 support.
 
-"""After (v3 factory-based deployment)"""
-from algokit_utils import AppFactory, OnUpdate, OnSchemaBreak
+If you want to convert from an older typed client to a new one you will need to make certain changes. Refer to [client generator v2 migration guide](https://github.com/algorandfoundation/algokit-client-generator-py/blob/main/docs/v2-migration.md).
 
-# Factory-based deployment with compiled parameters
-app_factory = AppFactory(
-    AppFactoryParams(
-        algorand=algorand,
-        app_spec=app_spec,
-        app_name="MyApp",
-        compilation_params=AppClientCompilationParams(
-            deploy_time_params={"VERSION": 1},
-            updatable=True,  # Replaces allow_update
-            deletable=False  # Replaces allow_delete
-        )
-    )
-)
-
-app_client, deploy_result = app_factory.deploy(
-    version="1.0",
-    on_update=OnUpdate.UpdateApp,
-    on_schema_break=OnSchemaBreak.Fail,
-) # Returns a tuple of (app_client, deploy_result)
-
-# Type-safe post-deployment calls
-response = app_client.send.call("setup", args=[{"max_users": 100}])
-```
-
-Notable changes:
-
-- Split between `AppClient`, `AppDeployer` (for raw creation/deployment) and `AppFactory` (for creation/deployment using factory patterns). In majority of cases, you will only need `AppFactory` as it provides convenience methods for instantiation of `AppClient` and mediates calls to `AppDeployer`.
-- More structured transaction building with `.params`, `.create_transaction`, and `.send`
-- Consistent parameter naming (`args` instead of `method_args`, `box_references` instead of `boxes`)
-- ARC-56 support for state management
-- Improved error handling and debugging support
-
-### Step 6 - Update `AppClient` State Management
+### Step 7 - Update `AppClient` State Management
 
 State management is now more structured and type-safe:
 
@@ -240,7 +210,7 @@ boxes = app_client.state.box.get_all()
 map_value = app_client.state.box.get_map_value("map_name", "key")
 ```
 
-### Step 7 - Update Asset Management
+### Step 8 - Update Asset Management
 
 Asset management is now more consistent:
 

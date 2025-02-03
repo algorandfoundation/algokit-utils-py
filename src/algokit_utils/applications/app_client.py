@@ -1549,7 +1549,7 @@ class AppClient:
         program: bytes | None = None,
         approval_source_info: ProgramSourceInfo | None = None,
         clear_source_info: ProgramSourceInfo | None = None,
-    ) -> Exception:
+    ) -> LogicError | Exception:
         source_map = clear_source_map if is_clear_state_program else approval_source_map
 
         error_details = parse_logic_error(str(e))
@@ -1628,11 +1628,11 @@ class AppClient:
             )
             if isinstance(e, LogicError):
                 e.message = runtime_error_message
-                error = e
+                return e
             else:
-                e = Exception(runtime_error_message)
-            error.__cause__ = e
-            return error
+                error = Exception(runtime_error_message)
+                error.__cause__ = e
+                return error
 
         return e
 
