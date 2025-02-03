@@ -256,7 +256,7 @@ class AccountManager:
         :raises ValueError: If no account is found or if the account is not a regular account
 
         :example:
-        >>> sender = account_manager.random()
+        >>> sender = account_manager.random().address
         >>> # ...
         >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
         >>> account = account_manager.get_account(sender)

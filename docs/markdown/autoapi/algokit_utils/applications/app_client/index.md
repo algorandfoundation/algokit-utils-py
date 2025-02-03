@@ -10,14 +10,15 @@
 | [`AppClientCompilationResult`](#algokit_utils.applications.app_client.AppClientCompilationResult)           | Result of compiling an application's TEAL code.                       |
 |-------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | [`AppClientCompilationParams`](#algokit_utils.applications.app_client.AppClientCompilationParams)           | Parameters for compiling an application's TEAL code.                  |
+| [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)                         | Common configuration for app call transaction parameters              |
+| [`AppClientCreateSchema`](#algokit_utils.applications.app_client.AppClientCreateSchema)                     | Schema for application creation.                                      |
+| [`CommonAppCallCreateParams`](#algokit_utils.applications.app_client.CommonAppCallCreateParams)             | Common configuration for app create call transaction parameters.      |
 | [`FundAppAccountParams`](#algokit_utils.applications.app_client.FundAppAccountParams)                       | Parameters for funding an application's account.                      |
-| [`AppClientCallParams`](#algokit_utils.applications.app_client.AppClientCallParams)                         | Parameters for calling an application.                                |
+| [`AppClientBareCallParams`](#algokit_utils.applications.app_client.AppClientBareCallParams)                 | Parameters for bare application calls.                                |
+| [`AppClientBareCallCreateParams`](#algokit_utils.applications.app_client.AppClientBareCallCreateParams)     | Parameters for creating application with bare call.                   |
 | [`BaseAppClientMethodCallParams`](#algokit_utils.applications.app_client.BaseAppClientMethodCallParams)     | Base parameters for application method calls.                         |
 | [`AppClientMethodCallParams`](#algokit_utils.applications.app_client.AppClientMethodCallParams)             | Parameters for application method calls.                              |
-| [`AppClientBareCallParams`](#algokit_utils.applications.app_client.AppClientBareCallParams)                 | Parameters for bare application calls.                                |
-| [`AppClientCreateSchema`](#algokit_utils.applications.app_client.AppClientCreateSchema)                     | Schema for application creation.                                      |
-| [`AppClientBareCallCreateParams`](#algokit_utils.applications.app_client.AppClientBareCallCreateParams)     | Parameters for creating application with bare call.                   |
-| [`AppClientMethodCallCreateParams`](#algokit_utils.applications.app_client.AppClientMethodCallCreateParams) | Parameters for creating application with method call.                 |
+| [`AppClientMethodCallCreateParams`](#algokit_utils.applications.app_client.AppClientMethodCallCreateParams) | Parameters for creating application with method call                  |
 | [`AppClientParams`](#algokit_utils.applications.app_client.AppClientParams)                                 | Full parameters for creating an app client                            |
 | [`AppClient`](#algokit_utils.applications.app_client.AppClient)                                             | A client for interacting with an Algorand smart contract application. |
 
@@ -78,203 +79,26 @@ Parameters for compiling an application’s TEAL code.
 
 #### deletable *: bool | None*
 
-### *class* algokit_utils.applications.app_client.FundAppAccountParams
+### *class* algokit_utils.applications.app_client.CommonAppCallParams
 
-Parameters for funding an application’s account.
-
-* **Variables:**
-  * **sender** – Optional sender address
-  * **signer** – Optional transaction signer
-  * **rekey_to** – Optional address to rekey to
-  * **note** – Optional transaction note
-  * **lease** – Optional lease
-  * **static_fee** – Optional static fee
-  * **extra_fee** – Optional extra fee
-  * **max_fee** – Optional maximum fee
-  * **validity_window** – Optional validity window in rounds
-  * **first_valid_round** – Optional first valid round
-  * **last_valid_round** – Optional last valid round
-  * **amount** – Amount to fund
-  * **close_remainder_to** – Optional address to close remainder to
-  * **on_complete** – Optional on complete action
-
-#### sender *: str | None* *= None*
-
-#### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
-
-#### rekey_to *: str | None* *= None*
-
-#### note *: bytes | None* *= None*
-
-#### lease *: bytes | None* *= None*
-
-#### static_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### extra_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### max_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### validity_window *: int | None* *= None*
-
-#### first_valid_round *: int | None* *= None*
-
-#### last_valid_round *: int | None* *= None*
-
-#### amount *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
-
-#### close_remainder_to *: str | None* *= None*
-
-#### on_complete *: algosdk.transaction.OnComplete | None* *= None*
-
-### *class* algokit_utils.applications.app_client.AppClientCallParams
-
-Parameters for calling an application.
+Common configuration for app call transaction parameters
 
 * **Variables:**
-  * **method** – Optional ABI method name or signature
-  * **args** – Optional arguments to pass to method
-  * **boxes** – Optional box references to load
-  * **accounts** – Optional account addresses to load
-  * **apps** – Optional app IDs to load
-  * **assets** – Optional asset IDs to load
-  * **lease** – Optional lease
-  * **sender** – Optional sender address
-  * **note** – Optional transaction note
-  * **send_params** – Optional parameters to control transaction sending
-
-#### method *: str | None* *= None*
-
-#### args *: list | None* *= None*
-
-#### boxes *: list | None* *= None*
-
-#### accounts *: list[str] | None* *= None*
-
-#### apps *: list[int] | None* *= None*
-
-#### assets *: list[int] | None* *= None*
-
-#### lease *: str | bytes | None* *= None*
-
-#### sender *: str | None* *= None*
-
-#### note *: bytes | dict | str | None* *= None*
-
-#### send_params *: dict | None* *= None*
-
-### *class* algokit_utils.applications.app_client.BaseAppClientMethodCallParams
-
-Bases: `Generic`[`ArgsT`, `MethodT`]
-
-Base parameters for application method calls.
-
-* **Variables:**
-  * **method** – Method to call
-  * **args** – Optional arguments to pass to method
-  * **account_references** – Optional account references
-  * **app_references** – Optional application references
-  * **asset_references** – Optional asset references
-  * **box_references** – Optional box references
-  * **extra_fee** – Optional extra fee
-  * **first_valid_round** – Optional first valid round
-  * **lease** – Optional lease
-  * **max_fee** – Optional maximum fee
-  * **note** – Optional note
-  * **rekey_to** – Optional rekey to address
-  * **sender** – Optional sender address
-  * **signer** – Optional transaction signer
-  * **static_fee** – Optional static fee
-  * **validity_window** – Optional validity window
-  * **last_valid_round** – Optional last valid round
-  * **on_complete** – Optional on complete action
-
-#### method *: MethodT*
-
-#### args *: ArgsT | None* *= None*
-
-#### account_references *: list[str] | None* *= None*
-
-#### app_references *: list[int] | None* *= None*
-
-#### asset_references *: list[int] | None* *= None*
-
-#### box_references *: collections.abc.Sequence[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
-
-#### extra_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### first_valid_round *: int | None* *= None*
-
-#### lease *: bytes | None* *= None*
-
-#### max_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### note *: bytes | None* *= None*
-
-#### rekey_to *: str | None* *= None*
-
-#### sender *: str | None* *= None*
-
-#### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
-
-#### static_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### validity_window *: int | None* *= None*
-
-#### last_valid_round *: int | None* *= None*
-
-#### on_complete *: algosdk.transaction.OnComplete | None* *= None*
-
-### *class* algokit_utils.applications.app_client.AppClientMethodCallParams
-
-Bases: [`BaseAppClientMethodCallParams`](#algokit_utils.applications.app_client.BaseAppClientMethodCallParams)[`collections.abc.Sequence`[`algokit_utils.applications.abi.ABIValue | algokit_utils.applications.abi.ABIStruct | algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument | None`], `str`]
-
-Parameters for application method calls.
-
-### *class* algokit_utils.applications.app_client.AppClientBareCallParams
-
-Parameters for bare application calls.
-
-* **Variables:**
-  * **signer** – Optional transaction signer
-  * **rekey_to** – Optional rekey to address
-  * **lease** – Optional lease
-  * **static_fee** – Optional static fee
-  * **extra_fee** – Optional extra fee
-  * **max_fee** – Optional maximum fee
-  * **validity_window** – Optional validity window
-  * **first_valid_round** – Optional first valid round
-  * **last_valid_round** – Optional last valid round
-  * **sender** – Optional sender address
-  * **note** – Optional note
-  * **args** – Optional arguments
-  * **account_references** – Optional account references
-  * **app_references** – Optional application references
-  * **asset_references** – Optional asset references
-  * **box_references** – Optional box references
-
-#### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
-
-#### rekey_to *: str | None* *= None*
-
-#### lease *: bytes | None* *= None*
-
-#### static_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### extra_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### max_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
-
-#### validity_window *: int | None* *= None*
-
-#### first_valid_round *: int | None* *= None*
-
-#### last_valid_round *: int | None* *= None*
-
-#### sender *: str | None* *= None*
-
-#### note *: bytes | None* *= None*
-
-#### args *: list[bytes] | None* *= None*
+  * **account_references** – List of account addresses to reference
+  * **app_references** – List of app IDs to reference
+  * **asset_references** – List of asset IDs to reference
+  * **box_references** – List of box references to include
+  * **extra_fee** – Additional fee to add to transaction
+  * **lease** – Transaction lease value
+  * **max_fee** – Maximum fee allowed for transaction
+  * **note** – Arbitrary note for the transaction
+  * **rekey_to** – Address to rekey account to
+  * **sender** – Sender address override
+  * **signer** – Custom transaction signer
+  * **static_fee** – Fixed fee for transaction
+  * **validity_window** – Number of rounds valid
+  * **first_valid_round** – First valid round number
+  * **last_valid_round** – Last valid round number
 
 #### account_references *: list[str] | None* *= None*
 
@@ -283,6 +107,30 @@ Parameters for bare application calls.
 #### asset_references *: list[int] | None* *= None*
 
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
+
+#### extra_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
+
+#### lease *: bytes | None* *= None*
+
+#### max_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
+
+#### note *: bytes | None* *= None*
+
+#### rekey_to *: str | None* *= None*
+
+#### sender *: str | None* *= None*
+
+#### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
+
+#### static_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
+
+#### validity_window *: int | None* *= None*
+
+#### first_valid_round *: int | None* *= None*
+
+#### last_valid_round *: int | None* *= None*
+
+#### on_complete *: algosdk.transaction.OnComplete | None* *= None*
 
 ### *class* algokit_utils.applications.app_client.AppClientCreateSchema
 
@@ -296,19 +144,73 @@ Schema for application creation.
 
 #### schema *: [algokit_utils.transactions.transaction_composer.AppCreateSchema](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateSchema) | None* *= None*
 
+### *class* algokit_utils.applications.app_client.CommonAppCallCreateParams
+
+Bases: [`AppClientCreateSchema`](#algokit_utils.applications.app_client.AppClientCreateSchema), [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
+
+Common configuration for app create call transaction parameters.
+
+#### on_complete *: CreateOnComplete | None* *= None*
+
+### *class* algokit_utils.applications.app_client.FundAppAccountParams
+
+Bases: [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
+
+Parameters for funding an application’s account.
+
+* **Variables:**
+  * **amount** – Amount to fund
+  * **close_remainder_to** – Optional address to close remainder to
+
+#### amount *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
+
+#### close_remainder_to *: str | None* *= None*
+
+### *class* algokit_utils.applications.app_client.AppClientBareCallParams
+
+Bases: [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
+
+Parameters for bare application calls.
+
+* **Variables:**
+  **args** – Optional arguments
+
+#### args *: list[bytes] | None* *= None*
+
 ### *class* algokit_utils.applications.app_client.AppClientBareCallCreateParams
 
-Bases: [`AppClientCreateSchema`](#algokit_utils.applications.app_client.AppClientCreateSchema), [`AppClientBareCallParams`](#algokit_utils.applications.app_client.AppClientBareCallParams)
+Bases: [`CommonAppCallCreateParams`](#algokit_utils.applications.app_client.CommonAppCallCreateParams)
 
 Parameters for creating application with bare call.
 
-#### on_complete *: algosdk.transaction.OnComplete | None* *= None*
+#### on_complete *: CreateOnComplete | None* *= None*
+
+### *class* algokit_utils.applications.app_client.BaseAppClientMethodCallParams
+
+Bases: `Generic`[`ArgsT`, `MethodT`], [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
+
+Base parameters for application method calls.
+
+* **Variables:**
+  * **method** – Method to call
+  * **args** – Optional arguments to pass to method
+  * **on_complete** – Optional on complete action
+
+#### method *: MethodT*
+
+#### args *: ArgsT | None* *= None*
+
+### *class* algokit_utils.applications.app_client.AppClientMethodCallParams
+
+Bases: [`BaseAppClientMethodCallParams`](#algokit_utils.applications.app_client.BaseAppClientMethodCallParams)[`collections.abc.Sequence`[`algokit_utils.applications.abi.ABIValue | algokit_utils.applications.abi.ABIStruct | algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument | None`], `str`]
+
+Parameters for application method calls.
 
 ### *class* algokit_utils.applications.app_client.AppClientMethodCallCreateParams
 
 Bases: [`AppClientCreateSchema`](#algokit_utils.applications.app_client.AppClientCreateSchema), [`AppClientMethodCallParams`](#algokit_utils.applications.app_client.AppClientMethodCallParams)
 
-Parameters for creating application with method call.
+Parameters for creating application with method call
 
 #### on_complete *: CreateOnComplete | None* *= None*
 

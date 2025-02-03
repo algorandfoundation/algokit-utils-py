@@ -23,7 +23,6 @@ from algokit_utils.applications.app_client import (
     AppClientBareCallParams,
     AppClientCompilationParams,
     AppClientCompilationResult,
-    AppClientCreateSchema,
     AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientParams,
@@ -88,17 +87,12 @@ class AppFactoryParams:
 
 
 @dataclass(kw_only=True, frozen=True)
-class _AppFactoryCreateBaseParams(AppClientCreateSchema):
+class AppFactoryCreateParams(AppClientBareCallCreateParams):
     on_complete: CreateOnComplete | None = None
 
 
 @dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateParams(_AppFactoryCreateBaseParams, AppClientBareCallParams):
-    pass
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppFactoryCreateMethodCallParams(_AppFactoryCreateBaseParams, AppClientMethodCallParams):
+class AppFactoryCreateMethodCallParams(AppClientMethodCallCreateParams):
     pass
 
 

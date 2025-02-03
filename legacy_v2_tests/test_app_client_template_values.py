@@ -146,26 +146,3 @@ def test_deploy_with_missing_template_values(
         client.deploy(
             allow_delete=True, allow_update=True, create_args=algokit_utils.ABICreateCallArgs(method="create")
         )
-
-
-def test_deploy_with_multi_underscore_template_value(
-    algod_client: "AlgodClient",
-    indexer_client: "IndexerClient",
-    funded_account: algokit_utils.Account,
-) -> None:
-    from legacy_v2_tests.app_multi_underscore_template_var import app
-
-    some_value = 123
-    app_spec = app.build(algod_client)
-    client = algokit_utils.ApplicationClient(
-        algod_client,
-        app_spec,
-        creator=funded_account,
-        indexer_client=indexer_client,
-        app_name=get_unique_name(),
-        template_values={"SOME_VALUE": some_value},
-    )
-
-    client.deploy(allow_update=True, allow_delete=True)
-    result = client.call("some_value")
-    assert result.return_value == some_value

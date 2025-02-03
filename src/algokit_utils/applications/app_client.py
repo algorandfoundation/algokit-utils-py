@@ -76,7 +76,6 @@ __all__ = [
     "AppClient",
     "AppClientBareCallCreateParams",
     "AppClientBareCallParams",
-    "AppClientCallParams",
     "AppClientCompilationParams",
     "AppClientCompilationResult",
     "AppClientCreateSchema",
@@ -85,6 +84,8 @@ __all__ = [
     "AppClientParams",
     "AppSourceMaps",
     "BaseAppClientMethodCallParams",
+    "CommonAppCallCreateParams",
+    "CommonAppCallParams",
     "CreateOnComplete",
     "FundAppAccountParams",
     "get_constant_block_offset",
@@ -201,166 +202,46 @@ class AppClientCompilationParams(TypedDict, total=False):
     deletable: bool | None
 
 
-@dataclass(kw_only=True)
-class FundAppAccountParams:
-    """Parameters for funding an application's account.
-
-    :ivar sender: Optional sender address
-    :ivar signer: Optional transaction signer
-    :ivar rekey_to: Optional address to rekey to
-    :ivar note: Optional transaction note
-    :ivar lease: Optional lease
-    :ivar static_fee: Optional static fee
-    :ivar extra_fee: Optional extra fee
-    :ivar max_fee: Optional maximum fee
-    :ivar validity_window: Optional validity window in rounds
-    :ivar first_valid_round: Optional first valid round
-    :ivar last_valid_round: Optional last valid round
-    :ivar amount: Amount to fund
-    :ivar close_remainder_to: Optional address to close remainder to
-    :ivar on_complete: Optional on complete action
-    """
-
-    sender: str | None = None
-    signer: TransactionSigner | None = None
-    rekey_to: str | None = None
-    note: bytes | None = None
-    lease: bytes | None = None
-    static_fee: AlgoAmount | None = None
-    extra_fee: AlgoAmount | None = None
-    max_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    first_valid_round: int | None = None
-    last_valid_round: int | None = None
-    amount: AlgoAmount
-    close_remainder_to: str | None = None
-    on_complete: algosdk.transaction.OnComplete | None = None
-
-
-@dataclass(kw_only=True)
-class AppClientCallParams:
-    """Parameters for calling an application.
-
-    :ivar method: Optional ABI method name or signature
-    :ivar args: Optional arguments to pass to method
-    :ivar boxes: Optional box references to load
-    :ivar accounts: Optional account addresses to load
-    :ivar apps: Optional app IDs to load
-    :ivar assets: Optional asset IDs to load
-    :ivar lease: Optional lease
-    :ivar sender: Optional sender address
-    :ivar note: Optional transaction note
-    :ivar send_params: Optional parameters to control transaction sending
-    """
-
-    method: str | None = None
-    args: list | None = None
-    boxes: list | None = None
-    accounts: list[str] | None = None
-    apps: list[int] | None = None
-    assets: list[int] | None = None
-    lease: (str | bytes) | None = None
-    sender: str | None = None
-    note: (bytes | dict | str) | None = None
-    send_params: dict | None = None
-
-
 ArgsT = TypeVar("ArgsT")
 MethodT = TypeVar("MethodT")
 
 
 @dataclass(kw_only=True, frozen=True)
-class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT]):
-    """Base parameters for application method calls.
+class CommonAppCallParams:
+    """Common configuration for app call transaction parameters
 
-    :ivar method: Method to call
-    :ivar args: Optional arguments to pass to method
-    :ivar account_references: Optional account references
-    :ivar app_references: Optional application references
-    :ivar asset_references: Optional asset references
-    :ivar box_references: Optional box references
-    :ivar extra_fee: Optional extra fee
-    :ivar first_valid_round: Optional first valid round
-    :ivar lease: Optional lease
-    :ivar max_fee: Optional maximum fee
-    :ivar note: Optional note
-    :ivar rekey_to: Optional rekey to address
-    :ivar sender: Optional sender address
-    :ivar signer: Optional transaction signer
-    :ivar static_fee: Optional static fee
-    :ivar validity_window: Optional validity window
-    :ivar last_valid_round: Optional last valid round
-    :ivar on_complete: Optional on complete action
-    """
+    :ivar account_references: List of account addresses to reference
+    :ivar app_references: List of app IDs to reference
+    :ivar asset_references: List of asset IDs to reference
+    :ivar box_references: List of box references to include
+    :ivar extra_fee: Additional fee to add to transaction
+    :ivar lease: Transaction lease value
+    :ivar max_fee: Maximum fee allowed for transaction
+    :ivar note: Arbitrary note for the transaction
+    :ivar rekey_to: Address to rekey account to
+    :ivar sender: Sender address override
+    :ivar signer: Custom transaction signer
+    :ivar static_fee: Fixed fee for transaction
+    :ivar validity_window: Number of rounds valid
+    :ivar first_valid_round: First valid round number
+    :ivar last_valid_round: Last valid round number"""
 
-    method: MethodT
-    args: ArgsT | None = None
-    account_references: list[str] | None = None
-    app_references: list[int] | None = None
-    asset_references: list[int] | None = None
-    box_references: Sequence[BoxReference | BoxIdentifier] | None = None
-    extra_fee: AlgoAmount | None = None
-    first_valid_round: int | None = None
-    lease: bytes | None = None
-    max_fee: AlgoAmount | None = None
-    note: bytes | None = None
-    rekey_to: str | None = None
-    sender: str | None = None
-    signer: TransactionSigner | None = None
-    static_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    last_valid_round: int | None = None
-    on_complete: algosdk.transaction.OnComplete | None = None
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppClientMethodCallParams(
-    BaseAppClientMethodCallParams[
-        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None],
-        str,
-    ]
-):
-    """Parameters for application method calls."""
-
-
-@dataclass(kw_only=True, frozen=True)
-class AppClientBareCallParams:
-    """Parameters for bare application calls.
-
-    :ivar signer: Optional transaction signer
-    :ivar rekey_to: Optional rekey to address
-    :ivar lease: Optional lease
-    :ivar static_fee: Optional static fee
-    :ivar extra_fee: Optional extra fee
-    :ivar max_fee: Optional maximum fee
-    :ivar validity_window: Optional validity window
-    :ivar first_valid_round: Optional first valid round
-    :ivar last_valid_round: Optional last valid round
-    :ivar sender: Optional sender address
-    :ivar note: Optional note
-    :ivar args: Optional arguments
-    :ivar account_references: Optional account references
-    :ivar app_references: Optional application references
-    :ivar asset_references: Optional asset references
-    :ivar box_references: Optional box references
-    """
-
-    signer: TransactionSigner | None = None
-    rekey_to: str | None = None
-    lease: bytes | None = None
-    static_fee: AlgoAmount | None = None
-    extra_fee: AlgoAmount | None = None
-    max_fee: AlgoAmount | None = None
-    validity_window: int | None = None
-    first_valid_round: int | None = None
-    last_valid_round: int | None = None
-    sender: str | None = None
-    note: bytes | None = None
-    args: list[bytes] | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
     asset_references: list[int] | None = None
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    extra_fee: AlgoAmount | None = None
+    lease: bytes | None = None
+    max_fee: AlgoAmount | None = None
+    note: bytes | None = None
+    rekey_to: str | None = None
+    sender: str | None = None
+    signer: TransactionSigner | None = None
+    static_fee: AlgoAmount | None = None
+    validity_window: int | None = None
+    first_valid_round: int | None = None
+    last_valid_round: int | None = None
+    on_complete: OnComplete | None = None
 
 
 @dataclass(frozen=True)
@@ -375,16 +256,68 @@ class AppClientCreateSchema:
     schema: AppCreateSchema | None = None
 
 
+@dataclass(kw_only=True, frozen=True)
+class CommonAppCallCreateParams(AppClientCreateSchema, CommonAppCallParams):
+    """Common configuration for app create call transaction parameters."""
+
+    on_complete: CreateOnComplete | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class FundAppAccountParams(CommonAppCallParams):
+    """Parameters for funding an application's account.
+
+    :ivar amount: Amount to fund
+    :ivar close_remainder_to: Optional address to close remainder to
+    """
+
+    amount: AlgoAmount
+    close_remainder_to: str | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientBareCallParams(CommonAppCallParams):
+    """Parameters for bare application calls.
+
+    :ivar args: Optional arguments
+    """
+
+    args: list[bytes] | None = None
+
+
 @dataclass(frozen=True)
-class AppClientBareCallCreateParams(AppClientCreateSchema, AppClientBareCallParams):
+class AppClientBareCallCreateParams(CommonAppCallCreateParams):
     """Parameters for creating application with bare call."""
 
-    on_complete: OnComplete | None = None
+    on_complete: CreateOnComplete | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT], CommonAppCallParams):
+    """Base parameters for application method calls.
+
+    :ivar method: Method to call
+    :ivar args: Optional arguments to pass to method
+    :ivar on_complete: Optional on complete action
+    """
+
+    method: MethodT
+    args: ArgsT | None = None
+
+
+@dataclass(kw_only=True, frozen=True)
+class AppClientMethodCallParams(
+    BaseAppClientMethodCallParams[
+        Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None],
+        str,
+    ]
+):
+    """Parameters for application method calls."""
 
 
 @dataclass(frozen=True)
 class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCallParams):
-    """Parameters for creating application with method call."""
+    """Parameters for creating application with method call"""
 
     on_complete: CreateOnComplete | None = None
 
@@ -1616,7 +1549,7 @@ class AppClient:
         program: bytes | None = None,
         approval_source_info: ProgramSourceInfo | None = None,
         clear_source_info: ProgramSourceInfo | None = None,
-    ) -> Exception:
+    ) -> LogicError | Exception:
         source_map = clear_source_map if is_clear_state_program else approval_source_map
 
         error_details = parse_logic_error(str(e))
@@ -1682,20 +1615,24 @@ class AppClient:
                     get_line_for_pc=custom_get_line_for_pc,
                     traces=None,
                 )
-
         if error_message:
             import re
 
             message = e.logic_error_str if isinstance(e, LogicError) else str(e)
             app_id = re.search(r"(?<=app=)\d+", message)
             tx_id = re.search(r"(?<=transaction )\S+(?=:)", message)
-            error = Exception(
+            runtime_error_message = (
                 f"Runtime error when executing {app_spec.name} "
                 f"(appId: {app_id.group() if app_id else 'N/A'}) in transaction "
                 f"{tx_id.group() if tx_id else 'N/A'}: {error_message}"
             )
-            error.__cause__ = e
-            return error
+            if isinstance(e, LogicError):
+                e.message = runtime_error_message
+                return e
+            else:
+                error = Exception(runtime_error_message)
+                error.__cause__ = e
+                return error
 
         return e
 

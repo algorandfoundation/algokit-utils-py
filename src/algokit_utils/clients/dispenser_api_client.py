@@ -71,6 +71,9 @@ class TestNetDispenserApiClient:
     Default request timeout is 15 seconds. Modify by passing `request_timeout` to the constructor.
     """
 
+    # NOTE: ensures pytest does not think this is a test
+    # https://docs.pytest.org/en/stable/example/pythoncollection.html#customizing-test-collection
+    __test__ = False
     auth_token: str
     request_timeout = DISPENSER_REQUEST_TIMEOUT
 
