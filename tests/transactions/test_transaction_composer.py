@@ -50,7 +50,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -71,7 +71,7 @@ def test_add_transaction(algorand: AlgorandClient, funded_account: SigningAccoun
         sender=funded_account.address,
         sp=algorand.client.algod.suggested_params(),
         receiver=funded_account.address,
-        amt=AlgoAmount.from_algos(1).micro_algos,
+        amt=AlgoAmount.from_algo(1).micro_algo,
     )
     composer.add_transaction(txn)
     built = composer.build_transactions()
@@ -80,7 +80,7 @@ def test_add_transaction(algorand: AlgorandClient, funded_account: SigningAccoun
     assert isinstance(built.transactions[0], PaymentTxn)
     assert built.transactions[0].sender == funded_account.address
     assert built.transactions[0].receiver == funded_account.address
-    assert built.transactions[0].amt == AlgoAmount.from_algos(1).micro_algos
+    assert built.transactions[0].amt == AlgoAmount.from_algo(1).micro_algo
 
 
 def test_add_asset_create(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -238,7 +238,7 @@ def test_simulate(algorand: AlgorandClient, funded_account: SigningAccount) -> N
         PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
-            amount=AlgoAmount.from_algos(1),
+            amount=AlgoAmount.from_algo(1),
         )
     )
     composer.build()
@@ -255,7 +255,7 @@ def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
-            amount=AlgoAmount.from_algos(1),
+            amount=AlgoAmount.from_algo(1),
         )
     )
     response = composer.send()
@@ -314,7 +314,7 @@ def _get_test_transaction(
     return {
         "sender": sender.address if sender else default_account.address,
         "receiver": default_account.address,
-        "amount": amount or AlgoAmount.from_algos(1),
+        "amount": amount or AlgoAmount.from_algo(1),
     }
 
 
@@ -337,10 +337,10 @@ def test_transaction_cap_is_ignored_if_higher_than_fee(
 
 def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     response = algorand.send.payment(
-        PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algos(1))
+        PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algo(1))
     )
     assert isinstance(response.confirmation, dict)
-    assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_algos(1)
+    assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_algo(1)
 
 
 def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -348,8 +348,8 @@ def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: Sig
         algod=algorand.client.algod,
         get_signer=lambda _: funded_account.signer,
     )
-    composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algos(1))))
-    composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algos(2))))
+    composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algo(1))))
+    composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algo(2))))
     response = composer.send()
 
     assert isinstance(response.confirmations[0], dict)
@@ -381,7 +381,7 @@ def test_multisig_single_account(algorand: AlgorandClient, funded_account: Signi
         signing_accounts=[funded_account],
     )
     algorand.send.payment(
-        PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algos(1))
+        PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algo(1))
     )
     algorand.send.payment(
         PaymentParams(sender=multisig.address, receiver=funded_account.address, amount=AlgoAmount.from_micro_algo(500))
@@ -390,7 +390,7 @@ def test_multisig_single_account(algorand: AlgorandClient, funded_account: Signi
 
 def test_multisig_double_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     account2 = algorand.account.random()
-    algorand.account.ensure_funded(account2, funded_account, AlgoAmount.from_algos(10))
+    algorand.account.ensure_funded(account2, funded_account, AlgoAmount.from_algo(10))
 
     # Setup multisig
     multisig = algorand.account.multisig(
@@ -404,7 +404,7 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Signi
 
     # Fund multisig
     algorand.send.payment(
-        PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algos(1))
+        PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algo(1))
     )
 
     # Use multisig

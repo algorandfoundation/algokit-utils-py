@@ -23,6 +23,10 @@ API Token to authenticate with the service e.g ‘4001’ or ‘8980’
 
 #### port *: str | int | None* *= None*
 
+#### full_url() → str
+
+Returns the full URL for the service
+
 ### *class* algokit_utils.models.network.AlgoClientConfigs
 
 #### algod_config *: [AlgoClientNetworkConfig](#algokit_utils.models.network.AlgoClientNetworkConfig)*

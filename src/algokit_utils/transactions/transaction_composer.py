@@ -679,7 +679,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
             if not suggested_params:
                 raise ValueError("suggested_params required when cover_app_call_inner_transaction_fees enabled")
 
-            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+            max_fee = max_fees.get(i).micro_algo if max_fees and i in max_fees else None  # type: ignore[union-attr]
             if max_fee is None:
                 app_call_indexes_without_max_fees.append(i)
             else:
@@ -839,7 +839,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
             if not txn_info:
                 continue
             txn = group[i].txn
-            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+            max_fee = max_fees.get(i).micro_algo if max_fees and i in max_fees else None  # type: ignore[union-attr]
             immutable_fee = max_fee is not None and max_fee == txn.fee
             priority_multiplier = (
                 1000
@@ -1092,7 +1092,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
                 )
 
             transaction_fee = cur_txn.fee + additional_fee
-            max_fee = max_fees.get(i).micro_algos if max_fees and i in max_fees else None  # type: ignore[union-attr]
+            max_fee = max_fees.get(i).micro_algo if max_fees and i in max_fees else None  # type: ignore[union-attr]
 
             if max_fee is None or transaction_fee > max_fee:
                 raise ValueError(
@@ -1848,7 +1848,7 @@ class TransactionComposer:
                 txn_params["sp"].last = txn_params["sp"].first + window
 
         if params.static_fee is not None and txn_params["sp"]:
-            txn_params["sp"].fee = params.static_fee.micro_algos
+            txn_params["sp"].fee = params.static_fee.micro_algo
             txn_params["sp"].flat_fee = True
 
         if isinstance(txn_params.get("method"), Arc56Method):
@@ -1857,9 +1857,9 @@ class TransactionComposer:
         txn = build_txn(txn_params)
 
         if params.extra_fee:
-            txn.fee += params.extra_fee.micro_algos
+            txn.fee += params.extra_fee.micro_algo
 
-        if params.max_fee and txn.fee > params.max_fee.micro_algos:
+        if params.max_fee and txn.fee > params.max_fee.micro_algo:
             raise ValueError(f"Transaction fee {txn.fee} is greater than max_fee {params.max_fee}")
         use_max_fee = params.max_fee and params.max_fee.micro_algo > (
             params.static_fee.micro_algo if params.static_fee else 0
@@ -2046,7 +2046,7 @@ class TransactionComposer:
             "sender": params.sender,
             "sp": suggested_params,
             "receiver": params.receiver,
-            "amt": params.amount.micro_algos,
+            "amt": params.amount.micro_algo,
             "close_remainder_to": params.close_remainder_to,
         }
 
