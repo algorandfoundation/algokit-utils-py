@@ -614,6 +614,12 @@ MAX_LEASE_LENGTH = 32
 NULL_SIGNER: TransactionSigner = algosdk.atomic_transaction_composer.EmptySigner()
 
 
+def _get_dummy_max_fees_for_simulated_opups(group_len: int) -> dict[int, AlgoAmount]:
+    from algokit_utils.models.amount import AlgoAmount
+
+    return {i: AlgoAmount(algo=10) for i in range(group_len)}
+
+
 def _encode_lease(lease: str | bytes | None) -> bytes | None:
     if lease is None:
         return None
@@ -799,16 +805,6 @@ def _num_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int
     """Calculate minimum number of extra_pages required for provided approval and clear programs"""
     total = len(approval or b"") + len(clear or b"")
     return max(0, (total - 1) // algosdk.constants.APP_PAGE_MAX_SIZE)
-
-
-def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:
-    """Populate application call resources based on simulation results.
-
-    :param atc: The AtomicTransactionComposer containing transactions
-    :param algod: Algod client for simulation
-    :return: Modified AtomicTransactionComposer with populated resources
-    """
-    return prepare_group_for_sending(atc, algod, populate_app_call_resources=True)
 
 
 def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
@@ -1600,6 +1596,8 @@ class TransactionComposer:
                     signers[idx] = ts.signer
                 if isinstance(ts, TransactionWithSignerAndContext) and ts.context.abi_method:
                     method_calls[idx] = ts.context.abi_method
+                    if ts.context.max_fee:
+                        self._txn_max_fees[idx] = ts.context.max_fee
                 idx += 1
 
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
@@ -1681,7 +1679,7 @@ class TransactionComposer:
 
         :param allow_more_logs: Whether to allow more logs than the standard limit
         :param allow_empty_signatures: Whether to allow transactions with empty signatures
-        :param allow_unnamed_resources: Whether to allow unnamed resources
+        :param allow_unnamed_resources: Whether to allow unnamed resources.
         :param extra_opcode_budget: Additional opcode budget to allocate
         :param exec_trace_config: Configuration for execution tracing
         :param simulation_round: Round number to simulate at
@@ -1700,6 +1698,17 @@ class TransactionComposer:
             atc.method_dict = transactions.method_calls
         else:
             self.build()
+
+        atc = prepare_group_for_sending(
+            atc,
+            self._algod,
+            populate_app_call_resources=allow_unnamed_resources,
+            cover_app_call_inner_transaction_fees=allow_unnamed_resources,
+            additional_atc_context=AdditionalAtcContext(
+                suggested_params=self._get_suggested_params(),
+                max_fees=self._txn_max_fees or _get_dummy_max_fees_for_simulated_opups(atc.get_tx_count()),
+            ),
+        )
 
         if config.debug and config.project_root and config.trace_all:
             response = simulate_and_persist_response(

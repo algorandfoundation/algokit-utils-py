@@ -15,11 +15,11 @@ Connection details for connecting to an {py:class}\`algosdk.v2client.algod.Algod
 
 #### server *: str*
 
-URL for the service e.g. http://localhost:4001 or https://testnet-api.algonode.cloud
+URL for the service e.g. http://localhost or https://testnet-api.algonode.cloud
 
 #### token *: str | None* *= None*
 
-API Token to authenticate with the service
+API Token to authenticate with the service e.g ‘4001’ or ‘8980’
 
 #### port *: str | int | None* *= None*
 

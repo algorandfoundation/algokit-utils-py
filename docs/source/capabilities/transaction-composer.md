@@ -226,3 +226,120 @@ This feature is particularly useful when:
 - Developing applications where resource requirements may change dynamically
 
 Note: Resource population uses simulation under the hood to detect required resources, so it may add a small overhead to transaction preparation time.
+
+### Covering App Call Inner Transaction Fees
+
+`cover_app_call_inner_transaction_fees` automatically calculate the required fee for a parent app call transaction that sends inner transactions. It leverages the simulate endpoint to discover the inner transactions sent and calculates a fee delta to resolve the optimal fee. This feature also takes care of accounting for any surplus transaction fee at the various levels, so as to effectively minimise the fees needed to successfully handle complex scenarios. This setting only applies when you have constucted at least one app call transaction.
+
+For example:
+
+```python
+myMethod = algosdk.ABIMethod.fromSignature('my_method()void')
+result = algorand
+  .new_group()
+  .add_app_call_method_call(AppCallMethodCallParams(
+    sender: 'SENDER',
+    app_id=123,
+    method=myMethod,
+    args=[1, 2, 3],
+    max_fee=AlgoAmount.from_micro_algo(5000), # NOTE: a maxFee value is required when enabling coverAppCallInnerTransactionFees
+  ))
+  .send(send_params={"cover_app_call_inner_transaction_fees": True})
+```
+
+Assuming the app account is not covering any of the inner transaction fees, if `my_method` in the above example sends 2 inner transactions, then the fee calculated for the parent transaction will be 3000 µALGO when the transaction is sent to the network.
+
+The above example also has a `max_fee` of 5000 µALGO specified. An exception will be thrown if the transaction fee execeeds that value, which allows you to set fee limits. The `max_fee` field is required when enabling `cover_app_call_inner_transaction_fees`.
+
+Because `max_fee` is required and an `algosdk.Transaction` does not hold any max fee information, you cannot use the generic `add_transaction()` method on the composer with `cover_app_call_inner_transaction_fees` enabled. Instead use the below, which provides a better overall experience:
+
+```python
+my_method = algosdk.abi.Method.from_signature('my_method()void')
+
+# Does not work
+result = algorand
+  .new_group()
+  .add_transaction(localnet.algorand.create_transaction.app_call_method_call(
+    AppCallMethodCallParams(
+        sender='SENDER',
+        app_id=123,
+        method=my_method,
+        args=[1, 2, 3],
+        max_fee=AlgoAmount.from_micro_algos(5000), # This is only used to create the algosdk.Transaction object and isn't made available to the composer.
+      )
+    ).transactions[0]
+  )
+  .send(send_params={"cover_app_call_inner_transaction_fees": True})
+
+# Works as expected
+result = algorand
+  .new_group()
+  .add_app_call_method_call(AppCallMethodCallParams(
+    sender='SENDER',
+    app_id=123,
+    method=my_method,
+    args=[1, 2, 3],
+    max_fee=AlgoAmount.from_micro_algos(5000),
+  ))
+  .send(send_params={"cover_app_call_inner_transaction_fees": True})
+```
+
+A more complex valid scenario which leverages an app client to send an ABI method call with ABI method call transactions argument is below:
+
+```python
+app_factory = algorand.client.get_app_factory(
+  app_spec='APP_SPEC',
+  default_sender=sender.addr,
+)
+
+app_client_1, _ = app_factory.send.bare.create()
+app_client_2, _ = app_factory.send.bare.create()
+
+payment_arg = algorand.create_transaction.payment(
+  PaymentParams(
+    sender=sender.addr,
+    receiver=receiver.addr,
+    amount=AlgoAmount.from_micro_algos(1),
+  )
+)
+
+# Note the use of .params. here, this ensure that maxFee is still available to the composer
+app_call_arg = app_client_2.params.call(
+  AppCallMethodCallParams(
+    method='my_other_method',
+    args=[],
+    max_fee=AlgoAmount.from_micro_algos(2000),
+  )
+)
+
+result = app_client_1.algorand
+  .new_group()
+  .add_app_call_method_call(
+    app_client_1.params.call(
+      AppClientMethodCallParams(
+        method='my_method',
+        args=[payment_arg, app_call_arg],
+        max_fee=AlgoAmount.from_micro_algos(5000),
+      )
+    ),
+  )
+  .send({"cover_app_call_inner_transaction_fees": True})
+```
+
+This feature should efficiently calculate the minimum fee needed to execute an app call transaction with inners, however we always recommend testing your specific scenario behaves as expected before releasing.
+
+#### Read-only calls
+
+When interacting with read-only calls, the transactions are not sent to the network, instead a simulation is performed to evaluate the transaction.
+However, a read-only call will still consume the op budget, so to prevent this, by the default, the following logic is applied:
+
+1. If `max_fee` is not specified, `algokit-utils` will automatically set `max_fee` to `10` Algo.
+2. If `max_fee` is specified, provided `max_fee` value will be respected when calculating required fee per read-only call.
+
+In either cases, resource population and app call inner transaction fees will still be automatically calculated and applied as per the rules above however there is no need to explicitly specify `populate_app_call_resources=True` or `cover_app_call_inner_transaction_fees=True` when sending read-only calls.
+
+### Covering App Call Op Budget
+
+The high level Algorand contract authoring languages all have support for ensuring appropriate app op budget is available via `ensure_budget` in Algorand Python, `ensureBudget` in Algorand TypeScript and `increaseOpcodeBudget` in TEALScript. This is great, as it allows contract authors to ensure appropriate budget is available by automatically sending op-up inner transactions to increase the budget available. These op-up inner transactions require the fees to be covered by an account, which is generally the responsibility of the application consumer.
+
+Application consumers may not be immediately aware of the number of op-up inner transactions sent, so it can be difficult for them to determine the exact fees required to successfully execute an application call. Fortunately the `cover_app_call_inner_transaction_fees` setting above can be leveraged to automatically cover the fees for any op-up inner transaction that an application sends. Additionally if a contract author decides to cover the fee for an op-up inner transaction, then the application consumer will not be charged a fee for that transaction.

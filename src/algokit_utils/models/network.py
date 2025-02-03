@@ -17,6 +17,10 @@ class AlgoClientNetworkConfig:
     """API Token to authenticate with the service e.g '4001' or '8980'"""
     port: str | int | None = None
 
+    def full_url(self) -> str:
+        """Returns the full URL for the service"""
+        return f"{self.server}{f':{self.port}' if self.port else ''}"
+
 
 @dataclasses.dataclass
 class AlgoClientConfigs:

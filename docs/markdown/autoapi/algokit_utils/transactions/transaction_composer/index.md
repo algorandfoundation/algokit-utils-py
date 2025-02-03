@@ -819,7 +819,7 @@ Simulate transaction group execution with configurable validation rules.
 * **Parameters:**
   * **allow_more_logs** – Whether to allow more logs than the standard limit
   * **allow_empty_signatures** – Whether to allow transactions with empty signatures
-  * **allow_unnamed_resources** – Whether to allow unnamed resources
+  * **allow_unnamed_resources** – Whether to allow unnamed resources.
   * **extra_opcode_budget** – Additional opcode budget to allocate
   * **exec_trace_config** – Configuration for execution tracing
   * **simulation_round** – Round number to simulate at

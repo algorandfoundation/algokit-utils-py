@@ -506,6 +506,42 @@ class TestCoverAppCallInnerFees:
 
         config.configure(populate_app_call_resources=False)
 
+    def test_runs_auto_opup_implicitly_on_readonly_calls(self) -> None:
+        """Test that auto top-up is run implicitly on readonly calls"""
+
+        # Below must pass without explicit `populate_app_call_resources` flag
+        # Passing 'cover_app_call_inner_transaction_fees' is not required for readonly calls
+        self.app_client1.send.call(
+            AppClientMethodCallParams(
+                args=[6200],
+                method="burn_ops_readonly",
+            ),
+        )
+
+        # For fresh accounts with balance lower than max dummy assumed max_fee pre filled when no
+        # max_fee provided explicitly, it will fail
+        new_account_with_less_than_10_algo = self.app_client1.algorand.account.random()
+        self.app_client1.algorand.account.ensure_funded_from_environment(
+            account_to_fund=new_account_with_less_than_10_algo, min_spending_balance=AlgoAmount.from_algos(5)
+        )
+        with pytest.raises(ValueError, match=r"tried to spend \{10000000\}"):
+            self.app_client1.send.call(
+                AppClientMethodCallParams(
+                    args=[6200], method="burn_ops_readonly", sender=new_account_with_less_than_10_algo.address
+                ),
+            )
+
+        # But user can explicitly set a max_fee value in such cases
+        # while not having to set cover_app_call_inner_transaction_fees
+        self.app_client1.send.call(
+            AppClientMethodCallParams(
+                args=[6200],
+                method="burn_ops_readonly",
+                max_fee=AlgoAmount.from_micro_algos(10000),
+                signer=new_account_with_less_than_10_algo.signer,
+            ),
+        )
+
     def test_throws_when_no_max_fee(self) -> None:
         """Test that error is thrown when no max fee is supplied"""
         with pytest.raises(ValueError, match="Please provide a `max_fee` for each app call transaction"):

@@ -361,7 +361,7 @@ class ClientManager:
         headers = {"X-Algo-API-Token": config.token or ""}
         return AlgodClient(
             algod_token=config.token or "",
-            algod_address=f'{config.server}{f':{config.port}' if config.port else ''}',
+            algod_address=config.full_url(),
             headers=headers,
         )
 
@@ -381,7 +381,7 @@ class ClientManager:
         :return: KMD client instance
         """
         config = config or _get_config_from_environment("KMD")
-        return KMDClient(config.token, f'{config.server}{f':{config.port}' if config.port else ''}')
+        return KMDClient(config.token, config.full_url())
 
     @staticmethod
     def get_kmd_client_from_environment() -> KMDClient:
@@ -402,7 +402,7 @@ class ClientManager:
         headers = {"X-Indexer-API-Token": config.token}
         return IndexerClient(
             indexer_token=config.token,
-            indexer_address=f'{config.server}{f":{config.port}" if config.port else ''}',
+            indexer_address=config.full_url(),
             headers=headers,
         )
 
