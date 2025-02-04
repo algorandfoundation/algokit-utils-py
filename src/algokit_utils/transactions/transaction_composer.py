@@ -68,6 +68,8 @@ __all__ = [
     "TransactionComposer",
     "TransactionComposerBuildResult",
     "TxnParams",
+    "populate_app_call_resources",
+    "prepare_group_for_sending",
     "send_atomic_transaction_composer",
 ]
 
@@ -805,6 +807,16 @@ def _num_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int
     """Calculate minimum number of extra_pages required for provided approval and clear programs"""
     total = len(approval or b"") + len(clear or b"")
     return max(0, (total - 1) // algosdk.constants.APP_PAGE_MAX_SIZE)
+
+
+def populate_app_call_resources(atc: AtomicTransactionComposer, algod: AlgodClient) -> AtomicTransactionComposer:
+    """Populate application call resources based on simulation results.
+
+    :param atc: The AtomicTransactionComposer containing transactions
+    :param algod: Algod client for simulation
+    :return: Modified AtomicTransactionComposer with populated resources
+    """
+    return prepare_group_for_sending(atc, algod, populate_app_call_resources=True)
 
 
 def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915

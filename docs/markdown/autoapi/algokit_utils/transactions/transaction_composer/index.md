@@ -36,8 +36,10 @@
 
 ## Functions
 
-| [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...)   | Send an AtomicTransactionComposer transaction group.   |
-|--------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------|
+| [`populate_app_call_resources`](#algokit_utils.transactions.transaction_composer.populate_app_call_resources)(...)           | Populate application call resources based on simulation results.                  |
+|------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`prepare_group_for_sending`](#algokit_utils.transactions.transaction_composer.prepare_group_for_sending)(...)               | Prepare a transaction group for sending by handling execution info and resources. |
+| [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...) | Send an AtomicTransactionComposer transaction group.                              |
 
 ## Module Contents
 
@@ -552,6 +554,29 @@ Results from sending an AtomicTransactionComposer transaction group.
 #### returns *: list[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]*
 
 #### simulate_response *: dict[str, Any] | None* *= None*
+
+### algokit_utils.transactions.transaction_composer.populate_app_call_resources(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient) → algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
+Populate application call resources based on simulation results.
+
+* **Parameters:**
+  * **atc** – The AtomicTransactionComposer containing transactions
+  * **algod** – Algod client for simulation
+* **Returns:**
+  Modified AtomicTransactionComposer with populated resources
+
+### algokit_utils.transactions.transaction_composer.prepare_group_for_sending(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient, populate_app_call_resources: bool | None = None, cover_app_call_inner_transaction_fees: bool | None = None, additional_atc_context: AdditionalAtcContext | None = None) → algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
+Prepare a transaction group for sending by handling execution info and resources.
+
+* **Parameters:**
+  * **atc** – The AtomicTransactionComposer containing transactions
+  * **algod** – Algod client for simulation
+  * **populate_app_call_resources** – Whether to populate app call resources
+  * **cover_app_call_inner_transaction_fees** – Whether to cover inner txn fees
+  * **additional_atc_context** – Additional context for the AtomicTransactionComposer
+* **Returns:**
+  Modified AtomicTransactionComposer ready for sending
 
 ### algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient, \*, max_rounds_to_wait: int | None = 5, skip_waiting: bool = False, suppress_log: bool | None = None, populate_app_call_resources: bool | None = None, cover_app_call_inner_transaction_fees: bool | None = None, additional_atc_context: AdditionalAtcContext | None = None) → [SendAtomicTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults)
 

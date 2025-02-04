@@ -506,7 +506,7 @@ class TestCoverAppCallInnerFees:
 
         config.configure(populate_app_call_resources=False)
 
-    def test_runs_auto_opup_implicitly_on_readonly_calls(self) -> None:
+    def test_runs_auto_fee_coverage_implicitly_on_readonly_calls(self) -> None:
         """Test that auto top-up is run implicitly on readonly calls"""
 
         # Below must pass without explicit `populate_app_call_resources` flag

@@ -19,7 +19,7 @@ class AlgoClientNetworkConfig:
 
     def full_url(self) -> str:
         """Returns the full URL for the service"""
-        return f"{self.server}{f':{self.port}' if self.port else ''}"
+        return f"{self.server.rstrip('/')}{f':{self.port}' if self.port else ''}"
 
 
 @dataclasses.dataclass
