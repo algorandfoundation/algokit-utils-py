@@ -36,7 +36,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -334,7 +334,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
     algorand: AlgorandClient, funded_account: SigningAccount, test_app_client: AppClient
 ) -> None:
     # Create a payment transaction with random amount
-    amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
+    amount = AlgoAmount.from_micro_algo(random.randint(1, 10000))
     payment_txn = algorand.create_transaction.payment(
         PaymentParams(
             sender=funded_account.address,
@@ -356,7 +356,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
     response = AppManager.get_abi_return(
         result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
     )
-    expected_return = f"Sent {amount.micro_algos}. test"
+    expected_return = f"Sent {amount.micro_algo}. test"
     assert result.abi_return == expected_return
     assert response
     assert response.value == result.abi_return
@@ -366,7 +366,7 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
     algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
 ) -> None:
     # Create a payment transaction with a random amount
-    amount = AlgoAmount.from_micro_algos(random.randint(1, 10000))
+    amount = AlgoAmount.from_micro_algo(random.randint(1, 10000))
     txn = algorand.create_transaction.payment(
         PaymentParams(
             sender=funded_account.address,
@@ -405,8 +405,8 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
     algorand.account.ensure_funded(
         account_to_fund=test_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(10),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(10),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     # Fund the account with 1 Algo
@@ -414,7 +414,7 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
         PaymentParams(
             sender=test_account.address,
             receiver=test_account.address,
-            amount=AlgoAmount.from_algos(random.randint(1, 5)),
+            amount=AlgoAmount.from_algo(random.randint(1, 5)),
         )
     )
 
@@ -434,8 +434,8 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     algorand.account.ensure_funded(
         account_to_fund=test_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(10),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(10),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     result = test_app_client.send.call(
@@ -495,7 +495,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
     box_name2 = bytes([0, 0, 0, 2])
     box_name2_base64 = base64.b64encode(box_name2).decode()
 
-    test_app_client.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algos(1)))
+    test_app_client.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
 
     test_app_client.send.call(
         AppClientMethodCallParams(
@@ -591,7 +591,7 @@ def test_box_methods_with_manually_encoded_abi_args(
     # Fund the app account
     box_prefix = b"box_bytes"
 
-    test_app_client_puya.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algos(1)))
+    test_app_client_puya.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
 
     # Encode the box reference
     box_identifier = box_prefix + ABIType.from_string("string").encode(box_name)
@@ -633,7 +633,7 @@ def test_box_methods_with_arc4_returns_parametrized(
     box_prefix = box_prefix_str.encode()
 
     # Fund the app account with 1 Algo
-    test_app_client_puya.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algos(1)))
+    test_app_client_puya.fund_app_account(params=FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
 
     # Encode the box name "box1" using ABIType "string"
     box_name_encoded = ABIType.from_string("string").encode("box1")

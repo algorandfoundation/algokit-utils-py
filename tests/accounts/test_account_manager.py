@@ -17,7 +17,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -78,7 +78,7 @@ def test_random_account_creation(algorand: AlgorandClient) -> None:
 def test_ensure_funded_from_environment(algorand: AlgorandClient) -> None:
     # Arrange
     account = algorand.account.random()
-    min_balance = AlgoAmount.from_algos(1)
+    min_balance = AlgoAmount.from_algo(1)
 
     # Act
     result = algorand.account.ensure_funded_from_environment(
@@ -90,7 +90,7 @@ def test_ensure_funded_from_environment(algorand: AlgorandClient) -> None:
     assert result is not None
     assert result.amount_funded is not None
     account_info = algorand.account.get_information(account.address)
-    assert account_info.amount_without_pending_rewards >= min_balance.micro_algos
+    assert account_info.amount_without_pending_rewards >= min_balance.micro_algo
 
 
 def test_get_account_information(algorand: AlgorandClient) -> None:

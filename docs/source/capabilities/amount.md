@@ -21,18 +21,18 @@ from algokit_utils import AlgoAmount
 There are a few ways to create an `AlgoAmount`:
 
 - Algo
-  - Constructor: `AlgoAmount(algo=10)` or `AlgoAmount(algos=10)`
-  - Static helper: `AlgoAmount.from_algo(10)` or `AlgoAmount.from_algos(10)`
+  - Constructor: `AlgoAmount(algo=10)`
+  - Static helper: `AlgoAmount.from_algo(10)`
 - microAlgo
-  - Constructor: `AlgoAmount(micro_algo=10_000)` or `AlgoAmount(micro_algos=10_000)`
-  - Static helper: `AlgoAmount.from_micro_algo(10_000)` or `AlgoAmount.from_micro_algos(10_000)`
+  - Constructor: `AlgoAmount(micro_algo=10_000)`
+  - Static helper: `AlgoAmount.from_micro_algo(10_000)`
 
 ### Extracting a value from `AlgoAmount`
 
 The `AlgoAmount` class has properties to return Algo and microAlgo:
 
-- `amount.algo` or `amount.algos` - Returns the value in Algo as a python `Decimal` object
-- `amount.micro_algo` or `amount.micro_algos` - Returns the value in microAlgo as an integer
+- `amount.algo` - Returns the value in Algo as a python `Decimal` object
+- `amount.micro_algo` - Returns the value in microAlgo as an integer
 
 `AlgoAmount` will coerce to an integer automatically (in microAlgo) when using `int(amount)`, which allows you to use `AlgoAmount` objects in comparison operations such as `<` and `>=` etc.
 

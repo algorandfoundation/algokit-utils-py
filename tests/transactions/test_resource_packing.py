@@ -27,7 +27,7 @@ def algorand() -> AlgorandClient:
 def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
-    algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algos(100))
+    algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algo(100))
     return new_account
 
 
@@ -500,11 +500,47 @@ class TestCoverAppCallInnerFees:
 
         # Fund app accounts
         for client in [self.app_client1, self.app_client2, self.app_client3]:
-            client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algos(2)))
+            client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(2)))
 
         yield
 
         config.configure(populate_app_call_resources=False)
+
+    def test_runs_auto_fee_coverage_implicitly_on_readonly_calls(self) -> None:
+        """Test that auto top-up is run implicitly on readonly calls"""
+
+        # Below must pass without explicit `populate_app_call_resources` flag
+        # Passing 'cover_app_call_inner_transaction_fees' is not required for readonly calls
+        self.app_client1.send.call(
+            AppClientMethodCallParams(
+                args=[6200],
+                method="burn_ops_readonly",
+            ),
+        )
+
+        # For fresh accounts with balance lower than max dummy assumed max_fee pre filled when no
+        # max_fee provided explicitly, it will fail
+        new_account_with_less_than_10_algo = self.app_client1.algorand.account.random()
+        self.app_client1.algorand.account.ensure_funded_from_environment(
+            account_to_fund=new_account_with_less_than_10_algo, min_spending_balance=AlgoAmount.from_algo(5)
+        )
+        with pytest.raises(ValueError, match=r"tried to spend \{10000000\}"):
+            self.app_client1.send.call(
+                AppClientMethodCallParams(
+                    args=[6200], method="burn_ops_readonly", sender=new_account_with_less_than_10_algo.address
+                ),
+            )
+
+        # But user can explicitly set a max_fee value in such cases
+        # while not having to set cover_app_call_inner_transaction_fees
+        self.app_client1.send.call(
+            AppClientMethodCallParams(
+                args=[6200],
+                method="burn_ops_readonly",
+                max_fee=AlgoAmount.from_micro_algo(10000),
+                signer=new_account_with_less_than_10_algo.signer,
+            ),
+        )
 
     def test_throws_when_no_max_fee(self) -> None:
         """Test that error is thrown when no max fee is supplied"""
@@ -525,7 +561,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
 
         with pytest.raises(Exception, match="fee too small"):
@@ -542,7 +578,7 @@ class TestCoverAppCallInnerFees:
         expected_fee = 1000
         params = AppClientMethodCallParams(
             method="no_op",
-            max_fee=AlgoAmount.from_micro_algos(2000),
+            max_fee=AlgoAmount.from_micro_algo(2000),
         )
         result = self.app_client1.send.call(
             params,
@@ -561,7 +597,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee - 1),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee - 1),
         )
 
         with pytest.raises(ValueError, match="Fees were too small to resolve execution info"):
@@ -579,7 +615,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-            static_fee=AlgoAmount.from_micro_algos(expected_fee - 1),
+            static_fee=AlgoAmount.from_micro_algo(expected_fee - 1),
         )
 
         with pytest.raises(ValueError, match="Fees were too small to resolve execution info"):
@@ -597,7 +633,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -616,7 +652,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 1000, 1000, 1000, [1000, 1000]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -635,7 +671,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -654,7 +690,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 1000, 5000, 0, [0, 50]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -673,14 +709,14 @@ class TestCoverAppCallInnerFees:
         txn_1_params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 1000, 0, 0, [200, 0]]],
-            static_fee=AlgoAmount.from_micro_algos(txn_1_expected_fee),
+            static_fee=AlgoAmount.from_micro_algo(txn_1_expected_fee),
             note=b"txn_1",
         )
 
         txn_2_params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 0, 0, [0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(txn_2_expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(txn_2_expected_fee),
             note=b"txn_2",
         )
 
@@ -703,7 +739,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
-            static_fee=AlgoAmount.from_micro_algos(expected_fee),
+            static_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -721,7 +757,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0, 20_000, 0, 0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -740,7 +776,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 2200, 0, [0, 0, 2500, 0, 0, 0]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -759,7 +795,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="send_inners_with_fees",
             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0, 0, 0, 0, 20_000]]],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(
             params,
@@ -782,7 +818,7 @@ class TestCoverAppCallInnerFees:
                 self.app_client3.app_id,
                 [0, 1200, [0, 0, 4900, 0, 0, 0], 200, 1100, [0, 0, 2500, 0, 0, 0]],
             ],
-            max_fee=AlgoAmount.from_micro_algos(expected_fee),
+            max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
@@ -800,8 +836,8 @@ class TestCoverAppCallInnerFees:
                 params=PaymentParams(
                     sender=funded_account.address,
                     receiver=funded_account.address,
-                    amount=AlgoAmount.from_micro_algos(0),
-                    static_fee=AlgoAmount.from_micro_algos(expected_fee),
+                    amount=AlgoAmount.from_micro_algo(0),
+                    static_fee=AlgoAmount.from_micro_algo(expected_fee),
                 )
             )
             .add_app_call_method_call(
@@ -809,7 +845,7 @@ class TestCoverAppCallInnerFees:
                     AppClientMethodCallParams(
                         method="send_inners_with_fees",
                         args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                        max_fee=AlgoAmount.from_micro_algos(expected_fee),
+                        max_fee=AlgoAmount.from_micro_algo(expected_fee),
                     )
                 )
             )
@@ -831,7 +867,7 @@ class TestCoverAppCallInnerFees:
                     AppClientMethodCallParams(
                         method="send_inners_with_fees",
                         args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                        max_fee=AlgoAmount.from_micro_algos(2000),
+                        max_fee=AlgoAmount.from_micro_algo(2000),
                     )
                 )
             )
@@ -839,16 +875,16 @@ class TestCoverAppCallInnerFees:
                 params=PaymentParams(
                     sender=funded_account.address,
                     receiver=funded_account.address,
-                    amount=AlgoAmount.from_micro_algos(0),
-                    static_fee=AlgoAmount.from_micro_algos(7500),
+                    amount=AlgoAmount.from_micro_algo(0),
+                    static_fee=AlgoAmount.from_micro_algo(7500),
                 )
             )
             .add_payment(
                 params=PaymentParams(
                     sender=funded_account.address,
                     receiver=funded_account.address,
-                    amount=AlgoAmount.from_micro_algos(0),
-                    static_fee=AlgoAmount.from_micro_algos(0),
+                    amount=AlgoAmount.from_micro_algo(0),
+                    static_fee=AlgoAmount.from_micro_algo(0),
                 )
             )
             .send({"cover_app_call_inner_transaction_fees": True})
@@ -876,15 +912,15 @@ class TestCoverAppCallInnerFees:
             AppClientMethodCallParams(
                 method="send_inners_with_fees",
                 args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 2000, 0, [0, 0]]],
-                max_fee=AlgoAmount.from_micro_algos(4000),
+                max_fee=AlgoAmount.from_micro_algo(4000),
             )
         )
 
         payment_params = PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
-            amount=AlgoAmount.from_micro_algos(0),
-            static_fee=AlgoAmount.from_micro_algos(1500),
+            amount=AlgoAmount.from_micro_algo(0),
+            static_fee=AlgoAmount.from_micro_algo(1500),
         )
 
         expected_fee = 2000
@@ -894,7 +930,7 @@ class TestCoverAppCallInnerFees:
                 self.app_client1.algorand.create_transaction.payment(payment_params),
                 txn_arg_call,
             ],
-            static_fee=AlgoAmount.from_micro_algos(expected_fee),
+            static_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
         result = nested_client.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
@@ -925,7 +961,7 @@ class TestCoverAppCallInnerFees:
                         AppClientMethodCallParams(
                             method="send_inners_with_fees",
                             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                            max_fee=AlgoAmount.from_micro_algos(1200),
+                            max_fee=AlgoAmount.from_micro_algo(1200),
                         )
                     )
                 )
@@ -935,7 +971,7 @@ class TestCoverAppCallInnerFees:
                     self.app_client1.params.call(
                         AppClientMethodCallParams(
                             method="no_op",
-                            max_fee=AlgoAmount.from_micro_algos(10_000),
+                            max_fee=AlgoAmount.from_micro_algo(10_000),
                         )
                     )
                 )
@@ -959,7 +995,7 @@ class TestCoverAppCallInnerFees:
             AppClientMethodCallParams(
                 method="send_inners_with_fees",
                 args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 2000, 0, [0, 0]]],
-                max_fee=AlgoAmount.from_micro_algos(2000),
+                max_fee=AlgoAmount.from_micro_algo(2000),
             )
         )
 
@@ -974,12 +1010,12 @@ class TestCoverAppCallInnerFees:
                             PaymentParams(
                                 sender=funded_account.address,
                                 receiver=funded_account.address,
-                                amount=AlgoAmount.from_micro_algos(0),
+                                amount=AlgoAmount.from_micro_algo(0),
                             )
                         ),
                         txn_arg_call,
                     ],
-                    max_fee=AlgoAmount.from_micro_algos(10_000),
+                    max_fee=AlgoAmount.from_micro_algo(10_000),
                 ),
                 send_params={
                     "cover_app_call_inner_transaction_fees": True,
@@ -999,7 +1035,7 @@ class TestCoverAppCallInnerFees:
                         AppClientMethodCallParams(
                             method="send_inners_with_fees",
                             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                            static_fee=AlgoAmount.from_micro_algos(5000),
+                            static_fee=AlgoAmount.from_micro_algo(5000),
                         )
                     )
                 )
@@ -1009,7 +1045,7 @@ class TestCoverAppCallInnerFees:
                     self.app_client1.params.call(
                         AppClientMethodCallParams(
                             method="no_op",
-                            max_fee=AlgoAmount.from_micro_algos(10_000),
+                            max_fee=AlgoAmount.from_micro_algo(10_000),
                         )
                     )
                 )
@@ -1029,8 +1065,8 @@ class TestCoverAppCallInnerFees:
                         AppClientMethodCallParams(
                             method="send_inners_with_fees",
                             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                            static_fee=AlgoAmount.from_micro_algos(13_000),
-                            max_fee=AlgoAmount.from_micro_algos(14_000),
+                            static_fee=AlgoAmount.from_micro_algo(13_000),
+                            max_fee=AlgoAmount.from_micro_algo(14_000),
                         )
                     )
                 )
@@ -1039,7 +1075,7 @@ class TestCoverAppCallInnerFees:
                         AppClientMethodCallParams(
                             method="send_inners_with_fees",
                             args=[self.app_client2.app_id, self.app_client3.app_id, [0, 0, 0, 0, [0, 0]]],
-                            static_fee=AlgoAmount.from_micro_algos(1000),
+                            static_fee=AlgoAmount.from_micro_algo(1000),
                         )
                     )
                 )
@@ -1047,8 +1083,8 @@ class TestCoverAppCallInnerFees:
                     params=PaymentParams(
                         sender=funded_account.address,
                         receiver=funded_account.address,
-                        amount=AlgoAmount.from_micro_algos(0),
-                        static_fee=AlgoAmount.from_micro_algos(500),
+                        amount=AlgoAmount.from_micro_algo(0),
+                        static_fee=AlgoAmount.from_micro_algo(500),
                     )
                 )
                 .send({"cover_app_call_inner_transaction_fees": True})
@@ -1061,7 +1097,7 @@ class TestCoverAppCallInnerFees:
         params = AppClientMethodCallParams(
             method="burn_ops",
             args=[6200],
-            max_fee=AlgoAmount.from_micro_algos(12_000),
+            max_fee=AlgoAmount.from_micro_algo(12_000),
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 

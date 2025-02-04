@@ -254,7 +254,7 @@ def test_simulate_response_filename_generation(
             PaymentParams(
                 sender=funded_account.address,
                 receiver=client_fixture.app_address,
-                amount=AlgoAmount.from_micro_algos(1_000_000 * (i + 1)),
+                amount=AlgoAmount.from_micro_algo(1_000_000 * (i + 1)),
                 note=f"Payment{i+1}".encode(),
             )
         )

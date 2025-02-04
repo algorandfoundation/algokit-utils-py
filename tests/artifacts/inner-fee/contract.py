@@ -12,7 +12,16 @@ from algopy import (
 
 
 class InnerFeeContract(ARC4Contract):
-    @arc4.abimethod
+    @arc4.abimethod(readonly=True)
+    def burn_ops_readonly(self, op_budget: UInt64) -> None:
+        # Uses approx 60 op budget per iteration
+        count = op_budget // 60
+        ensure_budget(op_budget)
+        for i in urange(count):
+            sqrt = op.bsqrt(BigUInt(i))
+            assert sqrt >= 0  # Prevent optimiser removing the sqrt
+
+    @arc4.abimethod()
     def burn_ops(self, op_budget: UInt64) -> None:
         # Uses approx 60 op budget per iteration
         count = op_budget // 60
