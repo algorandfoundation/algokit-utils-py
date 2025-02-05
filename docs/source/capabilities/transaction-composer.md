@@ -330,13 +330,13 @@ This feature should efficiently calculate the minimum fee needed to execute an a
 
 #### Read-only calls
 
-When interacting with read-only calls, the transactions are not sent to the network, instead a simulation is performed to evaluate the transaction.
-However, a read-only call will still consume the op budget, so to prevent this, by the default, the following logic is applied:
+When invoking a readonly method, the transaction is simulated rather than being fully processed by the network. This allows users to call these methods without paying a fee.
 
-1. If `max_fee` is not specified, `algokit-utils` will automatically set `max_fee` to `10` Algo.
-2. If `max_fee` is specified, provided `max_fee` value will be respected when calculating required fee per read-only call.
+Even though no actual fee is paid, the simulation still evaluates the transaction as if a fee was being paid, therefore op budget and fee coverage checks are still performed.
 
-In either cases, resource population and app call inner transaction fees will still be automatically calculated and applied as per the rules above however there is no need to explicitly specify `populate_app_call_resources=True` or `cover_app_call_inner_transaction_fees=True` when sending read-only calls.
+Because no fee is actually paid, calculating the minimum fee required to successfully execute the transaction is not required, and therefore we don't need to send an additional simulate call to calculate the minimum fee, like we do with a non readonly method call.
+
+The behaviour of enabling `cover_app_call_inner_transaction_fees` for readonly method calls is very similar to non readonly method calls, however is subtly different as we use `max_fee` as the transaction fee when executing the readonly method call.
 
 ### Covering App Call Op Budget
 

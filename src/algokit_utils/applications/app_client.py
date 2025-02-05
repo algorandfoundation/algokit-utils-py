@@ -5,7 +5,7 @@ import copy
 import json
 import os
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass, fields
+from dataclasses import asdict, dataclass, fields, replace
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 import algosdk
@@ -54,6 +54,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppUpdateParams,
     BuiltTransactions,
     PaymentParams,
+    SendAtomicTransactionComposerResults,
 )
 from algokit_utils.transactions.transaction_sender import (
     SendAppTransactionResult,
@@ -1195,21 +1196,43 @@ class _TransactionSender:
         ) and self._app_spec.get_arc56_method(params.method).readonly
 
         if is_read_only_call:
+            readonly_params = params
+            readonly_send_params = send_params or SendParams()
+
+            # Read-only calls do not require fees to be paid, as they are only simulated on the network.
+            # Therefore there is no value in calculating the minimum fee needed for a successful app call with inners.
+            # As a a result we only need to send a single simulate call,
+            # however to do this successfully we need to ensure fees for the transaction are fully covered using maxFee.
+            if readonly_send_params.get("cover_app_call_inner_transaction_fees"):
+                if params.max_fee is None:
+                    raise ValueError(
+                        "Please provide a `max_fee` for the transaction when `cover_app_call_inner_transaction_fees` is enabled."  # noqa: E501
+                    )
+                readonly_params = replace(readonly_params, static_fee=params.max_fee, extra_fee=None)
+
             method_call_to_simulate = self._algorand.new_group().add_app_call_method_call(
-                self._client.params.call(params)
+                self._client.params.call(readonly_params)
             )
-            send_params = send_params or SendParams()
-            simulate_response = self._client._handle_call_errors(
-                lambda: method_call_to_simulate.simulate(
-                    allow_unnamed_resources=send_params.get("populate_app_call_resources") or True,
-                    skip_signatures=True,
-                    allow_more_logs=True,
-                    allow_empty_signatures=True,
-                    extra_opcode_budget=None,
-                    exec_trace_config=None,
-                    simulation_round=None,
-                )
-            )
+
+            def run_simulate() -> SendAtomicTransactionComposerResults:
+                try:
+                    return method_call_to_simulate.simulate(
+                        allow_unnamed_resources=readonly_send_params.get("populate_app_call_resources") or True,
+                        skip_signatures=True,
+                        allow_more_logs=True,
+                        allow_empty_signatures=True,
+                        extra_opcode_budget=None,
+                        exec_trace_config=None,
+                        simulation_round=None,
+                    )
+                except Exception as e:
+                    if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "fee too small" in str(e):
+                        raise ValueError(
+                            "Fees were too small. You may need to increase the transaction `maxFee`."
+                        ) from e
+                    raise
+
+            simulate_response = self._client._handle_call_errors(run_simulate)
 
             return SendAppTransactionResult[Arc56ReturnValueType](
                 tx_ids=simulate_response.tx_ids,

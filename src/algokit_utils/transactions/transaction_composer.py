@@ -616,12 +616,6 @@ MAX_LEASE_LENGTH = 32
 NULL_SIGNER: TransactionSigner = algosdk.atomic_transaction_composer.EmptySigner()
 
 
-def _get_dummy_max_fees_for_simulated_opups(group_len: int) -> dict[int, AlgoAmount]:
-    from algokit_utils.models.amount import AlgoAmount
-
-    return {i: AlgoAmount(algo=10) for i in range(group_len)}
-
-
 def _encode_lease(lease: str | bytes | None) -> bytes | None:
     if lease is None:
         return None
@@ -1710,17 +1704,6 @@ class TransactionComposer:
             atc.method_dict = transactions.method_calls
         else:
             self.build()
-
-        atc = prepare_group_for_sending(
-            atc,
-            self._algod,
-            populate_app_call_resources=allow_unnamed_resources,
-            cover_app_call_inner_transaction_fees=allow_unnamed_resources,
-            additional_atc_context=AdditionalAtcContext(
-                suggested_params=self._get_suggested_params(),
-                max_fees=self._txn_max_fees or _get_dummy_max_fees_for_simulated_opups(atc.get_tx_count()),
-            ),
-        )
 
         if config.debug and config.project_root and config.trace_all:
             response = simulate_and_persist_response(
