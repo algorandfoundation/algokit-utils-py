@@ -48,6 +48,8 @@ class KmdAccountManager:
         if self._kmd is None:
             if self._client_manager.is_localnet():
                 kmd_config = ClientManager.get_config_from_environment_or_localnet()
+                if not kmd_config.kmd_config:
+                    raise Exception("Attempt to use KMD client with no KMD configured")
                 self._kmd = ClientManager.get_kmd_client(kmd_config.kmd_config)
                 return self._kmd
             raise Exception("Attempt to use KMD client with no KMD configured")

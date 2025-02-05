@@ -1190,6 +1190,7 @@ class _TransactionSender:
         :param params: Parameters for the application call including method and transaction options
         :param send_params: Send parameters
         :return: The result of sending or simulating the transaction, including ABI return value if applicable
+        :raises ValueError: If the transaction is read-only and `max_fee` is not provided
         """
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
