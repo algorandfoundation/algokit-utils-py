@@ -12,10 +12,14 @@ class AlgoClientNetworkConfig:
     {py:class}`algosdk.v2client.indexer.IndexerClient`"""
 
     server: str
-    """URL for the service e.g. `http://localhost:4001` or `https://testnet-api.algonode.cloud`"""
+    """URL for the service e.g. `http://localhost` or `https://testnet-api.algonode.cloud`"""
     token: str | None = None
-    """API Token to authenticate with the service"""
+    """API Token to authenticate with the service e.g '4001' or '8980'"""
     port: str | int | None = None
+
+    def full_url(self) -> str:
+        """Returns the full URL for the service"""
+        return f"{self.server.rstrip('/')}{f':{self.port}' if self.port else ''}"
 
 
 @dataclasses.dataclass

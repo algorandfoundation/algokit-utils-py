@@ -188,7 +188,7 @@ Get an application client by creator address and name.
 * **Returns:**
   Application client instance
 
-#### *static* get_algod_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig) | None = None) → algosdk.v2client.algod.AlgodClient
+#### *static* get_algod_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.v2client.algod.AlgodClient
 
 Get an Algod client from config or environment.
 
@@ -204,7 +204,7 @@ Get an Algod client from environment variables.
 * **Returns:**
   Algod client instance
 
-#### *static* get_kmd_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig) | None = None) → algosdk.kmd.KMDClient
+#### *static* get_kmd_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.kmd.KMDClient
 
 Get a KMD client from config or environment.
 
@@ -220,7 +220,7 @@ Get a KMD client from environment variables.
 * **Returns:**
   KMD client instance
 
-#### *static* get_indexer_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig) | None = None) → algosdk.v2client.indexer.IndexerClient
+#### *static* get_indexer_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.v2client.indexer.IndexerClient
 
 Get an Indexer client from config or environment.
 

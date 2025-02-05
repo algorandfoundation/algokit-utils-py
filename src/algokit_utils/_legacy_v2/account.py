@@ -177,10 +177,10 @@ def get_account(
     For LocalNet environments, loads or creates an account from a KMD wallet named {name}.
 
     :example:
-    >>> # If you have a mnemonic secret loaded into `os.environ["ACCOUNT_MNEMONIC"]` then you can call:
-    >>> account = get_account('ACCOUNT', algod)
-    >>> # If that code runs against LocalNet then a wallet called 'ACCOUNT' will automatically be created
-    >>> # with an account that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
+        >>> # If you have a mnemonic secret loaded into `os.environ["ACCOUNT_MNEMONIC"]` then you can call:
+        >>> account = get_account('ACCOUNT', algod)
+        >>> # If that code runs against LocalNet then a wallet called 'ACCOUNT' will automatically be created
+        >>> # with an account that is automatically funded with 1000 (default) ALGOs from the default LocalNet dispenser.
 
     :param client: The Algorand client to use
     :param name: The name identifier to use for loading/creating the account

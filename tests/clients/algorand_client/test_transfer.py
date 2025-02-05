@@ -24,7 +24,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -37,7 +37,7 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
         PaymentParams(
             sender=funded_account.address,
             receiver=second_account.address,
-            amount=AlgoAmount.from_algos(5),
+            amount=AlgoAmount.from_algo(5),
             note=b"Transfer 5 Algos",
         )
     )
@@ -58,7 +58,7 @@ def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_ac
         PaymentParams(
             sender=funded_account.address,
             receiver=second_account.address,
-            amount=AlgoAmount.from_algos(1),
+            amount=AlgoAmount.from_algo(1),
             lease=b"test",
         )
     )
@@ -68,7 +68,7 @@ def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_ac
             PaymentParams(
                 sender=funded_account.address,
                 receiver=second_account.address,
-                amount=AlgoAmount.from_algos(2),
+                amount=AlgoAmount.from_algo(2),
                 lease=b"test",
             )
         )
@@ -81,7 +81,7 @@ def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funde
         PaymentParams(
             sender=funded_account.address,
             receiver=second_account.address,
-            amount=AlgoAmount.from_algos(1),
+            amount=AlgoAmount.from_algo(1),
             lease=b"\x01\x02\x03\x04",
         )
     )
@@ -91,7 +91,7 @@ def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funde
             PaymentParams(
                 sender=funded_account.address,
                 receiver=second_account.address,
-                amount=AlgoAmount.from_algos(2),
+                amount=AlgoAmount.from_algo(2),
                 lease=b"\x01\x02\x03\x04",
             )
         )
@@ -104,8 +104,8 @@ def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: S
     algorand.account.ensure_funded(
         account_to_fund=second_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     algorand.send.asset_opt_in(
@@ -162,8 +162,8 @@ def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_accou
     algorand.account.ensure_funded(
         account_to_fund=second_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     with pytest.raises(Exception, match=f"asset {test_asset_id} missing from {second_account.address}"):
@@ -183,8 +183,8 @@ def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_accoun
     algorand.account.ensure_funded(
         account_to_fund=second_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     with pytest.raises(Exception, match=f"asset 123123 missing from {funded_account.address}"):
@@ -205,8 +205,8 @@ def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_accoun
     algorand.account.ensure_funded(
         account_to_fund=second_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     with pytest.raises(Exception, match="account asset info not found"):
@@ -244,14 +244,14 @@ def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_ac
     algorand.account.ensure_funded(
         account_to_fund=second_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
     algorand.account.ensure_funded(
         account_to_fund=clawback_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     algorand.send.asset_opt_in(
@@ -302,7 +302,7 @@ def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_ac
     assert test_account_info.balance == 95
 
 
-MINIMUM_BALANCE = AlgoAmount.from_micro_algos(
+MINIMUM_BALANCE = AlgoAmount.from_micro_algo(
     100_000
 )  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
 
@@ -312,12 +312,12 @@ def test_ensure_funded(algorand: AlgorandClient, funded_account: SigningAccount)
     response = algorand.account.ensure_funded(
         account_to_fund=test_account,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
     )
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert to_account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
+    assert to_account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algo(1)
 
 
 def test_ensure_funded_uses_dispenser_by_default(
@@ -328,8 +328,8 @@ def test_ensure_funded_uses_dispenser_by_default(
 
     result = algorand.account.ensure_funded_from_environment(
         account_to_fund=second_account,
-        min_spending_balance=AlgoAmount.from_algos(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_spending_balance=AlgoAmount.from_algo(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     assert result is not None
@@ -337,7 +337,7 @@ def test_ensure_funded_uses_dispenser_by_default(
     assert result.transaction.payment.sender == dispenser.address
 
     account_info = algorand.account.get_information(second_account)
-    assert account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algos(1)
+    assert account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algo(1)
 
 
 def test_ensure_funded_respects_minimum_funding_increment(
@@ -348,12 +348,12 @@ def test_ensure_funded_respects_minimum_funding_increment(
         account_to_fund=test_account,
         dispenser_account=funded_account,
         min_spending_balance=AlgoAmount.from_micro_algo(1),
-        min_funding_increment=AlgoAmount.from_algos(1),
+        min_funding_increment=AlgoAmount.from_algo(1),
     )
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert to_account_info.amount == AlgoAmount.from_algos(1)
+    assert to_account_info.amount == AlgoAmount.from_algo(1)
 
 
 def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock) -> None:
@@ -422,7 +422,7 @@ def test_rekey_works(algorand: AlgorandClient, funded_account: SigningAccount) -
         PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
-            amount=AlgoAmount.from_micro_algos(1),
+            amount=AlgoAmount.from_micro_algo(1),
             signer=second_account.signer,
         )
     )

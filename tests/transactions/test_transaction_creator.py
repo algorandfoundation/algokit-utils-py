@@ -41,7 +41,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algos(100), min_funding_increment=AlgoAmount.from_algos(1)
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -51,7 +51,7 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
 def funded_secondary_account(algorand: AlgorandClient, funded_account: SigningAccount) -> SigningAccount:
     account = algorand.account.random()
     algorand.send.payment(
-        PaymentParams(sender=funded_account.address, receiver=account.address, amount=AlgoAmount.from_algos(1))
+        PaymentParams(sender=funded_account.address, receiver=account.address, amount=AlgoAmount.from_algo(1))
     )
     return account
 
@@ -61,14 +61,14 @@ def test_create_payment_transaction(algorand: AlgorandClient, funded_account: Si
         PaymentParams(
             sender=funded_account.address,
             receiver=funded_account.address,
-            amount=AlgoAmount.from_algos(1),
+            amount=AlgoAmount.from_algo(1),
         )
     )
 
     assert isinstance(txn, PaymentTxn)
     assert txn.sender == funded_account.address
     assert txn.receiver == funded_account.address
-    assert txn.amt == AlgoAmount.from_algos(1).micro_algos
+    assert txn.amt == AlgoAmount.from_algo(1).micro_algo
 
 
 def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:

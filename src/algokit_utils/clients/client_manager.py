@@ -77,8 +77,8 @@ def _get_config_from_environment(environment_prefix: str) -> AlgoClientNetworkCo
     port = os.getenv(f"{environment_prefix}_PORT")
     if port:
         parsed = parse.urlparse(server)
-        server = parsed._replace(netloc=f"{parsed.hostname}:{port}").geturl()
-    return AlgoClientNetworkConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""))
+        server = parsed._replace(netloc=f"{parsed.hostname}").geturl()
+    return AlgoClientNetworkConfig(server, os.getenv(f"{environment_prefix}_TOKEN", ""), port=port)
 
 
 class ClientManager:
@@ -351,15 +351,18 @@ class ClientManager:
         )
 
     @staticmethod
-    def get_algod_client(config: AlgoClientNetworkConfig | None = None) -> AlgodClient:
+    def get_algod_client(config: AlgoClientNetworkConfig) -> AlgodClient:
         """Get an Algod client from config or environment.
 
         :param config: Optional client configuration
         :return: Algod client instance
         """
-        config = config or _get_config_from_environment("ALGOD")
         headers = {"X-Algo-API-Token": config.token or ""}
-        return AlgodClient(algod_token=config.token or "", algod_address=config.server, headers=headers)
+        return AlgodClient(
+            algod_token=config.token or "",
+            algod_address=config.full_url(),
+            headers=headers,
+        )
 
     @staticmethod
     def get_algod_client_from_environment() -> AlgodClient:
@@ -370,14 +373,13 @@ class ClientManager:
         return ClientManager.get_algod_client(ClientManager.get_algod_config_from_environment())
 
     @staticmethod
-    def get_kmd_client(config: AlgoClientNetworkConfig | None = None) -> KMDClient:
+    def get_kmd_client(config: AlgoClientNetworkConfig) -> KMDClient:
         """Get a KMD client from config or environment.
 
         :param config: Optional client configuration
         :return: KMD client instance
         """
-        config = config or _get_config_from_environment("KMD")
-        return KMDClient(config.token, config.server)
+        return KMDClient(config.token, config.full_url())
 
     @staticmethod
     def get_kmd_client_from_environment() -> KMDClient:
@@ -388,15 +390,18 @@ class ClientManager:
         return ClientManager.get_kmd_client(ClientManager.get_kmd_config_from_environment())
 
     @staticmethod
-    def get_indexer_client(config: AlgoClientNetworkConfig | None = None) -> IndexerClient:
+    def get_indexer_client(config: AlgoClientNetworkConfig) -> IndexerClient:
         """Get an Indexer client from config or environment.
 
         :param config: Optional client configuration
         :return: Indexer client instance
         """
-        config = config or _get_config_from_environment("INDEXER")
         headers = {"X-Indexer-API-Token": config.token}
-        return IndexerClient(indexer_token=config.token, indexer_address=config.server, headers=headers)
+        return IndexerClient(
+            indexer_token=config.token,
+            indexer_address=config.full_url(),
+            headers=headers,
+        )
 
     @staticmethod
     def get_indexer_client_from_environment() -> IndexerClient:
@@ -611,7 +616,7 @@ class ClientManager:
             else {"algod": 4001, "indexer": 8980, "kmd": 4002}[config_or_port]
         )
 
-        return AlgoClientNetworkConfig(server=f"http://localhost:{port}", token="a" * 64)
+        return AlgoClientNetworkConfig(server="http://localhost", token="a" * 64, port=port)
 
     @staticmethod
     def get_algod_config_from_environment() -> AlgoClientNetworkConfig:

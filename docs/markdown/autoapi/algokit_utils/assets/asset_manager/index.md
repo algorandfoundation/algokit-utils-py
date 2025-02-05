@@ -39,22 +39,21 @@ Information about an Algorand Standard Asset (ASA).
   * **decimals** – The amount of decimal places the asset was created with
   * **default_frozen** – Whether the asset was frozen by default for all accounts, defaults to None
   * **manager** – The address of the optional account that can manage the configuration of the asset and destroy it,
-
-defaults to None
-:ivar reserve: The address of the optional account that holds the reserve (uncirculated supply) units of the asset,
-defaults to None
-:ivar freeze: The address of the optional account that can be used to freeze or unfreeze holdings of this asset,
-defaults to None
-:ivar clawback: The address of the optional account that can clawback holdings of this asset from any account,
-defaults to None
-:ivar unit_name: The optional name of the unit of this asset (e.g. ticker name), defaults to None
-:ivar unit_name_b64: The optional name of the unit of this asset as bytes, defaults to None
-:ivar asset_name: The optional name of the asset, defaults to None
-:ivar asset_name_b64: The optional name of the asset as bytes, defaults to None
-:ivar url: Optional URL where more information about the asset can be retrieved, defaults to None
-:ivar url_b64: Optional URL where more information about the asset can be retrieved as bytes, defaults to None
-:ivar metadata_hash: 32-byte hash of some metadata that is relevant to the asset and/or asset holders,
-defaults to None
+    defaults to None
+  * **reserve** – The address of the optional account that holds the reserve (uncirculated supply) units of the asset,
+    defaults to None
+  * **freeze** – The address of the optional account that can be used to freeze or unfreeze holdings of this asset,
+    defaults to None
+  * **clawback** – The address of the optional account that can clawback holdings of this asset from any account,
+    defaults to None
+  * **unit_name** – The optional name of the unit of this asset (e.g. ticker name), defaults to None
+  * **unit_name_b64** – The optional name of the unit of this asset as bytes, defaults to None
+  * **asset_name** – The optional name of the asset, defaults to None
+  * **asset_name_b64** – The optional name of the asset as bytes, defaults to None
+  * **url** – Optional URL where more information about the asset can be retrieved, defaults to None
+  * **url_b64** – Optional URL where more information about the asset can be retrieved as bytes, defaults to None
+  * **metadata_hash** – 32-byte hash of some metadata that is relevant to the asset and/or asset holders,
+    defaults to None
 
 #### asset_id *: int*
 
