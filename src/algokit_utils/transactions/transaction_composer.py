@@ -109,7 +109,7 @@ class PaymentParams(_CommonTxnParams):
     :ivar receiver: The account that will receive the ALGO
     :ivar amount: Amount to send
     :ivar close_remainder_to: If given, close the sender account and send the remaining balance to this address,
-    defaults to None
+        defaults to None
     """
 
     receiver: str
@@ -301,9 +301,9 @@ class AppCreateParams(_CommonTxnParams):
     """Parameters for creating an application.
 
     :ivar approval_program: The program to execute for all OnCompletes other than ClearState as raw teal (string)
-    or compiled teal (bytes)
+        or compiled teal (bytes)
     :ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-    or compiled teal (bytes)
+        or compiled teal (bytes)
     :ivar schema: The state schema for the app. This is immutable, defaults to None
     :ivar on_complete: The OnComplete action (cannot be ClearState), defaults to None
     :ivar args: Application arguments, defaults to None
@@ -332,9 +332,9 @@ class AppUpdateParams(_CommonTxnParams):
 
     :ivar app_id: ID of the application
     :ivar approval_program: The program to execute for all OnCompletes other than ClearState as raw teal (string)
-    or compiled teal (bytes)
+        or compiled teal (bytes)
     :ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-    or compiled teal (bytes)
+        or compiled teal (bytes)
     :ivar args: Application arguments, defaults to None
     :ivar account_references: Account references, defaults to None
     :ivar app_references: App references, defaults to None
@@ -419,7 +419,7 @@ class AppCallMethodCallParams(_BaseAppMethodCall):
     :ivar app_id: ID of the application
     :ivar method: The ABI method to call
     :ivar args: Arguments to the ABI method, either an ABI value, transaction with explicit signer,
-    transaction, another method call, or None
+        transaction, another method call, or None
     :ivar on_complete: The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
     """
 
@@ -1326,7 +1326,7 @@ class TransactionComposer:
     :param algod: An instance of AlgodClient used to get suggested params and send transactions
     :param get_signer: A function that takes an address and returns a TransactionSigner for that address
     :param get_suggested_params: Optional function to get suggested transaction parameters,
-    defaults to using algod.suggested_params()
+        defaults to using algod.suggested_params()
     :param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
     :param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
     """

@@ -148,7 +148,7 @@ class AccountManager:
     :param client_manager: The ClientManager client to use for algod and kmd clients
 
     :example:
-    >>> account_manager = AccountManager(client_manager)
+        >>> account_manager = AccountManager(client_manager)
     """
 
     def __init__(self, client_manager: ClientManager):
@@ -172,11 +172,11 @@ class AccountManager:
         :returns: The `AccountManager` so method calls can be chained
 
         :example:
-        >>> signer_account = account_manager.random()
-        >>> account_manager.set_default_signer(signer_account.signer)
-        >>> # When signing a transaction, if there is no signer registered for the sender
-        >>> # then the default signer will be used
-        >>> signer = account_manager.get_signer("{SENDERADDRESS}")
+            >>> signer_account = account_manager.random()
+            >>> account_manager.set_default_signer(signer_account.signer)
+            >>> # When signing a transaction, if there is no signer registered for the sender
+            >>> # then the default signer will be used
+            >>> signer = account_manager.get_signer("{SENDERADDRESS}")
         """
         self._default_signer = signer if isinstance(signer, TransactionSigner) else signer.signer
         return self
@@ -190,7 +190,7 @@ class AccountManager:
         :returns: The `AccountManager` instance for method chaining
 
         :example:
-        >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
+            >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
         """
         self._accounts[sender] = TransactionSignerAccount(address=sender, signer=signer)
         return self
@@ -221,11 +221,11 @@ class AccountManager:
         :returns: The `AccountManager` instance for method chaining
 
         :example:
-        >>> account_manager = AccountManager(client_manager)
-        >>> account_manager.set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
-        >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
-        >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
-        """
+            >>> account_manager = AccountManager(client_manager)
+            >>> account_manager.set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
+            >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
+            >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
+        """  # noqa: E501
         self._accounts[account.address] = account
         return self
 
@@ -240,7 +240,7 @@ class AccountManager:
         :raises ValueError: If no signer is found and no default signer is set
 
         :example:
-        >>> signer = account_manager.get_signer("SENDERADDRESS")
+            >>> signer = account_manager.get_signer("SENDERADDRESS")
         """
         signer = self._accounts.get(self._get_address(sender)) or self._default_signer
         if not signer:
@@ -256,10 +256,10 @@ class AccountManager:
         :raises ValueError: If no account is found or if the account is not a regular account
 
         :example:
-        >>> sender = account_manager.random().address
-        >>> # ...
-        >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
-        >>> account = account_manager.get_account(sender)
+            >>> sender = account_manager.random().address
+            >>> # ...
+            >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
+            >>> account = account_manager.get_account(sender)
         """
         account = self._accounts.get(sender)
         if not account:
@@ -279,8 +279,8 @@ class AccountManager:
         :returns: The account information
 
         :example:
-        >>> address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
-        >>> account_info = account_manager.get_information(address)
+            >>> address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
+            >>> account_info = account_manager.get_information(address)
         """
         info = self._client_manager.algod.account_info(self._get_address(sender))
         assert isinstance(info, dict)
@@ -342,7 +342,7 @@ class AccountManager:
             from the environment (ideally via a secret storage service) rather than the file system.
 
         :example:
-        >>> account = account_manager.from_mnemonic("mnemonic secret ...")
+            >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
         return self._register_account(to_private_key(mnemonic), sender)
 
@@ -355,7 +355,7 @@ class AccountManager:
 
         :param name: The name identifier of the account
         :param fund_with: Optional amount to fund the account with when it gets created
-        (when targeting LocalNet)
+            (when targeting LocalNet)
         :returns: The account
         :raises ValueError: If environment variable {NAME}_MNEMONIC is missing when looking for account {NAME}
 
@@ -368,10 +368,10 @@ class AccountManager:
                   it will create it and fund the account for you
 
         :example:
-        >>> # If you have a mnemonic secret loaded into `MY_ACCOUNT_MNEMONIC` then you can call:
-        >>> account = account_manager.from_environment('MY_ACCOUNT')
-        >>> # If that code runs against LocalNet then a wallet called `MY_ACCOUNT` will automatically be created
-        >>> # with an account that is automatically funded with the specified amount from the default LocalNet dispenser
+            >>> # If you have a mnemonic secret loaded into `MY_ACCOUNT_MNEMONIC` then you can call:
+            >>> account = account_manager.from_environment('MY_ACCOUNT')
+            >>> # If that code runs against LocalNet then a wallet called `MY_ACCOUNT` will automatically be created
+            >>> # with an account that is automatically funded with the specified amount from the LocalNet dispenser
         """
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
@@ -398,10 +398,10 @@ class AccountManager:
         :raises ValueError: If unable to find KMD account with given name and predicate
 
         :example:
-        >>> # Get default funded account in a LocalNet:
-        >>> defaultDispenserAccount = account.from_kmd('unencrypted-default-wallet',
-        ...     lambda a: a.status != 'Offline' and a.amount > 1_000_000_000
-        ... )
+            >>> # Get default funded account in a LocalNet:
+            >>> defaultDispenserAccount = account.from_kmd('unencrypted-default-wallet',
+            ...     lambda a: a.status != 'Offline' and a.amount > 1_000_000_000
+            ... )
         """
         kmd_account = self._kmd_account_manager.get_wallet_account(name, predicate, sender)
         if not kmd_account:
@@ -418,7 +418,7 @@ class AccountManager:
         :returns: A logic signature account wrapper
 
         :example:
-        >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
+            >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
         """
         return self._register_logicsig(program, args)
 
@@ -431,12 +431,12 @@ class AccountManager:
         :returns: A multisig account wrapper
 
         :example:
-        >>> account = account_manager.multi_sig(
-        ...     version=1,
-        ...     threshold=1,
-        ...     addrs=["ADDRESS1...", "ADDRESS2..."],
-        ...     signing_accounts=[account1, account2]
-        ... )
+            >>> account = account_manager.multi_sig(
+            ...     version=1,
+            ...     threshold=1,
+            ...     addrs=["ADDRESS1...", "ADDRESS2..."],
+            ...     signing_accounts=[account1, account2]
+            ... )
         """
         return self._register_multisig(metadata, signing_accounts)
 
@@ -447,7 +447,7 @@ class AccountManager:
         :returns: The account
 
         :example:
-        >>> account = account_manager.random()
+            >>> account = account_manager.random()
         """
         private_key, _ = algosdk.account.generate_account()
         return self._register_account(private_key)
@@ -461,7 +461,7 @@ class AccountManager:
         :returns: The account
 
         :example:
-        >>> account = account_manager.localnet_dispenser()
+            >>> account = account_manager.localnet_dispenser()
         """
         kmd_account = self._kmd_account_manager.get_localnet_dispenser_account()
         return self._register_account(kmd_account.private_key)
@@ -475,7 +475,7 @@ class AccountManager:
         :returns: The account
 
         :example:
-        >>> account = account_manager.dispenser_from_environment()
+            >>> account = account_manager.dispenser_from_environment()
         """
         name = os.getenv(f"{DISPENSER_ACCOUNT_NAME}_MNEMONIC")
         if name:
@@ -493,8 +493,8 @@ class AccountManager:
         :returns: The rekeyed account
 
         :example:
-        >>> account = account.from_mnemonic("mnemonic secret ...")
-        >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
+            >>> account = account.from_mnemonic("mnemonic secret ...")
+            >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
         """
         sender_address = sender.address if isinstance(sender, SigningAccount) else sender
         self._accounts[sender_address] = TransactionSignerAccount(address=sender_address, signer=account.signer)
@@ -540,23 +540,23 @@ class AccountManager:
             `official rekey guidance <https://developer.algorand.org/docs/get-details/accounts/rekey/>`_.
 
         :example:
-        >>> # Basic example (with string addresses):
-        >>> algorand.account.rekey_account({account: "ACCOUNTADDRESS", rekey_to: "NEWADDRESS"})
-        >>> # Basic example (with signer accounts):
-        >>> algorand.account.rekey_account({account: account1, rekey_to: newSignerAccount})
-        >>> # Advanced example:
-        >>> algorand.account.rekey_account({
-        ...     account: "ACCOUNTADDRESS",
-        ...     rekey_to: "NEWADDRESS",
-        ...     lease: 'lease',
-        ...     note: 'note',
-        ...     first_valid_round: 1000,
-        ...     validity_window: 10,
-        ...     extra_fee: AlgoAmount.from_micro_algo(1000),
-        ...     static_fee: AlgoAmount.from_micro_algo(1000),
-        ...     max_fee: AlgoAmount.from_micro_algo(3000),
-        ...     suppress_log: True,
-        ... })
+            >>> # Basic example (with string addresses):
+            >>> algorand.account.rekey_account({account: "ACCOUNTADDRESS", rekey_to: "NEWADDRESS"})
+            >>> # Basic example (with signer accounts):
+            >>> algorand.account.rekey_account({account: account1, rekey_to: newSignerAccount})
+            >>> # Advanced example:
+            >>> algorand.account.rekey_account({
+            ...     account: "ACCOUNTADDRESS",
+            ...     rekey_to: "NEWADDRESS",
+            ...     lease: 'lease',
+            ...     note: 'note',
+            ...     first_valid_round: 1000,
+            ...     validity_window: 10,
+            ...     extra_fee: AlgoAmount.from_micro_algo(1000),
+            ...     static_fee: AlgoAmount.from_micro_algo(1000),
+            ...     max_fee: AlgoAmount.from_micro_algo(3000),
+            ...     suppress_log: True,
+            ... })
         """
         sender_address = self._get_address(account)
         rekey_address = self._get_address(rekey_to)
@@ -623,7 +623,7 @@ class AccountManager:
         :param account_to_fund: The account to fund
         :param dispenser_account: The account to use as a dispenser funding source
         :param min_spending_balance: The minimum balance of Algo that the account
-        should have available to spend
+            should have available to spend
         :param min_funding_increment: Optional minimum funding increment
         :param send_params: Parameters for the send operation, defaults to None
         :param signer: Optional transaction signer
@@ -637,20 +637,20 @@ class AccountManager:
         :param first_valid_round: Optional first valid round
         :param last_valid_round: Optional last valid round
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed,
-        or None if no funds were needed
+            or None if no funds were needed
 
         :example:
-        >>> # Basic example:
-        >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", algokit.algo(1))
-        >>> # With configuration:
-        >>> algorand.account.ensure_funded(
-        ...     "ACCOUNTADDRESS",
-        ...     "DISPENSERADDRESS",
-        ...     algokit.algo(1),
-        ...     min_funding_increment=algokit.algo(2),
-        ...     fee=AlgoAmount.from_micro_algo(1000),
-        ...     suppress_log=True
-        ... )
+            >>> # Basic example:
+            >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", algokit.algo(1))
+            >>> # With configuration:
+            >>> algorand.account.ensure_funded(
+            ...     "ACCOUNTADDRESS",
+            ...     "DISPENSERADDRESS",
+            ...     algokit.algo(1),
+            ...     min_funding_increment=algokit.algo(2),
+            ...     fee=AlgoAmount.from_micro_algo(1000),
+            ...     suppress_log=True
+            ... )
         """
         account_to_fund = self._get_address(account_to_fund)
         dispenser_account = self._get_address(dispenser_account)
@@ -724,7 +724,7 @@ class AccountManager:
 
         :param account_to_fund: The account to fund
         :param min_spending_balance: The minimum balance of Algo that the account should have available to
-        spend
+            spend
         :param min_funding_increment: Optional minimum funding increment
         :param send_params: Parameters for the send operation, defaults to None
         :param signer: Optional transaction signer
@@ -738,7 +738,7 @@ class AccountManager:
         :param first_valid_round: Optional first valid round
         :param last_valid_round: Optional last valid round
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
-        None if no funds were needed
+            None if no funds were needed
 
         .. note::
             The dispenser account is retrieved from the account mnemonic stored in
@@ -746,16 +746,16 @@ class AccountManager:
             if it's a rekeyed account, or against default LocalNet if no environment variables present.
 
         :example:
-        >>> # Basic example:
-        >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", algokit.algo(1))
-        >>> # With configuration:
-        >>> algorand.account.ensure_funded_from_environment(
-        ...     "ACCOUNTADDRESS",
-        ...     algokit.algo(1),
-        ...     min_funding_increment=algokit.algo(2),
-        ...     fee=AlgoAmount.from_micro_algo(1000),
-        ...     suppress_log=True
-        ... )
+            >>> # Basic example:
+            >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", algokit.algo(1))
+            >>> # With configuration:
+            >>> algorand.account.ensure_funded_from_environment(
+            ...     "ACCOUNTADDRESS",
+            ...     algokit.algo(1),
+            ...     min_funding_increment=algokit.algo(2),
+            ...     fee=AlgoAmount.from_micro_algo(1000),
+            ...     suppress_log=True
+            ... )
         """
         account_to_fund = self._get_address(account_to_fund)
         dispenser_account = self.dispenser_from_environment()
@@ -818,26 +818,26 @@ class AccountManager:
         :param account_to_fund: The account to fund
         :param dispenser_client: The TestNet dispenser funding client
         :param min_spending_balance: The minimum balance of Algo that the account should have
-        available to spend
+            available to spend
         :param min_funding_increment: Optional minimum funding increment
         :returns: The result of executing the dispensing transaction and the `amountFunded` if funds were needed, or
-        None if no funds were needed
+            None if no funds were needed
         :raises ValueError: If attempting to fund on non-TestNet network
 
         :example:
-        >>> # Basic example:
-        >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
-        ...     "ACCOUNTADDRESS",
-        ...     algorand.client.get_testnet_dispenser_from_environment(),
-        ...     algokit.algo(1)
-        ... )
-        >>> # With configuration:
-        >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
-        ...     "ACCOUNTADDRESS",
-        ...     algorand.client.get_testnet_dispenser_from_environment(),
-        ...     algokit.algo(1),
-        ...     min_funding_increment=algokit.algo(2)
-        ... )
+            >>> # Basic example:
+            >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+            ...     "ACCOUNTADDRESS",
+            ...     algorand.client.get_testnet_dispenser_from_environment(),
+            ...     algokit.algo(1)
+            ... )
+            >>> # With configuration:
+            >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+            ...     "ACCOUNTADDRESS",
+            ...     algorand.client.get_testnet_dispenser_from_environment(),
+            ...     algokit.algo(1),
+            ...     min_funding_increment=algokit.algo(2)
+            ... )
         """
         account_to_fund = self._get_address(account_to_fund)
 

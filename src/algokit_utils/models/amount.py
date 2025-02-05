@@ -13,10 +13,10 @@ class AlgoAmount:
     """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
 
     :example:
-    >>> amount = AlgoAmount(algo=1)
-    >>> amount = AlgoAmount.from_algo(1)
-    >>> amount = AlgoAmount(micro_algo=1_000_000)
-    >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+        >>> amount = AlgoAmount(algo=1)
+        >>> amount = AlgoAmount.from_algo(1)
+        >>> amount = AlgoAmount(micro_algo=1_000_000)
+        >>> amount = AlgoAmount.from_micro_algo(1_000_000)
     """
 
     @overload
@@ -65,7 +65,7 @@ class AlgoAmount:
         :returns: An AlgoAmount instance.
 
         :example:
-        >>> amount = AlgoAmount.from_algo(1)
+            >>> amount = AlgoAmount.from_algo(1)
         """
         return AlgoAmount(algo=amount)
 
@@ -77,7 +77,7 @@ class AlgoAmount:
         :returns: An AlgoAmount instance.
 
         :example:
-        >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+            >>> amount = AlgoAmount.from_micro_algo(1_000_000)
         """
         return AlgoAmount(micro_algo=amount)
 

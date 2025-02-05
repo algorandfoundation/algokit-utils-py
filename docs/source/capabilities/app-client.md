@@ -116,7 +116,7 @@ Once you have an app factory you can perform the following actions:
 - `factory.send.bare.create(...)` - Signs and sends a transaction to create an app and returns the result of that call and an `AppClient` instance for the created app
 - `factory.deploy(...)` - Uses the creator address and app name pattern to find if the app has already been deployed or not and either creates, updates or replaces that app based on the deployment rules (i.e. it's an idempotent deployment) and returns the result of the deployment and an `AppClient` instance for the created/updated/existing app.
 
-> See [API docs](../api/app-factory.md#deploy) for details on parameter signatures.
+> See {py:func}`API docs <algokit_utils.app_factory.AppFactory.deploy>` for details on parameter signatures.
 
 ### Create
 
@@ -124,7 +124,7 @@ The create method is a wrapper over the `app_create` (bare calls) and `app_creat
 
 - You don't need to specify the `approval_program`, `clear_state_program`, or `schema` because these are all specified or calculated from the app spec
 - `sender` is optional and if not specified then the `default_sender` from the `AppFactory` constructor is used
-- `deploy_time_params`, `updatable` and `deletable` can be passed in to control deploy-time parameter replacements and deploy-time immutability and permanence control. Note these are consolidated under the `compilation_params` `TypedDict`, see [API docs](../api/app-factory.md#deploy) for details.
+- `deploy_time_params`, `updatable` and `deletable` can be passed in to control deploy-time parameter replacements and deploy-time immutability and permanence control. Note these are consolidated under the `compilation_params` `TypedDict`, see {py:func}`API docs <algokit_utils.app_factory.AppFactory.deploy>` for details.
 
 ```python
 # Use no-argument bare-call
@@ -275,13 +275,13 @@ map_dict = app_client.state.global_state.get_map("myMap")
 
 There are various methods defined that let you read state from the smart contract app:
 
-- `get_global_state()` - Gets the current global state using [`algorand.app.get_global_state`](../api/app.md#get_global_state)
-- `get_local_state(address: str)` - Gets the current local state for the given account address using [`algorand.app.get_local_state`](../api/app.md#get_local_state).
-- `get_box_names()` - Gets the current box names using [`algorand.app.get_box_names`](../api/app.md#get_box_names).
-- `get_box_value(name)` - Gets the current value of the given box using [`algorand.app.get_box_value`](../api/app.md#get_box_value).
-- `get_box_value_from_abi_type(name)` - Gets the current value of the given box from an ABI type using [`algorand.app.get_box_value_from_abi_type`](../api/app.md#get_box_value_from_abi_type).
-- `get_box_values(filter)` - Gets the current values of the boxes using [`algorand.app.get_box_values`](../api/app.md#get_box_values).
-- `get_box_values_from_abi_type(type, filter)` - Gets the current values of the boxes from an ABI type using [`algorand.app.get_box_values_from_abi_type`](../api/app.md#get_box_values_from_abi_type).
+- `get_global_state()` - Gets the current global state using {py:func}`algorand.app.get_global_state <algokit_utils.algorand.app.get_global_state>`.
+- `get_local_state(address: str)` - Gets the current local state for the given account address using {py:func}`algorand.app.get_local_state <algokit_utils.algorand.app.get_local_state>`.
+- `get_box_names()` - Gets the current box names using {py:func}`algorand.app.get_box_names <algokit_utils.algorand.app.get_box_names>`.
+- `get_box_value(name)` - Gets the current value of the given box using {py:func}`algorand.app.get_box_value <algokit_utils.algorand.app.get_box_value>`.
+- `get_box_value_from_abi_type(name)` - Gets the current value of the given box from an ABI type using {py:func}`algorand.app.get_box_value_from_abi_type <algokit_utils.algorand.app.get_box_value_from_abi_type>`.
+- `get_box_values(filter)` - Gets the current values of the boxes using {py:func}`algorand.app.get_box_values <algokit_utils.algorand.app.get_box_values>`.
+- `get_box_values_from_abi_type(type, filter)` - Gets the current values of the boxes from an ABI type using {py:func}`algorand.app.get_box_values_from_abi_type <algokit_utils.algorand.app.get_box_values_from_abi_type>`.
 
 ```python
 global_state = app_client.get_global_state()
@@ -309,11 +309,11 @@ Often when calling a smart contract during development you will get logic errors
 
 When this occurs, you will generally get an error that looks something like: `TransactionPool.Remember: transaction {TRANSACTION_ID}: logic eval error: {ERROR_MESSAGE}. Details: pc={PROGRAM_COUNTER_VALUE}, opcodes={LIST_OF_OP_CODES}`.
 
-The information in that error message can be parsed and when combined with the [source map from compilation](../api/app-deploy.md#compilation-and-template-substitution) you can expose debugging information that makes it much easier to understand what's happening. The ARC-56 app spec, if provided, can also specify human-readable error messages against certain program counter values and further augment the error message.
+The information in that error message can be parsed and when combined with the [source map from compilation](./app-deploy.md#compilation-and-template-substitution) you can expose debugging information that makes it much easier to understand what's happening. The ARC-56 app spec, if provided, can also specify human-readable error messages against certain program counter values and further augment the error message.
 
 The app client and app factory automatically provide this functionality for all smart contract calls. They also expose a function that can be used for any custom calls you manually construct and need to add into your own try/catch `expose_logic_error(e: Error, is_clear: bool = False)`.
 
-When an error is thrown then the resulting error that is re-thrown will be a [`LogicError` object](todo_paste_url), which has the following fields:
+When an error is thrown then the resulting error that is re-thrown will be a {py:obj}`LogicError <algokit_utils.errors.logic_error.LogicError>`, which has the following fields:
 
 - `logic_error: Exception` - The original logic error exception
 - `logic_error_str: str` - The string representation of the logic error

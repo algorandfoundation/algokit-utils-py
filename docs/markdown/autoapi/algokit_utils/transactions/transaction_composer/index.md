@@ -53,8 +53,7 @@ Parameters for a payment transaction.
   * **receiver** – The account that will receive the ALGO
   * **amount** – Amount to send
   * **close_remainder_to** – If given, close the sender account and send the remaining balance to this address,
-
-defaults to None
+    defaults to None
 
 #### receiver *: str*
 
@@ -319,19 +318,18 @@ Bases: `_CommonTxnParams`
 Parameters for creating an application.
 
 * **Variables:**
-  **approval_program** – The program to execute for all OnCompletes other than ClearState as raw teal (string)
-
-or compiled teal (bytes)
-:ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-or compiled teal (bytes)
-:ivar schema: The state schema for the app. This is immutable, defaults to None
-:ivar on_complete: The OnComplete action (cannot be ClearState), defaults to None
-:ivar args: Application arguments, defaults to None
-:ivar account_references: Account references, defaults to None
-:ivar app_references: App references, defaults to None
-:ivar asset_references: Asset references, defaults to None
-:ivar box_references: Box references, defaults to None
-:ivar extra_program_pages: Number of extra pages required for the programs, defaults to None
+  * **approval_program** – The program to execute for all OnCompletes other than ClearState as raw teal (string)
+    or compiled teal (bytes)
+  * **clear_state_program** – The program to execute for ClearState OnComplete as raw teal (string)
+    or compiled teal (bytes)
+  * **schema** – The state schema for the app. This is immutable, defaults to None
+  * **on_complete** – The OnComplete action (cannot be ClearState), defaults to None
+  * **args** – Application arguments, defaults to None
+  * **account_references** – Account references, defaults to None
+  * **app_references** – App references, defaults to None
+  * **asset_references** – Asset references, defaults to None
+  * **box_references** – Box references, defaults to None
+  * **extra_program_pages** – Number of extra pages required for the programs, defaults to None
 
 #### approval_program *: str | bytes*
 
@@ -362,16 +360,15 @@ Parameters for updating an application.
 * **Variables:**
   * **app_id** – ID of the application
   * **approval_program** – The program to execute for all OnCompletes other than ClearState as raw teal (string)
-
-or compiled teal (bytes)
-:ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-or compiled teal (bytes)
-:ivar args: Application arguments, defaults to None
-:ivar account_references: Account references, defaults to None
-:ivar app_references: App references, defaults to None
-:ivar asset_references: Asset references, defaults to None
-:ivar box_references: Box references, defaults to None
-:ivar on_complete: The OnComplete action, defaults to None
+    or compiled teal (bytes)
+  * **clear_state_program** – The program to execute for ClearState OnComplete as raw teal (string)
+    or compiled teal (bytes)
+  * **args** – Application arguments, defaults to None
+  * **account_references** – Account references, defaults to None
+  * **app_references** – App references, defaults to None
+  * **asset_references** – Asset references, defaults to None
+  * **box_references** – Box references, defaults to None
+  * **on_complete** – The OnComplete action, defaults to None
 
 #### app_id *: int*
 
@@ -430,9 +427,8 @@ Parameters for a regular ABI method call.
   * **app_id** – ID of the application
   * **method** – The ABI method to call
   * **args** – Arguments to the ABI method, either an ABI value, transaction with explicit signer,
-
-transaction, another method call, or None
-:ivar on_complete: The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
+    transaction, another method call, or None
+  * **on_complete** – The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
 
 #### app_id *: int*
 
@@ -610,10 +606,9 @@ Supports various transaction types including payments, asset operations, applica
   * **algod** – An instance of AlgodClient used to get suggested params and send transactions
   * **get_signer** – A function that takes an address and returns a TransactionSigner for that address
   * **get_suggested_params** – Optional function to get suggested transaction parameters,
-
-defaults to using algod.suggested_params()
-:param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
-:param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
+    defaults to using algod.suggested_params()
+  * **default_validity_window** – Optional default validity window for transactions in rounds, defaults to 10
+  * **app_manager** – Optional AppManager instance for compiling TEAL programs, defaults to None
 
 #### add_transaction(transaction: algosdk.transaction.Transaction, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 

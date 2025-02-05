@@ -26,13 +26,12 @@
 Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
 
 * **Example:**
-
-```pycon
->>> amount = AlgoAmount(algo=1)
->>> amount = AlgoAmount.from_algo(1)
->>> amount = AlgoAmount(micro_algo=1_000_000)
->>> amount = AlgoAmount.from_micro_algo(1_000_000)
-```
+  ```pycon
+  >>> amount = AlgoAmount(algo=1)
+  >>> amount = AlgoAmount.from_algo(1)
+  >>> amount = AlgoAmount(micro_algo=1_000_000)
+  >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+  ```
 
 #### *property* micro_algo *: int*
 
@@ -57,10 +56,9 @@ Create an AlgoAmount object representing the given number of Algo.
 * **Returns:**
   An AlgoAmount instance.
 * **Example:**
-
-```pycon
->>> amount = AlgoAmount.from_algo(1)
-```
+  ```pycon
+  >>> amount = AlgoAmount.from_algo(1)
+  ```
 
 #### *static* from_micro_algo(amount: int) → [AlgoAmount](#algokit_utils.models.amount.AlgoAmount)
 
@@ -71,10 +69,9 @@ Create an AlgoAmount object representing the given number of µAlgo.
 * **Returns:**
   An AlgoAmount instance.
 * **Example:**
-
-```pycon
->>> amount = AlgoAmount.from_micro_algo(1_000_000)
-```
+  ```pycon
+  >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+  ```
 
 ### algokit_utils.models.amount.algo(algo: int) → [AlgoAmount](#algokit_utils.models.amount.AlgoAmount)
 
