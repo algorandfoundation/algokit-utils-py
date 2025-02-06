@@ -63,6 +63,7 @@ If you prefer TypeScript there’s an equivalent [TypeScript utility library](ht
   * [Network information](capabilities/client.md#network-information)
 * [Debugger](capabilities/debugging.md)
   * [Configuration](capabilities/debugging.md#configuration)
+  * [`AlgoKitLogger`](capabilities/debugging.md#algokitlogger)
   * [Debugging Utilities](capabilities/debugging.md#debugging-utilities)
 * [TestNet Dispenser Client](capabilities/dispenser-client.md)
   * [Creating a Dispenser Client](capabilities/dispenser-client.md#creating-a-dispenser-client)

@@ -9,7 +9,7 @@
 
 ## Classes
 
-| [`AlgoKitLogger`](#algokit_utils.config.AlgoKitLogger)     |                                                                            |
+| [`AlgoKitLogger`](#algokit_utils.config.AlgoKitLogger)     | Instances of the Logger class represent a single logging channel. A        |
 |------------------------------------------------------------|----------------------------------------------------------------------------|
 | [`UpdatableConfig`](#algokit_utils.config.UpdatableConfig) | Class to manage and update configuration settings for the AlgoKit project. |
 
@@ -19,31 +19,26 @@
 
 ### algokit_utils.config.ALGOKIT_CONFIG_FILENAME *= '.algokit.toml'*
 
-### *class* algokit_utils.config.AlgoKitLogger
+### *class* algokit_utils.config.AlgoKitLogger(name: str = 'algokit-utils-py', level: int = logging.NOTSET)
 
-#### error(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
+Bases: `logging.Logger`
 
-Log an error message, optionally suppressing output
+Instances of the Logger class represent a single logging channel. A
+“logging channel” indicates an area of an application. Exactly how an
+“area” is defined is up to the application developer. Since an
+application can have any number of areas, logging channels are identified
+by a unique string. Application areas can be nested (e.g. an area
+of “input processing” might include sub-areas “read CSV files”, “read
+XLS files” and “read Gnumeric files”). To cater for this natural nesting,
+channel names are organized into a namespace hierarchy where levels are
+separated by periods, much like the Java or Python package namespace. So
+in the instance given above, channel names might be “input” for the upper
+level, and “input.csv”, “input.xls” and “input.gnu” for the sub-levels.
+There is no arbitrary limit to the depth of nesting.
 
-#### exception(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
+#### *classmethod* get_null_logger() → logging.Logger
 
-Log an exception message, optionally suppressing output
-
-#### warning(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
-
-Log a warning message, optionally suppressing output
-
-#### info(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
-
-Log an info message, optionally suppressing output
-
-#### debug(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
-
-Log a debug message, optionally suppressing output
-
-#### verbose(message: str, \*args: Any, suppress_log: bool = False, \*\*kwargs: Any) → None
-
-Log a verbose message (maps to debug), optionally suppressing output
+Return a logger that does nothing (a null logger).
 
 ### *class* algokit_utils.config.UpdatableConfig
 
@@ -53,11 +48,14 @@ Attributes:
 : debug (bool): Indicates whether debug mode is enabled.
   project_root (Path | None): The path to the project root directory.
   trace_all (bool): Indicates whether to trace all operations.
-  trace_buffer_size_mb (int): The size of the trace buffer in megabytes.
+  trace_buffer_size_mb (int | float): The size of the trace buffer in megabytes.
   max_search_depth (int): The maximum depth to search for a specific file.
-  populate_app_call_resources (bool): Indicates whether to populate app call resources.
+  populate_app_call_resources (bool): Whether to populate app call resources.
+  logger (logging.Logger): The logger instance to use. Defaults to an AlgoKitLogger instance.
 
-#### *property* logger *: [AlgoKitLogger](#algokit_utils.config.AlgoKitLogger)*
+#### *property* logger *: logging.Logger*
+
+Returns the logger instance.
 
 #### *property* debug *: bool*
 
@@ -69,7 +67,7 @@ Returns the project root path.
 
 #### *property* trace_all *: bool*
 
-Indicates whether to store simulation traces for all operations.
+Indicates whether simulation traces for all operations should be stored.
 
 #### *property* trace_buffer_size_mb *: int | float*
 
@@ -77,26 +75,23 @@ Returns the size of the trace buffer in megabytes.
 
 #### *property* populate_app_call_resource *: bool*
 
+Indicates whether or not to populate app call resources.
+
 #### with_debug(func: collections.abc.Callable[[], str | None]) → None
 
 Executes a function with debug mode temporarily enabled.
 
-#### configure(\*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = False) → None
+#### configure(\*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = False, logger: logging.Logger | None = None) → None
 
 Configures various settings for the application.
-Please note, when project_root is not specified, by default config will attempt to find the algokit.toml by
-scanning the parent directories according to the max_search_depth parameter.
-Alternatively value can also be set via the ALGOKIT_PROJECT_ROOT environment variable.
-If you are executing the config from an algokit compliant project, you can simply call
-config.configure(debug=True).
 
 * **Parameters:**
-  * **debug** – Indicates whether debug mode is enabled.
-  * **project_root** – The path to the project root directory. Defaults to None.
-  * **trace_all** – Indicates whether to trace all operations. Defaults to False. Which implies that
-    only the operations that are failed will be traced by default.
-  * **trace_buffer_size_mb** – The size of the trace buffer in megabytes. Defaults to 256
-  * **max_search_depth** – The maximum depth to search for a specific file. Defaults to 10
-  * **populate_app_call_resources** – Indicates whether to populate app call resources. Defaults to False
+  * **debug** – Whether debug mode is enabled.
+  * **project_root** – The path to the project root directory.
+  * **trace_all** – Whether to trace all operations. Defaults to False.
+  * **trace_buffer_size_mb** – The trace buffer size in megabytes. Defaults to 256.
+  * **max_search_depth** – The maximum depth to search for a specific file. Defaults to 10.
+  * **populate_app_call_resources** – Whether to populate app call resources. Defaults to False.
+  * **logger** – A custom logger to use. Defaults to AlgoKitLogger instance.
 
 ### algokit_utils.config.config

@@ -45,7 +45,7 @@ TransactionNote = bytes | TransactionNoteData | Arc2TransactionNote
 TxnTypeT = TypeVar("TxnTypeT", bound=algosdk.transaction.Transaction)
 
 
-class TransactionWrapper(algosdk.transaction.Transaction):
+class TransactionWrapper:
     """Wrapper around algosdk.transaction.Transaction with optional property validators"""
 
     def __init__(self, transaction: algosdk.transaction.Transaction) -> None:

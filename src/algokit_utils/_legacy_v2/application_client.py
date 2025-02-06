@@ -74,6 +74,7 @@ __all__ = [
 representing an ABI method name or signature"""
 
 
+@deprecated("Use 'algokit_utils.calculate_extra_program_pages' instead.")
 def num_extra_program_pages(approval: bytes, clear: bytes) -> int:
     """Calculate minimum number of extra_pages required for provided approval and clear programs"""
 
