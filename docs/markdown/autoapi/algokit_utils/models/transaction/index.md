@@ -54,8 +54,6 @@ ARC-0002 note for JSON format
 
 ### *class* algokit_utils.models.transaction.TransactionWrapper(transaction: algosdk.transaction.Transaction)
 
-Bases: `algosdk.transaction.Transaction`
-
 Wrapper around algosdk.transaction.Transaction with optional property validators
 
 #### *property* raw *: algosdk.transaction.Transaction*

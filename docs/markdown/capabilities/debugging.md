@@ -12,6 +12,7 @@ The `config.py` file contains the `UpdatableConfig` class which manages and upda
 - `trace_buffer_size_mb`: The size of the trace buffer in megabytes. By default uses 256 megabytes. When output folder containing debug trace files exceedes the size, oldest files are removed to optimize for storage consumption.
 - `max_search_depth`: The maximum depth to search for a an `algokit` config file. By default it will traverse at most 10 folders searching for `.algokit.toml` file which will be used to assume algokit compliant project root path.
 - `populate_app_call_resources`: Indicates whether to populate app call resources. Defaults to false, which means that when debug mode is enabled, any (or all) application client calls performed via `algokit_utils` will not populate app call resources.
+- `logger`: A custom logger to use. Defaults to [`algokit_utils.config.AlgoKitLogger`](../autoapi/algokit_utils/config/index.md#algokit_utils.config.AlgoKitLogger) instance.
 
 The `configure` method can be used to set these attributes.
 
@@ -28,6 +29,23 @@ config.configure(
     max_search_depth=15,
     populate_app_call_resources=True,
 )
+```
+
+## `AlgoKitLogger`
+
+The `AlgoKitLogger` is a custom logger that is used to log messages in the AlgoKit project.
+It is a subclass of the `logging.Logger` class and extends it to provide additional functionality.
+
+### Suppressing log messages per log call
+
+To supress log messages for individual log calls you can pass `'suppress_log':True` to the log call’s `extra` argument.
+
+### Suppressing log messages globally
+
+To supress log messages globally you can configure the config object to use a custom logger that does not log anything.
+
+```python
+config.configure(logger=AlgoKitLogger.get_null_logger())
 ```
 
 ## Debugging Utilities

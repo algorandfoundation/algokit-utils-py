@@ -36,10 +36,11 @@
 
 ## Functions
 
-| [`populate_app_call_resources`](#algokit_utils.transactions.transaction_composer.populate_app_call_resources)(...)           | Populate application call resources based on simulation results.                  |
-|------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
-| [`prepare_group_for_sending`](#algokit_utils.transactions.transaction_composer.prepare_group_for_sending)(...)               | Prepare a transaction group for sending by handling execution info and resources. |
-| [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...) | Send an AtomicTransactionComposer transaction group.                              |
+| [`calculate_extra_program_pages`](#algokit_utils.transactions.transaction_composer.calculate_extra_program_pages)(→ int)     | Calculate minimum number of extra_pages required for provided approval and clear programs   |
+|------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`populate_app_call_resources`](#algokit_utils.transactions.transaction_composer.populate_app_call_resources)(...)           | Populate application call resources based on simulation results.                            |
+| [`prepare_group_for_sending`](#algokit_utils.transactions.transaction_composer.prepare_group_for_sending)(...)               | Prepare a transaction group for sending by handling execution info and resources.           |
+| [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...) | Send an AtomicTransactionComposer transaction group.                                        |
 
 ## Module Contents
 
@@ -550,6 +551,10 @@ Results from sending an AtomicTransactionComposer transaction group.
 #### returns *: list[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]*
 
 #### simulate_response *: dict[str, Any] | None* *= None*
+
+### algokit_utils.transactions.transaction_composer.calculate_extra_program_pages(approval: bytes | None, clear: bytes | None) → int
+
+Calculate minimum number of extra_pages required for provided approval and clear programs
 
 ### algokit_utils.transactions.transaction_composer.populate_app_call_resources(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient) → algosdk.atomic_transaction_composer.AtomicTransactionComposer
 

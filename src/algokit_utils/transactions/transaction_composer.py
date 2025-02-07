@@ -68,6 +68,7 @@ __all__ = [
     "TransactionComposer",
     "TransactionComposerBuildResult",
     "TxnParams",
+    "calculate_extra_program_pages",
     "populate_app_call_resources",
     "prepare_group_for_sending",
     "send_atomic_transaction_composer",
@@ -797,7 +798,7 @@ def _find_available_transaction_index(
     return next((i for i, txn in enumerate(txns) if check_transaction(txn)), -1)
 
 
-def _num_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int:
+def calculate_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int:
     """Calculate minimum number of extra_pages required for provided approval and clear programs"""
     total = len(approval or b"") + len(clear or b"")
     return max(0, (total - 1) // algosdk.constants.APP_PAGE_MAX_SIZE)
@@ -1226,11 +1227,11 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             if not suppress_log:
                 logger.info(
                     f"Sending group of {len(transactions_to_send)} transactions ({group_id})",
-                    suppress_log=suppress_log or False,
+                    extra={"suppress_log": suppress_log or False},
                 )
                 logger.debug(
                     f"Transaction IDs ({group_id}): {[t.get_txid() for t in transactions_to_send]}",
-                    suppress_log=suppress_log or False,
+                    extra={"suppress_log": suppress_log or False},
                 )
 
         # Simulate if debug enabled
@@ -1250,12 +1251,12 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             if len(transactions_to_send) > 1:
                 logger.info(
                     f"Group transaction ({group_id}) sent with {len(transactions_to_send)} transactions",
-                    suppress_log=suppress_log or False,
+                    extra={"suppress_log": suppress_log or False},
                 )
             else:
                 logger.info(
                     f"Sent transaction ID {transactions_to_send[0].get_txid()}",
-                    suppress_log=suppress_log or False,
+                    extra={"suppress_log": suppress_log or False},
                 )
 
         # Get confirmations if not skipping
@@ -1277,8 +1278,9 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         if config.debug:
             logger.error(
                 "Received error executing Atomic Transaction Composer and debug flag enabled; "
-                "attempting simulation to get more information",
-                suppress_log=suppress_log or False,
+                "attempting simulation to get more information ",
+                extra={"suppress_log": suppress_log or False},
+                exc_info=e,
             )
 
             simulate = None
@@ -1312,7 +1314,8 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
 
         logger.error(
             "Received error executing Atomic Transaction Composer, for more information enable the debug flag",
-            suppress_log=suppress_log or False,
+            extra={"suppress_log": suppress_log or False},
+            exc_info=e,
         )
         raise e
 
@@ -1984,7 +1987,7 @@ class TransactionComposer:
         if app_id == 0:
             extra_pages = getattr(params, "extra_program_pages", None)
             if extra_pages is None and approval_program is not None:
-                extra_pages = _num_extra_program_pages(approval_program, clear_program)
+                extra_pages = calculate_extra_program_pages(approval_program, clear_program)
 
         txn_params = {
             "app_id": app_id,
@@ -2121,7 +2124,8 @@ class TransactionComposer:
                     num_uints=params.schema.get("local_ints", 0),
                     num_byte_slices=params.schema.get("local_byte_slices", 0),
                 ),
-                "extra_pages": params.extra_program_pages or _num_extra_program_pages(approval_program, clear_program),
+                "extra_pages": params.extra_program_pages
+                or calculate_extra_program_pages(approval_program, clear_program),
             }
 
         return self._common_txn_build_step(lambda x: algosdk.transaction.ApplicationCallTxn(**x), params, txn_params)

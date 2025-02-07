@@ -21,6 +21,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppUpdateMethodCallParams,
     AppUpdateParams,
     TransactionComposer,
+    calculate_extra_program_pages,
 )
 from algokit_utils.transactions.transaction_sender import (
     AlgorandClientTransactionSender,
@@ -169,7 +170,7 @@ class AppDeployer:
             f"{'teal code' if isinstance(deployment.create_params.approval_program, str) else 'AVM bytecode'} and "
             f"{len(deployment.create_params.clear_state_program)} bytes of "
             f"{'teal code' if isinstance(deployment.create_params.clear_state_program, str) else 'AVM bytecode'}",
-            suppress_log=suppress_log,
+            extra={"suppress_log": suppress_log},
         )
         note = TransactionComposer.arc2_note(
             {
@@ -242,9 +243,13 @@ class AppDeployer:
 
         existing_approval = base64.b64encode(existing_app_record.approval_program).decode()
         existing_clear = base64.b64encode(existing_app_record.clear_state_program).decode()
+        existing_extra_pages = calculate_extra_program_pages(
+            existing_app_record.approval_program, existing_app_record.clear_state_program
+        )
 
         new_approval = base64.b64encode(approval_program).decode()
         new_clear = base64.b64encode(clear_program).decode()
+        new_extra_pages = calculate_extra_program_pages(approval_program, clear_program)
 
         is_update = new_approval != existing_approval or new_clear != existing_clear
         is_schema_break = (
@@ -256,6 +261,7 @@ class AppDeployer:
             < (deployment.create_params.schema.get("local_byte_slices", 0) if deployment.create_params.schema else 0)
             or existing_app_record.global_byte_slices
             < (deployment.create_params.schema.get("global_byte_slices", 0) if deployment.create_params.schema else 0)
+            or existing_extra_pages < new_extra_pages
         )
 
         if is_schema_break:
@@ -269,8 +275,8 @@ class AppDeployer:
                         "local_byte_slices": existing_app_record.local_byte_slices,
                     },
                     "to": deployment.create_params.schema,
+                    "suppress_log": suppress_log,
                 },
-                suppress_log=suppress_log,
             )
 
             return self._handle_schema_break(
@@ -288,7 +294,7 @@ class AppDeployer:
                 clear_program=clear_program,
             )
 
-        logger.debug("No detected changes in app, nothing to do.", suppress_log=suppress_log)
+        logger.debug("No detected changes in app, nothing to do.", extra={"suppress_log": suppress_log})
         return AppDeployResult(
             app=existing_app,
             operation_performed=OperationPerformed.Nothing,
@@ -340,6 +346,12 @@ class AppDeployer:
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
+        logger.debug(
+            f"Sent transaction ID {create_result.app_id} (AppCreate) from {deployment.create_params.sender}",
+            extra={
+                "suppress_log": deployment.send_params.get("suppress_log") or False if deployment.send_params else False
+            },
+        )
 
         return AppDeployResult(
             app=app_metadata,
@@ -412,6 +424,13 @@ class AppDeployer:
             deleted=False,
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
+        logger.debug(
+            f"Group transaction sent: Replaced app {existing_app.app_id} with new app {app_id} from "
+            f"{deployment.create_params.sender} (Composer group count: {composer.count()})",
+            extra={
+                "suppress_log": deployment.send_params.get("suppress_log") or False if deployment.send_params else False
+            },
+        )
 
         return AppDeployResult(
             app=app_metadata,
@@ -464,6 +483,12 @@ class AppDeployer:
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
+        logger.debug(
+            f"Sent transaction ID {existing_app.app_id} (AppUpdate) from {deployment.create_params.sender}",
+            extra={
+                "suppress_log": deployment.send_params.get("suppress_log") or False if deployment.send_params else False
+            },
+        )
 
         return AppDeployResult(
             app=app_metadata,
@@ -491,7 +516,10 @@ class AppDeployer:
         if existing_app.deletable:
             return self._replace_app(deployment, existing_app, approval_program, clear_program)
         else:
-            raise ValueError("App is not deletable but onSchemaBreak=ReplaceApp, " "cannot delete and recreate app")
+            raise ValueError(
+                f"App is {'not' if not existing_app.deletable else ''} deletable and onSchemaBreak=ReplaceApp, "
+                "cannot delete and recreate app"
+            )
 
     def _handle_update(
         self,
@@ -512,13 +540,19 @@ class AppDeployer:
             if existing_app.updatable:
                 return self._update_app(deployment, existing_app, approval_program, clear_program)
             else:
-                raise ValueError("App is not updatable but onUpdate=UpdateApp, cannot update app")
+                raise ValueError(
+                    f"App is {'not' if not existing_app.updatable else ''} updatable and onUpdate=UpdateApp, "
+                    "cannot update app"
+                )
 
         if deployment.on_update in (OnUpdate.ReplaceApp, "replace"):
             if existing_app.deletable:
                 return self._replace_app(deployment, existing_app, approval_program, clear_program)
             else:
-                raise ValueError("App is not deletable but onUpdate=ReplaceApp, " "cannot delete and recreate app")
+                raise ValueError(
+                    f"App is {'not' if not existing_app.deletable else ''} deletable and onUpdate=ReplaceApp, "
+                    "cannot delete and recreate app"
+                )
 
         raise ValueError(f"Unsupported onUpdate value: {deployment.on_update}")
 
