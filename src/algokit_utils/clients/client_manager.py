@@ -658,4 +658,5 @@ class ClientManager:
         return AlgoClientNetworkConfig(
             server=f"https://{network}-{service_type}.algonode.cloud",
             port=443,
+            token="",
         )
