@@ -11,15 +11,6 @@ ALGOKIT_CONFIG_FILENAME = ".algokit.toml"
 class AlgoKitLogger(logging.Logger):
     def __init__(self, name: str = "algokit-utils-py", level: int = logging.NOTSET):
         super().__init__(name, level)
-        self._setup_handler()
-
-    def _setup_handler(self) -> None:
-        # Only add the handler if no handlers are already set.
-        if not self.handlers:
-            formatter = logging.Formatter("%(levelname)s: %(message)s")
-            handler = logging.StreamHandler()
-            handler.setFormatter(formatter)
-            self.addHandler(handler)
 
     def _log(self, level: int, msg: object, args, exc_info=None, extra=None, stack_info=False, stacklevel=1) -> None:  # type: ignore[no-untyped-def]  # noqa: FBT002, ANN001
         """
