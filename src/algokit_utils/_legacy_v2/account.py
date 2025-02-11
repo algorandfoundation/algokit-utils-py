@@ -41,7 +41,9 @@ def get_account_from_mnemonic(mnemonic: str) -> Account:
     return Account(private_key=private_key, address=address)
 
 
-@deprecated("Use `algorand.account.from_kmd()` instead. Example: " "`account = algorand.account.from_kmd(name)`")
+@deprecated(
+    "Use `algorand.account.kmd.get_or_create_wallet_account(name, fund_with)` or `KMDAccountManager(clientManager).get_or_create_wallet_account(name, fund_with)` instead"
+)
 def create_kmd_wallet_account(kmd_client: "KMDClient", name: str) -> Account:
     """Creates a wallet with specified name"""
     wallet_id = kmd_client.create_wallet(name, "")["id"]
@@ -56,8 +58,7 @@ def create_kmd_wallet_account(kmd_client: "KMDClient", name: str) -> Account:
 
 
 @deprecated(
-    "Use `algorand.account.from_kmd()` instead. Example: "
-    "`account = algorand.account.from_kmd(name, fund_with=AlgoAmount.from_algo(1000))`"
+    "Use `algorand.account.kmd.get_or_create_wallet_account(name, fund_with)` or `KMDAccountManager(clientManager).get_or_create_wallet_account(name, fund_with)` instead"
 )
 def get_or_create_kmd_wallet_account(
     client: "AlgodClient", name: str, fund_with_algos: float = 1000, kmd_client: "KMDClient | None" = None
@@ -100,8 +101,7 @@ def _is_default_account(account: dict[str, Any]) -> bool:
 
 
 @deprecated(
-    "Use `algorand.account.from_kmd()` instead. Example: "
-    "`account = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a['status'] != 'Offline' and a['amount'] > 1_000_000_000)`"
+    "Use `algorand.account.localnet_dispenser()` or `algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a['status'] != 'Offline' and a['amount'] > 1_000_000_000)`"
 )
 def get_localnet_default_account(client: "AlgodClient") -> Account:
     """Returns the default Account in a LocalNet instance"""

@@ -16,6 +16,7 @@ from algokit_utils.clients.dispenser_api_client import (
 )
 
 
+@deprecated("Use `algorand.account.ensure_funded()` instead")
 @dataclass(kw_only=True)
 class EnsureBalanceParameters:
     """Parameters for ensuring an account has a minimum number of µALGOs"""

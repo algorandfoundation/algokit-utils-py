@@ -154,9 +154,9 @@ It will automatically [add metadata to the transaction note of the create or upd
 The first parameter `deployment` is an {py:obj}`AppDeployParams <algokit_utils.models.app_deployer.AppDeployParams>`, which is an object with:
 
 - `metadata: AppDeployMetadata` - determines the [deployment metadata](#deployment-metadata) of the deployment
-- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](./app.md#creation) (raw parameters or ABI method call)
-- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](./app.md#updating) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
-- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](./app.md#deleting) (raw parameters or ABI method call) without the `app_id` parameter
+- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](./app.md) (raw parameters or ABI method call)
+- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](./app.md) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
+- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](./app.md) (raw parameters or ABI method call) without the `app_id` parameter
 - `deploy_time_params: TealTemplateParams | None` - optional parameters for [TEAL template substitution](#compilation-and-template-substitution)
   - {py:obj}`TealTemplateParams <algokit_utils.models.app_deployer.TealTemplateParams>` is a dict that replaces `TMPL_{key}` with `value` (strings/Uint8Arrays are properly encoded)
 - `on_schema_break: OnSchemaBreak | str | None` - determines {py:obj}`OnSchemaBreak <algokit_utils.models.app_deployer.OnSchemaBreak>` if schema requirements increase (values: 'replace', 'fail', 'append')
@@ -171,7 +171,7 @@ The first parameter `deployment` is an {py:obj}`AppDeployParams <algokit_utils.m
 
 ### Compilation and template substitution
 
-When compiling TEAL template code, the capabilities described in the [above design](#design) are present, namely the ability to supply deploy-time parameters and the ability to control immutability and permanence of the smart contract at deploy-time.
+When compiling TEAL template code, the capabilities described in the [above design](#smart-contract-development-lifecycle) are present, namely the ability to supply deploy-time parameters and the ability to control immutability and permanence of the smart contract at deploy-time.
 
 In order for a smart contract to opt-in to use this functionality, it must have a TEAL Template that contains the following:
 
@@ -204,11 +204,11 @@ The `deploy` call itself may do one of the following (which you can determine by
 - `OperationPerformed.REPLACE` - The smart contract app was deleted and created again (in an atomic transaction)
 - `OperationPerformed.NOTHING` - Nothing was done since it was detected the existing smart contract app deployment was up to date
 
-As well as the `operation_performed` parameter and the [optional compilation result](#compilation-and-template-substitution), the return value will have the [`ApplicationMetaData`](../code/classes/algokit_utils.applications.app_deployer.ApplicationMetaData.md) [fields](#deployment-metadata) present.
+As well as the `operation_performed` parameter and the [optional compilation result](#compilation-and-template-substitution), the return value will have the {py:obj}`ApplicationMetaData <algokit_utils.applications.app_deployer.ApplicationMetaData>` [fields](#deployment-metadata) present.
 
 Based on the value of `operation_performed`, there will be other data available in the return value:
 
-- If `CREATE`, `UPDATE` or `REPLACE` then it will have the relevant [`SendAppTransactionResult`](./app.md#calling-an-app) values:
+- If `CREATE`, `UPDATE` or `REPLACE` then it will have the relevant {py:obj}`SendAppTransactionResult <algokit_utils.transactions.transaction_sender.SendAppTransactionResult>` values:
   - `create_result` for create operations
   - `update_result` for update operations
 - If `REPLACE` then it will also have `delete_result` to capture the result of deleting the existing app

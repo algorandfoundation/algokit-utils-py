@@ -333,7 +333,7 @@ Tracks and returns an account that represents a logic signature.
   A logic signature account wrapper
 * **Example:**
   ```pycon
-  >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
+  >>> account = account.logicsig(program, [new Uint8Array(3, ...)])
   ```
 
 #### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), signing_accounts: list[[algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)]) → [algokit_utils.models.account.MultiSigAccount](../../models/account/index.md#algokit_utils.models.account.MultiSigAccount)

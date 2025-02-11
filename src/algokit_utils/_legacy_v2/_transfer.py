@@ -17,6 +17,7 @@ __all__ = ["TransferAssetParameters", "TransferParameters", "transfer", "transfe
 logger = logging.getLogger(__name__)
 
 
+@deprecated("Send transactions via `algorand.{send|create_transaction}.{txn_type}()` instead")
 @dataclasses.dataclass(kw_only=True)
 class TransferParametersBase:
     """Parameters for transferring µALGOs between accounts.
@@ -39,6 +40,7 @@ class TransferParametersBase:
     max_fee_micro_algos: int | None = None
 
 
+@deprecated("Use `algorand.send.payment(...)` / `algorand.create_transaction.payment(...)` instead")
 @dataclasses.dataclass(kw_only=True)
 class TransferParameters(TransferParametersBase):
     """Parameters for transferring µALGOs between accounts"""
@@ -46,6 +48,7 @@ class TransferParameters(TransferParametersBase):
     micro_algos: int
 
 
+@deprecated("Use `algorand.send.asset_transfer(...)` / `algorand.create_transaction.asset_transfer(...)` instead")
 @dataclasses.dataclass(kw_only=True)
 class TransferAssetParameters(TransferParametersBase):
     """Parameters for transferring assets between accounts.
@@ -79,7 +82,7 @@ def _check_fee(transaction: PaymentTxn | AssetTransferTxn, max_fee: int | None) 
             )
 
 
-@deprecated("Use the `TransactionComposer` abstraction instead to construct appropriate transfer transactions")
+@deprecated("Use `algorand.send.payment(...)` / `algorand.create_transaction.payment(...)` instead")
 def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTxn:
     """Transfer µALGOs between accounts"""
 
@@ -100,7 +103,7 @@ def transfer(client: "AlgodClient", parameters: TransferParameters) -> PaymentTx
     return result
 
 
-@deprecated("Use the `TransactionComposer` abstraction instead to construct appropriate transfer transactions")
+@deprecated("Use `algorand.send.asset_transfer(...)` / `algorand.create_transaction.asset_transfer(...)` instead")
 def transfer_asset(client: "AlgodClient", parameters: TransferAssetParameters) -> AssetTransferTxn:
     """Transfer assets between accounts"""
 

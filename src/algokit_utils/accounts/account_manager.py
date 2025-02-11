@@ -418,7 +418,7 @@ class AccountManager:
         :returns: A logic signature account wrapper
 
         :example:
-            >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
+            >>> account = account.logicsig(program, [new Uint8Array(3, ...)])
         """
         return self._register_logicsig(program, args)
 
