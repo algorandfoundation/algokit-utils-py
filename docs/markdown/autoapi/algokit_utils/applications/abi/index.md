@@ -49,6 +49,7 @@ Wraps the raw return value and decoded value along with any decode errors.
   * **value** – The decoded return value from the method call
   * **method** – The ABI method definition
   * **decode_error** – The exception that occurred during decoding, if any
+  * **tx_info** – The transaction info for the method call from raw algosdk ABIResult
 
 #### raw_value *: bytes | None* *= None*
 
@@ -57,6 +58,8 @@ Wraps the raw return value and decoded value along with any decode errors.
 #### method *: algosdk.abi.method.Method | None* *= None*
 
 #### decode_error *: Exception | None* *= None*
+
+#### tx_info *: dict[str, Any] | None* *= None*
 
 #### *property* is_success *: bool*
 

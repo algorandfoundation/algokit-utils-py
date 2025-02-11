@@ -51,12 +51,14 @@ class ABIReturn:
     :ivar value: The decoded return value from the method call
     :ivar method: The ABI method definition
     :ivar decode_error: The exception that occurred during decoding, if any
+    :ivar tx_info: The transaction info for the method call from raw algosdk `ABIResult`
     """
 
     raw_value: bytes | None = None
     value: ABIValue | None = None
     method: AlgorandABIMethod | None = None
     decode_error: Exception | None = None
+    tx_info: dict[str, Any] | None = None
 
     def __init__(self, result: ABIResult) -> None:
         self.decode_error = result.decode_error
@@ -64,6 +66,7 @@ class ABIReturn:
             self.raw_value = result.raw_value
             self.value = result.return_value
             self.method = result.method
+            self.tx_info = result.tx_info
 
     @property
     def is_success(self) -> bool:
