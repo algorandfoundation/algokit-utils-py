@@ -89,8 +89,8 @@ While `TransactionSignerAccount` is the main class used to represent an account 
 
 - {py:obj}`TransactionSignerAccount <algokit_utils.models.account.TransactionSignerAccount>` - A default class conforming to `TransactionSignerAccountProtocol` that holds an address and a signer
 - {py:obj}`SigningAccount <algokit_utils.models.account.SigningAccount>` - An abstraction around `algosdk.Account` that supports rekeyed accounts
-- {py:obj}`LogicSigAccount <algokit_utils.models.account.LogicSigAccount>` - An in-built algosdk `algosdk.LogicSigAccount` object
-- {py:obj}`MultisigAccount <algokit_utils.models.account.MultisigAccount>` - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present
+- {py:obj}`LogicSigAccount <algokit_utils.models.account.LogicSigAccount>` - An abstraction around `algosdk.LogicSigAccount` and `algosdk.LogicSig` that supports logic sig signing. Exposes access to the underlying algosdk `algosdk.transaction.LogicSigAccount` object instance via `lsig` property.
+- {py:obj}`MultisigAccount <algokit_utils.models.account.MultisigAccount>` - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
 
 ### Dispenser
 

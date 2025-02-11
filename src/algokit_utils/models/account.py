@@ -9,6 +9,7 @@ from typing_extensions import deprecated
 
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
+    "LogicSigAccount",
     "MultiSigAccount",
     "MultisigMetadata",
     "SigningAccount",
@@ -119,6 +120,14 @@ class MultiSigAccount:
         )
 
     @property
+    def multisig(self) -> Multisig:
+        """Get the underlying `algosdk.transaction.Multisig` object instance.
+
+        :return: The `algosdk.transaction.Multisig` object instance
+        """
+        return self._multisig
+
+    @property
     def params(self) -> MultisigMetadata:
         """Get the parameters for the multisig account.
 
@@ -181,10 +190,18 @@ class LogicSigAccount:
         self._signer = LogicSigTransactionSigner(account)
 
     @property
-    def address(self) -> str:
-        """Get the address of the multisig account.
+    def lsig(self) -> AlgosdkLogicSigAccount:
+        """Get the underlying `algosdk.transaction.LogicSigAccount` object instance.
 
-        :return: The multisig account address
+        :return: The `algosdk.transaction.LogicSigAccount` object instance
+        """
+        return self._account
+
+    @property
+    def address(self) -> str:
+        """Get the address of the logic sig account.
+
+        :return: The logic sig account address
         """
         return self._account.address()
 

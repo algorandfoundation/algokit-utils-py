@@ -322,7 +322,7 @@ Tracks and returns an Algorand account with private key loaded from the given KM
   ... )
   ```
 
-#### logicsig(program: bytes, args: list[bytes] | None = None) → algokit_utils.models.account.LogicSigAccount
+#### logicsig(program: bytes, args: list[bytes] | None = None) → [algokit_utils.models.account.LogicSigAccount](../../models/account/index.md#algokit_utils.models.account.LogicSigAccount)
 
 Tracks and returns an account that represents a logic signature.
 
