@@ -2111,18 +2111,24 @@ class TransactionComposer:
             if not sdk_params["approval_program"] or not sdk_params["clear_program"]:
                 raise ValueError("approval_program and clear_program are required for application creation")
 
-            if not params.schema:
-                raise ValueError("schema is required for application creation")
+            schema = params.schema
+            if not schema:
+                schema = AppCreateSchema(
+                    global_ints=0,
+                    global_byte_slices=0,
+                    local_ints=0,
+                    local_byte_slices=0,
+                )
 
             txn_params = {
                 **txn_params,
                 "global_schema": algosdk.transaction.StateSchema(
-                    num_uints=params.schema.get("global_ints", 0),
-                    num_byte_slices=params.schema.get("global_byte_slices", 0),
+                    num_uints=schema["global_ints"],
+                    num_byte_slices=schema["global_byte_slices"],
                 ),
                 "local_schema": algosdk.transaction.StateSchema(
-                    num_uints=params.schema.get("local_ints", 0),
-                    num_byte_slices=params.schema.get("local_byte_slices", 0),
+                    num_uints=schema["local_ints"],
+                    num_byte_slices=schema["local_byte_slices"],
                 ),
                 "extra_pages": params.extra_program_pages
                 or calculate_extra_program_pages(approval_program, clear_program),

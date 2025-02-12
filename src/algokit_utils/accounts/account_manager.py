@@ -7,7 +7,6 @@ import algosdk
 from algosdk import mnemonic
 from algosdk.atomic_transaction_composer import TransactionSigner
 from algosdk.mnemonic import to_private_key
-from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
 from algosdk.transaction import SuggestedParams
 from typing_extensions import Self
 
@@ -313,7 +312,7 @@ class AccountManager:
         :param args: The (binary) arguments to pass into the logic signature
         :returns: The registered AlgosdkLogicSigAccount instance
         """
-        logic_sig = LogicSigAccount(AlgosdkLogicSigAccount(program, args))
+        logic_sig = LogicSigAccount(program, args)
         self._accounts[logic_sig.address] = logic_sig
         return logic_sig
 

@@ -12,6 +12,7 @@
 | [`SigningAccount`](#algokit_utils.models.account.SigningAccount)                       | Holds the private key and address for an account.               |
 | [`MultisigMetadata`](#algokit_utils.models.account.MultisigMetadata)                   | Metadata for a multisig account.                                |
 | [`MultiSigAccount`](#algokit_utils.models.account.MultiSigAccount)                     | Account wrapper that supports partial or full multisig signing. |
+| [`LogicSigAccount`](#algokit_utils.models.account.LogicSigAccount)                     | Account wrapper that supports logic sig signing.                |
 
 ## Module Contents
 
@@ -82,6 +83,13 @@ Provides functionality to manage and sign transactions for a multisig account.
   * **multisig_params** – The parameters for the multisig account
   * **signing_accounts** – The list of accounts that can sign
 
+#### *property* multisig *: algosdk.transaction.Multisig*
+
+Get the underlying algosdk.transaction.Multisig object instance.
+
+* **Returns:**
+  The algosdk.transaction.Multisig object instance
+
 #### *property* params *: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata)*
 
 Get the parameters for the multisig account.
@@ -118,3 +126,35 @@ Sign the given transaction with all present signers.
   **transaction** – Either a transaction object or a raw, partially signed transaction
 * **Returns:**
   The transaction signed by the present signers
+
+### *class* algokit_utils.models.account.LogicSigAccount(program: bytes, args: list[bytes] | None)
+
+Account wrapper that supports logic sig signing.
+
+Provides functionality to manage and sign transactions for a logic sig account.
+
+#### *property* lsig *: algosdk.transaction.LogicSigAccount*
+
+Get the underlying algosdk.transaction.LogicSigAccount object instance.
+
+* **Returns:**
+  The algosdk.transaction.LogicSigAccount object instance
+
+#### *property* address *: str*
+
+Get the address of the logic sig account.
+
+If the LogicSig is delegated to another account, this will return the address of that account.
+
+If the LogicSig is not delegated to another account, this will return an escrow address that is the hash of
+the LogicSig’s program code.
+
+* **Returns:**
+  The logic sig account address
+
+#### *property* signer *: algosdk.atomic_transaction_composer.LogicSigTransactionSigner*
+
+Get the transaction signer for this multisig account.
+
+* **Returns:**
+  The multisig transaction signer

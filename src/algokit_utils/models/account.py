@@ -9,6 +9,7 @@ from typing_extensions import deprecated
 
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
+    "LogicSigAccount",
     "MultiSigAccount",
     "MultisigMetadata",
     "SigningAccount",
@@ -119,6 +120,14 @@ class MultiSigAccount:
         )
 
     @property
+    def multisig(self) -> Multisig:
+        """Get the underlying `algosdk.transaction.Multisig` object instance.
+
+        :return: The `algosdk.transaction.Multisig` object instance
+        """
+        return self._multisig
+
+    @property
     def params(self) -> MultisigMetadata:
         """Get the parameters for the multisig account.
 
@@ -173,20 +182,31 @@ class LogicSigAccount:
     Provides functionality to manage and sign transactions for a logic sig account.
     """
 
-    _account: AlgosdkLogicSigAccount
     _signer: LogicSigTransactionSigner
 
-    def __init__(self, account: AlgosdkLogicSigAccount) -> None:
-        self._account = account
-        self._signer = LogicSigTransactionSigner(account)
+    def __init__(self, program: bytes, args: list[bytes] | None) -> None:
+        self._signer = LogicSigTransactionSigner(AlgosdkLogicSigAccount(program, args))
+
+    @property
+    def lsig(self) -> AlgosdkLogicSigAccount:
+        """Get the underlying `algosdk.transaction.LogicSigAccount` object instance.
+
+        :return: The `algosdk.transaction.LogicSigAccount` object instance
+        """
+        return self._signer.lsig
 
     @property
     def address(self) -> str:
-        """Get the address of the multisig account.
+        """Get the address of the logic sig account.
 
-        :return: The multisig account address
+        If the LogicSig is delegated to another account, this will return the address of that account.
+
+        If the LogicSig is not delegated to another account, this will return an escrow address that is the hash of
+        the LogicSig's program code.
+
+        :return: The logic sig account address
         """
-        return self._account.address()
+        return self._signer.lsig.address()
 
     @property
     def signer(self) -> LogicSigTransactionSigner:
