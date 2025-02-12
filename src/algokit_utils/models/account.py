@@ -182,12 +182,10 @@ class LogicSigAccount:
     Provides functionality to manage and sign transactions for a logic sig account.
     """
 
-    _account: AlgosdkLogicSigAccount
     _signer: LogicSigTransactionSigner
 
-    def __init__(self, account: AlgosdkLogicSigAccount) -> None:
-        self._account = account
-        self._signer = LogicSigTransactionSigner(account)
+    def __init__(self, program: bytes, args: list[bytes] | None) -> None:
+        self._signer = LogicSigTransactionSigner(AlgosdkLogicSigAccount(program, args))
 
     @property
     def lsig(self) -> AlgosdkLogicSigAccount:
@@ -195,15 +193,20 @@ class LogicSigAccount:
 
         :return: The `algosdk.transaction.LogicSigAccount` object instance
         """
-        return self._account
+        return self._signer.lsig
 
     @property
     def address(self) -> str:
         """Get the address of the logic sig account.
 
+        If the LogicSig is delegated to another account, this will return the address of that account.
+
+        If the LogicSig is not delegated to another account, this will return an escrow address that is the hash of
+        the LogicSig's program code.
+
         :return: The logic sig account address
         """
-        return self._account.address()
+        return self._signer.lsig.address()
 
     @property
     def signer(self) -> LogicSigTransactionSigner:
