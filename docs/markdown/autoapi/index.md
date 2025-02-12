@@ -2,7 +2,6 @@
 
 This page contains auto-generated API reference documentation <sup>[1](#f1)</sup>.
 
-* [composer](composer/index.md)
 * [algokit_utils](algokit_utils/index.md)
   * [algokit_utils.accounts](algokit_utils/accounts/index.md)
     * [algokit_utils.accounts.account_manager](algokit_utils/accounts/account_manager/index.md)
@@ -41,8 +40,5 @@ This page contains auto-generated API reference documentation <sup>[1](#f1)</sup
     * [algokit_utils.transactions.transaction_composer](algokit_utils/transactions/transaction_composer/index.md)
     * [algokit_utils.transactions.transaction_creator](algokit_utils/transactions/transaction_creator/index.md)
     * [algokit_utils.transactions.transaction_sender](algokit_utils/transactions/transaction_sender/index.md)
-* [client_manager](client_manager/index.md)
-* [algorand_client](algorand_client/index.md)
-* [account_manager](account_manager/index.md)
 
 * <a id='f1'>**[1]**</a> Created with [sphinx-autoapi](https://github.com/readthedocs/sphinx-autoapi)

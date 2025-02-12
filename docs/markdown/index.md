@@ -99,11 +99,7 @@ If you prefer TypeScript there’s an equivalent [TypeScript utility library](ht
   * [Best Practices](v3-migration-guide.md#best-practices)
   * [Troubleshooting](v3-migration-guide.md#troubleshooting)
 * [API Reference](autoapi/index.md)
-  * [composer](autoapi/composer/index.md)
   * [algokit_utils](autoapi/algokit_utils/index.md)
-  * [client_manager](autoapi/client_manager/index.md)
-  * [algorand_client](autoapi/algorand_client/index.md)
-  * [account_manager](autoapi/account_manager/index.md)
 
 <a id="core-principles"></a>
 
