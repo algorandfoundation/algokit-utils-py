@@ -591,9 +591,27 @@ class SendAtomicTransactionComposerResults:
     simulate_response: dict[str, Any] | None = None
 
 
+class UnnamedResourcesAccessed:
+    """Information about unnamed resource access."""
+
+    def __init__(self, resources_accessed: dict[str, Any] | None = None):
+        resources = resources_accessed or {}
+
+        if not isinstance(resources, dict):
+            raise TypeError(f"Expected dictionary object, got {type(resources_accessed)}")
+
+        self.accounts: list[str] | None = resources.get("accounts", None)
+        self.app_locals: list[dict[str, Any]] | None = resources.get("app-locals", None)
+        self.apps: list[int] | None = resources.get("apps", None)
+        self.asset_holdings: list[dict[str, Any]] | None = resources.get("asset-holdings", None)
+        self.assets: list[int] | None = resources.get("assets", None)
+        self.boxes: list[dict[str, Any]] | None = resources.get("boxes", None)
+        self.extra_box_refs: int | None = resources.get("extra-box-refs", None)
+
+
 @dataclass
 class ExecutionInfoTxn:
-    unnamed_resources_accessed: dict | None = None
+    unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
     required_fee_delta: int = 0
 
 
@@ -601,7 +619,7 @@ class ExecutionInfoTxn:
 class ExecutionInfo:
     """Information about transaction execution from simulation."""
 
-    group_unnamed_resources_accessed: dict[str, Any] | None = None
+    group_unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
     txns: list[ExecutionInfoTxn] | None = None
 
 
@@ -745,7 +763,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
 
         txn_results.append(
             ExecutionInfoTxn(
-                unnamed_resources_accessed=txn_result_raw.get("unnamed-resources-accessed")
+                unnamed_resources_accessed=UnnamedResourcesAccessed(txn_result_raw.get("unnamed-resources-accessed"))
                 if populate_app_call_resources
                 else None,
                 required_fee_delta=required_fee_delta,
@@ -753,7 +771,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
         )
 
     return ExecutionInfo(
-        group_unnamed_resources_accessed=group_response.get("unnamed-resources-accessed")
+        group_unnamed_resources_accessed=UnnamedResourcesAccessed(group_response.get("unnamed-resources-accessed"))
         if populate_app_call_resources
         else None,
         txns=txn_results,
@@ -1052,11 +1070,11 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
         resources = txn_info.unnamed_resources_accessed
         if resources and is_app_txn:
             app_txn = group[i].txn
-            if resources.get("boxes") or resources.get("extra-box-refs"):
+            if resources.boxes or resources.extra_box_refs:
                 raise ValueError("Unexpected boxes at transaction level")
-            if resources.get("appLocals"):
+            if resources.app_locals:
                 raise ValueError("Unexpected app local at transaction level")
-            if resources.get("assetHoldings"):
+            if resources.asset_holdings:
                 raise ValueError("Unexpected asset holding at transaction level")
 
             # Update application call fields
@@ -1066,10 +1084,10 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
             boxes = list(getattr(app_txn, "boxes", []) or [])
 
             # Add new resources
-            accounts.extend(resources.get("accounts", []))
-            foreign_apps.extend(resources.get("apps", []))
-            foreign_assets.extend(resources.get("assets", []))
-            boxes.extend(resources.get("boxes", []))
+            accounts.extend(resources.accounts or [])
+            foreign_apps.extend(resources.apps or [])
+            foreign_assets.extend(resources.assets or [])
+            boxes.extend(resources.boxes or [])
 
             # Validate limits
             if len(accounts) > MAX_APP_CALL_ACCOUNT_REFERENCES:
@@ -1113,45 +1131,41 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     group_resources = execution_info.group_unnamed_resources_accessed
     if group_resources:
         # Handle cross-reference resources first
-        for app_local in group_resources.get("appLocals", []):
+        for app_local in group_resources.app_locals or []:
             populate_group_resource(group, app_local, "appLocal")
             # Remove processed resources
-            if "accounts" in group_resources:
-                group_resources["accounts"] = [
-                    acc for acc in group_resources["accounts"] if acc != app_local["account"]
-                ]
-            if "apps" in group_resources:
-                group_resources["apps"] = [app for app in group_resources["apps"] if int(app) != int(app_local["app"])]
+            if group_resources.accounts:
+                group_resources.accounts = [acc for acc in group_resources.accounts if acc != app_local["account"]]
+            if group_resources.apps:
+                group_resources.apps = [app for app in group_resources.apps if int(app) != int(app_local["app"])]
 
-        for asset_holding in group_resources.get("assetHoldings", []):
+        for asset_holding in group_resources.asset_holdings or []:
             populate_group_resource(group, asset_holding, "assetHolding")
             # Remove processed resources
-            if "accounts" in group_resources:
-                group_resources["accounts"] = [
-                    acc for acc in group_resources["accounts"] if acc != asset_holding["account"]
-                ]
-            if "assets" in group_resources:
-                group_resources["assets"] = [
-                    asset for asset in group_resources["assets"] if int(asset) != int(asset_holding["asset"])
+            if group_resources.accounts:
+                group_resources.accounts = [acc for acc in group_resources.accounts if acc != asset_holding["account"]]
+            if group_resources.assets:
+                group_resources.assets = [
+                    asset for asset in group_resources.assets if int(asset) != int(asset_holding["asset"])
                 ]
 
         # Handle remaining resources
-        for account in group_resources.get("accounts", []):
+        for account in group_resources.accounts or []:
             populate_group_resource(group, account, "account")
 
-        for box in group_resources.get("boxes", []):
+        for box in group_resources.boxes or []:
             populate_group_resource(group, box, "box")
-            if "apps" in group_resources:
-                group_resources["apps"] = [app for app in group_resources["apps"] if int(app) != int(box["app"])]
+            if group_resources.apps:
+                group_resources.apps = [app for app in group_resources.apps if int(app) != int(box["app"])]
 
-        for asset in group_resources.get("assets", []):
+        for asset in group_resources.assets or []:
             populate_group_resource(group, asset, "asset")
 
-        for app in group_resources.get("apps", []):
+        for app in group_resources.apps or []:
             populate_group_resource(group, app, "app")
 
         # Handle extra box references
-        extra_box_refs = group_resources.get("extra-box-refs", 0)
+        extra_box_refs = group_resources.extra_box_refs or 0
         for _ in range(extra_box_refs):
             populate_group_resource(group, {"app": 0, "name": ""}, "box")
 
