@@ -137,7 +137,7 @@ Generally, the functions to immediately send a single transaction will emit log 
 
 You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{Type}()` methods on [`TransactionComposer`](transaction-composer.md) to add a series of transactions.
 
-```typescript
+```python
 result = (algorand
     .new_group()
     .add_payment(

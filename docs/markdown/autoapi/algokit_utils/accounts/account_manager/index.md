@@ -136,6 +136,15 @@ mnemonic-based, rekeyed, multisig, and logic signature accounts.
 
 #### *property* kmd *: [algokit_utils.accounts.kmd_account_manager.KmdAccountManager](../kmd_account_manager/index.md#algokit_utils.accounts.kmd_account_manager.KmdAccountManager)*
 
+KMD account manager that allows you to easily get and create accounts using KMD.
+
+* **Return KmdAccountManager:**
+  The ‘KmdAccountManager’ instance
+* **Example:**
+  ```pycon
+  >>> kmd_manager = account_manager.kmd
+  ```
+
 #### set_default_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
@@ -150,10 +159,7 @@ then an error will be thrown from get_signer / get_account.
 * **Example:**
   ```pycon
   >>> signer_account = account_manager.random()
-  >>> account_manager.set_default_signer(signer_account.signer)
-  >>> # When signing a transaction, if there is no signer registered for the sender
-  >>> # then the default signer will be used
-  >>> signer = account_manager.get_signer("{SENDERADDRESS}")
+  >>> account_manager.set_default_signer(signer_account)
   ```
 
 #### set_signer(sender: str, signer: algosdk.atomic_transaction_composer.TransactionSigner) → typing_extensions.Self

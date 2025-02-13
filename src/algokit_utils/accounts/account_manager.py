@@ -158,6 +158,13 @@ class AccountManager:
 
     @property
     def kmd(self) -> KmdAccountManager:
+        """
+        KMD account manager that allows you to easily get and create accounts using KMD.
+
+        :return KmdAccountManager: The 'KmdAccountManager' instance
+        :example:
+            >>> kmd_manager = account_manager.kmd
+        """
         return self._kmd_account_manager
 
     def set_default_signer(self, signer: TransactionSigner | TransactionSignerAccountProtocol) -> Self:
@@ -172,10 +179,7 @@ class AccountManager:
 
         :example:
             >>> signer_account = account_manager.random()
-            >>> account_manager.set_default_signer(signer_account.signer)
-            >>> # When signing a transaction, if there is no signer registered for the sender
-            >>> # then the default signer will be used
-            >>> signer = account_manager.get_signer("{SENDERADDRESS}")
+            >>> account_manager.set_default_signer(signer_account)
         """
         self._default_signer = signer if isinstance(signer, TransactionSigner) else signer.signer
         return self
