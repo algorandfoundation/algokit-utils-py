@@ -706,7 +706,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
             )
         failed_at = group_response.get("failed-at", [0])[0]
         raise ValueError(
-            f"Error during resource population simulation in transaction {failed_at}: "
+            f"Error resolving execution info via simulate in transaction {failed_at}: "
             f"{group_response['failure-message']}"
         )
 
