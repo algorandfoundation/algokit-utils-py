@@ -701,13 +701,13 @@
         }
     },
     "templateVariables": {
-        "u_p_d_a_t_a_b_l_e": {
+        "UPDATABLE": {
             "type": "AVMUint64"
         },
-        "d_e_l_e_t_a_b_l_e": {
+        "DELETABLE": {
             "type": "AVMUint64"
         },
-        "v_a_l_u_e": {
+        "VALUE": {
             "type": "AVMUint64"
         }
     }

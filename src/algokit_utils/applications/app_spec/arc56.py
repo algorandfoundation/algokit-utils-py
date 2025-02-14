@@ -672,16 +672,38 @@ class SourceInfoModel:
         return SourceInfoModel(**data)
 
 
+# constants that define which parent keys mark a region whose inner keys should remain unchanged.
+PROTECTED_TOP_DICTS = {"networks", "scratch_variables", "template_variables", "structs"}
+STATE_PROTECTED_PARENTS = {"keys", "maps"}
+STATE_PROTECTED_CHILDREN = {"global", "local", "box"}
+
+
+def _is_protected_path(path: tuple[str, ...]) -> bool:
+    """
+    Return True if the current recursion path indicates that we are inside a protected dictionary,
+    meaning that the keys should be left unchanged.
+    """
+    return (len(path) >= 2 and path[-2] in STATE_PROTECTED_PARENTS and path[-1] in STATE_PROTECTED_CHILDREN) or (  # noqa: PLR2004
+        len(path) >= 1 and path[-1] in PROTECTED_TOP_DICTS
+    )
+
+
 def _dict_keys_to_snake_case(value: Any, path: tuple[str, ...] = ()) -> Any:  # noqa: ANN401
-    """Recursively convert dictionary keys to snake_case except for keys directly under the
-    'global', 'local', or 'box' sections of 'keys' or 'maps'."""
+    """Recursively convert dictionary keys to snake_case except in protected sections.
+
+    A dictionary is not converted if it is directly under:
+      - keys/maps sections ("global", "local", "box")
+      - or one of the top-level keys ("networks", "scratchVariables", "templateVariables", "structs")
+    (Note that once converted the parent key names become snake_case.)
+    """
+    import re
 
     def camel_to_snake(s: str) -> str:
-        return "".join(["_" + c.lower() if c.isupper() else c for c in s]).lstrip("_")
+        # Use a regular expression to insert an underscore before capital letters (except at start).
+        return re.sub(r"(?<!^)(?=[A-Z])", "_", s).lower()
 
     if isinstance(value, dict):
-        # Determine if this dict is in a protected region.
-        protected = len(path) >= 2 and path[-2] in {"keys", "maps"} and path[-1] in {"global", "local", "box"}  # noqa: PLR2004
+        protected = _is_protected_path(path)
         new_dict = {}
         for key, val in value.items():
             new_key = key if protected else camel_to_snake(key)
