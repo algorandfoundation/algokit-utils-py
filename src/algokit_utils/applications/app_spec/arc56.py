@@ -672,22 +672,25 @@ class SourceInfoModel:
         return SourceInfoModel(**data)
 
 
-def _dict_keys_to_snake_case(
-    value: Any,  # noqa: ANN401
-) -> Any:  # noqa: ANN401
+def _dict_keys_to_snake_case(value: Any, path: tuple[str, ...] = ()) -> Any:  # noqa: ANN401
+    """Recursively convert dictionary keys to snake_case except for keys directly under the
+    'global', 'local', or 'box' sections of 'keys' or 'maps'."""
+
     def camel_to_snake(s: str) -> str:
         return "".join(["_" + c.lower() if c.isupper() else c for c in s]).lstrip("_")
 
-    match value:
-        case dict():
-            new_dict: dict[str, Any] = {}
-            for key, val in value.items():
-                new_dict[camel_to_snake(str(key))] = _dict_keys_to_snake_case(val)
-            return new_dict
-        case list():
-            return [_dict_keys_to_snake_case(item) for item in value]
-        case _:
-            return value
+    if isinstance(value, dict):
+        # Determine if this dict is in a protected region.
+        protected = len(path) >= 2 and path[-2] in {"keys", "maps"} and path[-1] in {"global", "local", "box"}  # noqa: PLR2004
+        new_dict = {}
+        for key, val in value.items():
+            new_key = key if protected else camel_to_snake(key)
+            new_dict[new_key] = _dict_keys_to_snake_case(val, (*path, new_key))
+        return new_dict
+    elif isinstance(value, list):
+        return [_dict_keys_to_snake_case(item, path) for item in value]
+    else:
+        return value
 
 
 class _Arc32ToArc56Converter:
