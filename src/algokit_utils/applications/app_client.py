@@ -1900,6 +1900,11 @@ class AppClient:
         method = self._app_spec.get_arc56_method(method_name_or_signature)
         result: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] = []
 
+        if args and len(method.args) < len(args):
+            raise ValueError(
+                f"Unexpected arg at position {len(method.args)}. {method.name} only expects {len(method.args)} args"
+            )
+
         for i, method_arg in enumerate(method.args):
             arg_value = args[i] if args and i < len(args) else None
 

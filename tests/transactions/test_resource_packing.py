@@ -417,7 +417,7 @@ class TestResourcePackerMeta:
                     "populate_app_call_resources": True,
                 },
             )
-        assert "Error during resource population simulation in transaction 0" in exc_info.value.logic_error_str
+        assert "Error resolving execution info via simulate in transaction 0" in exc_info.value.logic_error_str
 
     def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         payment = PaymentTxn(
