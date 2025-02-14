@@ -50,17 +50,17 @@ Bases: `_CommonTxnParams`
 
 Parameters for a payment transaction.
 
-* **Variables:**
-  * **receiver** – The account that will receive the ALGO
-  * **amount** – Amount to send
-  * **close_remainder_to** – If given, close the sender account and send the remaining balance to this address,
-    defaults to None
-
 #### receiver *: str*
+
+The account that will receive the ALGO
 
 #### amount *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
 
+Amount to send
+
 #### close_remainder_to *: str | None* *= None*
+
+If given, close the sender account and send the remaining balance to this address, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetCreateParams
 
@@ -68,40 +68,49 @@ Bases: `_CommonTxnParams`
 
 Parameters for creating a new asset.
 
-* **Variables:**
-  * **total** – The total amount of the smallest divisible unit to create
-  * **decimals** – The amount of decimal places the asset should have, defaults to None
-  * **default_frozen** – Whether the asset is frozen by default in the creator address, defaults to None
-  * **manager** – The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
-  * **reserve** – The address that holds the uncirculated supply, defaults to None
-  * **freeze** – The address that can freeze the asset in any account, defaults to None
-  * **clawback** – The address that can clawback the asset from any account, defaults to None
-  * **unit_name** – The short ticker name for the asset, defaults to None
-  * **asset_name** – The full name of the asset, defaults to None
-  * **url** – The metadata URL for the asset, defaults to None
-  * **metadata_hash** – Hash of the metadata contained in the metadata URL, defaults to None
-
 #### total *: int*
+
+The total amount of the smallest divisible unit to create
 
 #### asset_name *: str | None* *= None*
 
+The full name of the asset
+
 #### unit_name *: str | None* *= None*
+
+The short ticker name for the asset
 
 #### url *: str | None* *= None*
 
+The metadata URL for the asset
+
 #### decimals *: int | None* *= None*
+
+The amount of decimal places the asset should have
 
 #### default_frozen *: bool | None* *= None*
 
+Whether the asset is frozen by default in the creator address
+
 #### manager *: str | None* *= None*
+
+The address that can change the manager, reserve, clawback, and freeze addresses
 
 #### reserve *: str | None* *= None*
 
+The address that holds the uncirculated supply
+
 #### freeze *: str | None* *= None*
+
+The address that can freeze the asset in any account
 
 #### clawback *: str | None* *= None*
 
+The address that can clawback the asset from any account
+
 #### metadata_hash *: bytes | None* *= None*
+
+Hash of the metadata contained in the metadata URL
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetConfigParams
 
@@ -109,22 +118,25 @@ Bases: `_CommonTxnParams`
 
 Parameters for configuring an existing asset.
 
-* **Variables:**
-  * **asset_id** – ID of the asset
-  * **manager** – The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
-  * **reserve** – The address that holds the uncirculated supply, defaults to None
-  * **freeze** – The address that can freeze the asset in any account, defaults to None
-  * **clawback** – The address that can clawback the asset from any account, defaults to None
-
 #### asset_id *: int*
+
+The ID of the asset
 
 #### manager *: str | None* *= None*
 
+The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
+
 #### reserve *: str | None* *= None*
+
+The address that holds the uncirculated supply, defaults to None
 
 #### freeze *: str | None* *= None*
 
+The address that can freeze the asset in any account, defaults to None
+
 #### clawback *: str | None* *= None*
+
+The address that can clawback the asset from any account, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetFreezeParams
 
@@ -132,16 +144,17 @@ Bases: `_CommonTxnParams`
 
 Parameters for freezing an asset.
 
-* **Variables:**
-  * **asset_id** – The ID of the asset
-  * **account** – The account to freeze or unfreeze
-  * **frozen** – Whether the assets in the account should be frozen
-
 #### asset_id *: int*
+
+The ID of the asset
 
 #### account *: str*
 
+The account to freeze or unfreeze
+
 #### frozen *: bool*
+
+Whether the assets in the account should be frozen
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetDestroyParams
 
@@ -149,10 +162,9 @@ Bases: `_CommonTxnParams`
 
 Parameters for destroying an asset.
 
-* **Variables:**
-  **asset_id** – ID of the asset
-
 #### asset_id *: int*
+
+The ID of the asset
 
 ### *class* algokit_utils.transactions.transaction_composer.OnlineKeyRegistrationParams
 
@@ -160,25 +172,29 @@ Bases: `_CommonTxnParams`
 
 Parameters for online key registration.
 
-* **Variables:**
-  * **vote_key** – The root participation public key
-  * **selection_key** – The VRF public key
-  * **vote_first** – The first round that the participation key is valid
-  * **vote_last** – The last round that the participation key is valid
-  * **vote_key_dilution** – The dilution for the 2-level participation key
-  * **state_proof_key** – The 64 byte state proof public key commitment, defaults to None
-
 #### vote_key *: str*
+
+The root participation public key
 
 #### selection_key *: str*
 
+The VRF public key
+
 #### vote_first *: int*
+
+The first round that the participation key is valid
 
 #### vote_last *: int*
 
+The last round that the participation key is valid
+
 #### vote_key_dilution *: int*
 
+The dilution for the 2-level participation key
+
 #### state_proof_key *: bytes | None* *= None*
+
+The 64 byte state proof public key commitment, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.OfflineKeyRegistrationParams
 
@@ -186,10 +202,9 @@ Bases: `_CommonTxnParams`
 
 Parameters for offline key registration.
 
-* **Variables:**
-  **prevent_account_from_ever_participating_again** – Whether to prevent the account from ever participating again
-
 #### prevent_account_from_ever_participating_again *: bool*
+
+Whether to prevent the account from ever participating again
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetTransferParams
 
@@ -197,22 +212,25 @@ Bases: `_CommonTxnParams`
 
 Parameters for transferring an asset.
 
-* **Variables:**
-  * **asset_id** – ID of the asset
-  * **amount** – Amount of the asset to transfer (smallest divisible unit)
-  * **receiver** – The account to send the asset to
-  * **clawback_target** – The account to take the asset from, defaults to None
-  * **close_asset_to** – The account to close the asset to, defaults to None
-
 #### asset_id *: int*
+
+The ID of the asset
 
 #### amount *: int*
 
+The amount of the asset to transfer (smallest divisible unit)
+
 #### receiver *: str*
+
+The account to send the asset to
 
 #### clawback_target *: str | None* *= None*
 
+The account to take the asset from, defaults to None
+
 #### close_asset_to *: str | None* *= None*
+
+The account to close the asset to, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetOptInParams
 
@@ -220,10 +238,9 @@ Bases: `_CommonTxnParams`
 
 Parameters for opting into an asset.
 
-* **Variables:**
-  **asset_id** – ID of the asset
-
 #### asset_id *: int*
+
+The ID of the asset
 
 ### *class* algokit_utils.transactions.transaction_composer.AssetOptOutParams
 
@@ -231,13 +248,13 @@ Bases: `_CommonTxnParams`
 
 Parameters for opting out of an asset.
 
-* **Variables:**
-  * **asset_id** – ID of the asset
-  * **creator** – The creator address of the asset
-
 #### asset_id *: int*
 
+The ID of the asset
+
 #### creator *: str*
+
+The creator address of the asset
 
 ### *class* algokit_utils.transactions.transaction_composer.AppCallParams
 
@@ -245,40 +262,49 @@ Bases: `_CommonTxnParams`
 
 Parameters for calling an application.
 
-* **Variables:**
-  * **on_complete** – The OnComplete action
-  * **app_id** – ID of the application, defaults to None
-  * **approval_program** – The program to execute for all OnCompletes other than ClearState, defaults to None
-  * **clear_state_program** – The program to execute for ClearState OnComplete, defaults to None
-  * **schema** – The state schema for the app. This is immutable, defaults to None
-  * **args** – Application arguments, defaults to None
-  * **account_references** – Account references, defaults to None
-  * **app_references** – App references, defaults to None
-  * **asset_references** – Asset references, defaults to None
-  * **extra_pages** – Number of extra pages required for the programs, defaults to None
-  * **box_references** – Box references, defaults to None
-
 #### on_complete *: algosdk.transaction.OnComplete*
+
+The OnComplete action, defaults to None
 
 #### app_id *: int | None* *= None*
 
+The ID of the application, defaults to None
+
 #### approval_program *: str | bytes | None* *= None*
+
+The program to execute for all OnCompletes other than ClearState, defaults to None
 
 #### clear_state_program *: str | bytes | None* *= None*
 
+The program to execute for ClearState OnComplete, defaults to None
+
 #### schema *: dict[str, int] | None* *= None*
+
+The state schema for the app, defaults to None
 
 #### args *: list[bytes] | None* *= None*
 
+Application arguments, defaults to None
+
 #### account_references *: list[str] | None* *= None*
+
+Account references, defaults to None
 
 #### app_references *: list[int] | None* *= None*
 
+App references, defaults to None
+
 #### asset_references *: list[int] | None* *= None*
+
+Asset references, defaults to None
 
 #### extra_pages *: int | None* *= None*
 
+Number of extra pages required for the programs, defaults to None
+
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
+
+Box references, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AppCreateSchema
 
@@ -306,11 +332,19 @@ kwargs) -> new dictionary initialized with the name=value pairs
 
 #### global_ints *: int*
 
+The number of global ints in the schema
+
 #### global_byte_slices *: int*
+
+The number of global byte slices in the schema
 
 #### local_ints *: int*
 
+The number of local ints in the schema
+
 #### local_byte_slices *: int*
+
+The number of local byte slices in the schema
 
 ### *class* algokit_utils.transactions.transaction_composer.AppCreateParams
 
@@ -318,39 +352,45 @@ Bases: `_CommonTxnParams`
 
 Parameters for creating an application.
 
-* **Variables:**
-  * **approval_program** – The program to execute for all OnCompletes other than ClearState as raw teal (string)
-    or compiled teal (bytes)
-  * **clear_state_program** – The program to execute for ClearState OnComplete as raw teal (string)
-    or compiled teal (bytes)
-  * **schema** – The state schema for the app. This is immutable, defaults to None
-  * **on_complete** – The OnComplete action (cannot be ClearState), defaults to None
-  * **args** – Application arguments, defaults to None
-  * **account_references** – Account references, defaults to None
-  * **app_references** – App references, defaults to None
-  * **asset_references** – Asset references, defaults to None
-  * **box_references** – Box references, defaults to None
-  * **extra_program_pages** – Number of extra pages required for the programs, defaults to None
-
 #### approval_program *: str | bytes*
+
+The program to execute for all OnCompletes other than ClearState
 
 #### clear_state_program *: str | bytes*
 
+The program to execute for ClearState OnComplete
+
 #### schema *: [AppCreateSchema](#algokit_utils.transactions.transaction_composer.AppCreateSchema) | None* *= None*
+
+The state schema for the app, defaults to None
 
 #### on_complete *: algosdk.transaction.OnComplete | None* *= None*
 
+The OnComplete action, defaults to None
+
 #### args *: list[bytes] | None* *= None*
+
+Application arguments, defaults to None
 
 #### account_references *: list[str] | None* *= None*
 
+Account references, defaults to None
+
 #### app_references *: list[int] | None* *= None*
+
+App references, defaults to None
 
 #### asset_references *: list[int] | None* *= None*
 
+Asset references, defaults to None
+
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
 
+Box references, defaults to None
+
 #### extra_program_pages *: int | None* *= None*
+
+Number of extra pages required for the programs, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AppUpdateParams
 
@@ -358,36 +398,41 @@ Bases: `_CommonTxnParams`
 
 Parameters for updating an application.
 
-* **Variables:**
-  * **app_id** – ID of the application
-  * **approval_program** – The program to execute for all OnCompletes other than ClearState as raw teal (string)
-    or compiled teal (bytes)
-  * **clear_state_program** – The program to execute for ClearState OnComplete as raw teal (string)
-    or compiled teal (bytes)
-  * **args** – Application arguments, defaults to None
-  * **account_references** – Account references, defaults to None
-  * **app_references** – App references, defaults to None
-  * **asset_references** – Asset references, defaults to None
-  * **box_references** – Box references, defaults to None
-  * **on_complete** – The OnComplete action, defaults to None
-
 #### app_id *: int*
+
+The ID of the application
 
 #### approval_program *: str | bytes*
 
+The program to execute for all OnCompletes other than ClearState
+
 #### clear_state_program *: str | bytes*
+
+The program to execute for ClearState OnComplete
 
 #### args *: list[bytes] | None* *= None*
 
+Application arguments, defaults to None
+
 #### account_references *: list[str] | None* *= None*
+
+Account references, defaults to None
 
 #### app_references *: list[int] | None* *= None*
 
+App references, defaults to None
+
 #### asset_references *: list[int] | None* *= None*
+
+Asset references, defaults to None
 
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
 
+Box references, defaults to None
+
 #### on_complete *: algosdk.transaction.OnComplete | None* *= None*
+
+The OnComplete action, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AppDeleteParams
 
@@ -395,28 +440,33 @@ Bases: `_CommonTxnParams`
 
 Parameters for deleting an application.
 
-* **Variables:**
-  * **app_id** – ID of the application
-  * **args** – Application arguments, defaults to None
-  * **account_references** – Account references, defaults to None
-  * **app_references** – App references, defaults to None
-  * **asset_references** – Asset references, defaults to None
-  * **box_references** – Box references, defaults to None
-  * **on_complete** – The OnComplete action, defaults to DeleteApplicationOC
-
 #### app_id *: int*
+
+The ID of the application
 
 #### args *: list[bytes] | None* *= None*
 
+Application arguments, defaults to None
+
 #### account_references *: list[str] | None* *= None*
+
+Account references, defaults to None
 
 #### app_references *: list[int] | None* *= None*
 
+App references, defaults to None
+
 #### asset_references *: list[int] | None* *= None*
+
+Asset references, defaults to None
 
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
 
+Box references, defaults to None
+
 #### on_complete *: algosdk.transaction.OnComplete*
+
+The OnComplete action, defaults to DeleteApplicationOC
 
 ### *class* algokit_utils.transactions.transaction_composer.AppCallMethodCallParams
 
@@ -424,16 +474,13 @@ Bases: `_BaseAppMethodCall`
 
 Parameters for a regular ABI method call.
 
-* **Variables:**
-  * **app_id** – ID of the application
-  * **method** – The ABI method to call
-  * **args** – Arguments to the ABI method, either an ABI value, transaction with explicit signer,
-    transaction, another method call, or None
-  * **on_complete** – The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
-
 #### app_id *: int*
 
+The ID of the application
+
 #### on_complete *: algosdk.transaction.OnComplete | None* *= None*
+
+The OnComplete action, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams
 
@@ -441,22 +488,25 @@ Bases: `_BaseAppMethodCall`
 
 Parameters for an ABI method call that creates an application.
 
-* **Variables:**
-  * **approval_program** – The program to execute for all OnCompletes other than ClearState
-  * **clear_state_program** – The program to execute for ClearState OnComplete
-  * **schema** – The state schema for the app, defaults to None
-  * **on_complete** – The OnComplete action (cannot be ClearState), defaults to None
-  * **extra_program_pages** – Number of extra pages required for the programs, defaults to None
-
 #### approval_program *: str | bytes*
+
+The program to execute for all OnCompletes other than ClearState
 
 #### clear_state_program *: str | bytes*
 
+The program to execute for ClearState OnComplete
+
 #### schema *: [AppCreateSchema](#algokit_utils.transactions.transaction_composer.AppCreateSchema) | None* *= None*
+
+The state schema for the app, defaults to None
 
 #### on_complete *: algosdk.transaction.OnComplete | None* *= None*
 
+The OnComplete action (cannot be ClearState), defaults to None
+
 #### extra_program_pages *: int | None* *= None*
+
+Number of extra pages required for the programs, defaults to None
 
 ### *class* algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams
 
@@ -464,19 +514,21 @@ Bases: `_BaseAppMethodCall`
 
 Parameters for an ABI method call that updates an application.
 
-* **Variables:**
-  * **app_id** – ID of the application
-  * **approval_program** – The program to execute for all OnCompletes other than ClearState
-  * **clear_state_program** – The program to execute for ClearState OnComplete
-  * **on_complete** – The OnComplete action, defaults to UpdateApplicationOC
-
 #### app_id *: int*
+
+The ID of the application
 
 #### approval_program *: str | bytes*
 
+The program to execute for all OnCompletes other than ClearState
+
 #### clear_state_program *: str | bytes*
 
+The program to execute for ClearState OnComplete
+
 #### on_complete *: algosdk.transaction.OnComplete*
+
+The OnComplete action
 
 ### *class* algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams
 
@@ -484,13 +536,13 @@ Bases: `_BaseAppMethodCall`
 
 Parameters for an ABI method call that deletes an application.
 
-* **Variables:**
-  * **app_id** – ID of the application
-  * **on_complete** – The OnComplete action, defaults to DeleteApplicationOC
-
 #### app_id *: int*
 
+The ID of the application
+
 #### on_complete *: algosdk.transaction.OnComplete*
+
+The OnComplete action
 
 ### algokit_utils.transactions.transaction_composer.MethodCallParams
 
@@ -502,55 +554,61 @@ Parameters for an ABI method call that deletes an application.
 
 Set of transactions built by TransactionComposer.
 
-* **Variables:**
-  * **transactions** – The built transactions
-  * **method_calls** – Any ABIMethod objects associated with any of the transactions in a map keyed by txn id
-  * **signers** – Any TransactionSigner objects associated with any of the transactions in a map keyed by txn id
-
 #### transactions *: list[algosdk.transaction.Transaction]*
+
+The built transactions
 
 #### method_calls *: dict[int, algosdk.abi.Method]*
 
+Map of transaction index to ABI method
+
 #### signers *: dict[int, algosdk.atomic_transaction_composer.TransactionSigner]*
+
+Map of transaction index to TransactionSigner
 
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposerBuildResult
 
 Result of building transactions with TransactionComposer.
 
-* **Variables:**
-  * **atc** – The AtomicTransactionComposer instance
-  * **transactions** – The list of transactions with signers
-  * **method_calls** – Map of transaction index to ABI method
-
 #### atc *: algosdk.atomic_transaction_composer.AtomicTransactionComposer*
+
+The AtomicTransactionComposer instance
 
 #### transactions *: list[algosdk.atomic_transaction_composer.TransactionWithSigner]*
 
+The list of transactions with signers
+
 #### method_calls *: dict[int, algosdk.abi.Method]*
+
+Map of transaction index to ABI method
 
 ### *class* algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
 
 Results from sending an AtomicTransactionComposer transaction group.
 
-* **Variables:**
-  * **group_id** – The group ID if this was a transaction group
-  * **confirmations** – The confirmation info for each transaction
-  * **tx_ids** – The transaction IDs that were sent
-  * **transactions** – The transactions that were sent
-  * **returns** – The ABI return values from any ABI method calls
-  * **simulate_response** – The simulation response if simulation was performed, defaults to None
-
 #### group_id *: str*
+
+The group ID if this was a transaction group
 
 #### confirmations *: list[algosdk.v2client.algod.AlgodResponseType]*
 
+The confirmation info for each transaction
+
 #### tx_ids *: list[str]*
+
+The transaction IDs that were sent
 
 #### transactions *: list[[algokit_utils.models.transaction.TransactionWrapper](../../models/transaction/index.md#algokit_utils.models.transaction.TransactionWrapper)]*
 
+The transactions that were sent
+
 #### returns *: list[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]*
 
+The ABI return values from any ABI method calls
+
 #### simulate_response *: dict[str, Any] | None* *= None*
+
+The simulation response if simulation was performed, defaults to None
 
 ### algokit_utils.transactions.transaction_composer.calculate_extra_program_pages(approval: bytes | None, clear: bytes | None) → int
 
@@ -629,6 +687,19 @@ Add a raw transaction to the composer.
 
 Add a payment transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer, AlgoAmount
+  >>> params = PaymentParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     receiver="RECEIVER_ADDRESS",
+  ...     amount=AlgoAmount.from_algo(1),
+  ...     close_remainder_to="CLOSE_ADDRESS"
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_payment(params)
+  ```
+
 * **Parameters:**
   **params** – The payment transaction parameters
 * **Returns:**
@@ -637,6 +708,26 @@ Add a payment transaction.
 #### add_asset_create(params: [AssetCreateParams](#algokit_utils.transactions.transaction_composer.AssetCreateParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an asset creation transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetCreateParams, TransactionComposer
+  >>> params = AssetCreateParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     total=1000,
+  ...     asset_name="MyAsset",
+  ...     unit_name="MA",
+  ...     url="https://example.com",
+  ...     decimals=0,
+  ...     default_frozen=False,
+  ...     manager="MANAGER_ADDRESS",
+  ...     reserve="RESERVE_ADDRESS",
+  ...     freeze="FREEZE_ADDRESS",
+  ...     clawback="CLAWBACK_ADDRESS"
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_create(params)
+  ```
 
 * **Parameters:**
   **params** – The asset creation parameters
@@ -647,6 +738,21 @@ Add an asset creation transaction.
 
 Add an asset configuration transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetConfigParams, TransactionComposer
+  >>> params = AssetConfigParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456,
+  ...     manager="NEW_MANAGER_ADDRESS",
+  ...     reserve="NEW_RESERVE_ADDRESS",
+  ...     freeze="NEW_FREEZE_ADDRESS",
+  ...     clawback="NEW_CLAWBACK_ADDRESS"
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_config(params)
+  ```
+
 * **Parameters:**
   **params** – The asset configuration parameters
 * **Returns:**
@@ -655,6 +761,19 @@ Add an asset configuration transaction.
 #### add_asset_freeze(params: [AssetFreezeParams](#algokit_utils.transactions.transaction_composer.AssetFreezeParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an asset freeze transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetFreezeParams, TransactionComposer
+  >>> params = AssetFreezeParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456,
+  ...     account="ACCOUNT_TO_FREEZE",
+  ...     frozen=True
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_freeze(params)
+  ```
 
 * **Parameters:**
   **params** – The asset freeze parameters
@@ -665,6 +784,17 @@ Add an asset freeze transaction.
 
 Add an asset destruction transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetDestroyParams, TransactionComposer
+  >>> params = AssetDestroyParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_destroy(params)
+  ```
+
 * **Parameters:**
   **params** – The asset destruction parameters
 * **Returns:**
@@ -673,6 +803,21 @@ Add an asset destruction transaction.
 #### add_asset_transfer(params: [AssetTransferParams](#algokit_utils.transactions.transaction_composer.AssetTransferParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an asset transfer transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetTransferParams, TransactionComposer
+  >>> params = AssetTransferParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456,
+  ...     amount=10,
+  ...     receiver="RECEIVER_ADDRESS",
+  ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
+  ...     close_asset_to="CLOSE_ADDRESS"
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_transfer(params)
+  ```
 
 * **Parameters:**
   **params** – The asset transfer parameters
@@ -683,6 +828,17 @@ Add an asset transfer transaction.
 
 Add an asset opt-in transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetOptInParams, TransactionComposer
+  >>> params = AssetOptInParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_opt_in(params)
+  ```
+
 * **Parameters:**
   **params** – The asset opt-in parameters
 * **Returns:**
@@ -691,6 +847,18 @@ Add an asset opt-in transaction.
 #### add_asset_opt_out(params: [AssetOptOutParams](#algokit_utils.transactions.transaction_composer.AssetOptOutParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an asset opt-out transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AssetOptOutParams, TransactionComposer
+  >>> params = AssetOptOutParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     asset_id=123456,
+  ...     creator="CREATOR_ADDRESS"
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_asset_opt_out(params)
+  ```
 
 * **Parameters:**
   **params** – The asset opt-out parameters
@@ -701,6 +869,27 @@ Add an asset opt-out transaction.
 
 Add an application creation transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AppCreateParams, TransactionComposer
+  >>> from algosdk.transaction import OnComplete
+  >>> params = AppCreateParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     approval_program="TEAL_APPROVAL_CODE",
+  ...     clear_state_program="TEAL_CLEAR_CODE",
+  ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+  ...     on_complete=OnComplete.NoOpOC,
+  ...     args=[b'arg1'],
+  ...     account_references=["ACCOUNT1"],
+  ...     app_references=[789],
+  ...     asset_references=[123],
+  ...     box_references=[],
+  ...     extra_program_pages=0
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_app_create(params)
+  ```
+
 * **Parameters:**
   **params** – The application creation parameters
 * **Returns:**
@@ -709,6 +898,26 @@ Add an application creation transaction.
 #### add_app_update(params: [AppUpdateParams](#algokit_utils.transactions.transaction_composer.AppUpdateParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an application update transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AppUpdateParams, TransactionComposer
+  >>> from algosdk.transaction import OnComplete
+  >>> params = AppUpdateParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     app_id=789,
+  ...     approval_program="TEAL_NEW_APPROVAL_CODE",
+  ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
+  ...     args=[b'new_arg1'],
+  ...     account_references=["ACCOUNT1"],
+  ...     app_references=[789],
+  ...     asset_references=[123],
+  ...     box_references=[],
+  ...     on_complete=OnComplete.UpdateApplicationOC
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_app_update(params)
+  ```
 
 * **Parameters:**
   **params** – The application update parameters
@@ -719,6 +928,24 @@ Add an application update transaction.
 
 Add an application deletion transaction.
 
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AppDeleteParams, TransactionComposer
+  >>> from algosdk.transaction import OnComplete
+  >>> params = AppDeleteParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     app_id=789,
+  ...     args=[b'delete_arg'],
+  ...     account_references=["ACCOUNT1"],
+  ...     app_references=[789],
+  ...     asset_references=[123],
+  ...     box_references=[],
+  ...     on_complete=OnComplete.DeleteApplicationOC
+  ... )
+  >>> composer = TransactionComposer(algod, get_signer)
+  >>> composer.add_app_delete(params)
+  ```
+
 * **Parameters:**
   **params** – The application deletion parameters
 * **Returns:**
@@ -727,6 +954,19 @@ Add an application deletion transaction.
 #### add_app_call(params: [AppCallParams](#algokit_utils.transactions.transaction_composer.AppCallParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add an application call transaction.
+
+Example:
+: ```pycon
+  >>> from algokit_utils.transactions.transaction_composer import AppCallParams, TransactionComposer
+  >>> from algosdk.transaction import OnComplete
+  >>> params = AppCallParams(
+  ...     sender="SENDER_ADDRESS",
+  ...     on_complete=OnComplete.NoOpOC,
+  ...     app_id=789,
+  ...     approval_program="TEAL_APPROVAL_CODE",
+  ...     clear_state_program="TEAL_CLEAR_CODE",
+  ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+  ```
 
 * **Parameters:**
   **params** – The application call parameters

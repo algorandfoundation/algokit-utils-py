@@ -12,7 +12,7 @@ from typing_extensions import Self
 
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
-from algokit_utils.clients.dispenser_api_client import DispenserAssetName, TestNetDispenserApiClient
+from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.config import config
 from algokit_utils.models.account import (
     DISPENSER_ACCOUNT_NAME,
@@ -72,69 +72,68 @@ class AccountInformation:
     Information about an Algorand account's current status, balance and other properties.
 
     See `https://developer.algorand.org/docs/rest-apis/algod/#account` for detailed field descriptions.
-
-    :ivar str address: The account's address
-    :ivar AlgoAmount amount: The account's current balance
-    :ivar AlgoAmount amount_without_pending_rewards: The account's balance without the pending rewards
-    :ivar AlgoAmount min_balance: The account's minimum required balance
-    :ivar AlgoAmount pending_rewards: The amount of pending rewards
-    :ivar AlgoAmount rewards: The amount of rewards earned
-    :ivar int round: The round for which this information is relevant
-    :ivar str status: The account's status (e.g., 'Offline', 'Online')
-    :ivar int|None total_apps_opted_in: Number of applications this account has opted into
-    :ivar int|None total_assets_opted_in: Number of assets this account has opted into
-    :ivar int|None total_box_bytes: Total number of box bytes used by this account
-    :ivar int|None total_boxes: Total number of boxes used by this account
-    :ivar int|None total_created_apps: Number of applications created by this account
-    :ivar int|None total_created_assets: Number of assets created by this account
-    :ivar list[dict]|None apps_local_state: Local state of applications this account has opted into
-    :ivar int|None apps_total_extra_pages: Number of extra pages allocated to applications
-    :ivar dict|None apps_total_schema: Total schema for all applications
-    :ivar list[dict]|None assets: Assets held by this account
-    :ivar str|None auth_addr: If rekeyed, the authorized address
-    :ivar int|None closed_at_round: Round when this account was closed
-    :ivar list[dict]|None created_apps: Applications created by this account
-    :ivar list[dict]|None created_assets: Assets created by this account
-    :ivar int|None created_at_round: Round when this account was created
-    :ivar bool|None deleted: Whether this account is deleted
-    :ivar bool|None incentive_eligible: Whether this account is eligible for incentives
-    :ivar int|None last_heartbeat: Last heartbeat round for this account
-    :ivar int|None last_proposed: Last round this account proposed a block
-    :ivar dict|None participation: Participation information for this account
-    :ivar int|None reward_base: Base reward for this account
-    :ivar str|None sig_type: Signature type for this account
     """
 
     address: str
+    """The account's address"""
     amount: AlgoAmount
+    """The account's current balance"""
     amount_without_pending_rewards: AlgoAmount
+    """The account's balance without the pending rewards"""
     min_balance: AlgoAmount
+    """The account's minimum required balance"""
     pending_rewards: AlgoAmount
+    """The amount of pending rewards"""
     rewards: AlgoAmount
+    """The amount of rewards earned"""
     round: int
+    """The round for which this information is relevant"""
     status: str
+    """The account's status (e.g., 'Offline', 'Online')"""
     total_apps_opted_in: int | None = None
+    """Number of applications this account has opted into"""
     total_assets_opted_in: int | None = None
+    """Number of assets this account has opted into"""
     total_box_bytes: int | None = None
+    """Total number of box bytes used by this account"""
     total_boxes: int | None = None
+    """Total number of boxes used by this account"""
     total_created_apps: int | None = None
+    """Number of applications created by this account"""
     total_created_assets: int | None = None
+    """Number of assets created by this account"""
     apps_local_state: list[dict] | None = None
+    """Local state of applications this account has opted into"""
     apps_total_extra_pages: int | None = None
+    """Number of extra pages allocated to applications"""
     apps_total_schema: dict | None = None
+    """Total schema for all applications"""
     assets: list[dict] | None = None
+    """Assets held by this account"""
     auth_addr: str | None = None
+    """If rekeyed, the authorized address"""
     closed_at_round: int | None = None
+    """Round when this account was closed"""
     created_apps: list[dict] | None = None
+    """Applications created by this account"""
     created_assets: list[dict] | None = None
+    """Assets created by this account"""
     created_at_round: int | None = None
+    """Round when this account was created"""
     deleted: bool | None = None
+    """Whether this account is deleted"""
     incentive_eligible: bool | None = None
+    """Whether this account is eligible for incentives"""
     last_heartbeat: int | None = None
+    """Last heartbeat round for this account"""
     last_proposed: int | None = None
+    """Last round this account proposed a block"""
     participation: dict | None = None
+    """Participation information for this account"""
     reward_base: int | None = None
+    """Base reward for this account"""
     sig_type: str | None = None
+    """Signature type for this account"""
 
 
 class AccountManager:
@@ -205,6 +204,9 @@ class AccountManager:
         :param another_account_manager: The `AccountManager` to merge into this one
         :param overwrite_existing: Whether to overwrite existing signers in this manager
         :returns: The `AccountManager` instance for method chaining
+
+        :example:
+            >>> accountManager2.set_signers(accountManager1)
         """
         self._accounts = (
             {**self._accounts, **another_account_manager._accounts}  # noqa: SLF001
@@ -544,22 +546,22 @@ class AccountManager:
 
         :example:
             >>> # Basic example (with string addresses):
-            >>> algorand.account.rekey_account({account: "ACCOUNTADDRESS", rekey_to: "NEWADDRESS"})
+            >>> algorand.account.rekey_account("ACCOUNTADDRESS", "NEWADDRESS")
             >>> # Basic example (with signer accounts):
-            >>> algorand.account.rekey_account({account: account1, rekey_to: newSignerAccount})
+            >>> algorand.account.rekey_account(account1, newSignerAccount)
             >>> # Advanced example:
-            >>> algorand.account.rekey_account({
-            ...     account: "ACCOUNTADDRESS",
-            ...     rekey_to: "NEWADDRESS",
-            ...     lease: 'lease',
-            ...     note: 'note',
-            ...     first_valid_round: 1000,
-            ...     validity_window: 10,
-            ...     extra_fee: AlgoAmount.from_micro_algo(1000),
-            ...     static_fee: AlgoAmount.from_micro_algo(1000),
-            ...     max_fee: AlgoAmount.from_micro_algo(3000),
-            ...     suppress_log: True,
-            ... })
+            >>> algorand.account.rekey_account(
+            ...     account="ACCOUNTADDRESS",
+            ...     rekey_to="NEWADDRESS",
+            ...     lease='lease',
+            ...     note='note',
+            ...     first_valid_round=1000,
+            ...     validity_window=10,
+            ...     extra_fee=AlgoAmount.from_micro_algo(1000),
+            ...     static_fee=AlgoAmount.from_micro_algo(1000),
+            ...     max_fee=AlgoAmount.from_micro_algo(3000),
+            ...     suppress_log=True,
+            ... )
         """
         sender_address = self._get_address(account)
         rekey_address = self._get_address(rekey_to)
@@ -644,13 +646,13 @@ class AccountManager:
 
         :example:
             >>> # Basic example:
-            >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", algokit.algo(1))
+            >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount.from_algo(1))
             >>> # With configuration:
             >>> algorand.account.ensure_funded(
             ...     "ACCOUNTADDRESS",
             ...     "DISPENSERADDRESS",
-            ...     algokit.algo(1),
-            ...     min_funding_increment=algokit.algo(2),
+            ...     AlgoAmount.from_algo(1),
+            ...     min_funding_increment=AlgoAmount.from_algo(2),
             ...     fee=AlgoAmount.from_micro_algo(1000),
             ...     suppress_log=True
             ... )
@@ -750,12 +752,12 @@ class AccountManager:
 
         :example:
             >>> # Basic example:
-            >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", algokit.algo(1))
+            >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount.from_algo(1))
             >>> # With configuration:
             >>> algorand.account.ensure_funded_from_environment(
             ...     "ACCOUNTADDRESS",
-            ...     algokit.algo(1),
-            ...     min_funding_increment=algokit.algo(2),
+            ...     AlgoAmount.from_algo(1),
+            ...     min_funding_increment=AlgoAmount.from_algo(2),
             ...     fee=AlgoAmount.from_micro_algo(1000),
             ...     suppress_log=True
             ... )
@@ -829,17 +831,17 @@ class AccountManager:
 
         :example:
             >>> # Basic example:
-            >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+            >>> account_manager.ensure_funded_from_testnet_dispenser_api(
             ...     "ACCOUNTADDRESS",
             ...     algorand.client.get_testnet_dispenser_from_environment(),
-            ...     algokit.algo(1)
+            ...     AlgoAmount.from_algo(1)
             ... )
             >>> # With configuration:
-            >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+            >>> account_manager.ensure_funded_from_testnet_dispenser_api(
             ...     "ACCOUNTADDRESS",
             ...     algorand.client.get_testnet_dispenser_from_environment(),
-            ...     algokit.algo(1),
-            ...     min_funding_increment=algokit.algo(2)
+            ...     AlgoAmount.from_algo(1),
+            ...     min_funding_increment=AlgoAmount.from_algo(2)
             ... )
         """
         account_to_fund = self._get_address(account_to_fund)
@@ -852,11 +854,7 @@ class AccountManager:
         if not amount_funded:
             return None
 
-        result = dispenser_client.fund(
-            address=account_to_fund,
-            amount=amount_funded.micro_algo,
-            asset_id=DispenserAssetName.ALGO,
-        )
+        result = dispenser_client.fund(address=account_to_fund, amount=amount_funded.micro_algo)
 
         return EnsureFundedFromTestnetDispenserApiResult(
             transaction_id=result.tx_id,

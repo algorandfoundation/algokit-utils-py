@@ -10,10 +10,7 @@ from algokit_utils._legacy_v2._transfer import TransferParameters, transfer
 from algokit_utils._legacy_v2.account import get_dispenser_account
 from algokit_utils._legacy_v2.models import Account
 from algokit_utils._legacy_v2.network_clients import is_testnet
-from algokit_utils.clients.dispenser_api_client import (
-    DispenserAssetName,
-    TestNetDispenserApiClient,
-)
+from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 
 
 @deprecated("Use `algorand.account.ensure_funded()` instead")
@@ -87,9 +84,7 @@ def _calculate_fund_amount(
 def _fund_using_dispenser_api(
     dispenser_client: TestNetDispenserApiClient, address_to_fund: str, fund_amount_micro_algos: int
 ) -> EnsureFundedResponse | None:
-    response = dispenser_client.fund(
-        address=address_to_fund, amount=fund_amount_micro_algos, asset_id=DispenserAssetName.ALGO
-    )
+    response = dispenser_client.fund(address=address_to_fund, amount=fund_amount_micro_algos)
 
     return EnsureFundedResponse(transaction_id=response.tx_id, amount=response.amount)
 
