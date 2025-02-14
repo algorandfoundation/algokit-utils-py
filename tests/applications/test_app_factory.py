@@ -390,6 +390,21 @@ def test_create_then_call_app(factory: AppFactory) -> None:
     assert call.abi_return == "Hello, test"
 
 
+def test_call_app_with_too_many_args(factory: AppFactory) -> None:
+    app_client, _ = factory.send.bare.create(
+        compilation_params={
+            "updatable": False,
+            "deletable": False,
+            "deploy_time_params": {
+                "VALUE": 1,
+            },
+        },
+    )
+
+    with pytest.raises(Exception, match="Unexpected arg at position 1. call_abi only expects 1 args"):
+        app_client.send.call(AppClientMethodCallParams(method="call_abi", args=["test", "extra"]))
+
+
 def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandClient, factory: AppFactory) -> None:
     rekey_to = algorand.account.random()
 
