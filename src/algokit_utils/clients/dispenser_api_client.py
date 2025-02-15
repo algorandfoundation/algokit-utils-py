@@ -2,8 +2,10 @@ import contextlib
 import enum
 import os
 from dataclasses import dataclass
+from typing import overload
 
 import httpx
+from typing_extensions import deprecated
 
 from algokit_utils.config import config
 
@@ -142,18 +144,26 @@ class TestNetDispenserApiClient:
             logger.debug(f"{error_message}: {err}", exc_info=True)
             raise err
 
-    def fund(self, address: str, amount: int) -> DispenserFundResponse:
+    @overload
+    def fund(self, address: str, amount: int) -> DispenserFundResponse: ...
+
+    @deprecated("Asset ID parameter is deprecated. Can now use `fund(address, amount)` instead.")
+    @overload
+    def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse: ...
+
+    def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse:  # noqa: ARG002
         """
         Fund an account with Algos from the dispenser API
 
         :param address: The address to fund
         :param amount: The amount of Algos to fund
+        :param asset_id: The asset ID to fund (deprecated)
         :return: The transaction ID of the funded transaction
         :raises Exception: If the dispenser API request fails
 
         :example:
-          >>> dispenser_client = TestNetDispenserApiClient()
-          >>> dispenser_client.fund(address="SENDER_ADDRESS", amount=1000000)
+            >>> dispenser_client = TestNetDispenserApiClient()
+            >>> dispenser_client.fund(address="SENDER_ADDRESS", amount=1000000)
         """
 
         try:

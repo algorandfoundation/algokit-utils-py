@@ -194,11 +194,10 @@ class AlgorandClientTransactionSender:
         :return: A new TransactionComposer instance
 
         :example:
-
-        >>> sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
-        >>> composer = sender.new_group()
-        >>> composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
-        >>> composer.send()
+            >>> sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
+            >>> composer = sender.new_group()
+            >>> composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
+            >>> composer.send()
         """
         return self._new_group()
 
@@ -806,42 +805,41 @@ class AlgorandClientTransactionSender:
         :return: Result containing the compiled programs
 
         :example:
-        >>> # Basic example
-        >>> algorand.send.app_update(AppUpdateParams(
-        >>>  sender="CREATORADDRESS",
-        >>>  approval_program="TEALCODE",
-        >>>  clear_state_program="TEALCODE",
-        >>> ))
-
-        >>> # Advanced example
-        >>> algorand.send.app_update(AppUpdateParams(
-        >>>  sender="CREATORADDRESS",
-        >>>  approval_program="TEALCODE",
-        >>>  clear_state_program="TEALCODE",
-        >>>  on_complete=OnComplete.UpdateApplicationOC,
-        >>>  args=[b'some_bytes'],
-        >>>  account_references=["ACCOUNT_1"],
-        >>>  app_references=[123, 1234],
-        >>>  asset_references=[12345],
-        >>>  box_references=[...],
-        >>>  lease="lease",
-        >>>  note="note",
-        >>>  # You wouldn't normally set this field
-        >>>  first_valid_round=1000,
-        >>>  validity_window=10,
-        >>>  extra_fee=AlgoAmount(micro_algo=1000),
-        >>>  static_fee=AlgoAmount(micro_algo=1000),
-        >>>  # Max fee doesn't make sense with extraFee AND staticFee
-        >>>  #  already specified, but here for completeness
-        >>>  max_fee=AlgoAmount(micro_algo=3000),
-        >>>  # Signer only needed if you want to provide one,
-        >>>  #  generally you'd register it with AlgorandClient
-        >>>  #  against the sender and not need to pass it in
-        >>>  signer=transactionSigner
-        >>> ), send_params=SendParams(
-        >>>  max_rounds_to_wait_for_confirmation=5,
-        >>>  suppress_log=True,
-        >>> ))
+            >>> # Basic example
+            >>> algorand.send.app_update(AppUpdateParams(
+            >>>  sender="CREATORADDRESS",
+            >>>  approval_program="TEALCODE",
+            >>>  clear_state_program="TEALCODE",
+            >>> ))
+            >>> # Advanced example
+            >>> algorand.send.app_update(AppUpdateParams(
+            >>>  sender="CREATORADDRESS",
+            >>>  approval_program="TEALCODE",
+            >>>  clear_state_program="TEALCODE",
+            >>>  on_complete=OnComplete.UpdateApplicationOC,
+            >>>  args=[b'some_bytes'],
+            >>>  account_references=["ACCOUNT_1"],
+            >>>  app_references=[123, 1234],
+            >>>  asset_references=[12345],
+            >>>  box_references=[...],
+            >>>  lease="lease",
+            >>>  note="note",
+            >>>  # You wouldn't normally set this field
+            >>>  first_valid_round=1000,
+            >>>  validity_window=10,
+            >>>  extra_fee=AlgoAmount(micro_algo=1000),
+            >>>  static_fee=AlgoAmount(micro_algo=1000),
+            >>>  # Max fee doesn't make sense with extraFee AND staticFee
+            >>>  #  already specified, but here for completeness
+            >>>  max_fee=AlgoAmount(micro_algo=3000),
+            >>>  # Signer only needed if you want to provide one,
+            >>>  #  generally you'd register it with AlgorandClient
+            >>>  #  against the sender and not need to pass it in
+            >>>  signer=transactionSigner
+            >>> ), send_params=SendParams(
+            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  suppress_log=True,
+            >>> ))
         """
         return self._send_app_update_call(lambda c: c.add_app_update)(params, send_params)
 
@@ -860,7 +858,6 @@ class AlgorandClientTransactionSender:
             >>>  sender="CREATORADDRESS",
             >>>  app_id=123456,
             >>> ))
-
             >>> # Advanced example
             >>> algorand.send.app_delete(AppDeleteParams(
             >>>  sender="CREATORADDRESS",
@@ -906,7 +903,6 @@ class AlgorandClientTransactionSender:
             >>>  sender="CREATORADDRESS",
             >>>  app_id=123456,
             >>> ))
-
             >>> # Advanced example
             >>> algorand.send.app_call(AppCallParams(
             >>>  sender="CREATORADDRESS",

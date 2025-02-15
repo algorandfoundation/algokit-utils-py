@@ -2,12 +2,7 @@ import dataclasses
 from typing import TYPE_CHECKING
 
 import pytest
-from algosdk.atomic_transaction_composer import (
-    AccountTransactionSigner,
-    AtomicTransactionComposer,
-    TransactionSigner,
-    TransactionWithSigner,
-)
+from algosdk.atomic_transaction_composer import AccountTransactionSigner, AtomicTransactionComposer, TransactionSigner
 from algosdk.transaction import ApplicationCallTxn, GenericSignedTransaction, OnComplete, Transaction
 
 from algokit_utils import (
@@ -106,7 +101,6 @@ def test_create_parameters_note(client_fixture: ApplicationClient) -> None:
     note = b"test note"
 
     atc = AtomicTransactionComposer()
-    atc.add_transaction(TransactionWithSigner(transaction, signer))
     client_fixture.compose_create(
         atc,
         "create",

@@ -73,10 +73,12 @@ class AlgorandClientTransactionCreator:
     def payment(self) -> Callable[[PaymentParams], Transaction]:
         """Create a payment transaction to transfer Algo between accounts.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> creator.payment(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount.from_algo(4)))
-        :example: Advanced example
+        :example:
+            >>> #Advanced example
             >>> creator.payment(PaymentParams(
                     sender="SENDERADDRESS",
                     receiver="RECEIVERADDRESS",
@@ -98,11 +100,13 @@ class AlgorandClientTransactionCreator:
     def asset_create(self) -> Callable[[AssetCreateParams], Transaction]:
         """Create a create Algorand Standard Asset transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetCreateParams(sender="SENDER_ADDRESS", total=1000)
             >>> txn = creator.asset_create(params)
-        :example: Advanced example
+        :example:
+            >>> #Advanced example
             >>> creator.asset_create(AssetCreateParams(
                     sender="SENDER_ADDRESS",
                     total=1000,
@@ -131,11 +135,13 @@ class AlgorandClientTransactionCreator:
     def asset_config(self) -> Callable[[AssetConfigParams], Transaction]:
         """Create an asset config transaction to reconfigure an existing Algorand Standard Asset.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetConfigParams(sender="SENDER_ADDRESS", asset_id=123456, manager="NEW_MANAGER_ADDRESS")
             >>> txn = creator.asset_config(params)
-        :example: Advanced example
+        :example:
+            >>> #Advanced example
             >>> creator.asset_config(AssetConfigParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -159,14 +165,17 @@ class AlgorandClientTransactionCreator:
     def asset_freeze(self) -> Callable[[AssetFreezeParams], Transaction]:
         """Create an Algorand Standard Asset freeze transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetFreezeParams(sender="SENDER_ADDRESS",
                 asset_id=123456,
                 account="ACCOUNT_TO_FREEZE",
                 frozen=True)
             >>> txn = creator.asset_freeze(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.asset_freeze(AssetFreezeParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -188,11 +197,14 @@ class AlgorandClientTransactionCreator:
     def asset_destroy(self) -> Callable[[AssetDestroyParams], Transaction]:
         """Create an Algorand Standard Asset destroy transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetDestroyParams(sender="SENDER_ADDRESS", asset_id=123456)
             >>> txn = creator.asset_destroy(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.asset_destroy(AssetDestroyParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -212,14 +224,17 @@ class AlgorandClientTransactionCreator:
     def asset_transfer(self) -> Callable[[AssetTransferParams], Transaction]:
         """Create an Algorand Standard Asset transfer transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetTransferParams(sender="SENDER_ADDRESS",
                 asset_id=123456,
                 amount=10,
                 receiver="RECEIVER_ADDRESS")
             >>> txn = creator.asset_transfer(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.asset_transfer(AssetTransferParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -243,11 +258,14 @@ class AlgorandClientTransactionCreator:
     def asset_opt_in(self) -> Callable[[AssetOptInParams], Transaction]:
         """Create an Algorand Standard Asset opt-in transaction.
 
-        :example: Basic example
+        :example:
+            >>> # Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetOptInParams(sender="SENDER_ADDRESS", asset_id=123456)
             >>> txn = creator.asset_opt_in(params)
-        :example: Advanced example
+
+        :example:
+            >>> # Advanced example
             >>> creator.asset_opt_in(AssetOptInParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -267,11 +285,14 @@ class AlgorandClientTransactionCreator:
     def asset_opt_out(self) -> Callable[[AssetOptOutParams], Transaction]:
         """Create an asset opt-out transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AssetOptOutParams(sender="SENDER_ADDRESS", asset_id=123456, creator="CREATOR_ADDRESS")
             >>> txn = creator.asset_opt_out(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.asset_opt_out(AssetOptOutParams(
                     sender="SENDER_ADDRESS",
                     asset_id=123456,
@@ -292,7 +313,8 @@ class AlgorandClientTransactionCreator:
     def app_create(self) -> Callable[[AppCreateParams], Transaction]:
         """Create an application create transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppCreateParams(
             ...     sender="SENDER_ADDRESS",
@@ -306,7 +328,9 @@ class AlgorandClientTransactionCreator:
             ...     }
             ... )
             >>> txn = creator.app_create(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_create(AppCreateParams(
                     sender="SENDER_ADDRESS",
                     approval_program="TEAL_APPROVAL_CODE",
@@ -335,14 +359,17 @@ class AlgorandClientTransactionCreator:
     def app_update(self) -> Callable[[AppUpdateParams], Transaction]:
         """Create an application update transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> txn = creator.app_update(AppUpdateParams(sender="SENDER_ADDRESS",
                 app_id=789,
                 approval_program="TEAL_NEW_APPROVAL_CODE",
                 clear_state_program="TEAL_NEW_CLEAR_CODE",
                 args=[b'new_arg1', b'new_arg2']))
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_update(AppUpdateParams(
                     sender="SENDER_ADDRESS",
                     app_id=789,
@@ -370,11 +397,14 @@ class AlgorandClientTransactionCreator:
     def app_delete(self) -> Callable[[AppDeleteParams], Transaction]:
         """Create an application delete transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppDeleteParams(sender="SENDER_ADDRESS", app_id=789, args=[b'delete_arg'])
             >>> txn = creator.app_delete(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_delete(AppDeleteParams(
                     sender="SENDER_ADDRESS",
                     app_id=789,
@@ -400,7 +430,8 @@ class AlgorandClientTransactionCreator:
     def app_call(self) -> Callable[[AppCallParams], Transaction]:
         """Create an application call transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppCallParams(
             ...     sender="SENDER_ADDRESS",
@@ -422,7 +453,9 @@ class AlgorandClientTransactionCreator:
             ...     box_references=[]
             ... )
             >>> txn = creator.app_call(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_call(AppCallParams(
                     sender="SENDER_ADDRESS",
                     on_complete=OnComplete.NoOpOC,
@@ -452,11 +485,14 @@ class AlgorandClientTransactionCreator:
     def app_create_method_call(self) -> Callable[[AppCreateMethodCallParams], BuiltTransactions]:
         """Create an application create call with ABI method call transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppCreateMethodCallParams(sender="SENDER_ADDRESS", app_id=0, method=some_abi_method_object)
             >>> built_txns = creator.app_create_method_call(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_create_method_call(AppCreateMethodCallParams(
                     sender="SENDER_ADDRESS",
                     app_id=0,
@@ -487,11 +523,14 @@ class AlgorandClientTransactionCreator:
     def app_update_method_call(self) -> Callable[[AppUpdateMethodCallParams], BuiltTransactions]:
         """Create an application update call with ABI method call transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppUpdateMethodCallParams(sender="SENDER_ADDRESS", app_id=789, method=some_abi_method_object)
             >>> built_txns = creator.app_update_method_call(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_update_method_call(AppUpdateMethodCallParams(
                     sender="SENDER_ADDRESS",
                     app_id=789,
@@ -521,11 +560,14 @@ class AlgorandClientTransactionCreator:
     def app_delete_method_call(self) -> Callable[[AppDeleteMethodCallParams], BuiltTransactions]:
         """Create an application delete call with ABI method call transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppDeleteMethodCallParams(sender="SENDER_ADDRESS", app_id=789, method=some_abi_method_object)
             >>> built_txns = creator.app_delete_method_call(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.app_delete_method_call(AppDeleteMethodCallParams(
                     sender="SENDER_ADDRESS",
                     app_id=789,
@@ -551,7 +593,8 @@ class AlgorandClientTransactionCreator:
     def app_call_method_call(self) -> Callable[[AppCallMethodCallParams], BuiltTransactions]:
         """Create an application call with ABI method call transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppCallMethodCallParams(sender="SENDER_ADDRESS", app_id=789, method=some_abi_method_object)
             >>> built_txns = creator.app_call_method_call(params)
@@ -581,7 +624,8 @@ class AlgorandClientTransactionCreator:
     def online_key_registration(self) -> Callable[[OnlineKeyRegistrationParams], Transaction]:
         """Create an online key registration transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = OnlineKeyRegistrationParams(
                     sender="SENDER_ADDRESS",
@@ -593,7 +637,9 @@ class AlgorandClientTransactionCreator:
                     state_proof_key=b"state_proof_key_bytes"
             )
             >>> txn = creator.online_key_registration(params)
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.online_key_registration(OnlineKeyRegistrationParams(
                     sender="SENDER_ADDRESS",
                     vote_key="VOTE_KEY",
@@ -618,11 +664,14 @@ class AlgorandClientTransactionCreator:
     def offline_key_registration(self) -> Callable[[OfflineKeyRegistrationParams], Transaction]:
         """Create an offline key registration transaction.
 
-        :example: Basic example
+        :example:
+            >>> #Basic example
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> txn = creator.offline_key_registration(OfflineKeyRegistrationParams(sender="SENDER_ADDRESS",
                 prevent_account_from_ever_participating_again=True))
-        :example: Advanced example
+
+        :example:
+            >>> #Advanced example
             >>> creator.offline_key_registration(OfflineKeyRegistrationParams(
                     sender="SENDER_ADDRESS",
                     prevent_account_from_ever_participating_again=True,

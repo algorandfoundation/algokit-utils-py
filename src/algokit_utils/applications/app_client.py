@@ -1278,6 +1278,26 @@ class AppClient:
     methods for calling application methods, managing state, and handling transactions.
 
     :param params: Parameters for creating the app client
+
+    :example:
+        >>> params = AppClientParams(
+        ...     app_spec=Arc56Contract.from_json(app_spec_json),
+        ...     algorand=algorand,
+        ...     app_id=1234567890,
+        ...     app_name="My App",
+        ...     default_sender="SENDERADDRESS",
+        ...     default_signer=TransactionSigner(
+        ...         account="SIGNERACCOUNT",
+        ...         private_key="SIGNERPRIVATEKEY",
+        ...     ),
+        ...     approval_source_map=SourceMap(
+        ...         source="APPROVALSOURCE",
+        ...     ),
+        ...     clear_source_map=SourceMap(
+        ...         source="CLEARSOURCE",
+        ...     ),
+        ... )
+        >>> client = AppClient(params)
     """
 
     def __init__(self, params: AppClientParams) -> None:
@@ -1348,6 +1368,19 @@ class AppClient:
         """Get the method parameters builder.
 
         :return: The method parameters builder for this application
+
+        :example:
+            >>> # Create a transaction in the future using Algorand Client
+            >>> my_method_call = app_client.params.call(AppClientMethodCallParams(
+                    method='my_method',
+                    args=[123, 'hello']))
+            >>> # ...
+            >>> await algorand.send.AppMethodCall(my_method_call)
+            >>> # Define a nested transaction as an ABI argument
+            >>> my_method_call = app_client.params.call(AppClientMethodCallParams(
+                    method='my_method',
+                    args=[123, 'hello']))
+            >>> app_client.send.call(AppClientMethodCallParams(method='my_method2', args=[my_method_call]))
         """
         return self._params_accessor
 
@@ -1371,9 +1404,13 @@ class AppClient:
     def normalise_app_spec(app_spec: Arc56Contract | Arc32Contract | str) -> Arc56Contract:
         """Normalize an application specification to ARC-56 format.
 
-        :param app_spec: The application specification to normalize
+        :param app_spec: The application specification to normalize. Can be raw arc32 or arc56 json,
+            or an Arc32Contract or Arc56Contract instance
         :return: The normalized ARC-56 contract specification
         :raises ValueError: If the app spec format is invalid
+
+        :example:
+            >>> spec = AppClient.normalise_app_spec(app_spec_json)
         """
         if isinstance(app_spec, str):
             spec_dict = json.loads(app_spec)
@@ -1412,6 +1449,24 @@ class AppClient:
         :param clear_source_map: Optional clear program source map
         :return: A new AppClient instance
         :raises Exception: If no app ID is found for the network
+
+        :example:
+            >>> client = AppClient.from_network(
+            ...     app_spec=Arc56Contract.from_json(app_spec_json),
+            ...     algorand=algorand,
+            ...     app_name="My App",
+            ...     default_sender="SENDERADDRESS",
+            ...     default_signer=TransactionSigner(
+            ...         account="SIGNERACCOUNT",
+            ...         private_key="SIGNERPRIVATEKEY",
+            ...     ),
+            ...     approval_source_map=SourceMap(
+            ...         source="APPROVALSOURCE",
+            ...     ),
+            ...     clear_source_map=SourceMap(
+            ...         source="CLEARSOURCE",
+            ...     ),
+            ... )
         """
         network = algorand.client.network()
         app_spec = AppClient.normalise_app_spec(app_spec)
@@ -1472,6 +1527,14 @@ class AppClient:
         :param app_lookup_cache: Optional app lookup cache
         :return: A new AppClient instance
         :raises ValueError: If the app is not found for the creator and name
+
+        :example:
+            >>> client = AppClient.from_creator_and_name(
+            ...     creator_address="CREATORADDRESS",
+            ...     app_name="APPNAME",
+            ...     app_spec=Arc56Contract.from_json(app_spec_json),
+            ...     algorand=algorand,
+            ... )
         """
         app_spec_ = AppClient.normalise_app_spec(app_spec)
         app_lookup = app_lookup_cache or algorand.app_deployer.get_creator_apps_by_name(
@@ -1694,7 +1757,11 @@ class AppClient:
         :param default_signer: Optional new default signer
         :param approval_source_map: Optional new approval source map
         :param clear_source_map: Optional new clear source map
-        :return: A new AppClient instance with the specified parameters
+        :return: A new AppClient instance
+
+        :example:
+            >>> client = AppClient(params)
+            >>> cloned_client = client.clone(app_name="Cloned App", default_sender="NEW_SENDER")
         """
         return AppClient(
             AppClientParams(
@@ -1771,6 +1838,8 @@ class AppClient:
         """Get the application's global state.
 
         :return: The application's global state
+        :example:
+            >>> global_state = client.get_global_state()
         """
         return self._state_accessor.get_global_state()
 
@@ -1778,6 +1847,9 @@ class AppClient:
         """Get all box names for the application.
 
         :return: List of box names
+
+        :example:
+            >>> box_names = client.get_box_names()
         """
         return self._algorand.app.get_box_names(self._app_id)
 
@@ -1786,6 +1858,9 @@ class AppClient:
 
         :param name: The box identifier
         :return: The box value as bytes
+
+        :example:
+            >>> box_value = client.get_box_value(box_name)
         """
         return self._algorand.app.get_box_value(self._app_id, name)
 
@@ -1795,6 +1870,9 @@ class AppClient:
         :param name: The box identifier
         :param abi_type: The ABI type to decode as
         :return: The decoded box value
+
+        :example:
+            >>> box_value = client.get_box_value_from_abi_type(box_name, abi_type)
         """
         return self._algorand.app.get_box_value_from_abi_type(self._app_id, name, abi_type)
 
@@ -1803,6 +1881,9 @@ class AppClient:
 
         :param filter_func: Optional function to filter box names
         :return: List of box values
+
+        :example:
+            >>> box_values = client.get_box_values()
         """
         names = [n for n in self.get_box_names() if not filter_func or filter_func(n)]
         values = self._algorand.app.get_box_values(self.app_id, [n.name_raw for n in names])
@@ -1816,6 +1897,9 @@ class AppClient:
         :param abi_type: The ABI type to decode as
         :param filter_func: Optional function to filter box names
         :return: List of decoded box values
+
+        :example:
+            >>> box_values = client.get_box_values_from_abi_type(abi_type)
         """
         names = self.get_box_names()
         if filter_func:
@@ -1835,6 +1919,9 @@ class AppClient:
         :param params: The funding parameters
         :param send_params: Send parameters, defaults to None
         :return: The transaction result
+
+        :example:
+            >>> result = client.fund_app_account(params)
         """
         return self.send.fund_app_account(params, send_params)
 

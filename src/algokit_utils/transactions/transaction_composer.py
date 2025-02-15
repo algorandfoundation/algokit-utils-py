@@ -1360,7 +1360,7 @@ class TransactionComposer:
         :return: The transaction composer instance for chaining
 
         :example:
-          >>> composer.add_transaction(transaction)
+            >>> composer.add_transaction(transaction)
         """
         self._txns.append(TransactionWithSigner(txn=transaction, signer=signer or self._get_signer(transaction.sender)))
         return self
@@ -1369,14 +1369,14 @@ class TransactionComposer:
         """Add a payment transaction.
 
         :example:
-          >>> params = PaymentParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     receiver="RECEIVER_ADDRESS",
-          ...     amount=AlgoAmount.from_algo(1),
-          ...     close_remainder_to="CLOSE_ADDRESS"
-          ...     ... (see PaymentParams for more options)
-          ... )
-          >>> composer.add_payment(params)
+            >>> params = PaymentParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     receiver="RECEIVER_ADDRESS",
+            ...     amount=AlgoAmount.from_algo(1),
+            ...     close_remainder_to="CLOSE_ADDRESS"
+            ...     ... (see PaymentParams for more options)
+            ... )
+            >>> composer.add_payment(params)
 
         :param params: The payment transaction parameters
         :return: The transaction composer instance for chaining
@@ -1388,20 +1388,20 @@ class TransactionComposer:
         """Add an asset creation transaction.
 
         :example:
-          >>> params = AssetCreateParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     total=1000,
-          ...     asset_name="MyAsset",
-          ...     unit_name="MA",
-          ...     url="https://example.com",
-          ...     decimals=0,
-          ...     default_frozen=False,
-          ...     manager="MANAGER_ADDRESS",
-          ...     reserve="RESERVE_ADDRESS",
-          ...     freeze="FREEZE_ADDRESS",
-          ...     clawback="CLAWBACK_ADDRESS"
-          ...     ... (see AssetCreateParams for more options)
-          >>> composer.add_asset_create(params)
+            >>> params = AssetCreateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     total=1000,
+            ...     asset_name="MyAsset",
+            ...     unit_name="MA",
+            ...     url="https://example.com",
+            ...     decimals=0,
+            ...     default_frozen=False,
+            ...     manager="MANAGER_ADDRESS",
+            ...     reserve="RESERVE_ADDRESS",
+            ...     freeze="FREEZE_ADDRESS",
+            ...     clawback="CLAWBACK_ADDRESS"
+            ...     ... (see AssetCreateParams for more options)
+            >>> composer.add_asset_create(params)
 
         :param params: The asset creation parameters
         :return: The transaction composer instance for chaining
@@ -1413,16 +1413,16 @@ class TransactionComposer:
         """Add an asset configuration transaction.
 
         :example:
-          >>> params = AssetConfigParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456,
-          ...     manager="NEW_MANAGER_ADDRESS",
-          ...     reserve="NEW_RESERVE_ADDRESS",
-          ...     freeze="NEW_FREEZE_ADDRESS",
-          ...     clawback="NEW_CLAWBACK_ADDRESS"
-          ...     ... (see AssetConfigParams for more options)
-          ... )
-          >>> composer.add_asset_config(params)
+            >>> params = AssetConfigParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     manager="NEW_MANAGER_ADDRESS",
+            ...     reserve="NEW_RESERVE_ADDRESS",
+            ...     freeze="NEW_FREEZE_ADDRESS",
+            ...     clawback="NEW_CLAWBACK_ADDRESS"
+            ...     ... (see AssetConfigParams for more options)
+            ... )
+            >>> composer.add_asset_config(params)
 
         :param params: The asset configuration parameters
         :return: The transaction composer instance for chaining
@@ -1434,14 +1434,14 @@ class TransactionComposer:
         """Add an asset freeze transaction.
 
         :example:
-          >>> params = AssetFreezeParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456,
-          ...     account="ACCOUNT_TO_FREEZE",
-          ...     frozen=True
-          ...     ... (see AssetFreezeParams for more options)
-          ... )
-          >>> composer.add_asset_freeze(params)
+            >>> params = AssetFreezeParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     account="ACCOUNT_TO_FREEZE",
+            ...     frozen=True
+            ...     ... (see AssetFreezeParams for more options)
+            ... )
+            >>> composer.add_asset_freeze(params)
 
         :param params: The asset freeze parameters
         :return: The transaction composer instance for chaining
@@ -1453,11 +1453,11 @@ class TransactionComposer:
         """Add an asset destruction transaction.
 
         :example:
-          >>> params = AssetDestroyParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456
-          ...     ... (see AssetDestroyParams for more options)
-          >>> composer.add_asset_destroy(params)
+            >>> params = AssetDestroyParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456
+            ...     ... (see AssetDestroyParams for more options)
+            >>> composer.add_asset_destroy(params)
 
         :param params: The asset destruction parameters
         :return: The transaction composer instance for chaining
@@ -1469,15 +1469,15 @@ class TransactionComposer:
         """Add an asset transfer transaction.
 
         :example:
-          >>> params = AssetTransferParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456,
-          ...     amount=10,
-          ...     receiver="RECEIVER_ADDRESS",
-          ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
-          ...     close_asset_to="CLOSE_ADDRESS"
-          ...     ... (see AssetTransferParams for more options)
-          >>> composer.add_asset_transfer(params)
+            >>> params = AssetTransferParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     amount=10,
+            ...     receiver="RECEIVER_ADDRESS",
+            ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
+            ...     close_asset_to="CLOSE_ADDRESS"
+            ...     ... (see AssetTransferParams for more options)
+            >>> composer.add_asset_transfer(params)
 
         :param params: The asset transfer parameters
         :return: The transaction composer instance for chaining
@@ -1489,12 +1489,12 @@ class TransactionComposer:
         """Add an asset opt-in transaction.
 
         :example:
-          >>> params = AssetOptInParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456
-          ...     ... (see AssetOptInParams for more options)
-          ... )
-          >>> composer.add_asset_opt_in(params)
+            >>> params = AssetOptInParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456
+            ...     ... (see AssetOptInParams for more options)
+            ... )
+            >>> composer.add_asset_opt_in(params)
 
         :param params: The asset opt-in parameters
         :return: The transaction composer instance for chaining
@@ -1506,12 +1506,12 @@ class TransactionComposer:
         """Add an asset opt-out transaction.
 
         :example:
-          >>> params = AssetOptOutParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     asset_id=123456,
-          ...     creator="CREATOR_ADDRESS"
-          ...     ... (see AssetOptOutParams for more options)
-          >>> composer.add_asset_opt_out(params)
+            >>> params = AssetOptOutParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     creator="CREATOR_ADDRESS"
+            ...     ... (see AssetOptOutParams for more options)
+            >>> composer.add_asset_opt_out(params)
 
         :param params: The asset opt-out parameters
         :return: The transaction composer instance for chaining
@@ -1523,21 +1523,21 @@ class TransactionComposer:
         """Add an application creation transaction.
 
         :example:
-          >>> params = AppCreateParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     approval_program="TEAL_APPROVAL_CODE",
-          ...     clear_state_program="TEAL_CLEAR_CODE",
-          ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
-          ...     on_complete=OnComplete.NoOpOC,
-          ...     args=[b'arg1'],
-          ...     account_references=["ACCOUNT1"],
-          ...     app_references=[789],
-          ...     asset_references=[123],
-          ...     box_references=[],
-          ...     extra_program_pages=0
-          ...     ... (see AppCreateParams for more options)
-          ... )
-          >>> composer.add_app_create(params)
+            >>> params = AppCreateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     approval_program="TEAL_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_CLEAR_CODE",
+            ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+            ...     on_complete=OnComplete.NoOpOC,
+            ...     args=[b'arg1'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     extra_program_pages=0
+            ...     ... (see AppCreateParams for more options)
+            ... )
+            >>> composer.add_app_create(params)
 
         :param params: The application creation parameters
         :return: The transaction composer instance for chaining
@@ -1549,19 +1549,19 @@ class TransactionComposer:
         """Add an application update transaction.
 
         :example:
-          >>> params = AppUpdateParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     app_id=789,
-          ...     approval_program="TEAL_NEW_APPROVAL_CODE",
-          ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
-          ...     args=[b'new_arg1'],
-          ...     account_references=["ACCOUNT1"],
-          ...     app_references=[789],
-          ...     asset_references=[123],
-          ...     box_references=[],
-          ...     on_complete=OnComplete.UpdateApplicationOC
-          ...     ... (see AppUpdateParams for more options)
-          >>> composer.add_app_update(params)
+            >>> params = AppUpdateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     app_id=789,
+            ...     approval_program="TEAL_NEW_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
+            ...     args=[b'new_arg1'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     on_complete=OnComplete.UpdateApplicationOC
+            ...     ... (see AppUpdateParams for more options)
+            >>> composer.add_app_update(params)
 
         :param params: The application update parameters
         :return: The transaction composer instance for chaining
@@ -1573,17 +1573,17 @@ class TransactionComposer:
         """Add an application deletion transaction.
 
         :example:
-          >>> params = AppDeleteParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     app_id=789,
-          ...     args=[b'delete_arg'],
-          ...     account_references=["ACCOUNT1"],
-          ...     app_references=[789],
-          ...     asset_references=[123],
-          ...     box_references=[],
-          ...     on_complete=OnComplete.DeleteApplicationOC
-          ...     ... (see AppDeleteParams for more options)
-          >>> composer.add_app_delete(params)
+            >>> params = AppDeleteParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     app_id=789,
+            ...     args=[b'delete_arg'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     on_complete=OnComplete.DeleteApplicationOC
+            ...     ... (see AppDeleteParams for more options)
+            >>> composer.add_app_delete(params)
 
         :param params: The application deletion parameters
         :return: The transaction composer instance for chaining
@@ -1595,16 +1595,16 @@ class TransactionComposer:
         """Add an application call transaction.
 
         :example:
-          >>> params = AppCallParams(
-          ...     sender="SENDER_ADDRESS",
-          ...     on_complete=OnComplete.NoOpOC,
-          ...     app_id=789,
-          ...     approval_program="TEAL_APPROVAL_CODE",
-          ...     clear_state_program="TEAL_CLEAR_CODE",
-          ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
-          ...     ... (see AppCallParams for more options)
-          ... )
-          >>> composer.add_app_call(params)
+            >>> params = AppCallParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     on_complete=OnComplete.NoOpOC,
+            ...     app_id=789,
+            ...     approval_program="TEAL_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_CLEAR_CODE",
+            ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+            ...     ... (see AppCallParams for more options)
+            ... )
+            >>> composer.add_app_call(params)
 
         :param params: The application call parameters
         :return: The transaction composer instance for chaining
@@ -1619,57 +1619,57 @@ class TransactionComposer:
         :return: The transaction composer instance for chaining
 
         :example:
-          >>> # Basic example
-          >>> method = algosdk.abi.Method(
-          ...     name="method",
-          ...     args=[...],
-          ...     returns="string"
-          ... )
-          >>> composer.add_app_create_method_call(
-          ...     AppCreateMethodCallParams(
-          ...         sender="CREATORADDRESS",
-          ...         approval_program="TEALCODE",
-          ...         clear_state_program="TEALCODE",
-          ...         method=method,
-          ...         args=["arg1_value"]
-          ...     )
-          ... )
-          >>>
-          >>> # Advanced example
-          >>> method = ABIMethod(
-          ...     name="method",
-          ...     args=[{"name": "arg1", "type": "string"}],
-          ...     returns={"type": "string"}
-          ... )
-          >>> composer.add_app_create_method_call(
-          ...     AppCreateMethodCallParams(
-          ...         sender="CREATORADDRESS",
-          ...         method=method,
-          ...         args=["arg1_value"],
-          ...         approval_program="TEALCODE",
-          ...         clear_state_program="TEALCODE",
-          ...         schema={
-          ...             "global_ints": 1,
-          ...             "global_byte_slices": 2,
-          ...             "local_ints": 3,
-          ...             "local_byte_slices": 4
-          ...         },
-          ...         extra_pages=1,
-          ...         on_complete=OnComplete.OptInOC,
-          ...         args=[bytes([1, 2, 3, 4])],
-          ...         account_references=["ACCOUNT_1"],
-          ...         app_references=[123, 1234],
-          ...         asset_references=[12345],
-          ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
-          ...         lease="lease",
-          ...         note="note",
-          ...         first_valid_round=1000,
-          ...         validity_window=10,
-          ...         extra_fee=AlgoAmount.from_micro_algos(1000),
-          ...         static_fee=AlgoAmount.from_micro_algos(1000),
-          ...         max_fee=AlgoAmount.from_micro_algos(3000)
-          ...     )
-          ... )
+            >>> # Basic example
+            >>> method = algosdk.abi.Method(
+            ...     name="method",
+            ...     args=[...],
+            ...     returns="string"
+            ... )
+            >>> composer.add_app_create_method_call(
+            ...     AppCreateMethodCallParams(
+            ...         sender="CREATORADDRESS",
+            ...         approval_program="TEALCODE",
+            ...         clear_state_program="TEALCODE",
+            ...         method=method,
+            ...         args=["arg1_value"]
+            ...     )
+            ... )
+            >>>
+            >>> # Advanced example
+            >>> method = ABIMethod(
+            ...     name="method",
+            ...     args=[{"name": "arg1", "type": "string"}],
+            ...     returns={"type": "string"}
+            ... )
+            >>> composer.add_app_create_method_call(
+            ...     AppCreateMethodCallParams(
+            ...         sender="CREATORADDRESS",
+            ...         method=method,
+            ...         args=["arg1_value"],
+            ...         approval_program="TEALCODE",
+            ...         clear_state_program="TEALCODE",
+            ...         schema={
+            ...             "global_ints": 1,
+            ...             "global_byte_slices": 2,
+            ...             "local_ints": 3,
+            ...             "local_byte_slices": 4
+            ...         },
+            ...         extra_pages=1,
+            ...         on_complete=OnComplete.OptInOC,
+            ...         args=[bytes([1, 2, 3, 4])],
+            ...         account_references=["ACCOUNT_1"],
+            ...         app_references=[123, 1234],
+            ...         asset_references=[12345],
+            ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
+            ...         lease="lease",
+            ...         note="note",
+            ...         first_valid_round=1000,
+            ...         validity_window=10,
+            ...         extra_fee=AlgoAmount.from_micro_algos(1000),
+            ...         static_fee=AlgoAmount.from_micro_algos(1000),
+            ...         max_fee=AlgoAmount.from_micro_algos(3000)
+            ...     )
+            ... )
         """
         self._txns.append(params)
         return self
@@ -1726,9 +1726,9 @@ class TransactionComposer:
         :return: The transaction composer instance for chaining
 
         :example:
-          >>> atc = AtomicTransactionComposer()
-          >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
-          >>> composer.add_atc(atc)
+            >>> atc = AtomicTransactionComposer()
+            >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
+            >>> composer.add_atc(atc)
         """
         self._txns.append(atc)
         return self
@@ -1891,7 +1891,7 @@ class TransactionComposer:
         :return: The simulation results
 
         :example:
-          >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
+            >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
         """
         from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 

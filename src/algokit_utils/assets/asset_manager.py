@@ -92,6 +92,9 @@ class AssetManager:
 
     :param algod_client: An algod client
     :param new_group: A function that creates a new TransactionComposer transaction group
+
+    :example:
+        >>> asset_manager = AssetManager(algod_client)
     """
 
     def __init__(self, algod_client: algod.AlgodClient, new_group: Callable[[], TransactionComposer]):
@@ -103,6 +106,10 @@ class AssetManager:
 
         :param asset_id: The ID of the asset
         :return: The asset information
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> asset_info = asset_manager.get_by_id(1234567890)
         """
         asset = self._algod.asset_info(asset_id)
         assert isinstance(asset, dict)
@@ -135,6 +142,10 @@ class AssetManager:
         :param sender: The address of the sender/account to look up
         :param asset_id: The ID of the asset to return a holding for
         :return: The account asset holding information
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> account_asset_info = asset_manager.get_account_information(sender, asset_id)
         """
         address = self._get_address_from_sender(sender)
         info = self._algod.account_asset_info(address, asset_id)
@@ -179,6 +190,10 @@ class AssetManager:
         :param last_valid_round: The last valid round to include in the transaction, defaults to None
         :param send_params: The send parameters to use for the transaction, defaults to None
         :return: An array of records matching asset ID to transaction ID of the opt in
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> results = asset_manager.bulk_opt_in(account, asset_ids)
         """
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
@@ -246,6 +261,10 @@ class AssetManager:
         :param send_params: The send parameters to use for the transaction, defaults to None
         :raises ValueError: If ensure_zero_balance is True and account has non-zero balance or is not opted in
         :return: An array of records matching asset ID to transaction ID of the opt out
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> results = asset_manager.bulk_opt_out(account, asset_ids)
         """
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)

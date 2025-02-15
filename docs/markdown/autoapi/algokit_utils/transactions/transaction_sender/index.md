@@ -122,13 +122,12 @@ Create a new transaction group.
 * **Returns:**
   A new TransactionComposer instance
 * **Example:**
-
-```pycon
->>> sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
->>> composer = sender.new_group()
->>> composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
->>> composer.send()
-```
+  ```pycon
+  >>> sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
+  >>> composer = sender.new_group()
+  >>> composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
+  >>> composer.send()
+  ```
 
 #### payment(params: [algokit_utils.transactions.transaction_composer.PaymentParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.PaymentParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
 
@@ -562,47 +561,43 @@ Update an application.
 * **Returns:**
   Result containing the compiled programs
 * **Example:**
-
-```pycon
->>> # Basic example
->>> algorand.send.app_update(AppUpdateParams(
->>>  sender="CREATORADDRESS",
->>>  approval_program="TEALCODE",
->>>  clear_state_program="TEALCODE",
->>> ))
-```
-
-```pycon
->>> # Advanced example
->>> algorand.send.app_update(AppUpdateParams(
->>>  sender="CREATORADDRESS",
->>>  approval_program="TEALCODE",
->>>  clear_state_program="TEALCODE",
->>>  on_complete=OnComplete.UpdateApplicationOC,
->>>  args=[b'some_bytes'],
->>>  account_references=["ACCOUNT_1"],
->>>  app_references=[123, 1234],
->>>  asset_references=[12345],
->>>  box_references=[...],
->>>  lease="lease",
->>>  note="note",
->>>  # You wouldn't normally set this field
->>>  first_valid_round=1000,
->>>  validity_window=10,
->>>  extra_fee=AlgoAmount(micro_algo=1000),
->>>  static_fee=AlgoAmount(micro_algo=1000),
->>>  # Max fee doesn't make sense with extraFee AND staticFee
->>>  #  already specified, but here for completeness
->>>  max_fee=AlgoAmount(micro_algo=3000),
->>>  # Signer only needed if you want to provide one,
->>>  #  generally you'd register it with AlgorandClient
->>>  #  against the sender and not need to pass it in
->>>  signer=transactionSigner
->>> ), send_params=SendParams(
->>>  max_rounds_to_wait_for_confirmation=5,
->>>  suppress_log=True,
->>> ))
-```
+  ```pycon
+  >>> # Basic example
+  >>> algorand.send.app_update(AppUpdateParams(
+  >>>  sender="CREATORADDRESS",
+  >>>  approval_program="TEALCODE",
+  >>>  clear_state_program="TEALCODE",
+  >>> ))
+  >>> # Advanced example
+  >>> algorand.send.app_update(AppUpdateParams(
+  >>>  sender="CREATORADDRESS",
+  >>>  approval_program="TEALCODE",
+  >>>  clear_state_program="TEALCODE",
+  >>>  on_complete=OnComplete.UpdateApplicationOC,
+  >>>  args=[b'some_bytes'],
+  >>>  account_references=["ACCOUNT_1"],
+  >>>  app_references=[123, 1234],
+  >>>  asset_references=[12345],
+  >>>  box_references=[...],
+  >>>  lease="lease",
+  >>>  note="note",
+  >>>  # You wouldn't normally set this field
+  >>>  first_valid_round=1000,
+  >>>  validity_window=10,
+  >>>  extra_fee=AlgoAmount(micro_algo=1000),
+  >>>  static_fee=AlgoAmount(micro_algo=1000),
+  >>>  # Max fee doesn't make sense with extraFee AND staticFee
+  >>>  #  already specified, but here for completeness
+  >>>  max_fee=AlgoAmount(micro_algo=3000),
+  >>>  # Signer only needed if you want to provide one,
+  >>>  #  generally you'd register it with AlgorandClient
+  >>>  #  against the sender and not need to pass it in
+  >>>  signer=transactionSigner
+  >>> ), send_params=SendParams(
+  >>>  max_rounds_to_wait_for_confirmation=5,
+  >>>  suppress_log=True,
+  >>> ))
+  ```
 
 #### app_delete(params: [algokit_utils.transactions.transaction_composer.AppDeleteParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppDeleteParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
 
@@ -620,9 +615,6 @@ Delete an application.
   >>>  sender="CREATORADDRESS",
   >>>  app_id=123456,
   >>> ))
-  ```
-
-  ```pycon
   >>> # Advanced example
   >>> algorand.send.app_delete(AppDeleteParams(
   >>>  sender="CREATORADDRESS",
@@ -668,9 +660,6 @@ Call an application.
   >>>  sender="CREATORADDRESS",
   >>>  app_id=123456,
   >>> ))
-  ```
-
-  ```pycon
   >>> # Advanced example
   >>> algorand.send.app_call(AppCallParams(
   >>>  sender="CREATORADDRESS",
