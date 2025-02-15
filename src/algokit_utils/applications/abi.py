@@ -45,20 +45,18 @@ class ABIReturn:
     """Represents the return value from an ABI method call.
 
     Wraps the raw return value and decoded value along with any decode errors.
-
-    :ivar result: The ABIResult object containing the method call results
-    :ivar raw_value: The raw return value from the method call
-    :ivar value: The decoded return value from the method call
-    :ivar method: The ABI method definition
-    :ivar decode_error: The exception that occurred during decoding, if any
-    :ivar tx_info: The transaction info for the method call from raw algosdk `ABIResult`
     """
 
     raw_value: bytes | None = None
+    """The raw return value from the method call"""
     value: ABIValue | None = None
+    """The decoded return value from the method call"""
     method: AlgorandABIMethod | None = None
+    """The ABI method definition"""
     decode_error: Exception | None = None
+    """The exception that occurred during decoding, if any"""
     tx_info: dict[str, Any] | None = None
+    """The transaction info for the method call from raw algosdk `ABIResult`"""
 
     def __init__(self, result: ABIResult) -> None:
         self.decode_error = result.decode_error
@@ -269,11 +267,9 @@ def get_abi_struct_from_abi_tuple(
 
 @dataclass(kw_only=True, frozen=True)
 class BoxABIValue:
-    """Represents an ABI value stored in a box.
-
-    :ivar name: The name of the box
-    :ivar value: The ABI value stored in the box
-    """
+    """Represents an ABI value stored in a box."""
 
     name: BoxName
+    """The name of the box"""
     value: ABIValue
+    """The ABI value stored in the box"""

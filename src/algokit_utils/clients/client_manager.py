@@ -64,10 +64,15 @@ class NetworkDetail:
     """
 
     is_testnet: bool
+    """Whether the network is a testnet"""
     is_mainnet: bool
+    """Whether the network is a mainnet"""
     is_localnet: bool
+    """Whether the network is a localnet"""
     genesis_id: str
+    """The genesis ID of the network"""
     genesis_hash: str
+    """The genesis hash of the network"""
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientNetworkConfig:
@@ -88,6 +93,17 @@ class ClientManager:
 
     :param clients_or_configs: Either client instances or client configurations
     :param algorand_client: AlgorandClient instance
+
+    :example:
+        >>> # Algod only
+        >>> client_manager = ClientManager(algod_client)
+        >>> # Algod and Indexer
+        >>> client_manager = ClientManager(algod_client, indexer_client)
+        >>> # Algod config only
+        >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment())
+        >>> # Algod and Indexer config
+        >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment(),
+        ...     ClientManager.get_indexer_config_from_environment())
     """
 
     def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: AlgorandClient):
@@ -151,6 +167,10 @@ class ClientManager:
         """Get details about the connected Algorand network.
 
         :return: Network details including type and genesis information
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> network_detail = client_manager.network()
         """
         if self._suggested_params is None:
             self._suggested_params = self._algod.suggested_params()
@@ -417,6 +437,9 @@ class ClientManager:
 
         :param genesis_id: Genesis ID to check
         :return: True if genesis ID indicates a local network
+
+        :example:
+            >>> ClientManager.genesis_id_is_localnet("devnet-v1")
         """
         return genesis_id in ["devnet-v1", "sandnet-v1", "dockernet-v1"]
 
@@ -442,6 +465,14 @@ class ClientManager:
         :param app_lookup_cache: Optional app lookup cache
         :raises ValueError: If no Algorand client is configured
         :return: Typed application client instance
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> typed_app_client = client_manager.get_typed_app_client_by_creator_and_name(
+            ...     typed_client=MyAppClient,
+            ...     creator_address="creator_address",
+            ...     app_name="app_name",
+            ... )
         """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
@@ -478,6 +509,13 @@ class ClientManager:
         :param clear_source_map: Optional clear program source map
         :raises ValueError: If no Algorand client is configured
         :return: Typed application client instance
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> typed_app_client = client_manager.get_typed_app_client_by_id(
+            ...     typed_client=MyAppClient,
+            ...     app_id=1234567890,
+            ... )
         """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
@@ -515,6 +553,13 @@ class ClientManager:
         :param clear_source_map: Optional clear program source map
         :raises ValueError: If no Algorand client is configured
         :return: The typed client instance
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> typed_app_client = client_manager.get_typed_app_client_by_network(
+            ...     typed_client=MyAppClient,
+            ...     app_name="app_name",
+            ... )
         """
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
@@ -548,6 +593,13 @@ class ClientManager:
         :param compilation_params: Optional compilation parameters
         :raises ValueError: If no Algorand client is configured
         :return: Typed application factory instance
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> typed_app_factory = client_manager.get_typed_app_factory(
+            ...     typed_factory=MyAppFactory,
+            ...     app_name="app_name",
+            ... )
         """
         if not self._algorand:
             raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
@@ -569,6 +621,10 @@ class ClientManager:
         otherwise it will use default localnet configuration.
 
         :return: Configuration for algod, indexer, and optionally kmd
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_config_from_environment_or_localnet()
         """
         algod_server = os.getenv("ALGOD_SERVER")
 
@@ -609,6 +665,10 @@ class ClientManager:
 
         :param config_or_port: Service name or port number
         :return: Client configuration for local network
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_default_localnet_config("algod")
         """
         port = (
             config_or_port
@@ -624,6 +684,10 @@ class ClientManager:
         Will raise an error if ALGOD_SERVER environment variable is not set
 
         :return: Algod client configuration
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_algod_config_from_environment()
         """
         return _get_config_from_environment("ALGOD")
 
@@ -633,6 +697,10 @@ class ClientManager:
         Will raise an error if INDEXER_SERVER environment variable is not set
 
         :return: Indexer client configuration
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_indexer_config_from_environment()
         """
         return _get_config_from_environment("INDEXER")
 
@@ -641,6 +709,10 @@ class ClientManager:
         """Retrieve the kmd configuration from environment variables.
 
         :return: KMD client configuration
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_kmd_config_from_environment()
         """
         return _get_config_from_environment("KMD")
 
@@ -653,6 +725,10 @@ class ClientManager:
         :param network: Which network to connect to - TestNet or MainNet
         :param config: Which algod config to return - Algod or Indexer
         :return: Configuration for the specified network and service
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> config = client_manager.get_algonode_config("testnet", "algod")
         """
         service_type = "api" if config == "algod" else "idx"
         return AlgoClientNetworkConfig(

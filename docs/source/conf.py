@@ -30,8 +30,14 @@ autoapi_dirs = ['../../src/algokit_utils']
 autoapi_options = ['members', 
                    'undoc-members',  
                    'show-inheritance', 
-                   'show-module-summary']
+                   'show-module-summary', 
+                   ]
+
 autoapi_ignore = ['*algokit_utils/beta/__init__.py', 
+                  '*algokit_utils/beta/account_manager.py', 
+                  '*algokit_utils/beta/algorand_client.py', 
+                  '*algokit_utils/beta/client_manager.py', 
+                  '*algokit_utils/beta/composer.py', 
                   '*algokit_utils/asset.py', 
                   '*algokit_utils/deploy.py', 
                   "*algokit_utils/network_clients.py", 

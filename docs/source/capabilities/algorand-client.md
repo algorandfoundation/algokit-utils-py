@@ -2,7 +2,7 @@
 
 `AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the [default entrypoint](../index.md#usage) into AlgoKit Utils functionality.
 
-The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `AlgorandClient` class, most of the time you can get started by typing `AlgorandClient.` and choosing one of the static initialisation methods to create an [Algorand client](./capabilities/algorand-client.md), e.g.:
+The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `AlgorandClient` class, most of the time you can get started by typing `AlgorandClient.` and choosing one of the static initialisation methods to create an {py:class}`algokit_utils.algorand.AlgorandClient`, e.g.:
 
 ```python
 # Point to the network configured through environment variables or
@@ -58,7 +58,7 @@ The `AlgorandClient` has a number of manager class instances that help you quick
 
 ### Creating transactions
 
-You can compose a transaction via `algorand.create_transaction.`, which gives you an instance of the [`AlgorandClientTransactionCreator`](../autoapi/algokit_utils/applications/app_client.md#algokit_utils.applications.app_client.AlgorandClientTransactionCreator) class. Intellisense will guide you on the different options.
+You can compose a transaction via `algorand.create_transaction.`, which gives you an instance of the {py:class}`algokit_utils.transactions.AlgorandClientTransactionCreator` class. Intellisense will guide you on the different options.
 
 The signature for the calls to send a single transaction usually look like:
 
@@ -114,7 +114,7 @@ This signifies the fact that an ABI method call can actually result in multiple 
 
 ### Sending a single transaction
 
-You can compose a single transaction via `algorand.send...`, which gives you an instance of the [`AlgorandClientTransactionSender`](../autoapi/algokit_utils/applications/app_client.md#algokit_utils.applications.app_client.AlgorandClientTransactionSender) class. Intellisense will guide you on the different options.
+You can compose a single transaction via `algorand.send...`, which gives you an instance of the {py:class}`algokit_utils.transactions.AlgorandClientTransactionSender` class. Intellisense will guide you on the different options.
 
 Further documentation is present in the related capabilities:
 
@@ -128,8 +128,8 @@ The signature for the calls to send a single transaction usually look like:
 
 - To get intellisense on the params, use your IDE's intellisense keyboard shortcut (e.g. ctrl+space).
 - `TxnParams` is a union type that can be any of the Algorand transaction types, exact dataclasses can be imported from `algokit_utils`.
-- [`SendParams`](../autoapi/algokit_utils/models/transaction/SendParams.md) a typed dictionary exposing setting to apply during send operation.
-- [`SendSingleTransactionResult`](../autoapi/algokit_utils/models/transaction/SendSingleTransactionResult.md) is all of the information that is relevant when [sending a single transaction to the network](./transaction.md#sending-a-transaction)
+- {py:class}`algokit_utils.transactions.SendParams` a typed dictionary exposing setting to apply during send operation.
+- {py:class}`algokit_utils.transactions.SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](./transaction.md#transaction-results)
 
 Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by sending `suppressLog: true`.
 
@@ -137,7 +137,7 @@ Generally, the functions to immediately send a single transaction will emit log 
 
 You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{Type}()` methods on [`TransactionComposer`](./transaction-composer.md) to add a series of transactions.
 
-```typescript
+```python
 result = (algorand
     .new_group()
     .add_payment(
@@ -164,20 +164,19 @@ To create a transaction you instantiate a relevant Transaction parameters datacl
 
 All transaction parameters share the following common base parameters:
 
-- [`CommonTransactionParams`](../autoapi/algokit_utils/models/transaction/CommonTransactionParams.md)
-  - `sender: str` - The address of the account sending the transaction.
-  - `signer: algosdk.TransactionSigner | TransactionSignerAccount | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
-  - `rekey_to: string | None` - Change the signing key of the sender to the given address. **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://developer.algorand.org/docs/get-details/accounts/rekey/).
-  - `note: bytes | str | None` - Note to attach to the transaction. Max of 1000 bytes.
-  - `lease: bytes | str | None` - Prevent multiple transactions with the same lease being included within the validity window. A [lease](https://developer.algorand.org/articles/leased-transactions-securing-advanced-smart-contract-design/) enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
-  - Fee management
-    - `static_fee: AlgoAmount | None` - The static transaction fee. In most cases you want to use `extra_fee` unless setting the fee to 0 to be covered by another transaction.
-    - `extra_fee: AlgoAmount | None` - The fee to pay IN ADDITION to the suggested fee. Useful for covering inner transaction fees.
-    - `max_fee: AlgoAmount | None` - Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
-  - Round validity management
-    - `validity_window: int | None` - How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
-    - `first_valid_round: int | None` - Set the first round this transaction is valid. If left undefined, the value from algod will be used. We recommend you only set this when you intentionally want this to be some time in the future.
-    - `last_valid_round: int | None` - The last round this transaction is valid. It is recommended to use `validity_window` instead.
+- `sender: str` - The address of the account sending the transaction.
+- `signer: algosdk.TransactionSigner | TransactionSignerAccount | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
+- `rekey_to: string | None` - Change the signing key of the sender to the given address. **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://developer.algorand.org/docs/get-details/accounts/rekey/).
+- `note: bytes | str | None` - Note to attach to the transaction. Max of 1000 bytes.
+- `lease: bytes | str | None` - Prevent multiple transactions with the same lease being included within the validity window. A [lease](https://developer.algorand.org/articles/leased-transactions-securing-advanced-smart-contract-design/) enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+- Fee management
+  - `static_fee: AlgoAmount | None` - The static transaction fee. In most cases you want to use `extra_fee` unless setting the fee to 0 to be covered by another transaction.
+  - `extra_fee: AlgoAmount | None` - The fee to pay IN ADDITION to the suggested fee. Useful for covering inner transaction fees.
+  - `max_fee: AlgoAmount | None` - Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+- Round validity management
+  - `validity_window: int | None` - How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+  - `first_valid_round: int | None` - Set the first round this transaction is valid. If left undefined, the value from algod will be used. We recommend you only set this when you intentionally want this to be some time in the future.
+  - `last_valid_round: int | None` - The last round this transaction is valid. It is recommended to use `validity_window` instead.
 
 Then on top of that the base type gets extended for the specific type of transaction you are issuing. These are all defined as part of [`TransactionComposer`](./transaction-composer.md) and we recommend reading these docs, especially when leveraging either `populate_app_call_resources` or `cover_app_call_inner_transaction_fees`.
 

@@ -85,393 +85,374 @@ MAX_APP_CALL_ACCOUNT_REFERENCES = 4
 @dataclass(kw_only=True, frozen=True)
 class _CommonTxnParams:
     sender: str
+    """The account that will send the transaction"""
     signer: TransactionSigner | TransactionSignerAccountProtocol | None = None
+    """The signer for the transaction, defaults to None"""
     rekey_to: str | None = None
+    """The account to rekey to, defaults to None"""
     note: bytes | None = None
+    """The note for the transaction, defaults to None"""
     lease: bytes | None = None
+    """The lease for the transaction, defaults to None"""
     static_fee: AlgoAmount | None = None
+    """The static fee for the transaction, defaults to None"""
     extra_fee: AlgoAmount | None = None
+    """The extra fee for the transaction, defaults to None"""
     max_fee: AlgoAmount | None = None
+    """The maximum fee for the transaction, defaults to None"""
     validity_window: int | None = None
+    """The validity window for the transaction, defaults to None"""
     first_valid_round: int | None = None
+    """The first valid round for the transaction, defaults to None"""
     last_valid_round: int | None = None
+    """The last valid round for the transaction, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AdditionalAtcContext:
     max_fees: dict[int, AlgoAmount] | None = None
+    """The maximum fees for each transaction, defaults to None"""
     suggested_params: SuggestedParams | None = None
+    """The suggested parameters for the transaction, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class PaymentParams(_CommonTxnParams):
-    """Parameters for a payment transaction.
-
-    :ivar receiver: The account that will receive the ALGO
-    :ivar amount: Amount to send
-    :ivar close_remainder_to: If given, close the sender account and send the remaining balance to this address,
-        defaults to None
-    """
+    """Parameters for a payment transaction."""
 
     receiver: str
+    """The account that will receive the ALGO"""
     amount: AlgoAmount
+    """Amount to send"""
     close_remainder_to: str | None = None
+    """If given, close the sender account and send the remaining balance to this address, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetCreateParams(_CommonTxnParams):
-    """Parameters for creating a new asset.
-
-    :ivar total: The total amount of the smallest divisible unit to create
-    :ivar decimals: The amount of decimal places the asset should have, defaults to None
-    :ivar default_frozen: Whether the asset is frozen by default in the creator address, defaults to None
-    :ivar manager: The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
-    :ivar reserve: The address that holds the uncirculated supply, defaults to None
-    :ivar freeze: The address that can freeze the asset in any account, defaults to None
-    :ivar clawback: The address that can clawback the asset from any account, defaults to None
-    :ivar unit_name: The short ticker name for the asset, defaults to None
-    :ivar asset_name: The full name of the asset, defaults to None
-    :ivar url: The metadata URL for the asset, defaults to None
-    :ivar metadata_hash: Hash of the metadata contained in the metadata URL, defaults to None
-    """
+    """Parameters for creating a new asset."""
 
     total: int
+    """The total amount of the smallest divisible unit to create"""
     asset_name: str | None = None
+    """The full name of the asset"""
     unit_name: str | None = None
+    """The short ticker name for the asset"""
     url: str | None = None
+    """The metadata URL for the asset"""
     decimals: int | None = None
+    """The amount of decimal places the asset should have"""
     default_frozen: bool | None = None
+    """Whether the asset is frozen by default in the creator address"""
     manager: str | None = None
+    """The address that can change the manager, reserve, clawback, and freeze addresses"""
     reserve: str | None = None
+    """The address that holds the uncirculated supply"""
     freeze: str | None = None
+    """The address that can freeze the asset in any account"""
     clawback: str | None = None
+    """The address that can clawback the asset from any account"""
     metadata_hash: bytes | None = None
+    """Hash of the metadata contained in the metadata URL"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetConfigParams(_CommonTxnParams):
-    """Parameters for configuring an existing asset.
-
-    :ivar asset_id: ID of the asset
-    :ivar manager: The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
-    :ivar reserve: The address that holds the uncirculated supply, defaults to None
-    :ivar freeze: The address that can freeze the asset in any account, defaults to None
-    :ivar clawback: The address that can clawback the asset from any account, defaults to None
-    """
+    """Parameters for configuring an existing asset."""
 
     asset_id: int
+    """The ID of the asset"""
     manager: str | None = None
+    """The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None"""
     reserve: str | None = None
+    """The address that holds the uncirculated supply, defaults to None"""
     freeze: str | None = None
+    """The address that can freeze the asset in any account, defaults to None"""
     clawback: str | None = None
+    """The address that can clawback the asset from any account, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetFreezeParams(_CommonTxnParams):
-    """Parameters for freezing an asset.
-
-    :ivar asset_id: The ID of the asset
-    :ivar account: The account to freeze or unfreeze
-    :ivar frozen: Whether the assets in the account should be frozen
-    """
+    """Parameters for freezing an asset."""
 
     asset_id: int
+    """The ID of the asset"""
     account: str
+    """The account to freeze or unfreeze"""
     frozen: bool
+    """Whether the assets in the account should be frozen"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetDestroyParams(_CommonTxnParams):
-    """Parameters for destroying an asset.
-
-    :ivar asset_id: ID of the asset
-    """
+    """Parameters for destroying an asset."""
 
     asset_id: int
+    """The ID of the asset"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class OnlineKeyRegistrationParams(_CommonTxnParams):
-    """Parameters for online key registration.
-
-    :ivar vote_key: The root participation public key
-    :ivar selection_key: The VRF public key
-    :ivar vote_first: The first round that the participation key is valid
-    :ivar vote_last: The last round that the participation key is valid
-    :ivar vote_key_dilution: The dilution for the 2-level participation key
-    :ivar state_proof_key: The 64 byte state proof public key commitment, defaults to None
-    """
+    """Parameters for online key registration."""
 
     vote_key: str
+    """The root participation public key"""
     selection_key: str
+    """The VRF public key"""
     vote_first: int
+    """The first round that the participation key is valid"""
     vote_last: int
+    """The last round that the participation key is valid"""
     vote_key_dilution: int
+    """The dilution for the 2-level participation key"""
     state_proof_key: bytes | None = None
+    """The 64 byte state proof public key commitment, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class OfflineKeyRegistrationParams(_CommonTxnParams):
-    """Parameters for offline key registration.
-
-    :ivar prevent_account_from_ever_participating_again: Whether to prevent the account from ever participating again
-    """
+    """Parameters for offline key registration."""
 
     prevent_account_from_ever_participating_again: bool
+    """Whether to prevent the account from ever participating again"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetTransferParams(_CommonTxnParams):
-    """Parameters for transferring an asset.
-
-    :ivar asset_id: ID of the asset
-    :ivar amount: Amount of the asset to transfer (smallest divisible unit)
-    :ivar receiver: The account to send the asset to
-    :ivar clawback_target: The account to take the asset from, defaults to None
-    :ivar close_asset_to: The account to close the asset to, defaults to None
-    """
+    """Parameters for transferring an asset."""
 
     asset_id: int
+    """The ID of the asset"""
     amount: int
+    """The amount of the asset to transfer (smallest divisible unit)"""
     receiver: str
+    """The account to send the asset to"""
     clawback_target: str | None = None
+    """The account to take the asset from, defaults to None"""
     close_asset_to: str | None = None
+    """The account to close the asset to, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetOptInParams(_CommonTxnParams):
-    """Parameters for opting into an asset.
-
-    :ivar asset_id: ID of the asset
-    """
+    """Parameters for opting into an asset."""
 
     asset_id: int
+    """The ID of the asset"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetOptOutParams(_CommonTxnParams):
-    """Parameters for opting out of an asset.
-
-    :ivar asset_id: ID of the asset
-    :ivar creator: The creator address of the asset
-    """
+    """Parameters for opting out of an asset."""
 
     asset_id: int
+    """The ID of the asset"""
     creator: str
+    """The creator address of the asset"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppCallParams(_CommonTxnParams):
-    """Parameters for calling an application.
-
-    :ivar on_complete: The OnComplete action
-    :ivar app_id: ID of the application, defaults to None
-    :ivar approval_program: The program to execute for all OnCompletes other than ClearState, defaults to None
-    :ivar clear_state_program: The program to execute for ClearState OnComplete, defaults to None
-    :ivar schema: The state schema for the app. This is immutable, defaults to None
-    :ivar args: Application arguments, defaults to None
-    :ivar account_references: Account references, defaults to None
-    :ivar app_references: App references, defaults to None
-    :ivar asset_references: Asset references, defaults to None
-    :ivar extra_pages: Number of extra pages required for the programs, defaults to None
-    :ivar box_references: Box references, defaults to None
-    """
+    """Parameters for calling an application."""
 
     on_complete: OnComplete
+    """The OnComplete action, defaults to None"""
     app_id: int | None = None
+    """The ID of the application, defaults to None"""
     approval_program: str | bytes | None = None
+    """The program to execute for all OnCompletes other than ClearState, defaults to None"""
     clear_state_program: str | bytes | None = None
+    """The program to execute for ClearState OnComplete, defaults to None"""
     schema: dict[str, int] | None = None
+    """The state schema for the app, defaults to None"""
     args: list[bytes] | None = None
+    """Application arguments, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     extra_pages: int | None = None
+    """Number of extra pages required for the programs, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
 
 
 class AppCreateSchema(TypedDict):
     global_ints: int
+    """The number of global ints in the schema"""
     global_byte_slices: int
+    """The number of global byte slices in the schema"""
     local_ints: int
+    """The number of local ints in the schema"""
     local_byte_slices: int
+    """The number of local byte slices in the schema"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppCreateParams(_CommonTxnParams):
-    """Parameters for creating an application.
-
-    :ivar approval_program: The program to execute for all OnCompletes other than ClearState as raw teal (string)
-        or compiled teal (bytes)
-    :ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-        or compiled teal (bytes)
-    :ivar schema: The state schema for the app. This is immutable, defaults to None
-    :ivar on_complete: The OnComplete action (cannot be ClearState), defaults to None
-    :ivar args: Application arguments, defaults to None
-    :ivar account_references: Account references, defaults to None
-    :ivar app_references: App references, defaults to None
-    :ivar asset_references: Asset references, defaults to None
-    :ivar box_references: Box references, defaults to None
-    :ivar extra_program_pages: Number of extra pages required for the programs, defaults to None
-    """
+    """Parameters for creating an application."""
 
     approval_program: str | bytes
+    """The program to execute for all OnCompletes other than ClearState"""
     clear_state_program: str | bytes
+    """The program to execute for ClearState OnComplete"""
     schema: AppCreateSchema | None = None
+    """The state schema for the app, defaults to None"""
     on_complete: OnComplete | None = None
+    """The OnComplete action, defaults to None"""
     args: list[bytes] | None = None
+    """Application arguments, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
     extra_program_pages: int | None = None
+    """Number of extra pages required for the programs, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppUpdateParams(_CommonTxnParams):
-    """Parameters for updating an application.
-
-    :ivar app_id: ID of the application
-    :ivar approval_program: The program to execute for all OnCompletes other than ClearState as raw teal (string)
-        or compiled teal (bytes)
-    :ivar clear_state_program: The program to execute for ClearState OnComplete as raw teal (string)
-        or compiled teal (bytes)
-    :ivar args: Application arguments, defaults to None
-    :ivar account_references: Account references, defaults to None
-    :ivar app_references: App references, defaults to None
-    :ivar asset_references: Asset references, defaults to None
-    :ivar box_references: Box references, defaults to None
-    :ivar on_complete: The OnComplete action, defaults to None
-    """
+    """Parameters for updating an application."""
 
     app_id: int
+    """The ID of the application"""
     approval_program: str | bytes
+    """The program to execute for all OnCompletes other than ClearState"""
     clear_state_program: str | bytes
+    """The program to execute for ClearState OnComplete"""
     args: list[bytes] | None = None
+    """Application arguments, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
     on_complete: OnComplete | None = None
+    """The OnComplete action, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppDeleteParams(_CommonTxnParams):
-    """Parameters for deleting an application.
-
-    :ivar app_id: ID of the application
-    :ivar args: Application arguments, defaults to None
-    :ivar account_references: Account references, defaults to None
-    :ivar app_references: App references, defaults to None
-    :ivar asset_references: Asset references, defaults to None
-    :ivar box_references: Box references, defaults to None
-    :ivar on_complete: The OnComplete action, defaults to DeleteApplicationOC
-    """
+    """Parameters for deleting an application."""
 
     app_id: int
+    """The ID of the application"""
     args: list[bytes] | None = None
+    """Application arguments, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
+    """The OnComplete action, defaults to DeleteApplicationOC"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class _BaseAppMethodCall(_CommonTxnParams):
     app_id: int
+    """The ID of the application"""
     method: Method
+    """The ABI method to call"""
     args: list | None = None
+    """Arguments to the ABI method, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
     schema: AppCreateSchema | None = None
+    """The state schema for the app, defaults to None"""
+    on_complete: OnComplete | None = None
+    """The OnComplete action, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppMethodCallParams(_CommonTxnParams):
-    """Parameters for calling an application method.
-
-    :ivar app_id: ID of the application
-    :ivar method: The ABI method to call
-    :ivar args: Arguments to the ABI method, defaults to None
-    :ivar on_complete: The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
-    :ivar account_references: Account references, defaults to None
-    :ivar app_references: App references, defaults to None
-    :ivar asset_references: Asset references, defaults to None
-    :ivar box_references: Box references, defaults to None
-    """
+    """Parameters for calling an application method."""
 
     app_id: int
+    """The ID of the application"""
     method: Method
+    """The ABI method to call"""
     args: list[bytes] | None = None
+    """Arguments to the ABI method, defaults to None"""
     on_complete: OnComplete | None = None
+    """The OnComplete action, defaults to None"""
     account_references: list[str] | None = None
+    """Account references, defaults to None"""
     app_references: list[int] | None = None
+    """App references, defaults to None"""
     asset_references: list[int] | None = None
+    """Asset references, defaults to None"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """Box references, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppCallMethodCallParams(_BaseAppMethodCall):
-    """Parameters for a regular ABI method call.
-
-    :ivar app_id: ID of the application
-    :ivar method: The ABI method to call
-    :ivar args: Arguments to the ABI method, either an ABI value, transaction with explicit signer,
-        transaction, another method call, or None
-    :ivar on_complete: The OnComplete action (cannot be UpdateApplication or ClearState), defaults to None
-    """
+    """Parameters for a regular ABI method call."""
 
     app_id: int
+    """The ID of the application"""
     on_complete: OnComplete | None = None
+    """The OnComplete action, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppCreateMethodCallParams(_BaseAppMethodCall):
-    """Parameters for an ABI method call that creates an application.
-
-    :ivar approval_program: The program to execute for all OnCompletes other than ClearState
-    :ivar clear_state_program: The program to execute for ClearState OnComplete
-    :ivar schema: The state schema for the app, defaults to None
-    :ivar on_complete: The OnComplete action (cannot be ClearState), defaults to None
-    :ivar extra_program_pages: Number of extra pages required for the programs, defaults to None
-    """
+    """Parameters for an ABI method call that creates an application."""
 
     approval_program: str | bytes
+    """The program to execute for all OnCompletes other than ClearState"""
     clear_state_program: str | bytes
+    """The program to execute for ClearState OnComplete"""
     schema: AppCreateSchema | None = None
+    """The state schema for the app, defaults to None"""
     on_complete: OnComplete | None = None
+    """The OnComplete action (cannot be ClearState), defaults to None"""
     extra_program_pages: int | None = None
+    """Number of extra pages required for the programs, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppUpdateMethodCallParams(_BaseAppMethodCall):
-    """Parameters for an ABI method call that updates an application.
-
-    :ivar app_id: ID of the application
-    :ivar approval_program: The program to execute for all OnCompletes other than ClearState
-    :ivar clear_state_program: The program to execute for ClearState OnComplete
-    :ivar on_complete: The OnComplete action, defaults to UpdateApplicationOC
-    """
+    """Parameters for an ABI method call that updates an application."""
 
     app_id: int
+    """The ID of the application"""
     approval_program: str | bytes
+    """The program to execute for all OnCompletes other than ClearState"""
     clear_state_program: str | bytes
+    """The program to execute for ClearState OnComplete"""
     on_complete: OnComplete = OnComplete.UpdateApplicationOC
+    """The OnComplete action"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppDeleteMethodCallParams(_BaseAppMethodCall):
-    """Parameters for an ABI method call that deletes an application.
-
-    :ivar app_id: ID of the application
-    :ivar on_complete: The OnComplete action, defaults to DeleteApplicationOC
-    """
+    """Parameters for an ABI method call that deletes an application."""
 
     app_id: int
+    """The ID of the application"""
     on_complete: OnComplete = OnComplete.DeleteApplicationOC
+    """The OnComplete action"""
 
 
 MethodCallParams = (
@@ -545,50 +526,44 @@ class TransactionWithSignerAndContext(TransactionWithSigner):
 
 @dataclass(frozen=True)
 class BuiltTransactions:
-    """Set of transactions built by TransactionComposer.
-
-    :ivar transactions: The built transactions
-    :ivar method_calls: Any ABIMethod objects associated with any of the transactions in a map keyed by txn id
-    :ivar signers: Any TransactionSigner objects associated with any of the transactions in a map keyed by txn id
-    """
+    """Set of transactions built by TransactionComposer."""
 
     transactions: list[algosdk.transaction.Transaction]
+    """The built transactions"""
     method_calls: dict[int, Method]
+    """Map of transaction index to ABI method"""
     signers: dict[int, TransactionSigner]
+    """Map of transaction index to TransactionSigner"""
 
 
 @dataclass
 class TransactionComposerBuildResult:
-    """Result of building transactions with TransactionComposer.
-
-    :ivar atc: The AtomicTransactionComposer instance
-    :ivar transactions: The list of transactions with signers
-    :ivar method_calls: Map of transaction index to ABI method
-    """
+    """Result of building transactions with TransactionComposer."""
 
     atc: AtomicTransactionComposer
+    """The AtomicTransactionComposer instance"""
     transactions: list[TransactionWithSigner]
+    """The list of transactions with signers"""
     method_calls: dict[int, Method]
+    """Map of transaction index to ABI method"""
 
 
 @dataclass
 class SendAtomicTransactionComposerResults:
-    """Results from sending an AtomicTransactionComposer transaction group.
-
-    :ivar group_id: The group ID if this was a transaction group
-    :ivar confirmations: The confirmation info for each transaction
-    :ivar tx_ids: The transaction IDs that were sent
-    :ivar transactions: The transactions that were sent
-    :ivar returns: The ABI return values from any ABI method calls
-    :ivar simulate_response: The simulation response if simulation was performed, defaults to None
-    """
+    """Results from sending an AtomicTransactionComposer transaction group."""
 
     group_id: str
+    """The group ID if this was a transaction group"""
     confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    """The confirmation info for each transaction"""
     tx_ids: list[str]
+    """The transaction IDs that were sent"""
     transactions: list[TransactionWrapper]
+    """The transactions that were sent"""
     returns: list[ABIReturn]
+    """The ABI return values from any ABI method calls"""
     simulate_response: dict[str, Any] | None = None
+    """The simulation response if simulation was performed, defaults to None"""
 
 
 class UnnamedResourcesAccessed:
@@ -611,8 +586,12 @@ class UnnamedResourcesAccessed:
 
 @dataclass
 class ExecutionInfoTxn:
+    """Execution info for a transaction."""
+
     unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
+    """The unnamed resources accessed in the transaction"""
     required_fee_delta: int = 0
+    """The required fee delta for the transaction"""
 
 
 @dataclass
@@ -620,7 +599,9 @@ class ExecutionInfo:
     """Information about transaction execution from simulation."""
 
     group_unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
+    """The unnamed resources accessed in the group"""
     txns: list[ExecutionInfoTxn] | None = None
+    """The execution info for each transaction"""
 
 
 @dataclass
@@ -1377,12 +1358,25 @@ class TransactionComposer:
         :param transaction: The transaction to add
         :param signer: Optional transaction signer, defaults to getting signer from transaction sender
         :return: The transaction composer instance for chaining
+
+        :example:
+            >>> composer.add_transaction(transaction)
         """
         self._txns.append(TransactionWithSigner(txn=transaction, signer=signer or self._get_signer(transaction.sender)))
         return self
 
     def add_payment(self, params: PaymentParams) -> TransactionComposer:
         """Add a payment transaction.
+
+        :example:
+            >>> params = PaymentParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     receiver="RECEIVER_ADDRESS",
+            ...     amount=AlgoAmount.from_algo(1),
+            ...     close_remainder_to="CLOSE_ADDRESS"
+            ...     ... (see PaymentParams for more options)
+            ... )
+            >>> composer.add_payment(params)
 
         :param params: The payment transaction parameters
         :return: The transaction composer instance for chaining
@@ -1393,6 +1387,22 @@ class TransactionComposer:
     def add_asset_create(self, params: AssetCreateParams) -> TransactionComposer:
         """Add an asset creation transaction.
 
+        :example:
+            >>> params = AssetCreateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     total=1000,
+            ...     asset_name="MyAsset",
+            ...     unit_name="MA",
+            ...     url="https://example.com",
+            ...     decimals=0,
+            ...     default_frozen=False,
+            ...     manager="MANAGER_ADDRESS",
+            ...     reserve="RESERVE_ADDRESS",
+            ...     freeze="FREEZE_ADDRESS",
+            ...     clawback="CLAWBACK_ADDRESS"
+            ...     ... (see AssetCreateParams for more options)
+            >>> composer.add_asset_create(params)
+
         :param params: The asset creation parameters
         :return: The transaction composer instance for chaining
         """
@@ -1401,6 +1411,18 @@ class TransactionComposer:
 
     def add_asset_config(self, params: AssetConfigParams) -> TransactionComposer:
         """Add an asset configuration transaction.
+
+        :example:
+            >>> params = AssetConfigParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     manager="NEW_MANAGER_ADDRESS",
+            ...     reserve="NEW_RESERVE_ADDRESS",
+            ...     freeze="NEW_FREEZE_ADDRESS",
+            ...     clawback="NEW_CLAWBACK_ADDRESS"
+            ...     ... (see AssetConfigParams for more options)
+            ... )
+            >>> composer.add_asset_config(params)
 
         :param params: The asset configuration parameters
         :return: The transaction composer instance for chaining
@@ -1411,6 +1433,16 @@ class TransactionComposer:
     def add_asset_freeze(self, params: AssetFreezeParams) -> TransactionComposer:
         """Add an asset freeze transaction.
 
+        :example:
+            >>> params = AssetFreezeParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     account="ACCOUNT_TO_FREEZE",
+            ...     frozen=True
+            ...     ... (see AssetFreezeParams for more options)
+            ... )
+            >>> composer.add_asset_freeze(params)
+
         :param params: The asset freeze parameters
         :return: The transaction composer instance for chaining
         """
@@ -1419,6 +1451,13 @@ class TransactionComposer:
 
     def add_asset_destroy(self, params: AssetDestroyParams) -> TransactionComposer:
         """Add an asset destruction transaction.
+
+        :example:
+            >>> params = AssetDestroyParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456
+            ...     ... (see AssetDestroyParams for more options)
+            >>> composer.add_asset_destroy(params)
 
         :param params: The asset destruction parameters
         :return: The transaction composer instance for chaining
@@ -1429,6 +1468,17 @@ class TransactionComposer:
     def add_asset_transfer(self, params: AssetTransferParams) -> TransactionComposer:
         """Add an asset transfer transaction.
 
+        :example:
+            >>> params = AssetTransferParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     amount=10,
+            ...     receiver="RECEIVER_ADDRESS",
+            ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
+            ...     close_asset_to="CLOSE_ADDRESS"
+            ...     ... (see AssetTransferParams for more options)
+            >>> composer.add_asset_transfer(params)
+
         :param params: The asset transfer parameters
         :return: The transaction composer instance for chaining
         """
@@ -1437,6 +1487,14 @@ class TransactionComposer:
 
     def add_asset_opt_in(self, params: AssetOptInParams) -> TransactionComposer:
         """Add an asset opt-in transaction.
+
+        :example:
+            >>> params = AssetOptInParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456
+            ...     ... (see AssetOptInParams for more options)
+            ... )
+            >>> composer.add_asset_opt_in(params)
 
         :param params: The asset opt-in parameters
         :return: The transaction composer instance for chaining
@@ -1447,6 +1505,14 @@ class TransactionComposer:
     def add_asset_opt_out(self, params: AssetOptOutParams) -> TransactionComposer:
         """Add an asset opt-out transaction.
 
+        :example:
+            >>> params = AssetOptOutParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     asset_id=123456,
+            ...     creator="CREATOR_ADDRESS"
+            ...     ... (see AssetOptOutParams for more options)
+            >>> composer.add_asset_opt_out(params)
+
         :param params: The asset opt-out parameters
         :return: The transaction composer instance for chaining
         """
@@ -1455,6 +1521,23 @@ class TransactionComposer:
 
     def add_app_create(self, params: AppCreateParams) -> TransactionComposer:
         """Add an application creation transaction.
+
+        :example:
+            >>> params = AppCreateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     approval_program="TEAL_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_CLEAR_CODE",
+            ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+            ...     on_complete=OnComplete.NoOpOC,
+            ...     args=[b'arg1'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     extra_program_pages=0
+            ...     ... (see AppCreateParams for more options)
+            ... )
+            >>> composer.add_app_create(params)
 
         :param params: The application creation parameters
         :return: The transaction composer instance for chaining
@@ -1465,6 +1548,21 @@ class TransactionComposer:
     def add_app_update(self, params: AppUpdateParams) -> TransactionComposer:
         """Add an application update transaction.
 
+        :example:
+            >>> params = AppUpdateParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     app_id=789,
+            ...     approval_program="TEAL_NEW_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
+            ...     args=[b'new_arg1'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     on_complete=OnComplete.UpdateApplicationOC
+            ...     ... (see AppUpdateParams for more options)
+            >>> composer.add_app_update(params)
+
         :param params: The application update parameters
         :return: The transaction composer instance for chaining
         """
@@ -1474,6 +1572,19 @@ class TransactionComposer:
     def add_app_delete(self, params: AppDeleteParams) -> TransactionComposer:
         """Add an application deletion transaction.
 
+        :example:
+            >>> params = AppDeleteParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     app_id=789,
+            ...     args=[b'delete_arg'],
+            ...     account_references=["ACCOUNT1"],
+            ...     app_references=[789],
+            ...     asset_references=[123],
+            ...     box_references=[],
+            ...     on_complete=OnComplete.DeleteApplicationOC
+            ...     ... (see AppDeleteParams for more options)
+            >>> composer.add_app_delete(params)
+
         :param params: The application deletion parameters
         :return: The transaction composer instance for chaining
         """
@@ -1482,6 +1593,18 @@ class TransactionComposer:
 
     def add_app_call(self, params: AppCallParams) -> TransactionComposer:
         """Add an application call transaction.
+
+        :example:
+            >>> params = AppCallParams(
+            ...     sender="SENDER_ADDRESS",
+            ...     on_complete=OnComplete.NoOpOC,
+            ...     app_id=789,
+            ...     approval_program="TEAL_APPROVAL_CODE",
+            ...     clear_state_program="TEAL_CLEAR_CODE",
+            ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+            ...     ... (see AppCallParams for more options)
+            ... )
+            >>> composer.add_app_call(params)
 
         :param params: The application call parameters
         :return: The transaction composer instance for chaining
@@ -1494,6 +1617,59 @@ class TransactionComposer:
 
         :param params: The application creation method call parameters
         :return: The transaction composer instance for chaining
+
+        :example:
+            >>> # Basic example
+            >>> method = algosdk.abi.Method(
+            ...     name="method",
+            ...     args=[...],
+            ...     returns="string"
+            ... )
+            >>> composer.add_app_create_method_call(
+            ...     AppCreateMethodCallParams(
+            ...         sender="CREATORADDRESS",
+            ...         approval_program="TEALCODE",
+            ...         clear_state_program="TEALCODE",
+            ...         method=method,
+            ...         args=["arg1_value"]
+            ...     )
+            ... )
+            >>>
+            >>> # Advanced example
+            >>> method = ABIMethod(
+            ...     name="method",
+            ...     args=[{"name": "arg1", "type": "string"}],
+            ...     returns={"type": "string"}
+            ... )
+            >>> composer.add_app_create_method_call(
+            ...     AppCreateMethodCallParams(
+            ...         sender="CREATORADDRESS",
+            ...         method=method,
+            ...         args=["arg1_value"],
+            ...         approval_program="TEALCODE",
+            ...         clear_state_program="TEALCODE",
+            ...         schema={
+            ...             "global_ints": 1,
+            ...             "global_byte_slices": 2,
+            ...             "local_ints": 3,
+            ...             "local_byte_slices": 4
+            ...         },
+            ...         extra_pages=1,
+            ...         on_complete=OnComplete.OptInOC,
+            ...         args=[bytes([1, 2, 3, 4])],
+            ...         account_references=["ACCOUNT_1"],
+            ...         app_references=[123, 1234],
+            ...         asset_references=[12345],
+            ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
+            ...         lease="lease",
+            ...         note="note",
+            ...         first_valid_round=1000,
+            ...         validity_window=10,
+            ...         extra_fee=AlgoAmount.from_micro_algos(1000),
+            ...         static_fee=AlgoAmount.from_micro_algos(1000),
+            ...         max_fee=AlgoAmount.from_micro_algos(3000)
+            ...     )
+            ... )
         """
         self._txns.append(params)
         return self
@@ -1548,6 +1724,11 @@ class TransactionComposer:
 
         :param atc: The AtomicTransactionComposer to add
         :return: The transaction composer instance for chaining
+
+        :example:
+            >>> atc = AtomicTransactionComposer()
+            >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
+            >>> composer.add_atc(atc)
         """
         self._txns.append(atc)
         return self
@@ -1708,6 +1889,9 @@ class TransactionComposer:
         :param simulation_round: Round number to simulate at
         :param skip_signatures: Whether to skip signature validation
         :return: The simulation results
+
+        :example:
+            >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
         """
         from algokit_utils._debugging import simulate_and_persist_response, simulate_response
 

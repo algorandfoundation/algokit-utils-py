@@ -53,7 +53,7 @@ algorand.account
 
 ## Default signer
 
-If you want to have a default signer that is used to sign transactions without a registered signer (rather than throwing an exception) then you can [register a default signer](../code/classes/types_account_manager.AccountManager.md#setdefaultsigner):
+If you want to have a default signer that is used to sign transactions without a registered signer (rather than throwing an exception) then you can {py:meth}`set_default_signer <algokit_utils.accounts.account_manager.AccountManager.set_default_signer>`:
 
 ```python
 algorand.account.set_default_signer(my_default_signer)
@@ -104,7 +104,7 @@ One of the unique features of Algorand is the ability to change the private key 
 > [!WARNING]
 > Rekeying should be done with caution as a rekey transaction can result in permanent loss of control of an account.
 
-You can issue a transaction to rekey an account by using the [`algorand.account.rekeyAccount(account, rekeyTo, options)`](../code/classes/types_account_manager.AccountManager.md#rekeyaccount) function:
+You can issue a transaction to rekey an account by using the {py:meth}`rekey_account <algokit_utils.accounts.account_manager.AccountManager.rekey_account>` function:
 
 - `account: string | TransactionSignerAccount` - The account address or signing account of the account that will be rekeyed
 - `rekeyTo: string | TransactionSignerAccount` - The account address or signing account of the account that will be used to authorise transactions for the rekeyed account going forward. If a signing account is provided that will now be tracked as the signer for `account` in the `AccountManager` instance.
@@ -208,6 +208,8 @@ Some of this functionality is directly exposed from [`AccountManager`](#accountm
 localnet_dispenser = algorand.account.localnet_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = algorand.account.dispenser_from_environment()
+# Get an account from KMD idempotently by name. In this case we'll get the default dispenser account
+dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a.status != 'Offline' and a.amount > 1_000_000_000)
 # Get / create and register account from KMD idempotently by name
-account1 = algorand.account.from_kmd("account1", AlgoAmount.from_algos(2))
+fresh_account_via_kmd = algorand.account.kmd.get_or_create_wallet_account('account1', AlgoAmount.from_algos(2))
 ```

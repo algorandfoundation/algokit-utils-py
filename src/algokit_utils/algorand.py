@@ -58,6 +58,8 @@ class AlgorandClient:
 
         :param validity_window: The number of rounds between the first and last valid rounds
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
         """
         self._default_validity_window = validity_window
         return self
@@ -70,6 +72,9 @@ class AlgorandClient:
 
         :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> signer = SigningAccount(private_key=..., address=...)
+            >>> algorand = AlgorandClient.mainnet().set_default_signer(signer)
         """
         self._account_manager.set_default_signer(signer)
         return self
@@ -81,21 +86,31 @@ class AlgorandClient:
         :param sender: The sender address to use this signer for
         :param signer: The signer to sign transactions with for the given sender
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> signer = SigningAccount(private_key=..., address=...)
+            >>> algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
         """
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_signer_account(self, signer: TransactionSignerAccountProtocol) -> typing_extensions.Self:
+    def set_signer_from_account(self, signer: TransactionSignerAccountProtocol) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
         :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> accountManager = AlgorandClient.mainnet()
+            >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
+            >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
+            >>> accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
+            >>> accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
+            >>> accountManager.set_signer_from_account(account)
         """
         self._account_manager.set_default_signer(signer)
         return self
 
-    def set_suggested_params(
+    def set_suggested_params_cache(
         self, suggested_params: SuggestedParams, until: float | None = None
     ) -> typing_extensions.Self:
         """
@@ -104,23 +119,32 @@ class AlgorandClient:
         :param suggested_params: The suggested params to use
         :param until: A timestamp until which to cache, or if not specified then the timeout is used
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache(suggested_params, time.time() + 3.6e6)
         """
         self._cached_suggested_params = suggested_params
         self._cached_suggested_params_expiry = until or time.time() + self._cached_suggested_params_timeout
         return self
 
-    def set_suggested_params_timeout(self, timeout: int) -> typing_extensions.Self:
+    def set_suggested_params_cache_timeout(self, timeout: int) -> typing_extensions.Self:
         """
         Sets the timeout for caching suggested params.
 
         :param timeout: The timeout in milliseconds
         :return: The `AlgorandClient` so method calls can be chained
+        :example:
+            >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache_timeout(10_000)
         """
         self._cached_suggested_params_timeout = timeout
         return self
 
     def get_suggested_params(self) -> SuggestedParams:
-        """Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)"""
+        """
+        Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
+
+        :example:
+            >>> algorand = AlgorandClient.mainnet().get_suggested_params()
+        """
         if self._cached_suggested_params and (
             self._cached_suggested_params_expiry is None or self._cached_suggested_params_expiry > time.time()
         ):
@@ -132,7 +156,14 @@ class AlgorandClient:
         return copy.deepcopy(self._cached_suggested_params)
 
     def new_group(self) -> TransactionComposer:
-        """Start a new `TransactionComposer` transaction group"""
+        """
+        Start a new `TransactionComposer` transaction group
+
+        :example:
+            >>> composer = AlgorandClient.mainnet().new_group()
+            >>> result = await composer.add_transaction(payment).send()
+        """
+
         return TransactionComposer(
             algod=self.client.algod,
             get_signer=lambda addr: self.account.get_signer(addr),
@@ -142,36 +173,81 @@ class AlgorandClient:
 
     @property
     def client(self) -> ClientManager:
-        """Get clients, including algosdk clients and app clients."""
+        """
+        Get clients, including algosdk clients and app clients.
+
+        :example:
+            >>> clientManager = AlgorandClient.mainnet().client
+        """
         return self._client_manager
 
     @property
     def account(self) -> AccountManager:
-        """Get or create accounts that can sign transactions."""
+        """Get or create accounts that can sign transactions.
+
+        :example:
+            >>> accountManager = AlgorandClient.mainnet().account
+        """
         return self._account_manager
 
     @property
     def asset(self) -> AssetManager:
-        """Get or create assets."""
+        """
+        Get or create assets.
+
+        :example:
+            >>> assetManager = AlgorandClient.mainnet().asset
+        """
         return self._asset_manager
 
     @property
     def app(self) -> AppManager:
+        """
+        Get or create applications.
+
+        :example:
+            >>> appManager = AlgorandClient.mainnet().app
+        """
         return self._app_manager
 
     @property
     def app_deployer(self) -> AppDeployer:
-        """Get or create applications."""
+        """
+        Get or create applications.
+
+        :example:
+            >>> appDeployer = AlgorandClient.mainnet().app_deployer
+        """
         return self._app_deployer
 
     @property
     def send(self) -> AlgorandClientTransactionSender:
-        """Methods for sending a transaction and waiting for confirmation"""
+        """
+        Methods for sending a transaction and waiting for confirmation
+
+        :example:
+            >>> result = await AlgorandClient.mainnet().send.payment(
+            >>> PaymentParams(
+            >>>  sender="SENDERADDRESS",
+            >>>  receiver="RECEIVERADDRESS",
+            >>>  amount=AlgoAmount(algo-1)
+            >>> ))
+        """
         return self._transaction_sender
 
     @property
     def create_transaction(self) -> AlgorandClientTransactionCreator:
-        """Methods for building transactions"""
+        """
+        Methods for building transactions
+
+        :example:
+            >>> transaction = AlgorandClient.mainnet().create_transaction.payment(
+            >>> PaymentParams(
+            >>>  sender="SENDERADDRESS",
+            >>>  receiver="RECEIVERADDRESS",
+            >>>  amount=AlgoAmount(algo=1)
+            >>> ))
+        """
         return self._transaction_creator
 
     @staticmethod
@@ -180,6 +256,9 @@ class AlgorandClient:
         Returns an `AlgorandClient` pointing at default LocalNet ports and API token.
 
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.default_localnet()
         """
         return AlgorandClient(
             AlgoClientConfigs(
@@ -195,6 +274,9 @@ class AlgorandClient:
         Returns an `AlgorandClient` pointing at TestNet using AlgoNode.
 
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.testnet()
         """
         return AlgorandClient(
             AlgoClientConfigs(
@@ -210,6 +292,9 @@ class AlgorandClient:
         Returns an `AlgorandClient` pointing at MainNet using AlgoNode.
 
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.mainnet()
         """
         return AlgorandClient(
             AlgoClientConfigs(
@@ -230,6 +315,9 @@ class AlgorandClient:
         :param indexer: The indexer client to use
         :param kmd: The kmd client to use
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.from_clients(algod, indexer, kmd)
         """
         return AlgorandClient(AlgoSdkClients(algod=algod, indexer=indexer, kmd=kmd))
 
@@ -243,6 +331,9 @@ class AlgorandClient:
         Expects to be called from a Python environment.
 
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.from_environment()
         """
         return AlgorandClient(ClientManager.get_config_from_environment_or_localnet())
 
@@ -259,6 +350,9 @@ class AlgorandClient:
         :param indexer_config: The config to use for the indexer client
         :param kmd_config: The config to use for the kmd client
         :return: The `AlgorandClient`
+
+        :example:
+            >>> algorand = AlgorandClient.from_config(algod_config, indexer_config, kmd_config)
         """
         return AlgorandClient(
             AlgoClientConfigs(algod_config=algod_config, indexer_config=indexer_config, kmd_config=kmd_config)

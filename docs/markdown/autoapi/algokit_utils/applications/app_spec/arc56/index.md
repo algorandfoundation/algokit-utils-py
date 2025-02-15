@@ -44,13 +44,13 @@
 
 Represents a field in a struct type.
 
-* **Variables:**
-  * **name** – Name of the struct field
-  * **type** – Type of the struct field, either a string or list of StructFields
-
 #### name *: str*
 
+The name of the struct field
+
 #### type *: list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)] | str*
+
+The type of the struct field, either a string or list of StructFields
 
 #### *static* from_dict(data: dict[str, Any]) → [StructField](#algokit_utils.applications.app_spec.arc56.StructField)
 
@@ -88,13 +88,13 @@ Enum representing different create types for application transactions.
 
 Represents bare call and create actions for an application.
 
-* **Variables:**
-  * **call** – List of allowed call actions
-  * **create** – List of allowed create actions
-
 #### call *: list[[CallEnum](#algokit_utils.applications.app_spec.arc56.CallEnum)]*
 
+The list of allowed call actions
+
 #### create *: list[[CreateEnum](#algokit_utils.applications.app_spec.arc56.CreateEnum)]*
+
+The list of allowed create actions
 
 #### *static* from_dict(data: dict[str, Any]) → [BareActions](#algokit_utils.applications.app_spec.arc56.BareActions)
 
@@ -102,13 +102,13 @@ Represents bare call and create actions for an application.
 
 Represents the approval and clear program bytecode.
 
-* **Variables:**
-  * **approval** – Base64 encoded approval program bytecode
-  * **clear** – Base64 encoded clear program bytecode
-
 #### approval *: str*
 
+The base64 encoded approval program bytecode
+
 #### clear *: str*
+
+The base64 encoded clear program bytecode
 
 #### *static* from_dict(data: dict[str, Any]) → [ByteCode](#algokit_utils.applications.app_spec.arc56.ByteCode)
 
@@ -126,19 +126,21 @@ Enum representing different compiler types.
 
 Represents compiler version information.
 
-* **Variables:**
-  * **commit_hash** – Git commit hash of the compiler
-  * **major** – Major version number
-  * **minor** – Minor version number
-  * **patch** – Patch version number
-
 #### commit_hash *: str | None* *= None*
+
+The git commit hash of the compiler
 
 #### major *: int | None* *= None*
 
+The major version number
+
 #### minor *: int | None* *= None*
 
+The minor version number
+
 #### patch *: int | None* *= None*
+
+The patch version number
 
 #### *static* from_dict(data: dict[str, Any]) → [CompilerVersion](#algokit_utils.applications.app_spec.arc56.CompilerVersion)
 
@@ -146,13 +148,13 @@ Represents compiler version information.
 
 Information about the compiler used.
 
-* **Variables:**
-  * **compiler** – Type of compiler used
-  * **compiler_version** – Version information for the compiler
-
 #### compiler *: [Compiler](#algokit_utils.applications.app_spec.arc56.Compiler)*
 
+The type of compiler used
+
 #### compiler_version *: [CompilerVersion](#algokit_utils.applications.app_spec.arc56.CompilerVersion)*
+
+Version information for the compiler
 
 #### *static* from_dict(data: dict[str, Any]) → [CompilerInfo](#algokit_utils.applications.app_spec.arc56.CompilerInfo)
 
@@ -160,10 +162,9 @@ Information about the compiler used.
 
 Network-specific application information.
 
-* **Variables:**
-  **app_id** – Application ID on the network
-
 #### app_id *: int*
+
+The application ID on the network
 
 #### *static* from_dict(data: dict[str, Any]) → [Network](#algokit_utils.applications.app_spec.arc56.Network)
 
@@ -171,13 +172,13 @@ Network-specific application information.
 
 Information about scratch space variables.
 
-* **Variables:**
-  * **slot** – Scratch slot number
-  * **type** – Type of the scratch variable
-
 #### slot *: int*
 
+The scratch slot number
+
 #### type *: str*
+
+The type of the scratch variable
 
 #### *static* from_dict(data: dict[str, Any]) → [ScratchVariables](#algokit_utils.applications.app_spec.arc56.ScratchVariables)
 
@@ -185,13 +186,13 @@ Information about scratch space variables.
 
 Source code for approval and clear programs.
 
-* **Variables:**
-  * **approval** – Base64 encoded approval program source
-  * **clear** – Base64 encoded clear program source
-
 #### approval *: str*
 
+The base64 encoded approval program source
+
 #### clear *: str*
+
+The base64 encoded clear program source
 
 #### *static* from_dict(data: dict[str, Any]) → [Source](#algokit_utils.applications.app_spec.arc56.Source)
 
@@ -213,13 +214,13 @@ Get decoded clear program source.
 
 Global state schema.
 
-* **Variables:**
-  * **bytes** – Number of byte slices in global state
-  * **ints** – Number of integers in global state
-
 #### bytes *: int*
 
+The number of byte slices in global state
+
 #### ints *: int*
+
+The number of integers in global state
 
 #### *static* from_dict(data: dict[str, Any]) → [Global](#algokit_utils.applications.app_spec.arc56.Global)
 
@@ -227,13 +228,13 @@ Global state schema.
 
 Local state schema.
 
-* **Variables:**
-  * **bytes** – Number of byte slices in local state
-  * **ints** – Number of integers in local state
-
 #### bytes *: int*
 
+The number of byte slices in local state
+
 #### ints *: int*
+
+The number of integers in local state
 
 #### *static* from_dict(data: dict[str, Any]) → [Local](#algokit_utils.applications.app_spec.arc56.Local)
 
@@ -241,13 +242,13 @@ Local state schema.
 
 Application state schema.
 
-* **Variables:**
-  * **global_state** – Global state schema
-  * **local_state** – Local state schema
-
 #### global_state *: [Global](#algokit_utils.applications.app_spec.arc56.Global)*
 
+The global state schema
+
 #### local_state *: [Local](#algokit_utils.applications.app_spec.arc56.Local)*
+
+The local state schema
 
 #### *static* from_dict(data: dict[str, Any]) → [Schema](#algokit_utils.applications.app_spec.arc56.Schema)
 
@@ -255,13 +256,13 @@ Application state schema.
 
 Template variable information.
 
-* **Variables:**
-  * **type** – Type of the template variable
-  * **value** – Optional value of the template variable
-
 #### type *: str*
 
+The type of the template variable
+
 #### value *: str | None* *= None*
+
+The optional value of the template variable
 
 #### *static* from_dict(data: dict[str, Any]) → [TemplateVariables](#algokit_utils.applications.app_spec.arc56.TemplateVariables)
 
@@ -269,19 +270,21 @@ Template variable information.
 
 Event argument information.
 
-* **Variables:**
-  * **type** – Type of the event argument
-  * **desc** – Optional description of the argument
-  * **name** – Optional name of the argument
-  * **struct** – Optional struct type name
-
 #### type *: str*
+
+The type of the event argument
 
 #### desc *: str | None* *= None*
 
+The optional description of the argument
+
 #### name *: str | None* *= None*
 
+The optional name of the argument
+
 #### struct *: str | None* *= None*
+
+The optional struct type name
 
 #### *static* from_dict(data: dict[str, Any]) → [EventArg](#algokit_utils.applications.app_spec.arc56.EventArg)
 
@@ -289,16 +292,17 @@ Event argument information.
 
 Event information.
 
-* **Variables:**
-  * **args** – List of event arguments
-  * **name** – Name of the event
-  * **desc** – Optional description of the event
-
 #### args *: list[[EventArg](#algokit_utils.applications.app_spec.arc56.EventArg)]*
+
+The list of event arguments
 
 #### name *: str*
 
+The name of the event
+
 #### desc *: str | None* *= None*
+
+The optional description of the event
 
 #### *static* from_dict(data: dict[str, Any]) → [Event](#algokit_utils.applications.app_spec.arc56.Event)
 
@@ -306,13 +310,13 @@ Event information.
 
 Method actions information.
 
-* **Variables:**
-  * **call** – Optional list of allowed call actions
-  * **create** – Optional list of allowed create actions
-
 #### call *: list[[CallEnum](#algokit_utils.applications.app_spec.arc56.CallEnum)] | None* *= None*
 
+The optional list of allowed call actions
+
 #### create *: list[[CreateEnum](#algokit_utils.applications.app_spec.arc56.CreateEnum)] | None* *= None*
+
+The optional list of allowed create actions
 
 #### *static* from_dict(data: dict[str, Any]) → [Actions](#algokit_utils.applications.app_spec.arc56.Actions)
 
@@ -320,16 +324,17 @@ Method actions information.
 
 Default value information for method arguments.
 
-* **Variables:**
-  * **data** – Default value data
-  * **source** – Source of the default value
-  * **type** – Optional type of the default value
-
 #### data *: str*
+
+The default value data
 
 #### source *: Literal['box', 'global', 'local', 'literal', 'method']*
 
+The source of the default value
+
 #### type *: str | None* *= None*
+
+The optional type of the default value
 
 #### *static* from_dict(data: dict[str, Any]) → [DefaultValue](#algokit_utils.applications.app_spec.arc56.DefaultValue)
 
@@ -337,22 +342,25 @@ Default value information for method arguments.
 
 Method argument information.
 
-* **Variables:**
-  * **type** – Type of the argument
-  * **default_value** – Optional default value
-  * **desc** – Optional description
-  * **name** – Optional name
-  * **struct** – Optional struct type name
-
 #### type *: str*
+
+The type of the argument
 
 #### default_value *: [DefaultValue](#algokit_utils.applications.app_spec.arc56.DefaultValue) | None* *= None*
 
+The optional default value
+
 #### desc *: str | None* *= None*
+
+The optional description
 
 #### name *: str | None* *= None*
 
+The optional name
+
 #### struct *: str | None* *= None*
+
+The optional struct type name
 
 #### *static* from_dict(data: dict[str, Any]) → [MethodArg](#algokit_utils.applications.app_spec.arc56.MethodArg)
 
@@ -360,19 +368,21 @@ Method argument information.
 
 Box storage requirements.
 
-* **Variables:**
-  * **key** – Box key
-  * **read_bytes** – Number of bytes to read
-  * **write_bytes** – Number of bytes to write
-  * **app** – Optional application ID
-
 #### key *: str*
+
+The box key
 
 #### read_bytes *: int*
 
+The number of bytes to read
+
 #### write_bytes *: int*
 
+The number of bytes to write
+
 #### app *: int | None* *= None*
+
+The optional application ID
 
 #### *static* from_dict(data: dict[str, Any]) → [Boxes](#algokit_utils.applications.app_spec.arc56.Boxes)
 
@@ -380,22 +390,25 @@ Box storage requirements.
 
 Method execution recommendations.
 
-* **Variables:**
-  * **accounts** – Optional list of accounts
-  * **apps** – Optional list of applications
-  * **assets** – Optional list of assets
-  * **boxes** – Optional box storage requirements
-  * **inner_transaction_count** – Optional inner transaction count
-
 #### accounts *: list[str] | None* *= None*
+
+The optional list of accounts
 
 #### apps *: list[int] | None* *= None*
 
+The optional list of applications
+
 #### assets *: list[int] | None* *= None*
+
+The optional list of assets
 
 #### boxes *: [Boxes](#algokit_utils.applications.app_spec.arc56.Boxes) | None* *= None*
 
+The optional box storage requirements
+
 #### inner_transaction_count *: int | None* *= None*
+
+The optional inner transaction count
 
 #### *static* from_dict(data: dict[str, Any]) → [Recommendations](#algokit_utils.applications.app_spec.arc56.Recommendations)
 
@@ -403,16 +416,17 @@ Method execution recommendations.
 
 Method return information.
 
-* **Variables:**
-  * **type** – Return type
-  * **desc** – Optional description
-  * **struct** – Optional struct type name
-
 #### type *: str*
+
+The type of the return value
 
 #### desc *: str | None* *= None*
 
+The optional description
+
 #### struct *: str | None* *= None*
+
+The optional struct type name
 
 #### *static* from_dict(data: dict[str, Any]) → [Returns](#algokit_utils.applications.app_spec.arc56.Returns)
 
@@ -420,31 +434,37 @@ Method return information.
 
 Method information.
 
-* **Variables:**
-  * **actions** – Allowed actions
-  * **args** – Method arguments
-  * **name** – Method name
-  * **returns** – Return information
-  * **desc** – Optional description
-  * **events** – Optional list of events
-  * **readonly** – Optional readonly flag
-  * **recommendations** – Optional execution recommendations
-
 #### actions *: [Actions](#algokit_utils.applications.app_spec.arc56.Actions)*
+
+The allowed actions
 
 #### args *: list[[MethodArg](#algokit_utils.applications.app_spec.arc56.MethodArg)]*
 
+The method arguments
+
 #### name *: str*
+
+The method name
 
 #### returns *: [Returns](#algokit_utils.applications.app_spec.arc56.Returns)*
 
+The return information
+
 #### desc *: str | None* *= None*
+
+The optional description
 
 #### events *: list[[Event](#algokit_utils.applications.app_spec.arc56.Event)] | None* *= None*
 
+The optional list of events
+
 #### readonly *: bool | None* *= None*
 
+The optional readonly flag
+
 #### recommendations *: [Recommendations](#algokit_utils.applications.app_spec.arc56.Recommendations) | None* *= None*
+
+The optional execution recommendations
 
 #### to_abi_method() → algosdk.abi.Method
 
@@ -471,19 +491,21 @@ PC offset method types.
 
 Source code location information.
 
-* **Variables:**
-  * **pc** – List of program counter values
-  * **error_message** – Optional error message
-  * **source** – Optional source code
-  * **teal** – Optional TEAL version
-
 #### pc *: list[int]*
+
+The list of program counter values
 
 #### error_message *: str | None* *= None*
 
+The optional error message
+
 #### source *: str | None* *= None*
 
+The optional source code
+
 #### teal *: int | None* *= None*
+
+The optional TEAL version
 
 #### *static* from_dict(data: dict[str, Any]) → [SourceInfo](#algokit_utils.applications.app_spec.arc56.SourceInfo)
 
@@ -491,19 +513,21 @@ Source code location information.
 
 Storage key information.
 
-* **Variables:**
-  * **key** – Storage key
-  * **key_type** – Type of the key
-  * **value_type** – Type of the value
-  * **desc** – Optional description
-
 #### key *: str*
+
+The storage key
 
 #### key_type *: str*
 
+The type of the key
+
 #### value_type *: str*
 
+The type of the value
+
 #### desc *: str | None* *= None*
+
+The optional description
 
 #### *static* from_dict(data: dict[str, Any]) → [StorageKey](#algokit_utils.applications.app_spec.arc56.StorageKey)
 
@@ -511,19 +535,21 @@ Storage key information.
 
 Storage map information.
 
-* **Variables:**
-  * **key_type** – Type of map keys
-  * **value_type** – Type of map values
-  * **desc** – Optional description
-  * **prefix** – Optional key prefix
-
 #### key_type *: str*
+
+The type of the map keys
 
 #### value_type *: str*
 
+The type of the map values
+
 #### desc *: str | None* *= None*
 
+The optional description
+
 #### prefix *: str | None* *= None*
+
+The optional key prefix
 
 #### *static* from_dict(data: dict[str, Any]) → [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)
 
@@ -531,16 +557,17 @@ Storage map information.
 
 Storage keys for different storage types.
 
-* **Variables:**
-  * **box** – Box storage keys
-  * **global_state** – Global state storage keys
-  * **local_state** – Local state storage keys
-
 #### box *: dict[str, [StorageKey](#algokit_utils.applications.app_spec.arc56.StorageKey)]*
+
+The box storage keys
 
 #### global_state *: dict[str, [StorageKey](#algokit_utils.applications.app_spec.arc56.StorageKey)]*
 
+The global state storage keys
+
 #### local_state *: dict[str, [StorageKey](#algokit_utils.applications.app_spec.arc56.StorageKey)]*
+
+The local state storage keys
 
 #### *static* from_dict(data: dict[str, Any]) → [Keys](#algokit_utils.applications.app_spec.arc56.Keys)
 
@@ -548,16 +575,17 @@ Storage keys for different storage types.
 
 Storage maps for different storage types.
 
-* **Variables:**
-  * **box** – Box storage maps
-  * **global_state** – Global state storage maps
-  * **local_state** – Local state storage maps
-
 #### box *: dict[str, [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)]*
+
+The box storage maps
 
 #### global_state *: dict[str, [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)]*
 
+The global state storage maps
+
 #### local_state *: dict[str, [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)]*
+
+The local state storage maps
 
 #### *static* from_dict(data: dict[str, Any]) → [Maps](#algokit_utils.applications.app_spec.arc56.Maps)
 
@@ -565,16 +593,17 @@ Storage maps for different storage types.
 
 Application state information.
 
-* **Variables:**
-  * **keys** – Storage keys
-  * **maps** – Storage maps
-  * **schema** – State schema
-
 #### keys *: [Keys](#algokit_utils.applications.app_spec.arc56.Keys)*
+
+The storage keys
 
 #### maps *: [Maps](#algokit_utils.applications.app_spec.arc56.Maps)*
 
+The storage maps
+
 #### schema *: [Schema](#algokit_utils.applications.app_spec.arc56.Schema)*
+
+The state schema
 
 #### *static* from_dict(data: dict[str, Any]) → [State](#algokit_utils.applications.app_spec.arc56.State)
 
@@ -582,13 +611,13 @@ Application state information.
 
 Program source information.
 
-* **Variables:**
-  * **pc_offset_method** – PC offset method
-  * **source_info** – List of source info entries
-
 #### pc_offset_method *: [PcOffsetMethod](#algokit_utils.applications.app_spec.arc56.PcOffsetMethod)*
 
+The PC offset method
+
 #### source_info *: list[[SourceInfo](#algokit_utils.applications.app_spec.arc56.SourceInfo)]*
+
+The list of source info entries
 
 #### *static* from_dict(data: dict[str, Any]) → [ProgramSourceInfo](#algokit_utils.applications.app_spec.arc56.ProgramSourceInfo)
 
@@ -596,13 +625,13 @@ Program source information.
 
 Source information for approval and clear programs.
 
-* **Variables:**
-  * **approval** – Approval program source info
-  * **clear** – Clear program source info
-
 #### approval *: [ProgramSourceInfo](#algokit_utils.applications.app_spec.arc56.ProgramSourceInfo)*
 
+The approval program source info
+
 #### clear *: [ProgramSourceInfo](#algokit_utils.applications.app_spec.arc56.ProgramSourceInfo)*
+
+The clear program source info
 
 #### *static* from_dict(data: dict[str, Any]) → [SourceInfoModel](#algokit_utils.applications.app_spec.arc56.SourceInfoModel)
 
@@ -612,52 +641,65 @@ ARC-0056 application specification.
 
 See [https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md)
 
-* **Variables:**
-  * **arcs** – List of supported ARC version numbers
-  * **bare_actions** – Bare call and create actions
-  * **methods** – List of contract methods
-  * **name** – Contract name
-  * **state** – Contract state information
-  * **structs** – Contract struct definitions
-  * **byte_code** – Optional bytecode for approval and clear programs
-  * **compiler_info** – Optional compiler information
-  * **desc** – Optional contract description
-  * **events** – Optional list of contract events
-  * **networks** – Optional network deployment information
-  * **scratch_variables** – Optional scratch variable information
-  * **source** – Optional source code
-  * **source_info** – Optional source code information
-  * **template_variables** – Optional template variable information
-
 #### arcs *: list[int]*
+
+The list of supported ARC version numbers
 
 #### bare_actions *: [BareActions](#algokit_utils.applications.app_spec.arc56.BareActions)*
 
+The bare call and create actions
+
 #### methods *: list[[Method](#algokit_utils.applications.app_spec.arc56.Method)]*
+
+The list of contract methods
 
 #### name *: str*
 
+The contract name
+
 #### state *: [State](#algokit_utils.applications.app_spec.arc56.State)*
+
+The contract state information
 
 #### structs *: dict[str, list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)]]*
 
+The contract struct definitions
+
 #### byte_code *: [ByteCode](#algokit_utils.applications.app_spec.arc56.ByteCode) | None* *= None*
+
+The optional bytecode for approval and clear programs
 
 #### compiler_info *: [CompilerInfo](#algokit_utils.applications.app_spec.arc56.CompilerInfo) | None* *= None*
 
+The optional compiler information
+
 #### desc *: str | None* *= None*
+
+The optional contract description
 
 #### events *: list[[Event](#algokit_utils.applications.app_spec.arc56.Event)] | None* *= None*
 
+The optional list of contract events
+
 #### networks *: dict[str, [Network](#algokit_utils.applications.app_spec.arc56.Network)] | None* *= None*
+
+The optional network deployment information
 
 #### scratch_variables *: dict[str, [ScratchVariables](#algokit_utils.applications.app_spec.arc56.ScratchVariables)] | None* *= None*
 
+The optional scratch variable information
+
 #### source *: [Source](#algokit_utils.applications.app_spec.arc56.Source) | None* *= None*
+
+The optional source code
 
 #### source_info *: [SourceInfoModel](#algokit_utils.applications.app_spec.arc56.SourceInfoModel) | None* *= None*
 
+The optional source code information
+
 #### template_variables *: dict[str, [TemplateVariables](#algokit_utils.applications.app_spec.arc56.TemplateVariables)] | None* *= None*
+
+The optional template variable information
 
 #### *static* from_dict(application_spec: dict) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
 

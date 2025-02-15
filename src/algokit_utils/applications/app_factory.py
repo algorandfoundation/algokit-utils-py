@@ -131,10 +131,15 @@ class AppFactoryDeployResult:
     """Result from deploying an application via AppFactory"""
 
     app: ApplicationMetaData
+    """The application metadata"""
     operation_performed: OperationPerformed
+    """The operation performed"""
     create_result: SendAppCreateFactoryTransactionResult | None = None
+    """The create result"""
     update_result: SendAppUpdateFactoryTransactionResult | None = None
+    """The update result"""
     delete_result: SendAppFactoryTransactionResult | None = None
+    """The delete result"""
 
     @classmethod
     def from_deploy_result(
@@ -144,6 +149,16 @@ class AppFactoryDeployResult:
         app_spec: Arc56Contract,
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
+        """
+        Construct an AppFactoryDeployResult from a deployment result.
+
+        :param response: The deployment response.
+        :param deploy_params: The deployment parameters.
+        :param app_spec: The application specification.
+        :param app_compilation_data: Optional app compilation data.
+        :return: An instance of AppFactoryDeployResult.
+        """
+
         def to_factory_result(
             response_data: SendAppTransactionResult[ABIReturn]
             | SendAppCreateTransactionResult
@@ -192,6 +207,11 @@ class AppFactoryDeployResult:
 
 
 class _BareParamsBuilder:
+    """The bare params builder.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._algorand = factory._algorand
@@ -199,6 +219,13 @@ class _BareParamsBuilder:
     def create(
         self, params: AppFactoryCreateParams | None = None, compilation_params: AppClientCompilationParams | None = None
     ) -> AppCreateParams:
+        """
+        Create AppCreateParams using the provided parameters and compilation settings.
+
+        :param params: Optional AppFactoryCreateParams instance.
+        :param compilation_params: Optional AppClientCompilationParams instance.
+        :return: An instance of AppCreateParams.
+        """
         base_params = params or AppFactoryCreateParams()
         compiled = self._factory.compile(compilation_params)
 
@@ -225,6 +252,12 @@ class _BareParamsBuilder:
         )
 
     def deploy_update(self, params: AppClientBareCallParams | None = None) -> AppUpdateParams:
+        """
+        Create AppUpdateParams for an update operation.
+
+        :param params: Optional AppClientBareCallParams instance.
+        :return: An instance of AppUpdateParams.
+        """
         return AppUpdateParams(
             **{
                 **{
@@ -244,6 +277,12 @@ class _BareParamsBuilder:
         )
 
     def deploy_delete(self, params: AppClientBareCallParams | None = None) -> AppDeleteParams:
+        """
+        Create AppDeleteParams for a delete operation.
+
+        :param params: Optional AppClientBareCallParams instance.
+        :return: An instance of AppDeleteParams.
+        """
         return AppDeleteParams(
             **{
                 **{
@@ -262,17 +301,34 @@ class _BareParamsBuilder:
 
 
 class _MethodParamsBuilder:
+    """The method params builder.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._bare = _BareParamsBuilder(factory)
 
     @property
     def bare(self) -> _BareParamsBuilder:
+        """
+        Get the bare parameters builder.
+
+        :return: The _BareParamsBuilder instance.
+        """
         return self._bare
 
     def create(
         self, params: AppFactoryCreateMethodCallParams, compilation_params: AppClientCompilationParams | None = None
     ) -> AppCreateMethodCallParams:
+        """
+        Create AppCreateMethodCallParams using the provided parameters and compilation settings.
+
+        :param params: AppFactoryCreateMethodCallParams instance.
+        :param compilation_params: Optional AppClientCompilationParams instance.
+        :return: An instance of AppCreateMethodCallParams.
+        """
         compiled = self._factory.compile(compilation_params)
 
         return AppCreateMethodCallParams(
@@ -303,6 +359,12 @@ class _MethodParamsBuilder:
         )
 
     def deploy_update(self, params: AppClientMethodCallParams) -> AppUpdateMethodCallParams:
+        """
+        Create AppUpdateMethodCallParams for an update operation.
+
+        :param params: AppClientMethodCallParams instance.
+        :return: An instance of AppUpdateMethodCallParams.
+        """
         return AppUpdateMethodCallParams(
             **{
                 **{
@@ -324,6 +386,12 @@ class _MethodParamsBuilder:
         )
 
     def deploy_delete(self, params: AppClientMethodCallParams) -> AppDeleteMethodCallParams:
+        """
+        Create AppDeleteMethodCallParams for a delete operation.
+
+        :param params: AppClientMethodCallParams instance.
+        :return: An instance of AppDeleteMethodCallParams.
+        """
         return AppDeleteMethodCallParams(
             **{
                 **{
@@ -344,27 +412,61 @@ class _MethodParamsBuilder:
 
 
 class _AppFactoryBareCreateTransactionAccessor:
+    """Initialize the bare create transaction accessor.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
 
     def create(self, params: AppFactoryCreateParams | None = None) -> Transaction:
+        """
+        Create a transaction for app creation.
+
+        :param params: Optional AppFactoryCreateParams instance.
+        :return: A Transaction instance.
+        """
         return self._factory._algorand.create_transaction.app_create(self._factory.params.bare.create(params))
 
 
 class _TransactionCreator:
+    """
+    The transaction creator.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._bare = _AppFactoryBareCreateTransactionAccessor(factory)
 
     @property
     def bare(self) -> _AppFactoryBareCreateTransactionAccessor:
+        """
+        Get the bare create transaction accessor.
+
+        :return: The _AppFactoryBareCreateTransactionAccessor instance.
+        """
         return self._bare
 
     def create(self, params: AppFactoryCreateMethodCallParams) -> BuiltTransactions:
+        """
+        Create built transactions for an app method call.
+
+        :param params: AppFactoryCreateMethodCallParams instance.
+        :return: A BuiltTransactions instance.
+        """
         return self._factory._algorand.create_transaction.app_create_method_call(self._factory.params.create(params))
 
 
 class _AppFactoryBareSendAccessor:
+    """
+    The bare send accessor.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._algorand = factory._algorand
@@ -375,6 +477,14 @@ class _AppFactoryBareSendAccessor:
         send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, SendAppCreateTransactionResult]:
+        """
+        Send an app creation transaction and return the app client along with the transaction result.
+
+        :param params: Optional AppFactoryCreateParams instance.
+        :param send_params: Optional SendParams instance.
+        :param compilation_params: Optional AppClientCompilationParams instance.
+        :return: A tuple containing the AppClient and SendAppCreateTransactionResult.
+        """
         compilation_params = compilation_params or AppClientCompilationParams()
         compilation_params["updatable"] = (
             compilation_params.get("updatable")
@@ -420,6 +530,12 @@ class _AppFactoryBareSendAccessor:
 
 
 class _TransactionSender:
+    """
+    The transaction sender.
+
+    :param factory: The AppFactory instance.
+    """
+
     def __init__(self, factory: "AppFactory") -> None:
         self._factory = factory
         self._algorand = factory._algorand
@@ -427,6 +543,11 @@ class _TransactionSender:
 
     @property
     def bare(self) -> _AppFactoryBareSendAccessor:
+        """
+        Get the bare send accessor.
+
+        :return: The _AppFactoryBareSendAccessor instance.
+        """
         return self._bare
 
     def create(
@@ -435,6 +556,14 @@ class _TransactionSender:
         send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, AppFactoryCreateMethodCallResult[Arc56ReturnValueType]]:
+        """
+        Send an app creation method call and return the app client along with the method call result.
+
+        :param params: AppFactoryCreateMethodCallParams instance.
+        :param send_params: Optional SendParams instance.
+        :param compilation_params: Optional AppClientCompilationParams instance.
+        :return: A tuple containing the AppClient and AppFactoryCreateMethodCallResult.
+        """
         compilation_params = compilation_params or AppClientCompilationParams()
         compilation_params["updatable"] = (
             compilation_params.get("updatable")
@@ -485,6 +614,20 @@ class _TransactionSender:
 
 
 class AppFactory:
+    """ARC-56/ARC-32 app factory that, for a given app spec, allows you to create
+    and deploy one or more app instances and to create one or more app clients
+    to interact with those (or other) app instances.
+
+    :param params: The parameters for the factory
+
+    :example:
+        >>> factory = AppFactory(AppFactoryParams(
+        >>>        algorand=AlgorandClient.mainnet(),
+        >>>        app_spec=app_spec,
+        >>>    )
+        >>> )
+    """
+
     def __init__(self, params: AppFactoryParams) -> None:
         self._app_spec = AppClient.normalise_app_spec(params.app_spec)
         self._app_name = params.app_name or self._app_spec.name
@@ -505,26 +648,67 @@ class AppFactory:
 
     @property
     def app_name(self) -> str:
+        """The name of the app"""
         return self._app_name
 
     @property
     def app_spec(self) -> Arc56Contract:
+        """The app spec"""
         return self._app_spec
 
     @property
     def algorand(self) -> AlgorandClient:
+        """The algorand client"""
         return self._algorand
 
     @property
     def params(self) -> _MethodParamsBuilder:
+        """Get parameters to create transactions (create and deploy related calls) for the current app.
+
+        A good mental model for this is that these parameters represent a deferred transaction creation.
+
+        :example: Create a transaction in the future using Algorand Client
+            >>> create_app_params = app_factory.params.create(
+            ...     AppFactoryCreateMethodCallParams(
+            ...         method='create_method',
+            ...         args=[123, 'hello']
+            ...     )
+            ... )
+            >>> # ...
+            >>> algorand.send.app_create_method_call(create_app_params)
+
+        :example: Define a nested transaction as an ABI argument
+            >>> create_app_params = appFactory.params.create(
+            ...     AppFactoryCreateMethodCallParams(
+            ...         method='create_method',
+            ...         args=[123, 'hello']
+            ...     )
+            ... )
+            >>> app_client.send.call(
+            ...     AppClientMethodCallParams(
+            ...         method='my_method',
+            ...         args=[create_app_params]
+            ...     )
+            ... )
+        """
         return self._params_accessor
 
     @property
     def send(self) -> _TransactionSender:
+        """
+        Get the transaction sender.
+
+        :return: The _TransactionSender instance.
+        """
         return self._send_accessor
 
     @property
     def create_transaction(self) -> _TransactionCreator:
+        """
+        Get the transaction creator.
+
+        :return: The _TransactionCreator instance.
+        """
         return self._create_transaction_accessor
 
     def deploy(
@@ -541,7 +725,58 @@ class AppFactory:
         send_params: SendParams | None = None,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> tuple[AppClient, AppFactoryDeployResult]:
-        """Deploy the application with the specified parameters."""
+        """Idempotently deploy (create if not exists, update if changed) an app against the given name for the given
+        creator account, including deploy-time TEAL template placeholder substitutions (if specified).
+
+        **Note:** When using the return from this function be sure to check `operationPerformed` to get access to
+        various return properties like `transaction`, `confirmation` and `deleteResult`.
+
+        **Note:** if there is a breaking state schema change to an existing app (and `onSchemaBreak` is set to
+        `'replace'`) the existing app will be deleted and re-created.
+
+        **Note:** if there is an update (different TEAL code) to an existing app (and `onUpdate` is set to
+        `'replace'`) the existing app will be deleted and re-created.
+
+        :param on_update: The action to take if there is an update to the app
+        :param on_schema_break: The action to take if there is a breaking state schema change to the app
+        :param create_params: The arguments to create the app
+        :param update_params: The arguments to update the app
+        :param delete_params: The arguments to delete the app
+        :param existing_deployments: The existing deployments to use
+        :param ignore_cache: Whether to ignore the cache
+        :param app_name: The name of the app
+        :param send_params: The parameters for the send call
+        :param compilation_params: The parameters for the compilation
+        :returns: The app client and the result of the deployment
+
+        :example:
+            >>> app_client, result = factory.deploy({
+            >>>   create_params=AppClientMethodCallCreateParams(
+            >>>     sender='SENDER_ADDRESS',
+            >>>     approval_program='APPROVAL PROGRAM',
+            >>>     clear_state_program='CLEAR PROGRAM',
+            >>>     schema={
+            >>>       "global_byte_slices": 0,
+            >>>       "global_ints": 0,
+            >>>       "local_byte_slices": 0,
+            >>>       "local_ints": 0
+            >>>     }
+            >>>   ),
+            >>>   update_params=AppClientMethodCallParams(
+            >>>     sender='SENDER_ADDRESS'
+            >>>   ),
+            >>>   delete_params=AppClientMethodCallParams(
+            >>>     sender='SENDER_ADDRESS'
+            >>>   ),
+            >>>   compilation_params=AppClientCompilationParams(
+            >>>     updatable=False,
+            >>>     deletable=False
+            >>>   ),
+            >>>   app_name='my_app',
+            >>>   on_schema_break=OnSchemaBreak.AppendApp,
+            >>>   on_update=OnUpdate.AppendApp
+            >>> })
+        """
         # Resolve control parameters with factory defaults
         send_params = send_params or SendParams()
         compilation_params = compilation_params or AppClientCompilationParams()
@@ -650,6 +885,19 @@ class AppFactory:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Returns a new `AppClient` client for an app instance of the given ID.
+
+        :param app_id: The id of the app
+        :param app_name: The name of the app
+        :param default_sender: The default sender address
+        :param default_signer: The default signer
+        :param approval_source_map: The approval source map
+        :param clear_source_map: The clear source map
+        :return AppClient: The app client
+
+        :example:
+            >>> app_client = factory.get_app_client_by_id(app_id=123)
+        """
         return AppClient(
             AppClientParams(
                 app_id=app_id,
@@ -674,6 +922,25 @@ class AppFactory:
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
     ) -> AppClient:
+        """Returns a new `AppClient` client, resolving the app by creator address and name
+        using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note).
+
+        :param creator_address: The creator address
+        :param app_name: The name of the app
+        :param default_sender: The default sender address
+        :param default_signer: The default signer
+        :param ignore_cache: Whether to ignore the cache and force a lookup
+        :param app_lookup_cache: Optional cache of existing app deployments to use instead of querying the indexer
+        :param approval_source_map: Optional source map for the approval program
+        :param clear_source_map: Optional source map for the clear state program
+        :return: An AppClient instance configured for the resolved application
+
+        :example:
+            >>> app_client = factory.get_app_client_by_creator_and_name(
+            ...     creator_address='SENDER_ADDRESS',
+            ...     app_name='my_app'
+            ... )
+        """
         return AppClient.from_creator_and_name(
             creator_address=creator_address,
             app_name=app_name or self._app_name,
@@ -699,10 +966,23 @@ class AppFactory:
         )
 
     def import_source_maps(self, source_maps: AppSourceMaps) -> None:
+        """
+        Import the provided source maps into the factory.
+
+        :param source_maps: An AppSourceMaps instance containing the approval and clear source maps.
+        """
         self._approval_source_map = source_maps.approval_source_map
         self._clear_source_map = source_maps.clear_source_map
 
     def compile(self, compilation_params: AppClientCompilationParams | None = None) -> AppClientCompilationResult:
+        """Compile the app's TEAL code.
+
+        :param compilation_params: The compilation parameters
+        :return AppClientCompilationResult: The compilation result
+
+        :example:
+            >>> compilation_result = factory.compile()
+        """
         compilation = compilation_params or AppClientCompilationParams()
         result = AppClient.compile(
             app_spec=self._app_spec,
@@ -718,6 +998,13 @@ class AppFactory:
         return result
 
     def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001
+        """
+        Convert a low-level exception into a descriptive logic error.
+
+        :param e: The original exception.
+        :param is_clear_state_program: Flag indicating if the error is related to the clear state program.
+        :return: The transformed exception.
+        """
         return AppClient._expose_logic_error_static(
             e=e,
             app_spec=self._app_spec,
@@ -730,6 +1017,12 @@ class AppFactory:
         )
 
     def _get_deploy_time_control(self, control: str) -> bool | None:
+        """
+        Determine the deploy time control flag for the specified control type.
+
+        :param control: The control type ('updatable' or 'deletable').
+        :return: A boolean flag or None if not determinable.
+        """
         approval = self._app_spec.source.get_decoded_approval() if self._app_spec.source else None
 
         template_name = UPDATABLE_TEMPLATE_NAME if control == "updatable" else DELETABLE_TEMPLATE_NAME
@@ -742,6 +1035,13 @@ class AppFactory:
         )
 
     def _get_sender(self, sender: str | None) -> str:
+        """
+        Retrieve the sender address.
+
+        :param sender: The specified sender address.
+        :return: The sender address.
+        :raises Exception: If no sender is provided and no default sender is set.
+        """
         if not sender and not self._default_sender:
             raise Exception(
                 f"No sender provided and no default sender present in app client for call to app {self._app_name}"
@@ -749,6 +1049,13 @@ class AppFactory:
         return str(sender or self._default_sender)
 
     def _get_signer(self, sender: str | None, signer: TransactionSigner | None) -> TransactionSigner | None:
+        """
+        Retrieve the transaction signer.
+
+        :param sender: The sender address.
+        :param signer: The provided signer.
+        :return: The transaction signer if available.
+        """
         return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
     def _handle_call_errors(self, call: Callable[[], T]) -> T:
@@ -764,6 +1071,13 @@ class AppFactory:
         ],
         method: Method,
     ) -> AppFactoryCreateMethodCallResult[Arc56ReturnValueType]:
+        """
+        Parse the method call return value and convert the ABI return.
+
+        :param result: A callable that returns the transaction result.
+        :param method: The ABI method associated with the call.
+        :return: An AppFactoryCreateMethodCallResult with the parsed ABI return.
+        """
         result_value = result()
         return AppFactoryCreateMethodCallResult[Arc56ReturnValueType](
             **{

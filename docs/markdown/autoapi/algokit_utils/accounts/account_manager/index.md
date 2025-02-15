@@ -28,97 +28,125 @@ Information about an Algorand account’s current status, balance and other prop
 
 See https://developer.algorand.org/docs/rest-apis/algod/#account for detailed field descriptions.
 
-* **Variables:**
-  * **address** (*str*) – The account’s address
-  * **amount** ([*AlgoAmount*](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)) – The account’s current balance
-  * **amount_without_pending_rewards** ([*AlgoAmount*](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)) – The account’s balance without the pending rewards
-  * **min_balance** ([*AlgoAmount*](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)) – The account’s minimum required balance
-  * **pending_rewards** ([*AlgoAmount*](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)) – The amount of pending rewards
-  * **rewards** ([*AlgoAmount*](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)) – The amount of rewards earned
-  * **round** (*int*) – The round for which this information is relevant
-  * **status** (*str*) – The account’s status (e.g., ‘Offline’, ‘Online’)
-  * **total_apps_opted_in** (*int* *|**None*) – Number of applications this account has opted into
-  * **total_assets_opted_in** (*int* *|**None*) – Number of assets this account has opted into
-  * **total_box_bytes** (*int* *|**None*) – Total number of box bytes used by this account
-  * **total_boxes** (*int* *|**None*) – Total number of boxes used by this account
-  * **total_created_apps** (*int* *|**None*) – Number of applications created by this account
-  * **total_created_assets** (*int* *|**None*) – Number of assets created by this account
-  * **apps_local_state** (*list* *[**dict* *]* *|**None*) – Local state of applications this account has opted into
-  * **apps_total_extra_pages** (*int* *|**None*) – Number of extra pages allocated to applications
-  * **apps_total_schema** (*dict* *|**None*) – Total schema for all applications
-  * **assets** (*list* *[**dict* *]* *|**None*) – Assets held by this account
-  * **auth_addr** (*str* *|**None*) – If rekeyed, the authorized address
-  * **closed_at_round** (*int* *|**None*) – Round when this account was closed
-  * **created_apps** (*list* *[**dict* *]* *|**None*) – Applications created by this account
-  * **created_assets** (*list* *[**dict* *]* *|**None*) – Assets created by this account
-  * **created_at_round** (*int* *|**None*) – Round when this account was created
-  * **deleted** (*bool* *|**None*) – Whether this account is deleted
-  * **incentive_eligible** (*bool* *|**None*) – Whether this account is eligible for incentives
-  * **last_heartbeat** (*int* *|**None*) – Last heartbeat round for this account
-  * **last_proposed** (*int* *|**None*) – Last round this account proposed a block
-  * **participation** (*dict* *|**None*) – Participation information for this account
-  * **reward_base** (*int* *|**None*) – Base reward for this account
-  * **sig_type** (*str* *|**None*) – Signature type for this account
-
 #### address *: str*
+
+The account’s address
 
 #### amount *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
 
+The account’s current balance
+
 #### amount_without_pending_rewards *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
+
+The account’s balance without the pending rewards
 
 #### min_balance *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
 
+The account’s minimum required balance
+
 #### pending_rewards *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
+
+The amount of pending rewards
 
 #### rewards *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
 
+The amount of rewards earned
+
 #### round *: int*
+
+The round for which this information is relevant
 
 #### status *: str*
 
+The account’s status (e.g., ‘Offline’, ‘Online’)
+
 #### total_apps_opted_in *: int | None* *= None*
+
+Number of applications this account has opted into
 
 #### total_assets_opted_in *: int | None* *= None*
 
+Number of assets this account has opted into
+
 #### total_box_bytes *: int | None* *= None*
+
+Total number of box bytes used by this account
 
 #### total_boxes *: int | None* *= None*
 
+Total number of boxes used by this account
+
 #### total_created_apps *: int | None* *= None*
+
+Number of applications created by this account
 
 #### total_created_assets *: int | None* *= None*
 
+Number of assets created by this account
+
 #### apps_local_state *: list[dict] | None* *= None*
+
+Local state of applications this account has opted into
 
 #### apps_total_extra_pages *: int | None* *= None*
 
+Number of extra pages allocated to applications
+
 #### apps_total_schema *: dict | None* *= None*
+
+Total schema for all applications
 
 #### assets *: list[dict] | None* *= None*
 
+Assets held by this account
+
 #### auth_addr *: str | None* *= None*
+
+If rekeyed, the authorized address
 
 #### closed_at_round *: int | None* *= None*
 
+Round when this account was closed
+
 #### created_apps *: list[dict] | None* *= None*
+
+Applications created by this account
 
 #### created_assets *: list[dict] | None* *= None*
 
+Assets created by this account
+
 #### created_at_round *: int | None* *= None*
+
+Round when this account was created
 
 #### deleted *: bool | None* *= None*
 
+Whether this account is deleted
+
 #### incentive_eligible *: bool | None* *= None*
+
+Whether this account is eligible for incentives
 
 #### last_heartbeat *: int | None* *= None*
 
+Last heartbeat round for this account
+
 #### last_proposed *: int | None* *= None*
+
+Last round this account proposed a block
 
 #### participation *: dict | None* *= None*
 
+Participation information for this account
+
 #### reward_base *: int | None* *= None*
 
+Base reward for this account
+
 #### sig_type *: str | None* *= None*
+
+Signature type for this account
 
 ### *class* algokit_utils.accounts.account_manager.AccountManager(client_manager: [algokit_utils.clients.client_manager.ClientManager](../../clients/client_manager/index.md#algokit_utils.clients.client_manager.ClientManager))
 
@@ -136,6 +164,15 @@ mnemonic-based, rekeyed, multisig, and logic signature accounts.
 
 #### *property* kmd *: [algokit_utils.accounts.kmd_account_manager.KmdAccountManager](../kmd_account_manager/index.md#algokit_utils.accounts.kmd_account_manager.KmdAccountManager)*
 
+KMD account manager that allows you to easily get and create accounts using KMD.
+
+* **Return KmdAccountManager:**
+  The ‘KmdAccountManager’ instance
+* **Example:**
+  ```pycon
+  >>> kmd_manager = account_manager.kmd
+  ```
+
 #### set_default_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
@@ -150,10 +187,7 @@ then an error will be thrown from get_signer / get_account.
 * **Example:**
   ```pycon
   >>> signer_account = account_manager.random()
-  >>> account_manager.set_default_signer(signer_account.signer)
-  >>> # When signing a transaction, if there is no signer registered for the sender
-  >>> # then the default signer will be used
-  >>> signer = account_manager.get_signer("{SENDERADDRESS}")
+  >>> account_manager.set_default_signer(signer_account)
   ```
 
 #### set_signer(sender: str, signer: algosdk.atomic_transaction_composer.TransactionSigner) → typing_extensions.Self
@@ -179,6 +213,10 @@ Merges the given AccountManager into this one.
   * **overwrite_existing** – Whether to overwrite existing signers in this manager
 * **Returns:**
   The AccountManager instance for method chaining
+* **Example:**
+  ```pycon
+  >>> accountManager2.set_signers(accountManager1)
+  ```
 
 #### set_signer_from_account(account: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
@@ -333,7 +371,7 @@ Tracks and returns an account that represents a logic signature.
   A logic signature account wrapper
 * **Example:**
   ```pycon
-  >>> account = account.logic_sig(program, [new Uint8Array(3, ...)])
+  >>> account = account.logicsig(program, [new Uint8Array(3, ...)])
   ```
 
 #### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), signing_accounts: list[[algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)]) → [algokit_utils.models.account.MultiSigAccount](../../models/account/index.md#algokit_utils.models.account.MultiSigAccount)
@@ -434,22 +472,22 @@ Please be careful with this function and be sure to read the
 * **Example:**
   ```pycon
   >>> # Basic example (with string addresses):
-  >>> algorand.account.rekey_account({account: "ACCOUNTADDRESS", rekey_to: "NEWADDRESS"})
+  >>> algorand.account.rekey_account("ACCOUNTADDRESS", "NEWADDRESS")
   >>> # Basic example (with signer accounts):
-  >>> algorand.account.rekey_account({account: account1, rekey_to: newSignerAccount})
+  >>> algorand.account.rekey_account(account1, newSignerAccount)
   >>> # Advanced example:
-  >>> algorand.account.rekey_account({
-  ...     account: "ACCOUNTADDRESS",
-  ...     rekey_to: "NEWADDRESS",
-  ...     lease: 'lease',
-  ...     note: 'note',
-  ...     first_valid_round: 1000,
-  ...     validity_window: 10,
-  ...     extra_fee: AlgoAmount.from_micro_algo(1000),
-  ...     static_fee: AlgoAmount.from_micro_algo(1000),
-  ...     max_fee: AlgoAmount.from_micro_algo(3000),
-  ...     suppress_log: True,
-  ... })
+  >>> algorand.account.rekey_account(
+  ...     account="ACCOUNTADDRESS",
+  ...     rekey_to="NEWADDRESS",
+  ...     lease='lease',
+  ...     note='note',
+  ...     first_valid_round=1000,
+  ...     validity_window=10,
+  ...     extra_fee=AlgoAmount.from_micro_algo(1000),
+  ...     static_fee=AlgoAmount.from_micro_algo(1000),
+  ...     max_fee=AlgoAmount.from_micro_algo(3000),
+  ...     suppress_log=True,
+  ... )
   ```
 
 #### ensure_funded(account_to_fund: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), dispenser_account: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None) → [EnsureFundedResult](#algokit_utils.accounts.account_manager.EnsureFundedResult) | None
@@ -484,13 +522,13 @@ See [https://developer.algorand.org/docs/get-details/accounts/#minimum-balance](
 * **Example:**
   ```pycon
   >>> # Basic example:
-  >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", algokit.algo(1))
+  >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount.from_algo(1))
   >>> # With configuration:
   >>> algorand.account.ensure_funded(
   ...     "ACCOUNTADDRESS",
   ...     "DISPENSERADDRESS",
-  ...     algokit.algo(1),
-  ...     min_funding_increment=algokit.algo(2),
+  ...     AlgoAmount.from_algo(1),
+  ...     min_funding_increment=AlgoAmount.from_algo(2),
   ...     fee=AlgoAmount.from_micro_algo(1000),
   ...     suppress_log=True
   ... )
@@ -534,12 +572,12 @@ if it’s a rekeyed account, or against default LocalNet if no environment varia
 * **Example:**
   ```pycon
   >>> # Basic example:
-  >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", algokit.algo(1))
+  >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount.from_algo(1))
   >>> # With configuration:
   >>> algorand.account.ensure_funded_from_environment(
   ...     "ACCOUNTADDRESS",
-  ...     algokit.algo(1),
-  ...     min_funding_increment=algokit.algo(2),
+  ...     AlgoAmount.from_algo(1),
+  ...     min_funding_increment=AlgoAmount.from_algo(2),
   ...     fee=AlgoAmount.from_micro_algo(1000),
   ...     suppress_log=True
   ... )
@@ -568,16 +606,16 @@ See [https://developer.algorand.org/docs/get-details/accounts/#minimum-balance](
 * **Example:**
   ```pycon
   >>> # Basic example:
-  >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+  >>> account_manager.ensure_funded_from_testnet_dispenser_api(
   ...     "ACCOUNTADDRESS",
   ...     algorand.client.get_testnet_dispenser_from_environment(),
-  ...     algokit.algo(1)
+  ...     AlgoAmount.from_algo(1)
   ... )
   >>> # With configuration:
-  >>> algorand.account.ensure_funded_from_testnet_dispenser_api(
+  >>> account_manager.ensure_funded_from_testnet_dispenser_api(
   ...     "ACCOUNTADDRESS",
   ...     algorand.client.get_testnet_dispenser_from_environment(),
-  ...     algokit.algo(1),
-  ...     min_funding_increment=algokit.algo(2)
+  ...     AlgoAmount.from_algo(1),
+  ...     min_funding_increment=AlgoAmount.from_algo(2)
   ... )
   ```

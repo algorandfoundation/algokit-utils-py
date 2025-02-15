@@ -19,15 +19,24 @@ __all__ = [
 
 @dataclass(kw_only=True, frozen=True)
 class BoxName:
+    """The name of the box"""
+
     name: str
+    """The name of the box as a string"""
     name_raw: bytes
+    """The name of the box as raw bytes"""
     name_base64: str
+    """The name of the box as a base64 encoded string"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class BoxValue:
+    """The value of the box"""
+
     name: BoxName
+    """The name of the box"""
     value: bytes
+    """The value of the box as raw bytes"""
 
 
 class DataTypeFlag(IntEnum):

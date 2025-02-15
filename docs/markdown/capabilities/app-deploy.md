@@ -154,9 +154,9 @@ It will automatically [add metadata to the transaction note of the create or upd
 The first parameter `deployment` is an `AppDeployParams`, which is an object with:
 
 - `metadata: AppDeployMetadata` - determines the [deployment metadata]() of the deployment
-- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](app.md#creation) (raw parameters or ABI method call)
-- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](app.md#updating) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
-- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](app.md#deleting) (raw parameters or ABI method call) without the `app_id` parameter
+- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](app.md) (raw parameters or ABI method call)
+- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](app.md) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
+- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](app.md) (raw parameters or ABI method call) without the `app_id` parameter
 - `deploy_time_params: TealTemplateParams | None` - optional parameters for [TEAL template substitution]()
   - `TealTemplateParams` is a dict that replaces `TMPL_{key}` with `value` (strings/Uint8Arrays are properly encoded)
 - `on_schema_break: OnSchemaBreak | str | None` - determines `OnSchemaBreak` if schema requirements increase (values: ‘replace’, ‘fail’, ‘append’)
@@ -204,11 +204,11 @@ The `deploy` call itself may do one of the following (which you can determine by
 - `OperationPerformed.REPLACE` - The smart contract app was deleted and created again (in an atomic transaction)
 - `OperationPerformed.NOTHING` - Nothing was done since it was detected the existing smart contract app deployment was up to date
 
-As well as the `operation_performed` parameter and the [optional compilation result](), the return value will have the [`ApplicationMetaData`]() [fields]() present.
+As well as the `operation_performed` parameter and the [optional compilation result](), the return value will have the [`ApplicationMetaData`](../autoapi/algokit_utils/applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationMetaData) [fields]() present.
 
 Based on the value of `operation_performed`, there will be other data available in the return value:
 
-- If `CREATE`, `UPDATE` or `REPLACE` then it will have the relevant [`SendAppTransactionResult`](app.md#calling-an-app) values:
+- If `CREATE`, `UPDATE` or `REPLACE` then it will have the relevant [`SendAppTransactionResult`](../autoapi/algokit_utils/transactions/transaction_sender/index.md#algokit_utils.transactions.transaction_sender.SendAppTransactionResult) values:
   - `create_result` for create operations
   - `update_result` for update operations
 - If `REPLACE` then it will also have `delete_result` to capture the result of deleting the existing app

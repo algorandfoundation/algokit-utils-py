@@ -58,14 +58,12 @@ class _ActionType(str, Enum):
 
 @dataclass
 class StructField:
-    """Represents a field in a struct type.
-
-    :ivar name: Name of the struct field
-    :ivar type: Type of the struct field, either a string or list of StructFields
-    """
+    """Represents a field in a struct type."""
 
     name: str
+    """The name of the struct field"""
     type: list[StructField] | str
+    """The type of the struct field, either a string or list of StructFields"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> StructField:
@@ -95,14 +93,12 @@ class CreateEnum(str, Enum):
 
 @dataclass
 class BareActions:
-    """Represents bare call and create actions for an application.
-
-    :ivar call: List of allowed call actions
-    :ivar create: List of allowed create actions
-    """
+    """Represents bare call and create actions for an application."""
 
     call: list[CallEnum]
+    """The list of allowed call actions"""
     create: list[CreateEnum]
+    """The list of allowed create actions"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> BareActions:
@@ -111,14 +107,12 @@ class BareActions:
 
 @dataclass
 class ByteCode:
-    """Represents the approval and clear program bytecode.
-
-    :ivar approval: Base64 encoded approval program bytecode
-    :ivar clear: Base64 encoded clear program bytecode
-    """
+    """Represents the approval and clear program bytecode."""
 
     approval: str
+    """The base64 encoded approval program bytecode"""
     clear: str
+    """The base64 encoded clear program bytecode"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> ByteCode:
@@ -134,18 +128,16 @@ class Compiler(str, Enum):
 
 @dataclass
 class CompilerVersion:
-    """Represents compiler version information.
-
-    :ivar commit_hash: Git commit hash of the compiler
-    :ivar major: Major version number
-    :ivar minor: Minor version number
-    :ivar patch: Patch version number
-    """
+    """Represents compiler version information."""
 
     commit_hash: str | None = None
+    """The git commit hash of the compiler"""
     major: int | None = None
+    """The major version number"""
     minor: int | None = None
+    """The minor version number"""
     patch: int | None = None
+    """The patch version number"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> CompilerVersion:
@@ -154,14 +146,12 @@ class CompilerVersion:
 
 @dataclass
 class CompilerInfo:
-    """Information about the compiler used.
-
-    :ivar compiler: Type of compiler used
-    :ivar compiler_version: Version information for the compiler
-    """
+    """Information about the compiler used."""
 
     compiler: Compiler
+    """The type of compiler used"""
     compiler_version: CompilerVersion
+    """Version information for the compiler"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> CompilerInfo:
@@ -171,12 +161,10 @@ class CompilerInfo:
 
 @dataclass
 class Network:
-    """Network-specific application information.
-
-    :ivar app_id: Application ID on the network
-    """
+    """Network-specific application information."""
 
     app_id: int
+    """The application ID on the network"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Network:
@@ -185,14 +173,12 @@ class Network:
 
 @dataclass
 class ScratchVariables:
-    """Information about scratch space variables.
-
-    :ivar slot: Scratch slot number
-    :ivar type: Type of the scratch variable
-    """
+    """Information about scratch space variables."""
 
     slot: int
+    """The scratch slot number"""
     type: str
+    """The type of the scratch variable"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> ScratchVariables:
@@ -201,14 +187,12 @@ class ScratchVariables:
 
 @dataclass
 class Source:
-    """Source code for approval and clear programs.
-
-    :ivar approval: Base64 encoded approval program source
-    :ivar clear: Base64 encoded clear program source
-    """
+    """Source code for approval and clear programs."""
 
     approval: str
+    """The base64 encoded approval program source"""
     clear: str
+    """The base64 encoded clear program source"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Source:
@@ -234,14 +218,12 @@ class Source:
 
 @dataclass
 class Global:
-    """Global state schema.
-
-    :ivar bytes: Number of byte slices in global state
-    :ivar ints: Number of integers in global state
-    """
+    """Global state schema."""
 
     bytes: int
+    """The number of byte slices in global state"""
     ints: int
+    """The number of integers in global state"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Global:
@@ -250,14 +232,12 @@ class Global:
 
 @dataclass
 class Local:
-    """Local state schema.
-
-    :ivar bytes: Number of byte slices in local state
-    :ivar ints: Number of integers in local state
-    """
+    """Local state schema."""
 
     bytes: int
+    """The number of byte slices in local state"""
     ints: int
+    """The number of integers in local state"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Local:
@@ -266,14 +246,12 @@ class Local:
 
 @dataclass
 class Schema:
-    """Application state schema.
-
-    :ivar global_state: Global state schema
-    :ivar local_state: Local state schema
-    """
+    """Application state schema."""
 
     global_state: Global  # actual schema field is "global" since it's a reserved word
+    """The global state schema"""
     local_state: Local  # actual schema field is "local" for consistency with renamed "global"
+    """The local state schema"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Schema:
@@ -284,14 +262,12 @@ class Schema:
 
 @dataclass
 class TemplateVariables:
-    """Template variable information.
-
-    :ivar type: Type of the template variable
-    :ivar value: Optional value of the template variable
-    """
+    """Template variable information."""
 
     type: str
+    """The type of the template variable"""
     value: str | None = None
+    """The optional value of the template variable"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> TemplateVariables:
@@ -300,18 +276,16 @@ class TemplateVariables:
 
 @dataclass
 class EventArg:
-    """Event argument information.
-
-    :ivar type: Type of the event argument
-    :ivar desc: Optional description of the argument
-    :ivar name: Optional name of the argument
-    :ivar struct: Optional struct type name
-    """
+    """Event argument information."""
 
     type: str
+    """The type of the event argument"""
     desc: str | None = None
+    """The optional description of the argument"""
     name: str | None = None
+    """The optional name of the argument"""
     struct: str | None = None
+    """The optional struct type name"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> EventArg:
@@ -320,16 +294,14 @@ class EventArg:
 
 @dataclass
 class Event:
-    """Event information.
-
-    :ivar args: List of event arguments
-    :ivar name: Name of the event
-    :ivar desc: Optional description of the event
-    """
+    """Event information."""
 
     args: list[EventArg]
+    """The list of event arguments"""
     name: str
+    """The name of the event"""
     desc: str | None = None
+    """The optional description of the event"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Event:
@@ -339,14 +311,12 @@ class Event:
 
 @dataclass
 class Actions:
-    """Method actions information.
-
-    :ivar call: Optional list of allowed call actions
-    :ivar create: Optional list of allowed create actions
-    """
+    """Method actions information."""
 
     call: list[CallEnum] | None = None
+    """The optional list of allowed call actions"""
     create: list[CreateEnum] | None = None
+    """The optional list of allowed create actions"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Actions:
@@ -355,16 +325,14 @@ class Actions:
 
 @dataclass
 class DefaultValue:
-    """Default value information for method arguments.
-
-    :ivar data: Default value data
-    :ivar source: Source of the default value
-    :ivar type: Optional type of the default value
-    """
+    """Default value information for method arguments."""
 
     data: str
+    """The default value data"""
     source: Literal["box", "global", "local", "literal", "method"]
+    """The source of the default value"""
     type: str | None = None
+    """The optional type of the default value"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> DefaultValue:
@@ -373,20 +341,18 @@ class DefaultValue:
 
 @dataclass
 class MethodArg:
-    """Method argument information.
-
-    :ivar type: Type of the argument
-    :ivar default_value: Optional default value
-    :ivar desc: Optional description
-    :ivar name: Optional name
-    :ivar struct: Optional struct type name
-    """
+    """Method argument information."""
 
     type: str
+    """The type of the argument"""
     default_value: DefaultValue | None = None
+    """The optional default value"""
     desc: str | None = None
+    """The optional description"""
     name: str | None = None
+    """The optional name"""
     struct: str | None = None
+    """The optional struct type name"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> MethodArg:
@@ -397,18 +363,16 @@ class MethodArg:
 
 @dataclass
 class Boxes:
-    """Box storage requirements.
-
-    :ivar key: Box key
-    :ivar read_bytes: Number of bytes to read
-    :ivar write_bytes: Number of bytes to write
-    :ivar app: Optional application ID
-    """
+    """Box storage requirements."""
 
     key: str
+    """The box key"""
     read_bytes: int
+    """The number of bytes to read"""
     write_bytes: int
+    """The number of bytes to write"""
     app: int | None = None
+    """The optional application ID"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Boxes:
@@ -417,20 +381,18 @@ class Boxes:
 
 @dataclass
 class Recommendations:
-    """Method execution recommendations.
-
-    :ivar accounts: Optional list of accounts
-    :ivar apps: Optional list of applications
-    :ivar assets: Optional list of assets
-    :ivar boxes: Optional box storage requirements
-    :ivar inner_transaction_count: Optional inner transaction count
-    """
+    """Method execution recommendations."""
 
     accounts: list[str] | None = None
+    """The optional list of accounts"""
     apps: list[int] | None = None
+    """The optional list of applications"""
     assets: list[int] | None = None
+    """The optional list of assets"""
     boxes: Boxes | None = None
+    """The optional box storage requirements"""
     inner_transaction_count: int | None = None
+    """The optional inner transaction count"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Recommendations:
@@ -441,16 +403,14 @@ class Recommendations:
 
 @dataclass
 class Returns:
-    """Method return information.
-
-    :ivar type: Return type
-    :ivar desc: Optional description
-    :ivar struct: Optional struct type name
-    """
+    """Method return information."""
 
     type: str
+    """The type of the return value"""
     desc: str | None = None
+    """The optional description"""
     struct: str | None = None
+    """The optional struct type name"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Returns:
@@ -459,26 +419,24 @@ class Returns:
 
 @dataclass
 class Method:
-    """Method information.
-
-    :ivar actions: Allowed actions
-    :ivar args: Method arguments
-    :ivar name: Method name
-    :ivar returns: Return information
-    :ivar desc: Optional description
-    :ivar events: Optional list of events
-    :ivar readonly: Optional readonly flag
-    :ivar recommendations: Optional execution recommendations
-    """
+    """Method information."""
 
     actions: Actions
+    """The allowed actions"""
     args: list[MethodArg]
+    """The method arguments"""
     name: str
+    """The method name"""
     returns: Returns
+    """The return information"""
     desc: str | None = None
+    """The optional description"""
     events: list[Event] | None = None
+    """The optional list of events"""
     readonly: bool | None = None
+    """The optional readonly flag"""
     recommendations: Recommendations | None = None
+    """The optional execution recommendations"""
 
     _abi_method: AlgosdkMethod | None = None
 
@@ -516,18 +474,16 @@ class PcOffsetMethod(str, Enum):
 
 @dataclass
 class SourceInfo:
-    """Source code location information.
-
-    :ivar pc: List of program counter values
-    :ivar error_message: Optional error message
-    :ivar source: Optional source code
-    :ivar teal: Optional TEAL version
-    """
+    """Source code location information."""
 
     pc: list[int]
+    """The list of program counter values"""
     error_message: str | None = None
+    """The optional error message"""
     source: str | None = None
+    """The optional source code"""
     teal: int | None = None
+    """The optional TEAL version"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> SourceInfo:
@@ -536,18 +492,16 @@ class SourceInfo:
 
 @dataclass
 class StorageKey:
-    """Storage key information.
-
-    :ivar key: Storage key
-    :ivar key_type: Type of the key
-    :ivar value_type: Type of the value
-    :ivar desc: Optional description
-    """
+    """Storage key information."""
 
     key: str
+    """The storage key"""
     key_type: str
+    """The type of the key"""
     value_type: str
+    """The type of the value"""
     desc: str | None = None
+    """The optional description"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> StorageKey:
@@ -556,18 +510,16 @@ class StorageKey:
 
 @dataclass
 class StorageMap:
-    """Storage map information.
-
-    :ivar key_type: Type of map keys
-    :ivar value_type: Type of map values
-    :ivar desc: Optional description
-    :ivar prefix: Optional key prefix
-    """
+    """Storage map information."""
 
     key_type: str
+    """The type of the map keys"""
     value_type: str
+    """The type of the map values"""
     desc: str | None = None
+    """The optional description"""
     prefix: str | None = None
+    """The optional key prefix"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> StorageMap:
@@ -576,16 +528,14 @@ class StorageMap:
 
 @dataclass
 class Keys:
-    """Storage keys for different storage types.
-
-    :ivar box: Box storage keys
-    :ivar global_state: Global state storage keys
-    :ivar local_state: Local state storage keys
-    """
+    """Storage keys for different storage types."""
 
     box: dict[str, StorageKey]
+    """The box storage keys"""
     global_state: dict[str, StorageKey]  # actual schema field is "global" since it's a reserved word
+    """The global state storage keys"""
     local_state: dict[str, StorageKey]  # actual schema field is "local" for consistency with renamed "global"
+    """The local state storage keys"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Keys:
@@ -597,16 +547,14 @@ class Keys:
 
 @dataclass
 class Maps:
-    """Storage maps for different storage types.
-
-    :ivar box: Box storage maps
-    :ivar global_state: Global state storage maps
-    :ivar local_state: Local state storage maps
-    """
+    """Storage maps for different storage types."""
 
     box: dict[str, StorageMap]
+    """The box storage maps"""
     global_state: dict[str, StorageMap]  # actual schema field is "global" since it's a reserved word
+    """The global state storage maps"""
     local_state: dict[str, StorageMap]  # actual schema field is "local" for consistency with renamed "global"
+    """The local state storage maps"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Maps:
@@ -618,16 +566,14 @@ class Maps:
 
 @dataclass
 class State:
-    """Application state information.
-
-    :ivar keys: Storage keys
-    :ivar maps: Storage maps
-    :ivar schema: State schema
-    """
+    """Application state information."""
 
     keys: Keys
+    """The storage keys"""
     maps: Maps
+    """The storage maps"""
     schema: Schema
+    """The state schema"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> State:
@@ -639,14 +585,12 @@ class State:
 
 @dataclass
 class ProgramSourceInfo:
-    """Program source information.
-
-    :ivar pc_offset_method: PC offset method
-    :ivar source_info: List of source info entries
-    """
+    """Program source information."""
 
     pc_offset_method: PcOffsetMethod
+    """The PC offset method"""
     source_info: list[SourceInfo]
+    """The list of source info entries"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> ProgramSourceInfo:
@@ -656,14 +600,12 @@ class ProgramSourceInfo:
 
 @dataclass
 class SourceInfoModel:
-    """Source information for approval and clear programs.
-
-    :ivar approval: Approval program source info
-    :ivar clear: Clear program source info
-    """
+    """Source information for approval and clear programs."""
 
     approval: ProgramSourceInfo
+    """The approval program source info"""
     clear: ProgramSourceInfo
+    """The clear program source info"""
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> SourceInfoModel:
@@ -912,39 +854,38 @@ class Arc56Contract:
     """ARC-0056 application specification.
 
     See https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md
-
-    :ivar arcs: List of supported ARC version numbers
-    :ivar bare_actions: Bare call and create actions
-    :ivar methods: List of contract methods
-    :ivar name: Contract name
-    :ivar state: Contract state information
-    :ivar structs: Contract struct definitions
-    :ivar byte_code: Optional bytecode for approval and clear programs
-    :ivar compiler_info: Optional compiler information
-    :ivar desc: Optional contract description
-    :ivar events: Optional list of contract events
-    :ivar networks: Optional network deployment information
-    :ivar scratch_variables: Optional scratch variable information
-    :ivar source: Optional source code
-    :ivar source_info: Optional source code information
-    :ivar template_variables: Optional template variable information
     """
 
     arcs: list[int]
+    """The list of supported ARC version numbers"""
     bare_actions: BareActions
+    """The bare call and create actions"""
     methods: list[Method]
+    """The list of contract methods"""
     name: str
+    """The contract name"""
     state: State
+    """The contract state information"""
     structs: dict[str, list[StructField]]
+    """The contract struct definitions"""
     byte_code: ByteCode | None = None
+    """The optional bytecode for approval and clear programs"""
     compiler_info: CompilerInfo | None = None
+    """The optional compiler information"""
     desc: str | None = None
+    """The optional contract description"""
     events: list[Event] | None = None
+    """The optional list of contract events"""
     networks: dict[str, Network] | None = None
+    """The optional network deployment information"""
     scratch_variables: dict[str, ScratchVariables] | None = None
+    """The optional scratch variable information"""
     source: Source | None = None
+    """The optional source code"""
     source_info: SourceInfoModel | None = None
+    """The optional source code information"""
     template_variables: dict[str, TemplateVariables] | None = None
+    """The optional template variable information"""
 
     @staticmethod
     def from_dict(application_spec: dict) -> Arc56Contract:

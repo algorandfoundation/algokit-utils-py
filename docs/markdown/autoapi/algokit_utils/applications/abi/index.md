@@ -43,23 +43,25 @@ Represents the return value from an ABI method call.
 
 Wraps the raw return value and decoded value along with any decode errors.
 
-* **Variables:**
-  * **result** – The ABIResult object containing the method call results
-  * **raw_value** – The raw return value from the method call
-  * **value** – The decoded return value from the method call
-  * **method** – The ABI method definition
-  * **decode_error** – The exception that occurred during decoding, if any
-  * **tx_info** – The transaction info for the method call from raw algosdk ABIResult
-
 #### raw_value *: bytes | None* *= None*
+
+The raw return value from the method call
 
 #### value *: ABIValue | None* *= None*
 
+The decoded return value from the method call
+
 #### method *: algosdk.abi.method.Method | None* *= None*
+
+The ABI method definition
 
 #### decode_error *: Exception | None* *= None*
 
+The exception that occurred during decoding, if any
+
 #### tx_info *: dict[str, Any] | None* *= None*
+
+The transaction info for the method call from raw algosdk ABIResult
 
 #### *property* is_success *: bool*
 
@@ -155,10 +157,10 @@ Converts a decoded tuple to an ABI struct.
 
 Represents an ABI value stored in a box.
 
-* **Variables:**
-  * **name** – The name of the box
-  * **value** – The ABI value stored in the box
-
 #### name *: [algokit_utils.models.state.BoxName](../../models/state/index.md#algokit_utils.models.state.BoxName)*
 
+The name of the box
+
 #### value *: ABIValue*
+
+The ABI value stored in the box

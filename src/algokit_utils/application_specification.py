@@ -7,7 +7,7 @@ warnings.warn(
     Use `from algokit_utils.applications.app_spec.arc32 import ...` to access Arc32 app spec instead.
     By default, the ARC52Contract is a recommended app spec to use, serving as a replacement
     for legacy 'ApplicationSpecification' class.
-    To convert legacy app specs to ARC52, use `arc32_to_arc52` function from algokit_utils.applications.utils.
+    To convert legacy app specs to ARC52, use `Arc56Contract.from_arc32`.
 """,
     DeprecationWarning,
     stacklevel=2,

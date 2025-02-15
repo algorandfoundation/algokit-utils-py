@@ -19,63 +19,58 @@ __all__ = ["AccountAssetInformation", "AssetInformation", "AssetManager", "BulkA
 
 @dataclass(kw_only=True, frozen=True)
 class AccountAssetInformation:
-    """Information about an account's holding of a particular asset.
-
-    :ivar asset_id: The ID of the asset
-    :ivar balance: The amount of the asset held by the account
-    :ivar frozen: Whether the asset is frozen for this account
-    :ivar round: The round this information was retrieved at
-    """
+    """Information about an account's holding of a particular asset."""
 
     asset_id: int
+    """The ID of the asset"""
     balance: int
+    """The amount of the asset held by the account"""
     frozen: bool
+    """Whether the asset is frozen for this account"""
     round: int
+    """The round this information was retrieved at"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AssetInformation:
-    """Information about an Algorand Standard Asset (ASA).
-
-    :ivar asset_id: The ID of the asset
-    :ivar creator: The address of the account that created the asset
-    :ivar total: The total amount of the smallest divisible units that were created of the asset
-    :ivar decimals: The amount of decimal places the asset was created with
-    :ivar default_frozen: Whether the asset was frozen by default for all accounts, defaults to None
-    :ivar manager: The address of the optional account that can manage the configuration of the asset and destroy it,
-        defaults to None
-    :ivar reserve: The address of the optional account that holds the reserve (uncirculated supply) units of the asset,
-        defaults to None
-    :ivar freeze: The address of the optional account that can be used to freeze or unfreeze holdings of this asset,
-        defaults to None
-    :ivar clawback: The address of the optional account that can clawback holdings of this asset from any account,
-        defaults to None
-    :ivar unit_name: The optional name of the unit of this asset (e.g. ticker name), defaults to None
-    :ivar unit_name_b64: The optional name of the unit of this asset as bytes, defaults to None
-    :ivar asset_name: The optional name of the asset, defaults to None
-    :ivar asset_name_b64: The optional name of the asset as bytes, defaults to None
-    :ivar url: Optional URL where more information about the asset can be retrieved, defaults to None
-    :ivar url_b64: Optional URL where more information about the asset can be retrieved as bytes, defaults to None
-    :ivar metadata_hash: 32-byte hash of some metadata that is relevant to the asset and/or asset holders,
-        defaults to None
-    """
+    """Information about an Algorand Standard Asset (ASA)."""
 
     asset_id: int
+    """The ID of the asset"""
     creator: str
+    """The address of the account that created the asset"""
     total: int
+    """The total amount of the smallest divisible units that were created of the asset"""
     decimals: int
+    """The amount of decimal places the asset was created with"""
     default_frozen: bool | None = None
+    """Whether the asset was frozen by default for all accounts, defaults to None"""
     manager: str | None = None
+    """The address of the optional account that can manage the configuration of the asset and destroy it,
+        defaults to None"""
     reserve: str | None = None
+    """The address of the optional account that holds the reserve (uncirculated supply) units of the asset,
+        defaults to None"""
     freeze: str | None = None
+    """The address of the optional account that can be used to freeze or unfreeze holdings of this asset,
+        defaults to None"""
     clawback: str | None = None
+    """The address of the optional account that can clawback holdings of this asset from any account,
+        defaults to None"""
     unit_name: str | None = None
+    """The optional name of the unit of this asset (e.g. ticker name), defaults to None"""
     unit_name_b64: bytes | None = None
+    """The optional name of the unit of this asset as bytes, defaults to None"""
     asset_name: str | None = None
+    """The optional name of the asset, defaults to None"""
     asset_name_b64: bytes | None = None
+    """The optional name of the asset as bytes, defaults to None"""
     url: str | None = None
+    """The optional URL where more information about the asset can be retrieved, defaults to None"""
     url_b64: bytes | None = None
+    """The optional URL where more information about the asset can be retrieved as bytes, defaults to None"""
     metadata_hash: bytes | None = None
+    """The 32-byte hash of some metadata that is relevant to the asset and/or asset holders, defaults to None"""
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -87,7 +82,9 @@ class BulkAssetOptInOutResult:
     """
 
     asset_id: int
+    """The ID of the asset opted into / out of"""
     transaction_id: str
+    """The transaction ID of the resulting opt in / out"""
 
 
 class AssetManager:
@@ -95,6 +92,9 @@ class AssetManager:
 
     :param algod_client: An algod client
     :param new_group: A function that creates a new TransactionComposer transaction group
+
+    :example:
+        >>> asset_manager = AssetManager(algod_client)
     """
 
     def __init__(self, algod_client: algod.AlgodClient, new_group: Callable[[], TransactionComposer]):
@@ -106,6 +106,10 @@ class AssetManager:
 
         :param asset_id: The ID of the asset
         :return: The asset information
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> asset_info = asset_manager.get_by_id(1234567890)
         """
         asset = self._algod.asset_info(asset_id)
         assert isinstance(asset, dict)
@@ -138,6 +142,10 @@ class AssetManager:
         :param sender: The address of the sender/account to look up
         :param asset_id: The ID of the asset to return a holding for
         :return: The account asset holding information
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> account_asset_info = asset_manager.get_account_information(sender, asset_id)
         """
         address = self._get_address_from_sender(sender)
         info = self._algod.account_asset_info(address, asset_id)
@@ -182,6 +190,10 @@ class AssetManager:
         :param last_valid_round: The last valid round to include in the transaction, defaults to None
         :param send_params: The send parameters to use for the transaction, defaults to None
         :return: An array of records matching asset ID to transaction ID of the opt in
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> results = asset_manager.bulk_opt_in(account, asset_ids)
         """
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
@@ -249,6 +261,10 @@ class AssetManager:
         :param send_params: The send parameters to use for the transaction, defaults to None
         :raises ValueError: If ensure_zero_balance is True and account has non-zero balance or is not opted in
         :return: An array of records matching asset ID to transaction ID of the opt out
+
+        :example:
+            >>> asset_manager = AssetManager(algod_client)
+            >>> results = asset_manager.bulk_opt_out(account, asset_ids)
         """
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)

@@ -119,6 +119,9 @@ class AppManager:
     and interacting with application boxes.
 
     :param algod_client: The Algorand client instance to use for interacting with the network
+
+    :example:
+        >>> app_manager = AppManager(algod_client)
     """
 
     def __init__(self, algod_client: algod.AlgodClient):
@@ -158,6 +161,14 @@ class AppManager:
         :param template_params: Parameters to substitute in the template
         :param deployment_metadata: Deployment control parameters
         :return: The compiled TEAL code and associated metadata
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> teal_template_code =
+            ...     # This is a TEAL template
+            ...     # It can contain template variables like {TMPL_UPDATABLE} and {TMPL_DELETABLE}
+            ...
+            >>> compiled_teal = app_manager.compile_teal_template(teal_template_code)
         """
 
         teal_code = AppManager.strip_teal_comments(teal_template_code)
@@ -173,8 +184,13 @@ class AppManager:
 
         :param teal_code: The TEAL source code
         :return: The cached compilation result if available, None otherwise
-        """
 
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> teal_code = "RETURN 1"
+            >>> compiled_teal = app_manager.compile_teal(teal_code)
+            >>> compilation_result = app_manager.get_compilation_result(teal_code)
+        """
         return self._compilation_results.get(teal_code)
 
     def get_by_id(self, app_id: int) -> AppInformation:
@@ -182,6 +198,11 @@ class AppManager:
 
         :param app_id: The application ID
         :return: Information about the application
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 1234567890
+            >>> app_info = app_manager.get_by_id(app_id)
         """
 
         app = self._algod.application_info(app_id)
@@ -207,6 +228,11 @@ class AppManager:
 
         :param app_id: The application ID
         :return: The application's global state
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> global_state = app_manager.get_global_state(app_id)
         """
 
         return self.get_by_id(app_id).global_state
@@ -218,6 +244,12 @@ class AppManager:
         :param address: The account address
         :return: The account's local state for the application
         :raises ValueError: If local state is not found
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> address = "SENDER_ADDRESS"
+            >>> local_state = app_manager.get_local_state(app_id, address)
         """
 
         app_info = self._algod.account_application_info(address, app_id)
@@ -231,6 +263,11 @@ class AppManager:
 
         :param app_id: The application ID
         :return: List of box names
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_names = app_manager.get_box_names(app_id)
         """
 
         box_result = self._algod.application_boxes(app_id)
@@ -250,6 +287,12 @@ class AppManager:
         :param app_id: The application ID
         :param box_name: The box identifier
         :return: The box value as bytes
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_name = "BOX_NAME"
+            >>> box_value = app_manager.get_box_value(app_id, box_name)
         """
 
         name = AppManager.get_box_reference(box_name)[1]
@@ -263,6 +306,12 @@ class AppManager:
         :param app_id: The application ID
         :param box_names: List of box identifiers
         :return: List of box values as bytes
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_names = ["BOX_NAME_1", "BOX_NAME_2"]
+            >>> box_values = app_manager.get_box_values(app_id, box_names)
         """
 
         return [self.get_box_value(app_id, box_name) for box_name in box_names]
@@ -275,6 +324,13 @@ class AppManager:
         :param abi_type: The ABI type to decode with
         :return: The decoded box value
         :raises ValueError: If decoding fails
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_name = "BOX_NAME"
+            >>> abi_type = ABIType.UINT
+            >>> box_value = app_manager.get_box_value_from_abi_type(app_id, box_name, abi_type)
         """
 
         value = self.get_box_value(app_id, box_name)
@@ -294,6 +350,13 @@ class AppManager:
         :param box_names: List of box identifiers
         :param abi_type: The ABI type to decode with
         :return: List of decoded box values
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_names = ["BOX_NAME_1", "BOX_NAME_2"]
+            >>> abi_type = ABIType.UINT
+            >>> box_values = app_manager.get_box_values_from_abi_type(app_id, box_names, abi_type)
         """
 
         return [self.get_box_value_from_abi_type(app_id, box_name, abi_type) for box_name in box_names]
@@ -305,6 +368,12 @@ class AppManager:
         :param box_id: The box identifier
         :return: Tuple of (app_id, box_name_bytes)
         :raises ValueError: If box identifier type is invalid
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> box_name = "BOX_NAME"
+            >>> box_reference = app_manager.get_box_reference(box_name)
         """
 
         if isinstance(box_id, (BoxReference | AlgosdkBoxReference)):
@@ -333,8 +402,14 @@ class AppManager:
         :param confirmation: The transaction confirmation
         :param method: The ABI method
         :return: The parsed ABI return value, or None if not available
-        """
 
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> method = "METHOD_NAME"
+            >>> confirmation = algod_client.pending_transaction_info(tx_id)
+            >>> abi_return = app_manager.get_abi_return(confirmation, method)
+        """
         if not method:
             return None
 
@@ -357,6 +432,12 @@ class AppManager:
         :param state: The raw application state
         :return: Decoded application state
         :raises ValueError: If unknown state data type is encountered
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> state = app_manager.get_global_state(app_id)
+            >>> decoded_state = app_manager.decode_app_state(state)
         """
 
         state_values: dict[str, AppState] = {}
@@ -407,6 +488,13 @@ class AppManager:
         :param template_values: Template variable values to substitute
         :return: TEAL code with substituted values
         :raises ValueError: If template value type is unexpected
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> program = "RETURN 1"
+            >>> template_values = {"TMPL_UPDATABLE": True, "TMPL_DELETABLE": True}
+            >>> updated_program = app_manager.replace_template_variables(program, template_values)
         """
 
         program_lines = program.splitlines()
@@ -437,6 +525,15 @@ class AppManager:
         :param params: The deploy-time control parameters
         :return: TEAL code with substituted control parameters
         :raises ValueError: If template variables not found in code
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> app_id = 123
+            >>> teal_template_code = "RETURN 1"
+            >>> params = {"TMPL_UPDATABLE": True, "TMPL_DELETABLE": True}
+            >>> updated_teal_code = app_manager.replace_teal_template_deploy_time_control_params(
+                teal_template_code, params
+            )
         """
 
         updatable = params.get("updatable")
@@ -461,6 +558,17 @@ class AppManager:
 
     @staticmethod
     def strip_teal_comments(teal_code: str) -> str:
+        """Strip comments from TEAL code.
+
+        :param teal_code: The TEAL code to strip comments from
+        :return: The TEAL code with comments stripped
+
+        :example:
+            >>> app_manager = AppManager(algod_client)
+            >>> teal_code = "RETURN 1"
+            >>> stripped_teal_code = app_manager.strip_teal_comments(teal_code)
+        """
+
         def _strip_comment(line: str) -> str:
             comment_idx = _find_unquoted_string(line, "//")
             if comment_idx is None:
