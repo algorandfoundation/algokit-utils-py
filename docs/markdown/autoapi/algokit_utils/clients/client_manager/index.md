@@ -34,13 +34,23 @@ Contains network type flags and genesis information.
 
 #### is_testnet *: bool*
 
+Whether the network is a testnet
+
 #### is_mainnet *: bool*
+
+Whether the network is a mainnet
 
 #### is_localnet *: bool*
 
+Whether the network is a localnet
+
 #### genesis_id *: str*
 
+The genesis ID of the network
+
 #### genesis_hash *: str*
+
+The genesis hash of the network
 
 ### *class* algokit_utils.clients.client_manager.ClientManager(clients_or_configs: [algokit_utils.models.network.AlgoClientConfigs](../../models/network/index.md#algokit_utils.models.network.AlgoClientConfigs) | [AlgoSdkClients](#algokit_utils.clients.client_manager.AlgoSdkClients), algorand_client: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient))
 

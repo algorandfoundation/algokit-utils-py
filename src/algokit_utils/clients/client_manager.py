@@ -64,10 +64,15 @@ class NetworkDetail:
     """
 
     is_testnet: bool
+    """Whether the network is a testnet"""
     is_mainnet: bool
+    """Whether the network is a mainnet"""
     is_localnet: bool
+    """Whether the network is a localnet"""
     genesis_id: str
+    """The genesis ID of the network"""
     genesis_hash: str
+    """The genesis hash of the network"""
 
 
 def _get_config_from_environment(environment_prefix: str) -> AlgoClientNetworkConfig:

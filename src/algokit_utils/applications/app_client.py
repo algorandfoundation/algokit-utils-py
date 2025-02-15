@@ -177,17 +177,16 @@ class AppClientCompilationResult:
     """Result of compiling an application's TEAL code.
 
     Contains the compiled approval and clear state programs along with optional compilation artifacts.
-
-    :ivar approval_program: The compiled approval program bytes
-    :ivar clear_state_program: The compiled clear state program bytes
-    :ivar compiled_approval: Optional compilation artifacts for approval program
-    :ivar compiled_clear: Optional compilation artifacts for clear state program
     """
 
     approval_program: bytes
+    """The compiled approval program bytes"""
     clear_state_program: bytes
+    """The compiled clear state program bytes"""
     compiled_approval: CompiledTeal | None = None
+    """Optional compilation artifacts for approval program"""
     compiled_clear: CompiledTeal | None = None
+    """Optional compilation artifacts for clear state program"""
 
 
 class AppClientCompilationParams(TypedDict, total=False):
@@ -209,52 +208,50 @@ MethodT = TypeVar("MethodT")
 
 @dataclass(kw_only=True, frozen=True)
 class CommonAppCallParams:
-    """Common configuration for app call transaction parameters
-
-    :ivar account_references: List of account addresses to reference
-    :ivar app_references: List of app IDs to reference
-    :ivar asset_references: List of asset IDs to reference
-    :ivar box_references: List of box references to include
-    :ivar extra_fee: Additional fee to add to transaction
-    :ivar lease: Transaction lease value
-    :ivar max_fee: Maximum fee allowed for transaction
-    :ivar note: Arbitrary note for the transaction
-    :ivar rekey_to: Address to rekey account to
-    :ivar sender: Sender address override
-    :ivar signer: Custom transaction signer
-    :ivar static_fee: Fixed fee for transaction
-    :ivar validity_window: Number of rounds valid
-    :ivar first_valid_round: First valid round number
-    :ivar last_valid_round: Last valid round number"""
+    """Common configuration for app call transaction parameters"""
 
     account_references: list[str] | None = None
+    """List of account addresses to reference"""
     app_references: list[int] | None = None
+    """List of app IDs to reference"""
     asset_references: list[int] | None = None
+    """List of asset IDs to reference"""
     box_references: list[BoxReference | BoxIdentifier] | None = None
+    """List of box references to include"""
     extra_fee: AlgoAmount | None = None
+    """Additional fee to add to transaction"""
     lease: bytes | None = None
+    """Transaction lease value"""
     max_fee: AlgoAmount | None = None
+    """Maximum fee allowed for transaction"""
     note: bytes | None = None
+    """Custom note for the transaction"""
     rekey_to: str | None = None
+    """Address to rekey account to"""
     sender: str | None = None
+    """Sender address override"""
     signer: TransactionSigner | None = None
+    """Custom transaction signer"""
     static_fee: AlgoAmount | None = None
+    """Fixed fee for transaction"""
     validity_window: int | None = None
+    """Number of rounds valid"""
     first_valid_round: int | None = None
+    """First valid round number"""
     last_valid_round: int | None = None
+    """Last valid round number"""
     on_complete: OnComplete | None = None
+    """Optional on complete action"""
 
 
 @dataclass(frozen=True)
 class AppClientCreateSchema:
-    """Schema for application creation.
-
-    :ivar extra_program_pages: Optional number of extra program pages
-    :ivar schema: Optional application creation schema
-    """
+    """Schema for application creation."""
 
     extra_program_pages: int | None = None
+    """Optional number of extra program pages"""
     schema: AppCreateSchema | None = None
+    """Optional application creation schema"""
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -262,28 +259,25 @@ class CommonAppCallCreateParams(AppClientCreateSchema, CommonAppCallParams):
     """Common configuration for app create call transaction parameters."""
 
     on_complete: CreateOnComplete | None = None
+    """Optional on complete action"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class FundAppAccountParams(CommonAppCallParams):
-    """Parameters for funding an application's account.
-
-    :ivar amount: Amount to fund
-    :ivar close_remainder_to: Optional address to close remainder to
-    """
+    """Parameters for funding an application's account."""
 
     amount: AlgoAmount
+    """Amount to fund"""
     close_remainder_to: str | None = None
+    """Optional address to close remainder to"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class AppClientBareCallParams(CommonAppCallParams):
-    """Parameters for bare application calls.
-
-    :ivar args: Optional arguments
-    """
+    """Parameters for bare application calls."""
 
     args: list[bytes] | None = None
+    """Optional arguments"""
 
 
 @dataclass(frozen=True)
@@ -291,19 +285,17 @@ class AppClientBareCallCreateParams(CommonAppCallCreateParams):
     """Parameters for creating application with bare call."""
 
     on_complete: CreateOnComplete | None = None
+    """Optional on complete action"""
 
 
 @dataclass(kw_only=True, frozen=True)
 class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT], CommonAppCallParams):
-    """Base parameters for application method calls.
-
-    :ivar method: Method to call
-    :ivar args: Optional arguments to pass to method
-    :ivar on_complete: Optional on complete action
-    """
+    """Base parameters for application method calls."""
 
     method: MethodT
+    """Method to call"""
     args: ArgsT | None = None
+    """Arguments to pass to the application method call"""
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -321,6 +313,7 @@ class AppClientMethodCallCreateParams(AppClientCreateSchema, AppClientMethodCall
     """Parameters for creating application with method call"""
 
     on_complete: CreateOnComplete | None = None
+    """Optional on complete action"""
 
 
 class _AppClientStateMethods:
@@ -1261,13 +1254,21 @@ class AppClientParams:
     """Full parameters for creating an app client"""
 
     app_spec: Arc56Contract | Arc32Contract | str
+    """The application specification"""
     algorand: AlgorandClient
+    """The Algorand client"""
     app_id: int
+    """The application ID"""
     app_name: str | None = None
+    """The application name"""
     default_sender: str | None = None
+    """The default sender address"""
     default_signer: TransactionSigner | None = None
+    """The default transaction signer"""
     approval_source_map: SourceMap | None = None
+    """The approval source map"""
     clear_source_map: SourceMap | None = None
+    """The clear source map"""
 
 
 class AppClient:

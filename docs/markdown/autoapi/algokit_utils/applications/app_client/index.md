@@ -48,19 +48,21 @@ Result of compiling an application’s TEAL code.
 
 Contains the compiled approval and clear state programs along with optional compilation artifacts.
 
-* **Variables:**
-  * **approval_program** – The compiled approval program bytes
-  * **clear_state_program** – The compiled clear state program bytes
-  * **compiled_approval** – Optional compilation artifacts for approval program
-  * **compiled_clear** – Optional compilation artifacts for clear state program
-
 #### approval_program *: bytes*
+
+The compiled approval program bytes
 
 #### clear_state_program *: bytes*
 
+The compiled clear state program bytes
+
 #### compiled_approval *: [algokit_utils.models.application.CompiledTeal](../../models/application/index.md#algokit_utils.models.application.CompiledTeal) | None* *= None*
 
+Optional compilation artifacts for approval program
+
 #### compiled_clear *: [algokit_utils.models.application.CompiledTeal](../../models/application/index.md#algokit_utils.models.application.CompiledTeal) | None* *= None*
+
+Optional compilation artifacts for clear state program
 
 ### *class* algokit_utils.applications.app_client.AppClientCompilationParams
 
@@ -83,66 +85,81 @@ Parameters for compiling an application’s TEAL code.
 
 Common configuration for app call transaction parameters
 
-* **Variables:**
-  * **account_references** – List of account addresses to reference
-  * **app_references** – List of app IDs to reference
-  * **asset_references** – List of asset IDs to reference
-  * **box_references** – List of box references to include
-  * **extra_fee** – Additional fee to add to transaction
-  * **lease** – Transaction lease value
-  * **max_fee** – Maximum fee allowed for transaction
-  * **note** – Arbitrary note for the transaction
-  * **rekey_to** – Address to rekey account to
-  * **sender** – Sender address override
-  * **signer** – Custom transaction signer
-  * **static_fee** – Fixed fee for transaction
-  * **validity_window** – Number of rounds valid
-  * **first_valid_round** – First valid round number
-  * **last_valid_round** – Last valid round number
-
 #### account_references *: list[str] | None* *= None*
+
+List of account addresses to reference
 
 #### app_references *: list[int] | None* *= None*
 
+List of app IDs to reference
+
 #### asset_references *: list[int] | None* *= None*
+
+List of asset IDs to reference
 
 #### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
 
+List of box references to include
+
 #### extra_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
+
+Additional fee to add to transaction
 
 #### lease *: bytes | None* *= None*
 
+Transaction lease value
+
 #### max_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
+
+Maximum fee allowed for transaction
 
 #### note *: bytes | None* *= None*
 
+Custom note for the transaction
+
 #### rekey_to *: str | None* *= None*
+
+Address to rekey account to
 
 #### sender *: str | None* *= None*
 
+Sender address override
+
 #### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
+
+Custom transaction signer
 
 #### static_fee *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None* *= None*
 
+Fixed fee for transaction
+
 #### validity_window *: int | None* *= None*
+
+Number of rounds valid
 
 #### first_valid_round *: int | None* *= None*
 
+First valid round number
+
 #### last_valid_round *: int | None* *= None*
 
+Last valid round number
+
 #### on_complete *: algosdk.transaction.OnComplete | None* *= None*
+
+Optional on complete action
 
 ### *class* algokit_utils.applications.app_client.AppClientCreateSchema
 
 Schema for application creation.
 
-* **Variables:**
-  * **extra_program_pages** – Optional number of extra program pages
-  * **schema** – Optional application creation schema
-
 #### extra_program_pages *: int | None* *= None*
 
+Optional number of extra program pages
+
 #### schema *: [algokit_utils.transactions.transaction_composer.AppCreateSchema](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateSchema) | None* *= None*
+
+Optional application creation schema
 
 ### *class* algokit_utils.applications.app_client.CommonAppCallCreateParams
 
@@ -152,19 +169,21 @@ Common configuration for app create call transaction parameters.
 
 #### on_complete *: CreateOnComplete | None* *= None*
 
+Optional on complete action
+
 ### *class* algokit_utils.applications.app_client.FundAppAccountParams
 
 Bases: [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
 
 Parameters for funding an application’s account.
 
-* **Variables:**
-  * **amount** – Amount to fund
-  * **close_remainder_to** – Optional address to close remainder to
-
 #### amount *: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)*
 
+Amount to fund
+
 #### close_remainder_to *: str | None* *= None*
+
+Optional address to close remainder to
 
 ### *class* algokit_utils.applications.app_client.AppClientBareCallParams
 
@@ -172,10 +191,9 @@ Bases: [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppC
 
 Parameters for bare application calls.
 
-* **Variables:**
-  **args** – Optional arguments
-
 #### args *: list[bytes] | None* *= None*
+
+Optional arguments
 
 ### *class* algokit_utils.applications.app_client.AppClientBareCallCreateParams
 
@@ -185,20 +203,21 @@ Parameters for creating application with bare call.
 
 #### on_complete *: CreateOnComplete | None* *= None*
 
+Optional on complete action
+
 ### *class* algokit_utils.applications.app_client.BaseAppClientMethodCallParams
 
 Bases: `Generic`[`ArgsT`, `MethodT`], [`CommonAppCallParams`](#algokit_utils.applications.app_client.CommonAppCallParams)
 
 Base parameters for application method calls.
 
-* **Variables:**
-  * **method** – Method to call
-  * **args** – Optional arguments to pass to method
-  * **on_complete** – Optional on complete action
-
 #### method *: MethodT*
 
+Method to call
+
 #### args *: ArgsT | None* *= None*
+
+Arguments to pass to the application method call
 
 ### *class* algokit_utils.applications.app_client.AppClientMethodCallParams
 
@@ -214,25 +233,43 @@ Parameters for creating application with method call
 
 #### on_complete *: CreateOnComplete | None* *= None*
 
+Optional on complete action
+
 ### *class* algokit_utils.applications.app_client.AppClientParams
 
 Full parameters for creating an app client
 
 #### app_spec *: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../app_spec/arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract) | str*
 
+The application specification
+
 #### algorand *: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient)*
+
+The Algorand client
 
 #### app_id *: int*
 
+The application ID
+
 #### app_name *: str | None* *= None*
+
+The application name
 
 #### default_sender *: str | None* *= None*
 
+The default sender address
+
 #### default_signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
+
+The default transaction signer
 
 #### approval_source_map *: algosdk.source_map.SourceMap | None* *= None*
 
+The approval source map
+
 #### clear_source_map *: algosdk.source_map.SourceMap | None* *= None*
+
+The clear source map
 
 ### *class* algokit_utils.applications.app_client.AppClient(params: [AppClientParams](#algokit_utils.applications.app_client.AppClientParams))
 

@@ -49,7 +49,9 @@ class _CommonEnsureFundedParams:
     """
 
     transaction_id: str
+    """The transaction ID of the funded transaction"""
     amount_funded: AlgoAmount
+    """The amount of Algos funded"""
 
 
 @dataclass(frozen=True, kw_only=True)

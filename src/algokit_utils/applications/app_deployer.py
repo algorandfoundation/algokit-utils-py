@@ -123,26 +123,44 @@ class AppDeployParams:
     """Parameters for deploying an app"""
 
     metadata: AppDeploymentMetaData
+    """The deployment metadata"""
     deploy_time_params: TealTemplateParams | None = None
+    """Optional template parameters to use during compilation"""
     on_schema_break: (Literal["replace", "fail", "append"] | OnSchemaBreak) | None = None
+    """Optional on schema break action"""
     on_update: (Literal["update", "replace", "fail", "append"] | OnUpdate) | None = None
+    """Optional on update action"""
     create_params: AppCreateParams | AppCreateMethodCallParams
+    """The creation parameters"""
     update_params: AppUpdateParams | AppUpdateMethodCallParams
+    """The update parameters"""
     delete_params: AppDeleteParams | AppDeleteMethodCallParams
+    """The deletion parameters"""
     existing_deployments: ApplicationLookup | None = None
+    """Optional existing deployments"""
     ignore_cache: bool = False
+    """Whether to ignore the cache"""
     max_fee: int | None = None
+    """Optional maximum fee"""
     send_params: SendParams | None = None
+    """Optional send parameters"""
 
 
 # Union type for all possible deploy results
 @dataclass(frozen=True)
 class AppDeployResult:
+    """The result of a deployment"""
+
     app: ApplicationMetaData
+    """The application metadata"""
     operation_performed: OperationPerformed
+    """The operation performed"""
     create_result: SendAppCreateTransactionResult[ABIReturn] | None = None
+    """The create result"""
     update_result: SendAppUpdateTransactionResult[ABIReturn] | None = None
+    """The update result"""
     delete_result: SendAppTransactionResult[ABIReturn] | None = None
+    """The delete result"""
 
 
 class AppDeployer:

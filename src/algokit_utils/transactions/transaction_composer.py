@@ -586,8 +586,12 @@ class UnnamedResourcesAccessed:
 
 @dataclass
 class ExecutionInfoTxn:
+    """Execution info for a transaction."""
+
     unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
+    """The unnamed resources accessed in the transaction"""
     required_fee_delta: int = 0
+    """The required fee delta for the transaction"""
 
 
 @dataclass
@@ -595,7 +599,9 @@ class ExecutionInfo:
     """Information about transaction execution from simulation."""
 
     group_unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
+    """The unnamed resources accessed in the group"""
     txns: list[ExecutionInfoTxn] | None = None
+    """The execution info for each transaction"""
 
 
 @dataclass

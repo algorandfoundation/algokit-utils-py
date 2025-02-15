@@ -34,19 +34,25 @@ class DispenserAssetName(enum.IntEnum):
 @dataclass
 class DispenserAsset:
     asset_id: int
+    """The ID of the asset"""
     decimals: int
+    """The amount of decimal places the asset was created with"""
     description: str
+    """The description of the asset"""
 
 
 @dataclass
 class DispenserFundResponse:
     tx_id: str
+    """The transaction ID of the funded transaction"""
     amount: int
+    """The amount of Algos funded"""
 
 
 @dataclass
 class DispenserLimitResponse:
     amount: int
+    """The amount of Algos that can be funded"""
 
 
 DISPENSER_ASSETS = {

@@ -682,24 +682,26 @@ Add a raw transaction to the composer.
   * **signer** – Optional transaction signer, defaults to getting signer from transaction sender
 * **Returns:**
   The transaction composer instance for chaining
+* **Example:**
+  ```pycon
+  >>> composer.add_transaction(transaction)
+  ```
 
 #### add_payment(params: [PaymentParams](#algokit_utils.transactions.transaction_composer.PaymentParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Add a payment transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer, AlgoAmount
+* **Example:**
+  ```pycon
   >>> params = PaymentParams(
   ...     sender="SENDER_ADDRESS",
   ...     receiver="RECEIVER_ADDRESS",
   ...     amount=AlgoAmount.from_algo(1),
   ...     close_remainder_to="CLOSE_ADDRESS"
+  ...     ... (see PaymentParams for more options)
   ... )
-  >>> composer = TransactionComposer(algod, get_signer)
   >>> composer.add_payment(params)
   ```
-
 * **Parameters:**
   **params** – The payment transaction parameters
 * **Returns:**
@@ -709,9 +711,8 @@ Example:
 
 Add an asset creation transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetCreateParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetCreateParams(
   ...     sender="SENDER_ADDRESS",
   ...     total=1000,
@@ -724,11 +725,9 @@ Example:
   ...     reserve="RESERVE_ADDRESS",
   ...     freeze="FREEZE_ADDRESS",
   ...     clawback="CLAWBACK_ADDRESS"
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AssetCreateParams for more options)
   >>> composer.add_asset_create(params)
   ```
-
 * **Parameters:**
   **params** – The asset creation parameters
 * **Returns:**
@@ -738,9 +737,8 @@ Example:
 
 Add an asset configuration transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetConfigParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetConfigParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456,
@@ -748,11 +746,10 @@ Example:
   ...     reserve="NEW_RESERVE_ADDRESS",
   ...     freeze="NEW_FREEZE_ADDRESS",
   ...     clawback="NEW_CLAWBACK_ADDRESS"
+  ...     ... (see AssetConfigParams for more options)
   ... )
-  >>> composer = TransactionComposer(algod, get_signer)
   >>> composer.add_asset_config(params)
   ```
-
 * **Parameters:**
   **params** – The asset configuration parameters
 * **Returns:**
@@ -762,19 +759,17 @@ Example:
 
 Add an asset freeze transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetFreezeParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetFreezeParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456,
   ...     account="ACCOUNT_TO_FREEZE",
   ...     frozen=True
+  ...     ... (see AssetFreezeParams for more options)
   ... )
-  >>> composer = TransactionComposer(algod, get_signer)
   >>> composer.add_asset_freeze(params)
   ```
-
 * **Parameters:**
   **params** – The asset freeze parameters
 * **Returns:**
@@ -784,17 +779,14 @@ Example:
 
 Add an asset destruction transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetDestroyParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetDestroyParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AssetDestroyParams for more options)
   >>> composer.add_asset_destroy(params)
   ```
-
 * **Parameters:**
   **params** – The asset destruction parameters
 * **Returns:**
@@ -804,9 +796,8 @@ Example:
 
 Add an asset transfer transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetTransferParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetTransferParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456,
@@ -814,11 +805,9 @@ Example:
   ...     receiver="RECEIVER_ADDRESS",
   ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
   ...     close_asset_to="CLOSE_ADDRESS"
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AssetTransferParams for more options)
   >>> composer.add_asset_transfer(params)
   ```
-
 * **Parameters:**
   **params** – The asset transfer parameters
 * **Returns:**
@@ -828,17 +817,15 @@ Example:
 
 Add an asset opt-in transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetOptInParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetOptInParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456
+  ...     ... (see AssetOptInParams for more options)
   ... )
-  >>> composer = TransactionComposer(algod, get_signer)
   >>> composer.add_asset_opt_in(params)
   ```
-
 * **Parameters:**
   **params** – The asset opt-in parameters
 * **Returns:**
@@ -848,18 +835,15 @@ Example:
 
 Add an asset opt-out transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AssetOptOutParams, TransactionComposer
+* **Example:**
+  ```pycon
   >>> params = AssetOptOutParams(
   ...     sender="SENDER_ADDRESS",
   ...     asset_id=123456,
   ...     creator="CREATOR_ADDRESS"
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AssetOptOutParams for more options)
   >>> composer.add_asset_opt_out(params)
   ```
-
 * **Parameters:**
   **params** – The asset opt-out parameters
 * **Returns:**
@@ -869,10 +853,8 @@ Example:
 
 Add an application creation transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AppCreateParams, TransactionComposer
-  >>> from algosdk.transaction import OnComplete
+* **Example:**
+  ```pycon
   >>> params = AppCreateParams(
   ...     sender="SENDER_ADDRESS",
   ...     approval_program="TEAL_APPROVAL_CODE",
@@ -885,11 +867,10 @@ Example:
   ...     asset_references=[123],
   ...     box_references=[],
   ...     extra_program_pages=0
+  ...     ... (see AppCreateParams for more options)
   ... )
-  >>> composer = TransactionComposer(algod, get_signer)
   >>> composer.add_app_create(params)
   ```
-
 * **Parameters:**
   **params** – The application creation parameters
 * **Returns:**
@@ -899,10 +880,8 @@ Example:
 
 Add an application update transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AppUpdateParams, TransactionComposer
-  >>> from algosdk.transaction import OnComplete
+* **Example:**
+  ```pycon
   >>> params = AppUpdateParams(
   ...     sender="SENDER_ADDRESS",
   ...     app_id=789,
@@ -914,11 +893,9 @@ Example:
   ...     asset_references=[123],
   ...     box_references=[],
   ...     on_complete=OnComplete.UpdateApplicationOC
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AppUpdateParams for more options)
   >>> composer.add_app_update(params)
   ```
-
 * **Parameters:**
   **params** – The application update parameters
 * **Returns:**
@@ -928,10 +905,8 @@ Example:
 
 Add an application deletion transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AppDeleteParams, TransactionComposer
-  >>> from algosdk.transaction import OnComplete
+* **Example:**
+  ```pycon
   >>> params = AppDeleteParams(
   ...     sender="SENDER_ADDRESS",
   ...     app_id=789,
@@ -941,11 +916,9 @@ Example:
   ...     asset_references=[123],
   ...     box_references=[],
   ...     on_complete=OnComplete.DeleteApplicationOC
-  ... )
-  >>> composer = TransactionComposer(algod, get_signer)
+  ...     ... (see AppDeleteParams for more options)
   >>> composer.add_app_delete(params)
   ```
-
 * **Parameters:**
   **params** – The application deletion parameters
 * **Returns:**
@@ -955,10 +928,8 @@ Example:
 
 Add an application call transaction.
 
-Example:
-: ```pycon
-  >>> from algokit_utils.transactions.transaction_composer import AppCallParams, TransactionComposer
-  >>> from algosdk.transaction import OnComplete
+* **Example:**
+  ```pycon
   >>> params = AppCallParams(
   ...     sender="SENDER_ADDRESS",
   ...     on_complete=OnComplete.NoOpOC,
@@ -966,8 +937,10 @@ Example:
   ...     approval_program="TEAL_APPROVAL_CODE",
   ...     clear_state_program="TEAL_CLEAR_CODE",
   ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+  ...     ... (see AppCallParams for more options)
+  ... )
+  >>> composer.add_app_call(params)
   ```
-
 * **Parameters:**
   **params** – The application call parameters
 * **Returns:**
@@ -981,6 +954,60 @@ Add an application creation method call transaction.
   **params** – The application creation method call parameters
 * **Returns:**
   The transaction composer instance for chaining
+* **Example:**
+  ```pycon
+  >>> # Basic example
+  >>> method = algosdk.abi.Method(
+  ...     name="method",
+  ...     args=[...],
+  ...     returns="string"
+  ... )
+  >>> composer.add_app_create_method_call(
+  ...     AppCreateMethodCallParams(
+  ...         sender="CREATORADDRESS",
+  ...         approval_program="TEALCODE",
+  ...         clear_state_program="TEALCODE",
+  ...         method=method,
+  ...         args=["arg1_value"]
+  ...     )
+  ... )
+  >>>
+  >>> # Advanced example
+  >>> method = ABIMethod(
+  ...     name="method",
+  ...     args=[{"name": "arg1", "type": "string"}],
+  ...     returns={"type": "string"}
+  ... )
+  >>> composer.add_app_create_method_call(
+  ...     AppCreateMethodCallParams(
+  ...         sender="CREATORADDRESS",
+  ...         method=method,
+  ...         args=["arg1_value"],
+  ...         approval_program="TEALCODE",
+  ...         clear_state_program="TEALCODE",
+  ...         schema={
+  ...             "global_ints": 1,
+  ...             "global_byte_slices": 2,
+  ...             "local_ints": 3,
+  ...             "local_byte_slices": 4
+  ...         },
+  ...         extra_pages=1,
+  ...         on_complete=OnComplete.OptInOC,
+  ...         args=[bytes([1, 2, 3, 4])],
+  ...         account_references=["ACCOUNT_1"],
+  ...         app_references=[123, 1234],
+  ...         asset_references=[12345],
+  ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
+  ...         lease="lease",
+  ...         note="note",
+  ...         first_valid_round=1000,
+  ...         validity_window=10,
+  ...         extra_fee=AlgoAmount.from_micro_algos(1000),
+  ...         static_fee=AlgoAmount.from_micro_algos(1000),
+  ...         max_fee=AlgoAmount.from_micro_algos(3000)
+  ...     )
+  ... )
+  ```
 
 #### add_app_update_method_call(params: [AppUpdateMethodCallParams](#algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
@@ -1035,6 +1062,12 @@ Add an existing AtomicTransactionComposer’s transactions.
   **atc** – The AtomicTransactionComposer to add
 * **Returns:**
   The transaction composer instance for chaining
+* **Example:**
+  ```pycon
+  >>> atc = AtomicTransactionComposer()
+  >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
+  >>> composer.add_atc(atc)
+  ```
 
 #### count() → int
 
@@ -1091,6 +1124,10 @@ Simulate transaction group execution with configurable validation rules.
   * **skip_signatures** – Whether to skip signature validation
 * **Returns:**
   The simulation results
+* **Example:**
+  ```pycon
+  >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
+  ```
 
 #### *static* arc2_note(note: algokit_utils.models.transaction.Arc2TransactionNote) → bytes
 

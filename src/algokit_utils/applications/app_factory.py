@@ -131,10 +131,15 @@ class AppFactoryDeployResult:
     """Result from deploying an application via AppFactory"""
 
     app: ApplicationMetaData
+    """The application metadata"""
     operation_performed: OperationPerformed
+    """The operation performed"""
     create_result: SendAppCreateFactoryTransactionResult | None = None
+    """The create result"""
     update_result: SendAppUpdateFactoryTransactionResult | None = None
+    """The update result"""
     delete_result: SendAppFactoryTransactionResult | None = None
+    """The delete result"""
 
     @classmethod
     def from_deploy_result(

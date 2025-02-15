@@ -35,19 +35,31 @@ Enum where members are also (and must be) ints
 
 #### asset_id *: int*
 
+The ID of the asset
+
 #### decimals *: int*
 
+The amount of decimal places the asset was created with
+
 #### description *: str*
+
+The description of the asset
 
 ### *class* algokit_utils.clients.dispenser_api_client.DispenserFundResponse
 
 #### tx_id *: str*
 
+The transaction ID of the funded transaction
+
 #### amount *: int*
+
+The amount of Algos funded
 
 ### *class* algokit_utils.clients.dispenser_api_client.DispenserLimitResponse
 
 #### amount *: int*
+
+The amount of Algos that can be funded
 
 ### algokit_utils.clients.dispenser_api_client.DISPENSER_ASSETS
 
@@ -69,9 +81,22 @@ Default request timeout is 15 seconds. Modify by passing request_timeout to the 
 
 #### request_timeout *= 15*
 
-#### fund(address: str, amount: int, asset_id: int) → [DispenserFundResponse](#algokit_utils.clients.dispenser_api_client.DispenserFundResponse)
+#### fund(address: str, amount: int) → [DispenserFundResponse](#algokit_utils.clients.dispenser_api_client.DispenserFundResponse)
 
 Fund an account with Algos from the dispenser API
+
+* **Parameters:**
+  * **address** – The address to fund
+  * **amount** – The amount of Algos to fund
+* **Returns:**
+  The transaction ID of the funded transaction
+* **Raises:**
+  **Exception** – If the dispenser API request fails
+* **Example:**
+  ```pycon
+  >>> dispenser_client = TestNetDispenserApiClient()
+  >>> dispenser_client.fund(address="SENDER_ADDRESS", amount=1000000)
+  ```
 
 #### refund(refund_txn_id: str) → None
 
