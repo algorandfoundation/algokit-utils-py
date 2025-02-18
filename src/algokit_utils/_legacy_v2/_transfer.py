@@ -17,7 +17,6 @@ __all__ = ["TransferAssetParameters", "TransferParameters", "transfer", "transfe
 logger = logging.getLogger(__name__)
 
 
-@deprecated("Send transactions via `algorand.{send|create_transaction}.{txn_type}()` instead")
 @dataclasses.dataclass(kw_only=True)
 class TransferParametersBase:
     """Parameters for transferring µALGOs between accounts.
