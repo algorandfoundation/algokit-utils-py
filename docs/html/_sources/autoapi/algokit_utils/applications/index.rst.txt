@@ -1,0 +1,21 @@
+algokit_utils.applications
+==========================
+
+.. py:module:: algokit_utils.applications
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/algokit_utils/applications/abi/index
+   /autoapi/algokit_utils/applications/app_client/index
+   /autoapi/algokit_utils/applications/app_deployer/index
+   /autoapi/algokit_utils/applications/app_factory/index
+   /autoapi/algokit_utils/applications/app_manager/index
+   /autoapi/algokit_utils/applications/app_spec/index
+   /autoapi/algokit_utils/applications/enums/index
+
+

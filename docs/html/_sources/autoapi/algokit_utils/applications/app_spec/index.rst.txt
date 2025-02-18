@@ -1,0 +1,16 @@
+algokit_utils.applications.app_spec
+===================================
+
+.. py:module:: algokit_utils.applications.app_spec
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/algokit_utils/applications/app_spec/arc32/index
+   /autoapi/algokit_utils/applications/app_spec/arc56/index
+
+

@@ -1,0 +1,1591 @@
+algokit_utils.transactions.transaction_composer
+===============================================
+
+.. py:module:: algokit_utils.transactions.transaction_composer
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   algokit_utils.transactions.transaction_composer.MethodCallParams
+   algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument
+   algokit_utils.transactions.transaction_composer.TxnParams
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.transactions.transaction_composer.PaymentParams
+   algokit_utils.transactions.transaction_composer.AssetCreateParams
+   algokit_utils.transactions.transaction_composer.AssetConfigParams
+   algokit_utils.transactions.transaction_composer.AssetFreezeParams
+   algokit_utils.transactions.transaction_composer.AssetDestroyParams
+   algokit_utils.transactions.transaction_composer.OnlineKeyRegistrationParams
+   algokit_utils.transactions.transaction_composer.OfflineKeyRegistrationParams
+   algokit_utils.transactions.transaction_composer.AssetTransferParams
+   algokit_utils.transactions.transaction_composer.AssetOptInParams
+   algokit_utils.transactions.transaction_composer.AssetOptOutParams
+   algokit_utils.transactions.transaction_composer.AppCallParams
+   algokit_utils.transactions.transaction_composer.AppCreateSchema
+   algokit_utils.transactions.transaction_composer.AppCreateParams
+   algokit_utils.transactions.transaction_composer.AppUpdateParams
+   algokit_utils.transactions.transaction_composer.AppDeleteParams
+   algokit_utils.transactions.transaction_composer.AppCallMethodCallParams
+   algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams
+   algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams
+   algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams
+   algokit_utils.transactions.transaction_composer.BuiltTransactions
+   algokit_utils.transactions.transaction_composer.TransactionComposerBuildResult
+   algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
+   algokit_utils.transactions.transaction_composer.TransactionComposer
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algokit_utils.transactions.transaction_composer.calculate_extra_program_pages
+   algokit_utils.transactions.transaction_composer.populate_app_call_resources
+   algokit_utils.transactions.transaction_composer.prepare_group_for_sending
+   algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer
+
+
+Module Contents
+---------------
+
+.. py:class:: PaymentParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for a payment transaction.
+
+
+   .. py:attribute:: receiver
+      :type:  str
+
+      The account that will receive the ALGO
+
+
+
+   .. py:attribute:: amount
+      :type:  algokit_utils.models.amount.AlgoAmount
+
+      Amount to send
+
+
+
+   .. py:attribute:: close_remainder_to
+      :type:  str | None
+      :value: None
+
+
+      If given, close the sender account and send the remaining balance to this address, defaults to None
+
+
+
+.. py:class:: AssetCreateParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for creating a new asset.
+
+
+   .. py:attribute:: total
+      :type:  int
+
+      The total amount of the smallest divisible unit to create
+
+
+
+   .. py:attribute:: asset_name
+      :type:  str | None
+      :value: None
+
+
+      The full name of the asset
+
+
+
+   .. py:attribute:: unit_name
+      :type:  str | None
+      :value: None
+
+
+      The short ticker name for the asset
+
+
+
+   .. py:attribute:: url
+      :type:  str | None
+      :value: None
+
+
+      The metadata URL for the asset
+
+
+
+   .. py:attribute:: decimals
+      :type:  int | None
+      :value: None
+
+
+      The amount of decimal places the asset should have
+
+
+
+   .. py:attribute:: default_frozen
+      :type:  bool | None
+      :value: None
+
+
+      Whether the asset is frozen by default in the creator address
+
+
+
+   .. py:attribute:: manager
+      :type:  str | None
+      :value: None
+
+
+      The address that can change the manager, reserve, clawback, and freeze addresses
+
+
+
+   .. py:attribute:: reserve
+      :type:  str | None
+      :value: None
+
+
+      The address that holds the uncirculated supply
+
+
+
+   .. py:attribute:: freeze
+      :type:  str | None
+      :value: None
+
+
+      The address that can freeze the asset in any account
+
+
+
+   .. py:attribute:: clawback
+      :type:  str | None
+      :value: None
+
+
+      The address that can clawback the asset from any account
+
+
+
+   .. py:attribute:: metadata_hash
+      :type:  bytes | None
+      :value: None
+
+
+      Hash of the metadata contained in the metadata URL
+
+
+
+.. py:class:: AssetConfigParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for configuring an existing asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+   .. py:attribute:: manager
+      :type:  str | None
+      :value: None
+
+
+      The address that can change the manager, reserve, clawback, and freeze addresses, defaults to None
+
+
+
+   .. py:attribute:: reserve
+      :type:  str | None
+      :value: None
+
+
+      The address that holds the uncirculated supply, defaults to None
+
+
+
+   .. py:attribute:: freeze
+      :type:  str | None
+      :value: None
+
+
+      The address that can freeze the asset in any account, defaults to None
+
+
+
+   .. py:attribute:: clawback
+      :type:  str | None
+      :value: None
+
+
+      The address that can clawback the asset from any account, defaults to None
+
+
+
+.. py:class:: AssetFreezeParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for freezing an asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+   .. py:attribute:: account
+      :type:  str
+
+      The account to freeze or unfreeze
+
+
+
+   .. py:attribute:: frozen
+      :type:  bool
+
+      Whether the assets in the account should be frozen
+
+
+
+.. py:class:: AssetDestroyParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for destroying an asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+.. py:class:: OnlineKeyRegistrationParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for online key registration.
+
+
+   .. py:attribute:: vote_key
+      :type:  str
+
+      The root participation public key
+
+
+
+   .. py:attribute:: selection_key
+      :type:  str
+
+      The VRF public key
+
+
+
+   .. py:attribute:: vote_first
+      :type:  int
+
+      The first round that the participation key is valid
+
+
+
+   .. py:attribute:: vote_last
+      :type:  int
+
+      The last round that the participation key is valid
+
+
+
+   .. py:attribute:: vote_key_dilution
+      :type:  int
+
+      The dilution for the 2-level participation key
+
+
+
+   .. py:attribute:: state_proof_key
+      :type:  bytes | None
+      :value: None
+
+
+      The 64 byte state proof public key commitment, defaults to None
+
+
+
+.. py:class:: OfflineKeyRegistrationParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for offline key registration.
+
+
+   .. py:attribute:: prevent_account_from_ever_participating_again
+      :type:  bool
+
+      Whether to prevent the account from ever participating again
+
+
+
+.. py:class:: AssetTransferParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for transferring an asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+   .. py:attribute:: amount
+      :type:  int
+
+      The amount of the asset to transfer (smallest divisible unit)
+
+
+
+   .. py:attribute:: receiver
+      :type:  str
+
+      The account to send the asset to
+
+
+
+   .. py:attribute:: clawback_target
+      :type:  str | None
+      :value: None
+
+
+      The account to take the asset from, defaults to None
+
+
+
+   .. py:attribute:: close_asset_to
+      :type:  str | None
+      :value: None
+
+
+      The account to close the asset to, defaults to None
+
+
+
+.. py:class:: AssetOptInParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for opting into an asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+.. py:class:: AssetOptOutParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for opting out of an asset.
+
+
+   .. py:attribute:: asset_id
+      :type:  int
+
+      The ID of the asset
+
+
+
+   .. py:attribute:: creator
+      :type:  str
+
+      The creator address of the asset
+
+
+
+.. py:class:: AppCallParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for calling an application.
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete
+
+      The OnComplete action, defaults to None
+
+
+
+   .. py:attribute:: app_id
+      :type:  int | None
+      :value: None
+
+
+      The ID of the application, defaults to None
+
+
+
+   .. py:attribute:: approval_program
+      :type:  str | bytes | None
+      :value: None
+
+
+      The program to execute for all OnCompletes other than ClearState, defaults to None
+
+
+
+   .. py:attribute:: clear_state_program
+      :type:  str | bytes | None
+      :value: None
+
+
+      The program to execute for ClearState OnComplete, defaults to None
+
+
+
+   .. py:attribute:: schema
+      :type:  dict[str, int] | None
+      :value: None
+
+
+      The state schema for the app, defaults to None
+
+
+
+   .. py:attribute:: args
+      :type:  list[bytes] | None
+      :value: None
+
+
+      Application arguments, defaults to None
+
+
+
+   .. py:attribute:: account_references
+      :type:  list[str] | None
+      :value: None
+
+
+      Account references, defaults to None
+
+
+
+   .. py:attribute:: app_references
+      :type:  list[int] | None
+      :value: None
+
+
+      App references, defaults to None
+
+
+
+   .. py:attribute:: asset_references
+      :type:  list[int] | None
+      :value: None
+
+
+      Asset references, defaults to None
+
+
+
+   .. py:attribute:: extra_pages
+      :type:  int | None
+      :value: None
+
+
+      Number of extra pages required for the programs, defaults to None
+
+
+
+   .. py:attribute:: box_references
+      :type:  list[algokit_utils.models.state.BoxReference | algokit_utils.models.state.BoxIdentifier] | None
+      :value: None
+
+
+      Box references, defaults to None
+
+
+
+.. py:class:: AppCreateSchema
+
+   Bases: :py:obj:`TypedDict`
+
+
+   dict() -> new empty dictionary
+   dict(mapping) -> new dictionary initialized from a mapping object's
+       (key, value) pairs
+   dict(iterable) -> new dictionary initialized as if via:
+       d = {}
+       for k, v in iterable:
+           d[k] = v
+   dict(**kwargs) -> new dictionary initialized with the name=value pairs
+       in the keyword argument list.  For example:  dict(one=1, two=2)
+
+
+   .. py:attribute:: global_ints
+      :type:  int
+
+      The number of global ints in the schema
+
+
+
+   .. py:attribute:: global_byte_slices
+      :type:  int
+
+      The number of global byte slices in the schema
+
+
+
+   .. py:attribute:: local_ints
+      :type:  int
+
+      The number of local ints in the schema
+
+
+
+   .. py:attribute:: local_byte_slices
+      :type:  int
+
+      The number of local byte slices in the schema
+
+
+
+.. py:class:: AppCreateParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for creating an application.
+
+
+   .. py:attribute:: approval_program
+      :type:  str | bytes
+
+      The program to execute for all OnCompletes other than ClearState
+
+
+
+   .. py:attribute:: clear_state_program
+      :type:  str | bytes
+
+      The program to execute for ClearState OnComplete
+
+
+
+   .. py:attribute:: schema
+      :type:  AppCreateSchema | None
+      :value: None
+
+
+      The state schema for the app, defaults to None
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete | None
+      :value: None
+
+
+      The OnComplete action, defaults to None
+
+
+
+   .. py:attribute:: args
+      :type:  list[bytes] | None
+      :value: None
+
+
+      Application arguments, defaults to None
+
+
+
+   .. py:attribute:: account_references
+      :type:  list[str] | None
+      :value: None
+
+
+      Account references, defaults to None
+
+
+
+   .. py:attribute:: app_references
+      :type:  list[int] | None
+      :value: None
+
+
+      App references, defaults to None
+
+
+
+   .. py:attribute:: asset_references
+      :type:  list[int] | None
+      :value: None
+
+
+      Asset references, defaults to None
+
+
+
+   .. py:attribute:: box_references
+      :type:  list[algokit_utils.models.state.BoxReference | algokit_utils.models.state.BoxIdentifier] | None
+      :value: None
+
+
+      Box references, defaults to None
+
+
+
+   .. py:attribute:: extra_program_pages
+      :type:  int | None
+      :value: None
+
+
+      Number of extra pages required for the programs, defaults to None
+
+
+
+.. py:class:: AppUpdateParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for updating an application.
+
+
+   .. py:attribute:: app_id
+      :type:  int
+
+      The ID of the application
+
+
+
+   .. py:attribute:: approval_program
+      :type:  str | bytes
+
+      The program to execute for all OnCompletes other than ClearState
+
+
+
+   .. py:attribute:: clear_state_program
+      :type:  str | bytes
+
+      The program to execute for ClearState OnComplete
+
+
+
+   .. py:attribute:: args
+      :type:  list[bytes] | None
+      :value: None
+
+
+      Application arguments, defaults to None
+
+
+
+   .. py:attribute:: account_references
+      :type:  list[str] | None
+      :value: None
+
+
+      Account references, defaults to None
+
+
+
+   .. py:attribute:: app_references
+      :type:  list[int] | None
+      :value: None
+
+
+      App references, defaults to None
+
+
+
+   .. py:attribute:: asset_references
+      :type:  list[int] | None
+      :value: None
+
+
+      Asset references, defaults to None
+
+
+
+   .. py:attribute:: box_references
+      :type:  list[algokit_utils.models.state.BoxReference | algokit_utils.models.state.BoxIdentifier] | None
+      :value: None
+
+
+      Box references, defaults to None
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete | None
+      :value: None
+
+
+      The OnComplete action, defaults to None
+
+
+
+.. py:class:: AppDeleteParams
+
+   Bases: :py:obj:`_CommonTxnParams`
+
+
+   Parameters for deleting an application.
+
+
+   .. py:attribute:: app_id
+      :type:  int
+
+      The ID of the application
+
+
+
+   .. py:attribute:: args
+      :type:  list[bytes] | None
+      :value: None
+
+
+      Application arguments, defaults to None
+
+
+
+   .. py:attribute:: account_references
+      :type:  list[str] | None
+      :value: None
+
+
+      Account references, defaults to None
+
+
+
+   .. py:attribute:: app_references
+      :type:  list[int] | None
+      :value: None
+
+
+      App references, defaults to None
+
+
+
+   .. py:attribute:: asset_references
+      :type:  list[int] | None
+      :value: None
+
+
+      Asset references, defaults to None
+
+
+
+   .. py:attribute:: box_references
+      :type:  list[algokit_utils.models.state.BoxReference | algokit_utils.models.state.BoxIdentifier] | None
+      :value: None
+
+
+      Box references, defaults to None
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete
+
+      The OnComplete action, defaults to DeleteApplicationOC
+
+
+
+.. py:class:: AppCallMethodCallParams
+
+   Bases: :py:obj:`_BaseAppMethodCall`
+
+
+   Parameters for a regular ABI method call.
+
+
+   .. py:attribute:: app_id
+      :type:  int
+
+      The ID of the application
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete | None
+      :value: None
+
+
+      The OnComplete action, defaults to None
+
+
+
+.. py:class:: AppCreateMethodCallParams
+
+   Bases: :py:obj:`_BaseAppMethodCall`
+
+
+   Parameters for an ABI method call that creates an application.
+
+
+   .. py:attribute:: approval_program
+      :type:  str | bytes
+
+      The program to execute for all OnCompletes other than ClearState
+
+
+
+   .. py:attribute:: clear_state_program
+      :type:  str | bytes
+
+      The program to execute for ClearState OnComplete
+
+
+
+   .. py:attribute:: schema
+      :type:  AppCreateSchema | None
+      :value: None
+
+
+      The state schema for the app, defaults to None
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete | None
+      :value: None
+
+
+      The OnComplete action (cannot be ClearState), defaults to None
+
+
+
+   .. py:attribute:: extra_program_pages
+      :type:  int | None
+      :value: None
+
+
+      Number of extra pages required for the programs, defaults to None
+
+
+
+.. py:class:: AppUpdateMethodCallParams
+
+   Bases: :py:obj:`_BaseAppMethodCall`
+
+
+   Parameters for an ABI method call that updates an application.
+
+
+   .. py:attribute:: app_id
+      :type:  int
+
+      The ID of the application
+
+
+
+   .. py:attribute:: approval_program
+      :type:  str | bytes
+
+      The program to execute for all OnCompletes other than ClearState
+
+
+
+   .. py:attribute:: clear_state_program
+      :type:  str | bytes
+
+      The program to execute for ClearState OnComplete
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete
+
+      The OnComplete action
+
+
+
+.. py:class:: AppDeleteMethodCallParams
+
+   Bases: :py:obj:`_BaseAppMethodCall`
+
+
+   Parameters for an ABI method call that deletes an application.
+
+
+   .. py:attribute:: app_id
+      :type:  int
+
+      The ID of the application
+
+
+
+   .. py:attribute:: on_complete
+      :type:  algosdk.transaction.OnComplete
+
+      The OnComplete action
+
+
+
+.. py:data:: MethodCallParams
+
+.. py:data:: AppMethodCallTransactionArgument
+
+.. py:data:: TxnParams
+
+.. py:class:: BuiltTransactions
+
+   Set of transactions built by TransactionComposer.
+
+
+   .. py:attribute:: transactions
+      :type:  list[algosdk.transaction.Transaction]
+
+      The built transactions
+
+
+
+   .. py:attribute:: method_calls
+      :type:  dict[int, algosdk.abi.Method]
+
+      Map of transaction index to ABI method
+
+
+
+   .. py:attribute:: signers
+      :type:  dict[int, algosdk.atomic_transaction_composer.TransactionSigner]
+
+      Map of transaction index to TransactionSigner
+
+
+
+.. py:class:: TransactionComposerBuildResult
+
+   Result of building transactions with TransactionComposer.
+
+
+   .. py:attribute:: atc
+      :type:  algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
+      The AtomicTransactionComposer instance
+
+
+
+   .. py:attribute:: transactions
+      :type:  list[algosdk.atomic_transaction_composer.TransactionWithSigner]
+
+      The list of transactions with signers
+
+
+
+   .. py:attribute:: method_calls
+      :type:  dict[int, algosdk.abi.Method]
+
+      Map of transaction index to ABI method
+
+
+
+.. py:class:: SendAtomicTransactionComposerResults
+
+   Results from sending an AtomicTransactionComposer transaction group.
+
+
+   .. py:attribute:: group_id
+      :type:  str
+
+      The group ID if this was a transaction group
+
+
+
+   .. py:attribute:: confirmations
+      :type:  list[algosdk.v2client.algod.AlgodResponseType]
+
+      The confirmation info for each transaction
+
+
+
+   .. py:attribute:: tx_ids
+      :type:  list[str]
+
+      The transaction IDs that were sent
+
+
+
+   .. py:attribute:: transactions
+      :type:  list[algokit_utils.models.transaction.TransactionWrapper]
+
+      The transactions that were sent
+
+
+
+   .. py:attribute:: returns
+      :type:  list[algokit_utils.applications.abi.ABIReturn]
+
+      The ABI return values from any ABI method calls
+
+
+
+   .. py:attribute:: simulate_response
+      :type:  dict[str, Any] | None
+      :value: None
+
+
+      The simulation response if simulation was performed, defaults to None
+
+
+
+.. py:function:: calculate_extra_program_pages(approval: bytes | None, clear: bytes | None) -> int
+
+   Calculate minimum number of extra_pages required for provided approval and clear programs
+
+
+.. py:function:: populate_app_call_resources(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient) -> algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
+   Populate application call resources based on simulation results.
+
+   :param atc: The AtomicTransactionComposer containing transactions
+   :param algod: Algod client for simulation
+   :return: Modified AtomicTransactionComposer with populated resources
+
+
+.. py:function:: prepare_group_for_sending(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient, populate_app_call_resources: bool | None = None, cover_app_call_inner_transaction_fees: bool | None = None, additional_atc_context: AdditionalAtcContext | None = None) -> algosdk.atomic_transaction_composer.AtomicTransactionComposer
+
+   Prepare a transaction group for sending by handling execution info and resources.
+
+   :param atc: The AtomicTransactionComposer containing transactions
+   :param algod: Algod client for simulation
+   :param populate_app_call_resources: Whether to populate app call resources
+   :param cover_app_call_inner_transaction_fees: Whether to cover inner txn fees
+   :param additional_atc_context: Additional context for the AtomicTransactionComposer
+   :return: Modified AtomicTransactionComposer ready for sending
+
+
+.. py:function:: send_atomic_transaction_composer(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer, algod: algosdk.v2client.algod.AlgodClient, *, max_rounds_to_wait: int | None = 5, skip_waiting: bool = False, suppress_log: bool | None = None, populate_app_call_resources: bool | None = None, cover_app_call_inner_transaction_fees: bool | None = None, additional_atc_context: AdditionalAtcContext | None = None) -> SendAtomicTransactionComposerResults
+
+   Send an AtomicTransactionComposer transaction group.
+
+   Executes a group of transactions atomically using the AtomicTransactionComposer.
+
+   :param atc: The AtomicTransactionComposer instance containing the transaction group to send
+   :param algod: The Algod client to use for sending the transactions
+   :param max_rounds_to_wait: Maximum number of rounds to wait for confirmation, defaults to 5
+   :param skip_waiting: If True, don't wait for transaction confirmation, defaults to False
+   :param suppress_log: If True, suppress logging, defaults to None
+   :param populate_app_call_resources: If True, populate app call resources, defaults to None
+   :param cover_app_call_inner_transaction_fees: If True, cover app call inner transaction fees, defaults to None
+   :param additional_atc_context: Additional context for the AtomicTransactionComposer
+   :return: Results from sending the transaction group
+   :raises Exception: If there is an error sending the transactions
+   :raises error: If there is an error from the Algorand node
+
+
+.. py:class:: TransactionComposer(algod: algosdk.v2client.algod.AlgodClient, get_signer: collections.abc.Callable[[str], algosdk.atomic_transaction_composer.TransactionSigner], get_suggested_params: collections.abc.Callable[[], algosdk.transaction.SuggestedParams] | None = None, default_validity_window: int | None = None, app_manager: algokit_utils.applications.app_manager.AppManager | None = None)
+
+   A class for composing and managing Algorand transactions.
+
+   Provides a high-level interface for building and executing transaction groups using the Algosdk library.
+   Supports various transaction types including payments, asset operations, application calls, and key registrations.
+
+   :param algod: An instance of AlgodClient used to get suggested params and send transactions
+   :param get_signer: A function that takes an address and returns a TransactionSigner for that address
+   :param get_suggested_params: Optional function to get suggested transaction parameters,
+       defaults to using algod.suggested_params()
+   :param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
+   :param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
+
+
+   .. py:method:: add_transaction(transaction: algosdk.transaction.Transaction, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None) -> TransactionComposer
+
+      Add a raw transaction to the composer.
+
+      :param transaction: The transaction to add
+      :param signer: Optional transaction signer, defaults to getting signer from transaction sender
+      :return: The transaction composer instance for chaining
+
+      :example:
+          >>> composer.add_transaction(transaction)
+
+
+
+   .. py:method:: add_payment(params: PaymentParams) -> TransactionComposer
+
+      Add a payment transaction.
+
+      :example:
+          >>> params = PaymentParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     receiver="RECEIVER_ADDRESS",
+          ...     amount=AlgoAmount.from_algo(1),
+          ...     close_remainder_to="CLOSE_ADDRESS"
+          ...     ... (see PaymentParams for more options)
+          ... )
+          >>> composer.add_payment(params)
+
+      :param params: The payment transaction parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_create(params: AssetCreateParams) -> TransactionComposer
+
+      Add an asset creation transaction.
+
+      :example:
+          >>> params = AssetCreateParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     total=1000,
+          ...     asset_name="MyAsset",
+          ...     unit_name="MA",
+          ...     url="https://example.com",
+          ...     decimals=0,
+          ...     default_frozen=False,
+          ...     manager="MANAGER_ADDRESS",
+          ...     reserve="RESERVE_ADDRESS",
+          ...     freeze="FREEZE_ADDRESS",
+          ...     clawback="CLAWBACK_ADDRESS"
+          ...     ... (see AssetCreateParams for more options)
+          >>> composer.add_asset_create(params)
+
+      :param params: The asset creation parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_config(params: AssetConfigParams) -> TransactionComposer
+
+      Add an asset configuration transaction.
+
+      :example:
+          >>> params = AssetConfigParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456,
+          ...     manager="NEW_MANAGER_ADDRESS",
+          ...     reserve="NEW_RESERVE_ADDRESS",
+          ...     freeze="NEW_FREEZE_ADDRESS",
+          ...     clawback="NEW_CLAWBACK_ADDRESS"
+          ...     ... (see AssetConfigParams for more options)
+          ... )
+          >>> composer.add_asset_config(params)
+
+      :param params: The asset configuration parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_freeze(params: AssetFreezeParams) -> TransactionComposer
+
+      Add an asset freeze transaction.
+
+      :example:
+          >>> params = AssetFreezeParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456,
+          ...     account="ACCOUNT_TO_FREEZE",
+          ...     frozen=True
+          ...     ... (see AssetFreezeParams for more options)
+          ... )
+          >>> composer.add_asset_freeze(params)
+
+      :param params: The asset freeze parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_destroy(params: AssetDestroyParams) -> TransactionComposer
+
+      Add an asset destruction transaction.
+
+      :example:
+          >>> params = AssetDestroyParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456
+          ...     ... (see AssetDestroyParams for more options)
+          >>> composer.add_asset_destroy(params)
+
+      :param params: The asset destruction parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_transfer(params: AssetTransferParams) -> TransactionComposer
+
+      Add an asset transfer transaction.
+
+      :example:
+          >>> params = AssetTransferParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456,
+          ...     amount=10,
+          ...     receiver="RECEIVER_ADDRESS",
+          ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
+          ...     close_asset_to="CLOSE_ADDRESS"
+          ...     ... (see AssetTransferParams for more options)
+          >>> composer.add_asset_transfer(params)
+
+      :param params: The asset transfer parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_opt_in(params: AssetOptInParams) -> TransactionComposer
+
+      Add an asset opt-in transaction.
+
+      :example:
+          >>> params = AssetOptInParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456
+          ...     ... (see AssetOptInParams for more options)
+          ... )
+          >>> composer.add_asset_opt_in(params)
+
+      :param params: The asset opt-in parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_asset_opt_out(params: AssetOptOutParams) -> TransactionComposer
+
+      Add an asset opt-out transaction.
+
+      :example:
+          >>> params = AssetOptOutParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     asset_id=123456,
+          ...     creator="CREATOR_ADDRESS"
+          ...     ... (see AssetOptOutParams for more options)
+          >>> composer.add_asset_opt_out(params)
+
+      :param params: The asset opt-out parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_create(params: AppCreateParams) -> TransactionComposer
+
+      Add an application creation transaction.
+
+      :example:
+          >>> params = AppCreateParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     approval_program="TEAL_APPROVAL_CODE",
+          ...     clear_state_program="TEAL_CLEAR_CODE",
+          ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+          ...     on_complete=OnComplete.NoOpOC,
+          ...     args=[b'arg1'],
+          ...     account_references=["ACCOUNT1"],
+          ...     app_references=[789],
+          ...     asset_references=[123],
+          ...     box_references=[],
+          ...     extra_program_pages=0
+          ...     ... (see AppCreateParams for more options)
+          ... )
+          >>> composer.add_app_create(params)
+
+      :param params: The application creation parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_update(params: AppUpdateParams) -> TransactionComposer
+
+      Add an application update transaction.
+
+      :example:
+          >>> params = AppUpdateParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     app_id=789,
+          ...     approval_program="TEAL_NEW_APPROVAL_CODE",
+          ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
+          ...     args=[b'new_arg1'],
+          ...     account_references=["ACCOUNT1"],
+          ...     app_references=[789],
+          ...     asset_references=[123],
+          ...     box_references=[],
+          ...     on_complete=OnComplete.UpdateApplicationOC
+          ...     ... (see AppUpdateParams for more options)
+          >>> composer.add_app_update(params)
+
+      :param params: The application update parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_delete(params: AppDeleteParams) -> TransactionComposer
+
+      Add an application deletion transaction.
+
+      :example:
+          >>> params = AppDeleteParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     app_id=789,
+          ...     args=[b'delete_arg'],
+          ...     account_references=["ACCOUNT1"],
+          ...     app_references=[789],
+          ...     asset_references=[123],
+          ...     box_references=[],
+          ...     on_complete=OnComplete.DeleteApplicationOC
+          ...     ... (see AppDeleteParams for more options)
+          >>> composer.add_app_delete(params)
+
+      :param params: The application deletion parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_call(params: AppCallParams) -> TransactionComposer
+
+      Add an application call transaction.
+
+      :example:
+          >>> params = AppCallParams(
+          ...     sender="SENDER_ADDRESS",
+          ...     on_complete=OnComplete.NoOpOC,
+          ...     app_id=789,
+          ...     approval_program="TEAL_APPROVAL_CODE",
+          ...     clear_state_program="TEAL_CLEAR_CODE",
+          ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+          ...     ... (see AppCallParams for more options)
+          ... )
+          >>> composer.add_app_call(params)
+
+      :param params: The application call parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_create_method_call(params: AppCreateMethodCallParams) -> TransactionComposer
+
+      Add an application creation method call transaction.
+
+      :param params: The application creation method call parameters
+      :return: The transaction composer instance for chaining
+
+      :example:
+          >>> # Basic example
+          >>> method = algosdk.abi.Method(
+          ...     name="method",
+          ...     args=[...],
+          ...     returns="string"
+          ... )
+          >>> composer.add_app_create_method_call(
+          ...     AppCreateMethodCallParams(
+          ...         sender="CREATORADDRESS",
+          ...         approval_program="TEALCODE",
+          ...         clear_state_program="TEALCODE",
+          ...         method=method,
+          ...         args=["arg1_value"]
+          ...     )
+          ... )
+          >>>
+          >>> # Advanced example
+          >>> method = ABIMethod(
+          ...     name="method",
+          ...     args=[{"name": "arg1", "type": "string"}],
+          ...     returns={"type": "string"}
+          ... )
+          >>> composer.add_app_create_method_call(
+          ...     AppCreateMethodCallParams(
+          ...         sender="CREATORADDRESS",
+          ...         method=method,
+          ...         args=["arg1_value"],
+          ...         approval_program="TEALCODE",
+          ...         clear_state_program="TEALCODE",
+          ...         schema={
+          ...             "global_ints": 1,
+          ...             "global_byte_slices": 2,
+          ...             "local_ints": 3,
+          ...             "local_byte_slices": 4
+          ...         },
+          ...         extra_pages=1,
+          ...         on_complete=OnComplete.OptInOC,
+          ...         args=[bytes([1, 2, 3, 4])],
+          ...         account_references=["ACCOUNT_1"],
+          ...         app_references=[123, 1234],
+          ...         asset_references=[12345],
+          ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
+          ...         lease="lease",
+          ...         note="note",
+          ...         first_valid_round=1000,
+          ...         validity_window=10,
+          ...         extra_fee=AlgoAmount.from_micro_algos(1000),
+          ...         static_fee=AlgoAmount.from_micro_algos(1000),
+          ...         max_fee=AlgoAmount.from_micro_algos(3000)
+          ...     )
+          ... )
+
+
+
+   .. py:method:: add_app_update_method_call(params: AppUpdateMethodCallParams) -> TransactionComposer
+
+      Add an application update method call transaction.
+
+      :param params: The application update method call parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_delete_method_call(params: AppDeleteMethodCallParams) -> TransactionComposer
+
+      Add an application deletion method call transaction.
+
+      :param params: The application deletion method call parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_app_call_method_call(params: AppCallMethodCallParams) -> TransactionComposer
+
+      Add an application call method call transaction.
+
+      :param params: The application call method call parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_online_key_registration(params: OnlineKeyRegistrationParams) -> TransactionComposer
+
+      Add an online key registration transaction.
+
+      :param params: The online key registration parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_offline_key_registration(params: OfflineKeyRegistrationParams) -> TransactionComposer
+
+      Add an offline key registration transaction.
+
+      :param params: The offline key registration parameters
+      :return: The transaction composer instance for chaining
+
+
+
+   .. py:method:: add_atc(atc: algosdk.atomic_transaction_composer.AtomicTransactionComposer) -> TransactionComposer
+
+      Add an existing AtomicTransactionComposer's transactions.
+
+      :param atc: The AtomicTransactionComposer to add
+      :return: The transaction composer instance for chaining
+
+      :example:
+          >>> atc = AtomicTransactionComposer()
+          >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
+          >>> composer.add_atc(atc)
+
+
+
+   .. py:method:: count() -> int
+
+      Get the total number of transactions.
+
+      :return: The number of transactions
+
+
+
+   .. py:method:: build() -> TransactionComposerBuildResult
+
+      Build the transaction group.
+
+      :return: The built transaction group result
+
+
+
+   .. py:method:: rebuild() -> TransactionComposerBuildResult
+
+      Rebuild the transaction group from scratch.
+
+      :return: The rebuilt transaction group result
+
+
+
+   .. py:method:: build_transactions() -> BuiltTransactions
+
+      Build and return the transactions without executing them.
+
+      :return: The built transactions result
+
+
+
+   .. py:method:: execute(*, max_rounds_to_wait: int | None = None) -> SendAtomicTransactionComposerResults
+
+
+   .. py:method:: send(params: algokit_utils.models.transaction.SendParams | None = None) -> SendAtomicTransactionComposerResults
+
+      Send the transaction group to the network.
+
+      :param params: Parameters for the send operation
+      :return: The transaction send results
+      :raises Exception: If the transaction fails
+
+
+
+   .. py:method:: simulate(allow_more_logs: bool | None = None, allow_empty_signatures: bool | None = None, allow_unnamed_resources: bool | None = None, extra_opcode_budget: int | None = None, exec_trace_config: algosdk.v2client.models.SimulateTraceConfig | None = None, simulation_round: int | None = None, skip_signatures: bool | None = None) -> SendAtomicTransactionComposerResults
+
+      Simulate transaction group execution with configurable validation rules.
+
+      :param allow_more_logs: Whether to allow more logs than the standard limit
+      :param allow_empty_signatures: Whether to allow transactions with empty signatures
+      :param allow_unnamed_resources: Whether to allow unnamed resources.
+      :param extra_opcode_budget: Additional opcode budget to allocate
+      :param exec_trace_config: Configuration for execution tracing
+      :param simulation_round: Round number to simulate at
+      :param skip_signatures: Whether to skip signature validation
+      :return: The simulation results
+
+      :example:
+          >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
+
+
+
+   .. py:method:: arc2_note(note: algokit_utils.models.transaction.Arc2TransactionNote) -> bytes
+      :staticmethod:
+
+
+      Create an encoded transaction note that follows the ARC-2 spec.
+
+      https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md
+
+      :param note: The ARC-2 note to encode
+      :return: The encoded note bytes
+      :raises ValueError: If the dapp_name is invalid
+
+
+

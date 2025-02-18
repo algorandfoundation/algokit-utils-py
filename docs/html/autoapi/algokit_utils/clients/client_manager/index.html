@@ -1,0 +1,1125 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" /><link rel="next" title="algokit_utils.clients.dispenser_api_client" href="../dispenser_api_client/index.html" /><link rel="prev" title="algokit_utils.clients" href="../index.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>algokit_utils.clients.client_manager - algokit-utils-py 3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../index.html"><div class="brand">algokit-utils-py 3.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">algokit-utils-py 3.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/account.html">Account management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/algorand-client.html">Algorand client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/amount.html">Algo amount handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app-client.html">App client and App factory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app-deploy.html">App deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app.html">App management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/asset.html">Assets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/client.html">Client management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/dispenser-client.html">TestNet Dispenser Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transaction-composer.html">Transaction composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transaction.html">Transaction management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transfer.html">Algo transfers (payments)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/typed-app-clients.html">Typed application clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../v3-migration-guide.html">Migration Guide - v3</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">algokit_utils</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of algokit_utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../accounts/index.html">algokit_utils.accounts</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of algokit_utils.accounts</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../accounts/account_manager/index.html">algokit_utils.accounts.account_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../accounts/kmd_account_manager/index.html">algokit_utils.accounts.kmd_account_manager</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../algorand/index.html">algokit_utils.algorand</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../applications/index.html">algokit_utils.applications</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of algokit_utils.applications</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/abi/index.html">algokit_utils.applications.abi</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/app_client/index.html">algokit_utils.applications.app_client</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/app_deployer/index.html">algokit_utils.applications.app_deployer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/app_factory/index.html">algokit_utils.applications.app_factory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/app_manager/index.html">algokit_utils.applications.app_manager</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../../applications/app_spec/index.html">algokit_utils.applications.app_spec</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of algokit_utils.applications.app_spec</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../../applications/app_spec/arc32/index.html">algokit_utils.applications.app_spec.arc32</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../../applications/app_spec/arc56/index.html">algokit_utils.applications.app_spec.arc56</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../../applications/enums/index.html">algokit_utils.applications.enums</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../assets/index.html">algokit_utils.assets</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of algokit_utils.assets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../assets/asset_manager/index.html">algokit_utils.assets.asset_manager</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">algokit_utils.clients</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of algokit_utils.clients</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">algokit_utils.clients.client_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../dispenser_api_client/index.html">algokit_utils.clients.dispenser_api_client</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../config/index.html">algokit_utils.config</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../errors/index.html">algokit_utils.errors</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of algokit_utils.errors</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../errors/logic_error/index.html">algokit_utils.errors.logic_error</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../models/index.html">algokit_utils.models</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of algokit_utils.models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../models/account/index.html">algokit_utils.models.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/amount/index.html">algokit_utils.models.amount</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/application/index.html">algokit_utils.models.application</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/network/index.html">algokit_utils.models.network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/simulate/index.html">algokit_utils.models.simulate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/state/index.html">algokit_utils.models.state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/transaction/index.html">algokit_utils.models.transaction</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../protocols/index.html">algokit_utils.protocols</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of algokit_utils.protocols</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../protocols/account/index.html">algokit_utils.protocols.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../protocols/typed_clients/index.html">algokit_utils.protocols.typed_clients</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../transactions/index.html">algokit_utils.transactions</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of algokit_utils.transactions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_composer/index.html">algokit_utils.transactions.transaction_composer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_creator/index.html">algokit_utils.transactions.transaction_creator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_sender/index.html">algokit_utils.transactions.transaction_sender</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../../../_sources/autoapi/algokit_utils/clients/client_manager/index.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-algokit_utils.clients.client_manager">
+<span id="algokit-utils-clients-client-manager"></span><h1>algokit_utils.clients.client_manager<a class="headerlink" href="#module-algokit_utils.clients.client_manager" title="Link to this heading">¶</a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients" title="algokit_utils.clients.client_manager.AlgoSdkClients"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AlgoSdkClients</span></code></a></p></td>
+<td><p>Container for Algorand SDK client instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail" title="algokit_utils.clients.client_manager.NetworkDetail"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetworkDetail</span></code></a></p></td>
+<td><p>Details about an Algorand network.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager" title="algokit_utils.clients.client_manager.ClientManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ClientManager</span></code></a></p></td>
+<td><p>Manager for Algorand SDK clients.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.AlgoSdkClients">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.clients.client_manager.</span></span><span class="sig-name descname"><span class="pre">AlgoSdkClients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.v2client.algod.AlgodClient</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.v2client.indexer.IndexerClient</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kmd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.kmd.KMDClient</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.clients.client_manager.AlgoSdkClients" title="Link to this definition">¶</a></dt>
+<dd><p>Container for Algorand SDK client instances.</p>
+<p>Holds references to Algod, Indexer and KMD clients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>algod</strong> – Algod client instance</p></li>
+<li><p><strong>indexer</strong> – Optional Indexer client instance</p></li>
+<li><p><strong>kmd</strong> – Optional KMD client instance</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.AlgoSdkClients.algod">
+<span class="sig-name descname"><span class="pre">algod</span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.AlgoSdkClients.algod" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.AlgoSdkClients.indexer">
+<span class="sig-name descname"><span class="pre">indexer</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.AlgoSdkClients.indexer" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.AlgoSdkClients.kmd">
+<span class="sig-name descname"><span class="pre">kmd</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.AlgoSdkClients.kmd" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.clients.client_manager.</span></span><span class="sig-name descname"><span class="pre">NetworkDetail</span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail" title="Link to this definition">¶</a></dt>
+<dd><p>Details about an Algorand network.</p>
+<p>Contains network type flags and genesis information.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail.is_testnet">
+<span class="sig-name descname"><span class="pre">is_testnet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail.is_testnet" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the network is a testnet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail.is_mainnet">
+<span class="sig-name descname"><span class="pre">is_mainnet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail.is_mainnet" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the network is a mainnet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail.is_localnet">
+<span class="sig-name descname"><span class="pre">is_localnet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail.is_localnet" title="Link to this definition">¶</a></dt>
+<dd><p>Whether the network is a localnet</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail.genesis_id">
+<span class="sig-name descname"><span class="pre">genesis_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail.genesis_id" title="Link to this definition">¶</a></dt>
+<dd><p>The genesis ID of the network</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.NetworkDetail.genesis_hash">
+<span class="sig-name descname"><span class="pre">genesis_hash</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.NetworkDetail.genesis_hash" title="Link to this definition">¶</a></dt>
+<dd><p>The genesis hash of the network</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.clients.client_manager.</span></span><span class="sig-name descname"><span class="pre">ClientManager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clients_or_configs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientConfigs" title="algokit_utils.models.network.AlgoClientConfigs"><span class="pre">algokit_utils.models.network.AlgoClientConfigs</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients" title="algokit_utils.clients.client_manager.AlgoSdkClients"><span class="pre">AlgoSdkClients</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorand_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../algorand/index.html#algokit_utils.algorand.AlgorandClient" title="algokit_utils.algorand.AlgorandClient"><span class="pre">algokit_utils.algorand.AlgorandClient</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager" title="Link to this definition">¶</a></dt>
+<dd><p>Manager for Algorand SDK clients.</p>
+<p>Provides access to Algod, Indexer and KMD clients and helper methods for working with them.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>clients_or_configs</strong> – Either client instances or client configurations</p></li>
+<li><p><strong>algorand_client</strong> – AlgorandClient instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Algod only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Algod and Indexer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">,</span> <span class="n">indexer_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Algod config only</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">ClientManager</span><span class="o">.</span><span class="n">get_algod_config_from_environment</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Algod and Indexer config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">ClientManager</span><span class="o">.</span><span class="n">get_algod_config_from_environment</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">ClientManager</span><span class="o">.</span><span class="n">get_indexer_config_from_environment</span><span class="p">())</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.algod">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">algod</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.v2client.algod.AlgodClient</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.algod" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an algosdk Algod API client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Algod client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.indexer">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">indexer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.v2client.indexer.IndexerClient</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.indexer" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an algosdk Indexer API client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no Indexer client is configured</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Indexer client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.indexer_if_present">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">indexer_if_present</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.v2client.indexer.IndexerClient</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.indexer_if_present" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Indexer client if configured, otherwise None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indexer client instance or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.kmd">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">kmd</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.kmd.KMDClient</span></em><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.kmd" title="Link to this definition">¶</a></dt>
+<dd><p>Returns an algosdk KMD API client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no KMD client is configured</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>KMD client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.network">
+<span class="sig-name descname"><span class="pre">network</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail" title="algokit_utils.clients.client_manager.NetworkDetail"><span class="pre">NetworkDetail</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.network" title="Link to this definition">¶</a></dt>
+<dd><p>Get details about the connected Algorand network.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Network details including type and genesis information</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">network_detail</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">network</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.is_localnet">
+<span class="sig-name descname"><span class="pre">is_localnet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.is_localnet" title="Link to this definition">¶</a></dt>
+<dd><p>Check if connected to a local network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if connected to a local network</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.is_testnet">
+<span class="sig-name descname"><span class="pre">is_testnet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.is_testnet" title="Link to this definition">¶</a></dt>
+<dd><p>Check if connected to TestNet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if connected to TestNet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.is_mainnet">
+<span class="sig-name descname"><span class="pre">is_mainnet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.is_mainnet" title="Link to this definition">¶</a></dt>
+<dd><p>Check if connected to MainNet.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if connected to MainNet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_testnet_dispenser">
+<span class="sig-name descname"><span class="pre">get_testnet_dispenser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">auth_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request_timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../dispenser_api_client/index.html#algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient" title="algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient"><span class="pre">algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_testnet_dispenser" title="Link to this definition">¶</a></dt>
+<dd><p>Get a TestNet dispenser API client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>auth_token</strong> – Optional authentication token</p></li>
+<li><p><strong>request_timeout</strong> – Optional request timeout in seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>TestNet dispenser client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_app_factory">
+<span class="sig-name descname"><span class="pre">get_app_factory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">algokit_utils._legacy_v2.application_specification.ApplicationSpecification</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compilation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_client/index.html#algokit_utils.applications.app_client.AppClientCompilationParams" title="algokit_utils.applications.app_client.AppClientCompilationParams"><span class="pre">algokit_utils.applications.app_client.AppClientCompilationParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../applications/app_factory/index.html#algokit_utils.applications.app_factory.AppFactory" title="algokit_utils.applications.app_factory.AppFactory"><span class="pre">algokit_utils.applications.app_factory.AppFactory</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_app_factory" title="Link to this definition">¶</a></dt>
+<dd><p>Get an application factory for deploying smart contracts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_spec</strong> – Application specification</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>version</strong> – Optional version string</p></li>
+<li><p><strong>compilation_params</strong> – Optional compilation parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Application factory instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_app_client_by_id">
+<span class="sig-name descname"><span class="pre">get_app_client_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">algokit_utils._legacy_v2.application_specification.ApplicationSpecification</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../applications/app_client/index.html#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">algokit_utils.applications.app_client.AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_id" title="Link to this definition">¶</a></dt>
+<dd><p>Get an application client for an existing application by ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_spec</strong> – Application specification</p></li>
+<li><p><strong>app_id</strong> – Application ID</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Application client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_app_client_by_network">
+<span class="sig-name descname"><span class="pre">get_app_client_by_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">algokit_utils._legacy_v2.application_specification.ApplicationSpecification</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../applications/app_client/index.html#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">algokit_utils.applications.app_client.AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_network" title="Link to this definition">¶</a></dt>
+<dd><p>Get an application client for an existing application by network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_spec</strong> – Application specification</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Application client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_app_client_by_creator_and_name">
+<span class="sig-name descname"><span class="pre">get_app_client_by_creator_and_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">creator_address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">algokit_utils._legacy_v2.application_specification.ApplicationSpecification</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_lookup_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_deployer/index.html#algokit_utils.applications.app_deployer.ApplicationLookup" title="algokit_utils.applications.app_deployer.ApplicationLookup"><span class="pre">algokit_utils.applications.app_deployer.ApplicationLookup</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../applications/app_client/index.html#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">algokit_utils.applications.app_client.AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_creator_and_name" title="Link to this definition">¶</a></dt>
+<dd><p>Get an application client by creator address and name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>creator_address</strong> – Creator address</p></li>
+<li><p><strong>app_name</strong> – Application name</p></li>
+<li><p><strong>app_spec</strong> – Application specification</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>ignore_cache</strong> – Optional flag to ignore cache</p></li>
+<li><p><strong>app_lookup_cache</strong> – Optional app lookup cache</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Application client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_algod_client">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_algod_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.v2client.algod.AlgodClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_client" title="Link to this definition">¶</a></dt>
+<dd><p>Get an Algod client from config or environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> – Optional client configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Algod client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_algod_client_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_algod_client_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.v2client.algod.AlgodClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_client_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Get an Algod client from environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Algod client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_kmd_client">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_kmd_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.kmd.KMDClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_client" title="Link to this definition">¶</a></dt>
+<dd><p>Get a KMD client from config or environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> – Optional client configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>KMD client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_kmd_client_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_kmd_client_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.kmd.KMDClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_client_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Get a KMD client from environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>KMD client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_indexer_client">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_indexer_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.v2client.indexer.IndexerClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_client" title="Link to this definition">¶</a></dt>
+<dd><p>Get an Indexer client from config or environment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> – Optional client configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Indexer client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_indexer_client_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_indexer_client_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algosdk.v2client.indexer.IndexerClient</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_client_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Get an Indexer client from environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indexer client instance</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.genesis_id_is_localnet">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">genesis_id_is_localnet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genesis_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.genesis_id_is_localnet" title="Link to this definition">¶</a></dt>
+<dd><p>Check if a genesis ID indicates a local network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>genesis_id</strong> – Genesis ID to check</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if genesis ID indicates a local network</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ClientManager</span><span class="o">.</span><span class="n">genesis_id_is_localnet</span><span class="p">(</span><span class="s2">&quot;devnet-v1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_creator_and_name">
+<span class="sig-name descname"><span class="pre">get_typed_app_client_by_creator_and_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">TypedAppClientT</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creator_address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_lookup_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_deployer/index.html#algokit_utils.applications.app_deployer.ApplicationLookup" title="algokit_utils.applications.app_deployer.ApplicationLookup"><span class="pre">algokit_utils.applications.app_deployer.ApplicationLookup</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypedAppClientT</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_creator_and_name" title="Link to this definition">¶</a></dt>
+<dd><p>Get a typed application client by creator address and name.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>typed_client</strong> – Typed client class</p></li>
+<li><p><strong>creator_address</strong> – Creator address</p></li>
+<li><p><strong>app_name</strong> – Application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>ignore_cache</strong> – Optional flag to ignore cache</p></li>
+<li><p><strong>app_lookup_cache</strong> – Optional app lookup cache</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Typed application client instance</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typed_app_client</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_typed_app_client_by_creator_and_name</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">typed_client</span><span class="o">=</span><span class="n">MyAppClient</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;creator_address&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;app_name&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_id">
+<span class="sig-name descname"><span class="pre">get_typed_app_client_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">TypedAppClientT</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypedAppClientT</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_id" title="Link to this definition">¶</a></dt>
+<dd><p>Get a typed application client by ID.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>typed_client</strong> – Typed client class</p></li>
+<li><p><strong>app_id</strong> – Application ID</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Typed application client instance</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typed_app_client</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_typed_app_client_by_id</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">typed_client</span><span class="o">=</span><span class="n">MyAppClient</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_id</span><span class="o">=</span><span class="mi">1234567890</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_network">
+<span class="sig-name descname"><span class="pre">get_typed_app_client_by_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed_client</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">TypedAppClientT</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypedAppClientT</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_network" title="Link to this definition">¶</a></dt>
+<dd><p>Returns a new typed client, resolves the app ID for the current network.</p>
+<p>Uses pre-determined network-specific app IDs specified in the ARC-56 app spec.
+If no IDs are in the app spec or the network isn’t recognised, an error is thrown.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>typed_client</strong> – The typed client class to instantiate</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The typed client instance</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typed_app_client</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_typed_app_client_by_network</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">typed_client</span><span class="o">=</span><span class="n">MyAppClient</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;app_name&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_typed_app_factory">
+<span class="sig-name descname"><span class="pre">get_typed_app_factory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">typed_factory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">TypedFactoryT</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compilation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../applications/app_client/index.html#algokit_utils.applications.app_client.AppClientCompilationParams" title="algokit_utils.applications.app_client.AppClientCompilationParams"><span class="pre">algokit_utils.applications.app_client.AppClientCompilationParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TypedFactoryT</span></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_factory" title="Link to this definition">¶</a></dt>
+<dd><p>Get a typed application factory.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>typed_factory</strong> – Typed factory class</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>version</strong> – Optional version string</p></li>
+<li><p><strong>compilation_params</strong> – Optional compilation parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no Algorand client is configured</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Typed application factory instance</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typed_app_factory</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_typed_app_factory</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">typed_factory</span><span class="o">=</span><span class="n">MyAppFactory</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;app_name&quot;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_config_from_environment_or_localnet">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_config_from_environment_or_localnet</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientConfigs" title="algokit_utils.models.network.AlgoClientConfigs"><span class="pre">algokit_utils.models.network.AlgoClientConfigs</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_config_from_environment_or_localnet" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve client configuration from environment variables or fallback to localnet defaults.</p>
+<p>If ALGOD_SERVER is set in environment variables, it will use environment configuration,
+otherwise it will use default localnet configuration.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Configuration for algod, indexer, and optionally kmd</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_config_from_environment_or_localnet</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_default_localnet_config">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_default_localnet_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_or_port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'algod'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'indexer'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'kmd'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_default_localnet_config" title="Link to this definition">¶</a></dt>
+<dd><p>Get default configuration for local network services.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config_or_port</strong> – Service name or port number</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Client configuration for local network</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_default_localnet_config</span><span class="p">(</span><span class="s2">&quot;algod&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_algod_config_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_algod_config_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_config_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the algod configuration from environment variables.
+Will raise an error if ALGOD_SERVER environment variable is not set</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Algod client configuration</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_algod_config_from_environment</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_indexer_config_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_indexer_config_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_config_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the indexer configuration from environment variables.
+Will raise an error if INDEXER_SERVER environment variable is not set</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indexer client configuration</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_indexer_config_from_environment</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_kmd_config_from_environment">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_kmd_config_from_environment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_config_from_environment" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve the kmd configuration from environment variables.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>KMD client configuration</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_kmd_config_from_environment</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.clients.client_manager.ClientManager.get_algonode_config">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_algonode_config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'testnet'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'mainnet'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'algod'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'indexer'</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/network/index.html#algokit_utils.models.network.AlgoClientNetworkConfig" title="algokit_utils.models.network.AlgoClientNetworkConfig"><span class="pre">algokit_utils.models.network.AlgoClientNetworkConfig</span></a></span></span><a class="headerlink" href="#algokit_utils.clients.client_manager.ClientManager.get_algonode_config" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Algorand configuration to point to the free tier of the AlgoNode service.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>network</strong> – Which network to connect to - TestNet or MainNet</p></li>
+<li><p><strong>config</strong> – Which algod config to return - Algod or Indexer</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Configuration for the specified network and service</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client_manager</span> <span class="o">=</span> <span class="n">ClientManager</span><span class="p">(</span><span class="n">algod_client</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">client_manager</span><span class="o">.</span><span class="n">get_algonode_config</span><span class="p">(</span><span class="s2">&quot;testnet&quot;</span><span class="p">,</span> <span class="s2">&quot;algod&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../dispenser_api_client/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">algokit_utils.clients.dispenser_api_client</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">algokit_utils.clients</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Algorand Foundation
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">algokit_utils.clients.client_manager</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients"><code class="docutils literal notranslate"><span class="pre">AlgoSdkClients</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients.algod"><code class="docutils literal notranslate"><span class="pre">AlgoSdkClients.algod</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients.indexer"><code class="docutils literal notranslate"><span class="pre">AlgoSdkClients.indexer</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.AlgoSdkClients.kmd"><code class="docutils literal notranslate"><span class="pre">AlgoSdkClients.kmd</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail"><code class="docutils literal notranslate"><span class="pre">NetworkDetail</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail.is_testnet"><code class="docutils literal notranslate"><span class="pre">NetworkDetail.is_testnet</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail.is_mainnet"><code class="docutils literal notranslate"><span class="pre">NetworkDetail.is_mainnet</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail.is_localnet"><code class="docutils literal notranslate"><span class="pre">NetworkDetail.is_localnet</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail.genesis_id"><code class="docutils literal notranslate"><span class="pre">NetworkDetail.genesis_id</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.NetworkDetail.genesis_hash"><code class="docutils literal notranslate"><span class="pre">NetworkDetail.genesis_hash</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager"><code class="docutils literal notranslate"><span class="pre">ClientManager</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.algod"><code class="docutils literal notranslate"><span class="pre">ClientManager.algod</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.indexer"><code class="docutils literal notranslate"><span class="pre">ClientManager.indexer</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.indexer_if_present"><code class="docutils literal notranslate"><span class="pre">ClientManager.indexer_if_present</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.kmd"><code class="docutils literal notranslate"><span class="pre">ClientManager.kmd</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.network"><code class="docutils literal notranslate"><span class="pre">ClientManager.network()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.is_localnet"><code class="docutils literal notranslate"><span class="pre">ClientManager.is_localnet()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.is_testnet"><code class="docutils literal notranslate"><span class="pre">ClientManager.is_testnet()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.is_mainnet"><code class="docutils literal notranslate"><span class="pre">ClientManager.is_mainnet()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_testnet_dispenser"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_testnet_dispenser()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_app_factory"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_app_factory()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_id"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_app_client_by_id()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_network"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_app_client_by_network()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_app_client_by_creator_and_name"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_app_client_by_creator_and_name()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_client"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_algod_client()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_client_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_algod_client_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_client"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_kmd_client()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_client_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_kmd_client_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_client"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_indexer_client()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_client_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_indexer_client_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.genesis_id_is_localnet"><code class="docutils literal notranslate"><span class="pre">ClientManager.genesis_id_is_localnet()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_creator_and_name"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_typed_app_client_by_creator_and_name()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_id"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_typed_app_client_by_id()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_client_by_network"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_typed_app_client_by_network()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_typed_app_factory"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_typed_app_factory()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_config_from_environment_or_localnet"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_config_from_environment_or_localnet()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_default_localnet_config"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_default_localnet_config()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_algod_config_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_algod_config_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_indexer_config_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_indexer_config_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_kmd_config_from_environment"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_kmd_config_from_environment()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.clients.client_manager.ClientManager.get_algonode_config"><code class="docutils literal notranslate"><span class="pre">ClientManager.get_algonode_config()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../_static/documentation_options.js?v=110ea713"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
+    </body>
+</html>

@@ -1,0 +1,121 @@
+algokit_utils.models.amount
+===========================
+
+.. py:module:: algokit_utils.models.amount
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   algokit_utils.models.amount.ALGORAND_MIN_TX_FEE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.models.amount.AlgoAmount
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algokit_utils.models.amount.algo
+   algokit_utils.models.amount.micro_algo
+   algokit_utils.models.amount.transaction_fees
+
+
+Module Contents
+---------------
+
+.. py:class:: AlgoAmount(*, micro_algo: int)
+              AlgoAmount(*, algo: int | decimal.Decimal)
+
+   Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
+
+   :example:
+       >>> amount = AlgoAmount(algo=1)
+       >>> amount = AlgoAmount.from_algo(1)
+       >>> amount = AlgoAmount(micro_algo=1_000_000)
+       >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+
+
+   .. py:property:: micro_algo
+      :type: int
+
+
+      Return the amount as a number in µAlgo.
+
+      :returns: The amount in µAlgo.
+
+
+
+   .. py:property:: algo
+      :type: decimal.Decimal
+
+
+      Return the amount as a number in Algo.
+
+      :returns: The amount in Algo.
+
+
+
+   .. py:method:: from_algo(amount: int | decimal.Decimal) -> AlgoAmount
+      :staticmethod:
+
+
+      Create an AlgoAmount object representing the given number of Algo.
+
+      :param amount: The amount in Algo.
+      :returns: An AlgoAmount instance.
+
+      :example:
+          >>> amount = AlgoAmount.from_algo(1)
+
+
+
+   .. py:method:: from_micro_algo(amount: int) -> AlgoAmount
+      :staticmethod:
+
+
+      Create an AlgoAmount object representing the given number of µAlgo.
+
+      :param amount: The amount in µAlgo.
+      :returns: An AlgoAmount instance.
+
+      :example:
+          >>> amount = AlgoAmount.from_micro_algo(1_000_000)
+
+
+
+.. py:function:: algo(algo: int) -> AlgoAmount
+
+   Create an AlgoAmount object representing the given number of Algo.
+
+   :param algo: The number of Algo to create an AlgoAmount object for.
+   :return: An AlgoAmount object representing the given number of Algo.
+
+
+.. py:function:: micro_algo(micro_algo: int) -> AlgoAmount
+
+   Create an AlgoAmount object representing the given number of µAlgo.
+
+   :param micro_algo: The number of µAlgo to create an AlgoAmount object for.
+   :return: An AlgoAmount object representing the given number of µAlgo.
+
+
+.. py:data:: ALGORAND_MIN_TX_FEE
+
+.. py:function:: transaction_fees(number_of_transactions: int) -> AlgoAmount
+
+   Calculate the total transaction fees for a given number of transactions.
+
+   :param number_of_transactions: The number of transactions to calculate the fees for.
+   :return: The total transaction fees.
+
+

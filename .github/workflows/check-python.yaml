@@ -48,8 +48,8 @@ jobs:
       - name: Check docstrings are up to date
         run: poetry run poe docstrings-check
 
-      # TODO: Restore before prod release of v3
-      # - name: Check docs are up to date
-      #   run: |
-      #     poetry run poe docs-md-only
-      #     git diff --exit-code ':!docs/markdown/autoapi/index.md' ':!docs/markdown/autoapi/algokit_utils/applications/app_factory/index.md' docs
+      TODO: Restore before prod release of v3
+      - name: Check docs are up to date
+        run: |
+          poetry run poe docs-md-only
+          git diff --exit-code ':!docs/markdown/autoapi/index.md' ':!docs/markdown/autoapi/algokit_utils/applications/app_factory/index.md' docs
