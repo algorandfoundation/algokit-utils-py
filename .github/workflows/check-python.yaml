@@ -48,7 +48,6 @@ jobs:
       - name: Check docstrings are up to date
         run: poetry run poe docstrings-check
 
-      TODO: Restore before prod release of v3
       - name: Check docs are up to date
         run: |
           poetry run poe docs-md-only
