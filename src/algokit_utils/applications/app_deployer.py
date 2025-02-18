@@ -47,8 +47,6 @@ __all__ = [
 
 APP_DEPLOY_NOTE_DAPP: str = "ALGOKIT_DEPLOYER"
 
-logger = config.logger
-
 
 @dataclasses.dataclass
 class AppDeploymentMetaData:
@@ -240,7 +238,7 @@ class AppDeployer:
         send_params = deployment.send_params or SendParams()
         suppress_log = send_params.get("suppress_log") or False
 
-        logger.info(
+        config.logger.info(
             f"Idempotently deploying app \"{deployment.metadata.name}\" from creator "
             f"{deployment.create_params.sender} using {len(deployment.create_params.approval_program)} bytes of "
             f"{'teal code' if isinstance(deployment.create_params.approval_program, str) else 'AVM bytecode'} and "
@@ -341,7 +339,7 @@ class AppDeployer:
         )
 
         if is_schema_break:
-            logger.warning(
+            config.logger.warning(
                 f"Detected a breaking app schema change in app {existing_app.app_id}:",
                 extra={
                     "from": {
@@ -363,6 +361,10 @@ class AppDeployer:
             )
 
         if is_update:
+            config.logger.info(
+                f"Detected a TEAL update in app {existing_app.app_id} for creator {deployment.create_params.sender}",
+                extra={"suppress_log": suppress_log},
+            )
             return self._handle_update(
                 deployment=deployment,
                 existing_app=existing_app,
@@ -370,7 +372,7 @@ class AppDeployer:
                 clear_program=clear_program,
             )
 
-        logger.debug("No detected changes in app, nothing to do.", extra={"suppress_log": suppress_log})
+        config.logger.debug("No detected changes in app, nothing to do.", extra={"suppress_log": suppress_log})
         return AppDeployResult(
             app=existing_app,
             operation_performed=OperationPerformed.Nothing,
@@ -422,7 +424,7 @@ class AppDeployer:
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
-        logger.debug(
+        config.logger.debug(
             f"Sent transaction ID {create_result.app_id} (AppCreate) from {deployment.create_params.sender}",
             extra={
                 "suppress_log": deployment.send_params.get("suppress_log") or False if deployment.send_params else False
@@ -500,7 +502,7 @@ class AppDeployer:
             deleted=False,
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
-        logger.debug(
+        config.logger.debug(
             f"Group transaction sent: Replaced app {existing_app.app_id} with new app {app_id} from "
             f"{deployment.create_params.sender} (Composer group count: {composer.count()})",
             extra={
@@ -559,7 +561,7 @@ class AppDeployer:
         )
 
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
-        logger.debug(
+        config.logger.debug(
             f"Sent transaction ID {existing_app.app_id} (AppUpdate) from {deployment.create_params.sender}",
             extra={
                 "suppress_log": deployment.send_params.get("suppress_log") or False if deployment.send_params else False
@@ -579,23 +581,36 @@ class AppDeployer:
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
+        suppress_log = deployment.send_params.get("suppress_log") or False if deployment.send_params else False
+
         if deployment.on_schema_break in (OnSchemaBreak.Fail, "fail") or deployment.on_schema_break is None:
             raise ValueError(
-                "Schema break detected and onSchemaBreak=OnSchemaBreak.Fail, stopping deployment. "
+                "Schema break detected and on_schema_break=OnSchemaBreak.Fail, stopping deployment. "
                 "If you want to try deleting and recreating the app then "
-                "re-run with onSchemaBreak=OnSchemaBreak.ReplaceApp"
+                "re-run with on_schema_break=OnSchemaBreak.ReplaceApp"
             )
 
         if deployment.on_schema_break in (OnSchemaBreak.AppendApp, "append"):
+            config.logger.info(
+                "on_schema_break=AppendApp, will attempt to create a new app", extra={"suppress_log": suppress_log}
+            )
             return self._create_app(deployment, approval_program, clear_program)
 
         if existing_app.deletable:
-            return self._replace_app(deployment, existing_app, approval_program, clear_program)
-        else:
-            raise ValueError(
-                f"App is {'not' if not existing_app.deletable else ''} deletable and onSchemaBreak=ReplaceApp, "
-                "cannot delete and recreate app"
+            config.logger.info(
+                "App is deletable and on_schema_break=ReplaceApp, will attempt to create new app and delete old app",
+                extra={"suppress_log": suppress_log},
             )
+        else:
+            config.logger.info(
+                "App is not deletable but on_schema_break=ReplaceApp, will attempt to create a new app and "
+                "delete the old app, delete will most likely fail",
+                extra={
+                    "suppress_log": suppress_log,
+                },
+            )
+
+        return self._replace_app(deployment, existing_app, approval_program, clear_program)
 
     def _handle_update(
         self,
@@ -604,33 +619,49 @@ class AppDeployer:
         approval_program: bytes,
         clear_program: bytes,
     ) -> AppDeployResult:
+        suppress_log = deployment.send_params.get("suppress_log") or False if deployment.send_params else False
+
         if deployment.on_update in (OnUpdate.Fail, "fail") or deployment.on_update is None:
             raise ValueError(
-                "Update detected and onUpdate=Fail, stopping deployment. " "Try a different onUpdate value to not fail."
+                "Update detected and on_update=Fail, stopping deployment. "
+                "Try a different on_update value to not fail."
             )
 
         if deployment.on_update in (OnUpdate.AppendApp, "append"):
+            config.logger.info(
+                "on_update=AppendApp, will attempt to create a new app", extra={"suppress_log": suppress_log}
+            )
             return self._create_app(deployment, approval_program, clear_program)
 
         if deployment.on_update in (OnUpdate.UpdateApp, "update"):
             if existing_app.updatable:
-                return self._update_app(deployment, existing_app, approval_program, clear_program)
-            else:
-                raise ValueError(
-                    f"App is {'not' if not existing_app.updatable else ''} updatable and onUpdate=UpdateApp, "
-                    "cannot update app"
+                config.logger.info(
+                    "App is updatable and on_update=UpdateApp, updating app...",
+                    extra={"suppress_log": suppress_log},
                 )
+            else:
+                config.logger.info(
+                    "App is not updatable but on_update=UpdateApp, will attempt to update app, "
+                    "update will most likely fail",
+                    extra={"suppress_log": suppress_log},
+                )
+            return self._update_app(deployment, existing_app, approval_program, clear_program)
 
         if deployment.on_update in (OnUpdate.ReplaceApp, "replace"):
             if existing_app.deletable:
-                return self._replace_app(deployment, existing_app, approval_program, clear_program)
-            else:
-                raise ValueError(
-                    f"App is {'not' if not existing_app.deletable else ''} deletable and onUpdate=ReplaceApp, "
-                    "cannot delete and recreate app"
+                config.logger.info(
+                    "App is deletable and on_update=ReplaceApp, will attempt to create new app and delete old app",
+                    extra={"suppress_log": suppress_log},
                 )
+            else:
+                config.logger.info(
+                    "App is not deletable but on_update=ReplaceApp, will attempt to create a new app and "
+                    "delete the old app, delete will most likely fail",
+                    extra={"suppress_log": suppress_log},
+                )
+            return self._replace_app(deployment, existing_app, approval_program, clear_program)
 
-        raise ValueError(f"Unsupported onUpdate value: {deployment.on_update}")
+        raise ValueError(f"Unsupported on_update value: {deployment.on_update}")
 
     def _update_app_lookup(self, sender: str, app_metadata: ApplicationMetaData) -> None:
         """Update the app lookup cache"""
@@ -715,7 +746,7 @@ class AppDeployer:
                         deleted=app.get("deleted", False),
                     )
             except Exception as e:
-                logger.warning(
+                config.logger.warning(
                     f"Error processing app {app_id} for creator {creator_address}: {e}",
                 )
                 continue
