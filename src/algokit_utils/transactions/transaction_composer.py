@@ -75,8 +75,6 @@ __all__ = [
 ]
 
 
-logger = config.logger
-
 MAX_TRANSACTION_GROUP_SIZE = 16
 MAX_APP_CALL_FOREIGN_REFERENCES = 8
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4
@@ -1220,11 +1218,11 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             )
 
             if not suppress_log:
-                logger.info(
+                config.logger.info(
                     f"Sending group of {len(transactions_to_send)} transactions ({group_id})",
                     extra={"suppress_log": suppress_log or False},
                 )
-                logger.debug(
+                config.logger.debug(
                     f"Transaction IDs ({group_id}): {[t.get_txid() for t in transactions_to_send]}",
                     extra={"suppress_log": suppress_log or False},
                 )
@@ -1244,12 +1242,12 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
         # Log results
         if not suppress_log:
             if len(transactions_to_send) > 1:
-                logger.info(
+                config.logger.info(
                     f"Group transaction ({group_id}) sent with {len(transactions_to_send)} transactions",
                     extra={"suppress_log": suppress_log or False},
                 )
             else:
-                logger.info(
+                config.logger.info(
                     f"Sent transaction ID {transactions_to_send[0].get_txid()}",
                     extra={"suppress_log": suppress_log or False},
                 )
@@ -1271,7 +1269,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
     except Exception as e:
         # Handle error with debug info if enabled
         if config.debug:
-            logger.error(
+            config.logger.error(
                 "Received error executing Atomic Transaction Composer and debug flag enabled; "
                 "attempting simulation to get more information ",
                 extra={"suppress_log": suppress_log or False},
@@ -1307,7 +1305,7 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
             error.traces = traces  # type: ignore[attr-defined]
             raise error from e
 
-        logger.error(
+        config.logger.error(
             "Received error executing Atomic Transaction Composer, for more information enable the debug flag",
             extra={"suppress_log": suppress_log or False},
             exc_info=e,

@@ -640,7 +640,7 @@ class AppDeployer:
                     extra={"suppress_log": suppress_log},
                 )
             else:
-                config.logger.info(
+                config.logger.warning(
                     "App is not updatable but on_update=UpdateApp, will attempt to update app, "
                     "update will most likely fail",
                     extra={"suppress_log": suppress_log},
@@ -649,12 +649,12 @@ class AppDeployer:
 
         if deployment.on_update in (OnUpdate.ReplaceApp, "replace"):
             if existing_app.deletable:
-                config.logger.info(
+                config.logger.warning(
                     "App is deletable and on_update=ReplaceApp, will attempt to create new app and delete old app",
                     extra={"suppress_log": suppress_log},
                 )
             else:
-                config.logger.info(
+                config.logger.warning(
                     "App is not deletable but on_update=ReplaceApp, will attempt to create a new app and "
                     "delete the old app, delete will most likely fail",
                     extra={"suppress_log": suppress_log},
