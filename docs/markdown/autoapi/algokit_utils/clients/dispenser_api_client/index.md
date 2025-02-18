@@ -83,11 +83,14 @@ Default request timeout is 15 seconds. Modify by passing request_timeout to the 
 
 #### fund(address: str, amount: int) → [DispenserFundResponse](#algokit_utils.clients.dispenser_api_client.DispenserFundResponse)
 
+#### fund(address: str, amount: int, asset_id: int | None = None) → [DispenserFundResponse](#algokit_utils.clients.dispenser_api_client.DispenserFundResponse)
+
 Fund an account with Algos from the dispenser API
 
 * **Parameters:**
   * **address** – The address to fund
   * **amount** – The amount of Algos to fund
+  * **asset_id** – The asset ID to fund (deprecated)
 * **Returns:**
   The transaction ID of the funded transaction
 * **Raises:**

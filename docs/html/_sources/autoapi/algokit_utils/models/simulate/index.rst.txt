@@ -1,0 +1,35 @@
+algokit_utils.models.simulate
+=============================
+
+.. py:module:: algokit_utils.models.simulate
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.models.simulate.SimulationTrace
+
+
+Module Contents
+---------------
+
+.. py:class:: SimulationTrace
+
+   .. py:attribute:: app_budget_added
+      :type:  int | None
+
+
+   .. py:attribute:: app_budget_consumed
+      :type:  int | None
+
+
+   .. py:attribute:: failure_message
+      :type:  str | None
+
+
+   .. py:attribute:: exec_trace
+      :type:  dict[str, object]
+
+

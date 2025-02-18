@@ -29,14 +29,6 @@ algorand = AlgorandClient.from_config(
 )
 ```
 
-> NOTE: AlgorandClient introducted in v3.0.0 implements a new functionality that caches suggested parameters for you automatically. This is to reduce the number of requests made to the network for suggested parameters, to control this behaviour you can use the following methods:
->
-> - `algorand.set_suggested_params_cache_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
-> - `algorand.set_suggested_params_cache(suggested_params, until)` - Set the suggested network parameters to use (optionally until the given time)
-> - `algorand.get_suggested_params()` - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value
->
-> See [Transaction configuration](transaction.md#transaction-configuration) for more information.
-
 ## Accessing SDK clients
 
 Once you have an `AlgorandClient` instance, you can access the SDK clients for the various Algorand APIs via the `algorand.client` property.
@@ -193,6 +185,6 @@ Then on top of that the base type gets extended for the specific type of transac
 AlgorandClient caches network provided transaction values for you automatically to reduce network traffic. It has a set of default configurations that control this behaviour, but you have the ability to override and change the configuration of this behaviour:
 
 - `algorand.set_default_validity_window(validity_window)` - Set the default validity window (number of rounds from the current known round that the transaction will be valid to be accepted for), having a smallish value for this is usually ideal to avoid transactions that are valid for a long future period and may be submitted even after you think it failed to submit if waiting for a particular number of rounds for the transaction to be successfully submitted. The validity window defaults to `10`, except localnet environments where it’s set to `1000`.
-- `algorand.set_suggested_params(suggested_params, until)` - Set the suggested network parameters to use (optionally until the given time)
+- `algorand.set_suggested_params(suggested_params, until?)` - Set the suggested network parameters to use (optionally until the given time)
 - `algorand.set_suggested_params_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
 - `algorand.get_suggested_params()` - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value

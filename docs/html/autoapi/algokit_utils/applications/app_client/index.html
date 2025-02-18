@@ -1,0 +1,1430 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../../../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" /><link rel="next" title="algokit_utils.applications.app_deployer" href="../app_deployer/index.html" /><link rel="prev" title="algokit_utils.applications.abi" href="../abi/index.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>algokit_utils.applications.app_client - algokit-utils-py 3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #eeffcc;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../../index.html"><div class="brand">algokit-utils-py 3.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../../index.html">
+  
+  
+  <span class="sidebar-brand-text">algokit-utils-py 3.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/account.html">Account management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/algorand-client.html">Algorand client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/amount.html">Algo amount handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app-client.html">App client and App factory</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app-deploy.html">App deployment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/app.html">App management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/asset.html">Assets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/client.html">Client management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/dispenser-client.html">TestNet Dispenser Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/testing.html">Testing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transaction-composer.html">Transaction composer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transaction.html">Transaction management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/transfer.html">Algo transfers (payments)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../capabilities/typed-app-clients.html">Typed application clients</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../v3-migration-guide.html">Migration Guide - v3</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../../index.html">API Reference</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Reference</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../index.html">algokit_utils</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of algokit_utils</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../accounts/index.html">algokit_utils.accounts</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of algokit_utils.accounts</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../accounts/account_manager/index.html">algokit_utils.accounts.account_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../accounts/kmd_account_manager/index.html">algokit_utils.accounts.kmd_account_manager</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../algorand/index.html">algokit_utils.algorand</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="../index.html">algokit_utils.applications</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of algokit_utils.applications</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../abi/index.html">algokit_utils.applications.abi</a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">algokit_utils.applications.app_client</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../app_deployer/index.html">algokit_utils.applications.app_deployer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../app_factory/index.html">algokit_utils.applications.app_factory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../app_manager/index.html">algokit_utils.applications.app_manager</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../app_spec/index.html">algokit_utils.applications.app_spec</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of algokit_utils.applications.app_spec</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="../app_spec/arc32/index.html">algokit_utils.applications.app_spec.arc32</a></li>
+<li class="toctree-l5"><a class="reference internal" href="../app_spec/arc56/index.html">algokit_utils.applications.app_spec.arc56</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../enums/index.html">algokit_utils.applications.enums</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../assets/index.html">algokit_utils.assets</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of algokit_utils.assets</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../assets/asset_manager/index.html">algokit_utils.assets.asset_manager</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../clients/index.html">algokit_utils.clients</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of algokit_utils.clients</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../clients/client_manager/index.html">algokit_utils.clients.client_manager</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../clients/dispenser_api_client/index.html">algokit_utils.clients.dispenser_api_client</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../config/index.html">algokit_utils.config</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../errors/index.html">algokit_utils.errors</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of algokit_utils.errors</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../errors/logic_error/index.html">algokit_utils.errors.logic_error</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../models/index.html">algokit_utils.models</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of algokit_utils.models</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../models/account/index.html">algokit_utils.models.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/amount/index.html">algokit_utils.models.amount</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/application/index.html">algokit_utils.models.application</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/network/index.html">algokit_utils.models.network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/simulate/index.html">algokit_utils.models.simulate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/state/index.html">algokit_utils.models.state</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/transaction/index.html">algokit_utils.models.transaction</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../protocols/index.html">algokit_utils.protocols</a><input class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><div class="visually-hidden">Toggle navigation of algokit_utils.protocols</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../protocols/account/index.html">algokit_utils.protocols.account</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../protocols/typed_clients/index.html">algokit_utils.protocols.typed_clients</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../transactions/index.html">algokit_utils.transactions</a><input class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><div class="visually-hidden">Toggle navigation of algokit_utils.transactions</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_composer/index.html">algokit_utils.transactions.transaction_composer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_creator/index.html">algokit_utils.transactions.transaction_creator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transactions/transaction_sender/index.html">algokit_utils.transactions.transaction_sender</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../../../_sources/autoapi/algokit_utils/applications/app_client/index.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-algokit_utils.applications.app_client">
+<span id="algokit-utils-applications-app-client"></span><h1>algokit_utils.applications.app_client<a class="headerlink" href="#module-algokit_utils.applications.app_client" title="Link to this heading">¶</a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.CreateOnComplete" title="algokit_utils.applications.app_client.CreateOnComplete"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CreateOnComplete</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult" title="algokit_utils.applications.app_client.AppClientCompilationResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientCompilationResult</span></code></a></p></td>
+<td><p>Result of compiling an application's TEAL code.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams" title="algokit_utils.applications.app_client.AppClientCompilationParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientCompilationParams</span></code></a></p></td>
+<td><p>Parameters for compiling an application's TEAL code.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="algokit_utils.applications.app_client.CommonAppCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a></p></td>
+<td><p>Common configuration for app call transaction parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema" title="algokit_utils.applications.app_client.AppClientCreateSchema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientCreateSchema</span></code></a></p></td>
+<td><p>Schema for application creation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams" title="algokit_utils.applications.app_client.CommonAppCallCreateParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallCreateParams</span></code></a></p></td>
+<td><p>Common configuration for app create call transaction parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.FundAppAccountParams" title="algokit_utils.applications.app_client.FundAppAccountParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FundAppAccountParams</span></code></a></p></td>
+<td><p>Parameters for funding an application's account.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallParams" title="algokit_utils.applications.app_client.AppClientBareCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientBareCallParams</span></code></a></p></td>
+<td><p>Parameters for bare application calls.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallCreateParams" title="algokit_utils.applications.app_client.AppClientBareCallCreateParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientBareCallCreateParams</span></code></a></p></td>
+<td><p>Parameters for creating application with bare call.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams" title="algokit_utils.applications.app_client.BaseAppClientMethodCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseAppClientMethodCallParams</span></code></a></p></td>
+<td><p>Base parameters for application method calls.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallParams" title="algokit_utils.applications.app_client.AppClientMethodCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientMethodCallParams</span></code></a></p></td>
+<td><p>Parameters for application method calls.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallCreateParams" title="algokit_utils.applications.app_client.AppClientMethodCallCreateParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientMethodCallCreateParams</span></code></a></p></td>
+<td><p>Parameters for creating application with method call</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams" title="algokit_utils.applications.app_client.AppClientParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientParams</span></code></a></p></td>
+<td><p>Full parameters for creating an app client</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClient</span></code></a></p></td>
+<td><p>A client for interacting with an Algorand smart contract application.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#algokit_utils.applications.app_client.get_constant_block_offset" title="algokit_utils.applications.app_client.get_constant_block_offset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_constant_block_offset</span></code></a>(→ int)</p></td>
+<td><p>Calculate the offset after constant blocks in TEAL program.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.get_constant_block_offset">
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">get_constant_block_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">program</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.get_constant_block_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the offset after constant blocks in TEAL program.</p>
+<p>Analyzes a compiled TEAL program to find the ending offset position after any bytecblock and intcblock operations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>program</strong> – The compiled TEAL program as bytes</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The maximum offset position after any constant block operations</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CreateOnComplete">
+<span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">CreateOnComplete</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.CreateOnComplete" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientCompilationResult</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationResult" title="Link to this definition">¶</a></dt>
+<dd><p>Result of compiling an application’s TEAL code.</p>
+<p>Contains the compiled approval and clear state programs along with optional compilation artifacts.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationResult.approval_program">
+<span class="sig-name descname"><span class="pre">approval_program</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationResult.approval_program" title="Link to this definition">¶</a></dt>
+<dd><p>The compiled approval program bytes</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationResult.clear_state_program">
+<span class="sig-name descname"><span class="pre">clear_state_program</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationResult.clear_state_program" title="Link to this definition">¶</a></dt>
+<dd><p>The compiled clear state program bytes</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationResult.compiled_approval">
+<span class="sig-name descname"><span class="pre">compiled_approval</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.CompiledTeal" title="algokit_utils.models.application.CompiledTeal"><span class="pre">algokit_utils.models.application.CompiledTeal</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationResult.compiled_approval" title="Link to this definition">¶</a></dt>
+<dd><p>Optional compilation artifacts for approval program</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationResult.compiled_clear">
+<span class="sig-name descname"><span class="pre">compiled_clear</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.CompiledTeal" title="algokit_utils.models.application.CompiledTeal"><span class="pre">algokit_utils.models.application.CompiledTeal</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationResult.compiled_clear" title="Link to this definition">¶</a></dt>
+<dd><p>Optional compilation artifacts for clear state program</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientCompilationParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Parameters for compiling an application’s TEAL code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>deploy_time_params</strong> – Optional template parameters to use during compilation</p></li>
+<li><p><strong>updatable</strong> – Optional flag indicating if app should be updatable</p></li>
+<li><p><strong>deletable</strong> – Optional flag indicating if app should be deletable</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationParams.deploy_time_params">
+<span class="sig-name descname"><span class="pre">deploy_time_params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algokit_utils.models.state.TealTemplateParams</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationParams.deploy_time_params" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationParams.updatable">
+<span class="sig-name descname"><span class="pre">updatable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationParams.updatable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCompilationParams.deletable">
+<span class="sig-name descname"><span class="pre">deletable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCompilationParams.deletable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">CommonAppCallParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="Link to this definition">¶</a></dt>
+<dd><p>Common configuration for app call transaction parameters</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.account_references">
+<span class="sig-name descname"><span class="pre">account_references</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.account_references" title="Link to this definition">¶</a></dt>
+<dd><p>List of account addresses to reference</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.app_references">
+<span class="sig-name descname"><span class="pre">app_references</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.app_references" title="Link to this definition">¶</a></dt>
+<dd><p>List of app IDs to reference</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.asset_references">
+<span class="sig-name descname"><span class="pre">asset_references</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.asset_references" title="Link to this definition">¶</a></dt>
+<dd><p>List of asset IDs to reference</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.box_references">
+<span class="sig-name descname"><span class="pre">box_references</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxReference" title="algokit_utils.models.state.BoxReference"><span class="pre">algokit_utils.models.state.BoxReference</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">algokit_utils.models.state.BoxIdentifier</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.box_references" title="Link to this definition">¶</a></dt>
+<dd><p>List of box references to include</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.extra_fee">
+<span class="sig-name descname"><span class="pre">extra_fee</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/amount/index.html#algokit_utils.models.amount.AlgoAmount" title="algokit_utils.models.amount.AlgoAmount"><span class="pre">algokit_utils.models.amount.AlgoAmount</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.extra_fee" title="Link to this definition">¶</a></dt>
+<dd><p>Additional fee to add to transaction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.lease">
+<span class="sig-name descname"><span class="pre">lease</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.lease" title="Link to this definition">¶</a></dt>
+<dd><p>Transaction lease value</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.max_fee">
+<span class="sig-name descname"><span class="pre">max_fee</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/amount/index.html#algokit_utils.models.amount.AlgoAmount" title="algokit_utils.models.amount.AlgoAmount"><span class="pre">algokit_utils.models.amount.AlgoAmount</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.max_fee" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum fee allowed for transaction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.note">
+<span class="sig-name descname"><span class="pre">note</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bytes</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.note" title="Link to this definition">¶</a></dt>
+<dd><p>Custom note for the transaction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.rekey_to">
+<span class="sig-name descname"><span class="pre">rekey_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.rekey_to" title="Link to this definition">¶</a></dt>
+<dd><p>Address to rekey account to</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.sender">
+<span class="sig-name descname"><span class="pre">sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.sender" title="Link to this definition">¶</a></dt>
+<dd><p>Sender address override</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.signer">
+<span class="sig-name descname"><span class="pre">signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.signer" title="Link to this definition">¶</a></dt>
+<dd><p>Custom transaction signer</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.static_fee">
+<span class="sig-name descname"><span class="pre">static_fee</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/amount/index.html#algokit_utils.models.amount.AlgoAmount" title="algokit_utils.models.amount.AlgoAmount"><span class="pre">algokit_utils.models.amount.AlgoAmount</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.static_fee" title="Link to this definition">¶</a></dt>
+<dd><p>Fixed fee for transaction</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.validity_window">
+<span class="sig-name descname"><span class="pre">validity_window</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.validity_window" title="Link to this definition">¶</a></dt>
+<dd><p>Number of rounds valid</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.first_valid_round">
+<span class="sig-name descname"><span class="pre">first_valid_round</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.first_valid_round" title="Link to this definition">¶</a></dt>
+<dd><p>First valid round number</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.last_valid_round">
+<span class="sig-name descname"><span class="pre">last_valid_round</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.last_valid_round" title="Link to this definition">¶</a></dt>
+<dd><p>Last valid round number</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallParams.on_complete">
+<span class="sig-name descname"><span class="pre">on_complete</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.transaction.OnComplete</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallParams.on_complete" title="Link to this definition">¶</a></dt>
+<dd><p>Optional on complete action</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCreateSchema">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientCreateSchema</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCreateSchema" title="Link to this definition">¶</a></dt>
+<dd><p>Schema for application creation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCreateSchema.extra_program_pages">
+<span class="sig-name descname"><span class="pre">extra_program_pages</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCreateSchema.extra_program_pages" title="Link to this definition">¶</a></dt>
+<dd><p>Optional number of extra program pages</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientCreateSchema.schema">
+<span class="sig-name descname"><span class="pre">schema</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../transactions/transaction_composer/index.html#algokit_utils.transactions.transaction_composer.AppCreateSchema" title="algokit_utils.transactions.transaction_composer.AppCreateSchema"><span class="pre">algokit_utils.transactions.transaction_composer.AppCreateSchema</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientCreateSchema.schema" title="Link to this definition">¶</a></dt>
+<dd><p>Optional application creation schema</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallCreateParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">CommonAppCallCreateParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema" title="algokit_utils.applications.app_client.AppClientCreateSchema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientCreateSchema</span></code></a>, <a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="algokit_utils.applications.app_client.CommonAppCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a></p>
+<p>Common configuration for app create call transaction parameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.CommonAppCallCreateParams.on_complete">
+<span class="sig-name descname"><span class="pre">on_complete</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">CreateOnComplete</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams.on_complete" title="Link to this definition">¶</a></dt>
+<dd><p>Optional on complete action</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.FundAppAccountParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">FundAppAccountParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.FundAppAccountParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="algokit_utils.applications.app_client.CommonAppCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a></p>
+<p>Parameters for funding an application’s account.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.FundAppAccountParams.amount">
+<span class="sig-name descname"><span class="pre">amount</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../models/amount/index.html#algokit_utils.models.amount.AlgoAmount" title="algokit_utils.models.amount.AlgoAmount"><span class="pre">algokit_utils.models.amount.AlgoAmount</span></a></em><a class="headerlink" href="#algokit_utils.applications.app_client.FundAppAccountParams.amount" title="Link to this definition">¶</a></dt>
+<dd><p>Amount to fund</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.FundAppAccountParams.close_remainder_to">
+<span class="sig-name descname"><span class="pre">close_remainder_to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.FundAppAccountParams.close_remainder_to" title="Link to this definition">¶</a></dt>
+<dd><p>Optional address to close remainder to</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientBareCallParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientBareCallParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientBareCallParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="algokit_utils.applications.app_client.CommonAppCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a></p>
+<p>Parameters for bare application calls.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientBareCallParams.args">
+<span class="sig-name descname"><span class="pre">args</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientBareCallParams.args" title="Link to this definition">¶</a></dt>
+<dd><p>Optional arguments</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientBareCallCreateParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientBareCallCreateParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientBareCallCreateParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams" title="algokit_utils.applications.app_client.CommonAppCallCreateParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallCreateParams</span></code></a></p>
+<p>Parameters for creating application with bare call.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientBareCallCreateParams.on_complete">
+<span class="sig-name descname"><span class="pre">on_complete</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">CreateOnComplete</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientBareCallCreateParams.on_complete" title="Link to this definition">¶</a></dt>
+<dd><p>Optional on complete action</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.BaseAppClientMethodCallParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">BaseAppClientMethodCallParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">ArgsT</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">MethodT</span></code>], <a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams" title="algokit_utils.applications.app_client.CommonAppCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a></p>
+<p>Base parameters for application method calls.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.BaseAppClientMethodCallParams.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">MethodT</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams.method" title="Link to this definition">¶</a></dt>
+<dd><p>Method to call</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.BaseAppClientMethodCallParams.args">
+<span class="sig-name descname"><span class="pre">args</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ArgsT</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams.args" title="Link to this definition">¶</a></dt>
+<dd><p>Arguments to pass to the application method call</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientMethodCallParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientMethodCallParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientMethodCallParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams" title="algokit_utils.applications.app_client.BaseAppClientMethodCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseAppClientMethodCallParams</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">collections.abc.Sequence</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">algokit_utils.applications.abi.ABIValue</span> <span class="pre">|</span> <span class="pre">algokit_utils.applications.abi.ABIStruct</span> <span class="pre">|</span> <span class="pre">algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument</span> <span class="pre">|</span> <span class="pre">None</span></code>], <code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code>]</p>
+<p>Parameters for application method calls.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientMethodCallCreateParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientMethodCallCreateParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientMethodCallCreateParams" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema" title="algokit_utils.applications.app_client.AppClientCreateSchema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientCreateSchema</span></code></a>, <a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallParams" title="algokit_utils.applications.app_client.AppClientMethodCallParams"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AppClientMethodCallParams</span></code></a></p>
+<p>Parameters for creating application with method call</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientMethodCallCreateParams.on_complete">
+<span class="sig-name descname"><span class="pre">on_complete</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">CreateOnComplete</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientMethodCallCreateParams.on_complete" title="Link to this definition">¶</a></dt>
+<dd><p>Optional on complete action</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClientParams</span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams" title="Link to this definition">¶</a></dt>
+<dd><p>Full parameters for creating an app client</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.app_spec">
+<span class="sig-name descname"><span class="pre">app_spec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc32/index.html#algokit_utils.applications.app_spec.arc32.Arc32Contract" title="algokit_utils.applications.app_spec.arc32.Arc32Contract"><span class="pre">algokit_utils.applications.app_spec.arc32.Arc32Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.app_spec" title="Link to this definition">¶</a></dt>
+<dd><p>The application specification</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.algorand">
+<span class="sig-name descname"><span class="pre">algorand</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../algorand/index.html#algokit_utils.algorand.AlgorandClient" title="algokit_utils.algorand.AlgorandClient"><span class="pre">algokit_utils.algorand.AlgorandClient</span></a></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.algorand" title="Link to this definition">¶</a></dt>
+<dd><p>The Algorand client</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.app_id">
+<span class="sig-name descname"><span class="pre">app_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.app_id" title="Link to this definition">¶</a></dt>
+<dd><p>The application ID</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.app_name" title="Link to this definition">¶</a></dt>
+<dd><p>The application name</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.default_sender">
+<span class="sig-name descname"><span class="pre">default_sender</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.default_sender" title="Link to this definition">¶</a></dt>
+<dd><p>The default sender address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.default_signer">
+<span class="sig-name descname"><span class="pre">default_signer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.default_signer" title="Link to this definition">¶</a></dt>
+<dd><p>The default transaction signer</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.approval_source_map">
+<span class="sig-name descname"><span class="pre">approval_source_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.approval_source_map" title="Link to this definition">¶</a></dt>
+<dd><p>The approval source map</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClientParams.clear_source_map">
+<span class="sig-name descname"><span class="pre">clear_source_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClientParams.clear_source_map" title="Link to this definition">¶</a></dt>
+<dd><p>The clear source map</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.applications.app_client.</span></span><span class="sig-name descname"><span class="pre">AppClient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams" title="algokit_utils.applications.app_client.AppClientParams"><span class="pre">AppClientParams</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient" title="Link to this definition">¶</a></dt>
+<dd><p>A client for interacting with an Algorand smart contract application.</p>
+<p>Provides a high-level interface for interacting with Algorand smart contracts, including
+methods for calling application methods, managing state, and handling transactions.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> – Parameters for creating the app client</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">params</span> <span class="o">=</span> <span class="n">AppClientParams</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">app_spec</span><span class="o">=</span><span class="n">Arc56Contract</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">app_spec_json</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">algorand</span><span class="o">=</span><span class="n">algorand</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_id</span><span class="o">=</span><span class="mi">1234567890</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;My App&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">default_sender</span><span class="o">=</span><span class="s2">&quot;SENDERADDRESS&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">default_signer</span><span class="o">=</span><span class="n">TransactionSigner</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">account</span><span class="o">=</span><span class="s2">&quot;SIGNERACCOUNT&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">private_key</span><span class="o">=</span><span class="s2">&quot;SIGNERPRIVATEKEY&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">approval_source_map</span><span class="o">=</span><span class="n">SourceMap</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;APPROVALSOURCE&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">clear_source_map</span><span class="o">=</span><span class="n">SourceMap</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;CLEARSOURCE&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">AppClient</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.algorand">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">algorand</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../../algorand/index.html#algokit_utils.algorand.AlgorandClient" title="algokit_utils.algorand.AlgorandClient"><span class="pre">algokit_utils.algorand.AlgorandClient</span></a></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.algorand" title="Link to this definition">¶</a></dt>
+<dd><p>Get the Algorand client instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Algorand client used by this app client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.app_id">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.app_id" title="Link to this definition">¶</a></dt>
+<dd><p>Get the application ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the Algorand application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.app_address">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.app_address" title="Link to this definition">¶</a></dt>
+<dd><p>Get the application’s Algorand address.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The Algorand address associated with this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.app_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.app_name" title="Link to this definition">¶</a></dt>
+<dd><p>Get the application name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.app_spec">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">app_spec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.app_spec" title="Link to this definition">¶</a></dt>
+<dd><p>Get the application specification.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ARC-56 contract specification for this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.state">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_StateAccessor</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.state" title="Link to this definition">¶</a></dt>
+<dd><p>Get the state accessor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The state accessor for this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.params">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">params</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_MethodParamsBuilder</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.params" title="Link to this definition">¶</a></dt>
+<dd><p>Get the method parameters builder.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The method parameters builder for this application</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a transaction in the future using Algorand Client</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_method_call</span> <span class="o">=</span> <span class="n">app_client</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">AppClientMethodCallParams</span><span class="p">(</span>
+<span class="go">        method=&#39;my_method&#39;,</span>
+<span class="go">        args=[123, &#39;hello&#39;]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">algorand</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">AppMethodCall</span><span class="p">(</span><span class="n">my_method_call</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Define a nested transaction as an ABI argument</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_method_call</span> <span class="o">=</span> <span class="n">app_client</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">AppClientMethodCallParams</span><span class="p">(</span>
+<span class="go">        method=&#39;my_method&#39;,</span>
+<span class="go">        args=[123, &#39;hello&#39;]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app_client</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">AppClientMethodCallParams</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;my_method2&#39;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">my_method_call</span><span class="p">]))</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.send">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">send</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_TransactionSender</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.send" title="Link to this definition">¶</a></dt>
+<dd><p>Get the transaction sender.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The transaction sender for this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.create_transaction">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_transaction</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">_TransactionCreator</span></em><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.create_transaction" title="Link to this definition">¶</a></dt>
+<dd><p>Get the transaction creator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The transaction creator for this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.normalise_app_spec">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normalise_app_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc32/index.html#algokit_utils.applications.app_spec.arc32.Arc32Contract" title="algokit_utils.applications.app_spec.arc32.Arc32Contract"><span class="pre">algokit_utils.applications.app_spec.arc32.Arc32Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.normalise_app_spec" title="Link to this definition">¶</a></dt>
+<dd><p>Normalize an application specification to ARC-56 format.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app_spec</strong> – The application specification to normalize. Can be raw arc32 or arc56 json,
+or an Arc32Contract or Arc56Contract instance</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The normalized ARC-56 contract specification</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the app spec format is invalid</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">AppClient</span><span class="o">.</span><span class="n">normalise_app_spec</span><span class="p">(</span><span class="n">app_spec_json</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.from_network">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc32/index.html#algokit_utils.applications.app_spec.arc32.Arc32Contract" title="algokit_utils.applications.app_spec.arc32.Arc32Contract"><span class="pre">algokit_utils.applications.app_spec.arc32.Arc32Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../algorand/index.html#algokit_utils.algorand.AlgorandClient" title="algokit_utils.algorand.AlgorandClient"><span class="pre">algokit_utils.algorand.AlgorandClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.from_network" title="Link to this definition">¶</a></dt>
+<dd><p>Create an AppClient instance from network information.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_spec</strong> – The application specification</p></li>
+<li><p><strong>algorand</strong> – The Algorand client instance</p></li>
+<li><p><strong>app_name</strong> – Optional application name</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new AppClient instance</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Exception</strong> – If no app ID is found for the network</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">AppClient</span><span class="o">.</span><span class="n">from_network</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">app_spec</span><span class="o">=</span><span class="n">Arc56Contract</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">app_spec_json</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">algorand</span><span class="o">=</span><span class="n">algorand</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;My App&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">default_sender</span><span class="o">=</span><span class="s2">&quot;SENDERADDRESS&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">default_signer</span><span class="o">=</span><span class="n">TransactionSigner</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">account</span><span class="o">=</span><span class="s2">&quot;SIGNERACCOUNT&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">private_key</span><span class="o">=</span><span class="s2">&quot;SIGNERPRIVATEKEY&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">approval_source_map</span><span class="o">=</span><span class="n">SourceMap</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;APPROVALSOURCE&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span>    <span class="n">clear_source_map</span><span class="o">=</span><span class="n">SourceMap</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">source</span><span class="o">=</span><span class="s2">&quot;CLEARSOURCE&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.from_creator_and_name">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_creator_and_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">creator_address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../app_spec/arc32/index.html#algokit_utils.applications.app_spec.arc32.Arc32Contract" title="algokit_utils.applications.app_spec.arc32.Arc32Contract"><span class="pre">algokit_utils.applications.app_spec.arc32.Arc32Contract</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../algorand/index.html#algokit_utils.algorand.AlgorandClient" title="algokit_utils.algorand.AlgorandClient"><span class="pre">algokit_utils.algorand.AlgorandClient</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_lookup_cache</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_deployer/index.html#algokit_utils.applications.app_deployer.ApplicationLookup" title="algokit_utils.applications.app_deployer.ApplicationLookup"><span class="pre">algokit_utils.applications.app_deployer.ApplicationLookup</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.from_creator_and_name" title="Link to this definition">¶</a></dt>
+<dd><p>Create an AppClient instance from creator address and application name.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>creator_address</strong> – The address of the application creator</p></li>
+<li><p><strong>app_name</strong> – The name of the application</p></li>
+<li><p><strong>app_spec</strong> – The application specification</p></li>
+<li><p><strong>algorand</strong> – The Algorand client instance</p></li>
+<li><p><strong>default_sender</strong> – Optional default sender address</p></li>
+<li><p><strong>default_signer</strong> – Optional default transaction signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional approval program source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional clear program source map</p></li>
+<li><p><strong>ignore_cache</strong> – Optional flag to ignore cache</p></li>
+<li><p><strong>app_lookup_cache</strong> – Optional app lookup cache</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new AppClient instance</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the app is not found for the creator and name</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">AppClient</span><span class="o">.</span><span class="n">from_creator_and_name</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;APPNAME&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">app_spec</span><span class="o">=</span><span class="n">Arc56Contract</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">app_spec_json</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">algorand</span><span class="o">=</span><span class="n">algorand</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.compile">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_spec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_spec/arc56/index.html#algokit_utils.applications.app_spec.arc56.Arc56Contract" title="algokit_utils.applications.app_spec.arc56.Arc56Contract"><span class="pre">algokit_utils.applications.app_spec.arc56.Arc56Contract</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_manager</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../app_manager/index.html#algokit_utils.applications.app_manager.AppManager" title="algokit_utils.applications.app_manager.AppManager"><span class="pre">algokit_utils.applications.app_manager.AppManager</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">compilation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams" title="algokit_utils.applications.app_client.AppClientCompilationParams"><span class="pre">AppClientCompilationParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult" title="algokit_utils.applications.app_client.AppClientCompilationResult"><span class="pre">AppClientCompilationResult</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.compile" title="Link to this definition">¶</a></dt>
+<dd><p>Compile the application’s TEAL code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_spec</strong> – The application specification</p></li>
+<li><p><strong>app_manager</strong> – The application manager instance</p></li>
+<li><p><strong>compilation_params</strong> – Optional compilation parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The compilation result</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If attempting to compile without source or byte code</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.compile_app">
+<span class="sig-name descname"><span class="pre">compile_app</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compilation_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams" title="algokit_utils.applications.app_client.AppClientCompilationParams"><span class="pre">AppClientCompilationParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult" title="algokit_utils.applications.app_client.AppClientCompilationResult"><span class="pre">AppClientCompilationResult</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.compile_app" title="Link to this definition">¶</a></dt>
+<dd><p>Compile the application’s TEAL code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>compilation_params</strong> – Optional compilation parameters</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The compilation result</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.clone">
+<span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_MISSING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_MISSING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.atomic_transaction_composer.TransactionSigner</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_MISSING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">approval_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_MISSING</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_source_map</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algosdk.source_map.SourceMap</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">_MISSING</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient" title="algokit_utils.applications.app_client.AppClient"><span class="pre">AppClient</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.clone" title="Link to this definition">¶</a></dt>
+<dd><p>Create a cloned AppClient instance with optionally overridden parameters.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app_name</strong> – Optional new application name</p></li>
+<li><p><strong>default_sender</strong> – Optional new default sender</p></li>
+<li><p><strong>default_signer</strong> – Optional new default signer</p></li>
+<li><p><strong>approval_source_map</strong> – Optional new approval source map</p></li>
+<li><p><strong>clear_source_map</strong> – Optional new clear source map</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new AppClient instance</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">AppClient</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cloned_client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;Cloned App&quot;</span><span class="p">,</span> <span class="n">default_sender</span><span class="o">=</span><span class="s2">&quot;NEW_SENDER&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.export_source_maps">
+<span class="sig-name descname"><span class="pre">export_source_maps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.AppSourceMaps" title="algokit_utils.models.application.AppSourceMaps"><span class="pre">algokit_utils.models.application.AppSourceMaps</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.export_source_maps" title="Link to this definition">¶</a></dt>
+<dd><p>Export the application’s source maps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The application’s source maps</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If source maps haven’t been loaded</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.import_source_maps">
+<span class="sig-name descname"><span class="pre">import_source_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_maps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.AppSourceMaps" title="algokit_utils.models.application.AppSourceMaps"><span class="pre">algokit_utils.models.application.AppSourceMaps</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.import_source_maps" title="Link to this definition">¶</a></dt>
+<dd><p>Import source maps for the application.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>source_maps</strong> – The source maps to import</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If source maps are invalid or missing</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_local_state">
+<span class="sig-name descname"><span class="pre">get_local_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.AppState" title="algokit_utils.models.application.AppState"><span class="pre">algokit_utils.models.application.AppState</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_local_state" title="Link to this definition">¶</a></dt>
+<dd><p>Get local state for an account.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>address</strong> – The account address</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The account’s local state for this application</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_global_state">
+<span class="sig-name descname"><span class="pre">get_global_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="../../models/application/index.html#algokit_utils.models.application.AppState" title="algokit_utils.models.application.AppState"><span class="pre">algokit_utils.models.application.AppState</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_global_state" title="Link to this definition">¶</a></dt>
+<dd><p>Get the application’s global state.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The application’s global state</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">global_state</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_global_state</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_box_names">
+<span class="sig-name descname"><span class="pre">get_box_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxName" title="algokit_utils.models.state.BoxName"><span class="pre">algokit_utils.models.state.BoxName</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_box_names" title="Link to this definition">¶</a></dt>
+<dd><p>Get all box names for the application.</p>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of box names</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">box_names</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_box_names</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_box_value">
+<span class="sig-name descname"><span class="pre">get_box_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algokit_utils.models.state.BoxIdentifier</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_box_value" title="Link to this definition">¶</a></dt>
+<dd><p>Get the value of a box.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – The box identifier</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The box value as bytes</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">box_value</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_box_value</span><span class="p">(</span><span class="n">box_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_box_value_from_abi_type">
+<span class="sig-name descname"><span class="pre">get_box_value_from_abi_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algokit_utils.models.state.BoxIdentifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">abi_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algokit_utils.applications.abi.ABIType</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">algokit_utils.applications.abi.ABIValue</span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_box_value_from_abi_type" title="Link to this definition">¶</a></dt>
+<dd><p>Get a box value decoded according to an ABI type.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> – The box identifier</p></li>
+<li><p><strong>abi_type</strong> – The ABI type to decode as</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The decoded box value</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">box_value</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_box_value_from_abi_type</span><span class="p">(</span><span class="n">box_name</span><span class="p">,</span> <span class="n">abi_type</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_box_values">
+<span class="sig-name descname"><span class="pre">get_box_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxName" title="algokit_utils.models.state.BoxName"><span class="pre">algokit_utils.models.state.BoxName</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxValue" title="algokit_utils.models.state.BoxValue"><span class="pre">algokit_utils.models.state.BoxValue</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_box_values" title="Link to this definition">¶</a></dt>
+<dd><p>Get values for multiple boxes.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filter_func</strong> – Optional function to filter box names</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of box values</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">box_values</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_box_values</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.get_box_values_from_abi_type">
+<span class="sig-name descname"><span class="pre">get_box_values_from_abi_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abi_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">algokit_utils.applications.abi.ABIType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">collections.abc.Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxName" title="algokit_utils.models.state.BoxName"><span class="pre">algokit_utils.models.state.BoxName</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../abi/index.html#algokit_utils.applications.abi.BoxABIValue" title="algokit_utils.applications.abi.BoxABIValue"><span class="pre">algokit_utils.applications.abi.BoxABIValue</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.get_box_values_from_abi_type" title="Link to this definition">¶</a></dt>
+<dd><p>Get multiple box values decoded according to an ABI type.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>abi_type</strong> – The ABI type to decode as</p></li>
+<li><p><strong>filter_func</strong> – Optional function to filter box names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of decoded box values</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">box_values</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_box_values_from_abi_type</span><span class="p">(</span><span class="n">abi_type</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="algokit_utils.applications.app_client.AppClient.fund_app_account">
+<span class="sig-name descname"><span class="pre">fund_app_account</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#algokit_utils.applications.app_client.FundAppAccountParams" title="algokit_utils.applications.app_client.FundAppAccountParams"><span class="pre">FundAppAccountParams</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">send_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../models/transaction/index.html#algokit_utils.models.transaction.SendParams" title="algokit_utils.models.transaction.SendParams"><span class="pre">algokit_utils.models.transaction.SendParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="../../transactions/transaction_sender/index.html#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult" title="algokit_utils.transactions.transaction_sender.SendSingleTransactionResult"><span class="pre">algokit_utils.transactions.transaction_sender.SendSingleTransactionResult</span></a></span></span><a class="headerlink" href="#algokit_utils.applications.app_client.AppClient.fund_app_account" title="Link to this definition">¶</a></dt>
+<dd><p>Fund the application’s account.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>params</strong> – The funding parameters</p></li>
+<li><p><strong>send_params</strong> – Send parameters, defaults to None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The transaction result</p>
+</dd>
+<dt class="field-odd">Example<span class="colon">:</span></dt>
+<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">fund_app_account</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../app_deployer/index.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">algokit_utils.applications.app_deployer</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../abi/index.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">algokit_utils.applications.abi</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Algorand Foundation
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">algokit_utils.applications.app_client</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.get_constant_block_offset"><code class="docutils literal notranslate"><span class="pre">get_constant_block_offset()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CreateOnComplete"><code class="docutils literal notranslate"><span class="pre">CreateOnComplete</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationResult</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult.approval_program"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationResult.approval_program</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult.clear_state_program"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationResult.clear_state_program</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult.compiled_approval"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationResult.compiled_approval</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationResult.compiled_clear"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationResult.compiled_clear</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams.deploy_time_params"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationParams.deploy_time_params</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams.updatable"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationParams.updatable</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCompilationParams.deletable"><code class="docutils literal notranslate"><span class="pre">AppClientCompilationParams.deletable</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.account_references"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.account_references</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.app_references"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.app_references</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.asset_references"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.asset_references</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.box_references"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.box_references</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.extra_fee"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.extra_fee</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.lease"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.lease</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.max_fee"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.max_fee</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.note"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.note</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.rekey_to"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.rekey_to</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.sender"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.sender</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.signer"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.signer</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.static_fee"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.static_fee</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.validity_window"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.validity_window</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.first_valid_round"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.first_valid_round</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.last_valid_round"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.last_valid_round</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallParams.on_complete"><code class="docutils literal notranslate"><span class="pre">CommonAppCallParams.on_complete</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema"><code class="docutils literal notranslate"><span class="pre">AppClientCreateSchema</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema.extra_program_pages"><code class="docutils literal notranslate"><span class="pre">AppClientCreateSchema.extra_program_pages</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientCreateSchema.schema"><code class="docutils literal notranslate"><span class="pre">AppClientCreateSchema.schema</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams"><code class="docutils literal notranslate"><span class="pre">CommonAppCallCreateParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.CommonAppCallCreateParams.on_complete"><code class="docutils literal notranslate"><span class="pre">CommonAppCallCreateParams.on_complete</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.FundAppAccountParams"><code class="docutils literal notranslate"><span class="pre">FundAppAccountParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.FundAppAccountParams.amount"><code class="docutils literal notranslate"><span class="pre">FundAppAccountParams.amount</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.FundAppAccountParams.close_remainder_to"><code class="docutils literal notranslate"><span class="pre">FundAppAccountParams.close_remainder_to</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallParams"><code class="docutils literal notranslate"><span class="pre">AppClientBareCallParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallParams.args"><code class="docutils literal notranslate"><span class="pre">AppClientBareCallParams.args</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallCreateParams"><code class="docutils literal notranslate"><span class="pre">AppClientBareCallCreateParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientBareCallCreateParams.on_complete"><code class="docutils literal notranslate"><span class="pre">AppClientBareCallCreateParams.on_complete</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams"><code class="docutils literal notranslate"><span class="pre">BaseAppClientMethodCallParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams.method"><code class="docutils literal notranslate"><span class="pre">BaseAppClientMethodCallParams.method</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.BaseAppClientMethodCallParams.args"><code class="docutils literal notranslate"><span class="pre">BaseAppClientMethodCallParams.args</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallParams"><code class="docutils literal notranslate"><span class="pre">AppClientMethodCallParams</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallCreateParams"><code class="docutils literal notranslate"><span class="pre">AppClientMethodCallCreateParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientMethodCallCreateParams.on_complete"><code class="docutils literal notranslate"><span class="pre">AppClientMethodCallCreateParams.on_complete</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams"><code class="docutils literal notranslate"><span class="pre">AppClientParams</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.app_spec"><code class="docutils literal notranslate"><span class="pre">AppClientParams.app_spec</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.algorand"><code class="docutils literal notranslate"><span class="pre">AppClientParams.algorand</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.app_id"><code class="docutils literal notranslate"><span class="pre">AppClientParams.app_id</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.app_name"><code class="docutils literal notranslate"><span class="pre">AppClientParams.app_name</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.default_sender"><code class="docutils literal notranslate"><span class="pre">AppClientParams.default_sender</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.default_signer"><code class="docutils literal notranslate"><span class="pre">AppClientParams.default_signer</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.approval_source_map"><code class="docutils literal notranslate"><span class="pre">AppClientParams.approval_source_map</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClientParams.clear_source_map"><code class="docutils literal notranslate"><span class="pre">AppClientParams.clear_source_map</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient"><code class="docutils literal notranslate"><span class="pre">AppClient</span></code></a><ul>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.algorand"><code class="docutils literal notranslate"><span class="pre">AppClient.algorand</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.app_id"><code class="docutils literal notranslate"><span class="pre">AppClient.app_id</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.app_address"><code class="docutils literal notranslate"><span class="pre">AppClient.app_address</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.app_name"><code class="docutils literal notranslate"><span class="pre">AppClient.app_name</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.app_spec"><code class="docutils literal notranslate"><span class="pre">AppClient.app_spec</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.state"><code class="docutils literal notranslate"><span class="pre">AppClient.state</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.params"><code class="docutils literal notranslate"><span class="pre">AppClient.params</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.send"><code class="docutils literal notranslate"><span class="pre">AppClient.send</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.create_transaction"><code class="docutils literal notranslate"><span class="pre">AppClient.create_transaction</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.normalise_app_spec"><code class="docutils literal notranslate"><span class="pre">AppClient.normalise_app_spec()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.from_network"><code class="docutils literal notranslate"><span class="pre">AppClient.from_network()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.from_creator_and_name"><code class="docutils literal notranslate"><span class="pre">AppClient.from_creator_and_name()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.compile"><code class="docutils literal notranslate"><span class="pre">AppClient.compile()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.compile_app"><code class="docutils literal notranslate"><span class="pre">AppClient.compile_app()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.clone"><code class="docutils literal notranslate"><span class="pre">AppClient.clone()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.export_source_maps"><code class="docutils literal notranslate"><span class="pre">AppClient.export_source_maps()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.import_source_maps"><code class="docutils literal notranslate"><span class="pre">AppClient.import_source_maps()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_local_state"><code class="docutils literal notranslate"><span class="pre">AppClient.get_local_state()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_global_state"><code class="docutils literal notranslate"><span class="pre">AppClient.get_global_state()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_box_names"><code class="docutils literal notranslate"><span class="pre">AppClient.get_box_names()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_box_value"><code class="docutils literal notranslate"><span class="pre">AppClient.get_box_value()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_box_value_from_abi_type"><code class="docutils literal notranslate"><span class="pre">AppClient.get_box_value_from_abi_type()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_box_values"><code class="docutils literal notranslate"><span class="pre">AppClient.get_box_values()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.get_box_values_from_abi_type"><code class="docutils literal notranslate"><span class="pre">AppClient.get_box_values_from_abi_type()</span></code></a></li>
+<li><a class="reference internal" href="#algokit_utils.applications.app_client.AppClient.fund_app_account"><code class="docutils literal notranslate"><span class="pre">AppClient.fund_app_account()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../../../_static/documentation_options.js?v=110ea713"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
+    </body>
+</html>

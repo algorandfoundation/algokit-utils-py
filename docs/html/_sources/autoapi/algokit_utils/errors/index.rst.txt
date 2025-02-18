@@ -1,0 +1,15 @@
+algokit_utils.errors
+====================
+
+.. py:module:: algokit_utils.errors
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/algokit_utils/errors/logic_error/index
+
+

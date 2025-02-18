@@ -1,0 +1,66 @@
+algokit_utils.models.network
+============================
+
+.. py:module:: algokit_utils.models.network
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.models.network.AlgoClientNetworkConfig
+   algokit_utils.models.network.AlgoClientConfigs
+
+
+Module Contents
+---------------
+
+.. py:class:: AlgoClientNetworkConfig
+
+   Connection details for connecting to an {py:class}`algosdk.v2client.algod.AlgodClient` or
+   {py:class}`algosdk.v2client.indexer.IndexerClient`
+
+
+   .. py:attribute:: server
+      :type:  str
+
+      URL for the service e.g. `http://localhost` or `https://testnet-api.algonode.cloud`
+
+
+
+   .. py:attribute:: token
+      :type:  str | None
+      :value: None
+
+
+      API Token to authenticate with the service e.g '4001' or '8980'
+
+
+
+   .. py:attribute:: port
+      :type:  str | int | None
+      :value: None
+
+
+
+   .. py:method:: full_url() -> str
+
+      Returns the full URL for the service
+
+
+
+.. py:class:: AlgoClientConfigs
+
+   .. py:attribute:: algod_config
+      :type:  AlgoClientNetworkConfig
+
+
+   .. py:attribute:: indexer_config
+      :type:  AlgoClientNetworkConfig | None
+
+
+   .. py:attribute:: kmd_config
+      :type:  AlgoClientNetworkConfig | None
+
+

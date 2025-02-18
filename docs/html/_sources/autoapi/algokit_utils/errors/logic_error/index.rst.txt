@@ -1,0 +1,105 @@
+algokit_utils.errors.logic_error
+================================
+
+.. py:module:: algokit_utils.errors.logic_error
+
+
+Exceptions
+----------
+
+.. autoapisummary::
+
+   algokit_utils.errors.logic_error.LogicError
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.errors.logic_error.LogicErrorData
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   algokit_utils.errors.logic_error.parse_logic_error
+
+
+Module Contents
+---------------
+
+.. py:class:: LogicErrorData
+
+   Bases: :py:obj:`TypedDict`
+
+
+   dict() -> new empty dictionary
+   dict(mapping) -> new dictionary initialized from a mapping object's
+       (key, value) pairs
+   dict(iterable) -> new dictionary initialized as if via:
+       d = {}
+       for k, v in iterable:
+           d[k] = v
+   dict(**kwargs) -> new dictionary initialized with the name=value pairs
+       in the keyword argument list.  For example:  dict(one=1, two=2)
+
+
+   .. py:attribute:: transaction_id
+      :type:  str
+
+
+   .. py:attribute:: message
+      :type:  str
+
+
+   .. py:attribute:: pc
+      :type:  int
+
+
+.. py:function:: parse_logic_error(error_str: str) -> LogicErrorData | None
+
+.. py:exception:: LogicError(*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list[algokit_utils.models.simulate.SimulationTrace] | None = None, get_line_for_pc: collections.abc.Callable[[int], int | None] | None = None)
+
+   Bases: :py:obj:`Exception`
+
+
+   Common base class for all non-exit exceptions.
+
+
+   .. py:attribute:: logic_error
+      :value: None
+
+
+
+   .. py:attribute:: logic_error_str
+
+
+   .. py:attribute:: source_map
+
+
+   .. py:attribute:: lines
+
+
+   .. py:attribute:: transaction_id
+
+
+   .. py:attribute:: message
+
+
+   .. py:attribute:: pc
+
+
+   .. py:attribute:: traces
+      :value: None
+
+
+
+   .. py:attribute:: line_no
+
+
+   .. py:method:: trace(lines: int = 5) -> str
+
+

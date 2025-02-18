@@ -1,0 +1,131 @@
+algokit_utils.applications.enums
+================================
+
+.. py:module:: algokit_utils.applications.enums
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   algokit_utils.applications.enums.OnSchemaBreak
+   algokit_utils.applications.enums.OnUpdate
+   algokit_utils.applications.enums.OperationPerformed
+
+
+Module Contents
+---------------
+
+.. py:class:: OnSchemaBreak(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Action to take if an Application's schema has breaking changes
+
+
+   .. py:attribute:: Fail
+      :value: 0
+
+
+      Fail the deployment
+
+
+
+   .. py:attribute:: ReplaceApp
+      :value: 2
+
+
+      Create a new Application and delete the old Application in a single transaction
+
+
+
+   .. py:attribute:: AppendApp
+      :value: 3
+
+
+      Create a new Application
+
+
+
+.. py:class:: OnUpdate(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Action to take if an Application has been updated
+
+
+   .. py:attribute:: Fail
+      :value: 0
+
+
+      Fail the deployment
+
+
+
+   .. py:attribute:: UpdateApp
+      :value: 1
+
+
+      Update the Application with the new approval and clear programs
+
+
+
+   .. py:attribute:: ReplaceApp
+      :value: 2
+
+
+      Create a new Application and delete the old Application in a single transaction
+
+
+
+   .. py:attribute:: AppendApp
+      :value: 3
+
+
+      Create a new application
+
+
+
+.. py:class:: OperationPerformed(*args, **kwds)
+
+   Bases: :py:obj:`enum.Enum`
+
+
+   Describes the actions taken during deployment
+
+
+   .. py:attribute:: Nothing
+      :value: 0
+
+
+      An existing Application was found
+
+
+
+   .. py:attribute:: Create
+      :value: 1
+
+
+      No existing Application was found, created a new Application
+
+
+
+   .. py:attribute:: Update
+      :value: 2
+
+
+      An existing Application was found, but was out of date, updated to latest version
+
+
+
+   .. py:attribute:: Replace
+      :value: 3
+
+
+      An existing Application was found, but was out of date, created a new Application and deleted the original
+
+
+
