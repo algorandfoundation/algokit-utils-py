@@ -2,6 +2,32 @@
 
 <!--next-version-placeholder-->
 
+## v3.0.0 (2025-02-18)
+
+### Feature
+
+* Algokit-utils-py v3 implementation ([#119](https://github.com/algorandfoundation/algokit-utils-py/issues/119)) ([`428dab1`](https://github.com/algorandfoundation/algokit-utils-py/commit/428dab153c8372a42a783f331a56d4088cb2f7d5))
+
+### Fix
+
+* Remove deprecation decorator causing side effects ([#141](https://github.com/algorandfoundation/algokit-utils-py/issues/141)) ([`a10720e`](https://github.com/algorandfoundation/algokit-utils-py/commit/a10720ea260b7bd689a6f1fcdeca631ae051ca39))
+* Name normalization in arc56 contract; extra test for more verbose validation ([#140](https://github.com/algorandfoundation/algokit-utils-py/issues/140)) ([`a38843a`](https://github.com/algorandfoundation/algokit-utils-py/commit/a38843ac52eea13f5f3ec87f1f13b305c098863a))
+* Addressing internal feedback (batch 6) ([#139](https://github.com/algorandfoundation/algokit-utils-py/issues/139)) ([`4c661c0`](https://github.com/algorandfoundation/algokit-utils-py/commit/4c661c099e57e5bd9391c8093e63d472d08d09b2))
+* Expose algosdk lsig, multisig object instances in account wrappers ([#138](https://github.com/algorandfoundation/algokit-utils-py/issues/138)) ([`24b2d19`](https://github.com/algorandfoundation/algokit-utils-py/commit/24b2d19d68fa1ce136a9487f9e10be0c847dfab6))
+* Feedback batch #4 ([#136](https://github.com/algorandfoundation/algokit-utils-py/issues/136)) ([`7a2559f`](https://github.com/algorandfoundation/algokit-utils-py/commit/7a2559f97730c9385fde45a1e4ccb3fe61b80afd))
+* Detect changes in extra program pages as a schema break ([#135](https://github.com/algorandfoundation/algokit-utils-py/issues/135)) ([`43aa41f`](https://github.com/algorandfoundation/algokit-utils-py/commit/43aa41f3fd165b2327ab6cd937f855247c1ff4a4))
+* Addressing internal feedback (3) ([#134](https://github.com/algorandfoundation/algokit-utils-py/issues/134)) ([`b8071a8`](https://github.com/algorandfoundation/algokit-utils-py/commit/b8071a8cfcc2c43acce8a585f842ce117bf5afa2))
+* Second batch of minor improvements based on internal feedback ([#133](https://github.com/algorandfoundation/algokit-utils-py/issues/133)) ([`0693abc`](https://github.com/algorandfoundation/algokit-utils-py/commit/0693abc0d51394fb02789ca59d31586427fbd6fe))
+* Addressing feedback and minor tweaks ([#132](https://github.com/algorandfoundation/algokit-utils-py/issues/132)) ([`007bb8e`](https://github.com/algorandfoundation/algokit-utils-py/commit/007bb8e2f9abe4555dcbcb2574c3a7458db53e04))
+
+### Breaking
+
+* Major restructuring and new app client interfaces ([`428dab1`](https://github.com/algorandfoundation/algokit-utils-py/commit/428dab153c8372a42a783f331a56d4088cb2f7d5))
+
+### Documentation
+
+* Refining docstrings, adding more examples ([#137](https://github.com/algorandfoundation/algokit-utils-py/issues/137)) ([`636c897`](https://github.com/algorandfoundation/algokit-utils-py/commit/636c897e2b291675731b234fcbad3cce4d3e7071))
+
 ## v2.4.0 (2024-11-25)
 
 ### Feature
