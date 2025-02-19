@@ -386,7 +386,7 @@
 </pre></div>
 </div>
 <blockquote>
-<div><p>NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is end user’s responsibility to explicitly manage versioning of their smart contracts (if desired).</p>
+<div><p>NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is the user’s responsibility to explicitly manage versioning of their smart contracts (if desired).</p>
 </div></blockquote>
 </section>
 <section id="lookup-deployed-apps-by-name">
@@ -512,11 +512,11 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... your contract code ...</span>
 <span class="nd">@arc4</span><span class="o">.</span><span class="n">baremethod</span><span class="p">(</span><span class="n">allow_actions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;UpdateApplication&quot;</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="n">UPDATABLE_TEMPLATE_NAME</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="s2">&quot;UPDATABLE&quot;</span><span class="p">)</span>
 
 <span class="nd">@arc4</span><span class="o">.</span><span class="n">baremethod</span><span class="p">(</span><span class="n">allow_actions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DeleteApplication&quot;</span><span class="p">])</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="n">DELETABLE_TEMPLATE_NAME</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="s2">&quot;DELETABLE&quot;</span><span class="p">)</span>
 <span class="c1"># ... your contract code ...</span>
 </pre></div>
 </div>

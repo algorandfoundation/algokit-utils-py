@@ -68,7 +68,7 @@ An example of the ARC-2 transaction note that is attached as an app creation / u
 ALGOKIT_DEPLOYER:j{name:"MyApp",version:"1.0",updatable:true,deletable:false}
 ```
 
-> NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is end user's responsibility to explicitly manage versioning of their smart contracts (if desired).
+> NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is the user's responsibility to explicitly manage versioning of their smart contracts (if desired).
 
 ## Lookup deployed apps by name
 
@@ -201,11 +201,11 @@ Below is a sample in [Algorand Python SDK](https://github.com/algorandfoundation
 # ... your contract code ...
 @arc4.baremethod(allow_actions=["UpdateApplication"])
 def update(self) -> None:
-    assert TemplateVar[bool](UPDATABLE_TEMPLATE_NAME)
+    assert TemplateVar[bool]("UPDATABLE")
 
 @arc4.baremethod(allow_actions=["DeleteApplication"])
 def delete(self) -> None:
-    assert TemplateVar[bool](DELETABLE_TEMPLATE_NAME)
+    assert TemplateVar[bool]("DELETABLE")
 # ... your contract code ...
 ```
 
