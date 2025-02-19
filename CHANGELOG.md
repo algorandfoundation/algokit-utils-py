@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v3.0.1 (2025-02-19)
+
+### Fix
+
+* Minor deploy behaviour and logger instantiation patches ([#143](https://github.com/algorandfoundation/algokit-utils-py/issues/143)) ([`bb096bb`](https://github.com/algorandfoundation/algokit-utils-py/commit/bb096bbbed3cee9208aed76262e66d449cf7af70))
+
+### Documentation
+
+* Publish v3 docs ([#142](https://github.com/algorandfoundation/algokit-utils-py/issues/142)) ([`0043b4e`](https://github.com/algorandfoundation/algokit-utils-py/commit/0043b4e1710b0a4c60ccf90f6049f1a805931485))
+
 ## v3.0.0 (2025-02-18)
 
 ### Feature
