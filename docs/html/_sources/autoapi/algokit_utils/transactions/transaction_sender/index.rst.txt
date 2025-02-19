@@ -494,7 +494,7 @@ Module Contents
 
 
 
-   .. py:method:: asset_opt_out(*, params: algokit_utils.transactions.transaction_composer.AssetOptOutParams, send_params: algokit_utils.models.transaction.SendParams | None = None, ensure_zero_balance: bool = True) -> SendSingleTransactionResult
+   .. py:method:: asset_opt_out(params: algokit_utils.transactions.transaction_composer.AssetOptOutParams, send_params: algokit_utils.models.transaction.SendParams | None = None, *, ensure_zero_balance: bool = True) -> SendSingleTransactionResult
 
       Opt an account out of an Algorand Standard Asset.
 

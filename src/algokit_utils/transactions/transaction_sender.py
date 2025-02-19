@@ -657,9 +657,9 @@ class AlgorandClientTransactionSender:
 
     def asset_opt_out(
         self,
-        *,
         params: AssetOptOutParams,
         send_params: SendParams | None = None,
+        *,
         ensure_zero_balance: bool = True,
     ) -> SendSingleTransactionResult:
         """Opt an account out of an Algorand Standard Asset.

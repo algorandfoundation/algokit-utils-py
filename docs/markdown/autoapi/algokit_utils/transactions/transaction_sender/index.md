@@ -440,7 +440,7 @@ Opt an account into an Algorand Standard Asset.
   >>> ))
   ```
 
-#### asset_opt_out(\*, params: [algokit_utils.transactions.transaction_composer.AssetOptOutParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetOptOutParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, ensure_zero_balance: bool = True) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
+#### asset_opt_out(params: [algokit_utils.transactions.transaction_composer.AssetOptOutParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetOptOutParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, \*, ensure_zero_balance: bool = True) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
 
 Opt an account out of an Algorand Standard Asset.
 
