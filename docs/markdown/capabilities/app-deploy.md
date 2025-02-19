@@ -68,6 +68,8 @@ An example of the ARC-2 transaction note that is attached as an app creation / u
 ALGOKIT_DEPLOYER:j{name:"MyApp",version:"1.0",updatable:true,deletable:false}
 ```
 
+> NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is end user’s responsibility to explicitly manage versioning of their smart contracts (if desired).
+
 ## Lookup deployed apps by name
 
 In order to resolve what apps have been previously deployed and their metadata, AlgoKit provides a method that does a series of indexer lookups and returns a map of name to app metadata via `get_creator_apps_by_name(creator_address)`.
@@ -179,8 +181,6 @@ In order for a smart contract to opt-in to use this functionality, it must have 
 - `TMPL_UPDATABLE` - Which will be replaced with a `1` if an app should be updatable and `0` if it shouldn’t (immutable)
 - `TMPL_DELETABLE` - Which will be replaced with a `1` if an app should be deletable and `0` if it shouldn’t (permanent)
 
-If you are building a smart contract using the production [AlgoKit init templates](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/init.md) provide a reference implementation out of the box for the deploy-time immutability and permanence control.
-
 If you passed in a TEAL template for the `approval_program` or `clear_state_program` (i.e. a `str` rather than a `bytes`) then `deploy` will return the `CompiledTeal` of substituting then compiling the TEAL template(s) in the following properties of the return value:
 
 - `compiled_approval: CompiledTeal | None`
@@ -192,6 +192,50 @@ Template substitution is done by executing `algorand.app.compile_teal_template(t
 - `AppManager.replace_template_variables(teal_template_code, template_values)` - Replaces the template variables by looking for `TMPL_{key}`
 - `AppManager.replace_teal_template_deploy_time_control_params(teal_template_code, params)` - If `params` is provided, it allows for deploy-time immutability and permanence control by replacing `TMPL_UPDATABLE` with `params.get("updatable")` if not `None` and replacing `TMPL_DELETABLE` with `params.get("deletable")` if not `None`
 - `algorand.app.compile_teal(teal_code)` - Sends the final TEAL to algod for compilation and returns the result including the source map and caches the compilation result within the `AppManager` instance
+
+#### Making updatable/deletable apps
+
+Below is a sample in [Algorand Python SDK](https://github.com/algorandfoundation/puya) that demonstrates how to make an app updatable/deletable smart contract with the use of `TMPL_UPDATABLE` and `TMPL_DELETABLE` template parameters.
+
+```python
+# ... your contract code ...
+@arc4.baremethod(allow_actions=["UpdateApplication"])
+def update(self) -> None:
+    assert TemplateVar[bool](UPDATABLE_TEMPLATE_NAME)
+
+@arc4.baremethod(allow_actions=["DeleteApplication"])
+def delete(self) -> None:
+    assert TemplateVar[bool](DELETABLE_TEMPLATE_NAME)
+# ... your contract code ...
+```
+
+Alternative example in [Algorand TypeScript SDK](https://github.com/algorandfoundation/puya-ts):
+
+```typescript
+// ... your contract code ...
+@baremethod({ allowActions: 'UpdateApplication' })
+public onUpdate() {
+    assert(TemplateVar<boolean>('UPDATABLE'))
+}
+
+@baremethod({ allowActions: 'DeleteApplication' })
+public onDelete() {
+    assert(TemplateVar<boolean>('DELETABLE'))
+}
+// ... your contract code ...
+```
+
+With the above code, when deploying your application, you can pass in the following deploy-time parameters:
+
+```python
+my_factory.deploy(
+    ... # other deployment parameters ...
+    compilation_params={
+        "updatable": True, # resulting app will be updatable, and this metadata will be set in the ARC-2 transaction note
+        "deletable": False, # resulting app will not be deletable, and this metadata will be set in the ARC-2 transaction note
+    }
+)
+```
 
 ### Return value
 

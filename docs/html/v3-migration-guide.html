@@ -577,6 +577,7 @@
 <li><p><strong>Application Client</strong></p>
 <ul class="simple">
 <li><p>Split into <code class="docutils literal notranslate"><span class="pre">AppClient</span></code>, <code class="docutils literal notranslate"><span class="pre">AppDeployer</span></code> and <code class="docutils literal notranslate"><span class="pre">AppFactory</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">deploy</span></code> method in <code class="docutils literal notranslate"><span class="pre">AppFactory</span></code>/<code class="docutils literal notranslate"><span class="pre">AppDeployer</span></code> no longer auto increments the contract version by default. It is end user’s responsibility to explicitly manage versioning of their smart contracts (if desired).</p></li>
 <li><p>New intuitive structured interface for creating or sending <code class="docutils literal notranslate"><span class="pre">AppCall</span></code>|<code class="docutils literal notranslate"><span class="pre">AppMethodCall</span></code> transactions</p></li>
 <li><p>ARC-56 support along with automatic conversion of specs from ARC-32 to ARC-56</p></li>
 </ul>

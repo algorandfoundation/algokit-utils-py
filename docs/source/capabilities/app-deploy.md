@@ -181,8 +181,6 @@ In order for a smart contract to opt-in to use this functionality, it must have 
 - `TMPL_UPDATABLE` - Which will be replaced with a `1` if an app should be updatable and `0` if it shouldn't (immutable)
 - `TMPL_DELETABLE` - Which will be replaced with a `1` if an app should be deletable and `0` if it shouldn't (permanent)
 
-If you are building a smart contract using the production [AlgoKit init templates](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/init.md) provide a reference implementation out of the box for the deploy-time immutability and permanence control.
-
 If you passed in a TEAL template for the `approval_program` or `clear_state_program` (i.e. a `str` rather than a `bytes`) then `deploy` will return the {py:obj}`CompiledTeal <algokit_utils.models.app_deployer.CompiledTeal>` of substituting then compiling the TEAL template(s) in the following properties of the return value:
 
 - `compiled_approval: CompiledTeal | None`
@@ -231,6 +229,7 @@ With the above code, when deploying your application, you can pass in the follow
 
 ```python
 my_factory.deploy(
+    ... # other deployment parameters ...
     compilation_params={
         "updatable": True, # resulting app will be updatable, and this metadata will be set in the ARC-2 transaction note
         "deletable": False, # resulting app will not be deletable, and this metadata will be set in the ARC-2 transaction note

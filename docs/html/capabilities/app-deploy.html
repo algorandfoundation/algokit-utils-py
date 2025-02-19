@@ -385,6 +385,9 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ALGOKIT_DEPLOYER</span><span class="p">:</span><span class="n">j</span><span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="s2">&quot;MyApp&quot;</span><span class="p">,</span><span class="n">version</span><span class="p">:</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span><span class="n">updatable</span><span class="p">:</span><span class="n">true</span><span class="p">,</span><span class="n">deletable</span><span class="p">:</span><span class="n">false</span><span class="p">}</span>
 </pre></div>
 </div>
+<blockquote>
+<div><p>NOTE: Starting from v3.0.0, AlgoKit Utils no longer automatically increments the contract version by default. It is end user’s responsibility to explicitly manage versioning of their smart contracts (if desired).</p>
+</div></blockquote>
 </section>
 <section id="lookup-deployed-apps-by-name">
 <h2>Lookup deployed apps by name<a class="headerlink" href="#lookup-deployed-apps-by-name" title="Link to this heading">¶</a></h2>
@@ -491,7 +494,6 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> - Which will be replaced with a <code class="docutils literal notranslate"><span class="pre">1</span></code> if an app should be updatable and <code class="docutils literal notranslate"><span class="pre">0</span></code> if it shouldn’t (immutable)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> - Which will be replaced with a <code class="docutils literal notranslate"><span class="pre">1</span></code> if an app should be deletable and <code class="docutils literal notranslate"><span class="pre">0</span></code> if it shouldn’t (permanent)</p></li>
 </ul>
-<p>If you are building a smart contract using the production <a class="reference external" href="https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/init.md">AlgoKit init templates</a> provide a reference implementation out of the box for the deploy-time immutability and permanence control.</p>
 <p>If you passed in a TEAL template for the <code class="docutils literal notranslate"><span class="pre">approval_program</span></code> or <code class="docutils literal notranslate"><span class="pre">clear_state_program</span></code> (i.e. a <code class="docutils literal notranslate"><span class="pre">str</span></code> rather than a <code class="docutils literal notranslate"><span class="pre">bytes</span></code>) then <code class="docutils literal notranslate"><span class="pre">deploy</span></code> will return the <code class="xref py py-obj docutils literal notranslate"><span class="pre">CompiledTeal</span></code> of substituting then compiling the TEAL template(s) in the following properties of the return value:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">compiled_approval:</span> <span class="pre">CompiledTeal</span> <span class="pre">|</span> <span class="pre">None</span></code></p></li>
@@ -504,6 +506,45 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">AppManager.replace_teal_template_deploy_time_control_params(teal_template_code,</span> <span class="pre">params)</span></code> - If <code class="docutils literal notranslate"><span class="pre">params</span></code> is provided, it allows for deploy-time immutability and permanence control by replacing <code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> with <code class="docutils literal notranslate"><span class="pre">params.get(&quot;updatable&quot;)</span></code> if not <code class="docutils literal notranslate"><span class="pre">None</span></code> and replacing <code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> with <code class="docutils literal notranslate"><span class="pre">params.get(&quot;deletable&quot;)</span></code> if not <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">algorand.app.compile_teal(teal_code)</span></code> - Sends the final TEAL to algod for compilation and returns the result including the source map and caches the compilation result within the <code class="docutils literal notranslate"><span class="pre">AppManager</span></code> instance</p></li>
 </ul>
+<section id="making-updatable-deletable-apps">
+<h4>Making updatable/deletable apps<a class="headerlink" href="#making-updatable-deletable-apps" title="Link to this heading">¶</a></h4>
+<p>Below is a sample in <a class="reference external" href="https://github.com/algorandfoundation/puya">Algorand Python SDK</a> that demonstrates how to make an app updatable/deletable smart contract with the use of <code class="docutils literal notranslate"><span class="pre">TMPL_UPDATABLE</span></code> and <code class="docutils literal notranslate"><span class="pre">TMPL_DELETABLE</span></code> template parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... your contract code ...</span>
+<span class="nd">@arc4</span><span class="o">.</span><span class="n">baremethod</span><span class="p">(</span><span class="n">allow_actions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;UpdateApplication&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="n">UPDATABLE_TEMPLATE_NAME</span><span class="p">)</span>
+
+<span class="nd">@arc4</span><span class="o">.</span><span class="n">baremethod</span><span class="p">(</span><span class="n">allow_actions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;DeleteApplication&quot;</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">TemplateVar</span><span class="p">[</span><span class="nb">bool</span><span class="p">](</span><span class="n">DELETABLE_TEMPLATE_NAME</span><span class="p">)</span>
+<span class="c1"># ... your contract code ...</span>
+</pre></div>
+</div>
+<p>Alternative example in <a class="reference external" href="https://github.com/algorandfoundation/puya-ts">Algorand TypeScript SDK</a>:</p>
+<div class="highlight-typescript notranslate"><div class="highlight"><pre><span></span><span class="c1">// ... your contract code ...</span>
+<span class="kd">@baremethod</span><span class="p">({</span><span class="w"> </span><span class="nx">allowActions</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;UpdateApplication&#39;</span><span class="w"> </span><span class="p">})</span>
+<span class="k">public</span><span class="w"> </span><span class="nx">onUpdate</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">assert</span><span class="p">(</span><span class="nx">TemplateVar</span><span class="o">&lt;</span><span class="kt">boolean</span><span class="o">&gt;</span><span class="p">(</span><span class="s1">&#39;UPDATABLE&#39;</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="kd">@baremethod</span><span class="p">({</span><span class="w"> </span><span class="nx">allowActions</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;DeleteApplication&#39;</span><span class="w"> </span><span class="p">})</span>
+<span class="k">public</span><span class="w"> </span><span class="nx">onDelete</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">assert</span><span class="p">(</span><span class="nx">TemplateVar</span><span class="o">&lt;</span><span class="kt">boolean</span><span class="o">&gt;</span><span class="p">(</span><span class="s1">&#39;DELETABLE&#39;</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="c1">// ... your contract code ...</span>
+</pre></div>
+</div>
+<p>With the above code, when deploying your application, you can pass in the following deploy-time parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">my_factory</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span>
+    <span class="o">...</span> <span class="c1"># other deployment parameters ...</span>
+    <span class="n">compilation_params</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;updatable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="c1"># resulting app will be updatable, and this metadata will be set in the ARC-2 transaction note</span>
+        <span class="s2">&quot;deletable&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="c1"># resulting app will not be deletable, and this metadata will be set in the ARC-2 transaction note</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="return-value">
 <h3>Return value<a class="headerlink" href="#return-value" title="Link to this heading">¶</a></h3>
@@ -593,7 +634,10 @@
 <li><a class="reference internal" href="#performing-a-deployment">Performing a deployment</a><ul>
 <li><a class="reference internal" href="#input-parameters">Input parameters</a></li>
 <li><a class="reference internal" href="#idempotency">Idempotency</a></li>
-<li><a class="reference internal" href="#compilation-and-template-substitution">Compilation and template substitution</a></li>
+<li><a class="reference internal" href="#compilation-and-template-substitution">Compilation and template substitution</a><ul>
+<li><a class="reference internal" href="#making-updatable-deletable-apps">Making updatable/deletable apps</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#return-value">Return value</a></li>
 </ul>
 </li>

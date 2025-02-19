@@ -242,6 +242,7 @@ result = algorand.send.asset_opt_in(
    - Removing necessity to interact with low level and untyped `algosdk` abstractions for assembling, signing and sending transaction(s).
 4. **Application Client**
    - Split into `AppClient`, `AppDeployer` and `AppFactory`
+   - `deploy` method in `AppFactory`/`AppDeployer` no longer auto increments the contract version by default. It is end user’s responsibility to explicitly manage versioning of their smart contracts (if desired).
    - New intuitive structured interface for creating or sending `AppCall`|`AppMethodCall` transactions
    - ARC-56 support along with automatic conversion of specs from ARC-32 to ARC-56
 5. **State Management**
