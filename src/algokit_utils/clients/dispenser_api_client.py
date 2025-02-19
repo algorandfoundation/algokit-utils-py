@@ -22,9 +22,6 @@ __all__ = [
 ]
 
 
-logger = config.logger
-
-
 class DispenserApiConfig:
     BASE_URL = "https://api.dispenser.algorandfoundation.tools"
 
@@ -141,7 +138,7 @@ class TestNetDispenserApiClient:
 
         except Exception as err:
             error_message = "Error processing dispenser API request"
-            logger.debug(f"{error_message}: {err}", exc_info=True)
+            config.logger.debug(f"{error_message}: {err}", exc_info=True)
             raise err
 
     @overload
@@ -182,7 +179,7 @@ class TestNetDispenserApiClient:
             return DispenserFundResponse(tx_id=content["txID"], amount=content["amount"])
 
         except Exception as err:
-            logger.exception(f"Error funding account {address}: {err}")
+            config.logger.exception(f"Error funding account {address}: {err}")
             raise err
 
     def refund(self, refund_txn_id: str) -> None:
@@ -199,7 +196,7 @@ class TestNetDispenserApiClient:
             )
 
         except Exception as err:
-            logger.exception(f"Error issuing refund for txn_id {refund_txn_id}: {err}")
+            config.logger.exception(f"Error issuing refund for txn_id {refund_txn_id}: {err}")
             raise err
 
     def get_limit(
@@ -220,5 +217,5 @@ class TestNetDispenserApiClient:
 
             return DispenserLimitResponse(amount=content["amount"])
         except Exception as err:
-            logger.exception(f"Error setting limit for account {address}: {err}")
+            config.logger.exception(f"Error setting limit for account {address}: {err}")
             raise err

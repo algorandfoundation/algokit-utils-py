@@ -11,8 +11,6 @@ from algokit_utils.transactions.transaction_composer import PaymentParams, Trans
 
 __all__ = ["KmdAccount", "KmdAccountManager"]
 
-logger = config.logger
-
 
 class KmdAccount(SigningAccount):
     """Account retrieved from KMD with signing capabilities, extending base Account.
@@ -121,7 +119,7 @@ class KmdAccountManager:
         account = self.get_wallet_account(name)
         assert account is not None
 
-        logger.info(
+        config.logger.info(
             f"LocalNet account '{name}' doesn't yet exist; created account {account.address} "
             f"with keys stored in KMD and funding with {fund_with} ALGO"
         )

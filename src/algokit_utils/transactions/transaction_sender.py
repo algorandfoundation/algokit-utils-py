@@ -45,8 +45,6 @@ __all__ = [
     "SendSingleTransactionResult",
 ]
 
-logger = config.logger
-
 
 TxnParamsT = TypeVar("TxnParamsT", bound=TxnParams)
 
@@ -213,7 +211,7 @@ class AlgorandClientTransactionSender:
 
             if pre_log:
                 transaction = composer.build().transactions[-1].txn
-                logger.debug(pre_log(params, transaction))
+                config.logger.debug(pre_log(params, transaction))
 
             raw_result = composer.send(
                 send_params,
@@ -230,7 +228,7 @@ class AlgorandClientTransactionSender:
             )
 
             if post_log:
-                logger.debug(post_log(params, result))
+                config.logger.debug(post_log(params, result))
 
             return result
 
@@ -659,9 +657,9 @@ class AlgorandClientTransactionSender:
 
     def asset_opt_out(
         self,
-        *,
         params: AssetOptOutParams,
         send_params: SendParams | None = None,
+        *,
         ensure_zero_balance: bool = True,
     ) -> SendSingleTransactionResult:
         """Opt an account out of an Algorand Standard Asset.

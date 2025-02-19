@@ -32,8 +32,6 @@ from algokit_utils.transactions.transaction_composer import (
 )
 from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
-logger = config.logger
-
 __all__ = [
     "AccountInformation",
     "AccountManager",
@@ -595,7 +593,7 @@ class AccountManager:
             self.rekeyed(sender=account, account=rekey_to)
 
         if not suppress_log:
-            logger.info(f"Rekeyed {sender_address} to {rekey_address} via transaction {result.tx_ids[-1]}")
+            config.logger.info(f"Rekeyed {sender_address} to {rekey_address} via transaction {result.tx_ids[-1]}")
 
         return result
 
