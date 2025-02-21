@@ -818,7 +818,9 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     cover_app_call_inner_transaction_fees: bool | None = None,
     additional_atc_context: AdditionalAtcContext | None = None,
 ) -> AtomicTransactionComposer:
-    """Prepare a transaction group for sending by handling execution info and resources.
+    """Take an existing Atomic Transaction Composer and return a new one with changes applied to the transactions
+    based on the supplied parameters to prepare it for sending.
+    Please note, that before calling `.execute()` on the returned ATC, you must call `.build_group()`.
 
     :param atc: The AtomicTransactionComposer containing transactions
     :param algod: Algod client for simulation
@@ -1208,7 +1210,9 @@ def send_atomic_transaction_composer(  # noqa: C901, PLR0912
                 additional_atc_context,
             )
 
-        transactions_to_send = [t.txn for t in transactions_with_signer]
+        # atc.build_group() is needed to ensure that any changes
+        # made by prepare_group_for_sending are reflected and the group id is set
+        transactions_to_send = [t.txn for t in atc.build_group()]
 
         # Get group ID if multiple transactions
         group_id = None

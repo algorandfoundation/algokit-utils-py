@@ -1,3 +1,4 @@
+import base64
 import dataclasses
 import json
 from collections.abc import Generator
@@ -405,6 +406,10 @@ class TestCoverAppCallInnerFees:
         assert result.transactions[0].raw.fee == 1500
         assert result.transactions[1].raw.fee == 7500
         assert result.transactions[2].raw.fee == 0
+        assert result.group_id != ""
+        for txn in result.transactions:
+            assert txn.raw.group is not None
+            assert base64.b64encode(txn.raw.group).decode("utf-8") == result.group_id
 
     def test_handles_nested_abi_method_calls(self, funded_account: SigningAccount) -> None:
         """Test fee handling with nested ABI method calls"""
