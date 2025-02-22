@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v3.0.2 (2025-02-22)
+
+### Fix
+
+* Correctly return group id when resource population is enabled ([#145](https://github.com/algorandfoundation/algokit-utils-py/issues/145)) ([`cc06333`](https://github.com/algorandfoundation/algokit-utils-py/commit/cc06333ea4d75f194d093a1fa44b146e9b9a1ebc))
+
+### Documentation
+
+* Minor enhancements in immutability control behaviour in deploy ([#144](https://github.com/algorandfoundation/algokit-utils-py/issues/144)) ([`526ffda`](https://github.com/algorandfoundation/algokit-utils-py/commit/526ffda644345dd5606e6c92d8977a27b545635e))
+
 ## v3.0.1 (2025-02-19)
 
 ### Fix
