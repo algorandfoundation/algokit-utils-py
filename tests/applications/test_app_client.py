@@ -21,9 +21,9 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import SigningAccount
-from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.models.state import BoxReference
-from algokit_utils.transactions.transaction_composer import AppCreateParams, PaymentParams
+from algokit_utils.transactions.transaction_composer import AppCallMethodCallParams, AppCreateParams, PaymentParams
 
 
 @pytest.fixture
@@ -277,6 +277,48 @@ def test_clone_inheriting_app_name_based_on_default_handling(
     cloned_app_name = None
     cloned_app_client = app_client.clone(app_name=cloned_app_name)
     assert cloned_app_client.app_name == hello_world_arc32_app_spec.contract.name == app_client.app_name
+
+
+def test_group_simulate_matches_send(
+    funded_account: SigningAccount,
+    test_app_client: AppClient,
+) -> None:
+    app_call1_params = AppCallMethodCallParams(
+        sender=funded_account.address,
+        app_id=test_app_client.app_id,
+        method=algosdk.abi.Method.from_signature("set_global(uint64,uint64,string,byte[4])void"),
+        args=[1, 2, "asdf", bytes([1, 2, 3, 4])],
+    )
+    payment_params = PaymentParams(
+        sender=funded_account.address, receiver=funded_account.address, amount=micro_algo(10000)
+    )
+    app_call2_params = AppCallMethodCallParams(
+        sender=funded_account.address,
+        app_id=test_app_client.app_id,
+        method=algosdk.abi.Method.from_signature("call_abi(string)string"),
+        args=["test"],
+    )
+
+    simulate_result = (
+        test_app_client.algorand.new_group()
+        .add_app_call_method_call(app_call1_params)
+        .add_payment(payment_params)
+        .add_app_call_method_call(app_call2_params)
+        .simulate(skip_signatures=True)
+    )
+
+    send_result = (
+        test_app_client.algorand.new_group()
+        .add_app_call_method_call(app_call1_params)
+        .add_payment(payment_params)
+        .add_app_call_method_call(app_call2_params)
+        .send()
+    )
+
+    assert len(simulate_result.transactions) == len(send_result.transactions)
+    assert len(simulate_result.returns) == len(send_result.returns)
+    assert simulate_result.returns[0].value == send_result.returns[0].value
+    assert simulate_result.returns[1].value == send_result.returns[1].value
 
 
 def test_normalise_app_spec(
