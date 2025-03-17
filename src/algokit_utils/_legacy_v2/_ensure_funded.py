@@ -124,7 +124,7 @@ def ensure_funded(
     Funds a given account using a funding source to ensure it has sufficient spendable ALGOs.
 
     Ensures the target account has enough ALGOs free to spend after accounting for ALGOs locked in minimum balance
-    requirements. See https://developer.algorand.org/docs/get-details/accounts/#minimum-balance for details on minimum
+    requirements. See https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr for details on minimum
     balance requirements.
 
     :param client: An instance of the AlgodClient class from the AlgoSDK library
