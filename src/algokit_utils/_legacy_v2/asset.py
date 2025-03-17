@@ -73,7 +73,7 @@ def opt_in(algod_client: "AlgodClient", account: Account, asset_ids: list[int]) 
     """
     Opt-in to a list of assets on the Algorand blockchain. Before an account can receive a specific asset,
     it must `opt-in` to receive it. An opt-in transaction places an asset holding of 0 into the account and increases
-    its minimum balance by [100,000 microAlgos](https://developer.algorand.org/docs/get-details/asa/#assets-overview).
+    its minimum balance by [100,000 microAlgos](https://dev.algorand.co/concepts/assets/overview).
 
     :param algod_client: An instance of the AlgodClient class from the algosdk library.
     :param account: An instance of the Account class representing the account that wants to opt-in to the assets.

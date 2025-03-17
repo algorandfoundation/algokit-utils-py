@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from algosdk.v2client.algod import AlgodClient
 
 
-MINIMUM_BALANCE = 100_000  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
+MINIMUM_BALANCE = 100_000  # see https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr
 
 
 @pytest.fixture
