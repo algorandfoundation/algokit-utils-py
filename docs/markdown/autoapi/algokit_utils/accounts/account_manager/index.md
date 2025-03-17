@@ -220,21 +220,43 @@ Merges the given AccountManager into this one.
 
 #### set_signer_from_account(account: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
+#### set_signer_from_account(signer: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+
 Tracks the given account for later signing.
 
 Note: If you are generating accounts via the various methods on AccountManager
 (like random, from_mnemonic, logic_sig, etc.) then they automatically get tracked.
 
+The method accepts either a positional argument or a keyword argument named ‘account’ or ‘signer’.
+The ‘signer’ parameter is deprecated and will show a warning when used.
+
 * **Parameters:**
-  **account** – The account to register
+  * **\*args** – 
+
+    Variable positional arguments. The first argument should be a TransactionSignerAccountProtocol.
+  * **\*\*kwargs** – 
+
+    Variable keyword arguments. Can include ‘account’ or ‘signer’ (deprecated) as
+    TransactionSignerAccountProtocol.
 * **Returns:**
   The AccountManager instance for method chaining
+* **Raises:**
+  **ValueError** – If no account or signer argument is provided
 * **Example:**
   ```pycon
   >>> account_manager = AccountManager(client_manager)
-  >>> account_manager.set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
-  >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
-  >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
+  >>> # Using positional argument
+  >>> account_manager.set_signer_from_account(
+  ...     SigningAccount(private_key=algosdk.account.generate_account()[0])
+  ... )
+  >>> # Using keyword argument 'account'
+  >>> account_manager.set_signer_from_account(
+  ...     account=LogicSigAccount(AlgosdkLogicSigAccount(program, args))
+  ... )
+  >>> # Using deprecated keyword argument 'signer'
+  >>> account_manager.set_signer_from_account(
+  ...     signer=MultiSigAccount(multisig_params, [account1, account2])
+  ... )
   ```
 
 #### get_signer(sender: str | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → algosdk.atomic_transaction_composer.TransactionSigner

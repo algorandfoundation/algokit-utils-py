@@ -645,21 +645,43 @@ then an error will be thrown from <cite>get_signer</cite> / <cite>get_account</c
 <dl class="py method">
 <dt class="sig sig-object py" id="algokit_utils.accounts.account_manager.AccountManager.set_signer_from_account">
 <span class="sig-name descname"><span class="pre">set_signer_from_account</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">account</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../protocols/account/index.html#algokit_utils.protocols.account.TransactionSignerAccountProtocol" title="algokit_utils.protocols.account.TransactionSignerAccountProtocol"><span class="pre">algokit_utils.protocols.account.TransactionSignerAccountProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">typing_extensions.Self</span></span></span><a class="headerlink" href="#algokit_utils.accounts.account_manager.AccountManager.set_signer_from_account" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">set_signer_from_account</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="../../protocols/account/index.html#algokit_utils.protocols.account.TransactionSignerAccountProtocol" title="algokit_utils.protocols.account.TransactionSignerAccountProtocol"><span class="pre">algokit_utils.protocols.account.TransactionSignerAccountProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">typing_extensions.Self</span></span></span></dt>
 <dd><p>Tracks the given account for later signing.</p>
 <p>Note: If you are generating accounts via the various methods on <cite>AccountManager</cite>
 (like <cite>random</cite>, <cite>from_mnemonic</cite>, <cite>logic_sig</cite>, etc.) then they automatically get tracked.</p>
+<p>The method accepts either a positional argument or a keyword argument named ‘account’ or ‘signer’.
+The ‘signer’ parameter is deprecated and will show a warning when used.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>account</strong> – The account to register</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*args</strong> – <p>Variable positional arguments. The first argument should be a TransactionSignerAccountProtocol.</p>
+</p></li>
+<li><p><strong>**kwargs</strong> – <p>Variable keyword arguments. Can include ‘account’ or ‘signer’ (deprecated) as
+TransactionSignerAccountProtocol.</p>
+</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The <cite>AccountManager</cite> instance for method chaining</p>
 </dd>
-<dt class="field-odd">Example<span class="colon">:</span></dt>
-<dd class="field-odd"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span> <span class="o">=</span> <span class="n">AccountManager</span><span class="p">(</span><span class="n">client_manager</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span><span class="n">SigningAccount</span><span class="p">(</span><span class="n">private_key</span><span class="o">=</span><span class="n">algosdk</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">generate_account</span><span class="p">()[</span><span class="mi">0</span><span class="p">]))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span><span class="n">LogicSigAccount</span><span class="p">(</span><span class="n">AlgosdkLogicSigAccount</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">)))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span><span class="n">MultiSigAccount</span><span class="p">(</span><span class="n">multisig_params</span><span class="p">,</span> <span class="p">[</span><span class="n">account1</span><span class="p">,</span> <span class="n">account2</span><span class="p">]))</span>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If no account or signer argument is provided</p>
+</dd>
+<dt class="field-even">Example<span class="colon">:</span></dt>
+<dd class="field-even"><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span> <span class="o">=</span> <span class="n">AccountManager</span><span class="p">(</span><span class="n">client_manager</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Using positional argument</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">SigningAccount</span><span class="p">(</span><span class="n">private_key</span><span class="o">=</span><span class="n">algosdk</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">generate_account</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Using keyword argument &#39;account&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">account</span><span class="o">=</span><span class="n">LogicSigAccount</span><span class="p">(</span><span class="n">AlgosdkLogicSigAccount</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Using deprecated keyword argument &#39;signer&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">account_manager</span><span class="o">.</span><span class="n">set_signer_from_account</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">signer</span><span class="o">=</span><span class="n">MultiSigAccount</span><span class="p">(</span><span class="n">multisig_params</span><span class="p">,</span> <span class="p">[</span><span class="n">account1</span><span class="p">,</span> <span class="n">account2</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>

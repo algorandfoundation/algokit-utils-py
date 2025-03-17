@@ -144,8 +144,8 @@ class TestNetDispenserApiClient:
     @overload
     def fund(self, address: str, amount: int) -> DispenserFundResponse: ...
 
-    @deprecated("Asset ID parameter is deprecated. Can now use `fund(address, amount)` instead.")
     @overload
+    @deprecated("Asset ID parameter is deprecated. Can now use `fund(address, amount)` instead.")
     def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse: ...
 
     def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse:  # noqa: ARG002
