@@ -343,159 +343,152 @@
 <section id="getting-a-typed-client-instance">
 <h2>Getting a typed client instance<a class="headerlink" href="#getting-a-typed-client-instance" title="Link to this heading">¶</a></h2>
 <p>To get an instance of a typed client you can use an <a class="reference internal" href="algorand-client.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">AlgorandClient</span></code></span></a> instance or a typed app <a class="reference internal" href="#creating-a-typed-factory-instance"><code class="docutils literal notranslate"><span class="pre">Factory</span></code></a> instance.</p>
-<p>The approach to obtaining a client instance depends on how many app clients you require for a given app spec and if the app has already been deployed, which is summarised below:</p>
+<p>The approach to obtaining a client instance depends on how many app clients you require for a given app spec and if the app has already been deployed:</p>
 <section id="app-is-deployed">
 <h3>App is deployed<a class="headerlink" href="#app-is-deployed" title="Link to this heading">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th colspan="2">Resolve App by ID</th>
-<th colspan="2">Resolve App by Creator and Name</th>
-</tr>
-<tr>
-<th>Single App Client Instance</th>
-<th>Multiple App Client Instances</th>
-<th>Single App Client Instance</th>
-<th>Multiple App Client Instances</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_client_by_id</span><span class="p">(</span><span class="n">MyContractClient</span><span class="p">,</span> <span class="p">{</span>
-  <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
-  <span class="c1"># ...</span>
-<span class="p">})</span>
-<span class="c1"># or</span>
-<span class="n">app_client</span> <span class="o">=</span> <span class="n">MyContractClient</span><span class="p">({</span>
-  <span class="n">algorand</span><span class="p">,</span>
-  <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
-  <span class="c1"># ...</span>
-<span class="p">})</span>
-</pre></div>
-</div>
-</td>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client1</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">get_app_client_by_id</span><span class="p">(</span>
-  <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+<section id="resolve-app-by-id">
+<h4>Resolve App by ID<a class="headerlink" href="#resolve-app-by-id" title="Link to this heading">¶</a></h4>
+<p><strong>Single Typed App Client Instance:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using the AlgorandClient extension method</span>
+<span class="n">typed_client</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_client_by_id</span><span class="p">(</span>
+    <span class="n">MyContractClient</span><span class="p">,</span>  <span class="c1"># Generated typed client class</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
-<span class="n">app_client2</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">get_app_client_by_id</span><span class="p">(</span>
-  <span class="n">app_id</span><span class="o">=</span><span class="mi">4321</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+<span class="c1"># or Typed: Using the generated client class directly</span>
+<span class="n">typed_client</span> <span class="o">=</span> <span class="n">MyContractClient</span><span class="p">(</span>
+    <span class="n">algorand</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</td>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_client_by_creator_and_name</span><span class="p">(</span>
-  <span class="n">MyContractClient</span><span class="p">,</span>
-  <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
-  <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+<p><strong>Multiple Typed App Client Instances:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using a typed factory to get multiple client instances</span>
+<span class="n">typed_client1</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">get_app_client_by_id</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="mi">1234</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
-<span class="c1"># or</span>
-<span class="n">app_client</span> <span class="o">=</span> <span class="n">MyContractClient</span><span class="o">.</span><span class="n">from_creator_and_name</span><span class="p">(</span>
-  <span class="n">algorand</span><span class="p">,</span>
-  <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
-  <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+<span class="n">typed_client2</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">get_app_client_by_id</span><span class="p">(</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="mi">4321</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</td>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client1</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">get_app_client_by_creator_and_name</span><span class="p">(</span>
-  <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
-  <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+</section>
+<section id="resolve-app-by-creator-and-name">
+<h4>Resolve App by Creator and Name<a class="headerlink" href="#resolve-app-by-creator-and-name" title="Link to this heading">¶</a></h4>
+<p><strong>Single Typed App Client Instance:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using the AlgorandClient extension method</span>
+<span class="n">typed_client</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_client_by_creator_and_name</span><span class="p">(</span>
+    <span class="n">MyContractClient</span><span class="p">,</span>  <span class="c1"># Generated typed client class</span>
+    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
+    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
-<span class="n">app_client2</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">get_app_client_by_creator_and_name</span><span class="p">(</span>
-  <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
-  <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name-2&quot;</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+<span class="c1"># or Typed: Using the static method on the generated client class</span>
+<span class="n">typed_client</span> <span class="o">=</span> <span class="n">MyContractClient</span><span class="o">.</span><span class="n">from_creator_and_name</span><span class="p">(</span>
+    <span class="n">algorand</span><span class="p">,</span>
+    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
+    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</td>
-</tr>
-</tbody>
-</table>
-<p>To understand the difference between resolving by ID vs by creator and name see the underlying <a class="reference internal" href="app-client.html#appclient"><span class="std std-ref">app client documentation</span></a>.</p>
+<p><strong>Multiple Typed App Client Instances:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using a typed factory to get multiple client instances by name</span>
+<span class="n">typed_client1</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">get_app_client_by_creator_and_name</span><span class="p">(</span>
+    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
+    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
+    <span class="c1"># ...</span>
+<span class="p">)</span>
+<span class="n">typed_client2</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">get_app_client_by_creator_and_name</span><span class="p">(</span>
+    <span class="n">creator_address</span><span class="o">=</span><span class="s2">&quot;CREATORADDRESS&quot;</span><span class="p">,</span>
+    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name-2&quot;</span><span class="p">,</span>
+    <span class="c1"># ...</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="app-is-not-deployed">
 <h3>App is not deployed<a class="headerlink" href="#app-is-not-deployed" title="Link to this heading">¶</a></h3>
-<table>
-<thead>
-<tr>
-<th>Deploy a New App</th>
-<th>Deploy or Resolve App Idempotently by Creator and Name</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span>
-  <span class="n">args</span><span class="o">=</span><span class="p">[],</span>
-  <span class="c1"># ...</span>
-<span class="p">)</span>
-<span class="c1"># or</span>
-<span class="n">app_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="n">METHODNAME</span><span class="p">(</span>
-  <span class="n">args</span><span class="o">=</span><span class="p">[],</span>
-  <span class="c1"># ...</span>
+<section id="deploy-a-new-app">
+<h4>Deploy a New App<a class="headerlink" href="#deploy-a-new-app" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: For typed clients, you call a specific creation method rather than generic &#39;create&#39;</span>
+<span class="n">typed_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">create</span><span class="o">.</span><span class="p">{</span><span class="n">METHODNAME</span><span class="p">}(</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</td>
-<td>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">app_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span>
-  <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
-  <span class="c1"># ...</span>
+</section>
+<section id="deploy-or-resolve-app-idempotently-by-creator-and-name">
+<h4>Deploy or Resolve App Idempotently by Creator and Name<a class="headerlink" href="#deploy-or-resolve-app-idempotently-by-creator-and-name" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using the deploy method on a typed factory</span>
+<span class="n">typed_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span>
+    <span class="n">on_update</span><span class="o">=</span><span class="n">OnUpdate</span><span class="o">.</span><span class="n">UpdateApp</span><span class="p">,</span>
+    <span class="n">on_schema_break</span><span class="o">=</span><span class="n">OnSchemaBreak</span><span class="o">.</span><span class="n">ReplaceApp</span><span class="p">,</span>
+    <span class="c1"># The parameters for create/update/delete would be specific to your generated client</span>
+    <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;contract-name&quot;</span><span class="p">,</span>
+    <span class="c1"># ...</span>
 <span class="p">)</span>
 </pre></div>
 </div>
-</td>
-</tr>
-</tbody>
-</table>
+</section>
 </section>
 <section id="creating-a-typed-factory-instance">
 <h3>Creating a typed factory instance<a class="headerlink" href="#creating-a-typed-factory-instance" title="Link to this heading">¶</a></h3>
 <p>If your scenario calls for an app factory, you can create one using the below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">factory</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_factory</span><span class="p">(</span><span class="n">MyContractFactory</span><span class="p">)</span>
-<span class="c1"># or</span>
-<span class="n">factory</span> <span class="o">=</span> <span class="n">MyContractFactory</span><span class="p">(</span><span class="n">algorand</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Using the AlgorandClient extension method</span>
+<span class="n">typed_factory</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_factory</span><span class="p">(</span><span class="n">MyContractFactory</span><span class="p">)</span>  <span class="c1"># Generated factory class</span>
+<span class="c1"># or Typed: Using the factory class constructor directly</span>
+<span class="n">typed_factory</span> <span class="o">=</span> <span class="n">MyContractFactory</span><span class="p">(</span><span class="n">algorand</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 </section>
 <section id="client-usage">
 <h2>Client usage<a class="headerlink" href="#client-usage" title="Link to this heading">¶</a></h2>
-<p>See the <a class="reference external" href="https://github.com/algorandfoundation/algokit-client-generator-py/blob/main/docs/usage.md">official usage docs</a> for full details.</p>
-<p>For a simple example that deploys a contract and calls a <code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code> method, see below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A similar working example can be seen in the AlgoKit init production smart contract templates, when using Python deployment</span>
-<span class="c1"># In this case the generated factory is called `HelloWorldAppFactory` and is in `./artifacts/HelloWorldApp/client.py`</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">artifacts.hello_world_app.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">HelloWorldAppClient</span><span class="p">,</span> <span class="n">HelloArgs</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">algokit_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlgorandClient</span>
-
-<span class="c1"># These require environment variables to be present, or it will retrieve from default LocalNet</span>
-<span class="n">algorand</span> <span class="o">=</span> <span class="n">AlgorandClient</span><span class="o">.</span><span class="n">from_environment</span><span class="p">()</span>
-<span class="n">deployer</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">from_environment</span><span class="p">(</span><span class="s2">&quot;DEPLOYER&quot;</span><span class="p">,</span> <span class="n">AlgoAmount</span><span class="o">.</span><span class="n">from_algo</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="c1"># Create the typed app factory</span>
-<span class="n">factory</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_factory</span><span class="p">(</span><span class="n">HelloWorldAppFactory</span><span class="p">,</span>
-  <span class="n">creator_address</span><span class="o">=</span><span class="n">deployer</span><span class="p">,</span>
-  <span class="n">default_sender</span><span class="o">=</span><span class="n">deployer</span><span class="p">,</span>
+<p>See the <a class="reference external" href="https://github.com/algorandfoundation/algokit-client-generator-py/blob/main/docs/usage.md">official usage docs</a> for full details about typed clients.</p>
+<p>Below is a realistic example that deploys a contract, funds it if newly created, and calls a <code class="docutils literal notranslate"><span class="pre">&quot;hello&quot;</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Typed: Complete example using a typed application client</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">algokit_utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">artifacts.hello_world.hello_world_client</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HelloArgs</span><span class="p">,</span>  <span class="c1"># Generated args class</span>
+    <span class="n">HelloWorldFactory</span><span class="p">,</span>  <span class="c1"># Generated factory class</span>
 <span class="p">)</span>
 
-<span class="c1"># Create the app and get a typed app client for the created app (note: this creates a new instance of the app every time,</span>
-<span class="c1">#  you can use .deploy() to deploy idempotently if the app wasn&#39;t previously</span>
-<span class="c1">#  deployed or needs to be updated if that&#39;s allowed)</span>
-<span class="n">app_client</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+<span class="c1"># Get Algorand client from environment variables</span>
+<span class="n">algorand</span> <span class="o">=</span> <span class="n">algokit_utils</span><span class="o">.</span><span class="n">AlgorandClient</span><span class="o">.</span><span class="n">from_environment</span><span class="p">()</span>
+<span class="n">deployer</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">account</span><span class="o">.</span><span class="n">from_environment</span><span class="p">(</span><span class="s2">&quot;DEPLOYER&quot;</span><span class="p">)</span>
 
-<span class="c1"># Make a call to an ABI method and print the result</span>
-<span class="n">response</span> <span class="o">=</span> <span class="n">app_client</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">hello</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">HelloArgs</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;world&quot;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<span class="c1"># Create the typed app factory</span>
+<span class="n">typed_factory</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">get_typed_app_factory</span><span class="p">(</span>
+    <span class="n">HelloWorldFactory</span><span class="p">,</span> <span class="n">default_sender</span><span class="o">=</span><span class="n">deployer</span><span class="o">.</span><span class="n">address</span>
+<span class="p">)</span>
+
+<span class="c1"># Deploy idempotently - creates if it doesn&#39;t exist or updates if changed</span>
+<span class="n">typed_client</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">typed_factory</span><span class="o">.</span><span class="n">deploy</span><span class="p">(</span>
+    <span class="n">on_update</span><span class="o">=</span><span class="n">algokit_utils</span><span class="o">.</span><span class="n">OnUpdate</span><span class="o">.</span><span class="n">AppendApp</span><span class="p">,</span>
+    <span class="n">on_schema_break</span><span class="o">=</span><span class="n">algokit_utils</span><span class="o">.</span><span class="n">OnSchemaBreak</span><span class="o">.</span><span class="n">AppendApp</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Fund the app with 1 ALGO if it&#39;s newly created</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">operation_performed</span> <span class="ow">in</span> <span class="p">[</span>
+    <span class="n">algokit_utils</span><span class="o">.</span><span class="n">OperationPerformed</span><span class="o">.</span><span class="n">Create</span><span class="p">,</span>
+    <span class="n">algokit_utils</span><span class="o">.</span><span class="n">OperationPerformed</span><span class="o">.</span><span class="n">Replace</span><span class="p">,</span>
+<span class="p">]:</span>
+    <span class="n">algorand</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">payment</span><span class="p">(</span>
+        <span class="n">algokit_utils</span><span class="o">.</span><span class="n">PaymentParams</span><span class="p">(</span>
+            <span class="n">amount</span><span class="o">=</span><span class="n">algokit_utils</span><span class="o">.</span><span class="n">AlgoAmount</span><span class="p">(</span><span class="n">algo</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">sender</span><span class="o">=</span><span class="n">deployer</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">receiver</span><span class="o">=</span><span class="n">typed_client</span><span class="o">.</span><span class="n">app_address</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># Call the hello method on the smart contract</span>
+<span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;world&quot;</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">typed_client</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">hello</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">HelloArgs</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">))</span>  <span class="c1"># Using generated args class</span>
 </pre></div>
 </div>
 </section>
@@ -560,8 +553,16 @@
 <li><a class="reference internal" href="#generating-an-app-spec">Generating an app spec</a></li>
 <li><a class="reference internal" href="#generating-a-typed-client">Generating a typed client</a></li>
 <li><a class="reference internal" href="#getting-a-typed-client-instance">Getting a typed client instance</a><ul>
-<li><a class="reference internal" href="#app-is-deployed">App is deployed</a></li>
-<li><a class="reference internal" href="#app-is-not-deployed">App is not deployed</a></li>
+<li><a class="reference internal" href="#app-is-deployed">App is deployed</a><ul>
+<li><a class="reference internal" href="#resolve-app-by-id">Resolve App by ID</a></li>
+<li><a class="reference internal" href="#resolve-app-by-creator-and-name">Resolve App by Creator and Name</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#app-is-not-deployed">App is not deployed</a><ul>
+<li><a class="reference internal" href="#deploy-a-new-app">Deploy a New App</a></li>
+<li><a class="reference internal" href="#deploy-or-resolve-app-idempotently-by-creator-and-name">Deploy or Resolve App Idempotently by Creator and Name</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#creating-a-typed-factory-instance">Creating a typed factory instance</a></li>
 </ul>
 </li>
