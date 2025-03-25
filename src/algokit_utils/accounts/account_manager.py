@@ -71,7 +71,7 @@ class AccountInformation:
     """
     Information about an Algorand account's current status, balance and other properties.
 
-    See `https://dev.algorand.co/reference/rest-api/algod/#account` for detailed field descriptions.
+    See `https://dev.algorand.co/reference/rest-apis/algod/#account` for detailed field descriptions.
     """
 
     address: str
@@ -347,7 +347,7 @@ class AccountManager:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
-        See `<https://dev.algorand.co/reference/rest-api/algod/#account>`_
+        See `<https://dev.algorand.co/reference/rest-apis/algod/#account>`_
         for response data schema details.
 
         :param sender: The address or account compliant with `TransactionSignerAccountProtocol` protocol to look up
