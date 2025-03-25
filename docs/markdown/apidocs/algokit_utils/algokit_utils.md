@@ -1,95 +1,44 @@
 # [`algokit_utils`](../../autoapi/algokit_utils/index.md#module-algokit_utils)
 
-## Package Contents
+## Data
 
-### Classes
+### algokit_utils.AppSpecStateDict *: TypeAlias*
 
-| [`ABICallArgs`](#algokit_utils.ABICallArgs)                                   |    |
-|-------------------------------------------------------------------------------|----|
-| [`ABICallArgsDict`](#algokit_utils.ABICallArgsDict)                           |    |
-| [`ABICreateCallArgs`](#algokit_utils.ABICreateCallArgs)                       |    |
-| [`ABICreateCallArgsDict`](#algokit_utils.ABICreateCallArgsDict)               |    |
-| [`ABITransactionResponse`](#algokit_utils.ABITransactionResponse)             |    |
-| [`Account`](#algokit_utils.Account)                                           |    |
-| [`AlgoClientConfig`](#algokit_utils.AlgoClientConfig)                         |    |
-| [`AppDeployMetaData`](#algokit_utils.AppDeployMetaData)                       |    |
-| [`AppLookup`](#algokit_utils.AppLookup)                                       |    |
-| [`AppMetaData`](#algokit_utils.AppMetaData)                                   |    |
-| [`AppReference`](#algokit_utils.AppReference)                                 |    |
-| [`ApplicationClient`](#algokit_utils.ApplicationClient)                       |    |
-| [`ApplicationSpecification`](#algokit_utils.ApplicationSpecification)         |    |
-| [`CallConfig`](#algokit_utils.CallConfig)                                     |    |
-| [`CreateCallParameters`](#algokit_utils.CreateCallParameters)                 |    |
-| [`CreateCallParametersDict`](#algokit_utils.CreateCallParametersDict)         |    |
-| [`CreateTransactionParameters`](#algokit_utils.CreateTransactionParameters)   |    |
-| [`DefaultArgumentDict`](#algokit_utils.DefaultArgumentDict)                   |    |
-| [`DeployCallArgs`](#algokit_utils.DeployCallArgs)                             |    |
-| [`DeployCallArgsDict`](#algokit_utils.DeployCallArgsDict)                     |    |
-| [`DeployCreateCallArgs`](#algokit_utils.DeployCreateCallArgs)                 |    |
-| [`DeployCreateCallArgsDict`](#algokit_utils.DeployCreateCallArgsDict)         |    |
-| [`DeployResponse`](#algokit_utils.DeployResponse)                             |    |
-| [`EnsureBalanceParameters`](#algokit_utils.EnsureBalanceParameters)           |    |
-| [`EnsureFundedResponse`](#algokit_utils.EnsureFundedResponse)                 |    |
-| [`MethodHints`](#algokit_utils.MethodHints)                                   |    |
-| [`OnCompleteCallParameters`](#algokit_utils.OnCompleteCallParameters)         |    |
-| [`OnCompleteCallParametersDict`](#algokit_utils.OnCompleteCallParametersDict) |    |
-| [`OnSchemaBreak`](#algokit_utils.OnSchemaBreak)                               |    |
-| [`OnUpdate`](#algokit_utils.OnUpdate)                                         |    |
-| [`OperationPerformed`](#algokit_utils.OperationPerformed)                     |    |
-| [`Program`](#algokit_utils.Program)                                           |    |
-| [`TestNetDispenserApiClient`](#algokit_utils.TestNetDispenserApiClient)       |    |
-| [`TransactionParameters`](#algokit_utils.TransactionParameters)               |    |
-| [`TransactionParametersDict`](#algokit_utils.TransactionParametersDict)       |    |
-| [`TransactionResponse`](#algokit_utils.TransactionResponse)                   |    |
-| [`TransferAssetParameters`](#algokit_utils.TransferAssetParameters)           |    |
-| [`TransferParameters`](#algokit_utils.TransferParameters)                     |    |
+None
 
-### Functions
+### algokit_utils.DELETABLE_TEMPLATE_NAME
 
-| [`create_kmd_wallet_account`](#algokit_utils.create_kmd_wallet_account)               |    |
-|---------------------------------------------------------------------------------------|----|
-| [`ensure_funded`](#algokit_utils.ensure_funded)                                       |    |
-| [`execute_atc_with_logic_error`](#algokit_utils.execute_atc_with_logic_error)         |    |
-| [`get_account`](#algokit_utils.get_account)                                           |    |
-| [`get_account_from_mnemonic`](#algokit_utils.get_account_from_mnemonic)               |    |
-| [`get_algod_client`](#algokit_utils.get_algod_client)                                 |    |
-| [`get_app_id_from_tx_id`](#algokit_utils.get_app_id_from_tx_id)                       |    |
-| [`get_creator_apps`](#algokit_utils.get_creator_apps)                                 |    |
-| [`get_default_localnet_config`](#algokit_utils.get_default_localnet_config)           |    |
-| [`get_dispenser_account`](#algokit_utils.get_dispenser_account)                       |    |
-| [`get_indexer_client`](#algokit_utils.get_indexer_client)                             |    |
-| [`get_kmd_client_from_algod_client`](#algokit_utils.get_kmd_client_from_algod_client) |    |
-| [`get_kmd_wallet_account`](#algokit_utils.get_kmd_wallet_account)                     |    |
-| [`get_localnet_default_account`](#algokit_utils.get_localnet_default_account)         |    |
-| [`get_next_version`](#algokit_utils.get_next_version)                                 |    |
-| [`get_or_create_kmd_wallet_account`](#algokit_utils.get_or_create_kmd_wallet_account) |    |
-| [`get_sender_from_signer`](#algokit_utils.get_sender_from_signer)                     |    |
-| [`is_localnet`](#algokit_utils.is_localnet)                                           |    |
-| [`is_mainnet`](#algokit_utils.is_mainnet)                                             |    |
-| [`is_testnet`](#algokit_utils.is_testnet)                                             |    |
-| [`num_extra_program_pages`](#algokit_utils.num_extra_program_pages)                   |    |
-| [`opt_in`](#algokit_utils.opt_in)                                                     |    |
-| [`opt_out`](#algokit_utils.opt_out)                                                   |    |
-| [`persist_sourcemaps`](#algokit_utils.persist_sourcemaps)                             |    |
-| [`replace_template_variables`](#algokit_utils.replace_template_variables)             |    |
-| [`simulate_and_persist_response`](#algokit_utils.simulate_and_persist_response)       |    |
-| [`transfer`](#algokit_utils.transfer)                                                 |    |
-| [`transfer_asset`](#algokit_utils.transfer_asset)                                     |    |
+None
 
-### Data
+### algokit_utils.DefaultArgumentType *: TypeAlias*
 
-| [`AppSpecStateDict`](#algokit_utils.AppSpecStateDict)               |    |
-|---------------------------------------------------------------------|----|
-| [`DELETABLE_TEMPLATE_NAME`](#algokit_utils.DELETABLE_TEMPLATE_NAME) |    |
-| [`DefaultArgumentType`](#algokit_utils.DefaultArgumentType)         |    |
-| [`MethodConfigDict`](#algokit_utils.MethodConfigDict)               |    |
-| [`NOTE_PREFIX`](#algokit_utils.NOTE_PREFIX)                         |    |
-| [`OnCompleteActionName`](#algokit_utils.OnCompleteActionName)       |    |
-| [`TemplateValueDict`](#algokit_utils.TemplateValueDict)             |    |
-| [`TemplateValueMapping`](#algokit_utils.TemplateValueMapping)       |    |
-| [`UPDATABLE_TEMPLATE_NAME`](#algokit_utils.UPDATABLE_TEMPLATE_NAME) |    |
+None
 
-### API
+### algokit_utils.MethodConfigDict *: TypeAlias*
+
+None
+
+### algokit_utils.NOTE_PREFIX
+
+‘ALGOKIT_DEPLOYER:j’
+
+### algokit_utils.OnCompleteActionName *: TypeAlias*
+
+None
+
+### algokit_utils.TemplateValueDict *: TypeAlias*
+
+None
+
+### algokit_utils.TemplateValueMapping *: TypeAlias*
+
+None
+
+### algokit_utils.UPDATABLE_TEMPLATE_NAME
+
+None
+
+## Classes
 
 ### *class* algokit_utils.ABICallArgs
 
@@ -168,10 +117,6 @@ None
 Bases: [`algokit_utils.deploy.AppReference`](#algokit_utils.AppReference), [`algokit_utils.deploy.AppDeployMetaData`](#algokit_utils.AppDeployMetaData)
 
 ### *class* algokit_utils.AppReference
-
-### algokit_utils.AppSpecStateDict *: TypeAlias*
-
-None
 
 ### *class* algokit_utils.ApplicationClient(algod_client: algosdk.v2client.algod.AlgodClient, app_spec: [algokit_utils.application_specification.ApplicationSpecification](#algokit_utils.ApplicationSpecification) | pathlib.Path, \*, app_id: int = 0, creator: str | [algokit_utils.models.Account](#algokit_utils.Account) | None = None, indexer_client: IndexerClient | None = None, existing_deployments: [algokit_utils.deploy.AppLookup](#algokit_utils.AppLookup) | None = None, signer: algosdk.atomic_transaction_composer.TransactionSigner | [algokit_utils.models.Account](#algokit_utils.Account) | None = None, sender: str | None = None, suggested_params: algosdk.transaction.SuggestedParams | None = None, template_values: algokit_utils.deploy.TemplateValueMapping | None = None, app_name: str | None = None)
 
@@ -265,19 +210,11 @@ Bases: `typing.TypedDict`, [`algokit_utils.models.OnCompleteCallParametersDict`]
 
 Bases: [`algokit_utils.models.TransactionParameters`](#algokit_utils.TransactionParameters)
 
-### algokit_utils.DELETABLE_TEMPLATE_NAME
-
-None
-
 ### *class* algokit_utils.DefaultArgumentDict
 
 Bases: `typing.TypedDict`
 
 ### Initialization
-
-### algokit_utils.DefaultArgumentType *: TypeAlias*
-
-None
 
 ### *class* algokit_utils.DeployCallArgs
 
@@ -298,10 +235,6 @@ Bases: [`algokit_utils.deploy.DeployCallArgsDict`](#algokit_utils.DeployCallArgs
 ### Initialization
 
 ### *class* algokit_utils.DeployResponse
-
-### *exception* algokit_utils.DeploymentFailedError
-
-Bases: `Exception`
 
 ### *class* algokit_utils.EnsureBalanceParameters
 
@@ -343,23 +276,7 @@ None
 
 None
 
-### *exception* algokit_utils.LogicError(\*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list | None = None)
-
-Bases: `Exception`
-
-### algokit_utils.MethodConfigDict *: TypeAlias*
-
-None
-
 ### *class* algokit_utils.MethodHints
-
-### algokit_utils.NOTE_PREFIX
-
-‘ALGOKIT_DEPLOYER:j’
-
-### algokit_utils.OnCompleteActionName *: TypeAlias*
-
-None
 
 ### *class* algokit_utils.OnCompleteCallParameters
 
@@ -436,14 +353,6 @@ Bases: `enum.Enum`
 ### *class* algokit_utils.Program(program: str, client: algosdk.v2client.algod.AlgodClient)
 
 ### Initialization
-
-### algokit_utils.TemplateValueDict *: TypeAlias*
-
-None
-
-### algokit_utils.TemplateValueMapping *: TypeAlias*
-
-None
 
 ### *class* algokit_utils.TestNetDispenserApiClient(auth_token: str | None = None, request_timeout: int = DISPENSER_REQUEST_TIMEOUT)
 
@@ -563,9 +472,7 @@ Bases: `algokit_utils._transfer.TransferParametersBase`
 
 Bases: `algokit_utils._transfer.TransferParametersBase`
 
-### algokit_utils.UPDATABLE_TEMPLATE_NAME
-
-None
+## Functions
 
 ### algokit_utils.create_kmd_wallet_account(kmd_client: algosdk.kmd.KMDClient, name: str) → [algokit_utils.models.Account](#algokit_utils.Account)
 

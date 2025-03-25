@@ -320,7 +320,7 @@
         <article role="main" id="furo-main-content">
           <section id="algo-transfers-payments">
 <h1>Algo transfers (payments)<a class="headerlink" href="#algo-transfers-payments" title="Link to this heading">¶</a></h1>
-<p>Algo transfers, or <a class="reference external" href="https://developer.algorand.org/docs/get-details/transactions/#payment-transaction">payments</a>, is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly <a class="reference internal" href="amount.html"><span class="std std-doc">Algo amount handling</span></a> and <a class="reference internal" href="transaction.html"><span class="std std-doc">Transaction management</span></a>. It allows you to easily initiate Algo transfers between accounts, including dispenser management and idempotent account funding.</p>
+<p>Algo transfers, or <a class="reference external" href="https://dev.algorand.co/concepts/transactions/types#payment-transaction">payments</a>, is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly <a class="reference internal" href="amount.html"><span class="std std-doc">Algo amount handling</span></a> and <a class="reference internal" href="transaction.html"><span class="std std-doc">Transaction management</span></a>. It allows you to easily initiate Algo transfers between accounts, including dispenser management and idempotent account funding.</p>
 <p>To see some usage examples check out the automated tests in the repository.</p>
 <section id="payment">
 <h2><code class="docutils literal notranslate"><span class="pre">payment</span></code><a class="headerlink" href="#payment" title="Link to this heading">¶</a></h2>
@@ -374,7 +374,7 @@
 </section>
 <section id="ensure-funded">
 <h2><code class="docutils literal notranslate"><span class="pre">ensure_funded</span></code><a class="headerlink" href="#ensure-funded" title="Link to this heading">¶</a></h2>
-<p>The <code class="docutils literal notranslate"><span class="pre">ensure_funded</span></code> function automatically funds an account to maintain a minimum amount of <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">disposable Algo</a>. This is particularly useful for automation and deployment scripts that get run multiple times and consume Algo when run.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ensure_funded</span></code> function automatically funds an account to maintain a minimum amount of <a class="reference external" href="https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr">disposable Algo</a>. This is particularly useful for automation and deployment scripts that get run multiple times and consume Algo when run.</p>
 <p>There are 3 variants of this function:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">algorand_client.account.ensure_funded(account_to_fund,</span> <span class="pre">dispenser_account,</span> <span class="pre">min_spending_balance,</span> <span class="pre">options)</span></code> - Funds a given account using a dispenser account as a funding source such that the given account has a certain amount of Algo free to spend (accounting for Algo locked in minimum balance requirement).</p></li>
