@@ -1,4 +1,3 @@
-from collections.abc import Generator
 from pathlib import Path
 
 import algosdk
@@ -10,7 +9,6 @@ from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
-from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount
 
@@ -40,9 +38,7 @@ class BaseResourcePackerTest:
     version: int
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
-        config.configure(populate_app_call_resources=True)
-
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         # Create app based on version
         spec = load_arc32_spec(self.version)
         factory = algorand.client.get_app_factory(
@@ -54,10 +50,6 @@ class BaseResourcePackerTest:
         self.app_client.send.call(
             AppClientMethodCallParams(method="bootstrap", static_fee=AlgoAmount.from_micro_algo(3_000))
         )
-
-        yield
-
-        config.configure(populate_app_call_resources=False)
 
     @pytest.fixture
     def external_client(self, algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
@@ -91,9 +83,6 @@ class BaseResourcePackerTest:
                 method="addressBalance",
                 args=[random_account.address],
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_boxes_invalid_ref(self) -> None:
@@ -112,18 +101,12 @@ class BaseResourcePackerTest:
             AppClientMethodCallParams(
                 method="smallBox",
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="mediumBox",
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_apps_external_unavailable_app(self) -> None:
@@ -144,9 +127,6 @@ class BaseResourcePackerTest:
                 method="externalAppCall",
                 static_fee=AlgoAmount.from_micro_algo(2_000),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_assets_unavailable_asset(self) -> None:
@@ -165,9 +145,6 @@ class BaseResourcePackerTest:
             AppClientMethodCallParams(
                 method="assetTotal",
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_cross_product_reference_has_asset(self, funded_account: SigningAccount) -> None:
@@ -176,9 +153,6 @@ class BaseResourcePackerTest:
                 method="hasAsset",
                 args=[funded_account.address],
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_cross_product_reference_invalid_external_local(self, funded_account: SigningAccount) -> None:
@@ -203,9 +177,6 @@ class BaseResourcePackerTest:
                     sender=funded_account.address,
                 ),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
         algorand.send.app_call_method_call(
@@ -216,9 +187,6 @@ class BaseResourcePackerTest:
                     sender=funded_account.address,
                 ),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_address_balance_invalid_account_reference(
@@ -244,9 +212,6 @@ class BaseResourcePackerTest:
                 args=[algosdk.account.generate_account()[1]],
                 on_complete=OnComplete.NoOpOC,
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_cross_product_reference_invalid_has_asset(self, funded_account: SigningAccount) -> None:
@@ -278,9 +243,7 @@ class TestResourcePackerMixed:
     """Test resource packing with mixed AVM versions"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
-        config.configure(populate_app_call_resources=True)
-
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         # Create v8 app
         v8_spec = load_arc32_spec(8)
         v8_factory = algorand.client.get_app_factory(
@@ -296,10 +259,6 @@ class TestResourcePackerMixed:
             default_sender=funded_account.address,
         )
         self.v9_client, _ = v9_factory.send.create(params=AppFactoryCreateMethodCallParams(method="createApplication"))
-
-        yield
-
-        config.configure(populate_app_call_resources=False)
 
     def test_same_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         rekeyed_to = algorand.account.random()
@@ -329,11 +288,7 @@ class TestResourcePackerMixed:
             )
         )
 
-        result = txn_group.send(
-            {
-                "populate_app_call_resources": True,
-            }
-        )
+        result = txn_group.send()
 
         v8_accounts = getattr(result.transactions[0].application_call, "accounts", None) or []
         v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
@@ -346,9 +301,6 @@ class TestResourcePackerMixed:
                 method="bootstrap",
                 static_fee=AlgoAmount.from_micro_algo(3_000),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
         external_app_id = int(self.v8_client.get_global_state()["externalAppID"].value)
@@ -374,11 +326,7 @@ class TestResourcePackerMixed:
             )
         )
 
-        result = txn_group.send(
-            {
-                "populate_app_call_resources": True,
-            }
-        )
+        result = txn_group.send()
 
         v8_apps = getattr(result.transactions[0].application_call, "foreign_apps", None) or []
         v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
@@ -389,9 +337,7 @@ class TestResourcePackerMeta:
     """Test meta aspects of resource packing"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
-        config.configure(populate_app_call_resources=True)
-
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         external_spec = (
             Path(__file__).parent.parent / "artifacts" / "resource-packer" / "ExternalApp.arc32.json"
         ).read_text()
@@ -403,19 +349,12 @@ class TestResourcePackerMeta:
             params=AppFactoryCreateMethodCallParams(method="createApplication")
         )
 
-        yield
-
-        config.configure(populate_app_call_resources=False)
-
     def test_error_during_simulate(self) -> None:
         with pytest.raises(LogicError) as exc_info:
             self.external_client.send.call(
                 AppClientMethodCallParams(
                     method="error",
                 ),
-                send_params={
-                    "populate_app_call_resources": True,
-                },
             )
         assert "Error resolving execution info via simulate in transaction 0" in exc_info.value.logic_error_str
 
@@ -435,9 +374,6 @@ class TestResourcePackerMeta:
                 method="boxWithPayment",
                 args=[payment_with_signer],
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
 
     def test_sender_asset_holding(self) -> None:
@@ -448,9 +384,6 @@ class TestResourcePackerMeta:
                 method="createAsset",
                 static_fee=AlgoAmount.from_micro_algo(2_000),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
@@ -467,9 +400,6 @@ class TestResourcePackerMeta:
                 method="createAsset",
                 static_fee=AlgoAmount.from_micro_algo(2_001),
             ),
-            send_params={
-                "populate_app_call_resources": True,
-            },
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 

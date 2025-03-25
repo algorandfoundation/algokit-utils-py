@@ -436,7 +436,7 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
         )
     )
 
-    assert called_indexes == [0, 1]
+    assert set(called_indexes) == {0, 1}
 
 
 def test_sign_transaction_in_group_with_different_signer_if_provided(

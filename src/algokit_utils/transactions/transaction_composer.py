@@ -831,7 +831,11 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     """
     # Get execution info via simulation
     execution_info = _get_group_execution_info(
-        atc, algod, populate_app_call_resources, cover_app_call_inner_transaction_fees, additional_atc_context
+        atc,
+        algod,
+        populate_app_call_resources if populate_app_call_resources is not None else config.populate_app_call_resource,
+        cover_app_call_inner_transaction_fees,
+        additional_atc_context,
     )
     max_fees = additional_atc_context.max_fees if additional_atc_context else None
 
@@ -1971,8 +1975,7 @@ class TransactionComposer:
         pattern = r"^[a-zA-Z0-9][a-zA-Z0-9_/@.-]{4,31}$"
         if not re.match(pattern, note["dapp_name"]):
             raise ValueError(
-                "dapp_name must be 5-32 chars, start with alphanumeric, "
-                "and contain only alphanumeric, _, /, @, ., or -"
+                "dapp_name must be 5-32 chars, start with alphanumeric, and contain only alphanumeric, _, /, @, ., or -"
             )
 
         data = note["data"]
