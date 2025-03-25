@@ -71,7 +71,7 @@ class AccountInformation:
     """
     Information about an Algorand account's current status, balance and other properties.
 
-    See `https://developer.algorand.org/docs/rest-apis/algod/#account` for detailed field descriptions.
+    See `https://dev.algorand.co/reference/rest-apis/algod/#account` for detailed field descriptions.
     """
 
     address: str
@@ -347,7 +347,7 @@ class AccountManager:
         """
         Returns the given sender account's current status, balance and spendable amounts.
 
-        See `<https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress>`_
+        See `<https://dev.algorand.co/reference/rest-apis/algod/#account>`_
         for response data schema details.
 
         :param sender: The address or account compliant with `TransactionSignerAccountProtocol` protocol to look up
@@ -612,7 +612,7 @@ class AccountManager:
 
         .. warning::
             Please be careful with this function and be sure to read the
-            `official rekey guidance <https://developer.algorand.org/docs/get-details/accounts/rekey/>`_.
+            `official rekey guidance <https://dev.algorand.co/concepts/accounts/rekeying>`_.
 
         :example:
             >>> # Basic example (with string addresses):
@@ -693,7 +693,7 @@ class AccountManager:
         Ensures the given account has a certain amount of Algo free to spend (accounting for
         Algo locked in minimum balance requirement).
 
-        See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
+        See `<https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr>`_ for details.
 
         :param account_to_fund: The account to fund
         :param dispenser_account: The account to use as a dispenser funding source
@@ -795,7 +795,7 @@ class AccountManager:
         as a funding source such that the given account has a certain amount of Algo free to spend
         (accounting for Algo locked in minimum balance requirement).
 
-        See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
+        See `<https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr>`_ for details.
 
         :param account_to_fund: The account to fund
         :param min_spending_balance: The minimum balance of Algo that the account should have available to
@@ -888,7 +888,7 @@ class AccountManager:
         Uses the TestNet Dispenser API as a funding source such that the account has a certain amount
         of Algo free to spend (accounting for Algo locked in minimum balance requirement).
 
-        See `<https://developer.algorand.org/docs/get-details/accounts/#minimum-balance>`_ for details.
+        See `<https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr>`_ for details.
 
         :param account_to_fund: The account to fund
         :param dispenser_client: The TestNet dispenser funding client

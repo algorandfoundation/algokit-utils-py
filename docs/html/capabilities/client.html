@@ -320,7 +320,7 @@
         <article role="main" id="furo-main-content">
           <section id="client-management">
 <h1>Client management<a class="headerlink" href="#client-management" title="Link to this heading">¶</a></h1>
-<p>Client management is one of the core capabilities provided by AlgoKit Utils. It allows you to create (auto-retry) <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/algod">algod</a>, <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/indexer">indexer</a> and <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/kmd">kmd</a> clients against various networks resolved from environment or specified configuration.</p>
+<p>Client management is one of the core capabilities provided by AlgoKit Utils. It allows you to create (auto-retry) <a class="reference external" href="https://dev.algorand.co/reference/rest-apis/algod">algod</a>, <a class="reference external" href="https://dev.algorand.co/reference/rest-apis/indexer">indexer</a> and <a class="reference external" href="https://dev.algorand.co/reference/rest-apis/kmd">kmd</a> clients against various networks resolved from environment or specified configuration.</p>
 <p>Any AlgoKit Utils function that needs one of these clients will take the underlying algosdk classes (<code class="docutils literal notranslate"><span class="pre">algosdk.v2client.algod.AlgodClient</span></code>, <code class="docutils literal notranslate"><span class="pre">algosdk.v2client.indexer.IndexerClient</span></code>, <code class="docutils literal notranslate"><span class="pre">algosdk.kmd.KMDClient</span></code>) so inline with the <a class="reference internal" href="../index.html#id1"><span class="std std-ref">Modularity</span></a> principle you can use existing logic to get instances of these clients without needing to use the Client management capability if you prefer.</p>
 <p>To see some usage examples check out the <a class="reference external" href="https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_network_clients.py">automated tests</a>.</p>
 <section id="clientmanager">
@@ -345,7 +345,7 @@
 </section>
 <section id="network-configuration">
 <h2>Network configuration<a class="headerlink" href="#network-configuration" title="Link to this heading">¶</a></h2>
-<p>The network configuration is specified using the <code class="docutils literal notranslate"><span class="pre">AlgoClientConfig</span></code> type. This same type is used to specify the config for <a class="reference external" href="https://developer.algorand.org/docs/sdks/python/">algod</a>, <a class="reference external" href="https://developer.algorand.org/docs/sdks/python/">indexer</a> and <a class="reference external" href="https://developer.algorand.org/docs/sdks/python/">kmd</a> SDK clients.</p>
+<p>The network configuration is specified using the <code class="docutils literal notranslate"><span class="pre">AlgoClientConfig</span></code> type. This same type is used to specify the config for <code class="docutils literal notranslate"><span class="pre">algod</span></code>, <code class="docutils literal notranslate"><span class="pre">indexer</span></code>, and <code class="docutils literal notranslate"><span class="pre">kmd</span></code> <a class="reference external" href="https://github.com/algorand/py-algorand-sdk">SDK clients</a>.</p>
 <p>There are a number of ways to produce one of these configuration objects:</p>
 <ul>
 <li><p>Manually specifying a dataclass, e.g.</p>

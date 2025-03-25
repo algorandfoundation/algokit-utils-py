@@ -304,7 +304,7 @@ def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_ac
 
 MINIMUM_BALANCE = AlgoAmount.from_micro_algo(
     100_000
-)  # see https://developer.algorand.org/docs/get-details/accounts/#minimum-balance
+)  # see https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr
 
 
 def test_ensure_funded(algorand: AlgorandClient, funded_account: SigningAccount) -> None:

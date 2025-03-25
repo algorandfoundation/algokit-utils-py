@@ -26,7 +26,7 @@ Result from performing an ensure funded call using TestNet dispenser API.
 
 Information about an Algorand account’s current status, balance and other properties.
 
-See https://developer.algorand.org/docs/rest-apis/algod/#account for detailed field descriptions.
+See https://dev.algorand.co/reference/rest-apis/algod/#account for detailed field descriptions.
 
 #### address *: str*
 
@@ -298,7 +298,7 @@ Returns the TransactionSignerAccountProtocol for the given sender address.
 
 Returns the given sender account’s current status, balance and spendable amounts.
 
-See [https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress](https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress)
+See [https://dev.algorand.co/reference/rest-apis/algod/#account](https://dev.algorand.co/reference/rest-apis/algod/#account)
 for response data schema details.
 
 * **Parameters:**
@@ -489,7 +489,7 @@ Rekey an account to a new address.
 
 #### WARNING
 Please be careful with this function and be sure to read the
-[official rekey guidance](https://developer.algorand.org/docs/get-details/accounts/rekey/).
+[official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
 
 * **Example:**
   ```pycon
@@ -519,7 +519,7 @@ Funds a given account using a dispenser account as a funding source.
 Ensures the given account has a certain amount of Algo free to spend (accounting for
 Algo locked in minimum balance requirement).
 
-See [https://developer.algorand.org/docs/get-details/accounts/#minimum-balance](https://developer.algorand.org/docs/get-details/accounts/#minimum-balance) for details.
+See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr) for details.
 
 * **Parameters:**
   * **account_to_fund** – The account to fund
@@ -564,7 +564,7 @@ Uses a dispenser account retrieved from the environment, per the dispenser_from_
 as a funding source such that the given account has a certain amount of Algo free to spend
 (accounting for Algo locked in minimum balance requirement).
 
-See [https://developer.algorand.org/docs/get-details/accounts/#minimum-balance](https://developer.algorand.org/docs/get-details/accounts/#minimum-balance) for details.
+See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr) for details.
 
 * **Parameters:**
   * **account_to_fund** – The account to fund
@@ -612,7 +612,7 @@ Ensure an account is funded using the TestNet Dispenser API.
 Uses the TestNet Dispenser API as a funding source such that the account has a certain amount
 of Algo free to spend (accounting for Algo locked in minimum balance requirement).
 
-See [https://developer.algorand.org/docs/get-details/accounts/#minimum-balance](https://developer.algorand.org/docs/get-details/accounts/#minimum-balance) for details.
+See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr) for details.
 
 * **Parameters:**
   * **account_to_fund** – The account to fund

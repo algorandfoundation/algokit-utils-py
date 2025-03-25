@@ -361,7 +361,7 @@
 <dt class="sig sig-object py" id="algokit_utils.accounts.account_manager.AccountInformation">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">algokit_utils.accounts.account_manager.</span></span><span class="sig-name descname"><span class="pre">AccountInformation</span></span><a class="headerlink" href="#algokit_utils.accounts.account_manager.AccountInformation" title="Link to this definition">¶</a></dt>
 <dd><p>Information about an Algorand account’s current status, balance and other properties.</p>
-<p>See <cite>https://developer.algorand.org/docs/rest-apis/algod/#account</cite> for detailed field descriptions.</p>
+<p>See <cite>https://dev.algorand.co/reference/rest-apis/algod/#account</cite> for detailed field descriptions.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="algokit_utils.accounts.account_manager.AccountInformation.address">
 <span class="sig-name descname"><span class="pre">address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#algokit_utils.accounts.account_manager.AccountInformation.address" title="Link to this definition">¶</a></dt>
@@ -740,7 +740,7 @@ TransactionSignerAccountProtocol.</p>
 <dt class="sig sig-object py" id="algokit_utils.accounts.account_manager.AccountManager.get_information">
 <span class="sig-name descname"><span class="pre">get_information</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sender</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="../../protocols/account/index.html#algokit_utils.protocols.account.TransactionSignerAccountProtocol" title="algokit_utils.protocols.account.TransactionSignerAccountProtocol"><span class="pre">algokit_utils.protocols.account.TransactionSignerAccountProtocol</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#algokit_utils.accounts.account_manager.AccountInformation" title="algokit_utils.accounts.account_manager.AccountInformation"><span class="pre">AccountInformation</span></a></span></span><a class="headerlink" href="#algokit_utils.accounts.account_manager.AccountManager.get_information" title="Link to this definition">¶</a></dt>
 <dd><p>Returns the given sender account’s current status, balance and spendable amounts.</p>
-<p>See <a class="reference external" href="https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress">https://developer.algorand.org/docs/rest-apis/algod/#get-v2accountsaddress</a>
+<p>See <a class="reference external" href="https://dev.algorand.co/reference/rest-apis/algod/#account">https://dev.algorand.co/reference/rest-apis/algod/#account</a>
 for response data schema details.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1012,7 +1012,7 @@ it will create it and fund the account for you</p></li>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>Please be careful with this function and be sure to read the
-<a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/rekey/">official rekey guidance</a>.</p>
+<a class="reference external" href="https://dev.algorand.co/concepts/accounts/rekeying">official rekey guidance</a>.</p>
 </div>
 <dl class="field-list">
 <dt class="field-odd">Example<span class="colon">:</span></dt>
@@ -1045,7 +1045,7 @@ it will create it and fund the account for you</p></li>
 <dd><p>Funds a given account using a dispenser account as a funding source.</p>
 <p>Ensures the given account has a certain amount of Algo free to spend (accounting for
 Algo locked in minimum balance requirement).</p>
-<p>See <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a> for details.</p>
+<p>See <a class="reference external" href="https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr">https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr</a> for details.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1096,7 +1096,7 @@ or None if no funds were needed</p>
 <p>Uses a dispenser account retrieved from the environment, per the <cite>dispenser_from_environment</cite> method,
 as a funding source such that the given account has a certain amount of Algo free to spend
 (accounting for Algo locked in minimum balance requirement).</p>
-<p>See <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a> for details.</p>
+<p>See <a class="reference external" href="https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr">https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr</a> for details.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1152,7 +1152,7 @@ if it’s a rekeyed account, or against default LocalNet if no environment varia
 <dd><p>Ensure an account is funded using the TestNet Dispenser API.</p>
 <p>Uses the TestNet Dispenser API as a funding source such that the account has a certain amount
 of Algo free to spend (accounting for Algo locked in minimum balance requirement).</p>
-<p>See <a class="reference external" href="https://developer.algorand.org/docs/get-details/accounts/#minimum-balance">https://developer.algorand.org/docs/get-details/accounts/#minimum-balance</a> for details.</p>
+<p>See <a class="reference external" href="https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr">https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr</a> for details.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
