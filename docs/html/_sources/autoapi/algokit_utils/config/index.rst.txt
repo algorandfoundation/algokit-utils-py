@@ -127,7 +127,7 @@ Module Contents
 
 
 
-   .. py:method:: configure(*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = False, logger: logging.Logger | None = None) -> None
+   .. py:method:: configure(*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = True, logger: logging.Logger | None = None) -> None
 
       Configures various settings for the application.
 
@@ -136,7 +136,7 @@ Module Contents
       :param trace_all: Whether to trace all operations. Defaults to False.
       :param trace_buffer_size_mb: The trace buffer size in megabytes. Defaults to 256.
       :param max_search_depth: The maximum depth to search for a specific file. Defaults to 10.
-      :param populate_app_call_resources: Whether to populate app call resources. Defaults to False.
+      :param populate_app_call_resources: Whether to populate app call resources. Defaults to True.
       :param logger: A custom logger to use. Defaults to AlgoKitLogger instance.
 
 

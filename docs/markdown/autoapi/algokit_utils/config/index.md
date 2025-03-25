@@ -81,7 +81,7 @@ Indicates whether or not to populate app call resources.
 
 Executes a function with debug mode temporarily enabled.
 
-#### configure(\*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = False, logger: logging.Logger | None = None) → None
+#### configure(\*, debug: bool | None = None, project_root: pathlib.Path | None = None, trace_all: bool = False, trace_buffer_size_mb: float = 256, max_search_depth: int = 10, populate_app_call_resources: bool = True, logger: logging.Logger | None = None) → None
 
 Configures various settings for the application.
 
@@ -91,7 +91,7 @@ Configures various settings for the application.
   * **trace_all** – Whether to trace all operations. Defaults to False.
   * **trace_buffer_size_mb** – The trace buffer size in megabytes. Defaults to 256.
   * **max_search_depth** – The maximum depth to search for a specific file. Defaults to 10.
-  * **populate_app_call_resources** – Whether to populate app call resources. Defaults to False.
+  * **populate_app_call_resources** – Whether to populate app call resources. Defaults to True.
   * **logger** – A custom logger to use. Defaults to AlgoKitLogger instance.
 
 ### algokit_utils.config.config

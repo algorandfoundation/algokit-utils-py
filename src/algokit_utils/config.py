@@ -59,7 +59,7 @@ class UpdatableConfig:
         self._trace_all: bool = False
         self._trace_buffer_size_mb: int | float = 256  # megabytes
         self._max_search_depth: int = 10
-        self._populate_app_call_resources: bool = False
+        self._populate_app_call_resources: bool = True
         self._configure_project_root()
 
     def _configure_project_root(self) -> None:
@@ -123,7 +123,7 @@ class UpdatableConfig:
         trace_all: bool = False,
         trace_buffer_size_mb: float = 256,
         max_search_depth: int = 10,
-        populate_app_call_resources: bool = False,
+        populate_app_call_resources: bool = True,
         logger: logging.Logger | None = None,
     ) -> None:
         """
@@ -134,7 +134,7 @@ class UpdatableConfig:
         :param trace_all: Whether to trace all operations. Defaults to False.
         :param trace_buffer_size_mb: The trace buffer size in megabytes. Defaults to 256.
         :param max_search_depth: The maximum depth to search for a specific file. Defaults to 10.
-        :param populate_app_call_resources: Whether to populate app call resources. Defaults to False.
+        :param populate_app_call_resources: Whether to populate app call resources. Defaults to True.
         :param logger: A custom logger to use. Defaults to AlgoKitLogger instance.
         """
         if logger is not None:

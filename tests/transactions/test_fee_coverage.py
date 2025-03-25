@@ -1,7 +1,6 @@
 import base64
 import dataclasses
 import json
-from collections.abc import Generator
 from pathlib import Path
 
 import pytest
@@ -10,7 +9,6 @@ from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams, AppFactoryCreateParams
-from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
@@ -32,9 +30,7 @@ class TestCoverAppCallInnerFees:
     """Test covering app call inner transaction fees"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> Generator[None, None, None]:
-        config.configure(populate_app_call_resources=True)
-
+    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         # Load inner fee contract spec
         spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
         inner_fee_spec = json.loads(spec_path.read_text())
@@ -50,10 +46,6 @@ class TestCoverAppCallInnerFees:
         # Fund app accounts
         for client in [self.app_client1, self.app_client2, self.app_client3]:
             client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(2)))
-
-        yield
-
-        config.configure(populate_app_call_resources=False)
 
     def test_throws_when_no_max_fee(self) -> None:
         """Test that error is thrown when no max fee is supplied"""
