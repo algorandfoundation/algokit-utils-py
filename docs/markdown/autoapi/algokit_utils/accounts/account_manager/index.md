@@ -301,7 +301,7 @@ Returns the TransactionSignerAccountProtocol for the given sender address.
 
 Returns the given sender account’s current status, balance and spendable amounts.
 
-See [https://dev.algorand.co/reference/rest-api/algod/operations/accountinformation](https://dev.algorand.co/reference/rest-api/algod/operations/accountinformation)
+See [https://dev.algorand.co/reference/rest-apis/algod/operations/accountinformation](https://dev.algorand.co/reference/rest-apis/algod/operations/accountinformation)
 for response data schema details.
 
 - **Parameters:**
