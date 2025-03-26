@@ -2,6 +2,21 @@
 
 <!--next-version-placeholder-->
 
+## v4.0.0 (2025-03-26)
+
+### Feature
+
+* Enable resource population by default ([#151](https://github.com/algorandfoundation/algokit-utils-py/issues/151)) ([`a25b149`](https://github.com/algorandfoundation/algokit-utils-py/commit/a25b149a1d851c50ff7116a0336bfb3130bee4fb))
+
+### Breaking
+
+* enable resource population by default ([#151](https://github.com/algorandfoundation/algokit-utils-py/issues/151)) ([`a25b149`](https://github.com/algorandfoundation/algokit-utils-py/commit/a25b149a1d851c50ff7116a0336bfb3130bee4fb))
+
+### Documentation
+
+* Dev portal links updated ([`4e912c0`](https://github.com/algorandfoundation/algokit-utils-py/commit/4e912c065b774063196068795e97836d963a4c3e))
+* Patch typed client md file ([#150](https://github.com/algorandfoundation/algokit-utils-py/issues/150)) ([`5b77a55`](https://github.com/algorandfoundation/algokit-utils-py/commit/5b77a554e0d5c98aeede23e7b4f0afc2539f1d03))
+
 ## v3.0.2 (2025-02-22)
 
 ### Fix
