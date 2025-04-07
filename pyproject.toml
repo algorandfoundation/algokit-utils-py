@@ -9,8 +9,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 py-algorand-sdk = "^2.4.0"
-httpx = "^0.23.1"
-typing-extensions = ">=4.6.0"  # Add this line
+httpx = ">=0.23.1,<=0.28.1"
+typing-extensions = ">=4.6.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7"
