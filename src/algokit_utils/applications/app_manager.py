@@ -269,6 +269,11 @@ class AppManager:
             >>> app_id = 123
             >>> box_names = app_manager.get_box_names(app_id)
         """
+        def maybe_get_utf8_name(b: bytes) -> str | None:
+            try:
+                return b.decode("utf-8")
+            except UnicodeDecodeError:
+                return None
 
         box_result = self._algod.application_boxes(app_id)
         assert isinstance(box_result, dict)
@@ -276,7 +281,7 @@ class AppManager:
             BoxName(
                 name_raw=base64.b64decode(b["name"]),
                 name_base64=b["name"],
-                name=base64.b64decode(b["name"]).decode("utf-8"),
+                name=maybe_get_utf8_name(base64.b64decode(b["name"])),
             )
             for b in box_result["boxes"]
         ]

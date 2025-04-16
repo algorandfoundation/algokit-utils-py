@@ -21,7 +21,7 @@ __all__ = [
 class BoxName:
     """The name of the box"""
 
-    name: str
+    name: str | None
     """The name of the box as a string"""
     name_raw: bytes
     """The name of the box as raw bytes"""
