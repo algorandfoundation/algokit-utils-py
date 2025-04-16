@@ -269,6 +269,7 @@ class AppManager:
             >>> app_id = 123
             >>> box_names = app_manager.get_box_names(app_id)
         """
+
         def maybe_get_utf8_name(b: bytes) -> str | None:
             try:
                 return b.decode("utf-8")
