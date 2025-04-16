@@ -20,7 +20,7 @@
 
 The name of the box
 
-#### name *: str*
+#### name *: str | None*
 
 The name of the box as a string
 
