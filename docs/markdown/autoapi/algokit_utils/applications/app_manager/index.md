@@ -133,6 +133,8 @@ Get the local state for an account in an application.
 
 Get names of all boxes for an application.
 
+If the box name can’t be decoded from UTF-8, the string representation of the bytes is returned.
+
 * **Parameters:**
   **app_id** – The application ID
 * **Returns:**
