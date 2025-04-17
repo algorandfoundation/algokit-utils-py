@@ -452,21 +452,16 @@ class _StateAccessor:
                 if not box.name_raw.startswith(prefix):
                     continue
 
-                encoded_key = prefix + box.name_raw
-                base64_key = base64.b64encode(encoded_key).decode("utf-8")
-
                 try:
                     key = get_abi_decoded_value(box.name_raw[len(prefix) :], metadata.key_type, self._app_spec.structs)
                     value = get_abi_decoded_value(
-                        self._algorand.app.get_box_value(self._app_id, base64.b64decode(base64_key)),
+                        self._algorand.app.get_box_value(self._app_id, box.name_raw),
                         metadata.value_type,
                         self._app_spec.structs,
                     )
                     result[str(key)] = value
                 except Exception as e:
-                    if "Failed to decode key" in str(e):
-                        raise ValueError(f"Failed to decode key {base64_key}") from e
-                    raise ValueError(f"Failed to decode value for key {base64_key}") from e
+                    raise ValueError(f"Failed to decode value for key {box.name_raw.decode("utf-8")}") from e
 
             return result
 
