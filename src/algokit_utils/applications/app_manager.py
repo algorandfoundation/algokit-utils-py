@@ -261,6 +261,8 @@ class AppManager:
     def get_box_names(self, app_id: int) -> list[BoxName]:
         """Get names of all boxes for an application.
 
+        If the box name can't be decoded from UTF-8, the string representation of the bytes is returned.
+
         :param app_id: The application ID
         :return: List of box names
 
@@ -270,11 +272,12 @@ class AppManager:
             >>> box_names = app_manager.get_box_names(app_id)
         """
 
-        def maybe_get_utf8_name(b: bytes) -> str | None:
+        def utf8_decode_or_string_cast(b: bytes) -> str:
+            """Return the UTF-8 encoding or return the string representation of the bytes."""
             try:
                 return b.decode("utf-8")
             except UnicodeDecodeError:
-                return None
+                return str(b)
 
         box_result = self._algod.application_boxes(app_id)
         assert isinstance(box_result, dict)
@@ -282,7 +285,7 @@ class AppManager:
             BoxName(
                 name_raw=base64.b64decode(b["name"]),
                 name_base64=b["name"],
-                name=maybe_get_utf8_name(base64.b64decode(b["name"])),
+                name=utf8_decode_or_string_cast(base64.b64decode(b["name"])),
             )
             for b in box_result["boxes"]
         ]

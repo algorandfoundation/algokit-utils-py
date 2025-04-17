@@ -20,9 +20,10 @@
 
 The name of the box
 
-#### name *: str | None*
+#### name *: str*
 
-The name of the box as a string
+The name of the box as a string.
+If the name can’t be decoded from UTF-8, the string representation of the bytes is returned instead.
 
 #### name_raw *: bytes*
 
