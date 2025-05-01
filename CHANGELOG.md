@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v4.0.1 (2025-05-01)
+
+### Fix
+
+* Bumps httpx dependency for compatibility ([#152](https://github.com/algorandfoundation/algokit-utils-py/issues/152)) ([`a41fcef`](https://github.com/algorandfoundation/algokit-utils-py/commit/a41fcefd710a8e8400d79e078cc0a764ef12ae15))
+
 ## v4.0.0 (2025-03-26)
 
 ### Feature
