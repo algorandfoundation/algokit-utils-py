@@ -11,6 +11,7 @@ python = "^3.10"
 py-algorand-sdk = "^2.4.0"
 httpx = ">=0.23.1,<=0.28.1"
 typing-extensions = ">=4.6.0"
+algokit-transact = {path = "../../RustroverProjects/algokit-core/packages/python/algokit_transact/dist/algokit_transact-0.1.0.tar.gz"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8"
