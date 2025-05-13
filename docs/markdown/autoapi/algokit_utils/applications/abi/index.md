@@ -27,15 +27,15 @@
 
 ## Module Contents
 
-### algokit_utils.applications.abi.ABIValue *: TypeAlias* *= bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue']*
+### *type* algokit_utils.applications.abi.ABIValue *= bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue']*
 
-### algokit_utils.applications.abi.ABIStruct *: TypeAlias* *= dict[str, list[dict[str, 'ABIValue']]]*
+### *type* algokit_utils.applications.abi.ABIStruct *= dict[str, list[dict[str, 'ABIValue']]]*
 
-### algokit_utils.applications.abi.Arc56ReturnValueType *: TypeAlias* *= ABIValue | ABIStruct | None*
+### *type* algokit_utils.applications.abi.Arc56ReturnValueType *= ABIValue | ABIStruct | None*
 
-### algokit_utils.applications.abi.ABIType *: TypeAlias* *= algosdk.abi.ABIType*
+### *type* algokit_utils.applications.abi.ABIType *= algosdk.abi.ABIType*
 
-### algokit_utils.applications.abi.ABIArgumentType *: TypeAlias* *= algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType*
+### *type* algokit_utils.applications.abi.ABIArgumentType *= algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType*
 
 ### *class* algokit_utils.applications.abi.ABIReturn(result: algosdk.atomic_transaction_composer.ABIResult)
 

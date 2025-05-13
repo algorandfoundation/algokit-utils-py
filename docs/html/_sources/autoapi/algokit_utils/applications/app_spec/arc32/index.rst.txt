@@ -31,9 +31,8 @@ Classes
 Module Contents
 ---------------
 
-.. py:data:: AppSpecStateDict
-   :type:  TypeAlias
-   :value: dict[str, dict[str, dict]]
+.. py:type:: AppSpecStateDict
+   :canonical: dict[str, dict[str, dict]]
 
 
    Type defining Application Specification state entries
@@ -103,25 +102,22 @@ Module Contents
       :type:  list[list[str]]
 
 
-.. py:data:: OnCompleteActionName
-   :type:  TypeAlias
-   :value: Literal['no_op', 'opt_in', 'close_out', 'clear_state', 'update_application', 'delete_application']
+.. py:type:: OnCompleteActionName
+   :canonical: Literal['no_op', 'opt_in', 'close_out', 'clear_state', 'update_application', 'delete_application']
 
 
    String literals representing on completion transaction types
 
 
-.. py:data:: MethodConfigDict
-   :type:  TypeAlias
-   :value: dict[OnCompleteActionName, CallConfig]
+.. py:type:: MethodConfigDict
+   :canonical: dict[OnCompleteActionName, CallConfig]
 
 
    Dictionary of `dict[OnCompletionActionName, CallConfig]` representing allowed actions for each on completion type
 
 
-.. py:data:: DefaultArgumentType
-   :type:  TypeAlias
-   :value: Literal['abi-method', 'local-state', 'global-state', 'constant']
+.. py:type:: DefaultArgumentType
+   :canonical: Literal['abi-method', 'local-state', 'global-state', 'constant']
 
 
    Literal values describing the types of default argument sources
