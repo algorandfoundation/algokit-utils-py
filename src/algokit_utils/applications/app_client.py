@@ -2047,7 +2047,7 @@ class AppClient:
                         if not value:
                             raise ValueError(
                                 f"Key '{default_value.data}' not found in {default_value.source} "
-                                f"storage for argument {method_arg.name or f'arg{i+1}'}"
+                                f"storage for argument {method_arg.name or f'arg{i + 1}'}"
                             )
 
                         if value.value_raw:
@@ -2065,7 +2065,7 @@ class AppClient:
             elif not algosdk.abi.is_abi_transaction_type(method_arg.type):
                 raise ValueError(
                     f"No value provided for required argument "
-                    f"{method_arg.name or f'arg{i+1}'} in call to method {method.name}"
+                    f"{method_arg.name or f'arg{i + 1}'} in call to method {method.name}"
                 )
             elif arg_value is None and default_value is None:
                 # At this point only allow explicit None values if no default value was identified

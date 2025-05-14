@@ -1122,13 +1122,12 @@ class AppFactory:
                     results.append(decoded_value)
                 else:
                     raise ValueError(
-                        f"Cannot provide default value from source={default_value.source} "
-                        "for a contract creation call."
+                        f"Cannot provide default value from source={default_value.source} for a contract creation call."
                     )
             else:
                 param_name = param.name or f"arg{i + 1}"
                 raise ValueError(
-                    f"No value provided for required argument {param_name} " f"in call to method {method.name}"
+                    f"No value provided for required argument {param_name} in call to method {method.name}"
                 )
 
         return results

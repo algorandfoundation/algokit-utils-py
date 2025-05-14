@@ -55,9 +55,9 @@ Enum where members are also (and must be) ints
 
 #### UINT *= 2*
 
-### algokit_utils.models.state.TealTemplateParams *: TypeAlias* *= Mapping[str, str | int | bytes] | dict[str, str | int | bytes]*
+### *type* algokit_utils.models.state.TealTemplateParams *= Mapping[str, str | int | bytes] | dict[str, str | int | bytes]*
 
-### algokit_utils.models.state.BoxIdentifier *: TypeAlias* *= str | bytes | AccountTransactionSigner*
+### *type* algokit_utils.models.state.BoxIdentifier *= str | bytes | AccountTransactionSigner*
 
 ### *class* algokit_utils.models.state.BoxReference(app_id: int, name: bytes | str)
 

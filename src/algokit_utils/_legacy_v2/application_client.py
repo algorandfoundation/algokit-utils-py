@@ -243,9 +243,7 @@ class ApplicationClient:
         """Creates a copy of this ApplicationClient, using the new signer, sender and app_id values if provided.
         Will also substitute provided template_values into the associated app_spec in the copy"""
         new_client: ApplicationClient = copy.copy(self)
-        new_client._prepare(  # noqa: SLF001
-            new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values
-        )
+        new_client._prepare(new_client, signer=signer, sender=sender, app_id=app_id, template_values=template_values)
         return new_client
 
     def _prepare(

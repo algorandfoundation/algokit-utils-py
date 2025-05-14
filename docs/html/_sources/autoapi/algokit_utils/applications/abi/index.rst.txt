@@ -41,29 +41,24 @@ Functions
 Module Contents
 ---------------
 
-.. py:data:: ABIValue
-   :type:  TypeAlias
-   :value: bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue']
+.. py:type:: ABIValue
+   :canonical: bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue']
 
 
-.. py:data:: ABIStruct
-   :type:  TypeAlias
-   :value: dict[str, list[dict[str, 'ABIValue']]]
+.. py:type:: ABIStruct
+   :canonical: dict[str, list[dict[str, 'ABIValue']]]
 
 
-.. py:data:: Arc56ReturnValueType
-   :type:  TypeAlias
-   :value: ABIValue | ABIStruct | None
+.. py:type:: Arc56ReturnValueType
+   :canonical: ABIValue | ABIStruct | None
 
 
-.. py:data:: ABIType
-   :type:  TypeAlias
-   :value: algosdk.abi.ABIType
+.. py:type:: ABIType
+   :canonical: algosdk.abi.ABIType
 
 
-.. py:data:: ABIArgumentType
-   :type:  TypeAlias
-   :value: algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType
+.. py:type:: ABIArgumentType
+   :canonical: algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType
 
 
 .. py:class:: ABIReturn(result: algosdk.atomic_transaction_composer.ABIResult)

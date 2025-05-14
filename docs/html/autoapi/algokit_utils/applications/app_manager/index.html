@@ -515,6 +515,7 @@ and interacting with application boxes.</p>
 <dt class="sig sig-object py" id="algokit_utils.applications.app_manager.AppManager.get_box_names">
 <span class="sig-name descname"><span class="pre">get_box_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="../../models/state/index.html#algokit_utils.models.state.BoxName" title="algokit_utils.models.state.BoxName"><span class="pre">algokit_utils.models.state.BoxName</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#algokit_utils.applications.app_manager.AppManager.get_box_names" title="Link to this definition">¶</a></dt>
 <dd><p>Get names of all boxes for an application.</p>
+<p>If the box name can’t be decoded from UTF-8, the string representation of the bytes is returned.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>app_id</strong> – The application ID</p>

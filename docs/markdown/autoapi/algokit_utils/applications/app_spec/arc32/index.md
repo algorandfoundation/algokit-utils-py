@@ -20,7 +20,7 @@
 
 ## Module Contents
 
-### algokit_utils.applications.app_spec.arc32.AppSpecStateDict *: TypeAlias* *= dict[str, dict[str, dict]]*
+### *type* algokit_utils.applications.app_spec.arc32.AppSpecStateDict *= dict[str, dict[str, dict]]*
 
 Type defining Application Specification state entries
 
@@ -74,15 +74,15 @@ kwargs) -> new dictionary initialized with the name=value pairs
 
 #### elements *: list[list[str]]*
 
-### algokit_utils.applications.app_spec.arc32.OnCompleteActionName *: TypeAlias* *= Literal['no_op', 'opt_in', 'close_out', 'clear_state', 'update_application', 'delete_application']*
+### *type* algokit_utils.applications.app_spec.arc32.OnCompleteActionName *= Literal['no_op', 'opt_in', 'close_out', 'clear_state', 'update_application', 'delete_application']*
 
 String literals representing on completion transaction types
 
-### algokit_utils.applications.app_spec.arc32.MethodConfigDict *: TypeAlias* *= dict[OnCompleteActionName, CallConfig]*
+### *type* algokit_utils.applications.app_spec.arc32.MethodConfigDict *= dict[OnCompleteActionName, [CallConfig](#algokit_utils.applications.app_spec.arc32.CallConfig)]*
 
 Dictionary of dict[OnCompletionActionName, CallConfig] representing allowed actions for each on completion type
 
-### algokit_utils.applications.app_spec.arc32.DefaultArgumentType *: TypeAlias* *= Literal['abi-method', 'local-state', 'global-state', 'constant']*
+### *type* algokit_utils.applications.app_spec.arc32.DefaultArgumentType *= Literal['abi-method', 'local-state', 'global-state', 'constant']*
 
 Literal values describing the types of default argument sources
 
