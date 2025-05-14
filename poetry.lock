@@ -20,7 +20,7 @@ optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 files = [
-    {file = "algokit_transact-0.1.0.tar.gz", hash = "sha256:9fb8971aac7eeda93bb2e743fd5ea76ca5f73121bf9a9d8f392e6574536214cc"},
+    {file = "algokit_transact-0.1.0-py3-none-manylinux_2_34_x86_64.whl", hash = "sha256:5a350d0cc749f6e0d92a1104fb4b5015213d6a3511f579fa4331a625427934c8"},
 ]
 
 [package.dependencies]
@@ -28,7 +28,7 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "file"
-url = "../../RustroverProjects/algokit-core/packages/python/algokit_transact/dist/algokit_transact-0.1.0.tar.gz"
+url = "../../RustroverProjects/algokit-core/target/wheels/algokit_transact-0.1.0-py3-none-manylinux_2_34_x86_64.whl"
 
 [[package]]
 name = "anyio"
@@ -2929,4 +2929,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "3fb0e38300639560df4dc7e10307d638d0b120d6e2156be3e16c32a6dcff828b"
+content-hash = "ea6cc24fd0374d64944448ed132c0bdbcb201492c3fa75b1a6c028a633d6e9f7"
