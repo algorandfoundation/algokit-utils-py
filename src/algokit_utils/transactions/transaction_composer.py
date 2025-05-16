@@ -29,7 +29,7 @@ from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.transactions.algokit_core_bridge import payment_through_core
+from algokit_utils.transactions._algokit_core_bridge import payment_through_core
 
 if TYPE_CHECKING:
     from collections.abc import Callable
