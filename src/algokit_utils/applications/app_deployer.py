@@ -239,7 +239,7 @@ class AppDeployer:
         suppress_log = send_params.get("suppress_log") or False
 
         config.logger.info(
-            f"Idempotently deploying app \"{deployment.metadata.name}\" from creator "
+            f'Idempotently deploying app "{deployment.metadata.name}" from creator '
             f"{deployment.create_params.sender} using {len(deployment.create_params.approval_program)} bytes of "
             f"{'teal code' if isinstance(deployment.create_params.approval_program, str) else 'AVM bytecode'} and "
             f"{len(deployment.create_params.clear_state_program)} bytes of "
@@ -623,8 +623,7 @@ class AppDeployer:
 
         if deployment.on_update in (OnUpdate.Fail, "fail") or deployment.on_update is None:
             raise ValueError(
-                "Update detected and on_update=Fail, stopping deployment. "
-                "Try a different on_update value to not fail."
+                "Update detected and on_update=Fail, stopping deployment. Try a different on_update value to not fail."
             )
 
         if deployment.on_update in (OnUpdate.AppendApp, "append"):

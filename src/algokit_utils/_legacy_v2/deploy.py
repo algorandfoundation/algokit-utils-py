@@ -641,8 +641,7 @@ class Deployer:
         elif self.on_update == OnUpdate.ReplaceApp:
             if self.existing_app_metadata_or_reference.updatable is False:
                 logger.warning(
-                    "App is not updatable and on_update=ReplaceApp, "
-                    "will attempt to create new app and delete old app"
+                    "App is not updatable and on_update=ReplaceApp, will attempt to create new app and delete old app"
                 )
             else:
                 logger.warning(

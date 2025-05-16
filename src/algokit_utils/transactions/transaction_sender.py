@@ -650,8 +650,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_opt_in,
             pre_log=lambda params, transaction: (
-                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction "
-                f"{transaction.get_txid()}"
+                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
             ),
         )(params, send_params)
 
@@ -714,7 +713,7 @@ class AlgorandClientTransactionSender:
                     )
             except Exception as e:
                 raise ValueError(
-                    f"Account {params.sender} is not opted-in to Asset {params.asset_id}; " "can't opt-out."
+                    f"Account {params.sender} is not opted-in to Asset {params.asset_id}; can't opt-out."
                 ) from e
 
         if not hasattr(params, "creator"):

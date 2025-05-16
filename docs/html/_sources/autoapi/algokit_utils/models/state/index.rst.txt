@@ -35,7 +35,8 @@ Module Contents
    .. py:attribute:: name
       :type:  str
 
-      The name of the box as a string
+      The name of the box as a string.
+      If the name can't be decoded from UTF-8, the string representation of the bytes is returned instead.
 
 
 
@@ -90,14 +91,12 @@ Module Contents
 
 
 
-.. py:data:: TealTemplateParams
-   :type:  TypeAlias
-   :value: Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
+.. py:type:: TealTemplateParams
+   :canonical: Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
 
 
-.. py:data:: BoxIdentifier
-   :type:  TypeAlias
-   :value: str | bytes | AccountTransactionSigner
+.. py:type:: BoxIdentifier
+   :canonical: str | bytes | AccountTransactionSigner
 
 
 .. py:class:: BoxReference(app_id: int, name: bytes | str)

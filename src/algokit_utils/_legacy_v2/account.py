@@ -32,7 +32,7 @@ _DEFAULT_ACCOUNT_MINIMUM_BALANCE = 1_000_000_000
 
 
 @deprecated(
-    "Use `algorand.account.from_mnemonic()` instead. Example: " "`account = algorand.account.from_mnemonic(mnemonic)`"
+    "Use `algorand.account.from_mnemonic()` instead. Example: `account = algorand.account.from_mnemonic(mnemonic)`"
 )
 def get_account_from_mnemonic(mnemonic: str) -> Account:
     """Convert a mnemonic (25 word passphrase) into an Account"""
@@ -127,7 +127,7 @@ def get_dispenser_account(client: "AlgodClient") -> Account:
 
 
 @deprecated(
-    "Use `algorand.account.from_kmd()` instead. Example: " "`account = algorand.account.from_kmd(name, predicate)`"
+    "Use `algorand.account.from_kmd()` instead. Example: `account = algorand.account.from_kmd(name, predicate)`"
 )
 def get_kmd_wallet_account(
     client: "AlgodClient",

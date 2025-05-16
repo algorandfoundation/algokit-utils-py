@@ -17,7 +17,7 @@ from algosdk.atomic_transaction_composer import (
     TransactionSigner,
     TransactionWithSigner,
 )
-from algosdk.transaction import ApplicationCallTxn, OnComplete, SuggestedParams
+from algosdk.transaction import OnComplete, SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
@@ -1834,8 +1834,7 @@ class TransactionComposer:
         group = self.build().transactions
 
         if not params:
-            has_app_call = any(isinstance(txn.txn, ApplicationCallTxn) for txn in group)
-            params = SendParams() if has_app_call else SendParams()
+            params = SendParams()
 
         cover_app_call_inner_transaction_fees = params.get("cover_app_call_inner_transaction_fees")
         populate_app_call_resources = params.get("populate_app_call_resources")

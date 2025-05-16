@@ -255,7 +255,7 @@ def test_simulate_response_filename_generation(
                 sender=funded_account.address,
                 receiver=client_fixture.app_address,
                 amount=AlgoAmount.from_micro_algo(1_000_000 * (i + 1)),
-                note=f"Payment{i+1}".encode(),
+                note=f"Payment{i + 1}".encode(),
             )
         )
 
@@ -275,7 +275,7 @@ def test_simulate_response_filename_generation(
         atc.add_app_call_method_call(
             AppCallMethodCallParams(
                 method=Method.from_signature("hello(string)string"),
-                args=[f"test{i+1}"],
+                args=[f"test{i + 1}"],
                 sender=funded_account.address,
                 app_id=client_fixture.app_id,
             )
