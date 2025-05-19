@@ -14,18 +14,18 @@ files = [
 
 [[package]]
 name = "algokit_algod_api"
-version = "1.0.0a1"
+version = "1.0.0a3"
 description = ""
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "algokit_algod_api-1.0.0a1-py3-none-any.whl", hash = "sha256:788144b29589d61e061464c5e8ad19a32b472f113a24265fbeade6468595db9c"},
+    {file = "algokit_algod_api-1.0.0a3-py3-none-any.whl", hash = "sha256:d466053fb4498a2ce3e6c282d27615afd67a2c5e36c749fda8782f20c214a231"},
 ]
 
 [package.source]
 type = "file"
-url = "../../RustroverProjects/algokit-core/packages/python/algod_api/dist/algokit_algod_api-1.0.0a1-py3-none-any.whl"
+url = "../../RustroverProjects/algokit-core/packages/python/algod_api/dist/algokit_algod_api-1.0.0a3-py3-none-any.whl"
 
 [[package]]
 name = "algokit_transact"
@@ -2944,4 +2944,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "2b2aaf7da424b0e7cdbf4444f1c8a2ddd85a24ebd48a98c13c4dacb49c26f9b9"
+content-hash = "e192630cb1b4338c1b8a7f23a7452e9a519299f9fc2bb35959b9e133a048422b"
