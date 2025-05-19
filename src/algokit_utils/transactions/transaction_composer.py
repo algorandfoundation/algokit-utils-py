@@ -29,7 +29,7 @@ from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.transactions._algokit_core_bridge import payment_through_core
+from algokit_utils.transactions._algokit_core_bridge import build_payment_with_core
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -2251,7 +2251,7 @@ class TransactionComposer:
             "close_remainder_to": params.close_remainder_to,
         }
 
-        return self._common_txn_build_step(lambda x: payment_through_core(**x), params, txn_params)
+        return self._common_txn_build_step(lambda x: build_payment_with_core(**x), params, txn_params)
 
     def _build_asset_create(
         self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams

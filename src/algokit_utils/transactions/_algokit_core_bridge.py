@@ -4,7 +4,7 @@ import algokit_transact
 import algosdk.transaction
 
 
-def payment_through_core(
+def build_payment_with_core(
     sender,
     sp,
     receiver,
