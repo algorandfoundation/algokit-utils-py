@@ -38,7 +38,8 @@ def build_payment_with_core(
     if sp.flat_fee:
         final_fee = sp.fee
     else:
-        final_fee = max(algosdk.constants.MIN_TXN_FEE, sp.flat_fee * size)
+        min_fee = sp.min_fee or algosdk.constants.MIN_TXN_FEE
+        final_fee = max(min_fee, sp.flat_fee * size)
     txn.fee = final_fee
 
     return algosdk.encoding.msgpack_decode(
