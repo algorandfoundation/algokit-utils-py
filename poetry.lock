@@ -14,36 +14,36 @@ files = [
 
 [[package]]
 name = "algokit_algod_api"
-version = "1.0.0a3"
+version = "1.0.0a4"
 description = ""
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "algokit_algod_api-1.0.0a3-py3-none-any.whl", hash = "sha256:d466053fb4498a2ce3e6c282d27615afd67a2c5e36c749fda8782f20c214a231"},
+    {file = "algokit_algod_api-1.0.0a4-py3-none-any.whl", hash = "sha256:205cb4eb18af690e7cf75ebd3741205d5bd0476003f611e5754384e14b3f1f71"},
 ]
 
 [package.source]
-type = "file"
-url = "../../RustroverProjects/algokit-core/packages/python/algod_api/dist/algokit_algod_api-1.0.0a3-py3-none-any.whl"
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.4/algokit_algod_api-1.0.0a4-py3-none-any.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "0.1.0"
+version = "1.0.0a4"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
 groups = ["main"]
 files = [
-    {file = "algokit_transact-0.1.0-py3-none-manylinux_2_34_x86_64.whl", hash = "sha256:5a350d0cc749f6e0d92a1104fb4b5015213d6a3511f579fa4331a625427934c8"},
+    {file = "algokit_transact-1.0.0a4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:06f62a4c5da829223e3607c874a7d823f30ecd97b3cd2358d82c40009852e99e"},
 ]
 
 [package.dependencies]
 cffi = ">=1.17.1"
 
 [package.source]
-type = "file"
-url = "../../RustroverProjects/algokit-core/target/wheels/algokit_transact-0.1.0-py3-none-manylinux_2_34_x86_64.whl"
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.4/algokit_transact-1.0.0a4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
 
 [[package]]
 name = "anyio"
@@ -2944,4 +2944,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "e192630cb1b4338c1b8a7f23a7452e9a519299f9fc2bb35959b9e133a048422b"
+content-hash = "d2d34c8fc8d56abcf93d72b62d4a70994dbd0d862e22478712bd2fa66a907e60"
