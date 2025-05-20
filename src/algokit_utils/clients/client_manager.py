@@ -16,6 +16,7 @@ from algosdk.v2client.indexer import IndexerClient
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_deployer import ApplicationLookup
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
+from algokit_utils.clients._algokit_core_bridge import AlgodClientWithCore
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
@@ -119,7 +120,7 @@ class ClientManager:
                 if clients_or_configs.kmd_config
                 else None,
             )
-        self._algod = _clients.algod
+        self._algod = AlgodClientWithCore(_clients.algod)
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
         self._algorand = algorand_client
