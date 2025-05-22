@@ -12,7 +12,7 @@ py-algorand-sdk = "^2.4.0"
 httpx = ">=0.23.1,<=0.28.1"
 typing-extensions = ">=4.6.0"
 algokit-transact = {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.4/algokit_transact-1.0.0a4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"}
-algokit-algod-api = {path = "../../RustroverProjects/algokit-core/packages/python/algod_api"}
+algokit-algod-api = {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.6/algokit_algod_api-1.0.0a6-py3-none-any.whl"}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8"
