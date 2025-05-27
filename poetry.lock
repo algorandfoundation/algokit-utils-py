@@ -14,28 +14,29 @@ files = [
 
 [[package]]
 name = "algokit_algod_api"
-version = "1.0.0a6"
+version = "1.0.0a9"
 description = ""
 optional = false
 python-versions = "*"
-groups = ["main"]
+groups = ["experimental"]
 files = [
-    {file = "algokit_algod_api-1.0.0a6-py3-none-any.whl", hash = "sha256:05f22ffff84247a8f25a759552ba1494bf3e4ad73663e494e997f1e653db0bf0"},
+    {file = "algokit_algod_api-1.0.0a9-py3-none-any.whl", hash = "sha256:f9d2820c614e15d17db6951b5bfd8cdeaf3ea7ef7c90b26ab5f6bbcd3fcef569"},
 ]
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.6/algokit_algod_api-1.0.0a6-py3-none-any.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.9/algokit_algod_api-1.0.0a9-py3-none-any.whl"
 
 [[package]]
 name = "algokit_transact"
-version = "1.0.0a4"
+version = "1.0.0a8"
 description = ""
 optional = false
 python-versions = ">=3.8, <4.0"
-groups = ["main"]
+groups = ["experimental"]
+markers = "sys_platform == \"darwin\" and platform_machine == \"x86_64\""
 files = [
-    {file = "algokit_transact-1.0.0a4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:06f62a4c5da829223e3607c874a7d823f30ecd97b3cd2358d82c40009852e99e"},
+    {file = "algokit_transact-1.0.0a8-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:216f00af7326580e592e7438356aeeac5e0b13bd7f4e75ec68da5cfefe8ed4fa"},
 ]
 
 [package.dependencies]
@@ -43,7 +44,83 @@ cffi = ">=1.17.1"
 
 [package.source]
 type = "url"
-url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.4/algokit_transact-1.0.0a4-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.8/algokit_transact-1.0.0a8-py3-none-macosx_10_12_x86_64.whl"
+
+[[package]]
+name = "algokit_transact"
+version = "1.0.0a8"
+description = ""
+optional = false
+python-versions = ">=3.8, <4.0"
+groups = ["experimental"]
+markers = "sys_platform == \"darwin\" and platform_machine == \"arm64\""
+files = [
+    {file = "algokit_transact-1.0.0a8-py3-none-macosx_11_0_arm64.whl", hash = "sha256:f4dc173201fb3e6b6de437e902feb1109e3398653da3e93962d19e4075ac46a4"},
+]
+
+[package.dependencies]
+cffi = ">=1.17.1"
+
+[package.source]
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.8/algokit_transact-1.0.0a8-py3-none-macosx_11_0_arm64.whl"
+
+[[package]]
+name = "algokit_transact"
+version = "1.0.0a8"
+description = ""
+optional = false
+python-versions = ">=3.8, <4.0"
+groups = ["experimental"]
+markers = "sys_platform == \"linux\" and platform_machine == \"aarch64\""
+files = [
+    {file = "algokit_transact-1.0.0a8-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:de59a9303b58b9c7b83a1570e3a256ae896c3c0f39289ca32894ad98d576d6ed"},
+]
+
+[package.dependencies]
+cffi = ">=1.17.1"
+
+[package.source]
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.8/algokit_transact-1.0.0a8-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+
+[[package]]
+name = "algokit_transact"
+version = "1.0.0a8"
+description = ""
+optional = false
+python-versions = ">=3.8, <4.0"
+groups = ["experimental"]
+markers = "sys_platform == \"linux\" and platform_machine == \"x86_64\""
+files = [
+    {file = "algokit_transact-1.0.0a8-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:437f660eb7aff9261e613c85c275fbcaf9d07ac05e11da11f982bb79edd33b10"},
+]
+
+[package.dependencies]
+cffi = ">=1.17.1"
+
+[package.source]
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.8/algokit_transact-1.0.0a8-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+
+[[package]]
+name = "algokit_transact"
+version = "1.0.0a8"
+description = ""
+optional = false
+python-versions = ">=3.8, <4.0"
+groups = ["experimental"]
+markers = "sys_platform == \"win32\" and platform_machine == \"AMD64\""
+files = [
+    {file = "algokit_transact-1.0.0a8-py3-none-win_amd64.whl", hash = "sha256:0d850c1d7f53765178f29b431731b6b0a75467f9ba1ac829ef840174f2d722dc"},
+]
+
+[package.dependencies]
+cffi = ">=1.17.1"
+
+[package.source]
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.8/algokit_transact-1.0.0a8-py3-none-win_amd64.whl"
 
 [[package]]
 name = "anyio"
@@ -189,7 +266,7 @@ version = "1.17.1"
 description = "Foreign Function Interface for Python calling C code."
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["main", "dev", "experimental"]
 files = [
     {file = "cffi-1.17.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:df8b1c11f177bc2313ec4b2d46baec87a5f3e71fc8b45dab2ee7cae86d9aba14"},
     {file = "cffi-1.17.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:8f2cdc858323644ab277e9bb925ad72ae0e67f69e804f4898c070998d50b1a67"},
@@ -259,7 +336,7 @@ files = [
     {file = "cffi-1.17.1-cp39-cp39-win_amd64.whl", hash = "sha256:d016c76bdd850f3c626af19b0542c9677ba156e4ee4fccfdd7848803533ef662"},
     {file = "cffi-1.17.1.tar.gz", hash = "sha256:1c39c6016c32bc48dd54561950ebd6836e1670f2ae46128f67cf49e789c52824"},
 ]
-markers = {dev = "sys_platform == \"linux\" and platform_python_implementation != \"PyPy\""}
+markers = {dev = "sys_platform == \"linux\" and platform_python_implementation != \"PyPy\"", experimental = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"arm64\") or sys_platform == \"win32\" and platform_machine == \"AMD64\" or sys_platform == \"linux\" and (platform_machine == \"aarch64\" or platform_machine == \"x86_64\")"}
 
 [package.dependencies]
 pycparser = "*"
@@ -1647,12 +1724,12 @@ version = "2.22"
 description = "C parser in Python"
 optional = false
 python-versions = ">=3.8"
-groups = ["main", "dev"]
+groups = ["main", "dev", "experimental"]
 files = [
     {file = "pycparser-2.22-py3-none-any.whl", hash = "sha256:c3702b6d3dd8c7abc1afa565d7e63d53a1d0bd86cdc24edd75470f4de499cfcc"},
     {file = "pycparser-2.22.tar.gz", hash = "sha256:491c8be9c040f5390f5bf44a5b07752bd07f56edf992381b05c701439eec10f6"},
 ]
-markers = {dev = "sys_platform == \"linux\" and platform_python_implementation != \"PyPy\""}
+markers = {dev = "sys_platform == \"linux\" and platform_python_implementation != \"PyPy\"", experimental = "sys_platform == \"darwin\" and (platform_machine == \"x86_64\" or platform_machine == \"arm64\") or sys_platform == \"win32\" and platform_machine == \"AMD64\" or sys_platform == \"linux\" and (platform_machine == \"aarch64\" or platform_machine == \"x86_64\")"}
 
 [[package]]
 name = "pycryptodomex"
@@ -2944,4 +3021,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "86737e06b55099c43cece7a43ddecda608c0844e627ff9636b78fccc558cc6d4"
+content-hash = "3357f5ef18b9fdeabcfab31b1bf96c3c3909efe8baf71b9278454217adbf4d04"
