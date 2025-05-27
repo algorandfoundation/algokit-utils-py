@@ -1,10 +1,17 @@
 import base64
 from collections.abc import Iterable
 
-import algokit_algod_api
 from algosdk.encoding import msgpack_encode
 from algosdk.transaction import GenericSignedTransaction
 from algosdk.v2client.algod import AlgodClient
+
+try:
+    import algokit_algod_api
+except ImportError as e:
+    raise ImportError(
+        "Installing experimental dependencies is necessary to use AlgodClientWithCore. "
+        "Install this package with --group=experimental"
+    ) from e
 
 
 class AlgodClientWithCore:
