@@ -14,13 +14,13 @@ files = [
 
 [[package]]
 name = "algokit_algod_api"
-version = "1.0.0a9"
+version = "1.0.0a11"
 description = "Algod REST API."
 optional = false
 python-versions = ">=3.10,<4.0"
 groups = ["experimental"]
 files = [
-    {file = "algokit_algod_api-1.0.0a9-py3-none-any.whl", hash = "sha256:71a9732c87e9631947b1ec0fe20f6c77abc65a3781a40eb9ca97df0129daff73"},
+    {file = "algokit_algod_api-1.0.0a11-py3-none-any.whl", hash = "sha256:82777c387a845bebe719ef0438bd1f2351258d272ebbcd7f9f09c3aedd71a586"},
 ]
 
 [package.dependencies]
@@ -30,8 +30,8 @@ typing-extensions = ">=4.7.1"
 urllib3 = ">=1.25.3,<3.0.0"
 
 [package.source]
-type = "file"
-url = "../../RustroverProjects/algokit-core/packages/python/algod_api/dist/algokit_algod_api-1.0.0a9-py3-none-any.whl"
+type = "url"
+url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.11/algokit_algod_api-1.0.0a11-py3-none-any.whl"
 
 [[package]]
 name = "algokit_transact"
@@ -3215,4 +3215,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "c9c55290bfa9f358caa726bb9e215316af9b017f9f3064ffba3c9f9add06ce3c"
+content-hash = "37651597ce753758703869948b34c97d10ad34078b364390c70c7c7818231eaa"
