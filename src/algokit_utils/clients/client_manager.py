@@ -13,13 +13,13 @@ from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_deployer import ApplicationLookup
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
-from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
@@ -122,6 +122,7 @@ class ClientManager:
             )
         if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
             from algokit_utils.clients._algokit_core_bridge import AlgodClientWithCore
+
             self._algod = AlgodClientWithCore(_clients.algod)
         else:
             self._algod = _clients.algod
