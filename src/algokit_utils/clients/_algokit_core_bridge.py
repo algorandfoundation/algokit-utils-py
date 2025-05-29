@@ -4,15 +4,15 @@ from collections.abc import Iterable
 from algosdk.encoding import msgpack_encode
 from algosdk.transaction import GenericSignedTransaction
 from algosdk.v2client.algod import AlgodClient
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 
-try:
-    import algokit_algod_api
-except ImportError as e:
+if not _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
     raise ImportError(
         "Installing experimental dependencies is necessary to use AlgodClientWithCore. "
         "Install this package with --group=experimental"
-    ) from e
+    )
 
+import algokit_algod_api
 
 class AlgodClientWithCore:
     """
@@ -30,10 +30,9 @@ class AlgodClientWithCore:
         self._algod_client = algod_client
 
         configuration = algokit_algod_api.Configuration(
-            host=algod_client.algod_address,
+            host=algod_client.algod_address, api_key={"api_key": self._algod_client.algod_token}
         )
         api_client = algokit_algod_api.ApiClient(configuration)
-        api_client.default_headers.update({"X-Algo-API-Token": self._algod_client.algod_token})
         self._algod_core_client = algokit_algod_api.AlgodApi(api_client=api_client)
 
     def send_raw_transaction(self, txn):
