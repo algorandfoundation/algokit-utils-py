@@ -9,6 +9,10 @@ For more specific functionality, import directly from the relevant submodules:
     etc.
 """
 
+import importlib.util
+
+_EXPERIMENTAL_DEPENDENCIES_INSTALLED = importlib.util.find_spec("algokit_algod_api") is not None
+
 # Core types and utilities that are commonly used
 from algokit_utils.applications import *  # noqa: F403
 from algokit_utils.assets import *  # noqa: F403

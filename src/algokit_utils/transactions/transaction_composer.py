@@ -29,7 +29,10 @@ from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.transactions._algokit_core_bridge import build_payment_with_core
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
+
+if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+    from algokit_utils.transactions._algokit_core_bridge import build_payment_with_core
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -1862,6 +1865,12 @@ class TransactionComposer:
             )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
+        except Exception as e:
+            if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+                from algokit_algod_api.exceptions import BadRequestException
+                if isinstance(e, BadRequestException):
+                    raise Exception(f"Transaction failed: {e}") from e
+
 
     def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
         # const failedGroup = simulateResponse?.txnGroups[0]
@@ -2251,7 +2260,10 @@ class TransactionComposer:
             "close_remainder_to": params.close_remainder_to,
         }
 
-        return self._common_txn_build_step(lambda x: build_payment_with_core(**x), params, txn_params)
+        if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+            return self._common_txn_build_step(lambda x: build_payment_with_core(**x), params, txn_params)
+        else:
+            return self._common_txn_build_step(lambda x: algosdk.transaction.PaymentTxn(**x), params, txn_params)
 
     def _build_asset_create(
         self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams

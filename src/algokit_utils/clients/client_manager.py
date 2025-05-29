@@ -19,6 +19,7 @@ from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
@@ -119,11 +120,10 @@ class ClientManager:
                 if clients_or_configs.kmd_config
                 else None,
             )
-        try:
+        if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
             from algokit_utils.clients._algokit_core_bridge import AlgodClientWithCore
-
             self._algod = AlgodClientWithCore(_clients.algod)
-        except ImportError:
+        else:
             self._algod = _clients.algod
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
