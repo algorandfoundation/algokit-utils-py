@@ -191,6 +191,14 @@ disallow_untyped_calls = false
 module = ["tests.transactions.test_transaction_composer"]
 disable_error_code = ["call-overload", "union-attr"]
 
+[[tool.mypy.overrides]]
+module = ["algokit_utils.clients._algokit_core_bridge"]
+disable_error_code = ["attr-defined", "no-untyped-def", "no-untyped-call"]
+
+[[tool.mypy.overrides]]
+module = ["algokit_utils.transactions._algokit_core_bridge"]
+disable_error_code = ["attr-defined", "no-untyped-def", "no-any-return"]
+
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
 remove_dist = false
