@@ -1870,9 +1870,9 @@ class TransactionComposer:
         # we still need to re-throw the exception in all other cases.
         except Exception as e:
             if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
-                from algokit_algod_api.exceptions import ApiValueError, BadRequestException
+                from algokit_algod_api.exceptions import BadRequestException
 
-                if isinstance(e, BadRequestException) or isinstance(e, ApiValueError):
+                if isinstance(e, BadRequestException):
                     raise Exception(f"Transaction failed: {e}") from e
                 raise e
             raise e
