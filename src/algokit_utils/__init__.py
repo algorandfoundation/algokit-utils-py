@@ -10,6 +10,7 @@ For more specific functionality, import directly from the relevant submodules:
 """
 
 import importlib.util
+
 _EXPERIMENTAL_DEPENDENCIES_INSTALLED = importlib.util.find_spec("algokit_algod_api") is not None
 
 # Core types and utilities that are commonly used
