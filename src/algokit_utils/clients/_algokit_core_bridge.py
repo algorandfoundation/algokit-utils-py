@@ -23,12 +23,6 @@ class AlgodClientWithCore:
     """
 
     def __init__(self, algod_client: AlgodClient):
-        """
-        Initialize the AlgodClientWithCore with an existing AlgodClient.
-
-        Args:
-            algod_client: The AlgodClient instance to wrap
-        """
         self._algod_client = algod_client
 
         configuration = algokit_algod_api.Configuration(
