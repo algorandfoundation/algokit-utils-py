@@ -1865,11 +1865,18 @@ class TransactionComposer:
             )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
+        # We need this code to handle separately an exception thrown by the experimental AlgoKit Algod Client.
+        # However, we can't just import the dependency (as it may not be there) and
+        # we still need to re-throw the exception in all other cases.
         except Exception as e:
             if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
-                from algokit_algod_api.exceptions import BadRequestException
-                if isinstance(e, BadRequestException):
+                from algokit_algod_api.exceptions import BadRequestException, ApiValueError
+                if isinstance(e, BadRequestException) or isinstance(e, ApiValueError):
                     raise Exception(f"Transaction failed: {e}") from e
+                else:
+                    raise e
+            else:
+                raise e
 
 
     def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
