@@ -120,12 +120,12 @@ class ClientManager:
                 if clients_or_configs.kmd_config
                 else None,
             )
-        if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+        if not _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+            self._algod = _clients.algod
+        else:
             from algokit_utils.clients._algokit_core_bridge import AlgodClientWithCore
 
-            self._algod = AlgodClientWithCore(_clients.algod)
-        else:
-            self._algod = _clients.algod
+            self._algod = AlgodClientWithCore(_clients.algod)  # type: ignore[assignment]
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
         self._algorand = algorand_client
