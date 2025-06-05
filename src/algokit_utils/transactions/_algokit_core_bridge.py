@@ -1,10 +1,19 @@
 import base64
+from typing import cast
 
-import algokit_transact
 import algosdk.transaction
+from algokit_transact import (
+    FeeParams,
+    PaymentTransactionFields,
+    Transaction,
+    TransactionType,
+    address_from_string,
+    assign_fee,
+    encode_transaction_raw,
+)
 
 
-def build_payment_with_core(
+def build_payment_with_core(  # noqa: PLR0913
     sender,
     sp,
     receiver,
@@ -13,35 +22,55 @@ def build_payment_with_core(
     note=None,
     lease=None,
     rekey_to=None,
+    static_fee=None,
+    max_fee=None,
+    extra_fee=None,
 ) -> algosdk.transaction.PaymentTxn:
-    txn = algokit_transact.Transaction(
-        transaction_type=algokit_transact.TransactionType.PAYMENT,
-        sender=algokit_transact.address_from_string(sender),
-        # The correct fee will be calculated later based on suggested params and estimated size of the transaction.
-        fee=sp.fee,
+    # Determine static fee based on parameters or suggested params
+    static_fee_value = None
+    if static_fee is not None:
+        static_fee_value = static_fee
+    elif sp.flat_fee:
+        static_fee_value = sp.fee
+
+    txn = Transaction(
+        transaction_type=TransactionType.PAYMENT,
+        sender=address_from_string(sender),
+        fee=static_fee_value,
         first_valid=sp.first,
         last_valid=sp.last,
         genesis_hash=base64.b64decode(sp.gh),
         genesis_id=sp.gen,
         note=note,
         lease=lease,
-        rekey_to=algokit_transact.address_from_string(rekey_to) if rekey_to else None,
-        payment=algokit_transact.PaymentTransactionFields(
-            receiver=algokit_transact.address_from_string(receiver),
+        rekey_to=address_from_string(rekey_to) if rekey_to else None,
+        payment=PaymentTransactionFields(
+            receiver=address_from_string(receiver),
             amount=amt,
-            close_remainder_to=algokit_transact.address_from_string(close_remainder_to) if close_remainder_to else None,
+            close_remainder_to=address_from_string(close_remainder_to) if close_remainder_to else None,
         ),
     )
 
-    size = algokit_transact.estimate_transaction_size(txn)
-    final_fee: int
-    if sp.flat_fee:
-        final_fee = sp.fee
+    if txn.fee is not None:
+        # Static fee is already set, encode and return directly
+        return cast(
+            algosdk.transaction.PaymentTxn,
+            algosdk.encoding.msgpack_decode(base64.b64encode(encode_transaction_raw(txn)).decode("utf-8")),
+        )
     else:
+        # Use assign_fee with fee parameters
         min_fee = sp.min_fee or algosdk.constants.MIN_TXN_FEE
-        final_fee = max(min_fee, sp.flat_fee * size)
-    txn.fee = final_fee
+        txn_with_fee = assign_fee(
+            txn,
+            FeeParams(
+                fee_per_byte=sp.fee,
+                min_fee=min_fee,
+                max_fee=max_fee,
+                extra_fee=extra_fee,
+            ),
+        )
 
-    return algosdk.encoding.msgpack_decode(
-        base64.b64encode(algokit_transact.encode_transaction_raw(txn)).decode("utf-8")
-    )
+        return cast(
+            algosdk.transaction.PaymentTxn,
+            algosdk.encoding.msgpack_decode(base64.b64encode(encode_transaction_raw(txn_with_fee)).decode("utf-8")),
+        )
