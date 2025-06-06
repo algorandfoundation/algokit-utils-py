@@ -29,7 +29,7 @@ algokit-algod-api = {url = "https://github.com/algorandfoundation/algokit-core/r
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8"
-ruff = ">=0.1.6,<=0.11.8"
+ruff = ">=0.1.6,<=0.11.13"
 pip-audit = "^2.5.6"
 pytest-mock = "^3.14"
 mypy = "^1.5.1"
