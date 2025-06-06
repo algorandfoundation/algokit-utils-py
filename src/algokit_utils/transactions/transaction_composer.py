@@ -22,6 +22,7 @@ from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
 from typing_extensions import deprecated
 
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 from algokit_utils.applications.abi import ABIReturn, ABIValue
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
@@ -29,6 +30,9 @@ from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+
+if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+    from algokit_utils.transactions._algokit_core_bridge import build_payment_with_core
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -1861,6 +1865,17 @@ class TransactionComposer:
             )
         except algosdk.error.AlgodHTTPError as e:
             raise Exception(f"Transaction failed: {e}") from e
+        # We need this code to handle separately an exception thrown by the experimental AlgoKit Algod Client.
+        # However, we can't just import the dependency (as it may not be there) and
+        # we still need to re-throw the exception in all other cases.
+        except Exception as e:
+            if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+                from algokit_algod_api.exceptions import BadRequestException
+
+                if isinstance(e, BadRequestException):
+                    raise Exception(f"Transaction failed: {e}") from e
+                raise e
+            raise e
 
     def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
         # const failedGroup = simulateResponse?.txnGroups[0]
@@ -2250,7 +2265,10 @@ class TransactionComposer:
             "close_remainder_to": params.close_remainder_to,
         }
 
-        return self._common_txn_build_step(lambda x: algosdk.transaction.PaymentTxn(**x), params, txn_params)
+        if _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+            return self._common_txn_build_step(lambda x: build_payment_with_core(**x), params, txn_params)
+        else:
+            return self._common_txn_build_step(lambda x: algosdk.transaction.PaymentTxn(**x), params, txn_params)
 
     def _build_asset_create(
         self, params: AssetCreateParams, suggested_params: algosdk.transaction.SuggestedParams

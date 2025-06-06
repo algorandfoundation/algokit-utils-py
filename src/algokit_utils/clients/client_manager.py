@@ -13,6 +13,7 @@ from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
+from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_deployer import ApplicationLookup
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
@@ -119,7 +120,12 @@ class ClientManager:
                 if clients_or_configs.kmd_config
                 else None,
             )
-        self._algod = _clients.algod
+        if not _EXPERIMENTAL_DEPENDENCIES_INSTALLED:
+            self._algod = _clients.algod
+        else:
+            from algokit_utils.clients._algokit_core_bridge import AlgodClientWithCore
+
+            self._algod = AlgodClientWithCore(_clients.algod)  # type: ignore[assignment]
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
         self._algorand = algorand_client
