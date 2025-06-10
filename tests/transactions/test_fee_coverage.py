@@ -7,9 +7,18 @@ import pytest
 
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
-from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams, AppFactoryCreateParams
-from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.applications.app_client import (
+    AppClient,
+    AppClientMethodCallCreateParams,
+    AppClientMethodCallParams,
+    FundAppAccountParams,
+)
+from algokit_utils.applications.app_deployer import OnUpdate
+from algokit_utils.applications.app_factory import (
+    AppFactoryCreateMethodCallParams,
+    AppFactoryCreateParams,
+)
+from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
@@ -692,3 +701,70 @@ class TestCoverAppCallInnerFees:
 
         with pytest.raises(Exception, match="fee too small"):
             app_client.send.call(params_copy)
+
+
+class TestAppDeployerFees:
+    @pytest.fixture
+    def algorand(self) -> AlgorandClient:
+        algorand = AlgorandClient.default_localnet()
+        sp = algorand.client.algod.suggested_params()
+        sp.min_fee = 1000
+        algorand.set_suggested_params_cache(suggested_params=sp)
+        return algorand
+
+    @pytest.fixture
+    def inner_app_id(self, algorand: AlgorandClient, funded_account: SigningAccount) -> int:
+        # Load inner fee contract spec
+        spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
+        inner_fee_spec = json.loads(spec_path.read_text())
+
+        # Create app factory
+        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.address)
+
+        # Create app
+        app_client, _ = factory.send.bare.create()
+        return app_client.app_id
+
+    def test_delete_abi_inner_app_call_fees_should_be_covered(
+        self, algorand: AlgorandClient, funded_account: SigningAccount, inner_app_id: int
+    ) -> None:
+        # contract spec
+        contract_spec_path = Path(__file__).parent.parent / "artifacts" / "delete_abi_with_inner" / "application.json"
+        contract_spec = json.loads(contract_spec_path.read_text())
+
+        # Create app factory
+        factory = algorand.client.get_app_factory(app_spec=contract_spec, default_sender=funded_account.address)
+
+        # Deploy the app and fund the account
+        app_client, _ = factory.deploy(
+            compilation_params={
+                "deploy_time_params": {
+                    "GREETING": "Hello",
+                },
+                "deletable": True,
+            },
+            create_params=AppClientMethodCallCreateParams(
+                method="create", args=[inner_app_id], max_fee=micro_algo(200_000)
+            ),
+        )
+        app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(3)))
+
+        # Replace the app, the delete call has inner app call
+        _, replace_deploy_result = factory.deploy(
+            compilation_params={
+                "deploy_time_params": {
+                    "GREETING": "Hello!",
+                },
+                "deletable": True,
+            },
+            on_update=OnUpdate.ReplaceApp,
+            create_params=AppClientMethodCallCreateParams(
+                method="create", args=[inner_app_id], max_fee=micro_algo(200_000)
+            ),
+            delete_params=AppClientMethodCallParams(method="delete", args=[inner_app_id], max_fee=micro_algo(200_000)),
+            send_params={"populate_app_call_resources": True, "cover_app_call_inner_transaction_fees": True},
+        )
+
+        assert replace_deploy_result.create_result is not None
+        assert replace_deploy_result.delete_result is not None
+        assert replace_deploy_result.delete_result.confirmation is not None

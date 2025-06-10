@@ -488,7 +488,7 @@ class AppDeployer:
             composer.add_app_delete(delete_params)
         delete_txn_index = composer.count() - 1
 
-        result = composer.send()
+        result = composer.send(deployment.send_params)
 
         create_result = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
         delete_result = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
