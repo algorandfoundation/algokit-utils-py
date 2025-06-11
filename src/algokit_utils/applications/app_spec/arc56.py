@@ -455,7 +455,10 @@ class Method:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Method:
-        data["actions"] = Actions.from_dict(data["actions"])
+        if data.get("actions"):
+            data["actions"] = Actions.from_dict(data["actions"])
+        else:
+            data["actions"] = Actions(call=[CallEnum.NO_OP])
         data["args"] = [MethodArg.from_dict(item) for item in data["args"]]
         data["returns"] = Returns.from_dict(data["returns"])
         if data.get("events"):
@@ -895,12 +898,28 @@ class Arc56Contract:
         :return: Arc56Contract instance
         """
         data = _dict_keys_to_snake_case(application_spec)
-        data["bare_actions"] = BareActions.from_dict(data["bare_actions"])
+        if data.get("arcs") is None:
+            data["arcs"] = []
+        if data.get("bare_actions"):
+            data["bare_actions"] = BareActions.from_dict(data["bare_actions"])
+        else:
+            data["bare_actions"] = BareActions(call=[CallEnum.NO_OP], create=[])
         data["methods"] = [Method.from_dict(item) for item in data["methods"]]
-        data["state"] = State.from_dict(data["state"])
-        data["structs"] = {
-            key: [StructField.from_dict(item) for item in value] for key, value in application_spec["structs"].items()
-        }
+        if data.get("state"):
+            data["state"] = State.from_dict(data["state"])
+        else:
+            data["state"] = State(
+                keys=Keys(box={}, global_state={}, local_state={}),
+                maps=Maps(box={}, global_state={}, local_state={}),
+                schema=Schema(global_state=Global(ints=0, bytes=0), local_state=Local(ints=0, bytes=0)),
+            )
+        if data.get("structs"):
+            data["structs"] = {
+                key: [StructField.from_dict(item) for item in value]
+                for key, value in application_spec["structs"].items()
+            }
+        else:
+            data["structs"] = {}
         if data.get("byte_code"):
             data["byte_code"] = ByteCode.from_dict(data["byte_code"])
         if data.get("compiler_info"):
