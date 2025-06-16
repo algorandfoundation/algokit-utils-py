@@ -50,7 +50,7 @@ The full array of confirmations
 
 The ABI return value if applicable
 
-#### *classmethod* from_composer_result(result: [algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults), index: int = -1) → typing_extensions.Self
+#### *classmethod* from_composer_result(result: [algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults), \*, is_abi: bool = False, index: int = -1) → typing_extensions.Self
 
 ### *class* algokit_utils.transactions.transaction_sender.SendSingleAssetCreateTransactionResult
 

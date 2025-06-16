@@ -8,6 +8,7 @@ from algosdk.transaction import OnComplete
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
+    AppClientBareCallCreateParams,
     AppClientMethodCallCreateParams,
     AppClientMethodCallParams,
     AppClientParams,
@@ -21,7 +22,7 @@ from algokit_utils.applications.app_factory import (
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.errors import LogicError
 from algokit_utils.models.account import SigningAccount
-from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
@@ -47,9 +48,26 @@ def app_spec() -> str:
 
 
 @pytest.fixture
+def app_spec_bare_create_abi_delete() -> str:
+    return (Path(__file__).parent.parent / "artifacts" / "bare_create_abi_delete" / "app_spec.arc56.json").read_text()
+
+
+@pytest.fixture
 def factory(algorand: AlgorandClient, funded_account: SigningAccount, app_spec: str) -> AppFactory:
     """Create AppFactory fixture"""
     return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.address)
+
+
+@pytest.fixture
+def factory_bare_create_abi_delete(
+    algorand: AlgorandClient,
+    funded_account: SigningAccount,
+    app_spec_bare_create_abi_delete: str,
+) -> AppFactory:
+    """Create AppFactory fixture for bare create with ABI delete"""
+    return algorand.client.get_app_factory(
+        app_spec=app_spec_bare_create_abi_delete, default_sender=funded_account.address
+    )
 
 
 @pytest.fixture
@@ -593,3 +611,51 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
         exc_info.value.trace().strip()
         == "// tests/example-contracts/arc56_templates/templates.algo.ts:14\n\t\t// assert(this.uint64TmplVar)\n\t\tintc 1 // TMPL_uint64TmplVar\n\t\tassert\n\t\tretsub\t\t<-- Error\n\t\n\t// specificLengthTemplateVar()void\n\t*abi_route_specificLengthTemplateVar:\n\t\t// execute specificLengthTemplateVar()void"  # noqa: E501
     )
+
+
+def test_bare_create_abi_delete(
+    factory_bare_create_abi_delete: AppFactory,
+) -> None:
+    factory = factory_bare_create_abi_delete
+    app_client, _ = factory.send.bare.create(
+        compilation_params={
+            "deploy_time_params": {
+                "GREETING": "Hello, World!",
+                "DELETABLE": 1,
+            },
+        },
+    )
+
+    factory.deploy(
+        compilation_params={
+            "deploy_time_params": {
+                "GREETING": "Hello",
+            },
+            "deletable": True,
+        },
+        create_params=AppClientBareCallCreateParams(max_fee=micro_algo(200_000)),
+    )
+
+    _, response = factory.deploy(
+        compilation_params={
+            "deploy_time_params": {
+                "GREETING": "Hello2!",
+            },
+            "deletable": True,
+        },
+        on_update=OnUpdate.ReplaceApp,
+        create_params=AppClientBareCallCreateParams(max_fee=micro_algo(200_000)),
+        delete_params=AppClientMethodCallParams(
+            method="delete",
+            max_fee=micro_algo(200_000),
+        ),
+        send_params={
+            "populate_app_call_resources": True,
+            "cover_app_call_inner_transaction_fees": True,
+        },
+    )
+
+    assert response.create_result
+    assert response.create_result.abi_return is None  # None because it's a bare call
+    assert response.delete_result
+    assert response.delete_result.abi_return is None  # None because abi return value is empty string

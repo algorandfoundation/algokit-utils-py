@@ -81,7 +81,9 @@ class SendSingleTransactionResult:
     """The ABI return value if applicable"""
 
     @classmethod
-    def from_composer_result(cls, result: SendAtomicTransactionComposerResults, index: int = -1) -> Self:
+    def from_composer_result(
+        cls, result: SendAtomicTransactionComposerResults, *, is_abi: bool = False, index: int = -1
+    ) -> Self:
         # Get base parameters
         base_params = {
             "transaction": result.transactions[index],
@@ -104,12 +106,12 @@ class SendSingleTransactionResult:
                 {
                     "app_id": app_id,
                     "app_address": algosdk.logic.get_application_address(app_id),
-                    "abi_return": result.returns[index] if result.returns else None,  # type: ignore[dict-item]
+                    "abi_return": result.returns[index] if result.returns and is_abi else None,  # type: ignore[dict-item]
                 }
             )
         # For regular app transactions, just add abi_return
         elif cls is SendAppTransactionResult:
-            base_params["abi_return"] = result.returns[index] if result.returns else None  # type: ignore[assignment]
+            base_params["abi_return"] = result.returns[index] if result.returns and is_abi else None  # type: ignore[assignment]
 
         return cls(**base_params)  # type: ignore[arg-type]
 
