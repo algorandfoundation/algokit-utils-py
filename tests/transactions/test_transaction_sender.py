@@ -5,7 +5,7 @@ import algosdk
 import pytest
 from algosdk.transaction import OnComplete
 
-from algokit_utils import _EXPERIMENTAL_DEPENDENCIES_INSTALLED, SigningAccount
+from algokit_utils import SigningAccount
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
@@ -451,8 +451,8 @@ def test_payment_logging(
         )
     )
 
-    assert mock_debug.call_count == 1 if not _EXPERIMENTAL_DEPENDENCIES_INSTALLED else 2
-    log_message = mock_debug.call_args_list[0][0][0]
+    assert mock_debug.call_count == 1
+    log_message = mock_debug.call_args[0][0]
     assert "Sending 1,000,000 µALGO" in log_message
     assert sender.address in log_message
     assert receiver.address in log_message

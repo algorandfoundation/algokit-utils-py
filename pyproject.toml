@@ -12,21 +12,6 @@ py-algorand-sdk = "^2.4.0"
 httpx = ">=0.23.1,<=0.28.1"
 typing-extensions = ">=4.6.0"
 
-[tool.poetry.group.experimental.dependencies]
-algokit-transact = [
-    # macOS
-    {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.10/algokit_transact-1.0.0a10-py3-none-macosx_10_12_x86_64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'"},
-    {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.10/algokit_transact-1.0.0a10-py3-none-macosx_11_0_arm64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'arm64'"},
-
-    # Windows
-    {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.10/algokit_transact-1.0.0a10-py3-none-win_amd64.whl", markers = "sys_platform == 'win32' and platform_machine == 'AMD64'"},
-
-    # Linux - manylinux (for most common glibc-based distributions like Ubuntu, Debian, Fedora)
-    {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.10/algokit_transact-1.0.0a10-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", markers = "sys_platform == 'linux' and platform_machine == 'aarch64'"},
-    {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgokit_transact%401.0.0-alpha.10/algokit_transact-1.0.0a10-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'"},
-]
-algokit-algod-api = {url = "https://github.com/algorandfoundation/algokit-core/releases/download/python%2Falgod_api%401.0.0-alpha.11/algokit_algod_api-1.0.0a11-py3-none-any.whl"}
-
 [tool.poetry.group.dev.dependencies]
 pytest = "^8"
 ruff = ">=0.1.6,<=0.11.8"
@@ -42,7 +27,7 @@ poethepoet = ">=0.19,<0.35"
 pytest-httpx = "^0.35.0"
 pytest-xdist = "^3.6.1"
 linkify-it-py = "^2.0.3"
-setuptools = "^80.9.0"
+setuptools = "^75.2.0"
 pydoclint = "^0.6.0"
 pytest-sugar = "^1.0.0"
 types-deprecated = "^1.2.15.20241117"
@@ -145,9 +130,7 @@ suppress-none-returning = true
 "tests/clients/test_algorand_client.py" = ["ERA001"]  
 "src/algokit_utils/_legacy_v2/**/*" = ["E501"]
 "tests/**/*" = ["PLR2004"]  
-"src/algokit_utils/__init__.py" = ["I001", "RUF022", "E402"]  # Ignore import sorting for __init__.py
-"src/algokit_utils/transactions/_algokit_core_bridge.py" = ["ANN001"]
-"src/algokit_utils/clients/_algokit_core_bridge.py" = ["ANN001", "ANN202","ANN204"]
+"src/algokit_utils/__init__.py" = ["I001", "RUF022"]  # Ignore import sorting for __init__.py
 
 [tool.poe.tasks]
 docs = ["docs-html-only", "docs-md-only"]
@@ -190,14 +173,6 @@ disallow_untyped_calls = false
 [[tool.mypy.overrides]]
 module = ["tests.transactions.test_transaction_composer"]
 disable_error_code = ["call-overload", "union-attr"]
-
-[[tool.mypy.overrides]]
-module = ["algokit_utils.clients._algokit_core_bridge"]
-disable_error_code = ["attr-defined", "no-untyped-def", "no-untyped-call"]
-
-[[tool.mypy.overrides]]
-module = ["algokit_utils.transactions._algokit_core_bridge"]
-disable_error_code = ["attr-defined", "no-untyped-def", "no-any-return"]
 
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"

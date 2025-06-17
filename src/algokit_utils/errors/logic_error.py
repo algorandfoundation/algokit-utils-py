@@ -33,7 +33,7 @@ class LogicErrorData(TypedDict):
 def parse_logic_error(
     error_str: str,
 ) -> LogicErrorData | None:
-    match = re.search(LOGIC_ERROR, error_str, re.DOTALL)
+    match = re.match(LOGIC_ERROR, error_str)
     if match is None:
         return None
 
