@@ -447,7 +447,8 @@ class AppDeployer:
         composer = self._transaction_sender.new_group()
 
         # Add create transaction
-        if isinstance(deployment.create_params, AppCreateMethodCallParams):
+        has_abi_create = isinstance(deployment.create_params, AppCreateMethodCallParams)
+        if has_abi_create:
             composer.add_app_create_method_call(
                 AppCreateMethodCallParams(
                     **{
@@ -467,10 +468,10 @@ class AppDeployer:
                     }
                 )
             )
-        create_txn_index = composer.count() - 1
 
         # Add delete transaction
-        if isinstance(deployment.delete_params, AppDeleteMethodCallParams):
+        has_abi_delete = isinstance(deployment.delete_params, AppDeleteMethodCallParams)
+        if has_abi_delete:
             delete_call_params = AppDeleteMethodCallParams(
                 **{
                     **deployment.delete_params.__dict__,
@@ -486,12 +487,15 @@ class AppDeployer:
                 }
             )
             composer.add_app_delete(delete_params)
-        delete_txn_index = composer.count() - 1
 
         result = composer.send(deployment.send_params)
 
-        create_result = SendAppCreateTransactionResult[ABIReturn].from_composer_result(result, create_txn_index)
-        delete_result = SendAppTransactionResult[ABIReturn].from_composer_result(result, delete_txn_index)
+        create_result = SendAppCreateTransactionResult[ABIReturn].from_composer_result(
+            result, is_abi=has_abi_create, index=0
+        )
+        delete_result = SendAppTransactionResult[ABIReturn].from_composer_result(
+            result, is_abi=has_abi_delete, index=-1
+        )
 
         app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
         app_metadata = ApplicationMetaData(

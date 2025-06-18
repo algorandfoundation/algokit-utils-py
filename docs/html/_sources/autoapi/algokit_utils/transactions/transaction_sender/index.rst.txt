@@ -87,7 +87,7 @@ Module Contents
 
 
 
-   .. py:method:: from_composer_result(result: algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults, index: int = -1) -> typing_extensions.Self
+   .. py:method:: from_composer_result(result: algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults, *, is_abi: bool = False, index: int = -1) -> typing_extensions.Self
       :classmethod:
 
 
