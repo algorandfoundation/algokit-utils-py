@@ -1186,7 +1186,6 @@ class _TransactionSender:
         :param params: Parameters for the application call including method and transaction options
         :param send_params: Send parameters
         :return: The result of sending or simulating the transaction, including ABI return value if applicable
-        :raises ValueError: If the transaction is read-only and `max_fee` is not provided
         """
         is_read_only_call = (
             params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
@@ -1197,14 +1196,10 @@ class _TransactionSender:
             readonly_send_params = send_params or SendParams()
 
             # Read-only calls do not require fees to be paid, as they are only simulated on the network.
-            # Therefore there is no value in calculating the minimum fee needed for a successful app call with inners.
-            # As a a result we only need to send a single simulate call,
-            # however to do this successfully we need to ensure fees for the transaction are fully covered using maxFee.
-            if readonly_send_params.get("cover_app_call_inner_transaction_fees"):
-                if params.max_fee is None:
-                    raise ValueError(
-                        "Please provide a `max_fee` for the transaction when `cover_app_call_inner_transaction_fees` is enabled."  # noqa: E501
-                    )
+            # With maximum opcode budget provided, ensure_budget won't create inner transactions,
+            # so fee coverage is no longer a concern for read-only calls.
+            # If max_fee is provided, use it as static_fee for potential benefits.
+            if readonly_send_params.get("cover_app_call_inner_transaction_fees") and params.max_fee is not None:
                 readonly_params = replace(readonly_params, static_fee=params.max_fee, extra_fee=None)
 
             method_call_to_simulate = self._algorand.new_group().add_app_call_method_call(
@@ -1223,6 +1218,8 @@ class _TransactionSender:
                         simulation_round=None,
                     )
                 except Exception as e:
+                    # For read-only calls with max opcode budget, fee issues should be rare
+                    # but we can still provide helpful error message if they occur
                     if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "fee too small" in str(e):
                         raise ValueError(
                             "Fees were too small. You may need to increase the transaction `maxFee`."

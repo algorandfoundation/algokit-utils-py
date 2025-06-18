@@ -641,21 +641,20 @@ class TestCoverAppCallInnerFees:
         # Verify the call succeeded (void methods return None which is expected)
         assert result.tx_ids  # Ensure transaction was processed
 
-    def test_readonly_throws_when_no_max_fee(self) -> None:
-        """Test that error is thrown when no max fee is supplied for a readonly method call"""
-        with pytest.raises(
-            ValueError,
-            match="Please provide a `max_fee` for the transaction when `cover_app_call_inner_transaction_fees` is enabled",  # noqa: E501
-        ):
-            self.app_client1.send.call(
-                AppClientMethodCallParams(
-                    method="burn_ops_readonly",
-                    args=[6200],
-                ),
-                send_params={
-                    "cover_app_call_inner_transaction_fees": True,
-                },
-            )
+    def test_readonly_works_without_max_fee(self) -> None:
+        """Test that readonly calls work without max_fee when cover_app_call_inner_transaction_fees is enabled"""
+        # Since we provide max opcode budget, readonly calls no longer require max_fee
+        result = self.app_client1.send.call(
+            AppClientMethodCallParams(
+                method="burn_ops_readonly",
+                args=[6200],
+            ),
+            send_params={
+                "cover_app_call_inner_transaction_fees": True,
+            },
+        )
+        # Verify the call succeeded (void methods return None which is expected)
+        assert result.tx_ids  # Ensure transaction was processed
 
     def test_readonly_works_without_fee_coverage_due_to_fixed_budget(self) -> None:
         """Test that readonly calls work without fee coverage because they use fixed opcode budget"""
