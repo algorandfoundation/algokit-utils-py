@@ -95,6 +95,9 @@ __all__ = [
 # TEAL opcodes for constant blocks
 BYTE_CBLOCK = 38  # bytecblock opcode
 INT_CBLOCK = 32  # intcblock opcode
+MAX_SIMULATE_OPCODE_BUDGET = (
+    20_000 * 16
+)  # https://github.com/algorand/go-algorand/blob/807b29a91c371d225e12b9287c5d56e9b33c4e4c/ledger/simulation/trace.go#L104
 
 T = TypeVar("T")  # For generic return type in _handle_call_errors
 
@@ -1215,7 +1218,7 @@ class _TransactionSender:
                         skip_signatures=True,
                         allow_more_logs=True,
                         allow_empty_signatures=True,
-                        extra_opcode_budget=None,
+                        extra_opcode_budget=MAX_SIMULATE_OPCODE_BUDGET,
                         exec_trace_config=None,
                         simulation_round=None,
                     )
