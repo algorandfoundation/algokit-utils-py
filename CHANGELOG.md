@@ -2,6 +2,26 @@
 
 <!--next-version-placeholder-->
 
+## v4.1.0 (2025-06-19)
+
+### Feature
+
+* Send payment transaction with algokit core ([`6d7bb66`](https://github.com/algorandfoundation/algokit-utils-py/commit/6d7bb666013024d7e65a8b6b55d0e27b71a9d9bb))
+* Calculated fee using assign_fee from core ([`231395a`](https://github.com/algorandfoundation/algokit-utils-py/commit/231395a407dc4760a03c743c337af12ed0813e0f))
+* Using AlgodApi OpenAPI generated client to send transactions to a node ([`40c674b`](https://github.com/algorandfoundation/algokit-utils-py/commit/40c674b50fa8601e63df2a185f689c8ed619d290))
+* Using AlgoKit Core to build a payment transaction ([`f15e32e`](https://github.com/algorandfoundation/algokit-utils-py/commit/f15e32e9ebe2eb81ae7f1bc5211d9a4f61ab4c89))
+
+### Fix
+
+* Remove prepending the prefix twice ([#154](https://github.com/algorandfoundation/algokit-utils-py/issues/154)) ([`da19028`](https://github.com/algorandfoundation/algokit-utils-py/commit/da1902820be40817514b2461a65ee7c737f87827))
+* Readonly simulate extra opcode budget handling ([#180](https://github.com/algorandfoundation/algokit-utils-py/issues/180)) ([`c6aef93`](https://github.com/algorandfoundation/algokit-utils-py/commit/c6aef9359d4706921c259c301075243873ce5683))
+* Fixes ABI return handling for bare create/delete ([#178](https://github.com/algorandfoundation/algokit-utils-py/issues/178)) ([`9980636`](https://github.com/algorandfoundation/algokit-utils-py/commit/998063690f01c0fc1de234ae14a3fda3d6323c84))
+* Pip-audit failure for setuptools ([`1ffeaf1`](https://github.com/algorandfoundation/algokit-utils-py/commit/1ffeaf18ae9797f25849cb96fc16ba29e043e308))
+* Deployment send params aren't passed into the composer ([`cf7fb08`](https://github.com/algorandfoundation/algokit-utils-py/commit/cf7fb08b86e7032a26f540bad6bea94944eae65f))
+* Correctly re-throw the exception ([`67940f4`](https://github.com/algorandfoundation/algokit-utils-py/commit/67940f4e61f78c3fcc8b88eeb0b34613faf327ec))
+* Introducing tagged releases for the integration with algokit-core ([`2ec3993`](https://github.com/algorandfoundation/algokit-utils-py/commit/2ec3993cbaacfb369c6207bf7fee85f9887c8369))
+* Keep the user min fee if set ([`5be8767`](https://github.com/algorandfoundation/algokit-utils-py/commit/5be8767d8f3438ed339be9178cf790e1384fd617))
+
 ## v4.0.1 (2025-05-01)
 
 ### Fix
