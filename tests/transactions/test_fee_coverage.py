@@ -623,84 +623,74 @@ class TestCoverAppCallInnerFees:
         assert len(result.confirmation.get("inner-txns", [])) == 9  # type: ignore[union-attr]
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
-    def test_readonly_uses_fixed_opcode_budget_without_inner_transactions(self) -> None:
-        """Test that readonly calls use fixed opcode budget and don't require inner transactions for opcode top-ups"""
+    @pytest.mark.parametrize("cover_inner_fees", [True, False])
+    def test_readonly_uses_fixed_opcode_budget_without_op_up_inner_transactions(self, cover_inner_fees: bool) -> None:  # noqa: FBT001
+        """Test that readonly calls use fixed opcode budget and don't require inner transactions for op-ups
+        regardless of fee coverage setting"""
 
         params = AppClientMethodCallParams(
             method="burn_ops_readonly",
-            args=[6200],  # This would normally require opcode budget top-ups via inner transactions
-            max_fee=AlgoAmount.from_micro_algo(12_000),
+            args=[6200],  # This would normally require op-ups via inner transactions
         )
-        result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
+        result = self.app_client1.send.call(
+            params, send_params={"cover_app_call_inner_transaction_fees": cover_inner_fees}
+        )
 
-        # Readonly calls should succeed without creating inner transactions
-        # because they use the fixed MAX_SIMULATE_OPCODE_BUDGET
+        # No op-up inner transactions needed regardless of fee coverage setting
         assert len(result.confirmation.get("inner-txns", [])) == 0  # type: ignore[union-attr]
-        assert result.transaction.raw.fee == 12_000
+        assert result.transaction.raw.fee == 1_000
+        assert len(result.tx_ids) == 1
 
-        # Verify the call succeeded (void methods return None which is expected)
-        assert result.tx_ids  # Ensure transaction was processed
+    def test_readonly_alters_fee_handling_inner_transactions(self) -> None:
+        """Test that inner transaction can be covered using the max_fee"""
+        # Force `send_inners_with_fees` to be marked as readonly
+        for method in self.app_client1._app_spec.methods:  # noqa: SLF001
+            if method.name == "send_inners_with_fees":
+                method.readonly = True
+                break
 
-    def test_readonly_works_without_max_fee(self) -> None:
-        """Test that readonly calls work without max_fee when cover_app_call_inner_transaction_fees is enabled"""
-        # Since we provide max opcode budget, readonly calls no longer require max_fee
+        # The expected_fee differs to non readonly method call,as we don't want to
+        # run simulate twice (once for resolving the minimum fee and once for the actual transaction result).
+        # Because no fees are actually paid with readonly calls,
+        # we simply use the maxFee value (if set) and skip any minimum fee calculations.
+        # If this method is running in a non readonly context, the minimum fee would be calculated as 5300n.
+        expected_fee = 12_000
         result = self.app_client1.send.call(
             AppClientMethodCallParams(
-                method="burn_ops_readonly",
-                args=[6200],
+                method="send_inners_with_fees",
+                args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
+                max_fee=AlgoAmount.from_micro_algo(expected_fee),
             ),
             send_params={
                 "cover_app_call_inner_transaction_fees": True,
             },
         )
-        # Verify the call succeeded (void methods return None which is expected)
-        assert result.tx_ids  # Ensure transaction was processed
 
-    def test_readonly_works_without_fee_coverage_due_to_fixed_budget(self) -> None:
-        """Test that readonly calls work without fee coverage because they use fixed opcode budget"""
+        assert result.transaction.raw.fee == expected_fee
+        assert len(result.confirmation.get("inner-txns", [])) == 4  # type: ignore[union-attr]
+        assert len(result.tx_ids) == 1
 
-        # This test verifies that readonly calls don't need inner transaction fee coverage
-        # because they use MAX_SIMULATE_OPCODE_BUDGET instead of calculating fees dynamically
+    def test_readonly_throws_when_max_fee_too_small(self) -> None:
+        """Test that error is thrown when readonly method call max fee is too small to cover inner transaction fees"""
+
+        # Force `send_inners_with_fees` to be marked as readonly
+        for method in self.app_client1._app_spec.methods:  # noqa: SLF001
+            if method.name == "send_inners_with_fees":
+                method.readonly = True
+                break
+
         params = AppClientMethodCallParams(
-            method="burn_ops_readonly",
-            args=[6200],  # Expensive operation that would normally need fee coverage
-            max_fee=AlgoAmount.from_micro_algo(7000),
+            method="send_inners_with_fees",
+            args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
+            max_fee=AlgoAmount.from_micro_algo(2000),
         )
-
-        result = self.app_client1.send.call(
-            params,
-            send_params={
-                "cover_app_call_inner_transaction_fees": False,  # No fee coverage needed
-            },
-        )
-
-        # Should succeed because fixed budget eliminates need for inner fee calculations
-        assert result.tx_ids  # Ensure transaction was processed
-        assert len(result.confirmation.get("inner-txns", [])) == 0  # type: ignore[union-attr]
-
-    def test_readonly_succeeds_with_low_max_fee_due_to_fixed_budget(self) -> None:
-        """Test that readonly calls succeed even with low max_fee because they use fixed opcode budget"""
-
-        # This test demonstrates that readonly calls don't fail due to insufficient max_fee
-        # because the fixed opcode budget eliminates the need for fee-based opcode calculations
-        params = AppClientMethodCallParams(
-            method="burn_ops_readonly",
-            args=[6200],  # Expensive operation
-            max_fee=AlgoAmount.from_micro_algo(2000),  # Intentionally low max_fee
-        )
-
-        result = self.app_client1.send.call(
-            params,
-            send_params={
-                "cover_app_call_inner_transaction_fees": True,
-            },
-        )
-
-        # Should succeed despite low max_fee because fixed budget prevents fee-based failures
-        assert result.tx_ids  # Ensure transaction was processed
-        assert len(result.confirmation.get("inner-txns", [])) == 0  # type: ignore[union-attr]
-        # The transaction fee should be the low max_fee we set, not a calculated higher fee
-        assert result.transaction.raw.fee == 2000
+        with pytest.raises(ValueError, match="Fees were too small. You may need to increase the transaction `maxFee`."):
+            self.app_client1.send.call(
+                params,
+                send_params={
+                    "cover_app_call_inner_transaction_fees": True,
+                },
+            )
 
     def _assert_min_fee(self, app_client: AppClient, params: AppClientMethodCallParams, fee: int) -> None:
         """Helper to assert minimum required fee"""
