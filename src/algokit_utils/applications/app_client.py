@@ -461,7 +461,7 @@ class _StateAccessor:
                     )
                     result[str(key)] = value
                 except Exception as e:
-                    raise ValueError(f"Failed to decode value for key {box.name_raw.decode("utf-8")}") from e
+                    raise ValueError(f"Failed to decode value for key {box.name_raw.decode('utf-8')}") from e
 
             return result
 
