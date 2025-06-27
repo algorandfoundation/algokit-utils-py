@@ -17,6 +17,7 @@ from algokit_utils.applications.app_client import (
     AppClientParams,
     FundAppAccountParams,
 )
+from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
@@ -756,3 +757,51 @@ def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> Non
     assert "assert failed pc=885" in str(error)
     assert len(error.transaction_id) == 52
     assert error.line_no == 469
+
+
+@pytest.fixture
+def nested_struct_app_spec() -> Arc56Contract:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "nested_struct" / "nested_struct.arc56.json"
+    return Arc56Contract.from_json(raw_json_spec.read_text())
+
+
+def test_nested_structs_described_by_structure(
+    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+) -> None:
+    """Test nested struct when described by structure."""
+    factory = algorand.client.get_app_factory(app_spec=nested_struct_app_spec, default_sender=funded_account.address)
+    app_client, _ = factory.send.create(AppFactoryCreateMethodCallParams(method="createApplication", args=[]))
+    app_client.send.call(AppClientMethodCallParams(method="setValue", args=[1, "hello"]))
+
+    result = app_client.send.call(AppClientMethodCallParams(method="getValue", args=[1]))
+
+    assert result.abi_return == {"x": {"a": "hello"}}
+
+
+def test_nested_structs_referenced_by_name(
+    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+) -> None:
+    """Test nested struct when referenced by name."""
+    edited_spec_dict = nested_struct_app_spec.dictify()
+    edited_spec_dict["structs"] = {
+        "Struct1": [
+            {
+                "name": "a",
+                "type": "string",
+            }
+        ],
+        "Struct2": [
+            {
+                "name": "x",
+                "type": "Struct1",
+            }
+        ],
+    }
+    edited_spec = Arc56Contract.from_json(json.dumps(edited_spec_dict))
+    factory = algorand.client.get_app_factory(app_spec=edited_spec, default_sender=funded_account.address)
+    app_client, _ = factory.send.create(AppFactoryCreateMethodCallParams(method="createApplication", args=[]))
+    app_client.send.call(AppClientMethodCallParams(method="setValue", args=[1, "hello"]))
+
+    result = app_client.send.call(AppClientMethodCallParams(method="getValue", args=[1]))
+
+    assert result.abi_return == {"x": {"a": "hello"}}
