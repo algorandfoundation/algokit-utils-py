@@ -16,6 +16,7 @@ from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.transactions.transaction_composer import (
+    ErrorTransformer,
     TransactionComposer,
 )
 from algokit_utils.transactions.transaction_creator import AlgorandClientTransactionCreator
@@ -51,6 +52,7 @@ class AlgorandClient:
         self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
         self._default_validity_window: int | None = None
+        self._error_transformers: set[ErrorTransformer] = set()
 
     def set_default_validity_window(self, validity_window: int) -> typing_extensions.Self:
         """
@@ -155,6 +157,25 @@ class AlgorandClient:
 
         return copy.deepcopy(self._cached_suggested_params)
 
+    def register_error_transformer(self, transformer: ErrorTransformer) -> typing_extensions.Self:
+        """Register a function that will be used to transform an error caught when simulating or executing
+        composed transaction groups made from `new_group`
+
+        :param transformer: The error transformer function
+        :return: The AlgorandClient so you can chain method calls
+        """
+        self._error_transformers.add(transformer)
+        return self
+
+    def unregister_error_transformer(self, transformer: ErrorTransformer) -> typing_extensions.Self:
+        """Unregister an error transformer function
+
+        :param transformer: The error transformer function to remove
+        :return: The AlgorandClient so you can chain method calls
+        """
+        self._error_transformers.discard(transformer)
+        return self
+
     def new_group(self) -> TransactionComposer:
         """
         Start a new `TransactionComposer` transaction group
@@ -169,6 +190,7 @@ class AlgorandClient:
             get_signer=lambda addr: self.account.get_signer(addr),
             get_suggested_params=self.get_suggested_params,
             default_validity_window=self._default_validity_window,
+            error_transformers=list(self._error_transformers),
         )
 
     @property

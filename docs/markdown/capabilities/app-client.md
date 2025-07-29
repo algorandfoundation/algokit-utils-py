@@ -311,7 +311,16 @@ When this occurs, you will generally get an error that looks something like: `Tr
 
 The information in that error message can be parsed and when combined with the [source map from compilation](app-deploy.md#compilation-and-template-substitution) you can expose debugging information that makes it much easier to understand what’s happening. The ARC-56 app spec, if provided, can also specify human-readable error messages against certain program counter values and further augment the error message.
 
-The app client and app factory automatically provide this functionality for all smart contract calls. They also expose a function that can be used for any custom calls you manually construct and need to add into your own try/catch `expose_logic_error(e: Error, is_clear: bool = False)`.
+The app client and app factory automatically provide this functionality for all smart contract calls through an automatically registered error transformer. This error transformer:
+
+- Parses logic errors from blockchain responses
+- Applies source map information when available to provide line numbers and context
+- Filters errors to only handle those relevant to the specific application
+- For new applications (app_id=0), compares program bytecode to ensure error handling is applied to the correct application instance
+
+They also expose a function that can be used for any custom calls you manually construct and need to add into your own try/catch `expose_logic_error(e: Error, is_clear: bool = False)`.
+
+For more information about error transformers and how to create custom ones, see the [Transaction Composer Error Transformers](transaction-composer.md#error-transformers) documentation.
 
 When an error is thrown then the resulting error that is re-thrown will be a [`LogicError`](../autoapi/algokit_utils/errors/logic_error/index.md#algokit_utils.errors.logic_error.LogicError), which has the following fields:
 

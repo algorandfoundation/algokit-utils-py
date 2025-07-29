@@ -9,6 +9,7 @@ Attributes
 
 .. autoapisummary::
 
+   algokit_utils.transactions.transaction_composer.ErrorTransformer
    algokit_utils.transactions.transaction_composer.MethodCallParams
    algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument
    algokit_utils.transactions.transaction_composer.TxnParams
@@ -57,6 +58,8 @@ Functions
 
 Module Contents
 ---------------
+
+.. py:data:: ErrorTransformer
 
 .. py:class:: PaymentParams
 
@@ -1118,7 +1121,7 @@ Module Contents
    :raises error: If there is an error from the Algorand node
 
 
-.. py:class:: TransactionComposer(algod: algosdk.v2client.algod.AlgodClient, get_signer: collections.abc.Callable[[str], algosdk.atomic_transaction_composer.TransactionSigner], get_suggested_params: collections.abc.Callable[[], algosdk.transaction.SuggestedParams] | None = None, default_validity_window: int | None = None, app_manager: algokit_utils.applications.app_manager.AppManager | None = None)
+.. py:class:: TransactionComposer(algod: algosdk.v2client.algod.AlgodClient, get_signer: collections.abc.Callable[[str], algosdk.atomic_transaction_composer.TransactionSigner], get_suggested_params: collections.abc.Callable[[], algosdk.transaction.SuggestedParams] | None = None, default_validity_window: int | None = None, app_manager: algokit_utils.applications.app_manager.AppManager | None = None, error_transformers: list[ErrorTransformer] | None = None)
 
    A class for composing and managing Algorand transactions.
 
@@ -1131,6 +1134,16 @@ Module Contents
        defaults to using algod.suggested_params()
    :param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
    :param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
+   :param error_transformers: Optional list of error transformers to use when an error is caught in simulate or send
+
+
+   .. py:method:: register_error_transformer(transformer: ErrorTransformer) -> TransactionComposer
+
+      Register a function that will be used to transform an error caught when simulating or sending.
+
+      :param transformer: The error transformer function
+      :return: The composer so you can chain method calls
+
 
 
    .. py:method:: add_transaction(transaction: algosdk.transaction.Transaction, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None) -> TransactionComposer
@@ -1555,7 +1568,7 @@ Module Contents
 
       :param params: Parameters for the send operation
       :return: The transaction send results
-      :raises Exception: If the transaction fails
+      :raises self._transform_error: If the transaction fails (may be transformed by error transformers)
 
 
 

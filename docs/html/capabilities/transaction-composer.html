@@ -624,6 +624,149 @@ In these instances you should set <code class="docutils literal notranslate"><sp
 </pre></div>
 </div>
 <p>This feature should efficiently calculate the minimum fee needed to execute an app call transaction with inners, however we always recommend testing your specific scenario behaves as expected before releasing.</p>
+</section>
+</section>
+<section id="error-transformers">
+<h2>Error Transformers<a class="headerlink" href="#error-transformers" title="Link to this heading">¶</a></h2>
+<p>Error transformers provide a powerful mechanism for enhancing error messages and debugging information when transactions fail. They allow you to register custom functions that can transform generic blockchain errors into more meaningful, application-specific error messages.</p>
+<section id="how-error-transformers-work">
+<h3>How Error Transformers Work<a class="headerlink" href="#how-error-transformers-work" title="Link to this heading">¶</a></h3>
+<p>Error transformers are functions that take an <code class="docutils literal notranslate"><span class="pre">Exception</span></code> as input and return either a transformed <code class="docutils literal notranslate"><span class="pre">Exception</span></code> or the original exception unchanged. They are called in sequence during transaction simulation or sending when errors occur, allowing for a chain of transformations.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="ne">Exception</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">my_error_transformer</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform generic errors into more meaningful ones.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;asset missing&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">return</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Asset not found: Please check the asset ID&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">error</span>  <span class="c1"># Return unchanged if not applicable</span>
+</pre></div>
+</div>
+</section>
+<section id="registering-error-transformers">
+<h3>Registering Error Transformers<a class="headerlink" href="#registering-error-transformers" title="Link to this heading">¶</a></h3>
+<p>Error transformers can be registered at two levels:</p>
+<section id="algorandclient-level-global">
+<h4>1. AlgorandClient Level (Global)<a class="headerlink" href="#algorandclient-level-global" title="Link to this heading">¶</a></h4>
+<p>Register error transformers globally to apply to all transaction groups created from this client:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">algokit_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">AlgorandClient</span>
+
+<span class="n">algorand</span> <span class="o">=</span> <span class="n">AlgorandClient</span><span class="o">.</span><span class="n">default_localnet</span><span class="p">()</span>
+
+<span class="c1"># Register a global error transformer</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">register_error_transformer</span><span class="p">(</span><span class="n">my_error_transformer</span><span class="p">)</span>
+
+<span class="c1"># All transaction groups from this client will use the transformer</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">new_group</span><span class="p">()</span><span class="o">.</span><span class="n">add_payment</span><span class="p">(</span><span class="n">payment_params</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+
+<span class="c1"># Unregister if needed</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">unregister_error_transformer</span><span class="p">(</span><span class="n">my_error_transformer</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="transactioncomposer-level-per-group">
+<h4>2. TransactionComposer Level (Per Group)<a class="headerlink" href="#transactioncomposer-level-per-group" title="Link to this heading">¶</a></h4>
+<p>Register error transformers for a specific transaction group:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Register transformer for this specific group</span>
+<span class="n">composer</span> <span class="o">=</span> <span class="n">algorand</span><span class="o">.</span><span class="n">new_group</span><span class="p">()</span>
+<span class="n">composer</span><span class="o">.</span><span class="n">register_error_transformer</span><span class="p">(</span><span class="n">my_error_transformer</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">composer</span><span class="o">.</span><span class="n">add_payment</span><span class="p">(</span><span class="n">payment_params</span><span class="p">)</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-transformer-chain">
+<h3>Error Transformer Chain<a class="headerlink" href="#error-transformer-chain" title="Link to this heading">¶</a></h3>
+<p>Multiple error transformers can be registered and they will be called in the order they were registered:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">transformer_1</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;missing from&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ASSET MISSING???&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">error</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">transformer_2</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;ASSET MISSING???&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ASSET MISSING: Check your asset configuration&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">error</span>
+
+<span class="c1"># Register multiple transformers</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">register_error_transformer</span><span class="p">(</span><span class="n">transformer_1</span><span class="p">)</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">register_error_transformer</span><span class="p">(</span><span class="n">transformer_2</span><span class="p">)</span>
+
+<span class="c1"># They will be applied in sequence: error -&gt; transformer_1 -&gt; transformer_2</span>
+</pre></div>
+</div>
+</section>
+<section id="app-client-integration">
+<h3>App Client Integration<a class="headerlink" href="#app-client-integration" title="Link to this heading">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">AppClient</span></code> automatically registers error transformers to provide enhanced debugging for application-specific logic errors. These transformers:</p>
+<ul class="simple">
+<li><p>Parse logic errors from the blockchain</p></li>
+<li><p>Apply source map information when available</p></li>
+<li><p>Filter errors to only handle those relevant to the specific application</p></li>
+<li><p>For new applications (app_id=0), compare program bytecode to ensure error handling is applied to the correct application</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">algokit_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppClient</span>
+
+<span class="c1"># Error transformer is automatically registered</span>
+<span class="n">app_client</span> <span class="o">=</span> <span class="n">AppClient</span><span class="p">(</span>
+    <span class="n">app_spec</span><span class="o">=</span><span class="n">app_spec</span><span class="p">,</span>
+    <span class="n">app_id</span><span class="o">=</span><span class="mi">123</span><span class="p">,</span>  <span class="c1"># Existing app</span>
+    <span class="n">algorand</span><span class="o">=</span><span class="n">algorand</span>
+<span class="p">)</span>
+
+<span class="c1"># App-specific logic errors will be enhanced with source maps and debugging info</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">app_client</span><span class="o">.</span><span class="n">send</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="s2">&quot;my_method&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[])</span>
+<span class="k">except</span> <span class="n">LogicError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="c1"># Enhanced error with source information</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Logic error at PC </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">pc</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source trace:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h3>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Keep transformers focused</strong>: Each transformer should handle a specific type of error or transformation.</p></li>
+<li><p><strong>Return original on no match</strong>: Always return the original error if your transformer doesn’t apply:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_transformer</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">should_handle</span><span class="p">(</span><span class="n">error</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">error</span>  <span class="c1"># Important: return unchanged</span>
+    <span class="k">return</span> <span class="n">transform_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Chain appropriately</strong>: Register transformers in logical order, from most specific to most general.</p></li>
+<li><p><strong>Handle exceptions</strong>: Ensure your transformer doesn’t raise exceptions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">safe_transformer</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">transform_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">error</span>  <span class="c1"># Fallback to original</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Use type information</strong>: Consider the error type when transforming:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">typed_transformer</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">AlgodHTTPError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">handle_algod_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">LogicError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">enhance_logic_error</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">error</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="error-types">
+<h3>Error Types<a class="headerlink" href="#error-types" title="Link to this heading">¶</a></h3>
+<p>Common error types you might encounter and transform:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">AlgodHTTPError</span></code></strong>: Network or node-related errors</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">LogicError</span></code></strong>: Smart contract logic errors (automatically handled by AppClient)</p></li>
+<li><p><strong>Generic <code class="docutils literal notranslate"><span class="pre">Exception</span></code></strong>: General transaction or validation errors</p></li>
+</ul>
+<p>Error transformers work with both <code class="docutils literal notranslate"><span class="pre">send()</span></code> and <code class="docutils literal notranslate"><span class="pre">simulate()</span></code> operations, providing consistent error enhancement across all transaction execution paths.</p>
 <section id="read-only-calls">
 <h4>Read-only calls<a class="headerlink" href="#read-only-calls" title="Link to this heading">¶</a></h4>
 <p>When invoking a readonly method, the transaction is simulated rather than being fully processed by the network. This allows users to call these methods without paying a fee.</p>
@@ -700,7 +843,20 @@ In these instances you should set <code class="docutils literal notranslate"><sp
 <li><a class="reference internal" href="#simulating-a-transaction">Simulating a transaction</a><ul>
 <li><a class="reference internal" href="#simulate-without-signing">Simulate without signing</a></li>
 <li><a class="reference internal" href="#resource-population">Resource Population</a></li>
-<li><a class="reference internal" href="#covering-app-call-inner-transaction-fees">Covering App Call Inner Transaction Fees</a><ul>
+<li><a class="reference internal" href="#covering-app-call-inner-transaction-fees">Covering App Call Inner Transaction Fees</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-transformers">Error Transformers</a><ul>
+<li><a class="reference internal" href="#how-error-transformers-work">How Error Transformers Work</a></li>
+<li><a class="reference internal" href="#registering-error-transformers">Registering Error Transformers</a><ul>
+<li><a class="reference internal" href="#algorandclient-level-global">1. AlgorandClient Level (Global)</a></li>
+<li><a class="reference internal" href="#transactioncomposer-level-per-group">2. TransactionComposer Level (Per Group)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#error-transformer-chain">Error Transformer Chain</a></li>
+<li><a class="reference internal" href="#app-client-integration">App Client Integration</a></li>
+<li><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li><a class="reference internal" href="#error-types">Error Types</a><ul>
 <li><a class="reference internal" href="#read-only-calls">Read-only calls</a></li>
 </ul>
 </li>

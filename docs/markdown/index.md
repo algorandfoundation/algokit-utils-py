@@ -81,6 +81,7 @@ If you prefer TypeScript there’s an equivalent [TypeScript utility library](ht
 * [Transaction composer](capabilities/transaction-composer.md)
   * [Constructing a transaction](capabilities/transaction-composer.md#constructing-a-transaction)
   * [Simulating a transaction](capabilities/transaction-composer.md#simulating-a-transaction)
+  * [Error Transformers](capabilities/transaction-composer.md#error-transformers)
 * [Transaction management](capabilities/transaction.md)
   * [Transaction Results](capabilities/transaction.md#transaction-results)
   * [Further reading](capabilities/transaction.md#further-reading)

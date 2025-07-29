@@ -778,6 +778,21 @@ def test_nested_structs_described_by_structure(
     assert result.abi_return == {"x": {"a": "hello"}}
 
 
+def test_app_client_error_transformer_logic_error_enhancement(test_app_client_with_sourcemaps: AppClient) -> None:
+    """Test that AppClient error transformers enhance logic errors with source maps."""
+    with pytest.raises(LogicError) as exc_info:
+        test_app_client_with_sourcemaps.send.call(AppClientMethodCallParams(method="error"))
+
+    error = exc_info.value
+    # Verify the error was enhanced by the error transformer
+    assert error.pc == 885
+    assert "assert failed pc=885" in str(error)
+    assert len(error.transaction_id) == 52
+    assert error.line_no == 469
+    # This should be a LogicError, which means the error transformer processed it
+    assert isinstance(error, LogicError)
+
+
 def test_nested_structs_referenced_by_name(
     algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
 ) -> None:

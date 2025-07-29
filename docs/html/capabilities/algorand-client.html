@@ -510,6 +510,27 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">algorand.get_suggested_params()</span></code> - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value</p></li>
 </ul>
 </section>
+<section id="error-handling">
+<h3>Error handling<a class="headerlink" href="#error-handling" title="Link to this heading">¶</a></h3>
+<p>AlgorandClient provides error transformer functionality to enhance error messages and debugging information when transactions fail. Error transformers allow you to register custom functions that can transform generic blockchain errors into more meaningful, application-specific error messages.</p>
+<section id="registering-error-transformers">
+<h4>Registering Error Transformers<a class="headerlink" href="#registering-error-transformers" title="Link to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_error_transformer</span><span class="p">(</span><span class="n">error</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform generic errors into more meaningful ones.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;asset missing&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+        <span class="k">return</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Asset not found: Please check the asset ID&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">error</span>  <span class="c1"># Return unchanged if not applicable</span>
+
+<span class="c1"># Register globally for all transaction groups</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">register_error_transformer</span><span class="p">(</span><span class="n">my_error_transformer</span><span class="p">)</span>
+
+<span class="c1"># Unregister when no longer needed</span>
+<span class="n">algorand</span><span class="o">.</span><span class="n">unregister_error_transformer</span><span class="p">(</span><span class="n">my_error_transformer</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Error transformers registered at the <code class="docutils literal notranslate"><span class="pre">AlgorandClient</span></code> level will be applied to all transaction groups created from that client instance. For more detailed documentation on error transformers, including examples and best practices, see the <a class="reference internal" href="transaction-composer.html#error-transformers"><span class="std std-ref">Transaction Composer Error Transformers</span></a> section.</p>
+</section>
+</section>
 </section>
 </section>
 
@@ -577,6 +598,10 @@
 <li><a class="reference internal" href="#composing-a-group-of-transactions">Composing a group of transactions</a></li>
 <li><a class="reference internal" href="#transaction-parameters">Transaction parameters</a></li>
 <li><a class="reference internal" href="#transaction-configuration">Transaction configuration</a></li>
+<li><a class="reference internal" href="#error-handling">Error handling</a><ul>
+<li><a class="reference internal" href="#registering-error-transformers">Registering Error Transformers</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

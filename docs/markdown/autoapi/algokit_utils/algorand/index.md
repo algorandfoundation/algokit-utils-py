@@ -107,6 +107,25 @@ Get suggested params for a transaction (either cached or from algod if the cache
   >>> algorand = AlgorandClient.mainnet().get_suggested_params()
   ```
 
+#### register_error_transformer(transformer: algokit_utils.transactions.transaction_composer.ErrorTransformer) → typing_extensions.Self
+
+Register a function that will be used to transform an error caught when simulating or executing
+composed transaction groups made from new_group
+
+* **Parameters:**
+  **transformer** – The error transformer function
+* **Returns:**
+  The AlgorandClient so you can chain method calls
+
+#### unregister_error_transformer(transformer: algokit_utils.transactions.transaction_composer.ErrorTransformer) → typing_extensions.Self
+
+Unregister an error transformer function
+
+* **Parameters:**
+  **transformer** – The error transformer function to remove
+* **Returns:**
+  The AlgorandClient so you can chain method calls
+
 #### new_group() → [algokit_utils.transactions.transaction_composer.TransactionComposer](../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Start a new TransactionComposer transaction group
