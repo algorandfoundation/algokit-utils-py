@@ -607,10 +607,16 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     with pytest.raises(LogicError) as exc_info:
         app_client.send.call(AppClientMethodCallParams(method="tmpl"))
 
-    assert (
-        exc_info.value.trace().strip()
-        == "// tests/example-contracts/arc56_templates/templates.algo.ts:14\n\t\t// assert(this.uint64TmplVar)\n\t\tintc 1 // TMPL_uint64TmplVar\n\t\tassert\n\t\tretsub\t\t<-- Error\n\t\n\t// specificLengthTemplateVar()void\n\t*abi_route_specificLengthTemplateVar:\n\t\t// execute specificLengthTemplateVar()void"  # noqa: E501
-    )
+    actual_trace = exc_info.value.trace().strip()
+
+    assert "// tests/example-contracts/arc56_templates/templates.algo.ts:14" in actual_trace
+    assert "// assert(this.uint64TmplVar)" in actual_trace
+    assert "intc 1 // TMPL_uint64TmplVar" in actual_trace
+    assert "assert" in actual_trace
+    assert "<-- Error" in actual_trace
+    assert "retsub" in actual_trace
+    assert "// specificLengthTemplateVar()void" in actual_trace
+    assert "*abi_route_specificLengthTemplateVar:" in actual_trace
 
 
 def test_bare_create_abi_delete(

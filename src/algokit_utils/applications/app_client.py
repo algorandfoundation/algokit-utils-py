@@ -2021,16 +2021,7 @@ class AppClient:
                 return error
 
             # This is a logic error for our app, transform it
-            logic_error = self._expose_logic_error(e=error)
-
-            # Log the logic error with trace information if available
-            from algokit_utils.config import config
-            from algokit_utils.errors.logic_error import LogicError
-
-            if isinstance(logic_error, LogicError):
-                config.logger.error(f"{logic_error.message}\n\n{logic_error.trace()}")
-
-            return logic_error
+            return self._expose_logic_error(e=error)
 
         except Exception:
             # If transformation fails, return the original error
