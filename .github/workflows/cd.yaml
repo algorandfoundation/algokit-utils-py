@@ -26,10 +26,14 @@ jobs:
     name: Check Python
     uses: ./.github/workflows/check-python.yaml
 
+  ci-check-docs:
+    name: Check Documentation
+    uses: ./.github/workflows/check-docs.yaml
+
   ci-build-python:
     name: Build Python
     uses: ./.github/workflows/build-python.yaml
-    needs: ci-check-python
+    needs: [ci-check-python, ci-check-docs]
 
   release:
     name: Release Library
