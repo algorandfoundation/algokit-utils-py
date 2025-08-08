@@ -33,7 +33,6 @@ from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 
 if TYPE_CHECKING:
     from algosdk.abi import Method
-    from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.models import SimulateTraceConfig
 
     from algokit_utils.models.amount import AlgoAmount
