@@ -7,7 +7,11 @@ jobs:
     name: Check Python
     uses: ./.github/workflows/check-python.yaml
 
+  pr-check-docs:
+    name: Check Documentation
+    uses: ./.github/workflows/check-docs.yaml
+
   pr-build:
     name: Build and Test Python
-    needs: pr-check
+    needs: [pr-check, pr-check-docs]
     uses: ./.github/workflows/build-python.yaml

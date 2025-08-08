@@ -44,11 +44,3 @@ jobs:
 
       - name: Check types with mypy
         run: poetry run mypy
-
-      - name: Check docstrings are up to date
-        run: poetry run poe docstrings-check
-
-      - name: Check docs are up to date
-        run: |
-          poetry run poe docs-md-only
-          git diff --exit-code ':!docs/markdown/autoapi/index.md' ':!docs/markdown/autoapi/algokit_utils/applications/app_factory/index.md' docs

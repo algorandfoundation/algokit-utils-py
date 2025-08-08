@@ -17,7 +17,7 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: OnSchemaBreak
+.. py:class:: OnSchemaBreak(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -49,7 +49,7 @@ Module Contents
 
 
 
-.. py:class:: OnUpdate
+.. py:class:: OnUpdate(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 
@@ -89,7 +89,7 @@ Module Contents
 
 
 
-.. py:class:: OperationPerformed
+.. py:class:: OperationPerformed(*args, **kwds)
 
    Bases: :py:obj:`enum.Enum`
 

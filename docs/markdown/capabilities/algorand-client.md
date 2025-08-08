@@ -188,3 +188,25 @@ AlgorandClient caches network provided transaction values for you automatically 
 - `algorand.set_suggested_params(suggested_params, until?)` - Set the suggested network parameters to use (optionally until the given time)
 - `algorand.set_suggested_params_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
 - `algorand.get_suggested_params()` - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value
+
+### Error handling
+
+AlgorandClient provides error transformer functionality to enhance error messages and debugging information when transactions fail. Error transformers allow you to register custom functions that can transform generic blockchain errors into more meaningful, application-specific error messages.
+
+#### Registering Error Transformers
+
+```python
+def my_error_transformer(error: Exception) -> Exception:
+    """Transform generic errors into more meaningful ones."""
+    if "asset missing" in str(error).lower():
+        return Exception("Asset not found: Please check the asset ID")
+    return error  # Return unchanged if not applicable
+
+# Register globally for all transaction groups
+algorand.register_error_transformer(my_error_transformer)
+
+# Unregister when no longer needed
+algorand.unregister_error_transformer(my_error_transformer)
+```
+
+Error transformers registered at the `AlgorandClient` level will be applied to all transaction groups created from that client instance. For more detailed documentation on error transformers, including examples and best practices, see the [Transaction Composer Error Transformers](transaction-composer.md#error-transformers) section.

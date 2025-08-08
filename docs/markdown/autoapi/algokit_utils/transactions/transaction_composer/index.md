@@ -2,8 +2,9 @@
 
 ## Attributes
 
-| [`MethodCallParams`](#algokit_utils.transactions.transaction_composer.MethodCallParams)                                 |    |
+| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                 |    |
 |-------------------------------------------------------------------------------------------------------------------------|----|
+| [`MethodCallParams`](#algokit_utils.transactions.transaction_composer.MethodCallParams)                                 |    |
 | [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument) |    |
 | [`TxnParams`](#algokit_utils.transactions.transaction_composer.TxnParams)                                               |    |
 
@@ -43,6 +44,8 @@
 | [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...) | Send an AtomicTransactionComposer transaction group.                                                       |
 
 ## Module Contents
+
+### algokit_utils.transactions.transaction_composer.ErrorTransformer
 
 ### *class* algokit_utils.transactions.transaction_composer.PaymentParams
 
@@ -660,7 +663,7 @@ Executes a group of transactions atomically using the AtomicTransactionComposer.
   * **Exception** – If there is an error sending the transactions
   * **error** – If there is an error from the Algorand node
 
-### *class* algokit_utils.transactions.transaction_composer.TransactionComposer(algod: algosdk.v2client.algod.AlgodClient, get_signer: collections.abc.Callable[[str], algosdk.atomic_transaction_composer.TransactionSigner], get_suggested_params: collections.abc.Callable[[], algosdk.transaction.SuggestedParams] | None = None, default_validity_window: int | None = None, app_manager: [algokit_utils.applications.app_manager.AppManager](../../applications/app_manager/index.md#algokit_utils.applications.app_manager.AppManager) | None = None)
+### *class* algokit_utils.transactions.transaction_composer.TransactionComposer(algod: algosdk.v2client.algod.AlgodClient, get_signer: collections.abc.Callable[[str], algosdk.atomic_transaction_composer.TransactionSigner], get_suggested_params: collections.abc.Callable[[], algosdk.transaction.SuggestedParams] | None = None, default_validity_window: int | None = None, app_manager: [algokit_utils.applications.app_manager.AppManager](../../applications/app_manager/index.md#algokit_utils.applications.app_manager.AppManager) | None = None, error_transformers: list[ErrorTransformer] | None = None)
 
 A class for composing and managing Algorand transactions.
 
@@ -674,6 +677,16 @@ Supports various transaction types including payments, asset operations, applica
     defaults to using algod.suggested_params()
   * **default_validity_window** – Optional default validity window for transactions in rounds, defaults to 10
   * **app_manager** – Optional AppManager instance for compiling TEAL programs, defaults to None
+  * **error_transformers** – Optional list of error transformers to use when an error is caught in simulate or send
+
+#### register_error_transformer(transformer: ErrorTransformer) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
+
+Register a function that will be used to transform an error caught when simulating or sending.
+
+* **Parameters:**
+  **transformer** – The error transformer function
+* **Returns:**
+  The composer so you can chain method calls
 
 #### add_transaction(transaction: algosdk.transaction.Transaction, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
@@ -1110,7 +1123,7 @@ Send the transaction group to the network.
 * **Returns:**
   The transaction send results
 * **Raises:**
-  **Exception** – If the transaction fails
+  **self._transform_error** – If the transaction fails (may be transformed by error transformers)
 
 #### simulate(allow_more_logs: bool | None = None, allow_empty_signatures: bool | None = None, allow_unnamed_resources: bool | None = None, extra_opcode_budget: int | None = None, exec_trace_config: algosdk.v2client.models.SimulateTraceConfig | None = None, simulation_round: int | None = None, skip_signatures: bool | None = None) → [SendAtomicTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults)
 

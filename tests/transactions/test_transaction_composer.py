@@ -22,6 +22,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppCreateParams,
     AssetConfigParams,
     AssetCreateParams,
+    AssetTransferParams,
     PaymentParams,
     SendAtomicTransactionComposerResults,
     TransactionComposer,
@@ -430,3 +431,37 @@ def test_transactions_fails_in_debug_mode(algorand: AlgorandClient, funded_accou
         composer.send()
 
     assert f"transaction {txn2.get_txid()}: overspend" in e.value.traces[0]["failure_message"]  # type: ignore[attr-defined]
+
+
+def test_error_transformers_chaining(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    """Test that error transformers work correctly and can be chained together."""
+
+    def error_transformer_1(error: Exception) -> Exception:
+        if "missing from" in str(error):
+            return Exception("ASSET MISSING???")
+        return error
+
+    def error_transformer_2(error: Exception) -> Exception:
+        if str(error) == "ASSET MISSING???":
+            return Exception("ASSET MISSING!")
+        return error
+
+    composer = algorand.new_group()
+    composer.register_error_transformer(error_transformer_1)
+    composer.register_error_transformer(error_transformer_2)
+
+    # Add a transaction that will fail (asset transfer with non-existent asset)
+    composer.add_asset_transfer(
+        AssetTransferParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=1,
+            asset_id=1337,  # Non-existent asset
+        )
+    )
+
+    # Test that error transformation works for simulate (covers main error path)
+    with pytest.raises(Exception, match="ASSET MISSING!") as exc_info:
+        composer.simulate()
+
+    assert str(exc_info.value) == "ASSET MISSING!"

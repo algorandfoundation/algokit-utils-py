@@ -1305,10 +1305,14 @@ class AppClient:
         self._default_signer = params.default_signer
         self._approval_source_map = params.approval_source_map
         self._clear_source_map = params.clear_source_map
+        self._last_compiled: dict[str, bytes] = {}  # Track compiled programs for error filtering
         self._state_accessor = _StateAccessor(self)
         self._params_accessor = _MethodParamsBuilder(self)
         self._send_accessor = _TransactionSender(self)
         self._create_transaction_accessor = _TransactionCreator(self)
+
+        # Register the error transformer to handle app-specific logic errors
+        self._algorand.register_error_transformer(self._handle_call_errors_transform)
 
     @property
     def algorand(self) -> AlgorandClient:
@@ -1735,6 +1739,10 @@ class AppClient:
         if result.compiled_clear:
             self._clear_source_map = result.compiled_clear.source_map
 
+        # Store compiled programs for new app error filtering
+        self._last_compiled["approval"] = result.approval_program
+        self._last_compiled["clear"] = result.clear_state_program
+
         return result
 
     def clone(
@@ -1950,6 +1958,74 @@ class AppClient:
             return call()
         except Exception as e:
             raise self._expose_logic_error(e=e) from None
+
+    def _is_new_app_error_for_this_app(self, error: Exception) -> bool:
+        """Check if an error from a new app (app_id=0) is for this specific app by comparing program bytecode."""
+        if not hasattr(error, "sent_transactions") or not error.sent_transactions:
+            return False
+
+        # Find the transaction that caused the error
+        txn = None
+        for t in error.sent_transactions:
+            if hasattr(t, "get_txid") and t.get_txid() in str(error):
+                txn = t
+                break
+
+        if not txn or not hasattr(txn, "application_call"):
+            return False
+
+        def programs_defined_and_equal(a: bytes | None, b: bytes | None) -> bool:
+            if a is None or b is None:
+                return False
+            return a == b
+
+        app_call = txn.application_call
+        return programs_defined_and_equal(
+            getattr(app_call, "clear_program", None), self._last_compiled.get("clear")
+        ) and programs_defined_and_equal(
+            getattr(app_call, "approval_program", None), self._last_compiled.get("approval")
+        )
+
+    def _handle_call_errors_transform(self, error: Exception) -> Exception:
+        """Error transformer function for app-specific logic errors.
+
+        This will be called by the transaction composer when errors occur during
+        simulate or send operations to provide better error messages with source maps.
+
+        :param error: The error to potentially transform
+        :return: The transformed error if it's an app logic error, otherwise the original error
+        """
+        try:
+            # Check if this is a logic error that we can parse
+            from algokit_utils.errors.logic_error import parse_logic_error
+
+            error_details = parse_logic_error(str(error))
+            if not error_details:
+                # Not a logic error, return unchanged
+                return error
+
+            # Check if this error is for our app
+            should_transform = False
+
+            if self._app_id == 0:
+                # For new apps (app_id == 0), we can't use app ID filtering
+                # Instead check the programs to identify if this is the correct app
+                should_transform = self._is_new_app_error_for_this_app(error)
+            else:
+                # Only handle errors for this specific app
+                app_id_string = f"app={self._app_id}"
+                should_transform = app_id_string in str(error)
+
+            if not should_transform:
+                # Error is not for this app, return unchanged
+                return error
+
+            # This is a logic error for our app, transform it
+            return self._expose_logic_error(e=error)
+
+        except Exception:
+            # If transformation fails, return the original error
+            return error
 
     def _get_sender(self, sender: str | None) -> str:
         if not sender and not self._default_sender:

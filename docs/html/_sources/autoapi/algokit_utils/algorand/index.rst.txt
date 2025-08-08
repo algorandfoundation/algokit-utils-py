@@ -104,6 +104,25 @@ Module Contents
 
 
 
+   .. py:method:: register_error_transformer(transformer: algokit_utils.transactions.transaction_composer.ErrorTransformer) -> typing_extensions.Self
+
+      Register a function that will be used to transform an error caught when simulating or executing
+      composed transaction groups made from `new_group`
+
+      :param transformer: The error transformer function
+      :return: The AlgorandClient so you can chain method calls
+
+
+
+   .. py:method:: unregister_error_transformer(transformer: algokit_utils.transactions.transaction_composer.ErrorTransformer) -> typing_extensions.Self
+
+      Unregister an error transformer function
+
+      :param transformer: The error transformer function to remove
+      :return: The AlgorandClient so you can chain method calls
+
+
+
    .. py:method:: new_group() -> algokit_utils.transactions.transaction_composer.TransactionComposer
 
       Start a new `TransactionComposer` transaction group

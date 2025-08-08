@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import re
+from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
@@ -31,14 +32,16 @@ from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from algosdk.abi import Method
-    from algosdk.v2client.algod import AlgodClient
     from algosdk.v2client.models import SimulateTraceConfig
 
     from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.transaction import Arc2TransactionNote
+
+# Type for error transformer function
+# Note: The return type is Any rather than Exception to allow runtime validation
+# that the transformer actually returns an Exception instance
+ErrorTransformer = Callable[[Exception], Any]
 
 
 __all__ = [
@@ -60,6 +63,7 @@ __all__ = [
     "AssetOptOutParams",
     "AssetTransferParams",
     "BuiltTransactions",
+    "ErrorTransformer",
     "MethodCallParams",
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
@@ -78,6 +82,27 @@ __all__ = [
 MAX_TRANSACTION_GROUP_SIZE = 16
 MAX_APP_CALL_FOREIGN_REFERENCES = 8
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4
+
+
+class InvalidErrorTransformerValueError(Exception):
+    """Raised when an error transformer returns a non-error value."""
+
+    def __init__(self, original_error: Exception, value: object) -> None:
+        super().__init__(
+            f"An error transformer returned a non-error value: {value}. "
+            f"The original error before any transformation: {original_error}"
+        )
+
+
+class ErrorTransformerError(Exception):
+    """Raised when an error transformer throws an error."""
+
+    def __init__(self, original_error: Exception, cause: Exception) -> None:
+        super().__init__(
+            f"An error transformer threw an error: {cause}. "
+            f"The original error before any transformation: {original_error}"
+        )
+        self.__cause__ = cause
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -1333,6 +1358,7 @@ class TransactionComposer:
         defaults to using algod.suggested_params()
     :param default_validity_window: Optional default validity window for transactions in rounds, defaults to 10
     :param app_manager: Optional AppManager instance for compiling TEAL programs, defaults to None
+    :param error_transformers: Optional list of error transformers to use when an error is caught in simulate or send
     """
 
     def __init__(
@@ -1342,6 +1368,7 @@ class TransactionComposer:
         get_suggested_params: Callable[[], algosdk.transaction.SuggestedParams] | None = None,
         default_validity_window: int | None = None,
         app_manager: AppManager | None = None,
+        error_transformers: list[ErrorTransformer] | None = None,
     ):
         # Map of transaction index in the atc to a max logical fee.
         # This is set using the value of either maxFee or staticFee.
@@ -1355,6 +1382,35 @@ class TransactionComposer:
         self._default_validity_window: int = default_validity_window or 10
         self._default_validity_window_is_explicit: bool = default_validity_window is not None
         self._app_manager = app_manager or AppManager(algod)
+        self._error_transformers: list[ErrorTransformer] = error_transformers or []
+
+    def _transform_error(self, original_error: Exception) -> Exception:
+        """Transform an error using registered error transformers.
+
+        :param original_error: The original error to transform
+        :return: The transformed error or the original error if transformation fails
+        """
+        transformed_exception: Exception = original_error
+
+        for transformer in self._error_transformers:
+            try:
+                result = transformer(transformed_exception)
+                if not isinstance(result, Exception):
+                    return InvalidErrorTransformerValueError(original_error, result)
+                transformed_exception = result
+            except Exception as error_from_transformer:
+                return ErrorTransformerError(original_error, error_from_transformer)
+
+        return transformed_exception
+
+    def register_error_transformer(self, transformer: ErrorTransformer) -> TransactionComposer:
+        """Register a function that will be used to transform an error caught when simulating or sending.
+
+        :param transformer: The error transformer function
+        :return: The composer so you can chain method calls
+        """
+        self._error_transformers.append(transformer)
+        return self
 
     def add_transaction(
         self, transaction: algosdk.transaction.Transaction, signer: TransactionSigner | None = None
@@ -1828,7 +1884,7 @@ class TransactionComposer:
 
         :param params: Parameters for the send operation
         :return: The transaction send results
-        :raises Exception: If the transaction fails
+        :raises self._transform_error: If the transaction fails (may be transformed by error transformers)
         """
         group = self.build().transactions
 
@@ -1859,8 +1915,8 @@ class TransactionComposer:
                     max_fees=self._txn_max_fees,
                 ),
             )
-        except algosdk.error.AlgodHTTPError as e:
-            raise Exception(f"Transaction failed: {e}") from e
+        except Exception as original_error:
+            raise self._transform_error(original_error) from original_error
 
     def _handle_simulate_error(self, simulate_response: SimulateAtomicTransactionResponse) -> None:
         # const failedGroup = simulateResponse?.txnGroups[0]
@@ -1872,7 +1928,8 @@ class TransactionComposer:
                 f"Transaction failed at transaction(s) {', '.join(failed_at) if failed_at else 'N/A'} in the group. "
                 f"{failure_message}"
             )
-            raise Exception(error_message)
+            original_error = Exception(error_message)
+            raise self._transform_error(original_error) from original_error
 
     def simulate(
         self,
