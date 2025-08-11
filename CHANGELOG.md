@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v4.2.0 (2025-08-11)
+
+### Feature
+
+* Error transformers feature parity with utils-ts ([#186](https://github.com/algorandfoundation/algokit-utils-py/issues/186)) ([`74192f3`](https://github.com/algorandfoundation/algokit-utils-py/commit/74192f39c987ab1f9f7ff0ddcd7a6f682f3819c6))
+
 ## v4.1.0 (2025-06-19)
 
 ### Feature
