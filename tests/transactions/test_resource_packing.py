@@ -65,7 +65,7 @@ class BaseResourcePackerTest:
 
     def test_accounts_address_balance_invalid_ref(self, algorand: AlgorandClient) -> None:
         random_account = algorand.account.random()
-        with pytest.raises(LogicError, match=f"invalid Account reference {random_account.address}"):
+        with pytest.raises(LogicError, match=f"unavailable Account {random_account.address}"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
@@ -192,7 +192,7 @@ class BaseResourcePackerTest:
     def test_address_balance_invalid_account_reference(
         self,
     ) -> None:
-        with pytest.raises(LogicError, match="invalid Account reference"):
+        with pytest.raises(LogicError, match="unavailable Account"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
