@@ -60,3 +60,33 @@ html_static_path = ['_static']
 pygments_style = "sphinx"
 pygments_dark_style = "monokai"
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+
+# Copy images for markdown build
+import os
+import shutil
+from pathlib import Path
+
+def copy_images_for_markdown(app, exception):
+    """Copy images from source/images to markdown/images for markdown builds."""
+    if app.builder.name == 'markdown':
+        source_images = Path(app.srcdir) / 'images'
+        dest_images = Path(app.outdir) / 'images'
+        
+        if source_images.exists():
+            # Ensure destination directory exists
+            dest_images.mkdir(parents=True, exist_ok=True)
+            
+            # Copy all image files
+            for image_file in source_images.iterdir():
+                if image_file.is_file() and image_file.suffix.lower() in ['.jpg', '.jpeg', '.png', '.gif', '.svg']:
+                    shutil.copy2(image_file, dest_images / image_file.name)
+                    print(f"Copied {image_file.name} to {dest_images}")
+
+def setup(app):
+    """Sphinx extension setup function."""
+    app.connect('build-finished', copy_images_for_markdown)
+    return {
+        'version': '1.0',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
