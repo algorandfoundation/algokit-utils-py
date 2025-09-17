@@ -65,6 +65,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 import os
 import shutil
 from pathlib import Path
+from docutils import nodes
 
 def copy_images_for_markdown(app, exception):
     """Copy images from source/images to markdown/images for markdown builds."""
@@ -82,9 +83,21 @@ def copy_images_for_markdown(app, exception):
                     shutil.copy2(image_file, dest_images / image_file.name)
                     print(f"Copied {image_file.name} to {dest_images}")
 
+def fix_image_paths_in_doctree(app, doctree, docname):
+    """Fix image paths in doctree to preserve relative paths for markdown output."""
+    if app.builder.name == 'markdown':
+        for node in doctree.traverse(nodes.image):
+            if 'uri' in node:
+                uri = node['uri']
+                # If the URI was resolved from ../images/ to images/, change it back
+                if uri.startswith('images/') and not uri.startswith('../'):
+                    node['uri'] = '../' + uri
+                    print(f"Fixed image path: {uri} -> {node['uri']}")
+
 def setup(app):
     """Sphinx extension setup function."""
     app.connect('build-finished', copy_images_for_markdown)
+    app.connect('doctree-resolved', fix_image_paths_in_doctree)
     return {
         'version': '1.0',
         'parallel_read_safe': True,
