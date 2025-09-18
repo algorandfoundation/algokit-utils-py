@@ -1812,7 +1812,7 @@ class TransactionComposer:
             txn_with_signers: list[TransactionWithSignerAndContext] = []
 
             for txn in self._txns:
-                txn_with_signers.extend(self._build_txn(txn, suggested_params))
+                txn_with_signers.extend(self._build_txn(txn, suggested_params, include_signer=True))
 
             for ts in txn_with_signers:
                 self._atc.add_transaction(ts)
@@ -1852,9 +1852,9 @@ class TransactionComposer:
             txn_with_signers: list[TransactionWithSigner] = []
 
             if isinstance(txn, MethodCallParams):
-                txn_with_signers.extend(self._build_method_call(txn, suggested_params))
+                txn_with_signers.extend(self._build_method_call(txn, suggested_params, include_signer=False))
             else:
-                txn_with_signers.extend(self._build_txn(txn, suggested_params))
+                txn_with_signers.extend(self._build_txn(txn, suggested_params, include_signer=False))
 
             for ts in txn_with_signers:
                 transactions.append(ts.txn)
@@ -2129,7 +2129,11 @@ class TransactionComposer:
         )
 
     def _build_method_call(  # noqa: C901, PLR0912, PLR0915
-        self, params: MethodCallParams, suggested_params: algosdk.transaction.SuggestedParams
+        self,
+        params: MethodCallParams,
+        suggested_params: algosdk.transaction.SuggestedParams,
+        *,
+        include_signer: bool,
     ) -> list[TransactionWithSignerAndContext]:
         method_args: list[ABIValue | TransactionWithSigner] = []
         txns_for_group: list[TransactionWithSignerAndContext] = []
@@ -2159,7 +2163,9 @@ class TransactionComposer:
                     method_args.append(
                         TransactionWithSignerAndContext(
                             txn=arg,
-                            signer=signer if signer is not None else self._get_signer(params.sender),
+                            signer=signer
+                            if signer is not None
+                            else (NULL_SIGNER if not include_signer else self._get_signer(params.sender)),
                             context=TransactionContext(abi_method=None),
                         )
                     )
@@ -2171,7 +2177,9 @@ class TransactionComposer:
                         | AppUpdateMethodCallParams()
                         | AppDeleteMethodCallParams()
                     ):
-                        temp_txn_with_signers = self._build_method_call(arg, suggested_params)
+                        temp_txn_with_signers = self._build_method_call(
+                            arg, suggested_params, include_signer=include_signer
+                        )
                         # Add all transactions except the last one in reverse order
                         txns_for_group.extend(temp_txn_with_signers[:-1])
                         # Add the last transaction to method_args
@@ -2208,7 +2216,7 @@ class TransactionComposer:
                 method_args.append(
                     TransactionWithSignerAndContext(
                         txn=txn.txn,
-                        signer=signer or self._get_signer(params.sender),
+                        signer=signer or (NULL_SIGNER if not include_signer else self._get_signer(params.sender)),
                         context=TransactionContext(abi_method=params.method),
                     )
                 )
@@ -2255,7 +2263,8 @@ class TransactionComposer:
             "sp": suggested_params,
             "signer": params.signer
             if params.signer is not None
-            else self._get_signer(params.sender) or algosdk.atomic_transaction_composer.EmptySigner(),
+            else (NULL_SIGNER if not include_signer else self._get_signer(params.sender))
+            or algosdk.atomic_transaction_composer.EmptySigner(),
             "method_args": list(reversed(method_args)),
             "on_complete": params.on_complete or algosdk.transaction.OnComplete.NoOpOC,
             "boxes": [AppManager.get_box_reference(ref) for ref in params.box_references]
@@ -2496,6 +2505,8 @@ class TransactionComposer:
         self,
         txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
         suggested_params: algosdk.transaction.SuggestedParams,
+        *,
+        include_signer: bool,
     ) -> list[TransactionWithSignerAndContext]:
         match txn:
             case TransactionWithSigner():
@@ -2505,7 +2516,7 @@ class TransactionComposer:
             case AtomicTransactionComposer():
                 return self._build_atc(txn)
             case algosdk.transaction.Transaction():
-                signer = self._get_signer(txn.sender)
+                signer = NULL_SIGNER if not include_signer else self._get_signer(txn.sender)
                 return [TransactionWithSignerAndContext(txn=txn, signer=signer, context=TransactionContext.empty())]
             case (
                 AppCreateMethodCallParams()
@@ -2513,10 +2524,10 @@ class TransactionComposer:
                 | AppUpdateMethodCallParams()
                 | AppDeleteMethodCallParams()
             ):
-                return self._build_method_call(txn, suggested_params)
+                return self._build_method_call(txn, suggested_params, include_signer=include_signer)
 
         signer = txn.signer.signer if isinstance(txn.signer, TransactionSignerAccountProtocol) else txn.signer  # type: ignore[assignment]
-        signer = signer or self._get_signer(txn.sender)
+        signer = signer or (NULL_SIGNER if not include_signer else self._get_signer(txn.sender))
 
         match txn:
             case PaymentParams():
