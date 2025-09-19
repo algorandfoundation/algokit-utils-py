@@ -27,11 +27,12 @@ templates_path = ['_templates']
 exclude_patterns = []
 
 autoapi_dirs = ['../../src/algokit_utils']
-autoapi_options = ['members', 
-                   'undoc-members',  
-                   'show-inheritance', 
-                   'show-module-summary', 
+autoapi_options = ['members',
+                   'undoc-members',
+                   'show-inheritance',
+                   'show-module-summary',
                    ]
+autoapi_own_page_level = 'class'  # Even flatter structure - consolidates more content per page
 
 autoapi_ignore = ['*algokit_utils/beta/__init__.py', 
                   '*algokit_utils/beta/account_manager.py', 

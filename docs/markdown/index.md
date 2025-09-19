@@ -178,7 +178,7 @@ The AlgoKit Utils configuration singleton can be updated using `config.configure
 
 ## Logging
 
-AlgoKit has an in-built logging abstraction through the [`algokit_utils.config.AlgoKitLogger`](autoapi/algokit_utils/config/index.md#algokit_utils.config.AlgoKitLogger) class that provides standardized logging capabilities. The logger is accessible through the `config.logger` property and provides various logging levels.
+AlgoKit has an in-built logging abstraction through the [`algokit_utils.config.AlgoKitLogger`](autoapi/algokit_utils/config/AlgoKitLogger.md#algokit_utils.config.AlgoKitLogger) class that provides standardized logging capabilities. The logger is accessible through the `config.logger` property and provides various logging levels.
 
 Each method supports optional suppression of output using the `suppress_log` parameter.
 
