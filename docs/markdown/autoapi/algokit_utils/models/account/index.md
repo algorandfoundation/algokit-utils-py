@@ -1,10 +1,5 @@
 # algokit_utils.models.account
 
-## Attributes
-
-| [`DISPENSER_ACCOUNT_NAME`](#algokit_utils.models.account.DISPENSER_ACCOUNT_NAME)   |    |
-|------------------------------------------------------------------------------------|----|
-
 ## Classes
 
 | [`TransactionSignerAccount`](TransactionSignerAccount.md#algokit_utils.models.account.TransactionSignerAccount)   | A basic transaction signer account.                             |

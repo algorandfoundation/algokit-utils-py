@@ -1,21 +1,9 @@
 # algokit_utils.models.amount
 
-## Attributes
-
-| [`ALGORAND_MIN_TX_FEE`](#algokit_utils.models.amount.ALGORAND_MIN_TX_FEE)   |    |
-|-----------------------------------------------------------------------------|----|
-
 ## Classes
 
 | [`AlgoAmount`](AlgoAmount.md#algokit_utils.models.amount.AlgoAmount)   | Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.   |
 |------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-
-## Functions
-
-| [`algo`](#algokit_utils.models.amount.algo)(→ AlgoAmount)                         | Create an AlgoAmount object representing the given number of Algo.       |
-|-----------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`micro_algo`](#algokit_utils.models.amount.micro_algo)(→ AlgoAmount)             | Create an AlgoAmount object representing the given number of µAlgo.      |
-| [`transaction_fees`](#algokit_utils.models.amount.transaction_fees)(→ AlgoAmount) | Calculate the total transaction fees for a given number of transactions. |
 
 ## Module Contents
 

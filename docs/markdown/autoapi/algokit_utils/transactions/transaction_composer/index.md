@@ -1,13 +1,5 @@
 # algokit_utils.transactions.transaction_composer
 
-## Attributes
-
-| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                 |    |
-|-------------------------------------------------------------------------------------------------------------------------|----|
-| [`MethodCallParams`](#algokit_utils.transactions.transaction_composer.MethodCallParams)                                 |    |
-| [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument) |    |
-| [`TxnParams`](#algokit_utils.transactions.transaction_composer.TxnParams)                                               |    |
-
 ## Classes
 
 | [`PaymentParams`](PaymentParams.md#algokit_utils.transactions.transaction_composer.PaymentParams)                                                                      | Parameters for a payment transaction.                                |
@@ -34,14 +26,6 @@
 | [`TransactionComposerBuildResult`](TransactionComposerBuildResult.md#algokit_utils.transactions.transaction_composer.TransactionComposerBuildResult)                   | Result of building transactions with TransactionComposer.            |
 | [`SendAtomicTransactionComposerResults`](SendAtomicTransactionComposerResults.md#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults) | Results from sending an AtomicTransactionComposer transaction group. |
 | [`TransactionComposer`](TransactionComposer.md#algokit_utils.transactions.transaction_composer.TransactionComposer)                                                    | A class for composing and managing Algorand transactions.            |
-
-## Functions
-
-| [`calculate_extra_program_pages`](#algokit_utils.transactions.transaction_composer.calculate_extra_program_pages)(→ int)     | Calculate minimum number of extra_pages required for provided approval and clear programs                  |
-|------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| [`populate_app_call_resources`](#algokit_utils.transactions.transaction_composer.populate_app_call_resources)(...)           | Populate application call resources based on simulation results.                                           |
-| [`prepare_group_for_sending`](#algokit_utils.transactions.transaction_composer.prepare_group_for_sending)(...)               | Take an existing Atomic Transaction Composer and return a new one with changes applied to the transactions |
-| [`send_atomic_transaction_composer`](#algokit_utils.transactions.transaction_composer.send_atomic_transaction_composer)(...) | Send an AtomicTransactionComposer transaction group.                                                       |
 
 ## Module Contents
 

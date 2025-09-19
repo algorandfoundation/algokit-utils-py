@@ -1,10 +1,5 @@
 # algokit_utils.applications.app_client
 
-## Attributes
-
-| [`CreateOnComplete`](#algokit_utils.applications.app_client.CreateOnComplete)   |    |
-|---------------------------------------------------------------------------------|----|
-
 ## Classes
 
 | [`AppClientCompilationResult`](AppClientCompilationResult.md#algokit_utils.applications.app_client.AppClientCompilationResult)                | Result of compiling an application's TEAL code.                       |
@@ -21,11 +16,6 @@
 | [`AppClientMethodCallCreateParams`](AppClientMethodCallCreateParams.md#algokit_utils.applications.app_client.AppClientMethodCallCreateParams) | Parameters for creating application with method call                  |
 | [`AppClientParams`](AppClientParams.md#algokit_utils.applications.app_client.AppClientParams)                                                 | Full parameters for creating an app client                            |
 | [`AppClient`](AppClient.md#algokit_utils.applications.app_client.AppClient)                                                                   | A client for interacting with an Algorand smart contract application. |
-
-## Functions
-
-| [`get_constant_block_offset`](#algokit_utils.applications.app_client.get_constant_block_offset)(→ int)   | Calculate the offset after constant blocks in TEAL program.   |
-|----------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
 
 ## Module Contents
 

@@ -1,12 +1,5 @@
 # algokit_utils.clients.dispenser_api_client
 
-## Attributes
-
-| [`DISPENSER_ASSETS`](#algokit_utils.clients.dispenser_api_client.DISPENSER_ASSETS)                     |    |
-|--------------------------------------------------------------------------------------------------------|----|
-| [`DISPENSER_REQUEST_TIMEOUT`](#algokit_utils.clients.dispenser_api_client.DISPENSER_REQUEST_TIMEOUT)   |    |
-| [`DISPENSER_ACCESS_TOKEN_KEY`](#algokit_utils.clients.dispenser_api_client.DISPENSER_ACCESS_TOKEN_KEY) |    |
-
 ## Classes
 
 | [`DispenserApiConfig`](DispenserApiConfig.md#algokit_utils.clients.dispenser_api_client.DispenserApiConfig)                      |                                                                                                                                                                                                                              |

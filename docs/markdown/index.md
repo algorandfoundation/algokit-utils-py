@@ -99,8 +99,6 @@ If you prefer TypeScript there’s an equivalent [TypeScript utility library](ht
   * [Breaking Changes](v3-migration-guide.md#breaking-changes)
   * [Best Practices](v3-migration-guide.md#best-practices)
   * [Troubleshooting](v3-migration-guide.md#troubleshooting)
-* [API Reference](autoapi/index.md)
-  * [algokit_utils](autoapi/algokit_utils/index.md)
 
 <a id="core-principles"></a>
 
@@ -164,7 +162,7 @@ AlgoKit Utils provides a dedicated documentation page on various useful snippets
 
 The library leverages Python’s native type hints and is fully compatible with [MyPy](https://mypy-lang.org/) for static type checking.
 
-All public abstractions and methods are organized in logical modules matching their domain functionality. You can import types either directly from the root module or from their source submodules. Refer to [API documentation](autoapi/index.md) for more details.
+All public abstractions and methods are organized in logical modules matching their domain functionality. You can import types either directly from the root module or from their source submodules. Refer to [API documentation]() for more details.
 
 <a id="config-logging"></a>
 

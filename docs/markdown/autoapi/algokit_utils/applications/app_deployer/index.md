@@ -1,10 +1,5 @@
 # algokit_utils.applications.app_deployer
 
-## Attributes
-
-| [`APP_DEPLOY_NOTE_DAPP`](#algokit_utils.applications.app_deployer.APP_DEPLOY_NOTE_DAPP)   |    |
-|-------------------------------------------------------------------------------------------|----|
-
 ## Classes
 
 | [`AppDeploymentMetaData`](AppDeploymentMetaData.md#algokit_utils.applications.app_deployer.AppDeploymentMetaData)   | Metadata about an application stored in a transaction note during creation.   |

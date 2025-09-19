@@ -1,29 +1,10 @@
 # algokit_utils.applications.abi
 
-## Attributes
-
-| [`ABIValue`](#algokit_utils.applications.abi.ABIValue)                         |    |
-|--------------------------------------------------------------------------------|----|
-| [`ABIStruct`](#algokit_utils.applications.abi.ABIStruct)                       |    |
-| [`Arc56ReturnValueType`](#algokit_utils.applications.abi.Arc56ReturnValueType) |    |
-| [`ABIType`](#algokit_utils.applications.abi.ABIType)                           |    |
-| [`ABIArgumentType`](#algokit_utils.applications.abi.ABIArgumentType)           |    |
-
 ## Classes
 
 | [`ABIReturn`](ABIReturn.md#algokit_utils.applications.abi.ABIReturn)       | Represents the return value from an ABI method call.   |
 |----------------------------------------------------------------------------|--------------------------------------------------------|
 | [`BoxABIValue`](BoxABIValue.md#algokit_utils.applications.abi.BoxABIValue) | Represents an ABI value stored in a box.               |
-
-## Functions
-
-| [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)                                          | Gets the ARC-56 formatted return value from an ABI return.   |
-|---------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| [`get_abi_encoded_value`](#algokit_utils.applications.abi.get_abi_encoded_value)(→ bytes)                                             | Encodes a value according to its ABI type.                   |
-| [`get_abi_decoded_value`](#algokit_utils.applications.abi.get_abi_decoded_value)(→ ABIValue)                                          | Decodes a value according to its ABI type.                   |
-| [`get_abi_tuple_from_abi_struct`](#algokit_utils.applications.abi.get_abi_tuple_from_abi_struct)(→ list[Any])                         | Converts an ABI struct to a tuple representation.            |
-| [`get_abi_tuple_type_from_abi_struct_definition`](#algokit_utils.applications.abi.get_abi_tuple_type_from_abi_struct_definition)(...) | Creates a TupleType from a struct definition.                |
-| [`get_abi_struct_from_abi_tuple`](#algokit_utils.applications.abi.get_abi_struct_from_abi_tuple)(→ dict[str, Any])                    | Converts a decoded tuple to an ABI struct.                   |
 
 ## Module Contents
 

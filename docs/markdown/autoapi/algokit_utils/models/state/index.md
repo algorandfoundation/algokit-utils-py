@@ -1,11 +1,5 @@
 # algokit_utils.models.state
 
-## Attributes
-
-| [`TealTemplateParams`](#algokit_utils.models.state.TealTemplateParams)   |    |
-|--------------------------------------------------------------------------|----|
-| [`BoxIdentifier`](#algokit_utils.models.state.BoxIdentifier)             |    |
-
 ## Classes
 
 | [`BoxName`](BoxName.md#algokit_utils.models.state.BoxName)                | The name of the box                                                   |

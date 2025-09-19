@@ -1,14 +1,5 @@
 # algokit_utils.applications.app_spec.arc32
 
-## Attributes
-
-| [`AppSpecStateDict`](#algokit_utils.applications.app_spec.arc32.AppSpecStateDict)         | Type defining Application Specification state entries                                                           |
-|-------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| [`OnCompleteActionName`](#algokit_utils.applications.app_spec.arc32.OnCompleteActionName) | String literals representing on completion transaction types                                                    |
-| [`MethodConfigDict`](#algokit_utils.applications.app_spec.arc32.MethodConfigDict)         | Dictionary of dict[OnCompletionActionName, CallConfig] representing allowed actions for each on completion type |
-| [`DefaultArgumentType`](#algokit_utils.applications.app_spec.arc32.DefaultArgumentType)   | Literal values describing the types of default argument sources                                                 |
-| [`StateDict`](#algokit_utils.applications.app_spec.arc32.StateDict)                       |                                                                                                                 |
-
 ## Classes
 
 | [`CallConfig`](CallConfig.md#algokit_utils.applications.app_spec.arc32.CallConfig)                            | Describes the type of calls a method can be used for based on {py:class}\`algosdk.transaction.OnComplete\` type   |

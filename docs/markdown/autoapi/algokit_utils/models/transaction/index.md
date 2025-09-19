@@ -1,12 +1,5 @@
 # algokit_utils.models.transaction
 
-## Attributes
-
-| [`Arc2TransactionNote`](#algokit_utils.models.transaction.Arc2TransactionNote)   |    |
-|----------------------------------------------------------------------------------|----|
-| [`TransactionNoteData`](#algokit_utils.models.transaction.TransactionNoteData)   |    |
-| [`TransactionNote`](#algokit_utils.models.transaction.TransactionNote)           |    |
-
 ## Classes
 
 | [`BaseArc2Note`](BaseArc2Note.md#algokit_utils.models.transaction.BaseArc2Note)                         | Base ARC-0002 transaction note structure                                         |

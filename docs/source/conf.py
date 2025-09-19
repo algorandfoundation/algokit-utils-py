@@ -30,9 +30,10 @@ autoapi_dirs = ['../../src/algokit_utils']
 autoapi_options = ['members',
                    'undoc-members',
                    'show-inheritance',
-                   'show-module-summary',
+                   # Removed 'show-module-summary' to reduce index.md files
                    ]
 autoapi_own_page_level = 'class'  # Even flatter structure - consolidates more content per page
+autoapi_add_toctree_entry = False  # Don't add to main TOC, we'll handle this manually
 
 autoapi_ignore = ['*algokit_utils/beta/__init__.py', 
                   '*algokit_utils/beta/account_manager.py', 
