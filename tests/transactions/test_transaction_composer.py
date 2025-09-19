@@ -247,6 +247,61 @@ def test_simulate(algorand: AlgorandClient, funded_account: SigningAccount) -> N
     assert simulate_response
 
 
+def test_simulate_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
+    """Test that simulate works without a signer being available when skip_signatures=True."""
+
+    # No signer is loaded for funded_secondary_account
+    composer = algorand.new_group()
+    composer.add_payment(
+        PaymentParams(
+            sender=funded_secondary_account.address,
+            receiver=funded_secondary_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+
+    simulate_response = composer.simulate(skip_signatures=True)
+    assert simulate_response
+    assert len(simulate_response.transactions) == 1
+
+
+def test_build_transactions_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
+    """Test that build_transactions work without a signer being available"""
+
+    # No signer is loaded for funded_secondary_account
+    composer = algorand.new_group()
+    composer.add_payment(
+        PaymentParams(
+            sender=funded_secondary_account.address,
+            receiver=funded_secondary_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+
+    built = composer.build_transactions()
+    assert len(built.transactions) == 1
+    assert len(built.signers) == 0
+
+
+def test_fails_to_build_without_signers(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
+    """Test that build does not work without a signer being available"""
+
+    # No signer is loaded for funded_secondary_account
+    composer = algorand.new_group()
+    composer.add_payment(
+        PaymentParams(
+            sender=funded_secondary_account.address,
+            receiver=funded_secondary_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+
+    with pytest.raises(Exception) as e:  # noqa: PT011
+        composer.build()
+
+    assert str(e.value) == f"No signer found for address {funded_secondary_account.address}"
+
+
 def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     composer = TransactionComposer(
         algod=algorand.client.algod,
