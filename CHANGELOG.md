@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v4.2.1 (2025-09-19)
+
+### Fix
+
+* Allow simulating with empty signatures like TS supports ([#196](https://github.com/algorandfoundation/algokit-utils-py/issues/196)) ([`44bd2b9`](https://github.com/algorandfoundation/algokit-utils-py/commit/44bd2b9d0000c319a034df4a39548bc50f15f721))
+* Support for 4.3.0 go algorand access lists feature ([`be32a9b`](https://github.com/algorandfoundation/algokit-utils-py/commit/be32a9b9fcecf7b493fe8b1b7ef94914a70de293))
+
+### Documentation
+
+* Fix image path ([`a808f1c`](https://github.com/algorandfoundation/algokit-utils-py/commit/a808f1c096706c6f9013236b5afb4803a659c40e))
+* Resolve broken image in md docs build ([`16be976`](https://github.com/algorandfoundation/algokit-utils-py/commit/16be97633904928ad8bb98a4eea7535a241f57c5))
+
 ## v4.2.0 (2025-08-11)
 
 ### Feature
