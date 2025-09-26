@@ -358,7 +358,7 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
     )
 
     assert isinstance(call.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]
+    assert call.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
 
     # Test with string box reference
     call2 = test_app_client.create_transaction.call(
@@ -370,7 +370,7 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
     )
 
     assert isinstance(call2.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call2.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]
+    assert call2.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
 
 
 def test_construct_transaction_with_abi_encoding_including_transaction(
