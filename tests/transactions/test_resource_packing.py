@@ -11,6 +11,7 @@ from algokit_utils.applications.app_client import AppClient, AppClientMethodCall
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
 @pytest.fixture
@@ -404,3 +405,26 @@ class TestResourcePackerMeta:
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
         assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
+
+    def test_create_box_in_new_app(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+        self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_000)))
+
+        result = self.external_client.send.call(
+            AppClientMethodCallParams(
+                method="createBoxInNewApp",
+                args=[
+                    algorand.create_transaction.payment(
+                        PaymentParams(
+                            sender=funded_account.address,
+                            receiver=self.external_client.app_address,
+                            amount=AlgoAmount.from_algo(1),
+                        )
+                    )
+                ],
+                static_fee=AlgoAmount.from_micro_algo(4_000),
+            ),
+        )
+
+        box_ref = result.transaction.application_call.boxes[0] if result.transaction.application_call.boxes else None
+        assert box_ref is not None
+        assert box_ref.app_index == 0  # type: ignore
