@@ -427,4 +427,4 @@ class TestResourcePackerMeta:
 
         box_ref = result.transaction.application_call.boxes[0] if result.transaction.application_call.boxes else None
         assert box_ref is not None
-        assert box_ref.app_index == 0  # type: ignore
+        assert box_ref.app_index == 0  # type: ignore  # noqa: PGH003
