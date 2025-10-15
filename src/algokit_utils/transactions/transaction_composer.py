@@ -1041,13 +1041,15 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
             foreign_apps.append(app_id)
             app_txn.foreign_apps = foreign_apps
         elif ref_type == "box":
+            # ensure app_id is added before calling translate_box_reference
+            app_id = box_ref[0]
+            if app_id != 0:
+                foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
+                foreign_apps.append(app_id)
+                app_txn.foreign_apps = foreign_apps
             boxes = list(getattr(app_txn, "boxes", []) or [])
             boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))  # type: ignore[arg-type]
             app_txn.boxes = boxes
-            if box_ref[0] != 0:
-                foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
-                foreign_apps.append(box_ref[0])
-                app_txn.foreign_apps = foreign_apps
         elif ref_type == "asset":
             asset_id = int(cast(str | int, reference))
             foreign_assets = list(getattr(app_txn, "foreign_assets", []) or [])
