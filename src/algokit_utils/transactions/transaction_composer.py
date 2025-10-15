@@ -667,7 +667,7 @@ def _encode_lease(lease: str | bytes | None) -> bytes | None:
         raise TypeError(f"Unknown lease type received of {type(lease)}")
 
 
-def _get_group_execution_info(  # noqa: C901
+def _get_group_execution_info(
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
@@ -736,27 +736,12 @@ def _get_group_execution_info(  # noqa: C901
 
         required_fee_delta = 0
         if cover_app_call_inner_transaction_fees:
-            # Calculate parent transaction fee
-            parent_per_byte_fee = per_byte_txn_fee * (original_txn.estimate_size() + 75)
-            parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
-            parent_fee_delta = parent_min_fee - original_txn.fee
-
-            if isinstance(original_txn, algosdk.transaction.ApplicationCallTxn):
-                # Calculate inner transaction fees recursively
-                def calculate_inner_fee_delta(inner_txns: list[dict], acc: int = 0) -> int:
-                    for inner_txn in reversed(inner_txns):
-                        current_fee_delta = (
-                            calculate_inner_fee_delta(inner_txn["inner-txns"], acc)
-                            if inner_txn.get("inner-txns")
-                            else acc
-                        ) + (min_txn_fee - inner_txn["txn"]["txn"].get("fee", 0))
-                        acc = max(0, current_fee_delta)
-                    return acc
-
-                inner_fee_delta = calculate_inner_fee_delta(txn_result.get("inner-txns", []))
-                required_fee_delta = inner_fee_delta + parent_fee_delta
-            else:
-                required_fee_delta = parent_fee_delta
+            required_fee_delta = _calculate_required_fee_delta(
+                original_txn,
+                txn_result,
+                per_byte_txn_fee=per_byte_txn_fee,
+                min_txn_fee=min_txn_fee,
+            )
 
         txn_results.append(
             ExecutionInfoTxn(
@@ -803,6 +788,30 @@ def _handle_simulation_error(
         f"Error resolving execution info via simulate in transaction {failed_at}: "
         f"{group_response['failure-message']}{details}"
     )
+
+
+def _calculate_required_fee_delta(
+    original_txn: transaction.Transaction, txn_result: dict[str, Any], *, per_byte_txn_fee: int, min_txn_fee: int
+) -> int:
+    # Calculate parent transaction fee
+    parent_per_byte_fee = per_byte_txn_fee * (original_txn.estimate_size() + 75)
+    parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
+    parent_fee_delta = parent_min_fee - original_txn.fee
+
+    if isinstance(original_txn, algosdk.transaction.ApplicationCallTxn):
+        # Calculate inner transaction fees recursively
+        def calculate_inner_fee_delta(inner_txns: list[dict], acc: int = 0) -> int:
+            for inner_txn in reversed(inner_txns):
+                current_fee_delta = (
+                    calculate_inner_fee_delta(inner_txn["inner-txns"], acc) if inner_txn.get("inner-txns") else acc
+                ) + (min_txn_fee - inner_txn["txn"]["txn"].get("fee", 0))
+                acc = max(0, current_fee_delta)
+            return acc
+
+        inner_fee_delta = calculate_inner_fee_delta(txn_result.get("inner-txns", []))
+        return inner_fee_delta + parent_fee_delta
+    else:
+        return parent_fee_delta
 
 
 def _find_available_transaction_index(
