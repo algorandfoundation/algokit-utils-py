@@ -711,10 +711,6 @@ def _get_group_execution_info(
             f"Required for transactions: {', '.join(str(i) for i in app_call_indexes_without_max_fees)}"
         )
 
-    # Get fee parameters
-    per_byte_txn_fee = suggested_params.fee if suggested_params else 0
-    min_txn_fee = int(suggested_params.min_fee) if suggested_params else 1000  # type: ignore[unused-ignore]
-
     # Simulate transactions
     result = empty_signer_atc.simulate(algod, simulate_request)
 
@@ -739,8 +735,8 @@ def _get_group_execution_info(
             required_fee_delta = _calculate_required_fee_delta(
                 original_txn,
                 txn_result,
-                per_byte_txn_fee=per_byte_txn_fee,
-                min_txn_fee=min_txn_fee,
+                per_byte_txn_fee=suggested_params.fee if suggested_params else 0,
+                min_txn_fee=int(suggested_params.min_fee) if suggested_params else 1000,
             )
 
         txn_results.append(
@@ -791,14 +787,18 @@ def _handle_simulation_error(
 
 
 def _calculate_required_fee_delta(
-    original_txn: transaction.Transaction, txn_result: dict[str, Any], *, per_byte_txn_fee: int, min_txn_fee: int
+    txn: transaction.Transaction, txn_result: dict[str, Any], *, per_byte_txn_fee: int, min_txn_fee: int
 ) -> int:
     # Calculate parent transaction fee
-    parent_per_byte_fee = per_byte_txn_fee * (original_txn.estimate_size() + 75)
+    original_txn_size = txn.estimate_size()
+    assert isinstance(original_txn_size, int), "expected txn size to be an int"
+    parent_per_byte_fee = per_byte_txn_fee * (original_txn_size + 75)
     parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
-    parent_fee_delta = parent_min_fee - original_txn.fee
+    original_txn_fee = txn.fee
+    assert isinstance(original_txn_fee, int), "expected original txn fee to be an int"
+    parent_fee_delta = parent_min_fee - original_txn_fee
 
-    if isinstance(original_txn, algosdk.transaction.ApplicationCallTxn):
+    if isinstance(txn, algosdk.transaction.ApplicationCallTxn):
         # Calculate inner transaction fees recursively
         def calculate_inner_fee_delta(inner_txns: list[dict], acc: int = 0) -> int:
             for inner_txn in reversed(inner_txns):
