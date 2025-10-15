@@ -8,6 +8,7 @@ import algosdk
 import pytest
 from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
+from algokit_utils import SendParams
 from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
@@ -167,44 +168,15 @@ def testing_app_puya_arc32_app_spec() -> ApplicationSpecification:
 
 
 @pytest.fixture
-def testing_app_puya_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: ApplicationSpecification
-) -> int:
-    global_schema = testing_app_puya_arc32_app_spec.global_state_schema
-    local_schema = testing_app_puya_arc32_app_spec.local_state_schema
-
-    response = algorand.send.app_create(
-        AppCreateParams(
-            sender=funded_account.address,
-            approval_program=testing_app_puya_arc32_app_spec.approval_program,
-            clear_state_program=testing_app_puya_arc32_app_spec.clear_program,
-            schema={
-                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
-                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
-                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-            },
-        )
-    )
-    return response.app_id
-
-
-@pytest.fixture
 def test_app_client_puya(
-    algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    testing_app_puya_arc32_app_spec: ApplicationSpecification,
-    testing_app_puya_arc32_app_id: int,
+    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: ApplicationSpecification
 ) -> AppClient:
-    return AppClient(
-        AppClientParams(
-            default_sender=funded_account.address,
-            default_signer=funded_account.signer,
-            app_id=testing_app_puya_arc32_app_id,
-            algorand=algorand,
-            app_spec=testing_app_puya_arc32_app_spec,
-        )
+    factory = algorand.client.get_app_factory(
+        app_spec=testing_app_puya_arc32_app_spec,
+        default_sender=funded_account.address,
     )
+    app_client, _ = factory.send.bare.create()
+    return app_client
 
 
 def test_clone_overriding_default_sender_and_inheriting_app_name(
@@ -707,6 +679,29 @@ def test_box_methods_with_arc4_returns_parametrized(
         )
         assert len(abi_decoded_boxes) == 1
         assert abi_decoded_boxes[0].value == arg_value
+
+
+@pytest.mark.parametrize(
+    "populate",
+    [
+        True,
+        # False, # enable this test once rejected transactions contain pc information
+    ],
+)
+def test_txn_with_reject(test_app_client_puya: AppClient, *, populate: bool) -> None:
+    with pytest.raises(LogicError, match="expect this txn to be rejected"):
+        test_app_client_puya.send.call(
+            AppClientMethodCallParams(method="rejected"), send_params=SendParams(populate_app_call_resources=populate)
+        )
+
+
+@pytest.mark.parametrize("populate", [True, False])
+def test_txn_with_logic_err(test_app_client_puya: AppClient, *, populate: bool) -> None:
+    with pytest.raises(LogicError, match="expect this to be a logic err") as exc:
+        test_app_client_puya.send.call(
+            AppClientMethodCallParams(method="logic_err"), send_params=SendParams(populate_app_call_resources=populate)
+        )
+    assert exc
 
 
 def test_abi_with_default_arg_method(
