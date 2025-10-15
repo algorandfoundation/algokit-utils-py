@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v4.2.2 (2025-10-15)
+
+### Fix
+
+* Extract pc from simulation trace for rejected transactions during simulation ([`9c4fe83`](https://github.com/algorandfoundation/algokit-utils-py/commit/9c4fe83f5a30d14a0b6b1fe55c494f4d8b128373))
+* Add app id first when populating a box ref ([`e8f9317`](https://github.com/algorandfoundation/algokit-utils-py/commit/e8f9317932350fa9bb7a12492969794a3d89d1dc))
+
 ## v4.2.1 (2025-09-19)
 
 ### Fix
