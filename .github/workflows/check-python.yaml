@@ -23,14 +23,16 @@ jobs:
 
       - name: Audit with pip-audit
         run: |
+          # GHSA-4xh5-x5gv-qwph is safe to ignore since we are using a python version that is not affected
+          #                     can remove once pip has fix
           # audit non dev dependencies, no exclusions
-          poetry export --without=dev > requirements.txt && poetry run pip-audit -r requirements.txt
+          poetry export --without=dev > requirements.txt && poetry run pip-audit -r requirements.txt --ignore-vuln GHSA-4xh5-x5gv-qwph 
 
           # audit all dependencies, with exclusions. 
           # If a vulnerability is found in a dev dependency without an available fix,
           # it can be temporarily ignored by adding --ignore-vuln e.g.
           # --ignore-vuln "GHSA-hcpj-qp55-gfph" # GitPython vulnerability, dev only dependency
-          poetry run pip-audit
+          poetry run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph 
 
       - name: Check formatting with Ruff
         run: |
