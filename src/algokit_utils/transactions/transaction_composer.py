@@ -21,7 +21,7 @@ from algosdk.atomic_transaction_composer import (
 from algosdk.transaction import OnComplete, SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.models.simulate_request import SimulateRequest
-from typing_extensions import deprecated
+from typing_extensions import Never, deprecated
 
 from algokit_utils.applications.abi import ABIReturn, ABIValue
 from algokit_utils.applications.app_manager import AppManager
@@ -667,7 +667,7 @@ def _encode_lease(lease: str | bytes | None) -> bytes | None:
         raise TypeError(f"Unknown lease type received of {type(lease)}")
 
 
-def _get_group_execution_info(  # noqa: C901, PLR0912
+def _get_group_execution_info(  # noqa: C901
     atc: AtomicTransactionComposer,
     algod: AlgodClient,
     populate_app_call_resources: bool | None = None,
@@ -682,6 +682,7 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
         txn_groups=[],
         allow_unnamed_resources=True,
         allow_empty_signatures=True,
+        exec_trace_config=algosdk.v2client.models.SimulateTraceConfig(enable=True),
     )
 
     # Clone ATC with null signers
@@ -720,16 +721,8 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
     group_response = result.simulate_response["txn-groups"][0]
 
     if group_response.get("failure-message"):
-        msg = group_response["failure-message"]
-        if cover_app_call_inner_transaction_fees and "fee too small" in msg:
-            raise ValueError(
-                "Fees were too small to resolve execution info via simulate. "
-                "You may need to increase an app call transaction maxFee."
-            )
-        failed_at = group_response.get("failed-at", [0])[0]
-        raise ValueError(
-            f"Error resolving execution info via simulate in transaction {failed_at}: "
-            f"{group_response['failure-message']}"
+        _handle_simulation_error(
+            group_response, cover_app_call_inner_transaction_fees=cover_app_call_inner_transaction_fees
         )
 
     # Build execution info
@@ -779,6 +772,36 @@ def _get_group_execution_info(  # noqa: C901, PLR0912
         if populate_app_call_resources
         else None,
         txns=txn_results,
+    )
+
+
+def _handle_simulation_error(
+    group_response: dict[str, Any], *, cover_app_call_inner_transaction_fees: bool | None
+) -> Never:
+    msg = group_response["failure-message"]
+    if cover_app_call_inner_transaction_fees and "fee too small" in msg:
+        raise ValueError(
+            "Fees were too small to resolve execution info via simulate. "
+            "You may need to increase an app call transaction maxFee."
+        )
+    failed_at = group_response.get("failed-at", [0])[0]
+    details = ""
+    if "logic eval error" not in msg:
+        # extract last pc from trace so we can format an error that can be parsed into a LogicError
+        try:
+            trace = group_response["txn-results"][failed_at]["exec-trace"]
+        except (KeyError, IndexError):
+            pass
+        else:
+            try:
+                program_trace = trace["approval-program-trace"]
+            except KeyError:
+                program_trace = trace["clear-program-trace"]
+            pc = program_trace[-1]["pc"]
+            details = f". Details: pc={pc}"
+    raise ValueError(
+        f"Error resolving execution info via simulate in transaction {failed_at}: "
+        f"{group_response['failure-message']}{details}"
     )
 
 
