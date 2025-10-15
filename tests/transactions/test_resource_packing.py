@@ -428,3 +428,28 @@ class TestResourcePackerMeta:
         box_ref = result.transaction.application_call.boxes[0] if result.transaction.application_call.boxes else None
         assert box_ref is not None
         assert box_ref.app_index == 0  # type: ignore  # noqa: PGH003
+
+
+def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    spec = (Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "app_spec.arc32.json").read_text()
+    factory = algorand.client.get_app_factory(
+        app_spec=spec,
+        default_sender=funded_account.address,
+    )
+    app_client, _ = factory.send.bare.create()
+    app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
+    result = app_client.send.call(
+        AppClientMethodCallParams(method="bootstrap_external_app", static_fee=AlgoAmount.from_micro_algo(3_000))
+    )
+    external_app_id = result.abi_return
+    assert isinstance(external_app_id, int), "expected app id"
+    external_app = algorand.app.get_by_id(external_app_id)
+    algorand.account.ensure_funded(
+        external_app.app_address, funded_account, min_spending_balance=AlgoAmount.from_algo(1)
+    )
+
+    app_client.send.call(
+        AppClientMethodCallParams(method="set_external_box", static_fee=AlgoAmount.from_micro_algo(2_000))
+    )
+
+    assert algorand.app.get_box_value(external_app_id, "box") == b"foo"
