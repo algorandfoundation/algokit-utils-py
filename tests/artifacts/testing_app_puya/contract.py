@@ -1,6 +1,6 @@
 from typing import Literal
 
-from algopy import Application, ARC4Contract, Box, BoxMap, Bytes, arc4, op
+from algopy import Application, ARC4Contract, Box, BoxMap, Bytes, Txn, arc4, op
 
 
 class DummyStruct(arc4.Struct):
@@ -63,3 +63,12 @@ class TestPuyaBoxes(ARC4Contract):
             External.set_box,
             app_id=self.external,
         )
+
+    @arc4.abimethod
+    def rejected(self) -> None:
+        assert Txn.num_app_args == 0, "expect this txn to be rejected"
+
+    @arc4.abimethod
+    def logic_err(self) -> bool:
+        assert Txn.num_app_args == 0, "expect this to be a logic err"
+        return True
