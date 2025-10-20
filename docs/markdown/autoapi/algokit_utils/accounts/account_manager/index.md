@@ -158,7 +158,7 @@ mnemonic-based, rekeyed, multisig, and logic signature accounts.
 * **Parameters:**
   **client_manager** – The ClientManager client to use for algod and kmd clients
 * **Example:**
-  ```pycon
+  ```python
   >>> account_manager = AccountManager(client_manager)
   ```
 
@@ -169,7 +169,7 @@ KMD account manager that allows you to easily get and create accounts using KMD.
 * **Return KmdAccountManager:**
   The ‘KmdAccountManager’ instance
 * **Example:**
-  ```pycon
+  ```python
   >>> kmd_manager = account_manager.kmd
   ```
 
@@ -185,7 +185,7 @@ then an error will be thrown from get_signer / get_account.
 * **Returns:**
   The AccountManager so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> signer_account = account_manager.random()
   >>> account_manager.set_default_signer(signer_account)
   ```
@@ -200,7 +200,7 @@ Tracks the given TransactionSigner against the given sender address for later si
 * **Returns:**
   The AccountManager instance for method chaining
 * **Example:**
-  ```pycon
+  ```python
   >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
   ```
 
@@ -214,7 +214,7 @@ Merges the given AccountManager into this one.
 * **Returns:**
   The AccountManager instance for method chaining
 * **Example:**
-  ```pycon
+  ```python
   >>> accountManager2.set_signers(accountManager1)
   ```
 
@@ -243,7 +243,7 @@ The ‘signer’ parameter is deprecated and will show a warning when used.
 * **Raises:**
   **ValueError** – If no account or signer argument is provided
 * **Example:**
-  ```pycon
+  ```python
   >>> account_manager = AccountManager(client_manager)
   >>> # Using positional argument
   >>> account_manager.set_signer_from_account(
@@ -272,7 +272,7 @@ If no signer has been registered for that address then the default signer is use
 * **Raises:**
   **ValueError** – If no signer is found and no default signer is set
 * **Example:**
-  ```pycon
+  ```python
   >>> signer = account_manager.get_signer("SENDERADDRESS")
   ```
 
@@ -287,7 +287,7 @@ Returns the TransactionSignerAccountProtocol for the given sender address.
 * **Raises:**
   **ValueError** – If no account is found or if the account is not a regular account
 * **Example:**
-  ```pycon
+  ```python
   >>> sender = account_manager.random().address
   >>> # ...
   >>> # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
@@ -306,7 +306,7 @@ for response data schema details.
 * **Returns:**
   The account information
 * **Example:**
-  ```pycon
+  ```python
   >>> address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
   >>> account_info = account_manager.get_information(address)
   ```
@@ -326,7 +326,7 @@ Be careful how the mnemonic is handled. Never commit it into source control and 
 from the environment (ideally via a secret storage service) rather than the file system.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account_manager.from_mnemonic("mnemonic secret ...")
   ```
 
@@ -355,7 +355,7 @@ Convention:
     it will create it and fund the account for you
 
 * **Example:**
-  ```pycon
+  ```python
   >>> # If you have a mnemonic secret loaded into `MY_ACCOUNT_MNEMONIC` then you can call:
   >>> account = account_manager.from_environment('MY_ACCOUNT')
   >>> # If that code runs against LocalNet then a wallet called `MY_ACCOUNT` will automatically be created
@@ -375,7 +375,7 @@ Tracks and returns an Algorand account with private key loaded from the given KM
 * **Raises:**
   **ValueError** – If unable to find KMD account with given name and predicate
 * **Example:**
-  ```pycon
+  ```python
   >>> # Get default funded account in a LocalNet:
   >>> defaultDispenserAccount = account.from_kmd('unencrypted-default-wallet',
   ...     lambda a: a.status != 'Offline' and a.amount > 1_000_000_000
@@ -392,7 +392,7 @@ Tracks and returns an account that represents a logic signature.
 * **Returns:**
   A logic signature account wrapper
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account.logicsig(program, [new Uint8Array(3, ...)])
   ```
 
@@ -406,7 +406,7 @@ Tracks and returns an account that supports partial or full multisig signing.
 * **Returns:**
   A multisig account wrapper
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account_manager.multi_sig(
   ...     version=1,
   ...     threshold=1,
@@ -422,7 +422,7 @@ Tracks and returns a new, random Algorand account.
 * **Returns:**
   The account
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account_manager.random()
   ```
 
@@ -435,7 +435,7 @@ This account can be used to fund other accounts.
 * **Returns:**
   The account
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account_manager.localnet_dispenser()
   ```
 
@@ -448,7 +448,7 @@ If environment variables are not present, returns the default LocalNet dispenser
 * **Returns:**
   The account
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account_manager.dispenser_from_environment()
   ```
 
@@ -462,7 +462,7 @@ Tracks and returns an Algorand account that is a rekeyed version of the given ac
 * **Returns:**
   The rekeyed account
 * **Example:**
-  ```pycon
+  ```python
   >>> account = account.from_mnemonic("mnemonic secret ...")
   >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
   ```
@@ -492,7 +492,7 @@ Please be careful with this function and be sure to read the
 [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
 
 * **Example:**
-  ```pycon
+  ```python
   >>> # Basic example (with string addresses):
   >>> algorand.account.rekey_account("ACCOUNTADDRESS", "NEWADDRESS")
   >>> # Basic example (with signer accounts):
@@ -542,7 +542,7 @@ See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](htt
   The result of executing the dispensing transaction and the amountFunded if funds were needed,
   or None if no funds were needed
 * **Example:**
-  ```pycon
+  ```python
   >>> # Basic example:
   >>> algorand.account.ensure_funded("ACCOUNTADDRESS", "DISPENSERADDRESS", AlgoAmount.from_algo(1))
   >>> # With configuration:
@@ -592,7 +592,7 @@ process.env.DISPENSER_MNEMONIC and optionally process.env.DISPENSER_SENDER
 if it’s a rekeyed account, or against default LocalNet if no environment variables present.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> # Basic example:
   >>> algorand.account.ensure_funded_from_environment("ACCOUNTADDRESS", AlgoAmount.from_algo(1))
   >>> # With configuration:
@@ -626,7 +626,7 @@ See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](htt
 * **Raises:**
   **ValueError** – If attempting to fund on non-TestNet network
 * **Example:**
-  ```pycon
+  ```python
   >>> # Basic example:
   >>> account_manager.ensure_funded_from_testnet_dispenser_api(
   ...     "ACCOUNTADDRESS",

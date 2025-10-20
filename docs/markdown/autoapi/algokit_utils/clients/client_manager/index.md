@@ -62,7 +62,7 @@ Provides access to Algod, Indexer and KMD clients and helper methods for working
   * **clients_or_configs** – Either client instances or client configurations
   * **algorand_client** – AlgorandClient instance
 * **Example:**
-  ```pycon
+  ```python
   >>> # Algod only
   >>> client_manager = ClientManager(algod_client)
   >>> # Algod and Indexer
@@ -113,7 +113,7 @@ Get details about the connected Algorand network.
 * **Returns:**
   Network details including type and genesis information
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> network_detail = client_manager.network()
   ```
@@ -272,7 +272,7 @@ Check if a genesis ID indicates a local network.
 * **Returns:**
   True if genesis ID indicates a local network
 * **Example:**
-  ```pycon
+  ```python
   >>> ClientManager.genesis_id_is_localnet("devnet-v1")
   ```
 
@@ -293,7 +293,7 @@ Get a typed application client by creator address and name.
 * **Returns:**
   Typed application client instance
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> typed_app_client = client_manager.get_typed_app_client_by_creator_and_name(
   ...     typed_client=MyAppClient,
@@ -319,7 +319,7 @@ Get a typed application client by ID.
 * **Returns:**
   Typed application client instance
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> typed_app_client = client_manager.get_typed_app_client_by_id(
   ...     typed_client=MyAppClient,
@@ -346,7 +346,7 @@ If no IDs are in the app spec or the network isn’t recognised, an error is thr
 * **Returns:**
   The typed client instance
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> typed_app_client = client_manager.get_typed_app_client_by_network(
   ...     typed_client=MyAppClient,
@@ -370,7 +370,7 @@ Get a typed application factory.
 * **Returns:**
   Typed application factory instance
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> typed_app_factory = client_manager.get_typed_app_factory(
   ...     typed_factory=MyAppFactory,
@@ -388,7 +388,7 @@ otherwise it will use default localnet configuration.
 * **Returns:**
   Configuration for algod, indexer, and optionally kmd
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_config_from_environment_or_localnet()
   ```
@@ -402,7 +402,7 @@ Get default configuration for local network services.
 * **Returns:**
   Client configuration for local network
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_default_localnet_config("algod")
   ```
@@ -415,7 +415,7 @@ Will raise an error if ALGOD_SERVER environment variable is not set
 * **Returns:**
   Algod client configuration
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_algod_config_from_environment()
   ```
@@ -428,7 +428,7 @@ Will raise an error if INDEXER_SERVER environment variable is not set
 * **Returns:**
   Indexer client configuration
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_indexer_config_from_environment()
   ```
@@ -440,7 +440,7 @@ Retrieve the kmd configuration from environment variables.
 * **Returns:**
   KMD client configuration
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_kmd_config_from_environment()
   ```
@@ -455,7 +455,7 @@ Returns the Algorand configuration to point to the free tier of the AlgoNode ser
 * **Returns:**
   Configuration for the specified network and service
 * **Example:**
-  ```pycon
+  ```python
   >>> client_manager = ClientManager(algod_client)
   >>> config = client_manager.get_algonode_config("testnet", "algod")
   ```

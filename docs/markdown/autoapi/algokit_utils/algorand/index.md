@@ -20,7 +20,7 @@ Sets the default validity window for transactions.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
   ```
 
@@ -33,7 +33,7 @@ Sets the default signer to use if no other signer is specified.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> signer = SigningAccount(private_key=..., address=...)
   >>> algorand = AlgorandClient.mainnet().set_default_signer(signer)
   ```
@@ -48,7 +48,7 @@ Tracks the given account for later signing.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> signer = SigningAccount(private_key=..., address=...)
   >>> algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
   ```
@@ -62,7 +62,7 @@ Sets the default signer to use if no other signer is specified.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> accountManager = AlgorandClient.mainnet()
   >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
   >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
@@ -81,7 +81,7 @@ Sets a cache value to use for suggested params.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache(suggested_params, time.time() + 3.6e6)
   ```
 
@@ -94,7 +94,7 @@ Sets the timeout for caching suggested params.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache_timeout(10_000)
   ```
 
@@ -103,7 +103,7 @@ Sets the timeout for caching suggested params.
 Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
 
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.mainnet().get_suggested_params()
   ```
 
@@ -131,7 +131,7 @@ Unregister an error transformer function
 Start a new TransactionComposer transaction group
 
 * **Example:**
-  ```pycon
+  ```python
   >>> composer = AlgorandClient.mainnet().new_group()
   >>> result = await composer.add_transaction(payment).send()
   ```
@@ -141,7 +141,7 @@ Start a new TransactionComposer transaction group
 Get clients, including algosdk clients and app clients.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> clientManager = AlgorandClient.mainnet().client
   ```
 
@@ -150,7 +150,7 @@ Get clients, including algosdk clients and app clients.
 Get or create accounts that can sign transactions.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> accountManager = AlgorandClient.mainnet().account
   ```
 
@@ -159,7 +159,7 @@ Get or create accounts that can sign transactions.
 Get or create assets.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> assetManager = AlgorandClient.mainnet().asset
   ```
 
@@ -168,7 +168,7 @@ Get or create assets.
 Get or create applications.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> appManager = AlgorandClient.mainnet().app
   ```
 
@@ -177,7 +177,7 @@ Get or create applications.
 Get or create applications.
 
 * **Example:**
-  ```pycon
+  ```python
   >>> appDeployer = AlgorandClient.mainnet().app_deployer
   ```
 
@@ -186,7 +186,7 @@ Get or create applications.
 Methods for sending a transaction and waiting for confirmation
 
 * **Example:**
-  ```pycon
+  ```python
   >>> result = await AlgorandClient.mainnet().send.payment(
   >>> PaymentParams(
   >>>  sender="SENDERADDRESS",
@@ -200,7 +200,7 @@ Methods for sending a transaction and waiting for confirmation
 Methods for building transactions
 
 * **Example:**
-  ```pycon
+  ```python
   >>> transaction = AlgorandClient.mainnet().create_transaction.payment(
   >>> PaymentParams(
   >>>  sender="SENDERADDRESS",
@@ -216,7 +216,7 @@ Returns an AlgorandClient pointing at default LocalNet ports and API token.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.default_localnet()
   ```
 
@@ -227,7 +227,7 @@ Returns an AlgorandClient pointing at TestNet using AlgoNode.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.testnet()
   ```
 
@@ -238,7 +238,7 @@ Returns an AlgorandClient pointing at MainNet using AlgoNode.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.mainnet()
   ```
 
@@ -253,7 +253,7 @@ Returns an AlgorandClient pointing to the given client(s).
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.from_clients(algod, indexer, kmd)
   ```
 
@@ -268,7 +268,7 @@ Expects to be called from a Python environment.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.from_environment()
   ```
 
@@ -283,6 +283,6 @@ Returns an AlgorandClient from the given config.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
+  ```python
   >>> algorand = AlgorandClient.from_config(algod_config, indexer_config, kmd_config)
   ```
