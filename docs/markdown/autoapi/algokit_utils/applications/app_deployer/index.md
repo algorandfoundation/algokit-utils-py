@@ -160,8 +160,8 @@ Manages deployment and deployment metadata of applications
   * **transaction_sender** – The transaction sender to use
   * **indexer** – The indexer to use
 * **Example:**
-  ```pycon
-  >>> deployer = AppDeployer(app_manager, transaction_sender, indexer)
+  ```python
+  deployer = AppDeployer(app_manager, transaction_sender, indexer)
   ```
 
 #### deploy(deployment: [AppDeployParams](#algokit_utils.applications.app_deployer.AppDeployParams)) → [AppDeployResult](#algokit_utils.applications.app_deployer.AppDeployResult)
@@ -188,35 +188,35 @@ the existing app will be deleted and re-created.
 * **Raises:**
   **ValueError** – If the app spec format is invalid
 * **Example:**
-  ```pycon
-  >>> deployer.deploy(AppDeployParams(
-  ...     create_params=AppCreateParams(
-  ...         sender='SENDER_ADDRESS',
-  ...         approval_program='APPROVAL PROGRAM',
-  ...         clear_state_program='CLEAR PROGRAM',
-  ...         schema={
-  ...             'global_byte_slices': 0,
-  ...             'global_ints': 0,
-  ...             'local_byte_slices': 0,
-  ...             'local_ints': 0
-  ...         }
-  ...     ),
-  ...     update_params=AppUpdateParams(
-  ...         sender='SENDER_ADDRESS'
-  ...     ),
-  ...     delete_params=AppDeleteParams(
-  ...         sender='SENDER_ADDRESS'
-  ...     ),
-  ...     metadata=AppDeploymentMetaData(
-  ...         name='my_app',
-  ...         version='2.0',
-  ...         updatable=False,
-  ...         deletable=False
-  ...     ),
-  ...     on_schema_break=OnSchemaBreak.AppendApp,
-  ...     on_update=OnUpdate.AppendApp
-  ... )
-  ... )
+  ```python
+  deployer.deploy(AppDeployParams(
+      create_params=AppCreateParams(
+          sender='SENDER_ADDRESS',
+          approval_program='APPROVAL PROGRAM',
+          clear_state_program='CLEAR PROGRAM',
+          schema={
+              'global_byte_slices': 0,
+              'global_ints': 0,
+              'local_byte_slices': 0,
+              'local_ints': 0
+          }
+      ),
+      update_params=AppUpdateParams(
+          sender='SENDER_ADDRESS'
+      ),
+      delete_params=AppDeleteParams(
+          sender='SENDER_ADDRESS'
+      ),
+      metadata=AppDeploymentMetaData(
+          name='my_app',
+          version='2.0',
+          updatable=False,
+          deletable=False
+      ),
+      on_schema_break=OnSchemaBreak.AppendApp,
+      on_update=OnUpdate.AppendApp
+  )
+  )
   ```
 
 #### get_creator_apps_by_name(\*, creator_address: str, ignore_cache: bool = False) → [ApplicationLookup](#algokit_utils.applications.app_deployer.ApplicationLookup)
@@ -238,6 +238,6 @@ If the AppManager instance wasn’t created with an indexer client, this functio
 * **Raises:**
   **ValueError** – If the app spec format is invalid
 * **Example:**
-  ```pycon
-  >>> result = await deployer.get_creator_apps_by_name(creator)
+  ```python
+  result = await deployer.get_creator_apps_by_name(creator)
   ```

@@ -20,8 +20,8 @@ Sets the default validity window for transactions.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
+  ```python
+  algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
   ```
 
 #### set_default_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
@@ -33,9 +33,9 @@ Sets the default signer to use if no other signer is specified.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> signer = SigningAccount(private_key=..., address=...)
-  >>> algorand = AlgorandClient.mainnet().set_default_signer(signer)
+  ```python
+  signer = SigningAccount(private_key=..., address=...)
+  algorand = AlgorandClient.mainnet().set_default_signer(signer)
   ```
 
 #### set_signer(sender: str, signer: algosdk.atomic_transaction_composer.TransactionSigner) → typing_extensions.Self
@@ -48,9 +48,9 @@ Tracks the given account for later signing.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> signer = SigningAccount(private_key=..., address=...)
-  >>> algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
+  ```python
+  signer = SigningAccount(private_key=..., address=...)
+  algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
   ```
 
 #### set_signer_from_account(signer: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
@@ -62,13 +62,13 @@ Sets the default signer to use if no other signer is specified.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> accountManager = AlgorandClient.mainnet()
-  >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
-  >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
-  >>> accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
-  >>> accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
-  >>> accountManager.set_signer_from_account(account)
+  ```python
+  accountManager = AlgorandClient.mainnet()
+  accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
+  accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
+  accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
+  accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
+  accountManager.set_signer_from_account(account)
   ```
 
 #### set_suggested_params_cache(suggested_params: algosdk.transaction.SuggestedParams, until: float | None = None) → typing_extensions.Self
@@ -81,8 +81,8 @@ Sets a cache value to use for suggested params.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache(suggested_params, time.time() + 3.6e6)
+  ```python
+  algorand = AlgorandClient.mainnet().set_suggested_params_cache(suggested_params, time.time() + 3.6e6)
   ```
 
 #### set_suggested_params_cache_timeout(timeout: int) → typing_extensions.Self
@@ -94,8 +94,8 @@ Sets the timeout for caching suggested params.
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.mainnet().set_suggested_params_cache_timeout(10_000)
+  ```python
+  algorand = AlgorandClient.mainnet().set_suggested_params_cache_timeout(10_000)
   ```
 
 #### get_suggested_params() → algosdk.transaction.SuggestedParams
@@ -103,8 +103,8 @@ Sets the timeout for caching suggested params.
 Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
 
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.mainnet().get_suggested_params()
+  ```python
+  algorand = AlgorandClient.mainnet().get_suggested_params()
   ```
 
 #### register_error_transformer(transformer: algokit_utils.transactions.transaction_composer.ErrorTransformer) → typing_extensions.Self
@@ -131,9 +131,9 @@ Unregister an error transformer function
 Start a new TransactionComposer transaction group
 
 * **Example:**
-  ```pycon
-  >>> composer = AlgorandClient.mainnet().new_group()
-  >>> result = await composer.add_transaction(payment).send()
+  ```python
+  composer = AlgorandClient.mainnet().new_group()
+  result = await composer.add_transaction(payment).send()
   ```
 
 #### *property* client *: [algokit_utils.clients.client_manager.ClientManager](../clients/client_manager/index.md#algokit_utils.clients.client_manager.ClientManager)*
@@ -141,8 +141,8 @@ Start a new TransactionComposer transaction group
 Get clients, including algosdk clients and app clients.
 
 * **Example:**
-  ```pycon
-  >>> clientManager = AlgorandClient.mainnet().client
+  ```python
+  clientManager = AlgorandClient.mainnet().client
   ```
 
 #### *property* account *: [algokit_utils.accounts.account_manager.AccountManager](../accounts/account_manager/index.md#algokit_utils.accounts.account_manager.AccountManager)*
@@ -150,8 +150,8 @@ Get clients, including algosdk clients and app clients.
 Get or create accounts that can sign transactions.
 
 * **Example:**
-  ```pycon
-  >>> accountManager = AlgorandClient.mainnet().account
+  ```python
+  accountManager = AlgorandClient.mainnet().account
   ```
 
 #### *property* asset *: [algokit_utils.assets.asset_manager.AssetManager](../assets/asset_manager/index.md#algokit_utils.assets.asset_manager.AssetManager)*
@@ -159,8 +159,8 @@ Get or create accounts that can sign transactions.
 Get or create assets.
 
 * **Example:**
-  ```pycon
-  >>> assetManager = AlgorandClient.mainnet().asset
+  ```python
+  assetManager = AlgorandClient.mainnet().asset
   ```
 
 #### *property* app *: [algokit_utils.applications.app_manager.AppManager](../applications/app_manager/index.md#algokit_utils.applications.app_manager.AppManager)*
@@ -168,8 +168,8 @@ Get or create assets.
 Get or create applications.
 
 * **Example:**
-  ```pycon
-  >>> appManager = AlgorandClient.mainnet().app
+  ```python
+  appManager = AlgorandClient.mainnet().app
   ```
 
 #### *property* app_deployer *: [algokit_utils.applications.app_deployer.AppDeployer](../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.AppDeployer)*
@@ -177,8 +177,8 @@ Get or create applications.
 Get or create applications.
 
 * **Example:**
-  ```pycon
-  >>> appDeployer = AlgorandClient.mainnet().app_deployer
+  ```python
+  appDeployer = AlgorandClient.mainnet().app_deployer
   ```
 
 #### *property* send *: [algokit_utils.transactions.transaction_sender.AlgorandClientTransactionSender](../transactions/transaction_sender/index.md#algokit_utils.transactions.transaction_sender.AlgorandClientTransactionSender)*
@@ -186,13 +186,13 @@ Get or create applications.
 Methods for sending a transaction and waiting for confirmation
 
 * **Example:**
-  ```pycon
-  >>> result = await AlgorandClient.mainnet().send.payment(
-  >>> PaymentParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  receiver="RECEIVERADDRESS",
-  >>>  amount=AlgoAmount(algo-1)
-  >>> ))
+  ```python
+  result = await AlgorandClient.mainnet().send.payment(
+  PaymentParams(
+   sender="SENDERADDRESS",
+   receiver="RECEIVERADDRESS",
+   amount=AlgoAmount(algo-1)
+  ))
   ```
 
 #### *property* create_transaction *: [algokit_utils.transactions.transaction_creator.AlgorandClientTransactionCreator](../transactions/transaction_creator/index.md#algokit_utils.transactions.transaction_creator.AlgorandClientTransactionCreator)*
@@ -200,13 +200,13 @@ Methods for sending a transaction and waiting for confirmation
 Methods for building transactions
 
 * **Example:**
-  ```pycon
-  >>> transaction = AlgorandClient.mainnet().create_transaction.payment(
-  >>> PaymentParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  receiver="RECEIVERADDRESS",
-  >>>  amount=AlgoAmount(algo=1)
-  >>> ))
+  ```python
+  transaction = AlgorandClient.mainnet().create_transaction.payment(
+  PaymentParams(
+   sender="SENDERADDRESS",
+   receiver="RECEIVERADDRESS",
+   amount=AlgoAmount(algo=1)
+  ))
   ```
 
 #### *static* default_localnet() → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -216,8 +216,8 @@ Returns an AlgorandClient pointing at default LocalNet ports and API token.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.default_localnet()
+  ```python
+  algorand = AlgorandClient.default_localnet()
   ```
 
 #### *static* testnet() → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -227,8 +227,8 @@ Returns an AlgorandClient pointing at TestNet using AlgoNode.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.testnet()
+  ```python
+  algorand = AlgorandClient.testnet()
   ```
 
 #### *static* mainnet() → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -238,8 +238,8 @@ Returns an AlgorandClient pointing at MainNet using AlgoNode.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.mainnet()
+  ```python
+  algorand = AlgorandClient.mainnet()
   ```
 
 #### *static* from_clients(algod: algosdk.v2client.algod.AlgodClient, indexer: algosdk.v2client.indexer.IndexerClient | None = None, kmd: algosdk.kmd.KMDClient | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -253,8 +253,8 @@ Returns an AlgorandClient pointing to the given client(s).
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.from_clients(algod, indexer, kmd)
+  ```python
+  algorand = AlgorandClient.from_clients(algod, indexer, kmd)
   ```
 
 #### *static* from_environment() → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -268,8 +268,8 @@ Expects to be called from a Python environment.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.from_environment()
+  ```python
+  algorand = AlgorandClient.from_environment()
   ```
 
 #### *static* from_config(algod_config: [algokit_utils.models.network.AlgoClientNetworkConfig](../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig), indexer_config: [algokit_utils.models.network.AlgoClientNetworkConfig](../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig) | None = None, kmd_config: [algokit_utils.models.network.AlgoClientNetworkConfig](../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig) | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
@@ -283,6 +283,6 @@ Returns an AlgorandClient from the given config.
 * **Returns:**
   The AlgorandClient
 * **Example:**
-  ```pycon
-  >>> algorand = AlgorandClient.from_config(algod_config, indexer_config, kmd_config)
+  ```python
+  algorand = AlgorandClient.from_config(algod_config, indexer_config, kmd_config)
   ```

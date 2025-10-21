@@ -134,12 +134,12 @@ to interact with those (or other) app instances.
 * **Parameters:**
   **params** – The parameters for the factory
 * **Example:**
-  ```pycon
-  >>> factory = AppFactory(AppFactoryParams(
-  >>>        algorand=AlgorandClient.mainnet(),
-  >>>        app_spec=app_spec,
-  >>>    )
-  >>> )
+  ```python
+  factory = AppFactory(AppFactoryParams(
+         algorand=AlgorandClient.mainnet(),
+         app_spec=app_spec,
+     )
+  )
   ```
 
 #### *property* app_name *: str*
@@ -161,29 +161,33 @@ Get parameters to create transactions (create and deploy related calls) for the 
 A good mental model for this is that these parameters represent a deferred transaction creation.
 
 * **Example:**
+  ```python
   Create a transaction in the future using Algorand Client
-  >>> create_app_params = app_factory.params.create(
-  …     AppFactoryCreateMethodCallParams(
-  …         method=’create_method’,
-  …         args=[123, ‘hello’]
-  …     )
-  … )
-  >>> # …
-  >>> algorand.send.app_create_method_call(create_app_params)
+  create_app_params = app_factory.params.create(
+      AppFactoryCreateMethodCallParams(
+          method=’create_method’,
+          args=[123, ‘hello’]
+      )
+  )
+  # …
+  algorand.send.app_create_method_call(create_app_params)
+  ```
 * **Example:**
+  ```python
   Define a nested transaction as an ABI argument
-  >>> create_app_params = appFactory.params.create(
-  …     AppFactoryCreateMethodCallParams(
-  …         method=’create_method’,
-  …         args=[123, ‘hello’]
-  …     )
-  … )
-  >>> app_client.send.call(
-  …     AppClientMethodCallParams(
-  …         method=’my_method’,
-  …         args=[create_app_params]
-  …     )
-  … )
+  create_app_params = appFactory.params.create(
+      AppFactoryCreateMethodCallParams(
+          method=’create_method’,
+          args=[123, ‘hello’]
+      )
+  )
+  app_client.send.call(
+      AppClientMethodCallParams(
+          method=’my_method’,
+          args=[create_app_params]
+      )
+  )
+  ```
 
 #### *property* send *: \_TransactionSender*
 
@@ -227,33 +231,33 @@ various return properties like transaction, confirmation and deleteResult.
 * **Returns:**
   The app client and the result of the deployment
 * **Example:**
-  ```pycon
-  >>> app_client, result = factory.deploy({
-  >>>   create_params=AppClientMethodCallCreateParams(
-  >>>     sender='SENDER_ADDRESS',
-  >>>     approval_program='APPROVAL PROGRAM',
-  >>>     clear_state_program='CLEAR PROGRAM',
-  >>>     schema={
-  >>>       "global_byte_slices": 0,
-  >>>       "global_ints": 0,
-  >>>       "local_byte_slices": 0,
-  >>>       "local_ints": 0
-  >>>     }
-  >>>   ),
-  >>>   update_params=AppClientMethodCallParams(
-  >>>     sender='SENDER_ADDRESS'
-  >>>   ),
-  >>>   delete_params=AppClientMethodCallParams(
-  >>>     sender='SENDER_ADDRESS'
-  >>>   ),
-  >>>   compilation_params=AppClientCompilationParams(
-  >>>     updatable=False,
-  >>>     deletable=False
-  >>>   ),
-  >>>   app_name='my_app',
-  >>>   on_schema_break=OnSchemaBreak.AppendApp,
-  >>>   on_update=OnUpdate.AppendApp
-  >>> })
+  ```python
+  app_client, result = factory.deploy({
+    create_params=AppClientMethodCallCreateParams(
+      sender='SENDER_ADDRESS',
+      approval_program='APPROVAL PROGRAM',
+      clear_state_program='CLEAR PROGRAM',
+      schema={
+        "global_byte_slices": 0,
+        "global_ints": 0,
+        "local_byte_slices": 0,
+        "local_ints": 0
+      }
+    ),
+    update_params=AppClientMethodCallParams(
+      sender='SENDER_ADDRESS'
+    ),
+    delete_params=AppClientMethodCallParams(
+      sender='SENDER_ADDRESS'
+    ),
+    compilation_params=AppClientCompilationParams(
+      updatable=False,
+      deletable=False
+    ),
+    app_name='my_app',
+    on_schema_break=OnSchemaBreak.AppendApp,
+    on_update=OnUpdate.AppendApp
+  })
   ```
 
 #### get_app_client_by_id(app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
@@ -270,8 +274,8 @@ Returns a new AppClient client for an app instance of the given ID.
 * **Return AppClient:**
   The app client
 * **Example:**
-  ```pycon
-  >>> app_client = factory.get_app_client_by_id(app_id=123)
+  ```python
+  app_client = factory.get_app_client_by_id(app_id=123)
   ```
 
 #### get_app_client_by_creator_and_name(creator_address: str, app_name: str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
@@ -291,11 +295,11 @@ using AlgoKit app deployment semantics (i.e. looking for the app creation transa
 * **Returns:**
   An AppClient instance configured for the resolved application
 * **Example:**
-  ```pycon
-  >>> app_client = factory.get_app_client_by_creator_and_name(
-  ...     creator_address='SENDER_ADDRESS',
-  ...     app_name='my_app'
-  ... )
+  ```python
+  app_client = factory.get_app_client_by_creator_and_name(
+      creator_address='SENDER_ADDRESS',
+      app_name='my_app'
+  )
   ```
 
 #### export_source_maps() → [algokit_utils.models.application.AppSourceMaps](../../models/application/index.md#algokit_utils.models.application.AppSourceMaps)
@@ -316,6 +320,6 @@ Compile the app’s TEAL code.
 * **Return AppClientCompilationResult:**
   The compilation result
 * **Example:**
-  ```pycon
-  >>> compilation_result = factory.compile()
+  ```python
+  compilation_result = factory.compile()
   ```

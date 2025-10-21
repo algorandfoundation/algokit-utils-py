@@ -126,8 +126,8 @@ A manager for Algorand Standard Assets (ASAs).
   * **algod_client** – An algod client
   * **new_group** – A function that creates a new TransactionComposer transaction group
 * **Example:**
-  ```pycon
-  >>> asset_manager = AssetManager(algod_client)
+  ```python
+  asset_manager = AssetManager(algod_client)
   ```
 
 #### get_by_id(asset_id: int) → [AssetInformation](#algokit_utils.assets.asset_manager.AssetInformation)
@@ -139,9 +139,9 @@ Returns the current asset information for the asset with the given ID.
 * **Returns:**
   The asset information
 * **Example:**
-  ```pycon
-  >>> asset_manager = AssetManager(algod_client)
-  >>> asset_info = asset_manager.get_by_id(1234567890)
+  ```python
+  asset_manager = AssetManager(algod_client)
+  asset_info = asset_manager.get_by_id(1234567890)
   ```
 
 #### get_account_information(sender: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount) | algosdk.atomic_transaction_composer.TransactionSigner, asset_id: int) → [AccountAssetInformation](#algokit_utils.assets.asset_manager.AccountAssetInformation)
@@ -154,9 +154,9 @@ Returns the given sender account’s asset holding for a given asset.
 * **Returns:**
   The account asset holding information
 * **Example:**
-  ```pycon
-  >>> asset_manager = AssetManager(algod_client)
-  >>> account_asset_info = asset_manager.get_account_information(sender, asset_id)
+  ```python
+  asset_manager = AssetManager(algod_client)
+  account_asset_info = asset_manager.get_account_information(sender, asset_id)
   ```
 
 #### bulk_opt_in(account: str, asset_ids: list[int], signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
@@ -180,9 +180,9 @@ Opt an account in to a list of Algorand Standard Assets.
 * **Returns:**
   An array of records matching asset ID to transaction ID of the opt in
 * **Example:**
-  ```pycon
-  >>> asset_manager = AssetManager(algod_client)
-  >>> results = asset_manager.bulk_opt_in(account, asset_ids)
+  ```python
+  asset_manager = AssetManager(algod_client)
+  results = asset_manager.bulk_opt_in(account, asset_ids)
   ```
 
 #### bulk_opt_out(\*, account: str, asset_ids: list[int], ensure_zero_balance: bool = True, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
@@ -209,7 +209,7 @@ Opt an account out of a list of Algorand Standard Assets.
 * **Returns:**
   An array of records matching asset ID to transaction ID of the opt out
 * **Example:**
-  ```pycon
-  >>> asset_manager = AssetManager(algod_client)
-  >>> results = asset_manager.bulk_opt_out(account, asset_ids)
+  ```python
+  asset_manager = AssetManager(algod_client)
+  results = asset_manager.bulk_opt_out(account, asset_ids)
   ```

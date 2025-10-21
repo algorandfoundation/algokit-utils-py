@@ -96,9 +96,9 @@ Fund an account with Algos from the dispenser API
 * **Raises:**
   **Exception** – If the dispenser API request fails
 * **Example:**
-  ```pycon
-  >>> dispenser_client = TestNetDispenserApiClient()
-  >>> dispenser_client.fund(address="SENDER_ADDRESS", amount=1000000)
+  ```python
+  dispenser_client = TestNetDispenserApiClient()
+  dispenser_client.fund(address="SENDER_ADDRESS", amount=1000000)
   ```
 
 #### refund(refund_txn_id: str) → None

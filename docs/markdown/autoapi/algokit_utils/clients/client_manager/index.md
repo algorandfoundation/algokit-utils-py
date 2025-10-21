@@ -62,16 +62,16 @@ Provides access to Algod, Indexer and KMD clients and helper methods for working
   * **clients_or_configs** – Either client instances or client configurations
   * **algorand_client** – AlgorandClient instance
 * **Example:**
-  ```pycon
-  >>> # Algod only
-  >>> client_manager = ClientManager(algod_client)
-  >>> # Algod and Indexer
-  >>> client_manager = ClientManager(algod_client, indexer_client)
-  >>> # Algod config only
-  >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment())
-  >>> # Algod and Indexer config
-  >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment(),
-  ...     ClientManager.get_indexer_config_from_environment())
+  ```python
+  # Algod only
+  client_manager = ClientManager(algod_client)
+  # Algod and Indexer
+  client_manager = ClientManager(algod_client, indexer_client)
+  # Algod config only
+  client_manager = ClientManager(ClientManager.get_algod_config_from_environment())
+  # Algod and Indexer config
+  client_manager = ClientManager(ClientManager.get_algod_config_from_environment(),
+      ClientManager.get_indexer_config_from_environment())
   ```
 
 #### *property* algod *: algosdk.v2client.algod.AlgodClient*
@@ -113,9 +113,9 @@ Get details about the connected Algorand network.
 * **Returns:**
   Network details including type and genesis information
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> network_detail = client_manager.network()
+  ```python
+  client_manager = ClientManager(algod_client)
+  network_detail = client_manager.network()
   ```
 
 #### is_localnet() → bool
@@ -272,8 +272,8 @@ Check if a genesis ID indicates a local network.
 * **Returns:**
   True if genesis ID indicates a local network
 * **Example:**
-  ```pycon
-  >>> ClientManager.genesis_id_is_localnet("devnet-v1")
+  ```python
+  ClientManager.genesis_id_is_localnet("devnet-v1")
   ```
 
 #### get_typed_app_client_by_creator_and_name(typed_client: type[TypedAppClientT], \*, creator_address: str, app_name: str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None) → TypedAppClientT
@@ -293,13 +293,13 @@ Get a typed application client by creator address and name.
 * **Returns:**
   Typed application client instance
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> typed_app_client = client_manager.get_typed_app_client_by_creator_and_name(
-  ...     typed_client=MyAppClient,
-  ...     creator_address="creator_address",
-  ...     app_name="app_name",
-  ... )
+  ```python
+  client_manager = ClientManager(algod_client)
+  typed_app_client = client_manager.get_typed_app_client_by_creator_and_name(
+      typed_client=MyAppClient,
+      creator_address="creator_address",
+      app_name="app_name",
+  )
   ```
 
 #### get_typed_app_client_by_id(typed_client: type[TypedAppClientT], \*, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → TypedAppClientT
@@ -319,12 +319,12 @@ Get a typed application client by ID.
 * **Returns:**
   Typed application client instance
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> typed_app_client = client_manager.get_typed_app_client_by_id(
-  ...     typed_client=MyAppClient,
-  ...     app_id=1234567890,
-  ... )
+  ```python
+  client_manager = ClientManager(algod_client)
+  typed_app_client = client_manager.get_typed_app_client_by_id(
+      typed_client=MyAppClient,
+      app_id=1234567890,
+  )
   ```
 
 #### get_typed_app_client_by_network(typed_client: type[TypedAppClientT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → TypedAppClientT
@@ -346,12 +346,12 @@ If no IDs are in the app spec or the network isn’t recognised, an error is thr
 * **Returns:**
   The typed client instance
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> typed_app_client = client_manager.get_typed_app_client_by_network(
-  ...     typed_client=MyAppClient,
-  ...     app_name="app_name",
-  ... )
+  ```python
+  client_manager = ClientManager(algod_client)
+  typed_app_client = client_manager.get_typed_app_client_by_network(
+      typed_client=MyAppClient,
+      app_name="app_name",
+  )
   ```
 
 #### get_typed_app_factory(typed_factory: type[TypedFactoryT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → TypedFactoryT
@@ -370,12 +370,12 @@ Get a typed application factory.
 * **Returns:**
   Typed application factory instance
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> typed_app_factory = client_manager.get_typed_app_factory(
-  ...     typed_factory=MyAppFactory,
-  ...     app_name="app_name",
-  ... )
+  ```python
+  client_manager = ClientManager(algod_client)
+  typed_app_factory = client_manager.get_typed_app_factory(
+      typed_factory=MyAppFactory,
+      app_name="app_name",
+  )
   ```
 
 #### *static* get_config_from_environment_or_localnet() → [algokit_utils.models.network.AlgoClientConfigs](../../models/network/index.md#algokit_utils.models.network.AlgoClientConfigs)
@@ -388,9 +388,9 @@ otherwise it will use default localnet configuration.
 * **Returns:**
   Configuration for algod, indexer, and optionally kmd
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_config_from_environment_or_localnet()
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_config_from_environment_or_localnet()
   ```
 
 #### *static* get_default_localnet_config(config_or_port: Literal['algod', 'indexer', 'kmd'] | int) → [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)
@@ -402,9 +402,9 @@ Get default configuration for local network services.
 * **Returns:**
   Client configuration for local network
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_default_localnet_config("algod")
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_default_localnet_config("algod")
   ```
 
 #### *static* get_algod_config_from_environment() → [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)
@@ -415,9 +415,9 @@ Will raise an error if ALGOD_SERVER environment variable is not set
 * **Returns:**
   Algod client configuration
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_algod_config_from_environment()
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_algod_config_from_environment()
   ```
 
 #### *static* get_indexer_config_from_environment() → [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)
@@ -428,9 +428,9 @@ Will raise an error if INDEXER_SERVER environment variable is not set
 * **Returns:**
   Indexer client configuration
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_indexer_config_from_environment()
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_indexer_config_from_environment()
   ```
 
 #### *static* get_kmd_config_from_environment() → [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)
@@ -440,9 +440,9 @@ Retrieve the kmd configuration from environment variables.
 * **Returns:**
   KMD client configuration
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_kmd_config_from_environment()
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_kmd_config_from_environment()
   ```
 
 #### *static* get_algonode_config(network: Literal['testnet', 'mainnet'], config: Literal['algod', 'indexer']) → [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)
@@ -455,7 +455,7 @@ Returns the Algorand configuration to point to the free tier of the AlgoNode ser
 * **Returns:**
   Configuration for the specified network and service
 * **Example:**
-  ```pycon
-  >>> client_manager = ClientManager(algod_client)
-  >>> config = client_manager.get_algonode_config("testnet", "algod")
+  ```python
+  client_manager = ClientManager(algod_client)
+  config = client_manager.get_algonode_config("testnet", "algod")
   ```
