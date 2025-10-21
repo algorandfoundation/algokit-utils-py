@@ -698,8 +698,8 @@ Add a raw transaction to the composer.
 * **Returns:**
   The transaction composer instance for chaining
 * **Example:**
-  ```pycon
-  >>> composer.add_transaction(transaction)
+  ```python
+  composer.add_transaction(transaction)
   ```
 
 #### add_payment(params: [PaymentParams](#algokit_utils.transactions.transaction_composer.PaymentParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
@@ -707,15 +707,15 @@ Add a raw transaction to the composer.
 Add a payment transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = PaymentParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     receiver="RECEIVER_ADDRESS",
-  ...     amount=AlgoAmount.from_algo(1),
-  ...     close_remainder_to="CLOSE_ADDRESS"
-  ...     ... (see PaymentParams for more options)
-  ... )
-  >>> composer.add_payment(params)
+  ```python
+  params = PaymentParams(
+      sender="SENDER_ADDRESS",
+      receiver="RECEIVER_ADDRESS",
+      amount=AlgoAmount.from_algo(1),
+      close_remainder_to="CLOSE_ADDRESS"
+      ... (see PaymentParams for more options)
+  )
+  composer.add_payment(params)
   ```
 * **Parameters:**
   **params** – The payment transaction parameters
@@ -727,21 +727,21 @@ Add a payment transaction.
 Add an asset creation transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetCreateParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     total=1000,
-  ...     asset_name="MyAsset",
-  ...     unit_name="MA",
-  ...     url="https://example.com",
-  ...     decimals=0,
-  ...     default_frozen=False,
-  ...     manager="MANAGER_ADDRESS",
-  ...     reserve="RESERVE_ADDRESS",
-  ...     freeze="FREEZE_ADDRESS",
-  ...     clawback="CLAWBACK_ADDRESS"
-  ...     ... (see AssetCreateParams for more options)
-  >>> composer.add_asset_create(params)
+  ```python
+  params = AssetCreateParams(
+      sender="SENDER_ADDRESS",
+      total=1000,
+      asset_name="MyAsset",
+      unit_name="MA",
+      url="https://example.com",
+      decimals=0,
+      default_frozen=False,
+      manager="MANAGER_ADDRESS",
+      reserve="RESERVE_ADDRESS",
+      freeze="FREEZE_ADDRESS",
+      clawback="CLAWBACK_ADDRESS"
+      ... (see AssetCreateParams for more options)
+  composer.add_asset_create(params)
   ```
 * **Parameters:**
   **params** – The asset creation parameters
@@ -753,17 +753,17 @@ Add an asset creation transaction.
 Add an asset configuration transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetConfigParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456,
-  ...     manager="NEW_MANAGER_ADDRESS",
-  ...     reserve="NEW_RESERVE_ADDRESS",
-  ...     freeze="NEW_FREEZE_ADDRESS",
-  ...     clawback="NEW_CLAWBACK_ADDRESS"
-  ...     ... (see AssetConfigParams for more options)
-  ... )
-  >>> composer.add_asset_config(params)
+  ```python
+  params = AssetConfigParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456,
+      manager="NEW_MANAGER_ADDRESS",
+      reserve="NEW_RESERVE_ADDRESS",
+      freeze="NEW_FREEZE_ADDRESS",
+      clawback="NEW_CLAWBACK_ADDRESS"
+      ... (see AssetConfigParams for more options)
+  )
+  composer.add_asset_config(params)
   ```
 * **Parameters:**
   **params** – The asset configuration parameters
@@ -775,15 +775,15 @@ Add an asset configuration transaction.
 Add an asset freeze transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetFreezeParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456,
-  ...     account="ACCOUNT_TO_FREEZE",
-  ...     frozen=True
-  ...     ... (see AssetFreezeParams for more options)
-  ... )
-  >>> composer.add_asset_freeze(params)
+  ```python
+  params = AssetFreezeParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456,
+      account="ACCOUNT_TO_FREEZE",
+      frozen=True
+      ... (see AssetFreezeParams for more options)
+  )
+  composer.add_asset_freeze(params)
   ```
 * **Parameters:**
   **params** – The asset freeze parameters
@@ -795,12 +795,12 @@ Add an asset freeze transaction.
 Add an asset destruction transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetDestroyParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456
-  ...     ... (see AssetDestroyParams for more options)
-  >>> composer.add_asset_destroy(params)
+  ```python
+  params = AssetDestroyParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456
+      ... (see AssetDestroyParams for more options)
+  composer.add_asset_destroy(params)
   ```
 * **Parameters:**
   **params** – The asset destruction parameters
@@ -812,16 +812,16 @@ Add an asset destruction transaction.
 Add an asset transfer transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetTransferParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456,
-  ...     amount=10,
-  ...     receiver="RECEIVER_ADDRESS",
-  ...     clawback_target="CLAWBACK_TARGET_ADDRESS",
-  ...     close_asset_to="CLOSE_ADDRESS"
-  ...     ... (see AssetTransferParams for more options)
-  >>> composer.add_asset_transfer(params)
+  ```python
+  params = AssetTransferParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456,
+      amount=10,
+      receiver="RECEIVER_ADDRESS",
+      clawback_target="CLAWBACK_TARGET_ADDRESS",
+      close_asset_to="CLOSE_ADDRESS"
+      ... (see AssetTransferParams for more options)
+  composer.add_asset_transfer(params)
   ```
 * **Parameters:**
   **params** – The asset transfer parameters
@@ -833,13 +833,13 @@ Add an asset transfer transaction.
 Add an asset opt-in transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetOptInParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456
-  ...     ... (see AssetOptInParams for more options)
-  ... )
-  >>> composer.add_asset_opt_in(params)
+  ```python
+  params = AssetOptInParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456
+      ... (see AssetOptInParams for more options)
+  )
+  composer.add_asset_opt_in(params)
   ```
 * **Parameters:**
   **params** – The asset opt-in parameters
@@ -851,13 +851,13 @@ Add an asset opt-in transaction.
 Add an asset opt-out transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AssetOptOutParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     asset_id=123456,
-  ...     creator="CREATOR_ADDRESS"
-  ...     ... (see AssetOptOutParams for more options)
-  >>> composer.add_asset_opt_out(params)
+  ```python
+  params = AssetOptOutParams(
+      sender="SENDER_ADDRESS",
+      asset_id=123456,
+      creator="CREATOR_ADDRESS"
+      ... (see AssetOptOutParams for more options)
+  composer.add_asset_opt_out(params)
   ```
 * **Parameters:**
   **params** – The asset opt-out parameters
@@ -869,22 +869,22 @@ Add an asset opt-out transaction.
 Add an application creation transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AppCreateParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     approval_program="TEAL_APPROVAL_CODE",
-  ...     clear_state_program="TEAL_CLEAR_CODE",
-  ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
-  ...     on_complete=OnComplete.NoOpOC,
-  ...     args=[b'arg1'],
-  ...     account_references=["ACCOUNT1"],
-  ...     app_references=[789],
-  ...     asset_references=[123],
-  ...     box_references=[],
-  ...     extra_program_pages=0
-  ...     ... (see AppCreateParams for more options)
-  ... )
-  >>> composer.add_app_create(params)
+  ```python
+  params = AppCreateParams(
+      sender="SENDER_ADDRESS",
+      approval_program="TEAL_APPROVAL_CODE",
+      clear_state_program="TEAL_CLEAR_CODE",
+      schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+      on_complete=OnComplete.NoOpOC,
+      args=[b'arg1'],
+      account_references=["ACCOUNT1"],
+      app_references=[789],
+      asset_references=[123],
+      box_references=[],
+      extra_program_pages=0
+      ... (see AppCreateParams for more options)
+  )
+  composer.add_app_create(params)
   ```
 * **Parameters:**
   **params** – The application creation parameters
@@ -896,20 +896,20 @@ Add an application creation transaction.
 Add an application update transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AppUpdateParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     app_id=789,
-  ...     approval_program="TEAL_NEW_APPROVAL_CODE",
-  ...     clear_state_program="TEAL_NEW_CLEAR_CODE",
-  ...     args=[b'new_arg1'],
-  ...     account_references=["ACCOUNT1"],
-  ...     app_references=[789],
-  ...     asset_references=[123],
-  ...     box_references=[],
-  ...     on_complete=OnComplete.UpdateApplicationOC
-  ...     ... (see AppUpdateParams for more options)
-  >>> composer.add_app_update(params)
+  ```python
+  params = AppUpdateParams(
+      sender="SENDER_ADDRESS",
+      app_id=789,
+      approval_program="TEAL_NEW_APPROVAL_CODE",
+      clear_state_program="TEAL_NEW_CLEAR_CODE",
+      args=[b'new_arg1'],
+      account_references=["ACCOUNT1"],
+      app_references=[789],
+      asset_references=[123],
+      box_references=[],
+      on_complete=OnComplete.UpdateApplicationOC
+      ... (see AppUpdateParams for more options)
+  composer.add_app_update(params)
   ```
 * **Parameters:**
   **params** – The application update parameters
@@ -921,18 +921,18 @@ Add an application update transaction.
 Add an application deletion transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AppDeleteParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     app_id=789,
-  ...     args=[b'delete_arg'],
-  ...     account_references=["ACCOUNT1"],
-  ...     app_references=[789],
-  ...     asset_references=[123],
-  ...     box_references=[],
-  ...     on_complete=OnComplete.DeleteApplicationOC
-  ...     ... (see AppDeleteParams for more options)
-  >>> composer.add_app_delete(params)
+  ```python
+  params = AppDeleteParams(
+      sender="SENDER_ADDRESS",
+      app_id=789,
+      args=[b'delete_arg'],
+      account_references=["ACCOUNT1"],
+      app_references=[789],
+      asset_references=[123],
+      box_references=[],
+      on_complete=OnComplete.DeleteApplicationOC
+      ... (see AppDeleteParams for more options)
+  composer.add_app_delete(params)
   ```
 * **Parameters:**
   **params** – The application deletion parameters
@@ -944,17 +944,17 @@ Add an application deletion transaction.
 Add an application call transaction.
 
 * **Example:**
-  ```pycon
-  >>> params = AppCallParams(
-  ...     sender="SENDER_ADDRESS",
-  ...     on_complete=OnComplete.NoOpOC,
-  ...     app_id=789,
-  ...     approval_program="TEAL_APPROVAL_CODE",
-  ...     clear_state_program="TEAL_CLEAR_CODE",
-  ...     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
-  ...     ... (see AppCallParams for more options)
-  ... )
-  >>> composer.add_app_call(params)
+  ```python
+  params = AppCallParams(
+      sender="SENDER_ADDRESS",
+      on_complete=OnComplete.NoOpOC,
+      app_id=789,
+      approval_program="TEAL_APPROVAL_CODE",
+      clear_state_program="TEAL_CLEAR_CODE",
+      schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
+      ... (see AppCallParams for more options)
+  )
+  composer.add_app_call(params)
   ```
 * **Parameters:**
   **params** – The application call parameters
@@ -970,58 +970,58 @@ Add an application creation method call transaction.
 * **Returns:**
   The transaction composer instance for chaining
 * **Example:**
-  ```pycon
-  >>> # Basic example
-  >>> method = algosdk.abi.Method(
-  ...     name="method",
-  ...     args=[...],
-  ...     returns="string"
-  ... )
-  >>> composer.add_app_create_method_call(
-  ...     AppCreateMethodCallParams(
-  ...         sender="CREATORADDRESS",
-  ...         approval_program="TEALCODE",
-  ...         clear_state_program="TEALCODE",
-  ...         method=method,
-  ...         args=["arg1_value"]
-  ...     )
-  ... )
-  >>>
-  >>> # Advanced example
-  >>> method = ABIMethod(
-  ...     name="method",
-  ...     args=[{"name": "arg1", "type": "string"}],
-  ...     returns={"type": "string"}
-  ... )
-  >>> composer.add_app_create_method_call(
-  ...     AppCreateMethodCallParams(
-  ...         sender="CREATORADDRESS",
-  ...         method=method,
-  ...         args=["arg1_value"],
-  ...         approval_program="TEALCODE",
-  ...         clear_state_program="TEALCODE",
-  ...         schema={
-  ...             "global_ints": 1,
-  ...             "global_byte_slices": 2,
-  ...             "local_ints": 3,
-  ...             "local_byte_slices": 4
-  ...         },
-  ...         extra_pages=1,
-  ...         on_complete=OnComplete.OptInOC,
-  ...         args=[bytes([1, 2, 3, 4])],
-  ...         account_references=["ACCOUNT_1"],
-  ...         app_references=[123, 1234],
-  ...         asset_references=[12345],
-  ...         box_references=["box1", {"app_id": 1234, "name": "box2"}],
-  ...         lease="lease",
-  ...         note="note",
-  ...         first_valid_round=1000,
-  ...         validity_window=10,
-  ...         extra_fee=AlgoAmount.from_micro_algos(1000),
-  ...         static_fee=AlgoAmount.from_micro_algos(1000),
-  ...         max_fee=AlgoAmount.from_micro_algos(3000)
-  ...     )
-  ... )
+  ```python
+  # Basic example
+  method = algosdk.abi.Method(
+      name="method",
+      args=[...],
+      returns="string"
+  )
+  composer.add_app_create_method_call(
+      AppCreateMethodCallParams(
+          sender="CREATORADDRESS",
+          approval_program="TEALCODE",
+          clear_state_program="TEALCODE",
+          method=method,
+          args=["arg1_value"]
+      )
+  )
+
+  # Advanced example
+  method = ABIMethod(
+      name="method",
+      args=[{"name": "arg1", "type": "string"}],
+      returns={"type": "string"}
+  )
+  composer.add_app_create_method_call(
+      AppCreateMethodCallParams(
+          sender="CREATORADDRESS",
+          method=method,
+          args=["arg1_value"],
+          approval_program="TEALCODE",
+          clear_state_program="TEALCODE",
+          schema={
+              "global_ints": 1,
+              "global_byte_slices": 2,
+              "local_ints": 3,
+              "local_byte_slices": 4
+          },
+          extra_pages=1,
+          on_complete=OnComplete.OptInOC,
+          args=[bytes([1, 2, 3, 4])],
+          account_references=["ACCOUNT_1"],
+          app_references=[123, 1234],
+          asset_references=[12345],
+          box_references=["box1", {"app_id": 1234, "name": "box2"}],
+          lease="lease",
+          note="note",
+          first_valid_round=1000,
+          validity_window=10,
+          extra_fee=AlgoAmount.from_micro_algos(1000),
+          static_fee=AlgoAmount.from_micro_algos(1000),
+          max_fee=AlgoAmount.from_micro_algos(3000)
+      )
+  )
   ```
 
 #### add_app_update_method_call(params: [AppUpdateMethodCallParams](#algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
@@ -1078,10 +1078,10 @@ Add an existing AtomicTransactionComposer’s transactions.
 * **Returns:**
   The transaction composer instance for chaining
 * **Example:**
-  ```pycon
-  >>> atc = AtomicTransactionComposer()
-  >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
-  >>> composer.add_atc(atc)
+  ```python
+  atc = AtomicTransactionComposer()
+  atc.add_transaction(TransactionWithSigner(transaction, signer))
+  composer.add_atc(atc)
   ```
 
 #### count() → int
@@ -1140,8 +1140,8 @@ Simulate transaction group execution with configurable validation rules.
 * **Returns:**
   The simulation results
 * **Example:**
-  ```pycon
-  >>> result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
+  ```python
+  result = composer.simulate(extra_opcode_budget=1000, skip_signatures=True, ...)
   ```
 
 #### *static* arc2_note(note: algokit_utils.models.transaction.Arc2TransactionNote) → bytes

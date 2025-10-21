@@ -122,11 +122,11 @@ Create a new transaction group.
 * **Returns:**
   A new TransactionComposer instance
 * **Example:**
-  ```pycon
-  >>> sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
-  >>> composer = sender.new_group()
-  >>> composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
-  >>> composer.send()
+  ```python
+  sender = AlgorandClientTransactionSender(new_group, asset_manager, app_manager, algod_client)
+  composer = sender.new_group()
+  composer(PaymentParams(sender="sender", receiver="receiver", amount=AlgoAmount(algo=1)))
+  composer.send()
   ```
 
 #### payment(params: [algokit_utils.transactions.transaction_composer.PaymentParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.PaymentParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -139,34 +139,34 @@ Send a payment transaction to transfer Algo between accounts.
 * **Returns:**
   Result of the payment transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.payment(PaymentParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  receiver="RECEIVERADDRESS",
-  >>>  amount=AlgoAmount(algo=4),
-  >>> ))
+  ```python
+  result = algorand.send.payment(PaymentParams(
+   sender="SENDERADDRESS",
+   receiver="RECEIVERADDRESS",
+   amount=AlgoAmount(algo=4),
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result =  algorand.send.payment(PaymentParams(
-  >>>  amount=AlgoAmount(algo=4),
-  >>>  receiver="RECEIVERADDRESS",
-  >>>  sender="SENDERADDRESS",
-  >>>  close_remainder_to="CLOSEREMAINDERTOADDRESS",
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  rekey_to="REKEYTOADDRESS",
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result =  algorand.send.payment(PaymentParams(
+   amount=AlgoAmount(algo=4),
+   receiver="RECEIVERADDRESS",
+   sender="SENDERADDRESS",
+   close_remainder_to="CLOSEREMAINDERTOADDRESS",
+   lease="lease",
+   note="note",
+   rekey_to="REKEYTOADDRESS",
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   max_fee=AlgoAmount(micro_algo=3000),
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_create(params: [algokit_utils.transactions.transaction_composer.AssetCreateParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetCreateParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleAssetCreateTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleAssetCreateTransactionResult)
@@ -179,48 +179,48 @@ Create a new Algorand Standard Asset.
 * **Returns:**
   Result containing the new asset ID
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_create(AssetCreateParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  asset_name="ASSETNAME",
-  >>>  unit_name="UNITNAME",
-  >>>  total=1000,
-  >>> ))
+  ```python
+  result = algorand.send.asset_create(AssetCreateParams(
+   sender="SENDERADDRESS",
+   asset_name="ASSETNAME",
+   unit_name="UNITNAME",
+   total=1000,
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.asset_create(AssetCreateParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  total=100,
-  >>>  decimals=2,
-  >>>  asset_name="asset",
-  >>>  unit_name="unit",
-  >>>  url="url",
-  >>>  metadata_hash="metadataHash",
-  >>>  default_frozen=False,
-  >>>  manager="MANAGERADDRESS",
-  >>>  reserve="RESERVEADDRESS",
-  >>>  freeze="FREEZEADDRESS",
-  >>>  clawback="CLAWBACKADDRESS",
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result = algorand.send.asset_create(AssetCreateParams(
+   sender="CREATORADDRESS",
+   total=100,
+   decimals=2,
+   asset_name="asset",
+   unit_name="unit",
+   url="url",
+   metadata_hash="metadataHash",
+   default_frozen=False,
+   manager="MANAGERADDRESS",
+   reserve="RESERVEADDRESS",
+   freeze="FREEZEADDRESS",
+   clawback="CLAWBACKADDRESS",
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_config(params: [algokit_utils.transactions.transaction_composer.AssetConfigParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetConfigParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -233,32 +233,32 @@ Configure an existing Algorand Standard Asset.
 * **Returns:**
   Result of the configuration transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_config(AssetConfigParams(
-  >>>  sender="MANAGERADDRESS",
-  >>>  asset_id=123456,
-  >>>  manager="MANAGERADDRESS",
-  >>>  reserve="RESERVEADDRESS",
-  >>>  freeze="FREEZEADDRESS",
-  >>>  clawback="CLAWBACKADDRESS",
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  result = algorand.send.asset_config(AssetConfigParams(
+   sender="MANAGERADDRESS",
+   asset_id=123456,
+   manager="MANAGERADDRESS",
+   reserve="RESERVEADDRESS",
+   freeze="FREEZEADDRESS",
+   clawback="CLAWBACKADDRESS",
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_freeze(params: [algokit_utils.transactions.transaction_composer.AssetFreezeParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetFreezeParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -271,40 +271,40 @@ Freeze or unfreeze an Algorand Standard Asset for an account.
 * **Returns:**
   Result of the freeze transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_freeze(AssetFreezeParams(
-  >>>  sender="MANAGERADDRESS",
-  >>>  asset_id=123456,
-  >>>  account="ACCOUNTADDRESS",
-  >>>  frozen=True,
-  >>> ))
+  ```python
+  result = algorand.send.asset_freeze(AssetFreezeParams(
+   sender="MANAGERADDRESS",
+   asset_id=123456,
+   account="ACCOUNTADDRESS",
+   frozen=True,
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.asset_freeze(AssetFreezeParams(
-  >>>  sender="MANAGERADDRESS",
-  >>>  asset_id=123456,
-  >>>  account="ACCOUNTADDRESS",
-  >>>  frozen=True,
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result = algorand.send.asset_freeze(AssetFreezeParams(
+   sender="MANAGERADDRESS",
+   asset_id=123456,
+   account="ACCOUNTADDRESS",
+   frozen=True,
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_destroy(params: [algokit_utils.transactions.transaction_composer.AssetDestroyParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetDestroyParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -317,36 +317,36 @@ Destroys an Algorand Standard Asset.
 * **Returns:**
   Result of the destroy transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_destroy(AssetDestroyParams(
-  >>>  sender="MANAGERADDRESS",
-  >>>  asset_id=123456,
-  >>> ))
+  ```python
+  result = algorand.send.asset_destroy(AssetDestroyParams(
+   sender="MANAGERADDRESS",
+   asset_id=123456,
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.asset_destroy(AssetDestroyParams(
-  >>>  sender="MANAGERADDRESS",
-  >>>  asset_id=123456,
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result = algorand.send.asset_destroy(AssetDestroyParams(
+   sender="MANAGERADDRESS",
+   asset_id=123456,
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_transfer(params: [algokit_utils.transactions.transaction_composer.AssetTransferParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetTransferParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -359,43 +359,43 @@ Transfer an Algorand Standard Asset.
 * **Returns:**
   Result of the transfer transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_transfer(AssetTransferParams(
-  >>>  sender="HOLDERADDRESS",
-  >>>  asset_id=123456,
-  >>>  amount=1,
-  >>>  receiver="RECEIVERADDRESS",
-  >>> ))
+  ```python
+  result = algorand.send.asset_transfer(AssetTransferParams(
+   sender="HOLDERADDRESS",
+   asset_id=123456,
+   amount=1,
+   receiver="RECEIVERADDRESS",
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example (with clawback)
-  >>> result = algorand.send.asset_transfer(AssetTransferParams(
-  >>>  sender="CLAWBACKADDRESS",
-  >>>  asset_id=123456,
-  >>>  amount=1,
-  >>>  receiver="RECEIVERADDRESS",
-  >>>  clawback_target="HOLDERADDRESS",
-  >>>  # This field needs to be used with caution
-  >>>  close_asset_to="ADDRESSTOCLOSETO",
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example (with clawback)
+  result = algorand.send.asset_transfer(AssetTransferParams(
+   sender="CLAWBACKADDRESS",
+   asset_id=123456,
+   amount=1,
+   receiver="RECEIVERADDRESS",
+   clawback_target="HOLDERADDRESS",
+   # This field needs to be used with caution
+   close_asset_to="ADDRESSTOCLOSETO",
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_opt_in(params: [algokit_utils.transactions.transaction_composer.AssetOptInParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetOptInParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -408,36 +408,36 @@ Opt an account into an Algorand Standard Asset.
 * **Returns:**
   Result of the opt-in transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_opt_in(AssetOptInParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  asset_id=123456,
-  >>> ))
+  ```python
+  result = algorand.send.asset_opt_in(AssetOptInParams(
+   sender="SENDERADDRESS",
+   asset_id=123456,
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.asset_opt_in(AssetOptInParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  asset_id=123456,
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result = algorand.send.asset_opt_in(AssetOptInParams(
+   sender="SENDERADDRESS",
+   asset_id=123456,
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### asset_opt_out(params: [algokit_utils.transactions.transaction_composer.AssetOptOutParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AssetOptOutParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, \*, ensure_zero_balance: bool = True) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
@@ -453,40 +453,40 @@ Opt an account out of an Algorand Standard Asset.
 * **Returns:**
   Result of the opt-out transaction
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.asset_opt_out(AssetOptOutParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  creator="CREATORADDRESS",
-  >>>  asset_id=123456,
-  >>>  ensure_zero_balance=True,
-  >>> ))
+  ```python
+  result = algorand.send.asset_opt_out(AssetOptOutParams(
+   sender="SENDERADDRESS",
+   creator="CREATORADDRESS",
+   asset_id=123456,
+   ensure_zero_balance=True,
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.asset_opt_out(AssetOptOutParams(
-  >>>  sender="SENDERADDRESS",
-  >>>  asset_id=123456,
-  >>>  creator="CREATORADDRESS",
-  >>>  ensure_zero_balance=True,
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Advanced example
+  result = algorand.send.asset_opt_out(AssetOptOutParams(
+   sender="SENDERADDRESS",
+   asset_id=123456,
+   creator="CREATORADDRESS",
+   ensure_zero_balance=True,
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### app_create(params: [algokit_utils.transactions.transaction_composer.AppCreateParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppCreateTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppCreateTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -499,56 +499,56 @@ Create a new application.
 * **Returns:**
   Result containing the new application ID and address
 * **Example:**
-  ```pycon
-  >>> result = algorand.send.app_create(AppCreateParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  approval_program="TEALCODE",
-  >>>  clear_state_program="TEALCODE",
-  >>> ))
+  ```python
+  result = algorand.send.app_create(AppCreateParams(
+   sender="CREATORADDRESS",
+   approval_program="TEALCODE",
+   clear_state_program="TEALCODE",
+  ))
   ```
 
-  ```pycon
-  >>> # Advanced example
-  >>> result = algorand.send.app_create(AppCreateParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  approval_program="TEALCODE",
-  >>>  clear_state_program="TEALCODE",
-  >>> ))
-  >>> # algorand.send.appCreate(AppCreateParams(
-  >>> #  sender='CREATORADDRESS',
-  >>> #  approval_program="TEALCODE",
-  >>> #  clear_state_program="TEALCODE",
-  >>> #  schema={
-  >>> #    "global_ints": 1,
-  >>> #    "global_byte_slices": 2,
-  >>> #    "local_ints": 3,
-  >>> #    "local_byte_slices": 4
-  >>> #  },
-  >>> #  extra_program_pages: 1,
-  >>> #  on_complete: algosdk.transaction.OnComplete.OptInOC,
-  >>> #  args: [b'some_bytes']
-  >>> #  account_references: ["ACCOUNT_1"]
-  >>> #  app_references: [123, 1234]
-  >>> #  asset_references: [12345]
-  >>> #  box_references: ["box1", {app_id: 1234, name: "box2"}]
-  >>> #  lease: 'lease',
-  >>> #  note: 'note',
-  >>> #  # You wouldn't normally set this field
-  >>> #  first_valid_round: 1000,
-  >>> #  validity_window: 10,
-  >>> #  extra_fee: AlgoAmount(micro_algo=1000),
-  >>> #  static_fee: AlgoAmount(micro_algo=1000),
-  >>> #  # Max fee doesn't make sense with extraFee AND staticFee
-  >>> #  #  already specified, but here for completeness
-  >>> #  max_fee: AlgoAmount(micro_algo=3000),
-  >>> #  # Signer only needed if you want to provide one,
-  >>> #  #  generally you'd register it with AlgorandClient
-  >>> #  #  against the sender and not need to pass it in
-  >>> #  signer: transactionSigner
-  >>> #}, send_params=SendParams(
-  >>> #  max_rounds_to_wait_for_confirmation=5,
-  >>> #  suppress_log=True,
-  >>> #))
+  ```python
+  # Advanced example
+  result = algorand.send.app_create(AppCreateParams(
+   sender="CREATORADDRESS",
+   approval_program="TEALCODE",
+   clear_state_program="TEALCODE",
+  ))
+  # algorand.send.appCreate(AppCreateParams(
+  #  sender='CREATORADDRESS',
+  #  approval_program="TEALCODE",
+  #  clear_state_program="TEALCODE",
+  #  schema={
+  #    "global_ints": 1,
+  #    "global_byte_slices": 2,
+  #    "local_ints": 3,
+  #    "local_byte_slices": 4
+  #  },
+  #  extra_program_pages: 1,
+  #  on_complete: algosdk.transaction.OnComplete.OptInOC,
+  #  args: [b'some_bytes']
+  #  account_references: ["ACCOUNT_1"]
+  #  app_references: [123, 1234]
+  #  asset_references: [12345]
+  #  box_references: ["box1", {app_id: 1234, name: "box2"}]
+  #  lease: 'lease',
+  #  note: 'note',
+  #  # You wouldn't normally set this field
+  #  first_valid_round: 1000,
+  #  validity_window: 10,
+  #  extra_fee: AlgoAmount(micro_algo=1000),
+  #  static_fee: AlgoAmount(micro_algo=1000),
+  #  # Max fee doesn't make sense with extraFee AND staticFee
+  #  #  already specified, but here for completeness
+  #  max_fee: AlgoAmount(micro_algo=3000),
+  #  # Signer only needed if you want to provide one,
+  #  #  generally you'd register it with AlgorandClient
+  #  #  against the sender and not need to pass it in
+  #  signer: transactionSigner
+  #}, send_params=SendParams(
+  #  max_rounds_to_wait_for_confirmation=5,
+  #  suppress_log=True,
+  #))
   ```
 
 #### app_update(params: [algokit_utils.transactions.transaction_composer.AppUpdateParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppUpdateParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppUpdateTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppUpdateTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -561,42 +561,42 @@ Update an application.
 * **Returns:**
   Result containing the compiled programs
 * **Example:**
-  ```pycon
-  >>> # Basic example
-  >>> algorand.send.app_update(AppUpdateParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  approval_program="TEALCODE",
-  >>>  clear_state_program="TEALCODE",
-  >>> ))
-  >>> # Advanced example
-  >>> algorand.send.app_update(AppUpdateParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  approval_program="TEALCODE",
-  >>>  clear_state_program="TEALCODE",
-  >>>  on_complete=OnComplete.UpdateApplicationOC,
-  >>>  args=[b'some_bytes'],
-  >>>  account_references=["ACCOUNT_1"],
-  >>>  app_references=[123, 1234],
-  >>>  asset_references=[12345],
-  >>>  box_references=[...],
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Basic example
+  algorand.send.app_update(AppUpdateParams(
+   sender="CREATORADDRESS",
+   approval_program="TEALCODE",
+   clear_state_program="TEALCODE",
+  ))
+  # Advanced example
+  algorand.send.app_update(AppUpdateParams(
+   sender="CREATORADDRESS",
+   approval_program="TEALCODE",
+   clear_state_program="TEALCODE",
+   on_complete=OnComplete.UpdateApplicationOC,
+   args=[b'some_bytes'],
+   account_references=["ACCOUNT_1"],
+   app_references=[123, 1234],
+   asset_references=[12345],
+   box_references=[...],
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### app_delete(params: [algokit_utils.transactions.transaction_composer.AppDeleteParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppDeleteParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -609,39 +609,39 @@ Delete an application.
 * **Returns:**
   Result of the deletion transaction
 * **Example:**
-  ```pycon
-  >>> # Basic example
-  >>> algorand.send.app_delete(AppDeleteParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  app_id=123456,
-  >>> ))
-  >>> # Advanced example
-  >>> algorand.send.app_delete(AppDeleteParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  on_complete=OnComplete.DeleteApplicationOC,
-  >>>  args=[b'some_bytes'],
-  >>>  account_references=["ACCOUNT_1"],
-  >>>  app_references=[123, 1234],
-  >>>  asset_references=[12345],
-  >>>  box_references=[...],
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner,
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Basic example
+  algorand.send.app_delete(AppDeleteParams(
+   sender="CREATORADDRESS",
+   app_id=123456,
+  ))
+  # Advanced example
+  algorand.send.app_delete(AppDeleteParams(
+   sender="CREATORADDRESS",
+   on_complete=OnComplete.DeleteApplicationOC,
+   args=[b'some_bytes'],
+   account_references=["ACCOUNT_1"],
+   app_references=[123, 1234],
+   asset_references=[12345],
+   box_references=[...],
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner,
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### app_call(params: [algokit_utils.transactions.transaction_composer.AppCallParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCallParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -654,39 +654,39 @@ Call an application.
 * **Returns:**
   Result containing any ABI return value
 * **Example:**
-  ```pycon
-  >>> # Basic example
-  >>> algorand.send.app_call(AppCallParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  app_id=123456,
-  >>> ))
-  >>> # Advanced example
-  >>> algorand.send.app_call(AppCallParams(
-  >>>  sender="CREATORADDRESS",
-  >>>  on_complete=OnComplete.OptInOC,
-  >>>  args=[b'some_bytes'],
-  >>>  account_references=["ACCOUNT_1"],
-  >>>  app_references=[123, 1234],
-  >>>  asset_references=[12345],
-  >>>  box_references=[...],
-  >>>  lease="lease",
-  >>>  note="note",
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round=1000,
-  >>>  validity_window=10,
-  >>>  extra_fee=AlgoAmount(micro_algo=1000),
-  >>>  static_fee=AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee=AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer=transactionSigner,
-  >>> ), send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Basic example
+  algorand.send.app_call(AppCallParams(
+   sender="CREATORADDRESS",
+   app_id=123456,
+  ))
+  # Advanced example
+  algorand.send.app_call(AppCallParams(
+   sender="CREATORADDRESS",
+   on_complete=OnComplete.OptInOC,
+   args=[b'some_bytes'],
+   account_references=["ACCOUNT_1"],
+   app_references=[123, 1234],
+   asset_references=[12345],
+   box_references=[...],
+   lease="lease",
+   note="note",
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transactionSigner,
+  ), send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### app_create_method_call(params: [algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppCreateTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppCreateTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -699,66 +699,66 @@ Call an application’s create method.
 * **Returns:**
   Result containing the new application ID and address
 * **Example:**
-  ```pycon
-  >>> # Note: you may prefer to use `algorand.client` to get an app client for more advanced functionality.
-  >>> #
-  >>> # @param params The parameters for the app creation transaction
-  >>> # Basic example
-  >>> method = algorand.abi.Method(
-  >>>   name='method',
-  >>>   args=[b'arg1'],
-  >>>   returns='string'
-  >>> )
-  >>> result = algorand.send.app_create_method_call({ sender: 'CREATORADDRESS',
-  >>>   approval_program: 'TEALCODE',
-  >>>   clear_state_program: 'TEALCODE',
-  >>>   method: method,
-  >>>   args: ["arg1_value"] })
-  >>> created_app_id = result.app_id
-  >>> ...
-  >>> # Advanced example
-  >>> method = algorand.abi.Method(
-  >>>   name='method',
-  >>>   args=[b'arg1'],
-  >>>   returns='string'
-  >>> )
-  >>> result = algorand.send.app_create_method_call({
-  >>>  sender: 'CREATORADDRESS',
-  >>>  method: method,
-  >>>  args: ["arg1_value"],
-  >>>  approval_program: "TEALCODE",
-  >>>  clear_state_program: "TEALCODE",
-  >>>  schema: {
-  >>>    "global_ints": 1,
-  >>>    "global_byte_slices": 2,
-  >>>    "local_ints": 3,
-  >>>    "local_byte_slices": 4
-  >>>  },
-  >>>  extra_program_pages: 1,
-  >>>  on_complete: algosdk.transaction.OnComplete.OptInOC,
-  >>>  args: [new Uint8Array(1, 2, 3, 4)],
-  >>>  account_references: ["ACCOUNT_1"],
-  >>>  app_references: [123, 1234],
-  >>>  asset_references: [12345],
-  >>>  box_references: [...],
-  >>>  lease: 'lease',
-  >>>  note: 'note',
-  >>>  # You wouldn't normally set this field
-  >>>  first_valid_round: 1000,
-  >>>  validity_window: 10,
-  >>>  extra_fee: AlgoAmount(micro_algo=1000),
-  >>>  static_fee: AlgoAmount(micro_algo=1000),
-  >>>  # Max fee doesn't make sense with extraFee AND staticFee
-  >>>  #  already specified, but here for completeness
-  >>>  max_fee: AlgoAmount(micro_algo=3000),
-  >>>  # Signer only needed if you want to provide one,
-  >>>  #  generally you'd register it with AlgorandClient
-  >>>  #  against the sender and not need to pass it in
-  >>>  signer: transactionSigner,
-  >>> }, send_params=SendParams(
-  >>>  max_rounds_to_wait_for_confirmation=5,
-  >>>  suppress_log=True,
-  >>> ))
+  ```python
+  # Note: you may prefer to use `algorand.client` to get an app client for more advanced functionality.
+  #
+  # @param params The parameters for the app creation transaction
+  # Basic example
+  method = algorand.abi.Method(
+    name='method',
+    args=[b'arg1'],
+    returns='string'
+  )
+  result = algorand.send.app_create_method_call({ sender: 'CREATORADDRESS',
+    approval_program: 'TEALCODE',
+    clear_state_program: 'TEALCODE',
+    method: method,
+    args: ["arg1_value"] })
+  created_app_id = result.app_id
+  ...
+  # Advanced example
+  method = algorand.abi.Method(
+    name='method',
+    args=[b'arg1'],
+    returns='string'
+  )
+  result = algorand.send.app_create_method_call({
+   sender: 'CREATORADDRESS',
+   method: method,
+   args: ["arg1_value"],
+   approval_program: "TEALCODE",
+   clear_state_program: "TEALCODE",
+   schema: {
+     "global_ints": 1,
+     "global_byte_slices": 2,
+     "local_ints": 3,
+     "local_byte_slices": 4
+   },
+   extra_program_pages: 1,
+   on_complete: algosdk.transaction.OnComplete.OptInOC,
+   args: [new Uint8Array(1, 2, 3, 4)],
+   account_references: ["ACCOUNT_1"],
+   app_references: [123, 1234],
+   asset_references: [12345],
+   box_references: [...],
+   lease: 'lease',
+   note: 'note',
+   # You wouldn't normally set this field
+   first_valid_round: 1000,
+   validity_window: 10,
+   extra_fee: AlgoAmount(micro_algo=1000),
+   static_fee: AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extraFee AND staticFee
+   #  already specified, but here for completeness
+   max_fee: AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer: transactionSigner,
+  }, send_params=SendParams(
+   max_rounds_to_wait_for_confirmation=5,
+   suppress_log=True,
+  ))
   ```
 
 #### app_update_method_call(params: [algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppUpdateTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppUpdateTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -771,42 +771,46 @@ Call an application’s update method.
 * **Returns:**
   Result containing the compiled programs
 * **Example:**
+  ```python
   # Basic example:
-  >>> method = algorand.abi.Method(
-  …     name=”updateMethod”,
-  …     args=[{“type”: “string”, “name”: “arg1”}],
-  …     returns=”string”
-  … )
-  >>> params = AppUpdateMethodCallParams(
-  …     sender=”CREATORADDRESS”,
-  …     app_id=123,
-  …     method=method,
-  …     args=[“new_value”],
-  …     approval_program=”TEALCODE”,
-  …     clear_state_program=”TEALCODE”
-  … )
-  >>> result = algorand.send.app_update_method_call(params)
-  >>> print(result.compiled_approval, result.compiled_clear)
+  method = algorand.abi.Method(
+      name=”updateMethod”,
+      args=[{“type”: “string”, “name”: “arg1”}],
+      returns=”string”
+  )
+  params = AppUpdateMethodCallParams(
+      sender=”CREATORADDRESS”,
+      app_id=123,
+      method=method,
+      args=[“new_value”],
+      approval_program=”TEALCODE”,
+      clear_state_program=”TEALCODE”
+  )
+  result = algorand.send.app_update_method_call(params)
+  print(result.compiled_approval, result.compiled_clear)
+  ```
 
+  ```python
   # Advanced example:
-  >>> method = algorand.abi.Method(
-  …     name=”updateMethod”,
-  …     args=[{“type”: “string”, “name”: “arg1”}, {“type”: “uint64”, “name”: “arg2”}],
-  …     returns=”string”
-  … )
-  >>> params = AppUpdateMethodCallParams(
-  …     sender=”CREATORADDRESS”,
-  …     app_id=456,
-  …     method=method,
-  …     args=[“new_value”, 42],
-  …     approval_program=”TEALCODE_ADVANCED”,
-  …     clear_state_program=”TEALCLEAR_ADVANCED”,
-  …     account_references=[“ACCOUNT1”, “ACCOUNT2”],
-  …     app_references=[789],
-  …     asset_references=[101112]
-  … )
-  >>> result = algorand.send.app_update_method_call(params)
-  >>> print(result.compiled_approval, result.compiled_clear)
+  method = algorand.abi.Method(
+      name=”updateMethod”,
+      args=[{“type”: “string”, “name”: “arg1”}, {“type”: “uint64”, “name”: “arg2”}],
+      returns=”string”
+  )
+  params = AppUpdateMethodCallParams(
+      sender=”CREATORADDRESS”,
+      app_id=456,
+      method=method,
+      args=[“new_value”, 42],
+      approval_program=”TEALCODE_ADVANCED”,
+      clear_state_program=”TEALCLEAR_ADVANCED”,
+      account_references=[“ACCOUNT1”, “ACCOUNT2”],
+      app_references=[789],
+      asset_references=[101112]
+  )
+  result = algorand.send.app_update_method_call(params)
+  print(result.compiled_approval, result.compiled_clear)
+  ```
 
 #### app_delete_method_call(params: [algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
 
@@ -818,36 +822,40 @@ Call an application’s delete method.
 * **Returns:**
   Result of the deletion transaction
 * **Example:**
+  ```python
   # Basic example:
-  >>> method = algorand.abi.Method(
-  …     name=”deleteMethod”,
-  …     args=[],
-  …     returns=”void”
-  … )
-  >>> params = AppDeleteMethodCallParams(
-  …     sender=”CREATORADDRESS”,
-  …     app_id=123,
-  …     method=method
-  … )
-  >>> result = algorand.send.app_delete_method_call(params)
-  >>> print(result.tx_id)
+  method = algorand.abi.Method(
+      name=”deleteMethod”,
+      args=[],
+      returns=”void”
+  )
+  params = AppDeleteMethodCallParams(
+      sender=”CREATORADDRESS”,
+      app_id=123,
+      method=method
+  )
+  result = algorand.send.app_delete_method_call(params)
+  print(result.tx_id)
+  ```
 
+  ```python
   # Advanced example:
-  >>> method = algorand.abi.Method(
-  …     name=”deleteMethod”,
-  …     args=[{“type”: “uint64”, “name”: “confirmation”}],
-  …     returns=”void”
-  … )
-  >>> params = AppDeleteMethodCallParams(
-  …     sender=”CREATORADDRESS”,
-  …     app_id=123,
-  …     method=method,
-  …     args=[1],
-  …     account_references=[“ACCOUNT1”],
-  …     app_references=[456]
-  … )
-  >>> result = algorand.send.app_delete_method_call(params)
-  >>> print(result.tx_id)
+  method = algorand.abi.Method(
+      name=”deleteMethod”,
+      args=[{“type”: “uint64”, “name”: “confirmation”}],
+      returns=”void”
+  )
+  params = AppDeleteMethodCallParams(
+      sender=”CREATORADDRESS”,
+      app_id=123,
+      method=method,
+      args=[1],
+      account_references=[“ACCOUNT1”],
+      app_references=[456]
+  )
+  result = algorand.send.app_delete_method_call(params)
+  print(result.tx_id)
+  ```
 
 #### app_call_method_call(params: [algokit_utils.transactions.transaction_composer.AppCallMethodCallParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCallMethodCallParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
 
@@ -859,38 +867,42 @@ Call an application’s call method.
 * **Returns:**
   Result containing any ABI return value
 * **Example:**
+  ```python
   # Basic example:
-  >>> method = algorand.abi.Method(
-  …     name=”callMethod”,
-  …     args=[{“type”: “uint64”, “name”: “arg1”}],
-  …     returns=”uint64”
-  … )
-  >>> params = AppCallMethodCallParams(
-  …     sender=”CALLERADDRESS”,
-  …     app_id=123,
-  …     method=method,
-  …     args=[12345]
-  … )
-  >>> result = algorand.send.app_call_method_call(params)
-  >>> print(result.abi_return)
+  method = algorand.abi.Method(
+      name=”callMethod”,
+      args=[{“type”: “uint64”, “name”: “arg1”}],
+      returns=”uint64”
+  )
+  params = AppCallMethodCallParams(
+      sender=”CALLERADDRESS”,
+      app_id=123,
+      method=method,
+      args=[12345]
+  )
+  result = algorand.send.app_call_method_call(params)
+  print(result.abi_return)
+  ```
 
+  ```python
   # Advanced example:
-  >>> method = algorand.abi.Method(
-  …     name=”callMethod”,
-  …     args=[{“type”: “uint64”, “name”: “arg1”}, {“type”: “string”, “name”: “arg2”}],
-  …     returns=”uint64”
-  … )
-  >>> params = AppCallMethodCallParams(
-  …     sender=”CALLERADDRESS”,
-  …     app_id=123,
-  …     method=method,
-  …     args=[12345, “extra”],
-  …     account_references=[“ACCOUNT1”],
-  …     asset_references=[101112],
-  …     app_references=[789]
-  … )
-  >>> result = algorand.send.app_call_method_call(params)
-  >>> print(result.abi_return)
+  method = algorand.abi.Method(
+      name=”callMethod”,
+      args=[{“type”: “uint64”, “name”: “arg1”}, {“type”: “string”, “name”: “arg2”}],
+      returns=”uint64”
+  )
+  params = AppCallMethodCallParams(
+      sender=”CALLERADDRESS”,
+      app_id=123,
+      method=method,
+      args=[12345, “extra”],
+      account_references=[“ACCOUNT1”],
+      asset_references=[101112],
+      app_references=[789]
+  )
+  result = algorand.send.app_call_method_call(params)
+  print(result.abi_return)
+  ```
 
 #### online_key_registration(params: [algokit_utils.transactions.transaction_composer.OnlineKeyRegistrationParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.OnlineKeyRegistrationParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
 
@@ -902,30 +914,34 @@ Register an online key.
 * **Returns:**
   Result of the registration transaction
 * **Example:**
+  ```python
   # Basic example:
-  >>> params = OnlineKeyRegistrationParams(
-  …     sender=”ACCOUNTADDRESS”,
-  …     vote_key=”VOTEKEY”,
-  …     selection_key=”SELECTIONKEY”,
-  …     vote_first=1000,
-  …     vote_last=2000,
-  …     vote_key_dilution=10
-  … )
-  >>> result = algorand.send.online_key_registration(params)
-  >>> print(result.tx_id)
+  params = OnlineKeyRegistrationParams(
+      sender=”ACCOUNTADDRESS”,
+      vote_key=”VOTEKEY”,
+      selection_key=”SELECTIONKEY”,
+      vote_first=1000,
+      vote_last=2000,
+      vote_key_dilution=10
+  )
+  result = algorand.send.online_key_registration(params)
+  print(result.tx_id)
+  ```
 
+  ```python
   # Advanced example:
-  >>> params = OnlineKeyRegistrationParams(
-  …     sender=”ACCOUNTADDRESS”,
-  …     vote_key=”VOTEKEY”,
-  …     selection_key=”SELECTIONKEY”,
-  …     vote_first=1000,
-  …     vote_last=2100,
-  …     vote_key_dilution=10,
-  …     state_proof_key=b’’ \* 64
-  … )
-  >>> result = algorand.send.online_key_registration(params)
-  >>> print(result.tx_id)
+  params = OnlineKeyRegistrationParams(
+      sender=”ACCOUNTADDRESS”,
+      vote_key=”VOTEKEY”,
+      selection_key=”SELECTIONKEY”,
+      vote_first=1000,
+      vote_last=2100,
+      vote_key_dilution=10,
+      state_proof_key=b’’ * 64
+  )
+  result = algorand.send.online_key_registration(params)
+  print(result.tx_id)
+  ```
 
 #### offline_key_registration(params: [algokit_utils.transactions.transaction_composer.OfflineKeyRegistrationParams](../transaction_composer/index.md#algokit_utils.transactions.transaction_composer.OfflineKeyRegistrationParams), send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
 
@@ -937,19 +953,23 @@ Register an offline key.
 * **Returns:**
   Result of the registration transaction
 * **Example:**
+  ```python
   # Basic example:
-  >>> params = OfflineKeyRegistrationParams(
-  …     sender=”ACCOUNTADDRESS”,
-  …     prevent_account_from_ever_participating_again=True
-  … )
-  >>> result = algorand.send.offline_key_registration(params)
-  >>> print(result.tx_id)
+  params = OfflineKeyRegistrationParams(
+      sender=”ACCOUNTADDRESS”,
+      prevent_account_from_ever_participating_again=True
+  )
+  result = algorand.send.offline_key_registration(params)
+  print(result.tx_id)
+  ```
 
+  ```python
   # Advanced example:
-  >>> params = OfflineKeyRegistrationParams(
-  …     sender=”ACCOUNTADDRESS”,
-  …     prevent_account_from_ever_participating_again=True,
-  …     note=b’Offline registration’
-  … )
-  >>> result = algorand.send.offline_key_registration(params)
-  >>> print(result.tx_id)
+  params = OfflineKeyRegistrationParams(
+      sender=”ACCOUNTADDRESS”,
+      prevent_account_from_ever_participating_again=True,
+      note=b’Offline registration’
+  )
+  result = algorand.send.offline_key_registration(params)
+  print(result.tx_id)
+  ```
