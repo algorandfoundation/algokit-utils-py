@@ -27,6 +27,12 @@ source = { editable = "packages/algokit-abi" }
 name = "algokit-transact"
 version = "0.1.0"
 source = { editable = "packages/algokit-transact" }
+dependencies = [
+    { name = "msgpack" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "msgpack", specifier = ">=1.0.0,<2" }]
 
 [[package]]
 name = "algokit-utils"
