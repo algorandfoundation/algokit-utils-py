@@ -1,45 +1,55 @@
-[tool.poetry]
+[project]
 name = "algokit-utils"
 version = "4.2.2"
 description = "Utilities for Algorand development for use by AlgoKit"
-authors = ["Algorand Foundation <contact@algorand.foundation>"]
-license = "MIT"
+authors = [{ name = "Algorand Foundation", email = "contact@algorand.foundation" }]
+requires-python = "~=3.10.0"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+    "py-algorand-sdk>=2.11.0,<3",
+    "httpx>=0.23.1,<=0.28.1",
+    "typing-extensions>=4.6.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-py-algorand-sdk = "^2.11.0"
-httpx = ">=0.23.1,<=0.28.1"
-typing-extensions = ">=4.6.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8"
-ruff = ">=0.1.6,<=0.11.8"
-pip-audit = "^2.5.6"
-pytest-mock = "^3.14"
-mypy = "^1.5.1"
-python-semantic-release = "^7.34.3"
-pytest-cov = "^6"
-pre-commit = "^3.4.0"
-python-dotenv = "^1.0.0"
-sphinx = "^8.0.0"
-poethepoet = ">=0.19,<0.35"
-pytest-httpx = "^0.35.0"
-pytest-xdist = "^3.6.1"
-linkify-it-py = "^2.0.3"
-setuptools = "^80.9.0"
-pydoclint = "^0.6.0"
-pytest-sugar = "^1.0.0"
-types-deprecated = "^1.2.15.20241117"
-sphinx-autobuild = "^2024.10.3"
-furo = "^2024.8.6"
-myst-parser = "^4.0.0"
-sphinx-autoapi = "^3.4.0"
-sphinx-markdown-builder = "^0.6.8"
+[tool.uv.sources]
+algokit-transact = { workspace = true }
+algokit-abi = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+    "ruff>=0.1.6,<=0.11.8",
+    "pip-audit>=2.5.6,<3",
+    "pytest-mock~=3.14",
+    "mypy>=1.5.1,<2",
+    "python-semantic-release>=7.34.3,<8",
+    "pytest-cov>=6,<7",
+    "pre-commit>=3.4.0,<4",
+    "python-dotenv>=1.0.0,<2",
+    "sphinx>=8.0.0,<9",
+    "poethepoet>=0.19,<0.35",
+    "pytest-httpx>=0.35.0,<0.36",
+    "pytest-xdist>=3.6.1,<4",
+    "linkify-it-py>=2.0.3,<3",
+    "setuptools>=80.9.0,<81",
+    "pydoclint>=0.6.0,<0.7",
+    "pytest-sugar>=1.0.0,<2",
+    "types-deprecated>=1.2.15.20241117,<2",
+    "sphinx-autobuild>=2024.10.3,<2025",
+    "furo>=2024.8.6,<2025",
+    "myst-parser>=4.0.0,<5",
+    "sphinx-autoapi>=3.4.0,<4",
+    "sphinx-markdown-builder>=0.6.8,<0.7",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 120
@@ -174,9 +184,9 @@ module = ["tests.transactions.test_transaction_composer"]
 disable_error_code = ["call-overload", "union-attr"]
 
 [tool.semantic_release]
-version_toml = "pyproject.toml:tool.poetry.version"
+version_toml = "pyproject.toml:project.version"
 remove_dist = false
-build_command = "poetry build --format wheel"
+build_command = "uv build"
 version_source = "tag"
 major_on_zero = true
 upload_to_repository = false
