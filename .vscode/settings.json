@@ -19,12 +19,9 @@
   // Python
   "platformSettings.autoLoad": true,
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
-  "python.analysis.extraPaths": ["${workspaceFolder}/src"],
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "python.analysis.exclude": ["tests/artifacts/**"],
-  "python.analysis.typeCheckingMode": "basic",
   "ruff.enable": true,
   "ruff.configuration": "pyproject.toml",
   "ruff.importStrategy": "fromEnvironment",
@@ -50,5 +47,5 @@
       }
     ]
   },
-  "python.testing.pytestArgs": ["."]
+  "python.testing.pytestArgs": ["tests"]
 }

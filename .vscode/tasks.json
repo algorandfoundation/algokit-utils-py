@@ -1,0 +1,46 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pytest: root",
+      "type": "shell",
+      "command": "uv run pytest",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "pytest: algokit-transact",
+      "type": "shell",
+      "command": "uv run pytest",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/algokit-transact"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "pytest: algokit-abi",
+      "type": "shell",
+      "command": "uv run pytest",
+      "options": {
+        "cwd": "${workspaceFolder}/packages/algokit-abi"
+      },
+      "problemMatcher": [],
+      "group": "test"
+    },
+    {
+      "label": "pytest: all (sequential)",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "pytest: root",
+        "pytest: algokit-transact",
+        "pytest: algokit-abi"
+      ],
+      "problemMatcher": [],
+      "group": "test"
+    }
+  ]
+}

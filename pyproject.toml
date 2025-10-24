@@ -157,16 +157,8 @@ docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring f
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "src",
-  "packages/algokit-abi/src",
-  "packages/algokit-transact/src",
-]
-testpaths = [
-  "tests",
-  "packages/algokit-abi/tests",
-  "packages/algokit-transact/tests",
-]
+pythonpath = ["src"]
+testpaths = ["tests"]
 norecursedirs = [
   "src",
   ".*",

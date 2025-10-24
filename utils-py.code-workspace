@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "name": "algokit-utils (root)",
+      "path": "."
+    },
+    {
+      "name": "algokit-transact",
+      "path": "packages/algokit-transact"
+    },
+    {
+      "name": "algokit-abi",
+      "path": "packages/algokit-abi"
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": "${workspaceFolder:algokit-utils (root)}/.venv",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false
+  }
+}
