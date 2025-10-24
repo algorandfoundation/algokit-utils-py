@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import Final
-
+from .constants import CHECKSUM_BYTE_LENGTH, PUBLIC_KEY_BYTE_LENGTH
 from .hashing import base32_nopad_decode, base32_nopad_encode, sha512_256
-
-PUBLIC_KEY_BYTE_LENGTH: Final[int] = 32
-CHECKSUM_BYTE_LENGTH: Final[int] = 4
 
 
 def public_key_from_address(address: str) -> bytes:

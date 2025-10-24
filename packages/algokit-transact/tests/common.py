@@ -7,23 +7,39 @@ providing ready-to-use test vectors and helpers for parametrisation.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, SupportsInt, TypeVar
 
 from algokit_transact.types import (
     AppCallFields,
     AssetConfigFields,
     AssetFreezeFields,
     AssetTransferFields,
+    FalconSignatureStruct,
+    FalconVerifier,
+    HashFactory,
+    HeartbeatFields,
+    HeartbeatProof,
     KeyRegistrationFields,
+    MerkleArrayProof,
+    MerkleSignatureVerifier,
     OnApplicationComplete,
+    Participant,
     PaymentFields,
+    Reveal,
+    SigslotCommit,
+    StateProof,
+    StateProofFields,
+    StateProofMessage,
     StateSchema,
     Transaction,
     TransactionType,
 )
+
+T = TypeVar("T")
 
 TESTS_DIR = Path(__file__).resolve().parent
 DATA_PATH = TESTS_DIR / "data" / "test_data.json"
@@ -47,21 +63,32 @@ class TransactionVector:
     raw: Mapping[str, Any]
 
 
-def _bytes_or_none(value: Any) -> bytes | None:
+def _bytes_or_none(value: object) -> bytes | None:
     if value is None:
         return None
-    if isinstance(value, (bytes, bytearray)):
+    if isinstance(value, bytes | bytearray):
         return bytes(value)
-    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+    if isinstance(value, Sequence) and not isinstance(value, str | bytes | bytearray):
         return bytes(value)
     raise TypeError(f"Expected byte-like sequence, received {type(value)!r}")
 
 
-def _tuple_or_none(seq: Iterable[Any] | None, caster) -> tuple[Any, ...] | None:
+def _tuple_or_none(seq: Iterable[Any] | None, caster: Callable[[Any], T]) -> tuple[T, ...] | None:
     if seq is None:
         return None
     items = tuple(caster(item) for item in seq)
     return items or None
+
+
+def _tuple_bytes(seq: Iterable[Any] | None) -> tuple[bytes, ...] | None:
+    if seq is None:
+        return None
+    items: list[bytes] = []
+    for item in seq:
+        b = _bytes_or_none(item)
+        if b is not None:
+            items.append(b)
+    return tuple(items) if items else None
 
 
 def _parse_state_schema(payload: Mapping[str, Any] | None) -> StateSchema | None:
@@ -117,7 +144,7 @@ def _parse_asset_config(payload: Mapping[str, Any] | None) -> AssetConfigFields 
 def _parse_app_call(payload: Mapping[str, Any] | None) -> AppCallFields | None:
     if not payload:
         return None
-    args = _tuple_or_none(payload.get("args"), _bytes_or_none)
+    args = _tuple_bytes(payload.get("args"))
     account_refs = _tuple_or_none(payload.get("accountReferences"), str)
     app_refs = _tuple_or_none(payload.get("appReferences"), int)
     asset_refs = _tuple_or_none(payload.get("assetReferences"), int)
@@ -137,7 +164,7 @@ def _parse_app_call(payload: Mapping[str, Any] | None) -> AppCallFields | None:
 
 
 def _parse_key_registration(payload: Mapping[str, Any] | None) -> KeyRegistrationFields | None:
-    if not payload:
+    if payload is None:
         return None
     return KeyRegistrationFields(
         vote_key=_bytes_or_none(payload.get("voteKey")),
@@ -163,13 +190,174 @@ def _parse_asset_freeze(payload: Mapping[str, Any] | None) -> AssetFreezeFields 
     )
 
 
-def _maybe_int(value: Any | None) -> int | None:
+def _parse_heartbeat(payload: Mapping[str, Any] | None) -> HeartbeatFields | None:
+    if not payload:
+        return None
+    proof_payload = payload.get("proof") if isinstance(payload.get("proof"), Mapping) else None
+    proof = None
+    if proof_payload is not None:
+        proof = HeartbeatProof(
+            signature=_bytes_or_none(proof_payload.get("sig")),
+            public_key=_bytes_or_none(proof_payload.get("pk")),
+            public_key_2=_bytes_or_none(proof_payload.get("pk2")),
+            public_key_1_signature=_bytes_or_none(proof_payload.get("pk1Sig")),
+            public_key_2_signature=_bytes_or_none(proof_payload.get("pk2Sig")),
+        )
+    return HeartbeatFields(
+        address=payload.get("address"),
+        proof=proof,
+        seed=_bytes_or_none(payload.get("seed")),
+        vote_id=_bytes_or_none(payload.get("voteId")),
+        key_dilution=_maybe_int(payload.get("keyDilution")),
+    )
+
+
+def _parse_hash_factory(payload: Mapping[str, Any] | None) -> HashFactory | None:
+    if not payload:
+        return None
+    return HashFactory(hash_type=_maybe_int(payload.get("hashType")))
+
+
+def _parse_merkle_array_proof(payload: Mapping[str, Any] | None) -> MerkleArrayProof | None:
+    if not payload:
+        return None
+    path_payload = payload.get("path")
+    path: tuple[bytes, ...] | None = None
+    if isinstance(path_payload, list):
+        converted_path: list[bytes] = []
+        for item in path_payload:
+            item_bytes = _bytes_or_none(item)
+            if item_bytes is None:
+                raise TypeError("Expected byte-like path entry")
+            converted_path.append(item_bytes)
+        path = tuple(converted_path)
+    return MerkleArrayProof(
+        path=path,
+        hash_factory=_parse_hash_factory(payload.get("hashFactory"))
+        if isinstance(payload.get("hashFactory"), Mapping)
+        else None,
+        tree_depth=_maybe_int(payload.get("treeDepth")),
+    )
+
+
+def _parse_merkle_signature_verifier(payload: Mapping[str, Any] | None) -> MerkleSignatureVerifier | None:
+    if not payload:
+        return None
+    return MerkleSignatureVerifier(
+        commitment=_bytes_or_none(payload.get("commitment")),
+        key_lifetime=_maybe_int(payload.get("keyLifetime")),
+    )
+
+
+def _parse_participant(payload: Mapping[str, Any] | None) -> Participant | None:
+    if not payload:
+        return None
+    return Participant(
+        verifier=_parse_merkle_signature_verifier(
+            payload.get("verifier") if isinstance(payload.get("verifier"), Mapping) else None
+        ),
+        weight=_maybe_int(payload.get("weight")),
+    )
+
+
+def _parse_falcon_verifier(payload: Mapping[str, Any] | None) -> FalconVerifier | None:
+    if not payload:
+        return None
+    return FalconVerifier(public_key=_bytes_or_none(payload.get("publicKey")))
+
+
+def _parse_falcon_signature(payload: Mapping[str, Any] | None) -> FalconSignatureStruct | None:
+    if not payload:
+        return None
+    return FalconSignatureStruct(
+        signature=_bytes_or_none(payload.get("signature")),
+        vector_commitment_index=_maybe_int(payload.get("vectorCommitmentIndex")),
+        proof=_parse_merkle_array_proof(payload.get("proof") if isinstance(payload.get("proof"), Mapping) else None),
+        verifying_key=_parse_falcon_verifier(
+            payload.get("verifyingKey") if isinstance(payload.get("verifyingKey"), Mapping) else None
+        ),
+    )
+
+
+def _parse_sigslot(payload: Mapping[str, Any] | None) -> SigslotCommit | None:
+    if not payload:
+        return None
+    return SigslotCommit(
+        sig=_parse_falcon_signature(payload.get("sig") if isinstance(payload.get("sig"), Mapping) else None),
+        lower_sig_weight=_maybe_int(payload.get("lowerSigWeight")),
+    )
+
+
+def _parse_reveals(payload: object) -> tuple[Reveal, ...] | None:
+    if not isinstance(payload, list):
+        return None
+    reveals: list[Reveal] = []
+    for item in payload:
+        if not isinstance(item, Mapping):
+            continue
+        reveals.append(
+            Reveal(
+                participant=_parse_participant(
+                    item.get("participant") if isinstance(item.get("participant"), Mapping) else None
+                ),
+                sigslot=_parse_sigslot(item.get("sigslot") if isinstance(item.get("sigslot"), Mapping) else None),
+                position=_maybe_int(item.get("position", 0)),
+            )
+        )
+    return tuple(reveals)
+
+
+def _parse_state_proof(payload: Mapping[str, Any] | None) -> StateProof | None:
+    if not payload:
+        return None
+    return StateProof(
+        sig_commit=_bytes_or_none(payload.get("sigCommit")),
+        signed_weight=_maybe_int(payload.get("signedWeight")),
+        sig_proofs=_parse_merkle_array_proof(
+            payload.get("sigProofs") if isinstance(payload.get("sigProofs"), Mapping) else None
+        ),
+        part_proofs=_parse_merkle_array_proof(
+            payload.get("partProofs") if isinstance(payload.get("partProofs"), Mapping) else None
+        ),
+        merkle_signature_salt_version=_maybe_int(payload.get("merkleSignatureSaltVersion")),
+        reveals=_parse_reveals(payload.get("reveals")),
+        positions_to_reveal=_tuple_or_none(payload.get("positionsToReveal"), int),
+    )
+
+
+def _parse_state_proof_message(payload: Mapping[str, Any] | None) -> StateProofMessage | None:
+    if not payload:
+        return None
+    return StateProofMessage(
+        block_headers_commitment=_bytes_or_none(payload.get("blockHeadersCommitment")),
+        voters_commitment=_bytes_or_none(payload.get("votersCommitment")),
+        ln_proven_weight=_maybe_int(payload.get("lnProvenWeight")),
+        first_attested_round=_maybe_int(payload.get("firstAttestedRound")),
+        last_attested_round=_maybe_int(payload.get("lastAttestedRound")),
+    )
+
+
+def _parse_state_proof_fields(payload: Mapping[str, Any] | None) -> StateProofFields | None:
+    if not payload:
+        return None
+    return StateProofFields(
+        state_proof_type=_maybe_int(payload.get("stateProofType")),
+        state_proof=_parse_state_proof(
+            payload.get("stateProof") if isinstance(payload.get("stateProof"), Mapping) else None
+        ),
+        message=_parse_state_proof_message(
+            payload.get("message") if isinstance(payload.get("message"), Mapping) else None
+        ),
+    )
+
+
+def _maybe_int(value: SupportsInt | str | bytes | bytearray | None) -> int | None:
     if value is None:
         return None
     return int(value)
 
 
-def _maybe_bool(value: Any | None) -> bool | None:
+def _maybe_bool(value: object | None) -> bool | None:
     if value is None:
         return None
     return bool(value)
@@ -196,6 +384,8 @@ def _parse_transaction(payload: Mapping[str, Any]) -> Transaction:
         app_call=_parse_app_call(payload.get("appCall")),
         key_registration=_parse_key_registration(payload.get("keyRegistration")),
         asset_freeze=_parse_asset_freeze(payload.get("assetFreeze")),
+        heartbeat=_parse_heartbeat(payload.get("heartbeat")),
+        state_proof=_parse_state_proof_fields(payload.get("stateProof")),
     )
 
 
@@ -203,7 +393,10 @@ def _parse_transaction(payload: Mapping[str, Any]) -> Transaction:
 def load_raw_vectors() -> Mapping[str, Any]:
     """Return the parsed JSON payload exactly as stored on disk."""
 
-    return json.loads(DATA_PATH.read_text())
+    data = json.loads(DATA_PATH.read_text())
+    if not isinstance(data, dict):
+        raise TypeError("Malformed test vector payload")
+    return data
 
 
 @lru_cache(maxsize=1)
@@ -231,7 +424,7 @@ def load_test_vectors() -> Mapping[str, TransactionVector]:
     return vectors
 
 
-def _require_bytes(value: Any | None, label: str) -> bytes:
+def _require_bytes(value: object | None, label: str) -> bytes:
     result = _bytes_or_none(value)
     if result is None:
         raise ValueError(f"Expected byte sequence for {label}")

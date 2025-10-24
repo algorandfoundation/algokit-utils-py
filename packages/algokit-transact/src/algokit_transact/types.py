@@ -96,6 +96,122 @@ class AssetFreezeFields:
 
 
 @dataclass(slots=True, frozen=True)
+class HeartbeatProof:
+    signature: bytes | None = None
+    public_key: bytes | None = None
+    public_key_2: bytes | None = None
+    public_key_1_signature: bytes | None = None
+    public_key_2_signature: bytes | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class HeartbeatFields:
+    address: str | None = None
+    proof: HeartbeatProof | None = None
+    seed: bytes | None = None
+    vote_id: bytes | None = None
+    key_dilution: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class HashFactory:
+    hash_type: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MerkleArrayProof:
+    path: tuple[bytes, ...] | None = None
+    hash_factory: HashFactory | None = None
+    tree_depth: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MerkleSignatureVerifier:
+    commitment: bytes | None = None
+    key_lifetime: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class Participant:
+    verifier: MerkleSignatureVerifier | None = None
+    weight: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class FalconVerifier:
+    public_key: bytes | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class FalconSignatureStruct:
+    signature: bytes | None = None
+    vector_commitment_index: int | None = None
+    proof: MerkleArrayProof | None = None
+    verifying_key: FalconVerifier | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class SigslotCommit:
+    sig: FalconSignatureStruct | None = None
+    lower_sig_weight: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class Reveal:
+    participant: Participant | None = None
+    sigslot: SigslotCommit | None = None
+    position: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class StateProof:
+    sig_commit: bytes | None = None
+    signed_weight: int | None = None
+    sig_proofs: MerkleArrayProof | None = None
+    part_proofs: MerkleArrayProof | None = None
+    merkle_signature_salt_version: int | None = None
+    reveals: tuple[Reveal, ...] | None = None
+    positions_to_reveal: tuple[int, ...] | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class StateProofMessage:
+    block_headers_commitment: bytes | None = None
+    voters_commitment: bytes | None = None
+    ln_proven_weight: int | None = None
+    first_attested_round: int | None = None
+    last_attested_round: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class StateProofFields:
+    state_proof_type: int | None = None
+    state_proof: StateProof | None = None
+    message: StateProofMessage | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MultisigSubsignature:
+    address: str
+    signature: bytes | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class MultisigSignature:
+    version: int
+    threshold: int
+    subsignatures: tuple[MultisigSubsignature, ...]
+
+
+@dataclass(slots=True, frozen=True)
+class LogicSignature:
+    logic: bytes
+    args: tuple[bytes, ...] | None = None
+    signature: bytes | None = None
+    multi_signature: MultisigSignature | None = None
+
+
+@dataclass(slots=True, frozen=True)
 class Transaction:
     transaction_type: TransactionType
     sender: str
@@ -116,10 +232,14 @@ class Transaction:
     app_call: AppCallFields | None = None
     key_registration: KeyRegistrationFields | None = None
     asset_freeze: AssetFreezeFields | None = None
-    # StateProof / Heartbeat can be added later for full parity
+    heartbeat: HeartbeatFields | None = None
+    state_proof: StateProofFields | None = None
 
 
 @dataclass(slots=True, frozen=True)
 class SignedTransaction:
     transaction: Transaction
-    signature: bytes
+    signature: bytes | None = None
+    multi_signature: MultisigSignature | None = None
+    logic_signature: LogicSignature | None = None
+    auth_address: str | None = None

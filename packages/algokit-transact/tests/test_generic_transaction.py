@@ -1,17 +1,14 @@
-import pytest
+from __future__ import annotations
 
+import pytest
 from algokit_transact import decode_transaction
 
-from .common import get_test_vector
+
+def test_malformed_bytes() -> None:
+    with pytest.raises(ValueError, match="decoded msgpack is not a dict"):
+        decode_transaction(b"\x01")
 
 
-def test_malformed_bytes():
-    vector = get_test_vector("simplePayment")
-    bad_bytes = vector.unsigned_bytes[13:37]
-    with pytest.raises(ValueError):
-        decode_transaction(bad_bytes)
-
-
-def test_encode_0_bytes():
+def test_encode_0_bytes() -> None:
     with pytest.raises(ValueError, match="^attempted to decode 0 bytes$"):
         decode_transaction(b"")

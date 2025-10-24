@@ -10,18 +10,18 @@ idiomatic Python/pytest equivalents under
 ## Shared Infrastructure
 
 - [ ] Port `common.ts` loader
-  - [ ] Implement JSON parsing with the same reviver semantics (bigint fields,
+  - [x] Implement JSON parsing with the same reviver semantics (bigint fields,
         `Uint8Array` → `bytes`, defaulting missing booleans/integers).
-  - [ ] Produce Python `Transaction` dataclasses and related field structures
+  - [x] Produce Python `Transaction` dataclasses and related field structures
         rather than camelCase dicts.
-  - [ ] Expose helpers (`get_test_vector`, `iter_transaction_cases`, etc.) that
+  - [x] Expose helpers (`get_test_vector`, `iter_transaction_cases`, etc.) that
         make per-test parametrisation trivial.
 - [ ] Port `transaction_asserts.ts`
-  - [ ] Implement signing/multisig helpers (ed25519, multisig merge logic).
-  - [ ] Implement encode/decode assertion helpers against the Python codec.
-  - [ ] Mirror error messages so expectation strings match the TS behaviour.
+  - [x] Implement signing/multisig helpers (ed25519, multisig merge logic).
+  - [x] Implement encode/decode assertion helpers against the Python codec.
+  - [x] Mirror error messages so expectation strings match the TS behaviour.
 - [ ] Introduce reusable pytest fixtures
-  - [ ] `transaction_vectors` fixture returning the parsed dataset.
+  - [x] `transaction_vectors` fixture returning the parsed dataset.
   - [ ] A fixture that yields fee configuration mirrors used in TS tests.
 
 ---
@@ -36,43 +36,43 @@ assertions to pytest, and ensure the helper surface area exists in Python.
 - [x] Align raised exception types/messages with the TS expectations.
 
 ### `transaction_group.test.ts` → `test_transaction_group.py`
-- [ ] Port `groupTransactions` round-trip assertions.
-- [ ] Port signed transaction encode/decode loop with ed25519 signatures.
-- [ ] Validate grouped transaction IDs against the shared vectors.
+- [x] Port `groupTransactions` round-trip assertions.
+- [x] Port signed transaction encode/decode loop with ed25519 signatures.
+- [x] Validate grouped transaction IDs against the shared vectors.
 
 ### `app_call.test.ts` → `test_app_call.py`
-- [ ] Parametrise over the app call/create/update/delete vectors.
-- [ ] Implement validation failure checks for missing programs/schema limits.
-- [ ] Port successful validation/encoding cases (auth addr, multisig, etc.).
-- [ ] Verify error messages match TS (`TransactionValidationError` parity).
+- [x] Parametrise over the app call/create/update/delete vectors.
+- [x] Implement validation failure checks for missing programs/schema limits.
+- [x] Port successful validation/encoding cases (auth addr, multisig, etc.).
+- [x] Verify error messages match TS (`TransactionValidationError` parity).
 
 ### `asset_config.test.ts` → `test_asset_config.py`
-- [ ] Port encode/decode/id assertions for create/destroy/reconfigure vectors.
-- [ ] Port validation boundary tests (manager/freeze/clawback rules).
+- [x] Port encode/decode/id assertions for create/destroy/reconfigure vectors.
+- [x] Port validation boundary tests (manager/freeze/clawback rules).
 
 ### `asset_freeze.test.ts` → `test_asset_freeze.py`
-- [ ] Port freeze/unfreeze encode/decode + fee/size assertions.
-- [ ] Implement validation for missing targets and frozen flag defaults.
+- [x] Port freeze/unfreeze encode/decode + fee/size assertions.
+- [x] Validate asset ID requirements mirror TS behaviour.
 
 ### `asset_transfer.test.ts` → `test_asset_transfer.py`
-- [ ] Port payment/opt-in/close-out encode/id/fee checks.
-- [ ] Validate error paths (missing receiver, too many decimals, etc.).
+- [x] Port payment/opt-in/close-out encode/id/fee checks.
+- [x] Validate error paths (missing receiver, too many decimals, etc.).
 
 ### `key_registration.test.ts` → `test_key_registration.py`
-- [ ] Port online/offline/non-participation vectors.
-- [ ] Verify vote key dilution and lifetime validation errors.
+- [x] Port online/offline/non-participation vectors.
+- [x] Verify vote key dilution and lifetime validation errors.
 
 ### `payment.test.ts` → `test_payment.py`
-- [ ] Port payment encode/decode/id assertions.
-- [ ] Validate address/amount boundary conditions.
+- [x] Port payment encode/decode/id assertions.
+- [x] Validate address/amount boundary conditions.
 
 ### `heartbeat.test.ts` → `test_heartbeat.py`
-- [ ] Confirm Python implementation exposes heartbeat structures.
-- [ ] Port encode/decode/validation logic once domain code is ready.
+- [x] Confirm Python implementation exposes heartbeat structures.
+- [x] Port encode/decode/validation logic once domain code is ready.
 
 ### `state_proof.test.ts` → `test_state_proof.py`
-- [ ] Ensure state proof transaction support exists in Python.
-- [ ] Port proof parsing/validation assertions (including reveal defaults).
+- [x] Ensure state proof transaction support exists in Python.
+- [x] Port proof parsing/validation assertions (including reveal defaults).
 
 ---
 

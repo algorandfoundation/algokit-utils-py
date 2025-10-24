@@ -1,76 +1,69 @@
-"""Placeholder pytest module auto-generated from payment.test.ts.
+from __future__ import annotations
 
-Each function mirrors a TypeScript test name and should be replaced with an actual implementation.
-"""
+from typing import TYPE_CHECKING
 
-import pytest
+from .transaction_asserts import (
+    assert_assign_fee,
+    assert_decode_with_prefix,
+    assert_decode_without_prefix,
+    assert_encode,
+    assert_encode_with_auth_address,
+    assert_encode_with_signature,
+    assert_encoded_transaction_type,
+    assert_example,
+    assert_multisig_example,
+    assert_transaction_id,
+)
 
-
-@pytest.mark.skip(reason="TODO: port TypeScript test 'example'")
-def test_example():
-    raise NotImplementedError("TODO: port TypeScript test 'example'")
-
-
-@pytest.mark.skip(reason="TODO: port TypeScript test 'multisig example'")
-def test_multisig_example():
-    raise NotImplementedError("TODO: port TypeScript test 'multisig example'")
-
-
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get transaction id'")
-def test_get_transaction_id():
-    raise NotImplementedError("TODO: port TypeScript test 'get transaction id'")
+if TYPE_CHECKING:
+    from .conftest import VectorLookup
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'assign fee'")
-def test_assign_fee():
-    raise NotImplementedError("TODO: port TypeScript test 'assign fee'")
+def test_example(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_example("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get encoded transaction type'")
-def test_get_encoded_transaction_type():
-    raise NotImplementedError("TODO: port TypeScript test 'get encoded transaction type'")
+def test_multisig_example(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_multisig_example("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode without prefix'")
-def test_decode_without_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode without prefix'")
+def test_get_transaction_id(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_transaction_id("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode with prefix'")
-def test_decode_with_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode with prefix'")
+def test_assign_fee(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_assign_fee("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with auth address'")
-def test_encode_with_auth_address():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with auth address'")
+def test_get_encoded_transaction_type(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_encoded_transaction_type("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with signature'")
-def test_encode_with_signature():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with signature'")
+def test_decode_without_prefix(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_decode_without_prefix("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode'")
-def test_encode():
-    raise NotImplementedError("TODO: port TypeScript test 'encode'")
+def test_decode_with_prefix(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_decode_with_prefix("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate valid payment transaction'")
-def test_should_validate_valid_payment_transaction():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate valid payment transaction'")
+def test_encode_with_auth_address(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_encode_with_auth_address("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate payment transaction with zero amount'")
-def test_should_validate_payment_transaction_with_zero_amount():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate payment transaction with zero amount'")
+def test_encode_with_signature(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_encode_with_signature("payment", vector)
 
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate payment transaction with close remainder'")
-def test_should_validate_payment_transaction_with_close_remainder():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate payment transaction with close remainder'")
-
-
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate self-payment transaction'")
-def test_should_validate_self_payment_transaction():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate self-payment transaction'")
+def test_encode(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    assert_encode("payment", vector)

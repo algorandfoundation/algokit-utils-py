@@ -1,79 +1,195 @@
-"""Placeholder pytest module auto-generated from asset_transfer.test.ts.
+from __future__ import annotations
 
-Each function mirrors a TypeScript test name and should be replaced with an actual implementation.
-"""
+from typing import TYPE_CHECKING
 
 import pytest
+from algokit_transact import TransactionValidationError, validate_transaction
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'example'")
-def test_example():
-    raise NotImplementedError("TODO: port TypeScript test 'example'")
+from ._helpers import iter_asset_transfer_vectors
+from ._validation import build_asset_transfer, clone_transaction
+from .transaction_asserts import (
+    assert_assign_fee,
+    assert_decode_with_prefix,
+    assert_decode_without_prefix,
+    assert_encode,
+    assert_encode_with_auth_address,
+    assert_encode_with_signature,
+    assert_encoded_transaction_type,
+    assert_example,
+    assert_multisig_example,
+    assert_transaction_id,
+)
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'multisig example'")
-def test_multisig_example():
-    raise NotImplementedError("TODO: port TypeScript test 'multisig example'")
+if TYPE_CHECKING:
+    from .conftest import VectorLookup
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get transaction id'")
-def test_get_transaction_id():
-    raise NotImplementedError("TODO: port TypeScript test 'get transaction id'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'assign fee'")
-def test_assign_fee():
-    raise NotImplementedError("TODO: port TypeScript test 'assign fee'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_example(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get encoded transaction type'")
-def test_get_encoded_transaction_type():
-    raise NotImplementedError("TODO: port TypeScript test 'get encoded transaction type'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode without prefix'")
-def test_decode_without_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode without prefix'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_multisig_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_multisig_example(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode with prefix'")
-def test_decode_with_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode with prefix'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with auth address'")
-def test_encode_with_auth_address():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with auth address'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_get_transaction_id(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_transaction_id(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with signature'")
-def test_encode_with_signature():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with signature'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode'")
-def test_encode():
-    raise NotImplementedError("TODO: port TypeScript test 'encode'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_assign_fee(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_assign_fee(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should throw error when asset ID is zero'")
-def test_should_throw_error_when_asset_id_is_zero():
-    raise NotImplementedError("TODO: port TypeScript test 'should throw error when asset ID is zero'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate valid asset transfer transaction'")
-def test_should_validate_valid_asset_transfer_transaction():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate valid asset transfer transaction'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_get_encoded_transaction_type(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encoded_transaction_type(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset opt-in transaction'")
-def test_should_validate_asset_opt_in_transaction():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset opt-in transaction'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset transfer with clawback'")
-def test_should_validate_asset_transfer_with_clawback():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset transfer with clawback'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_decode_without_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_decode_without_prefix(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset opt-out transaction'")
-def test_should_validate_asset_opt_out_transaction():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset opt-out transaction'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset transfer with both clawback and close remainder'")
-def test_should_validate_asset_transfer_with_both_clawback_and_close_remainder():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset transfer with both clawback and close remainder'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_decode_with_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_decode_with_prefix(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset transfer to self'")
-def test_should_validate_asset_transfer_to_self():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset transfer to self'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'should validate asset close-out transaction (zero amount with close remainder)'")
-def test_should_validate_asset_close_out_transaction_zero_amount_with_close_remainder():
-    raise NotImplementedError("TODO: port TypeScript test 'should validate asset close-out transaction (zero amount with close remainder)'")
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_encode_with_auth_address(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode_with_auth_address(label, vector_lookup(key))
 
+
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_encode_with_signature(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode_with_signature(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))
+def test_encode(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode(label, vector_lookup(key))
+
+
+def test_should_throw_error_when_asset_id_is_zero(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=0,
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    with pytest.raises(TransactionValidationError) as exc:
+        validate_transaction(tx)
+    assert "Asset transfer validation failed: Asset ID must not be 0" in str(exc.value)
+
+
+def test_should_validate_valid_asset_transfer_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_opt_in_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    sender = vector.transaction.sender
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=0,
+            receiver=sender,
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_transfer_with_clawback(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            asset_sender="BNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_opt_out_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            close_remainder_to="BNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_transfer_with_clawback_and_close_remainder(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            asset_sender="CNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            close_remainder_to="BNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_transfer_to_self(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    sender = vector.transaction.sender
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=1000,
+            receiver=sender,
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_asset_close_out_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("optInAssetTransfer")
+    tx = clone_transaction(
+        vector.transaction,
+        asset_transfer=build_asset_transfer(
+            asset_id=123,
+            amount=0,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            close_remainder_to="BNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)

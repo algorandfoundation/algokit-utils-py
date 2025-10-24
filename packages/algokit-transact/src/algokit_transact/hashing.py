@@ -13,7 +13,7 @@ def sha512_256(data: bytes) -> bytes:
         h = hashlib.new("sha512_256")
     except ValueError:  # pragma: no cover - fallback path
         try:
-            from Cryptodome.Hash import SHA512 as _SHA512  # type: ignore
+            from Cryptodome.Hash import SHA512 as _SHA512
 
             ch = _SHA512.new(truncate="256")
             ch.update(data)

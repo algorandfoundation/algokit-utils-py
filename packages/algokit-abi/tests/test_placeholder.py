@@ -1,5 +1,5 @@
 import pytest
 
 
-def test_placeholder():
+def test_placeholder() -> None:
     pytest.skip("Placeholder test")

@@ -1,47 +1,72 @@
-"""Placeholder pytest module auto-generated from state_proof.test.ts.
+from __future__ import annotations
 
-Each function mirrors a TypeScript test name and should be replaced with an actual implementation.
-"""
+from typing import TYPE_CHECKING
 
 import pytest
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'example'")
-def test_example():
-    raise NotImplementedError("TODO: port TypeScript test 'example'")
+from ._helpers import iter_state_proof_vectors
+from .transaction_asserts import (
+    assert_assign_fee,
+    assert_decode_with_prefix,
+    assert_decode_without_prefix,
+    assert_encode,
+    assert_encode_with_auth_address,
+    assert_encode_with_signature,
+    assert_encoded_transaction_type,
+    assert_example,
+    assert_multisig_example,
+    assert_transaction_id,
+)
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'multisig example'")
-def test_multisig_example():
-    raise NotImplementedError("TODO: port TypeScript test 'multisig example'")
+if TYPE_CHECKING:
+    from .conftest import VectorLookup
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get transaction id'")
-def test_get_transaction_id():
-    raise NotImplementedError("TODO: port TypeScript test 'get transaction id'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'assign fee'")
-def test_assign_fee():
-    raise NotImplementedError("TODO: port TypeScript test 'assign fee'")
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_example(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'get encoded transaction type'")
-def test_get_encoded_transaction_type():
-    raise NotImplementedError("TODO: port TypeScript test 'get encoded transaction type'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode without prefix'")
-def test_decode_without_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode without prefix'")
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_multisig_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_multisig_example(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'decode with prefix'")
-def test_decode_with_prefix():
-    raise NotImplementedError("TODO: port TypeScript test 'decode with prefix'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with auth address'")
-def test_encode_with_auth_address():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with auth address'")
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_get_transaction_id(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_transaction_id(label, vector_lookup(key))
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode with signature'")
-def test_encode_with_signature():
-    raise NotImplementedError("TODO: port TypeScript test 'encode with signature'")
 
-@pytest.mark.skip(reason="TODO: port TypeScript test 'encode'")
-def test_encode():
-    raise NotImplementedError("TODO: port TypeScript test 'encode'")
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_assign_fee(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_assign_fee(label, vector_lookup(key))
 
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_get_encoded_transaction_type(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encoded_transaction_type(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_decode_without_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_decode_without_prefix(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_decode_with_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_decode_with_prefix(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_encode_with_auth_address(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode_with_auth_address(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_encode_with_signature(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode_with_signature(label, vector_lookup(key))
+
+
+@pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
+def test_encode(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    assert_encode(label, vector_lookup(key))
