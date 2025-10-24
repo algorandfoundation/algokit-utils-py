@@ -13,6 +13,8 @@ from algokit_transact import (
     encode_transactions,
     group_transactions,
 )
+from algokit_transact.constants import MAX_TX_GROUP_SIZE
+from algokit_transact.types import TransactionType
 
 if TYPE_CHECKING:
     from .common import TransactionVector
@@ -75,6 +77,27 @@ def test_group_transactions(vector_lookup: VectorLookup) -> None:
     for original_vector, grouped_txn in zip(vectors, grouped, strict=False):
         assert original_vector.transaction.group is None
         assert grouped_txn.group == EXPECTED_GROUP_ID
+
+
+def test_group_transactions_max_size(vector_lookup: VectorLookup) -> None:
+    vectors = _simple_group_vectors(vector_lookup)
+    base = vectors[0].transaction
+    # Create MAX_TX_GROUP_SIZE + 1 copies (with different first_valid to avoid identical txs)
+    over_limit = [
+        base.__class__(
+            transaction_type=TransactionType.Payment,
+            sender=base.sender,
+            first_valid=base.first_valid + i,
+            last_valid=base.last_valid + i,
+            payment=base.payment,
+        )
+        for i in range(MAX_TX_GROUP_SIZE + 1)
+    ]
+
+    import pytest
+
+    with pytest.raises(ValueError, match=rf"max limit of {MAX_TX_GROUP_SIZE}"):
+        group_transactions(over_limit)
 
 
 def test_encode_transactions(vector_lookup: VectorLookup) -> None:

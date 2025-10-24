@@ -159,11 +159,8 @@ docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
-  "tests",
   "packages/algokit-abi/src",
-  "packages/algokit-abi/tests",
   "packages/algokit-transact/src",
-  "packages/algokit-transact/tests",
 ]
 testpaths = [
   "tests",
@@ -172,7 +169,14 @@ testpaths = [
 ]
 norecursedirs = [
   "src",
-] # Ignore test collection in source directory, otherwise picks up TestNet* prefixed abstractions
+  ".*",
+  ".git",
+  ".venv",
+  "dist",
+  "build",
+  "docs",
+  ".references",
+] # Ignore test collection in source directory and common hidden/build folders
 filterwarnings = [
   # Ignore deprecations in utils legacy v2 is removed
   "ignore::DeprecationWarning",

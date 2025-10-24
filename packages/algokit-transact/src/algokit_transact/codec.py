@@ -76,8 +76,12 @@ def _encode_bytes(b: bytes | None) -> bytes | None:
     return b if b not in (None, b"") else None
 
 
-def _encode_int(n: int | None) -> int | None:
-    return None if n in (None, 0) else n
+def _encode_int(n: int | None, *, keep_zero: bool = False) -> int | None:
+    if n is None:
+        return None
+    if n == 0 and not keep_zero:
+        return None
+    return n
 
 
 def _encode_bool(v: bool | None) -> bool | None:
@@ -112,9 +116,9 @@ def _encode_merkle_array_proof(proof: MerkleArrayProof | None) -> MerkleArrayPro
     hash_factory = _encode_hash_factory(proof.hash_factory)
     if hash_factory is not None:
         dto["hsh"] = hash_factory
-    td = _encode_int(proof.tree_depth)
-    if td is not None:
-        dto["td"] = td
+    tree_depth = _encode_int(proof.tree_depth)
+    if tree_depth is not None:
+        dto["td"] = tree_depth
     return dto
 
 
@@ -145,9 +149,9 @@ def _encode_falcon_signature(sig: FalconSignatureStruct | None) -> FalconSignatu
     signature = _encode_bytes(sig.signature)
     if signature is not None:
         payload["sig"] = signature
-    idx = _encode_int(sig.vector_commitment_index)
-    if idx is not None:
-        payload["idx"] = idx
+    index_value = _encode_int(sig.vector_commitment_index)
+    if index_value is not None:
+        payload["idx"] = index_value
     proof = _encode_merkle_array_proof(sig.proof)
     if proof is not None:
         payload["prf"] = proof
@@ -163,12 +167,12 @@ def _encode_sigslot(sigslot: SigslotCommit | None) -> SigslotCommitDto | None:
     if sigslot is None:
         return None
     payload: SigslotCommitDto = {}
-    sig = _encode_falcon_signature(sigslot.sig)
-    if sig is not None:
-        payload["s"] = sig
-    lower = _encode_int(sigslot.lower_sig_weight)
-    if lower is not None:
-        payload["l"] = lower
+    signature_payload = _encode_falcon_signature(sigslot.sig)
+    if signature_payload is not None:
+        payload["s"] = signature_payload
+    lower_sig_weight = _encode_int(sigslot.lower_sig_weight)
+    if lower_sig_weight is not None:
+        payload["l"] = lower_sig_weight
     return payload if payload else None
 
 
@@ -351,7 +355,141 @@ def _decode_heartbeat(dto: object | None) -> HeartbeatFields | None:
     )
 
 
-def to_transaction_dto(tx: Transaction) -> TransactionDto:  # noqa: C901, PLR0912, PLR0915
+# Small helpers to add type-specific fields to DTO
+
+
+def _add_payment_fields(dto: MutableMapping[str, object], payment_fields: PaymentFields) -> None:
+    set_if(dto, "amt", _encode_int(payment_fields.amount))
+    dto["rcv"] = public_key_from_address(payment_fields.receiver)
+    set_if(dto, "close", _encode_address(payment_fields.close_remainder_to))
+
+
+def _add_asset_transfer_fields(dto: MutableMapping[str, object], asset_transfer_fields: AssetTransferFields) -> None:
+    dto["xaid"] = asset_transfer_fields.asset_id
+    set_if(dto, "aamt", _encode_int(asset_transfer_fields.amount))
+    dto["arcv"] = public_key_from_address(asset_transfer_fields.receiver)
+    set_if(dto, "aclose", _encode_address(asset_transfer_fields.close_remainder_to))
+    set_if(dto, "asnd", _encode_address(asset_transfer_fields.asset_sender))
+
+
+def _add_asset_config_fields(dto: MutableMapping[str, object], asset_config_fields: AssetConfigFields) -> None:
+    asset_params_dto: AssetParamsDto = {}
+    asset_params_mut = cast(MutableMapping[str, object], asset_params_dto)
+    set_if(asset_params_mut, "t", _encode_int(asset_config_fields.total))
+    set_if(asset_params_mut, "dc", _encode_int(asset_config_fields.decimals))
+    set_if(asset_params_mut, "df", _encode_bool(asset_config_fields.default_frozen))
+    set_if(asset_params_mut, "un", asset_config_fields.unit_name or None)
+    set_if(asset_params_mut, "an", asset_config_fields.asset_name or None)
+    set_if(asset_params_mut, "au", asset_config_fields.url or None)
+    set_if(asset_params_mut, "am", _encode_bytes(asset_config_fields.metadata_hash))
+    set_if(asset_params_mut, "m", _encode_address(asset_config_fields.manager))
+    set_if(asset_params_mut, "f", _encode_address(asset_config_fields.freeze))
+    set_if(asset_params_mut, "c", _encode_address(asset_config_fields.clawback))
+    set_if(asset_params_mut, "r", _encode_address(asset_config_fields.reserve))
+    dto["caid"] = asset_config_fields.asset_id
+    if asset_params_dto:
+        dto["apar"] = asset_params_dto
+
+
+def _add_asset_freeze_fields(dto: MutableMapping[str, object], asset_freeze_fields: AssetFreezeFields) -> None:
+    dto["faid"] = asset_freeze_fields.asset_id
+    dto["fadd"] = public_key_from_address(asset_freeze_fields.freeze_target)
+    set_if(dto, "afrz", _encode_bool(asset_freeze_fields.frozen))
+
+
+def _add_app_call_fields(dto: MutableMapping[str, object], app_call_fields: AppCallFields) -> None:
+    dto["apid"] = app_call_fields.app_id
+    dto["apan"] = app_call_fields.on_complete.value
+    set_if(dto, "apap", _encode_bytes(app_call_fields.approval_program))
+    set_if(dto, "apsu", _encode_bytes(app_call_fields.clear_state_program))
+    if app_call_fields.global_state_schema:
+        dto["apgs"] = {
+            "nui": app_call_fields.global_state_schema.num_uints,
+            "nbs": app_call_fields.global_state_schema.num_byte_slices,
+        }
+    if app_call_fields.local_state_schema:
+        dto["apls"] = {
+            "nui": app_call_fields.local_state_schema.num_uints,
+            "nbs": app_call_fields.local_state_schema.num_byte_slices,
+        }
+    if app_call_fields.args:
+        dto["apaa"] = list(app_call_fields.args)
+    if app_call_fields.account_references:
+        dto["apat"] = [public_key_from_address(a) for a in app_call_fields.account_references]
+    if app_call_fields.app_references:
+        dto["apfa"] = list(app_call_fields.app_references)
+    if app_call_fields.asset_references:
+        dto["apas"] = list(app_call_fields.asset_references)
+    set_if(dto, "apep", _encode_int(app_call_fields.extra_program_pages))
+
+
+def _add_key_registration_fields(
+    dto: MutableMapping[str, object], key_registration_fields: KeyRegistrationFields
+) -> None:
+    set_if(dto, "votekey", _encode_bytes(key_registration_fields.vote_key))
+    set_if(dto, "selkey", _encode_bytes(key_registration_fields.selection_key))
+    set_if(dto, "votefst", _encode_int(key_registration_fields.vote_first))
+    set_if(dto, "votelst", _encode_int(key_registration_fields.vote_last))
+    set_if(dto, "votekd", _encode_int(key_registration_fields.vote_key_dilution))
+    set_if(dto, "sprfkey", _encode_bytes(key_registration_fields.state_proof_key))
+    set_if(dto, "nonpart", _encode_bool(key_registration_fields.non_participation))
+
+
+def _add_heartbeat_fields(dto: MutableMapping[str, object], heartbeat_fields: HeartbeatFields) -> None:
+    heartbeat_dto: HeartbeatDto = {}
+    heartbeat_mut = cast(MutableMapping[str, object], heartbeat_dto)
+    address_bytes = _encode_address(heartbeat_fields.address) if heartbeat_fields.address else None
+    set_if(heartbeat_mut, "a", address_bytes)
+    set_if(heartbeat_mut, "sd", _encode_bytes(heartbeat_fields.seed))
+    set_if(heartbeat_mut, "vid", _encode_bytes(heartbeat_fields.vote_id))
+    set_if(heartbeat_mut, "kd", _encode_int(heartbeat_fields.key_dilution, keep_zero=True))
+    if heartbeat_fields.proof is not None:
+        proof: HeartbeatProofDto = {}
+        proof_mut = cast(MutableMapping[str, object], proof)
+        set_if(proof_mut, "s", _encode_bytes(heartbeat_fields.proof.signature))
+        set_if(proof_mut, "p", _encode_bytes(heartbeat_fields.proof.public_key))
+        set_if(proof_mut, "p2", _encode_bytes(heartbeat_fields.proof.public_key_2))
+        set_if(proof_mut, "p1s", _encode_bytes(heartbeat_fields.proof.public_key_1_signature))
+        set_if(proof_mut, "p2s", _encode_bytes(heartbeat_fields.proof.public_key_2_signature))
+        if proof:
+            heartbeat_dto["prf"] = proof
+    if heartbeat_dto:
+        dto["hb"] = heartbeat_dto
+
+
+def _add_state_proof_fields(dto: MutableMapping[str, object], state_proof_fields: StateProofFields) -> None:
+    set_if(dto, "sptype", _encode_int(state_proof_fields.state_proof_type))
+    if state_proof_fields.state_proof is not None:
+        state_proof = state_proof_fields.state_proof
+        payload: StateProofDto = {}
+        payload_mut = cast(MutableMapping[str, object], payload)
+        set_if(payload_mut, "c", _encode_bytes(state_proof.sig_commit))
+        set_if(payload_mut, "w", _encode_int(state_proof.signed_weight, keep_zero=True))
+        set_if(payload_mut, "S", _encode_state_proof_proof(state_proof.sig_proofs))
+        set_if(payload_mut, "P", _encode_state_proof_proof(state_proof.part_proofs))
+        set_if(payload_mut, "v", _encode_int(state_proof.merkle_signature_salt_version, keep_zero=True))
+        positions = _encode_int_sequence(state_proof.positions_to_reveal)
+        if positions:
+            payload["pr"] = positions
+        reveals = _encode_reveals(state_proof.reveals)
+        if reveals is not None and reveals:
+            payload["r"] = reveals
+        if payload:
+            dto["sp"] = payload
+    if state_proof_fields.message is not None:
+        message = state_proof_fields.message
+        message_dto: StateProofMessageDto = {}
+        message_mut = cast(MutableMapping[str, object], message_dto)
+        set_if(message_mut, "b", _encode_bytes(message.block_headers_commitment))
+        set_if(message_mut, "v", _encode_bytes(message.voters_commitment))
+        set_if(message_mut, "P", _encode_int(message.ln_proven_weight, keep_zero=True))
+        set_if(message_mut, "f", _encode_int(message.first_attested_round, keep_zero=True))
+        set_if(message_mut, "l", _encode_int(message.last_attested_round, keep_zero=True))
+        if message_dto:
+            dto["spmsg"] = message_dto
+
+
+def to_transaction_dto(tx: Transaction) -> TransactionDto:
     dto: TransactionDto = {
         "type": _to_type_str(tx.transaction_type),
         "snd": public_key_from_address(tx.sender),
@@ -368,134 +506,37 @@ def to_transaction_dto(tx: Transaction) -> TransactionDto:  # noqa: C901, PLR091
     set_if(dto_mut, "rekey", _encode_address(tx.rekey_to))
     set_if(dto_mut, "grp", _encode_bytes(tx.group))
 
-    pf = tx.payment
-    if pf is not None:
-        set_if(dto_mut, "amt", _encode_int(pf.amount))
-        dto["rcv"] = public_key_from_address(pf.receiver)
-        set_if(dto_mut, "close", _encode_address(pf.close_remainder_to))
+    payment_fields = tx.payment
+    if payment_fields is not None:
+        _add_payment_fields(dto_mut, payment_fields)
 
-    xf = tx.asset_transfer
-    if xf is not None:
-        dto["xaid"] = xf.asset_id
-        set_if(dto_mut, "aamt", _encode_int(xf.amount))
-        dto["arcv"] = public_key_from_address(xf.receiver)
-        set_if(dto_mut, "aclose", _encode_address(xf.close_remainder_to))
-        set_if(dto_mut, "asnd", _encode_address(xf.asset_sender))
+    asset_transfer_fields = tx.asset_transfer
+    if asset_transfer_fields is not None:
+        _add_asset_transfer_fields(dto_mut, asset_transfer_fields)
 
-    cf = tx.asset_config
-    if cf is not None:
-        apar: AssetParamsDto = {}
-        apar_mut = cast(MutableMapping[str, object], apar)
-        set_if(apar_mut, "t", _encode_int(cf.total))
-        set_if(apar_mut, "dc", _encode_int(cf.decimals))
-        set_if(apar_mut, "df", _encode_bool(cf.default_frozen))
-        set_if(apar_mut, "un", cf.unit_name or None)
-        set_if(apar_mut, "an", cf.asset_name or None)
-        set_if(apar_mut, "au", cf.url or None)
-        set_if(apar_mut, "am", _encode_bytes(cf.metadata_hash))
-        set_if(apar_mut, "m", _encode_address(cf.manager))
-        set_if(apar_mut, "f", _encode_address(cf.freeze))
-        set_if(apar_mut, "c", _encode_address(cf.clawback))
-        set_if(apar_mut, "r", _encode_address(cf.reserve))
-        dto["caid"] = cf.asset_id
-        if apar:
-            dto["apar"] = apar
+    asset_config_fields = tx.asset_config
+    if asset_config_fields is not None:
+        _add_asset_config_fields(dto_mut, asset_config_fields)
 
-    ff = tx.asset_freeze
-    if ff is not None:
-        dto["faid"] = ff.asset_id
-        dto["fadd"] = public_key_from_address(ff.freeze_target)
-        set_if(dto_mut, "afrz", _encode_bool(ff.frozen))
+    asset_freeze_fields = tx.asset_freeze
+    if asset_freeze_fields is not None:
+        _add_asset_freeze_fields(dto_mut, asset_freeze_fields)
 
-    af = tx.app_call
-    if af is not None:
-        dto["apid"] = af.app_id
-        dto["apan"] = af.on_complete.value
-        set_if(dto_mut, "apap", _encode_bytes(af.approval_program))
-        set_if(dto_mut, "apsu", _encode_bytes(af.clear_state_program))
-        if af.global_state_schema:
-            dto["apgs"] = {
-                "nui": af.global_state_schema.num_uints,
-                "nbs": af.global_state_schema.num_byte_slices,
-            }
-        if af.local_state_schema:
-            dto["apls"] = {
-                "nui": af.local_state_schema.num_uints,
-                "nbs": af.local_state_schema.num_byte_slices,
-            }
-        if af.args:
-            dto["apaa"] = list(af.args)
-        if af.account_references:
-            dto["apat"] = [public_key_from_address(a) for a in af.account_references]
-        if af.app_references:
-            dto["apfa"] = list(af.app_references)
-        if af.asset_references:
-            dto["apas"] = list(af.asset_references)
-        set_if(dto_mut, "apep", _encode_int(af.extra_program_pages))
+    app_call_fields = tx.app_call
+    if app_call_fields is not None:
+        _add_app_call_fields(dto_mut, app_call_fields)
 
-    kf = tx.key_registration
-    if kf is not None:
-        set_if(dto_mut, "votekey", _encode_bytes(kf.vote_key))
-        set_if(dto_mut, "selkey", _encode_bytes(kf.selection_key))
-        set_if(dto_mut, "votefst", _encode_int(kf.vote_first))
-        set_if(dto_mut, "votelst", _encode_int(kf.vote_last))
-        set_if(dto_mut, "votekd", _encode_int(kf.vote_key_dilution))
-        set_if(dto_mut, "sprfkey", _encode_bytes(kf.state_proof_key))
-        set_if(dto_mut, "nonpart", _encode_bool(kf.non_participation))
+    key_registration_fields = tx.key_registration
+    if key_registration_fields is not None:
+        _add_key_registration_fields(dto_mut, key_registration_fields)
 
-    hb = tx.heartbeat
-    if hb is not None:
-        heartbeat: HeartbeatDto = {}
-        heartbeat_mut = cast(MutableMapping[str, object], heartbeat)
-        address_bytes = _encode_address(hb.address) if hb.address else None
-        set_if(heartbeat_mut, "a", address_bytes)
-        set_if(heartbeat_mut, "sd", _encode_bytes(hb.seed))
-        set_if(heartbeat_mut, "vid", _encode_bytes(hb.vote_id))
-        set_if(heartbeat_mut, "kd", _encode_int(hb.key_dilution))
-        if hb.proof is not None:
-            proof: HeartbeatProofDto = {}
-            proof_mut = cast(MutableMapping[str, object], proof)
-            set_if(proof_mut, "s", _encode_bytes(hb.proof.signature))
-            set_if(proof_mut, "p", _encode_bytes(hb.proof.public_key))
-            set_if(proof_mut, "p2", _encode_bytes(hb.proof.public_key_2))
-            set_if(proof_mut, "p1s", _encode_bytes(hb.proof.public_key_1_signature))
-            set_if(proof_mut, "p2s", _encode_bytes(hb.proof.public_key_2_signature))
-            if proof:
-                heartbeat["prf"] = proof
-        if heartbeat:
-            dto["hb"] = heartbeat
+    heartbeat_fields = tx.heartbeat
+    if heartbeat_fields is not None:
+        _add_heartbeat_fields(dto_mut, heartbeat_fields)
 
-    sp = tx.state_proof
-    if sp is not None:
-        set_if(dto_mut, "sptype", _encode_int(sp.state_proof_type))
-        if sp.state_proof is not None:
-            state_proof = sp.state_proof
-            payload: StateProofDto = {}
-            payload_mut = cast(MutableMapping[str, object], payload)
-            set_if(payload_mut, "c", _encode_bytes(state_proof.sig_commit))
-            set_if(payload_mut, "w", _encode_int(state_proof.signed_weight))
-            set_if(payload_mut, "S", _encode_state_proof_proof(state_proof.sig_proofs))
-            set_if(payload_mut, "P", _encode_state_proof_proof(state_proof.part_proofs))
-            set_if(payload_mut, "v", _encode_int(state_proof.merkle_signature_salt_version))
-            positions = _encode_int_sequence(state_proof.positions_to_reveal)
-            if positions:
-                payload["pr"] = positions
-            reveals = _encode_reveals(state_proof.reveals)
-            if reveals is not None and reveals:
-                payload["r"] = reveals
-            if payload:
-                dto["sp"] = payload
-        if sp.message is not None:
-            message = sp.message
-            message_dto: StateProofMessageDto = {}
-            message_mut = cast(MutableMapping[str, object], message_dto)
-            set_if(message_mut, "b", _encode_bytes(message.block_headers_commitment))
-            set_if(message_mut, "v", _encode_bytes(message.voters_commitment))
-            set_if(message_mut, "P", _encode_int(message.ln_proven_weight))
-            set_if(message_mut, "f", _encode_int(message.first_attested_round))
-            set_if(message_mut, "l", _encode_int(message.last_attested_round))
-            if message_dto:
-                dto["spmsg"] = message_dto
+    state_proof_fields = tx.state_proof
+    if state_proof_fields is not None:
+        _add_state_proof_fields(dto_mut, state_proof_fields)
 
     return dto
 
@@ -651,7 +692,22 @@ def from_transaction_dto(dto: Mapping[str, object]) -> Transaction:  # noqa: C90
         )
 
     app_call: AppCallFields | None = None
-    if any(k in dto for k in ("apid", "apan", "apap", "apsu", "apgs", "apls", "apaa", "apat", "apfa", "apas", "apep")):
+    if any(
+        k in dto
+        for k in (
+            "apid",
+            "apan",
+            "apap",
+            "apsu",
+            "apgs",
+            "apls",
+            "apaa",
+            "apat",
+            "apfa",
+            "apas",
+            "apep",
+        )
+    ):
         apgs = dto.get("apgs")
         apls = dto.get("apls")
         args_payload = dto.get("apaa")
@@ -667,11 +723,7 @@ def from_transaction_dto(dto: Mapping[str, object]) -> Transaction:  # noqa: C90
 
         account_refs_tuple: tuple[str, ...] | None = None
         if isinstance(apat_payload, list):
-            accounts = [
-                address_from_public_key(bytes(a))
-                for a in apat_payload
-                if isinstance(a, bytes | bytearray)
-            ]
+            accounts = [address_from_public_key(bytes(a)) for a in apat_payload if isinstance(a, bytes | bytearray)]
             if accounts:
                 account_refs_tuple = tuple(accounts)
 

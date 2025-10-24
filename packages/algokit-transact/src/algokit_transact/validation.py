@@ -193,7 +193,7 @@ def _validate_asset_creation(asset_config: AssetConfigFields) -> list[str]:
         errors.append(f"Asset name cannot exceed {MAX_ASSET_NAME_LENGTH} bytes, got {len(asset_config.asset_name)}")
 
     if asset_config.url and len(asset_config.url) > MAX_ASSET_URL_LENGTH:
-        errors.append("Url cannot exceed 96 bytes")
+        errors.append(f"Url cannot exceed {MAX_ASSET_URL_LENGTH} bytes")
 
     return errors
 

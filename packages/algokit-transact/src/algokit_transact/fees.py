@@ -24,7 +24,7 @@ def assign_fee(
     if fee_per_byte > 0:
         fee = fee_per_byte * estimate_transaction_size(tx)
     fee = max(fee, min_fee)
-    if extra_fee:
+    if extra_fee is not None:
         fee += extra_fee
     if max_fee is not None and fee > max_fee:
         raise ValueError(f"Transaction fee {fee} µALGO is greater than max fee {max_fee} µALGO")

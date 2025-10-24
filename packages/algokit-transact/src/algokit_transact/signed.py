@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from typing import cast
 
 from .address import address_from_public_key, public_key_from_address
-from .codec import encode_transaction_raw
+from .codec import _omit_defaults_and_sort, to_transaction_dto
 from .constants import SIGNATURE_BYTE_LENGTH
 from .dto import LogicSignatureDto, MultisigDto, MultisigSubsigDto, TransactionDto
 from .dto_utils import require_bytes
@@ -67,7 +67,8 @@ def _logic_to_dto(lsig: LogicSignature | None) -> LogicSignatureDto | None:
 
 def encode_signed_transaction(stx: SignedTransaction) -> bytes:
     _validate_signed_transaction(stx)
-    txn_dto = cast(TransactionDto, decode_msgpack(encode_transaction_raw(stx.transaction)))
+    # Build canonical DTO directly (omit defaults and sort keys) to avoid msgpack round-trip
+    txn_dto = cast(TransactionDto, _omit_defaults_and_sort(dict(to_transaction_dto(stx.transaction))))
 
     items: list[tuple[str, object]] = []
     if stx.auth_address is not None:
