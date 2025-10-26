@@ -18,6 +18,7 @@ dependencies = [
 
 [tool.uv.sources]
 algokit-transact = { workspace = true }
+algokit-common = { workspace = true }
 algokit-abi = { workspace = true }
 
 [tool.uv.workspace]
@@ -188,6 +189,12 @@ disallow_untyped_decorators = true
 disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
+mypy_path = [
+  "packages/algokit-common/src",
+  "packages/algokit-transact/src",
+  "packages/algokit-abi/src",
+  "src",
+]
 
 untyped_calls_exclude = ["algosdk"]
 

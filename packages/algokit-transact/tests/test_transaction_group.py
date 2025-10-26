@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import nacl.signing
+from algokit_common import MAX_TX_GROUP_SIZE
 from algokit_transact import (
     SignedTransaction,
+    TransactionType,
     decode_signed_transactions,
     decode_transactions,
     encode_signed_transaction,
@@ -13,12 +15,10 @@ from algokit_transact import (
     encode_transactions,
     group_transactions,
 )
-from algokit_transact.constants import MAX_TX_GROUP_SIZE
-from algokit_transact.types import TransactionType
 
 if TYPE_CHECKING:
-    from .common import TransactionVector
-    from .conftest import VectorLookup
+    from tests.common import TransactionVector
+    from tests.conftest import VectorLookup
 
 EXPECTED_GROUP_ID = bytes(
     [

@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 import pytest
 from algokit_transact import Transaction, TransactionValidationError, validate_transaction
 
-from ._helpers import iter_asset_config_vectors
-from ._validation import (
+from tests._helpers import iter_asset_config_vectors
+from tests._validation import (
     assert_validation_error,
     build_asset_config,
     clone_transaction,
 )
-from .transaction_asserts import (
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -25,7 +25,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 
 @pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))

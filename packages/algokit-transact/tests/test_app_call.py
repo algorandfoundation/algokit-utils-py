@@ -4,15 +4,18 @@ from typing import TYPE_CHECKING
 
 import pytest
 from algokit_transact import (
+    BoxReference,
     OnApplicationComplete,
     StateSchema,
     Transaction,
+    decode_transaction,
+    encode_transaction,
     validate_transaction,
 )
 
-from ._helpers import iter_app_call_vectors
-from ._validation import assert_validation_error, build_app_call, clone_transaction
-from .transaction_asserts import (
+from tests._helpers import iter_app_call_vectors
+from tests._validation import assert_validation_error, build_app_call, clone_transaction
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -26,7 +29,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
@@ -427,6 +430,68 @@ def test_should_throw_error_when_too_many_asset_references_are_provided(base_cal
     )
 
     assert_validation_error(tx, "App call validation failed: Asset references cannot exceed 8 refs")
+
+
+def test_should_throw_error_when_box_references_exceed_limit(base_call_transaction: Transaction) -> None:
+    app_call = base_call_transaction.app_call
+    assert app_call is not None
+    boxes = tuple(BoxReference(app_id=app_call.app_id, name=b"box") for _ in range(9))
+    tx = clone_transaction(
+        base_call_transaction,
+        app_call=build_app_call(
+            app_id=app_call.app_id,
+            on_complete=OnApplicationComplete.NoOp,
+            approval_program=app_call.approval_program,
+            clear_state_program=app_call.clear_state_program,
+            box_references=boxes,
+        ),
+    )
+
+    assert_validation_error(tx, "App call validation failed: Box references cannot exceed 8 refs")
+
+
+def test_box_references_round_trip(base_call_transaction: Transaction) -> None:
+    app_call = base_call_transaction.app_call
+    assert app_call is not None
+    boxes = (
+        BoxReference(app_id=app_call.app_id, name=b"self"),
+        BoxReference(app_id=1234, name=b"foreign"),
+    )
+    tx = clone_transaction(
+        base_call_transaction,
+        app_call=build_app_call(
+            app_id=app_call.app_id,
+            on_complete=app_call.on_complete,
+            approval_program=app_call.approval_program,
+            clear_state_program=app_call.clear_state_program,
+            app_references=(1234,),
+            box_references=boxes,
+        ),
+    )
+
+    decoded = decode_transaction(encode_transaction(tx))
+    assert decoded == tx
+
+
+def test_box_reference_must_reference_known_app(base_call_transaction: Transaction) -> None:
+    app_call = base_call_transaction.app_call
+    assert app_call is not None
+    tx = clone_transaction(
+        base_call_transaction,
+        app_call=build_app_call(
+            app_id=app_call.app_id,
+            on_complete=app_call.on_complete,
+            approval_program=app_call.approval_program,
+            clear_state_program=app_call.clear_state_program,
+            app_references=(1234,),
+            box_references=(BoxReference(app_id=9999, name=b"bad"),),
+        ),
+    )
+
+    assert_validation_error(
+        tx,
+        "App call validation failed: Box reference for app ID 9999 must reference the current app or an app reference",
+    )
 
 
 def test_should_throw_error_when_total_references_exceed_limit(base_call_transaction: Transaction) -> None:

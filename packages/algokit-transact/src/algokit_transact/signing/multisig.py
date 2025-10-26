@@ -3,10 +3,15 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import replace
 
-from .address import address_from_public_key, public_key_from_address
-from .constants import MULTISIG_DOMAIN_SEPARATOR, PUBLIC_KEY_BYTE_LENGTH
-from .hashing import sha512_256
-from .types import MultisigSignature, MultisigSubsignature
+from algokit_common import (
+    MULTISIG_DOMAIN_SEPARATOR,
+    PUBLIC_KEY_BYTE_LENGTH,
+    address_from_public_key,
+    public_key_from_address,
+    sha512_256,
+)
+
+from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
 
 
 def new_multisig_signature(version: int, threshold: int, participants: Iterable[str]) -> MultisigSignature:

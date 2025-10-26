@@ -5,6 +5,7 @@ requires-python = "==3.10.*"
 [manifest]
 members = [
     "algokit-abi",
+    "algokit-common",
     "algokit-transact",
     "algokit-utils",
 ]
@@ -24,19 +25,34 @@ version = "0.1.0"
 source = { editable = "packages/algokit-abi" }
 
 [[package]]
+name = "algokit-common"
+version = "0.1.0"
+source = { editable = "packages/algokit-common" }
+dependencies = [
+    { name = "pycryptodomex" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pycryptodomex", specifier = ">=3.6.0,<4" }]
+
+[[package]]
 name = "algokit-transact"
 version = "0.1.0"
 source = { editable = "packages/algokit-transact" }
 dependencies = [
+    { name = "algokit-common" },
     { name = "msgpack" },
     { name = "msgpack-types" },
+    { name = "pynacl" },
     { name = "typing-extensions" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "algokit-common", editable = "packages/algokit-common" },
     { name = "msgpack", specifier = ">=1.0.0,<2" },
     { name = "msgpack-types", specifier = ">=0.2.0,<=0.5" },
+    { name = "pynacl", specifier = ">=1.4.0,<2" },
     { name = "typing-extensions", specifier = ">=4.9,<5" },
 ]
 

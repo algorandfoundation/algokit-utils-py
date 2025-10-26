@@ -13,27 +13,28 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, SupportsInt, TypeVar
 
-from algokit_transact.types import (
-    AppCallFields,
-    AssetConfigFields,
-    AssetFreezeFields,
-    AssetTransferFields,
+from algokit_transact import (
+    AppCallTransactionFields,
+    AssetConfigTransactionFields,
+    AssetFreezeTransactionFields,
+    AssetTransferTransactionFields,
+    BoxReference,
     FalconSignatureStruct,
     FalconVerifier,
     HashFactory,
-    HeartbeatFields,
     HeartbeatProof,
-    KeyRegistrationFields,
+    HeartbeatTransactionFields,
+    KeyRegistrationTransactionFields,
     MerkleArrayProof,
     MerkleSignatureVerifier,
     OnApplicationComplete,
     Participant,
-    PaymentFields,
+    PaymentTransactionFields,
     Reveal,
     SigslotCommit,
     StateProof,
-    StateProofFields,
     StateProofMessage,
+    StateProofTransactionFields,
     StateSchema,
     Transaction,
     TransactionType,
@@ -100,20 +101,20 @@ def _parse_state_schema(payload: Mapping[str, Any] | None) -> StateSchema | None
     )
 
 
-def _parse_payment(payload: Mapping[str, Any] | None) -> PaymentFields | None:
+def _parse_payment(payload: Mapping[str, Any] | None) -> PaymentTransactionFields | None:
     if not payload:
         return None
-    return PaymentFields(
+    return PaymentTransactionFields(
         amount=int(payload["amount"]),
         receiver=str(payload["receiver"]),
         close_remainder_to=payload.get("closeRemainderTo"),
     )
 
 
-def _parse_asset_transfer(payload: Mapping[str, Any] | None) -> AssetTransferFields | None:
+def _parse_asset_transfer(payload: Mapping[str, Any] | None) -> AssetTransferTransactionFields | None:
     if not payload:
         return None
-    return AssetTransferFields(
+    return AssetTransferTransactionFields(
         asset_id=int(payload["assetId"]),
         amount=int(payload["amount"]),
         receiver=str(payload["receiver"]),
@@ -122,10 +123,10 @@ def _parse_asset_transfer(payload: Mapping[str, Any] | None) -> AssetTransferFie
     )
 
 
-def _parse_asset_config(payload: Mapping[str, Any] | None) -> AssetConfigFields | None:
+def _parse_asset_config(payload: Mapping[str, Any] | None) -> AssetConfigTransactionFields | None:
     if not payload:
         return None
-    return AssetConfigFields(
+    return AssetConfigTransactionFields(
         asset_id=int(payload["assetId"]),
         total=_maybe_int(payload.get("total")),
         decimals=_maybe_int(payload.get("decimals")),
@@ -141,14 +142,14 @@ def _parse_asset_config(payload: Mapping[str, Any] | None) -> AssetConfigFields 
     )
 
 
-def _parse_app_call(payload: Mapping[str, Any] | None) -> AppCallFields | None:
+def _parse_app_call(payload: Mapping[str, Any] | None) -> AppCallTransactionFields | None:
     if not payload:
         return None
     args = _tuple_bytes(payload.get("args"))
     account_refs = _tuple_or_none(payload.get("accountReferences"), str)
     app_refs = _tuple_or_none(payload.get("appReferences"), int)
     asset_refs = _tuple_or_none(payload.get("assetReferences"), int)
-    return AppCallFields(
+    return AppCallTransactionFields(
         app_id=int(payload.get("appId", 0)),
         on_complete=OnApplicationComplete[payload.get("onComplete", "NoOp")],
         approval_program=_bytes_or_none(payload.get("approvalProgram")),
@@ -160,13 +161,31 @@ def _parse_app_call(payload: Mapping[str, Any] | None) -> AppCallFields | None:
         app_references=app_refs,
         asset_references=asset_refs,
         extra_program_pages=_maybe_int(payload.get("extraProgramPages")),
+        box_references=_parse_box_references(payload.get("boxReferences")),
     )
 
 
-def _parse_key_registration(payload: Mapping[str, Any] | None) -> KeyRegistrationFields | None:
+def _parse_box_references(payload: object | None) -> tuple[BoxReference, ...] | None:
+    if not isinstance(payload, Iterable):
+        return None
+    refs: list[BoxReference] = []
+    for item in payload:
+        if not isinstance(item, Mapping):
+            continue
+        name = _bytes_or_none(item.get("name")) or b""
+        refs.append(
+            BoxReference(
+                app_id=_maybe_int(item.get("appId")) or 0,
+                name=name,
+            )
+        )
+    return tuple(refs) if refs else None
+
+
+def _parse_key_registration(payload: Mapping[str, Any] | None) -> KeyRegistrationTransactionFields | None:
     if payload is None:
         return None
-    return KeyRegistrationFields(
+    return KeyRegistrationTransactionFields(
         vote_key=_bytes_or_none(payload.get("voteKey")),
         selection_key=_bytes_or_none(payload.get("selectionKey")),
         vote_first=_maybe_int(payload.get("voteFirst")),
@@ -177,20 +196,20 @@ def _parse_key_registration(payload: Mapping[str, Any] | None) -> KeyRegistratio
     )
 
 
-def _parse_asset_freeze(payload: Mapping[str, Any] | None) -> AssetFreezeFields | None:
+def _parse_asset_freeze(payload: Mapping[str, Any] | None) -> AssetFreezeTransactionFields | None:
     if not payload:
         return None
     frozen = payload.get("frozen")
     if frozen is None:
         frozen = False
-    return AssetFreezeFields(
+    return AssetFreezeTransactionFields(
         asset_id=int(payload["assetId"]),
         freeze_target=str(payload["freezeTarget"]),
         frozen=bool(frozen),
     )
 
 
-def _parse_heartbeat(payload: Mapping[str, Any] | None) -> HeartbeatFields | None:
+def _parse_heartbeat(payload: Mapping[str, Any] | None) -> HeartbeatTransactionFields | None:
     if not payload:
         return None
     proof_payload = payload.get("proof") if isinstance(payload.get("proof"), Mapping) else None
@@ -203,7 +222,7 @@ def _parse_heartbeat(payload: Mapping[str, Any] | None) -> HeartbeatFields | Non
             public_key_1_signature=_bytes_or_none(proof_payload.get("pk1Sig")),
             public_key_2_signature=_bytes_or_none(proof_payload.get("pk2Sig")),
         )
-    return HeartbeatFields(
+    return HeartbeatTransactionFields(
         address=payload.get("address"),
         proof=proof,
         seed=_bytes_or_none(payload.get("seed")),
@@ -337,10 +356,10 @@ def _parse_state_proof_message(payload: Mapping[str, Any] | None) -> StateProofM
     )
 
 
-def _parse_state_proof_fields(payload: Mapping[str, Any] | None) -> StateProofFields | None:
+def _parse_state_proof_fields(payload: Mapping[str, Any] | None) -> StateProofTransactionFields | None:
     if not payload:
         return None
-    return StateProofFields(
+    return StateProofTransactionFields(
         state_proof_type=_maybe_int(payload.get("stateProofType")),
         state_proof=_parse_state_proof(
             payload.get("stateProof") if isinstance(payload.get("stateProof"), Mapping) else None

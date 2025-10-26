@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
-from .common import TransactionVector, get_test_vector
+from tests.common import TransactionVector, get_test_vector
 
 VectorLookup = Callable[[str], TransactionVector]
 

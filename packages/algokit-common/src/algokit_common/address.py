@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .constants import CHECKSUM_BYTE_LENGTH, PUBLIC_KEY_BYTE_LENGTH
-from .hashing import base32_nopad_decode, base32_nopad_encode, sha512_256
+from algokit_common.constants import CHECKSUM_BYTE_LENGTH, PUBLIC_KEY_BYTE_LENGTH
+from algokit_common.hashing import base32_nopad_decode, base32_nopad_encode, sha512_256
 
 
 def public_key_from_address(address: str) -> bytes:

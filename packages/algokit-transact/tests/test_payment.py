@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .transaction_asserts import (
+from algokit_transact import PaymentTransactionFields, validate_transaction
+
+from tests._validation import clone_transaction
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -16,7 +19,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 
 def test_example(vector_lookup: VectorLookup) -> None:
@@ -67,3 +70,57 @@ def test_encode_with_signature(vector_lookup: VectorLookup) -> None:
 def test_encode(vector_lookup: VectorLookup) -> None:
     vector = vector_lookup("simplePayment")
     assert_encode("payment", vector)
+
+
+def test_should_validate_valid_payment_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    tx = clone_transaction(
+        vector.transaction,
+        payment=PaymentTransactionFields(
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_payment_transaction_with_zero_amount(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    tx = clone_transaction(
+        vector.transaction,
+        payment=PaymentTransactionFields(
+            amount=0,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_payment_transaction_with_close_remainder(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    tx = clone_transaction(
+        vector.transaction,
+        payment=PaymentTransactionFields(
+            amount=1000,
+            receiver="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            close_remainder_to="BNSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_self_payment_transaction(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("simplePayment")
+    sender = vector.transaction.sender
+    tx = clone_transaction(
+        vector.transaction,
+        payment=PaymentTransactionFields(
+            amount=1000,
+            receiver=sender,
+        ),
+    )
+
+    validate_transaction(tx)

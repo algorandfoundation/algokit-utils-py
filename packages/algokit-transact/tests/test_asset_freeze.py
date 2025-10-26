@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import pytest
 from algokit_transact import TransactionValidationError, validate_transaction
 
-from ._helpers import iter_asset_freeze_vectors
-from ._validation import build_asset_freeze, clone_transaction
-from .transaction_asserts import (
+from tests._helpers import iter_asset_freeze_vectors
+from tests._validation import build_asset_freeze, clone_transaction
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -20,7 +20,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 
 @pytest.mark.parametrize(("label", "key"), list(iter_asset_freeze_vectors()))
@@ -105,6 +105,36 @@ def test_should_validate_asset_unfreeze_transaction(vector_lookup: VectorLookup)
         asset_freeze=build_asset_freeze(
             asset_id=123,
             freeze_target="ADSFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFKJSDFK",
+            frozen=False,
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_freezing_sender_themselves(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("assetFreeze")
+    sender = vector.transaction.sender
+    tx = clone_transaction(
+        vector.transaction,
+        asset_freeze=build_asset_freeze(
+            asset_id=123,
+            freeze_target=sender,
+            frozen=True,
+        ),
+    )
+
+    validate_transaction(tx)
+
+
+def test_should_validate_unfreezing_sender_themselves(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("assetUnfreeze")
+    sender = vector.transaction.sender
+    tx = clone_transaction(
+        vector.transaction,
+        asset_freeze=build_asset_freeze(
+            asset_id=123,
+            freeze_target=sender,
             frozen=False,
         ),
     )

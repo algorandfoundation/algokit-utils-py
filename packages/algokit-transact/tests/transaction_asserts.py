@@ -5,6 +5,7 @@ from __future__ import annotations
 import nacl.signing
 from algokit_transact import (
     SignedTransaction,
+    apply_multisig_subsignature,
     assign_fee,
     decode_transaction,
     encode_signed_transaction,
@@ -13,14 +14,11 @@ from algokit_transact import (
     get_encoded_transaction_type,
     get_transaction_id,
     get_transaction_id_raw,
-)
-from algokit_transact.multisig import (
-    apply_multisig_subsignature,
     merge_multisignatures,
     new_multisig_signature,
 )
 
-from .common import TransactionVector
+from tests.common import TransactionVector
 
 
 def _sign_ed25519(message: bytes, private_key: bytes) -> bytes:

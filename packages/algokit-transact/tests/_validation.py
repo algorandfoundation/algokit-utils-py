@@ -6,11 +6,12 @@ from typing import Any
 
 import pytest
 from algokit_transact import (
-    AppCallFields,
-    AssetConfigFields,
-    AssetFreezeFields,
-    AssetTransferFields,
-    KeyRegistrationFields,
+    AppCallTransactionFields,
+    AssetConfigTransactionFields,
+    AssetFreezeTransactionFields,
+    AssetTransferTransactionFields,
+    BoxReference,
+    KeyRegistrationTransactionFields,
     OnApplicationComplete,
     StateSchema,
     Transaction,
@@ -36,8 +37,9 @@ def build_app_call(  # noqa: PLR0913
     app_references: Iterable[int] | None = None,
     asset_references: Iterable[int] | None = None,
     extra_program_pages: int | None = None,
-) -> AppCallFields:
-    return AppCallFields(
+    box_references: Iterable[BoxReference] | None = None,
+) -> AppCallTransactionFields:
+    return AppCallTransactionFields(
         app_id=app_id,
         on_complete=on_complete,
         approval_program=approval_program,
@@ -49,6 +51,7 @@ def build_app_call(  # noqa: PLR0913
         app_references=tuple(app_references) if app_references is not None else None,
         asset_references=tuple(asset_references) if asset_references is not None else None,
         extra_program_pages=extra_program_pages,
+        box_references=tuple(box_references) if box_references is not None else None,
     )
 
 
@@ -66,8 +69,8 @@ def build_asset_config(  # noqa: PLR0913
     reserve: str | None = None,
     freeze: str | None = None,
     clawback: str | None = None,
-) -> AssetConfigFields:
-    return AssetConfigFields(
+) -> AssetConfigTransactionFields:
+    return AssetConfigTransactionFields(
         asset_id=asset_id,
         total=total,
         decimals=decimals,
@@ -90,8 +93,8 @@ def build_asset_transfer(
     receiver: str,
     asset_sender: str | None = None,
     close_remainder_to: str | None = None,
-) -> AssetTransferFields:
-    return AssetTransferFields(
+) -> AssetTransferTransactionFields:
+    return AssetTransferTransactionFields(
         asset_id=asset_id,
         amount=amount,
         receiver=receiver,
@@ -105,8 +108,8 @@ def build_asset_freeze(
     asset_id: int,
     freeze_target: str,
     frozen: bool,
-) -> AssetFreezeFields:
-    return AssetFreezeFields(asset_id=asset_id, freeze_target=freeze_target, frozen=frozen)
+) -> AssetFreezeTransactionFields:
+    return AssetFreezeTransactionFields(asset_id=asset_id, freeze_target=freeze_target, frozen=frozen)
 
 
 def build_key_registration(
@@ -118,8 +121,8 @@ def build_key_registration(
     vote_last: int | None = None,
     vote_key_dilution: int | None = None,
     non_participation: bool | None = None,
-) -> KeyRegistrationFields:
-    return KeyRegistrationFields(
+) -> KeyRegistrationTransactionFields:
+    return KeyRegistrationTransactionFields(
         vote_key=vote_key,
         selection_key=selection_key,
         state_proof_key=state_proof_key,

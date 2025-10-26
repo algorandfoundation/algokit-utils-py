@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import pytest
 from algokit_transact import TransactionValidationError, validate_transaction
 
-from ._helpers import iter_key_registration_vectors
-from ._validation import build_key_registration, clone_transaction
-from .transaction_asserts import (
+from tests._helpers import iter_key_registration_vectors
+from tests._validation import build_key_registration, clone_transaction
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -21,7 +21,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 ZERO32 = b"\x00" * 32
 ZERO64 = b"\x00" * 64
@@ -308,3 +308,15 @@ def test_should_validate_offline_key_registration(vector_lookup: VectorLookup) -
 def test_should_validate_non_participation_registration(vector_lookup: VectorLookup) -> None:
     vector = vector_lookup("nonParticipationKeyRegistration")
     validate_transaction(vector.transaction)
+
+
+def test_should_validate_offline_key_registration_with_non_participation_false(vector_lookup: VectorLookup) -> None:
+    vector = vector_lookup("offlineKeyRegistration")
+    tx = clone_transaction(
+        vector.transaction,
+        key_registration=build_key_registration(
+            non_participation=False,
+        ),
+    )
+
+    validate_transaction(tx)

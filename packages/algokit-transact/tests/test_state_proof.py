@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from ._helpers import iter_state_proof_vectors
-from .transaction_asserts import (
+from tests._helpers import iter_state_proof_vectors
+from tests.transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
@@ -19,7 +19,7 @@ from .transaction_asserts import (
 )
 
 if TYPE_CHECKING:
-    from .conftest import VectorLookup
+    from tests.conftest import VectorLookup
 
 
 @pytest.mark.parametrize(("label", "key"), iter_state_proof_vectors())
