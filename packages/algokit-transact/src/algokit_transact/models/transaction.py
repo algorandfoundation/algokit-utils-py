@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+from algokit_common.constants import ZERO_ADDRESS
+
 from algokit_transact.codec.serde import addr, enum_value, flatten, nested, wire
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
@@ -28,9 +30,9 @@ class TransactionType(Enum):
 @dataclass(slots=True, frozen=True)
 class Transaction:
     transaction_type: TransactionType = field(metadata=enum_value("type", TransactionType))
-    sender: str = field(metadata=addr("snd"))
-    first_valid: int = field(metadata=wire("fv"))
-    last_valid: int = field(metadata=wire("lv"))
+    sender: str = field(default=ZERO_ADDRESS, metadata=addr("snd"))
+    first_valid: int = field(default=0, metadata=wire("fv"))
+    last_valid: int = field(default=0, metadata=wire("lv"))
 
     fee: int | None = field(default=None, metadata=wire("fee"))
     genesis_hash: bytes | None = field(default=None, metadata=wire("gh"))

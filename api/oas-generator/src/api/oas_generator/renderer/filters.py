@@ -41,4 +41,4 @@ def optional_hint(type_hint: str) -> str:
     return type_hint if "| None" in type_hint else f"{type_hint} | None"
 
 
-__all__ = ["docstring", "descriptor_literal", "optional_hint"]
+__all__ = ["descriptor_literal", "docstring", "optional_hint"]

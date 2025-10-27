@@ -63,6 +63,9 @@ def decode_int_like(value: object | None) -> int | None:
             return None
 
 
+_TYPE_PRIORITY = {int: 0, str: 1, bytes: 2}
+
+
 def sort_msgpack_value(value: object) -> object:
     """
     Recursively sort msgpack values with canonical key ordering.
@@ -81,14 +84,12 @@ def sort_msgpack_value(value: object) -> object:
     Returns:
         The value with all dictionaries sorted according to msgpack canonical rules.
     """
-    TYPE_PRIORITY = {int: 0, str: 1, bytes: 2}
-
     if isinstance(value, dict):
         return {
             k: sort_msgpack_value(v)
             for k, v in sorted(
                 value.items(),
-                key=lambda kv: (TYPE_PRIORITY.get(type(kv[0]), 3), kv[0]),
+                key=lambda kv: (_TYPE_PRIORITY.get(type(kv[0]), 3), kv[0]),
             )
         }
     elif isinstance(value, list | tuple):

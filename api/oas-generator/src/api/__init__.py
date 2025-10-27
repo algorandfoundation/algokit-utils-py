@@ -5,4 +5,3 @@ The public entrypoints for the OpenAPI generator live under
 """
 
 __all__ = ["oas_generator"]
-

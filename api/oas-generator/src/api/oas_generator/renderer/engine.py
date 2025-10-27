@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 import jinja2
 
@@ -16,7 +16,7 @@ from api.oas_generator.renderer.filters import (
 
 
 class TemplateRenderer:
-    BLOCK_MODEL_EXPORTS = [
+    BLOCK_MODEL_EXPORTS: ClassVar[list[str]] = [
         "BlockEvalDelta",
         "BlockStateDelta",
         "BlockAccountStateDelta",
@@ -63,7 +63,9 @@ class TemplateRenderer:
             files[models_dir / f"{enum.module_name}.py"] = self._render_template("models/enum.py.j2", enum_context)
         for alias in context["client"].aliases:
             alias_context = {**context, "alias": alias}
-            files[models_dir / f"{alias.module_name}.py"] = self._render_template("models/type_alias.py.j2", alias_context)
+            files[models_dir / f"{alias.module_name}.py"] = self._render_template(
+                "models/type_alias.py.j2", alias_context
+            )
         if client.include_block_models:
             files[models_dir / "block.py"] = self._render_template("models/block.py.j2", context)
         files[target / "py.typed"] = ""
@@ -88,9 +90,7 @@ class TemplateRenderer:
         enum_modules = [{"module": enum.module_name, "name": enum.name} for enum in client.enums]
         alias_modules = [{"module": alias.module_name, "name": alias.name} for alias in client.aliases]
         needs_literal = any(
-            (op.format_options and len(op.format_options) > 1)
-            for group in client.groups
-            for op in group.operations
+            (op.format_options and len(op.format_options) > 1) for group in client.groups for op in group.operations
         )
         return {
             "client": client,

@@ -4,7 +4,6 @@ import keyword
 import re
 from dataclasses import dataclass
 
-
 _NON_WORD = re.compile(r"[^0-9a-zA-Z]+")
 _LOWER_TO_UPPER = re.compile(r"([a-z0-9])([A-Z])")
 

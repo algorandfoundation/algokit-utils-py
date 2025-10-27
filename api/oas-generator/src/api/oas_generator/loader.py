@@ -27,4 +27,3 @@ class SpecLoader:
     def _load_json(self, path: Path) -> dict[str, Any]:
         with path.open("r", encoding="utf-8") as handle:
             return json.load(handle)
-

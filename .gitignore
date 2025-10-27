@@ -173,3 +173,5 @@ cython_debug/
 
 # Received approval test files
 *.received.*
+
+.references/

@@ -20,4 +20,3 @@ class GeneratorConfig:
         """packages/<distribution>/src/<package>"""
 
         return self.output_root / self.distribution_name / "src" / self.package_name
-

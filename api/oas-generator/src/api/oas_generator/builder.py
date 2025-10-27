@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
-
-import re
 
 from api.oas_generator import models as ctx
 from api.oas_generator.naming import IdentifierSanitizer
@@ -108,7 +107,7 @@ class TypeResolver:
     def __init__(self, registry: SchemaRegistry) -> None:
         self.registry = registry
 
-    def resolve(self, schema: ctx.RawSchema, *, hint: str = "Inline") -> TypeInfo:
+    def resolve(self, schema: ctx.RawSchema, *, hint: str = "Inline") -> TypeInfo:  # noqa: C901, PLR0911, PLR0912
         schema = schema or {}
         schema_type = schema.get("type")
         nullable = bool(schema.get("nullable"))
@@ -121,17 +120,17 @@ class TypeResolver:
             ref_name = schema["$ref"].split("/")[-1]
             entry = self.registry.entries[ref_name]
             info = self._type_from_entry(entry, hint=entry.python_name)
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema.get("x-algokit-signed-txn"):
             info = TypeInfo(annotation="SignedTransaction", model="SignedTransaction", is_signed_transaction=True)
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema_type == "array":
             info = self._resolve_array(schema, hint=hint)
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema_type == "object" and schema.get("properties"):
             entry = self.registry.register_inline(f"{hint}Model", schema)
             info = TypeInfo(annotation=entry.python_name, model=entry.python_name)
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema_type == "string":
             fmt = schema.get("format")
             if fmt in {"byte", "binary"} or schema.get("x-algokit-bytes-base64"):
@@ -144,20 +143,20 @@ class TypeResolver:
                 )
             else:
                 info = TypeInfo(annotation="str")
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema_type == "integer":
-            return self._maybe_optional(TypeInfo(annotation="int"), nullable)
+            return self._maybe_optional(TypeInfo(annotation="int"), nullable=nullable)
         if schema_type == "number":
-            return self._maybe_optional(TypeInfo(annotation="float"), nullable)
+            return self._maybe_optional(TypeInfo(annotation="float"), nullable=nullable)
         if schema_type == "boolean":
-            return self._maybe_optional(TypeInfo(annotation="bool"), nullable)
+            return self._maybe_optional(TypeInfo(annotation="bool"), nullable=nullable)
         if schema.get("enum"):
             entry = self.registry.register_inline(f"{hint}Enum", schema)
             info = TypeInfo(annotation=entry.python_name, enum=entry.python_name)
-            return self._maybe_optional(info, nullable)
+            return self._maybe_optional(info, nullable=nullable)
         if schema_type == "object":
-            return self._maybe_optional(TypeInfo(annotation="dict[str, object]"), nullable)
-        return self._maybe_optional(TypeInfo(annotation="object"), nullable)
+            return self._maybe_optional(TypeInfo(annotation="dict[str, object]"), nullable=nullable)
+        return self._maybe_optional(TypeInfo(annotation="object"), nullable=nullable)
 
     def _type_from_entry(self, entry: SchemaEntry, *, hint: str) -> TypeInfo:
         if entry.kind == "model":
@@ -172,7 +171,7 @@ class TypeResolver:
         items = schema.get("items") or {"type": "object"}
         inner = self.resolve(items, hint=f"{hint}Item")
         annotation = f"list[{inner.annotation}]"
-        type_info = TypeInfo(
+        return TypeInfo(
             annotation=annotation,
             is_list=True,
             list_inner_model=inner.model,
@@ -181,9 +180,8 @@ class TypeResolver:
             needs_datetime=inner.needs_datetime,
             imports=set(inner.imports),
         )
-        return type_info
 
-    def _maybe_optional(self, info: TypeInfo, nullable: bool) -> TypeInfo:
+    def _maybe_optional(self, info: TypeInfo, *, nullable: bool) -> TypeInfo:
         if nullable and "| None" not in info.annotation:
             info.annotation = f"{info.annotation} | None"
         return info
@@ -230,7 +228,7 @@ class ModelBuilder:
             pending.sort()
         return models, enums, aliases
 
-    def _build_model(self, entry: SchemaEntry) -> ctx.ModelDescriptor:
+    def _build_model(self, entry: SchemaEntry) -> ctx.ModelDescriptor:  # noqa: C901, PLR0912, PLR0915
         properties = entry.schema.get("properties", {}) or {}
         required = set(entry.schema.get("required", []) or [])
         fields: list[ctx.ModelField] = []
@@ -385,8 +383,9 @@ class ModelBuilder:
 
 
 class OperationBuilder:
-    def __init__(self, spec: ctx.ParsedSpec, resolver: TypeResolver, sanitizer: IdentifierSanitizer,
-                 registry: SchemaRegistry) -> None:
+    def __init__(
+        self, spec: ctx.ParsedSpec, resolver: TypeResolver, sanitizer: IdentifierSanitizer, registry: SchemaRegistry
+    ) -> None:
         self.spec = spec
         self.resolver = resolver
         self.sanitizer = sanitizer
@@ -464,18 +463,17 @@ class OperationBuilder:
         raw = f"{method}_{slug}" if slug else method
         return self.sanitizer.pascal(raw)
 
-    def _build_parameters(self, params: list[dict[str, Any]]) -> tuple[list[ctx.ParameterDescriptor], dict[str, Any] | None]:
+    def _build_parameters(
+        self, params: list[dict[str, Any]]
+    ) -> tuple[list[ctx.ParameterDescriptor], dict[str, Any] | None]:
         result: list[ctx.ParameterDescriptor] = []
         format_info: dict[str, Any] | None = None
-        for param in params:
-            param = self._resolve_parameter_ref(param)
+        for raw_param in params:
+            param = self._resolve_parameter_ref(raw_param)
             schema = param.get("schema") or {}
             name = param.get("name", "param")
             wire_name = name
-            if (
-                name == "format"
-                and param.get("in") == "query"
-            ):
+            if name == "format" and param.get("in") == "query":
                 enum_values = schema.get("enum") or []
                 format_info = {
                     "enum": list(enum_values),
@@ -504,7 +502,9 @@ class OperationBuilder:
         parameters = self.spec.components.get("parameters", {}) or {}
         return parameters.get(ref_name, {})
 
-    def _build_request_body(self, request_body: dict[str, Any] | None, operation_id: str) -> ctx.RequestBodyDescriptor | None:
+    def _build_request_body(
+        self, request_body: dict[str, Any] | None, operation_id: str
+    ) -> ctx.RequestBodyDescriptor | None:
         if not request_body:
             return None
         if "$ref" in request_body:
@@ -584,8 +584,15 @@ class OperationBuilder:
         responses = self.spec.components.get("responses", {}) or {}
         return responses.get(ref_name, {})
 
+    def _resolve_request_body_ref(self, body: dict[str, Any]) -> dict[str, Any]:
+        ref_name = body["$ref"].split("/")[-1]
+        request_bodies = self.spec.components.get("requestBodies", {}) or {}
+        return request_bodies.get(ref_name, {})
 
-def build_client_descriptor(spec: ctx.ParsedSpec, package_name: str, sanitizer: IdentifierSanitizer) -> ctx.ClientDescriptor:
+
+def build_client_descriptor(
+    spec: ctx.ParsedSpec, package_name: str, sanitizer: IdentifierSanitizer
+) -> ctx.ClientDescriptor:
     registry = SchemaRegistry(spec, sanitizer)
     resolver = TypeResolver(registry)
     operation_builder = OperationBuilder(spec, resolver, sanitizer, registry)
@@ -615,8 +622,3 @@ def build_client_descriptor(spec: ctx.ParsedSpec, package_name: str, sanitizer: 
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
     )
-
-    def _resolve_request_body_ref(self, body: dict[str, Any]) -> dict[str, Any]:
-        ref_name = body["$ref"].split("/")[-1]
-        request_bodies = self.spec.components.get("requestBodies", {}) or {}
-        return request_bodies.get(ref_name, {})

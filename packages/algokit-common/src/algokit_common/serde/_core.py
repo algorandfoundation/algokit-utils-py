@@ -6,7 +6,6 @@ from enum import Enum
 from typing import TypeVar, cast
 
 from algokit_common import address_from_public_key, public_key_from_address
-
 from algokit_common.serde._primitives import (
     decode_int_like,
     encode_bool,

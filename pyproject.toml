@@ -167,9 +167,24 @@ docs = ["docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false --exclude src/algokit_utils/_legacy_v2"
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
+lint = "uv run ruff check src tests packages api"
+format = "uv run ruff format src tests packages api && uv run ruff lint src tests packages api --fix"
+typecheck = "uv run mypy src packages"
+
+[tool.poe.tasks.check]
+sequence = ["lint", "typecheck"]
+
+[tool.poe.tasks.pytest-transact]
+cmd = "uv run --package algokit-transact pytest -n auto"
+cwd = "packages/algokit-transact"
+
+[tool.poe.tasks.pytest-core]
+cmd = "uv run pytest tests -n auto"
+
+[tool.poe.tasks.pytest-all]
+sequence = ["pytest-transact", "pytest-core"]
 
 
-# TODO refine to use uv workspaces to invoke the oas generator 
 [tool.poe.tasks.generate-algod-py]
 sequence = [
   { cmd = "rm -rf packages/algod-client/src/algod_client/*" },
@@ -178,7 +193,6 @@ sequence = [
   { cmd = "uv run ruff format packages/algod-client/src" },
 ]
 
-# TODO refine to use uv workspaces to invoke the oas generator 
 [tool.poe.tasks.generate-indexer-py]
 sequence = [
   { cmd = "rm -rf packages/indexer-client/src/indexer_client/*" },
@@ -186,8 +200,7 @@ sequence = [
   { cmd = "uv run ruff check --fix packages/indexer-client/src" },
   { cmd = "uv run ruff format packages/indexer-client/src" },
 ]
-
-# TODO refine to use uv workspaces to invoke the oas generator 
+ 
 [tool.poe.tasks.generate-kmd-py]
 sequence = [
   { cmd = "rm -rf packages/kmd-client/src/kmd_client/*" },
@@ -223,7 +236,7 @@ filterwarnings = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2"]
+exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2", "packages/.*/tests"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -270,3 +283,14 @@ ignore_errors = true
 [[tool.mypy.overrides]]
 module = ["msgpack", "msgpack.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+  "algod_client",
+  "algod_client.*",
+  "indexer_client",
+  "indexer_client.*",
+  "kmd_client",
+  "kmd_client.*",
+]
+ignore_errors = true

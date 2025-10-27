@@ -5,7 +5,22 @@ The implementation mirrors the serde utilities that previously lived in
 wire-format logic.
 """
 
-from algokit_common.serde._core import *  # noqa: F403
+from ._core import (
+    DecodeError,
+    EncodeError,
+    addr,
+    addr_seq,
+    bytes_seq,
+    enum_value,
+    flatten,
+    from_wire,
+    int_seq,
+    nested,
+    sort_msgpack_value,
+    to_wire,
+    to_wire_canonical,
+    wire,
+)
 
 __all__ = [
     "DecodeError",
