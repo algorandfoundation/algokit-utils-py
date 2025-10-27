@@ -5,7 +5,7 @@ The implementation mirrors the serde utilities that previously lived in
 wire-format logic.
 """
 
-from algokit_common.serde._core import *  # noqa: F401,F403
+from algokit_common.serde._core import *  # noqa: F403
 
 __all__ = [
     "DecodeError",
@@ -18,8 +18,8 @@ __all__ = [
     "from_wire",
     "int_seq",
     "nested",
+    "sort_msgpack_value",
     "to_wire",
     "to_wire_canonical",
     "wire",
 ]
-

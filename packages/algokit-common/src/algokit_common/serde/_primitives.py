@@ -63,12 +63,55 @@ def decode_int_like(value: object | None) -> int | None:
             return None
 
 
+def sort_msgpack_value(value: object) -> object:
+    """
+    Recursively sort msgpack values with canonical key ordering.
+
+    Implements canonical msgpack encoding where map keys are ordered by type:
+    - Integer keys first (sorted numerically)
+    - String keys second (sorted lexicographically)
+    - Binary keys third (sorted by byte value)
+
+    This ensures deterministic, canonical msgpack encoding that matches
+    the behavior of Algorand's protocol layer (Go's msgp library and Rust's rmpv).
+
+    Args:
+        value: A Python object (dict, list, or scalar) to sort recursively.
+
+    Returns:
+        The value with all dictionaries sorted according to msgpack canonical rules.
+    """
+    TYPE_PRIORITY = {int: 0, str: 1, bytes: 2}
+
+    if isinstance(value, dict):
+        return {
+            k: sort_msgpack_value(v)
+            for k, v in sorted(
+                value.items(),
+                key=lambda kv: (TYPE_PRIORITY.get(type(kv[0]), 3), kv[0]),
+            )
+        }
+    elif isinstance(value, list | tuple):
+        return [sort_msgpack_value(v) for v in value]
+    return value
+
+
 def omit_defaults_and_sort(value: object) -> object:
+    """
+    Recursively omit default-like values and sort with canonical msgpack ordering.
+
+    Combines two operations:
+    1. Filters out default-like values (None, 0, "", empty bytes, empty collections)
+    2. Sorts dictionaries by key using canonical msgpack ordering (int → str → bytes)
+
+    This is used by to_wire_canonical() for protocol wire format encoding.
+    """
     if isinstance(value, dict):
         filtered = {
             k: omit_defaults_and_sort(v) for k, v in value.items() if not is_default_like(omit_defaults_and_sort(v))
         }
-        return dict(sorted(filtered.items()))
+        # Use sort_msgpack_value for canonical ordering instead of simple lexicographic sort
+        return sort_msgpack_value(filtered)
     if isinstance(value, list | tuple):
         return [omit_defaults_and_sort(v) for v in value]
     return value

@@ -12,6 +12,7 @@ from algokit_common.serde._primitives import (
     encode_bool,
     encode_int,
     omit_defaults_and_sort,
+    sort_msgpack_value,
 )
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "from_wire",
     "int_seq",
     "nested",
+    "sort_msgpack_value",
     "to_wire",
     "to_wire_canonical",
     "wire",
