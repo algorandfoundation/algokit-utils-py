@@ -1,0 +1,47 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
+from algokit_common.serde import nested, wire
+{% if needs_model_sequence %}from ._serde_helpers import decode_model_sequence, encode_model_sequence
+{% endif %}{% if needs_enum_sequence %}from ._serde_helpers import decode_enum_sequence, encode_enum_sequence
+{% endif %}{% if client.uses_signed_transaction %}from algokit_transact.models.signed_transaction import SignedTransaction
+{% endif %}{% if client.enums %}from enum import Enum
+{% endif %}{% if needs_enum_value %}from algokit_common.serde import enum_value
+{% endif %}{% if needs_datetime %}from datetime import datetime
+{% endif %}
+{% if client.include_block_models %}from .block import (
+    {{ block_exports | join(',\n    ') }}
+)
+{% endif %}
+
+__all__ = {{ model_exports }}
+
+{%- for enum in client.enums %}
+class {{ enum.name }}(Enum):
+{% if enum.description %}{{ enum.description | docstring(4) }}{% endif %}
+    {% for value in enum.values %}{{ value.member_name }} = {{ value.value | tojson }}
+    {% endfor %}
+
+{% endfor %}{% for model in client.models %}
+@dataclass(slots=True)
+class {{ model.name }}:
+{% if model.description %}{{ model.description | docstring(4) }}{% endif %}
+    {%- for field in model.fields %}
+    {{ field.name }}: {{ field.type_hint }} = field(
+        {%- if field.default_value %}
+        default={{ field.default_value }},
+        {%- endif %}
+        {%- if field.default_factory %}
+        default_factory={{ field.default_factory }},
+        {%- endif %}
+        metadata={{ field.metadata }},
+    )
+    {%- endfor %}
+
+{% endfor %}
+
+{%- for alias in client.aliases %}
+{{ alias.name }} = {{ alias.target }}
+
+{%- endfor %}

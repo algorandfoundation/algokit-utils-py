@@ -4,10 +4,14 @@ requires-python = "==3.10.*"
 
 [manifest]
 members = [
+    "algod-client",
     "algokit-abi",
     "algokit-common",
     "algokit-transact",
     "algokit-utils",
+    "indexer-client",
+    "kmd-client",
+    "oas-generator",
 ]
 
 [[package]]
@@ -18,6 +22,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/a6/f8/d9c74d0daf3f74284
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7e/b3/6b4067be973ae96ba0d615946e314c5ae35f9f993eca561b356540bb0c2b/alabaster-1.0.0-py3-none-any.whl", hash = "sha256:fc6786402dc3fcb2de3cabd5fe455a2db534b371124f1f21de8731783dec828b", size = 13929, upload-time = "2024-07-26T18:15:02.05Z" },
 ]
+
+[[package]]
+name = "algod-client"
+version = "0.1.0"
+source = { editable = "packages/algod-client" }
+dependencies = [
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "httpx", specifier = ">=0.23.0,<=0.28.1" }]
 
 [[package]]
 name = "algokit-abi"
@@ -569,6 +584,17 @@ wheels = [
 ]
 
 [[package]]
+name = "indexer-client"
+version = "0.1.0"
+source = { editable = "packages/indexer-client" }
+dependencies = [
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "httpx", specifier = ">=0.23.0,<=0.28.1" }]
+
+[[package]]
 name = "iniconfig"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -660,6 +686,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/70/09/d904a6e96f76ff214
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/32/da7f44bcb1105d3e88a0b74ebdca50c59121d2ddf71c9e34ba47df7f3a56/keyring-25.6.0-py3-none-any.whl", hash = "sha256:552a3f7af126ece7ed5c89753650eec89c7eaae8617d0aa4d9ad2b75111266bd", size = 39085, upload-time = "2024-12-25T15:26:44.377Z" },
 ]
+
+[[package]]
+name = "kmd-client"
+version = "0.1.0"
+source = { editable = "packages/kmd-client" }
+dependencies = [
+    { name = "httpx" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "httpx", specifier = ">=0.23.0,<=0.28.1" }]
 
 [[package]]
 name = "license-expression"
@@ -849,6 +886,17 @@ sdist = { url = "https://files.pythonhosted.org/packages/43/16/fc88b08840de0e0a7
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/1d/1b658dbd2b9fa9c4c9f32accbfc0205d532c8c6194dc0f2a4c0428e7128a/nodeenv-1.9.1-py2.py3-none-any.whl", hash = "sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9", size = 22314, upload-time = "2024-06-04T18:44:08.352Z" },
 ]
+
+[[package]]
+name = "oas-generator"
+version = "0.1.0"
+source = { editable = "api/oas-generator" }
+dependencies = [
+    { name = "jinja2" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "jinja2", specifier = ">=3.1" }]
 
 [[package]]
 name = "packageurl-python"

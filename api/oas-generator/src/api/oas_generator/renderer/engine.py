@@ -1,0 +1,113 @@
+from __future__ import annotations
+
+from collections import defaultdict
+from pathlib import Path
+from typing import Any
+
+import jinja2
+
+from api.oas_generator import models as ctx
+from api.oas_generator.config import GeneratorConfig
+from api.oas_generator.renderer.filters import (
+    descriptor_literal,
+    docstring,
+    optional_hint,
+)
+
+
+class TemplateRenderer:
+    BLOCK_MODEL_EXPORTS = [
+        "BlockEvalDelta",
+        "BlockStateDelta",
+        "BlockAccountStateDelta",
+        "BlockAppEvalDelta",
+        "BlockStateProofTrackingData",
+        "BlockStateProofTracking",
+        "SignedTxnInBlock",
+        "Block",
+        "GetBlock",
+    ]
+
+    def __init__(self, template_dir: Path | None = None) -> None:
+        if template_dir:
+            loader: jinja2.BaseLoader = jinja2.FileSystemLoader(str(template_dir))
+        else:
+            loader = jinja2.PackageLoader("api.oas_generator.renderer", "templates")
+        self.env = jinja2.Environment(
+            loader=loader,
+            autoescape=False,
+            trim_blocks=False,
+            lstrip_blocks=False,
+        )
+        self.env.filters["docstring"] = docstring
+        self.env.filters["descriptor_literal"] = descriptor_literal
+        self.env.filters["optional_hint"] = optional_hint
+
+    def render(self, client: ctx.ClientDescriptor, config: GeneratorConfig) -> dict[Path, str]:
+        target = config.target_package_dir
+        context = self._build_context(client, config)
+        files: dict[Path, str] = {}
+        files[target / "__init__.py"] = self._render_template("package_init.py.j2", context)
+        files[target / "config.py"] = self._render_template("config.py.j2", context)
+        files[target / "exceptions.py"] = self._render_template("exceptions.py.j2", context)
+        files[target / "types.py"] = self._render_template("types.py.j2", context)
+        files[target / "client.py"] = self._render_template("client.py.j2", context)
+        models_dir = target / "models"
+        files[models_dir / "__init__.py"] = self._render_template("models/__init__.py.j2", context)
+        files[models_dir / "_serde_helpers.py"] = self._render_template("models/_serde_helpers.py.j2", context)
+        if client.include_block_models:
+            files[models_dir / "block.py"] = self._render_template("models/block.py.j2", context)
+        files[target / "py.typed"] = ""
+        return files
+
+    def _render_template(self, template_name: str, context: dict[str, Any]) -> str:
+        template = self.env.get_template(template_name)
+        return template.render(**context)
+
+    def _build_context(self, client: ctx.ClientDescriptor, config: GeneratorConfig) -> dict[str, Any]:
+        model_exports = [model.name for model in client.models]
+        model_exports.extend(enum.name for enum in client.enums)
+        model_exports.extend(alias.name for alias in client.aliases)
+        if client.uses_signed_transaction:
+            model_exports.append("SignedTransaction")
+        if client.include_block_models:
+            for name in self.BLOCK_MODEL_EXPORTS:
+                if name not in model_exports:
+                    model_exports.append(name)
+        metadata_usage = self._collect_metadata_usage(client)
+        return {
+            "client": client,
+            "config": config,
+            "model_exports": sorted(model_exports),
+            "needs_model_sequence": metadata_usage["model_sequence"],
+            "needs_enum_sequence": metadata_usage["enum_sequence"],
+            "needs_enum_value": metadata_usage["enum_value"],
+            "needs_datetime": any(model.requires_datetime for model in client.models),
+            "client_needs_datetime": self._client_requires_datetime(client),
+            "block_exports": self.BLOCK_MODEL_EXPORTS,
+        }
+
+    def _collect_metadata_usage(self, client: ctx.ClientDescriptor) -> dict[str, bool]:
+        flags = defaultdict(bool)
+        for model in client.models:
+            for field in model.fields:
+                expr = field.metadata
+                if "encode_model_sequence" in expr:
+                    flags["model_sequence"] = True
+                if "encode_enum_sequence" in expr:
+                    flags["enum_sequence"] = True
+                if "enum_value" in expr:
+                    flags["enum_value"] = True
+        return flags
+
+    def _client_requires_datetime(self, client: ctx.ClientDescriptor) -> bool:
+        for group in client.groups:
+            for op in group.operations:
+                for param in op.parameters:
+                    if "datetime" in param.type_hint:
+                        return True
+                if op.request_body and op.request_body.type_hint and "datetime" in op.request_body.type_hint:
+                    return True
+                if op.response and op.response.type_hint and "datetime" in op.response.type_hint:
+                    return True
+        return False

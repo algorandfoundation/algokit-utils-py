@@ -1,0 +1,23 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass(slots=True)
+class ClientConfig:
+    """Runtime configuration for {{ client.class_name }}."""
+
+    base_url: str = "{{ client.default_base_url }}"
+    token: str | None = None
+    token_header: str = "{{ client.token_header }}"
+    timeout: float | None = 30.0
+    verify: bool | str = True
+    extra_headers: dict[str, str] = field(default_factory=dict)
+
+    def resolve_headers(self) -> dict[str, str]:
+        headers = dict(self.extra_headers)
+        if self.token:
+            headers[self.token_header] = self.token
+        return headers
+
