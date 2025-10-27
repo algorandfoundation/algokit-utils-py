@@ -1,0 +1,6 @@
+from __future__ import annotations
+
+{% for imp in alias.imports %}{{ imp }}
+{% endfor %}
+
+{{ alias.name }} = {{ alias.target }}

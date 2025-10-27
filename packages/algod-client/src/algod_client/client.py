@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import is_dataclass
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 import msgpack
@@ -30,9 +30,7 @@ class AlgodClient:
     def abort_catchup(
         self,
         catchpoint: str,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline11AbortCatchupResponseModel:
+    ) -> models.AbortCatchupResponseModel:
         """
         Aborts a catchpoint catchup.
         """
@@ -43,8 +41,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "DELETE",
             "url": path,
@@ -52,19 +51,22 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline11AbortCatchupResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AbortCatchupResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def add_participation_key(
         self,
         body: bytes,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline16AddParticipationKeyResponseModel:
+    ) -> models.AddParticipationKeyResponseModel:
         """
         Add a participation key to the node
         """
@@ -73,9 +75,11 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value: str | None = None
 
+        body_media_types = ["application/msgpack"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -87,15 +91,20 @@ class AlgodClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": True},
-                ["application/msgpack"],
-                prefer_msgpack=prefer_msgpack,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline16AddParticipationKeyResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AddParticipationKeyResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -104,9 +113,6 @@ class AlgodClient:
         self,
         participation_id: str,
         body: bytes,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
     ) -> models.ParticipationKey:
         """
         Append state proof keys to a participation key
@@ -118,9 +124,11 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value: str | None = None
 
+        body_media_types = ["application/msgpack"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -132,22 +140,27 @@ class AlgodClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": True},
-                ["application/msgpack"],
-                prefer_msgpack=prefer_msgpack,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "ParticipationKey"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "ParticipationKey",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def delete_participation_key_by_id(
         self,
         participation_id: str,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Delete a given participation key by ID
@@ -159,8 +172,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "DELETE",
             "url": path,
@@ -168,7 +182,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -181,7 +195,6 @@ class AlgodClient:
         last: int,
         *,
         dilution: int | None = None,
-        request_timeout: float | None = None,
     ) -> str:
         """
         Generate and install participation keys to the node.
@@ -201,8 +214,9 @@ class AlgodClient:
         if last is not None:
             params["last"] = last
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -210,16 +224,19 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_config(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> str:
         """
         Gets the merged config file.
@@ -229,8 +246,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -238,16 +256,19 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_debug_settings_prof(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> models.AlgodMutexAndBlockingProfilingState:
         """
         Retrieves the current settings for blocking and mutex profiles
@@ -257,8 +278,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -266,17 +288,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "AlgodMutexAndBlockingProfilingState"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AlgodMutexAndBlockingProfilingState",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_participation_key_by_id(
         self,
         participation_id: str,
-        *,
-        request_timeout: float | None = None,
     ) -> models.ParticipationKey:
         """
         Get participation key info given a participation ID
@@ -288,8 +314,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -297,16 +324,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "ParticipationKey"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "ParticipationKey",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_participation_keys(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> list[models.ParticipationKey]:
         """
         Return a list of participation keys
@@ -316,8 +347,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -325,16 +357,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "list_model": "ParticipationKey"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "list_model": "ParticipationKey",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def put_debug_settings_prof(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> models.AlgodMutexAndBlockingProfilingState:
         """
         Enables blocking and mutex profiles, and returns the old settings
@@ -344,8 +380,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "PUT",
             "url": path,
@@ -353,9 +390,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "AlgodMutexAndBlockingProfilingState"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AlgodMutexAndBlockingProfilingState",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -363,7 +406,6 @@ class AlgodClient:
         self,
         *,
         timeout: int | None = None,
-        request_timeout: float | None = None,
     ) -> dict[str, object]:
         """
         Special management endpoint to shutdown the node. Optionally provide a timeout parameter
@@ -376,8 +418,9 @@ class AlgodClient:
         if timeout is not None:
             params["timeout"] = timeout
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -385,9 +428,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -396,8 +444,7 @@ class AlgodClient:
         catchpoint: str,
         *,
         min_: int | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline10StartCatchupResponseModel:
+    ) -> models.StartCatchupResponseModel:
         """
         Starts a catchpoint catchup.
         """
@@ -410,8 +457,9 @@ class AlgodClient:
         if min_ is not None:
             params["min"] = min_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -419,9 +467,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline10StartCatchupResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "StartCatchupResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -432,10 +486,8 @@ class AlgodClient:
         address: str,
         application_id: int,
         *,
-        format_: str | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline2AccountApplicationInformationResponseModel:
+        response_format: Literal["json", "msgpack"] | None = None,
+    ) -> models.AccountApplicationInformationResponseModel:
         """
         Get account information about a given app.
         """
@@ -447,12 +499,17 @@ class AlgodClient:
 
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
-        if format_ is not None:
-            params["format"] = format_
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value: str | None = None
 
+        selected_format = response_format
+
+        if selected_format is not None:
+            params["format"] = selected_format
+            if selected_format == "msgpack":
+                accept_value = "application/msgpack"
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -460,10 +517,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline2AccountApplicationInformationResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AccountApplicationInformationResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -472,10 +533,7 @@ class AlgodClient:
         self,
         address: str,
         asset_id: int,
-        *,
-        format_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline4AccountAssetInformationResponseModel:
+    ) -> models.AccountAssetInformationResponseModel:
         """
         Get account information about a given asset.
         """
@@ -487,11 +545,12 @@ class AlgodClient:
 
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
-        if format_ is not None:
-            params["format"] = format_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        params["format"] = "json"
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -499,10 +558,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline4AccountAssetInformationResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AccountAssetInformationResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -513,8 +576,7 @@ class AlgodClient:
         *,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline3AccountAssetsInformationResponseModel:
+    ) -> models.AccountAssetsInformationResponseModel:
         """
         Get a list of assets held by an account, inclusive of asset params.
         """
@@ -530,8 +592,9 @@ class AlgodClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -539,10 +602,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline3AccountAssetsInformationResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "AccountAssetsInformationResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -552,8 +619,6 @@ class AlgodClient:
         address: str,
         *,
         exclude: str | None = None,
-        format_: str | None = None,
-        request_timeout: float | None = None,
     ) -> models.Account:
         """
         Get account information.
@@ -567,11 +632,11 @@ class AlgodClient:
         if exclude is not None:
             params["exclude"] = exclude
 
-        if format_ is not None:
-            params["format"] = format_
+        accept_value: str | None = None
 
-        headers.setdefault("accept", "application/json")
+        params["format"] = "json"
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -579,16 +644,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Account"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Account",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def experimental_check(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Returns OK if experimental API is enabled.
@@ -598,8 +667,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -607,7 +677,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -617,8 +687,6 @@ class AlgodClient:
         self,
         application_id: int,
         name: str,
-        *,
-        request_timeout: float | None = None,
     ) -> models.Box:
         """
         Get box information for a given application.
@@ -632,8 +700,9 @@ class AlgodClient:
         if name is not None:
             params["name"] = name
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -641,9 +710,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Box"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Box",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -652,8 +727,7 @@ class AlgodClient:
         application_id: int,
         *,
         max_: int | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline6GetApplicationBoxesResponseModel:
+    ) -> models.GetApplicationBoxesResponseModel:
         """
         Get all box names for a given application.
         """
@@ -666,8 +740,9 @@ class AlgodClient:
         if max_ is not None:
             params["max"] = max_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -675,10 +750,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline6GetApplicationBoxesResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetApplicationBoxesResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -686,8 +765,6 @@ class AlgodClient:
     def get_application_by_id(
         self,
         application_id: int,
-        *,
-        request_timeout: float | None = None,
     ) -> models.Application:
         """
         Get application information.
@@ -699,8 +776,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -708,17 +786,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Application"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Application",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_asset_by_id(
         self,
         asset_id: int,
-        *,
-        request_timeout: float | None = None,
     ) -> models.Asset:
         """
         Get asset information.
@@ -730,8 +812,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -739,9 +822,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Asset"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Asset",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -750,8 +839,6 @@ class AlgodClient:
         round_: int,
         *,
         header_only: bool | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
     ) -> models.GetBlock:
         """
         Get the block for the given round.
@@ -765,11 +852,13 @@ class AlgodClient:
         if header_only is not None:
             params["header-only"] = header_only
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -777,18 +866,22 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "GetBlock"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetBlock",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_hash(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline7GetBlockHashResponseModel:
+    ) -> models.GetBlockHashResponseModel:
         """
         Get the block hash for the block on the given round.
         """
@@ -799,8 +892,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -808,18 +902,22 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline7GetBlockHashResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetBlockHashResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_logs(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline8GetBlockLogsResponseModel:
+    ) -> models.GetBlockLogsResponseModel:
         """
         Get all of the logs from outer and inner app calls in the given round
         """
@@ -830,8 +928,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -839,17 +938,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline8GetBlockLogsResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetBlockLogsResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_time_stamp_offset(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline13GetBlockTimeStampOffsetResponseModel:
+    ) -> models.GetBlockTimeStampOffsetResponseModel:
         """
         Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
         """
@@ -858,8 +961,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -867,10 +971,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline13GetBlockTimeStampOffsetResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetBlockTimeStampOffsetResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -878,9 +986,7 @@ class AlgodClient:
     def get_block_txids(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline9GetBlockTxidsResponseModel:
+    ) -> models.GetBlockTxidsResponseModel:
         """
         Get the top level transaction IDs for the block on the given round.
         """
@@ -891,8 +997,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -900,16 +1007,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline9GetBlockTxidsResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetBlockTxidsResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_genesis(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> models.GenesisFileInJson:
         """
         Gets the genesis information.
@@ -919,8 +1030,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -928,18 +1040,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "GenesisFileInJson"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GenesisFileInJson",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta(
         self,
         round_: int,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
     ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given round
@@ -951,11 +1066,13 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -963,18 +1080,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "LedgerStateDelta"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LedgerStateDelta",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta_for_transaction_group(
         self,
         id_: str,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
     ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given transaction group
@@ -986,11 +1106,13 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -998,17 +1120,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "LedgerStateDelta"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LedgerStateDelta",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_light_block_header_proof(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
     ) -> models.LightBlockHeaderProof:
         """
         Gets a proof for a given light block header inside a state proof commitment
@@ -1020,8 +1146,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1029,9 +1156,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "LightBlockHeaderProof"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LightBlockHeaderProof",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1039,9 +1172,7 @@ class AlgodClient:
         self,
         *,
         max_: int | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline24GetPendingTransactionsResponseModel:
+    ) -> models.GetPendingTransactionsResponseModel:
         """
         Get a list of unconfirmed transactions currently in the transaction pool.
         """
@@ -1052,11 +1183,13 @@ class AlgodClient:
         if max_ is not None:
             params["max"] = max_
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1064,10 +1197,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline24GetPendingTransactionsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetPendingTransactionsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -1077,9 +1214,7 @@ class AlgodClient:
         address: str,
         *,
         max_: int | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline5GetPendingTransactionsByAddressResponseModel:
+    ) -> models.GetPendingTransactionsByAddressResponseModel:
         """
         Get a list of unconfirmed transactions currently in the transaction pool by address.
         """
@@ -1092,11 +1227,13 @@ class AlgodClient:
         if max_ is not None:
             params["max"] = max_
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1104,18 +1241,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline5GetPendingTransactionsByAddressResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetPendingTransactionsByAddressResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ready(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Returns OK if healthy and fully caught up.
@@ -1125,8 +1264,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1134,7 +1274,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1143,8 +1283,6 @@ class AlgodClient:
     def get_state_proof(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
     ) -> models.StateProof:
         """
         Get a state proof that covers a given round
@@ -1156,8 +1294,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1165,17 +1304,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "StateProof"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "StateProof",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_status(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline17GetStatusResponseModel:
+    ) -> models.GetStatusResponseModel:
         """
         Gets the current node status.
         """
@@ -1184,8 +1327,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1193,17 +1337,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline17GetStatusResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetStatusResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_supply(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline14GetSupplyResponseModel:
+    ) -> models.GetSupplyResponseModel:
         """
         Get the current supply reported by the ledger.
         """
@@ -1212,8 +1360,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1221,17 +1370,21 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline14GetSupplyResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetSupplyResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_sync_round(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline15GetSyncRoundResponseModel:
+    ) -> models.GetSyncRoundResponseModel:
         """
         Returns the minimum sync round the ledger is keeping in cache.
         """
@@ -1240,8 +1393,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1249,19 +1403,22 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline15GetSyncRoundResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetSyncRoundResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
         round_: int,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline12GetTransactionGroupLedgerStateDeltasForRoundResponseModel:
+    ) -> models.GetTransactionGroupLedgerStateDeltasForRoundResponseModel:
         """
         Get LedgerStateDelta objects for all transaction groups in a given round
         """
@@ -1272,11 +1429,13 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1284,11 +1443,14 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
                 response,
-                {"is_binary": False, "model": "Inline12GetTransactionGroupLedgerStateDeltasForRoundResponseModel"},
+                {
+                    "is_binary": False,
+                    "model": "GetTransactionGroupLedgerStateDeltasForRoundResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -1298,9 +1460,8 @@ class AlgodClient:
         round_: int,
         txid: str,
         *,
+        response_format: Literal["json", "msgpack"] | None = None,
         hashtype: str | None = None,
-        format_: str | None = None,
-        request_timeout: float | None = None,
     ) -> models.TransactionProof:
         """
         Get a proof for a transaction in a block.
@@ -1316,11 +1477,16 @@ class AlgodClient:
         if hashtype is not None:
             params["hashtype"] = hashtype
 
-        if format_ is not None:
-            params["format"] = format_
+        accept_value: str | None = None
 
-        headers.setdefault("accept", "application/json")
+        selected_format = response_format
 
+        if selected_format is not None:
+            params["format"] = selected_format
+            if selected_format == "msgpack":
+                accept_value = "application/msgpack"
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1328,16 +1494,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "TransactionProof"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "TransactionProof",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_version(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> models.VersionContainsTheCurrentAlgodVersion:
         """
         Retrieves the supported API versions, binary build versions, and genesis information.
@@ -1347,8 +1517,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1356,18 +1527,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "VersionContainsTheCurrentAlgodVersion"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "VersionContainsTheCurrentAlgodVersion",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def health_check(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Returns OK if healthy.
@@ -1377,8 +1550,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1386,7 +1560,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1394,8 +1568,6 @@ class AlgodClient:
 
     def metrics(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Return metrics about algod functioning.
@@ -1405,8 +1577,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1414,7 +1587,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1423,9 +1596,6 @@ class AlgodClient:
     def pending_transaction_information(
         self,
         txid: str,
-        *,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
     ) -> models.PendingTransactionResponse:
         """
         Get a specific pending transaction.
@@ -1437,11 +1607,13 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
+        accept_value: str | None = None
+
         params["format"] = "msgpack"
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value = "application/msgpack"
 
+        headers.setdefault("accept", accept_value or "application/msgpack")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1449,17 +1621,22 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PendingTransactionResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PendingTransactionResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def raw_transaction(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline22RawTransactionResponseModel:
+        body: bytes,
+    ) -> models.RawTransactionResponseModel:
         """
         Broadcasts a raw transaction or transaction group to the network.
         """
@@ -1468,8 +1645,11 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/x-binary"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1477,16 +1657,31 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline22RawTransactionResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "RawTransactionResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def raw_transaction_async(
         self,
-        *,
-        request_timeout: float | None = None,
+        body: bytes,
     ) -> None:
         """
         Fast track for broadcasting a raw transaction or transaction group to the network
@@ -1498,8 +1693,11 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/x-binary"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1507,7 +1705,17 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1516,8 +1724,6 @@ class AlgodClient:
     def set_block_time_stamp_offset(
         self,
         offset: int,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Given a timestamp offset in seconds, adds the offset to every subsequent block header's
@@ -1530,8 +1736,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1539,7 +1746,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1548,8 +1755,6 @@ class AlgodClient:
     def set_sync_round(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Given a round, tells the ledger to keep that round in its cache.
@@ -1561,8 +1766,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1570,7 +1776,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1580,10 +1786,8 @@ class AlgodClient:
         self,
         body: models.SimulateRequest,
         *,
-        format_: str | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline25SimulateTransactionResponseModel:
+        response_format: Literal["json", "msgpack"] | None = None,
+    ) -> models.SimulateTransactionResponseModel:
         """
         Simulates a raw transaction or transaction group as it would be evaluated on the
         network. The simulation will use blockchain state from the latest committed round.
@@ -1592,12 +1796,22 @@ class AlgodClient:
         path = "/v2/transactions/simulate"
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
-        if format_ is not None:
-            params["format"] = format_
 
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
+        accept_value: str | None = None
 
+        body_media_types = ["application/json", "application/msgpack"]
+
+        selected_format = response_format
+
+        if selected_format is not None:
+            params["format"] = selected_format
+            if selected_format == "msgpack":
+                accept_value = "application/msgpack"
+
+                if "application/msgpack" in body_media_types:
+                    body_media_types = ["application/msgpack"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1609,23 +1823,27 @@ class AlgodClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "SimulateRequest"},
-                ["application/json", "application/msgpack"],
-                prefer_msgpack=prefer_msgpack,
+                {
+                    "is_binary": False,
+                    "model": "SimulateRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline25SimulateTransactionResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SimulateTransactionResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def swagger_json(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> str:
         """
         Gets the current swagger spec.
@@ -1635,8 +1853,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1644,18 +1863,23 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def teal_compile(
         self,
+        body: bytes,
         *,
         sourcemap: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline19TealCompileResponseModel:
+    ) -> models.TealCompileResponseModel:
         """
         Compile TEAL source code to binary, produce its hash
         """
@@ -1666,69 +1890,11 @@ class AlgodClient:
         if sourcemap is not None:
             params["sourcemap"] = sourcemap
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
+        body_media_types = ["text/plain"]
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline19TealCompileResponseModel"})
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def teal_disassemble(
-        self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline20TealDisassembleResponseModel:
-        """
-        Disassemble program bytes into the TEAL source code.
-        """
-
-        path = "/v2/teal/disassemble"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        headers.setdefault("accept", "application/json")
-
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
-        if response.is_success:
-            return self._decode_response(
-                response, {"is_binary": False, "model": "Inline20TealDisassembleResponseModel"}
-            )
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def teal_dryrun(
-        self,
-        *,
-        body: models.DryrunRequest | None = None,
-        prefer_msgpack: bool = False,
-        request_timeout: float | None = None,
-    ) -> models.Inline21TealDryrunResponseModel:
-        """
-        Provide debugging information for a transaction (or group).
-        """
-
-        path = "/v2/teal/dryrun"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
-
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -1740,22 +1906,121 @@ class AlgodClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "DryrunRequest"},
-                ["application/json", "application/msgpack"],
-                prefer_msgpack=prefer_msgpack,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline21TealDryrunResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "TealCompileResponseModel",
+                },
+            )
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def teal_disassemble(
+        self,
+        body: bytes,
+    ) -> models.TealDisassembleResponseModel:
+        """
+        Disassemble program bytes into the TEAL source code.
+        """
+
+        path = "/v2/teal/disassemble"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/x-binary"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "POST",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "TealDisassembleResponseModel",
+                },
+            )
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def teal_dryrun(
+        self,
+        *,
+        body: models.DryrunRequest | None = None,
+    ) -> models.TealDryrunResponseModel:
+        """
+        Provide debugging information for a transaction (or group).
+        """
+
+        path = "/v2/teal/dryrun"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/json", "application/msgpack"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "POST",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": False,
+                    "model": "DryrunRequest",
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "TealDryrunResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def transaction_params(
         self,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline23TransactionParamsResponseModel:
+    ) -> models.TransactionParamsResponseModel:
         """
         Get parameters for constructing a new transaction
         """
@@ -1764,8 +2029,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1773,18 +2039,20 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline23TransactionParamsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "TransactionParamsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def unset_sync_round(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> None:
         """
         Removes minimum sync round restriction from the ledger.
@@ -1794,8 +2062,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "DELETE",
             "url": path,
@@ -1803,7 +2072,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return
 
@@ -1812,9 +2081,7 @@ class AlgodClient:
     def wait_for_block(
         self,
         round_: int,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline18WaitForBlockResponseModel:
+    ) -> models.WaitForBlockResponseModel:
         """
         Gets the node status after waiting for a round after the given round.
         """
@@ -1825,8 +2092,9 @@ class AlgodClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1834,9 +2102,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Inline18WaitForBlockResponseModel"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "WaitForBlockResponseModel",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1846,13 +2120,22 @@ class AlgodClient:
         payload: object,
         descriptor: dict[str, object],
         media_types: list[str],
-        *,
-        prefer_msgpack: bool,
     ) -> None:
         encoded = self._encode_payload(payload, descriptor)
-        if "application/msgpack" in media_types and prefer_msgpack:
+        binary_types = {"application/x-binary", "application/octet-stream"}
+        if bool(descriptor.get("is_binary")) or any(mt in binary_types for mt in media_types):
+            if encoded is None:
+                return
+            request_kwargs["content"] = encoded
+            if media_types:
+                request_kwargs.setdefault("headers", {})["content-type"] = media_types[0]
+            else:
+                request_kwargs.setdefault("headers", {})["content-type"] = "application/octet-stream"
+        elif "application/json" in media_types:
+            request_kwargs["json"] = encoded
+        elif "application/msgpack" in media_types:
             request_kwargs["content"] = msgpack.packb(encoded, use_bin_type=True)
-            request_kwargs["headers"]["content-type"] = "application/msgpack"
+            request_kwargs.setdefault("headers", {})["content-type"] = "application/msgpack"
         else:
             request_kwargs["json"] = encoded
 
@@ -1871,7 +2154,8 @@ class AlgodClient:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=False)
+            data = msgpack.unpackb(response.content, raw=False, strict_map_key=False)
+            data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
         else:
@@ -1885,3 +2169,21 @@ class AlgodClient:
             model_cls = getattr(models, list_model)
             return [from_wire(model_cls, item) for item in data]
         return data
+
+    def _normalize_msgpack(self, value: object) -> object:
+        if isinstance(value, dict):
+            normalized: dict[object, object] = {}
+            for key, item in value.items():
+                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+            return normalized
+        if isinstance(value, list):
+            return [self._normalize_msgpack(item) for item in value]
+        return value
+
+    def _ensure_str_key(self, key: object) -> object:
+        if isinstance(key, bytes):
+            try:
+                return key.decode("utf-8")
+            except UnicodeDecodeError:
+                return key
+        return key

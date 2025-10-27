@@ -4,6 +4,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
+import re
+
 from api.oas_generator import models as ctx
 from api.oas_generator.naming import IdentifierSanitizer
 
@@ -13,6 +15,7 @@ class SchemaEntry:
     name: str
     schema: ctx.RawSchema
     python_name: str
+    module_name: str
     description: str | None
     kind: str
     synthetic: bool = False
@@ -37,6 +40,7 @@ class SchemaRegistry:
         self.spec = spec
         self.sanitizer = sanitizer
         self.entries: dict[str, SchemaEntry] = {}
+        self.entries_by_python_name: dict[str, SchemaEntry] = {}
         self._name_collisions: set[str] = set()
         self._synthetic_index = 0
         self._register_components()
@@ -46,17 +50,28 @@ class SchemaRegistry:
             schema = self.spec.schemas[name]
             self._register_entry(name, schema, synthetic=False)
 
-    def _register_entry(self, name: str, schema: ctx.RawSchema, *, synthetic: bool) -> SchemaEntry:
-        python_name = self._unique_python_name(schema.get("title") or name)
+    def _register_entry(
+        self,
+        name: str,
+        schema: ctx.RawSchema,
+        *,
+        synthetic: bool,
+        preferred_python_name: str | None = None,
+    ) -> SchemaEntry:
+        raw_name = preferred_python_name or schema.get("title") or name
+        python_name = self._unique_python_name(raw_name)
+        module_name = self.sanitizer.module(python_name)
         entry = SchemaEntry(
             name=name,
             schema=schema,
             python_name=python_name,
+            module_name=module_name,
             description=schema.get("description"),
             kind=self._classify(schema),
             synthetic=synthetic,
         )
         self.entries[name] = entry
+        self.entries_by_python_name[python_name] = entry
         return entry
 
     def _unique_python_name(self, raw: str) -> str:
@@ -71,8 +86,13 @@ class SchemaRegistry:
 
     def register_inline(self, hint: str, schema: ctx.RawSchema) -> SchemaEntry:
         self._synthetic_index += 1
-        synthetic_name = f"__inline_{self._synthetic_index}__"
-        return self._register_entry(f"{synthetic_name}_{hint}", schema, synthetic=True)
+        synthetic_key = f"inline_{self._synthetic_index}_{hint}"
+        return self._register_entry(
+            synthetic_key,
+            schema,
+            synthetic=True,
+            preferred_python_name=hint,
+        )
 
     def _classify(self, schema: ctx.RawSchema) -> str:
         if schema.get("enum"):
@@ -194,8 +214,15 @@ class ModelBuilder:
             elif entry.kind == "enum":
                 enums.append(self._build_enum(entry))
             elif entry.kind == "alias":
+                alias_type = self.resolver.resolve(entry.schema).annotation
+                alias_imports = self._collect_alias_imports(alias_type, entry)
                 aliases.append(
-                    ctx.TypeAliasDescriptor(name=entry.python_name, target=self.resolver.resolve(entry.schema).annotation)
+                    ctx.TypeAliasDescriptor(
+                        name=entry.python_name,
+                        module_name=entry.module_name,
+                        target=alias_type,
+                        imports=alias_imports,
+                    )
                 )
             for candidate in sorted(self.registry.entries.keys()):
                 if candidate not in processed and candidate not in pending:
@@ -208,6 +235,10 @@ class ModelBuilder:
         required = set(entry.schema.get("required", []) or [])
         fields: list[ctx.ModelField] = []
         imports: set[str] = set()
+        uses_nested = False
+        uses_flatten = False
+        uses_enum_value = False
+        needs_any = False
 
         for prop_name in sorted(properties):
             prop_schema = properties[prop_name] or {}
@@ -215,25 +246,69 @@ class ModelBuilder:
             type_info = self.resolver.resolve(prop_schema, hint=entry.python_name + self.sanitizer.pascal(prop_name))
             if type_info.is_signed_transaction:
                 self.uses_signed_transaction = True
+                imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+            annotation = type_info.annotation
+            if prop_name not in required and "| None" not in annotation:
+                annotation = f"{annotation} | None"
             field = ctx.ModelField(
                 name=self.sanitizer.snake(wire_name),
                 wire_name=wire_name,
-                type_hint=type_info.annotation,
+                type_hint=annotation,
                 required=prop_name in required,
                 description=prop_schema.get("description"),
                 metadata=self._build_metadata(wire_name, type_info),
                 default_value=None if prop_name in required else "None",
             )
             imports.update(type_info.imports)
+            if type_info.model and type_info.model != entry.python_name:
+                dep_entry = self.registry.entries_by_python_name.get(type_info.model)
+                if dep_entry and dep_entry.module_name != entry.module_name:
+                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+            if type_info.list_inner_model:
+                dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_model)
+                if dep_entry and dep_entry.module_name != entry.module_name:
+                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+                if type_info.list_inner_model == "SignedTransaction":
+                    imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+            if type_info.enum:
+                dep_entry = self.registry.entries_by_python_name.get(type_info.enum)
+                if dep_entry:
+                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+            if type_info.list_inner_enum:
+                dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_enum)
+                if dep_entry:
+                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+            if "encode_model_sequence" in field.metadata or "decode_model_sequence" in field.metadata:
+                imports.add("from ._serde_helpers import decode_model_sequence, encode_model_sequence")
+            if "encode_enum_sequence" in field.metadata or "decode_enum_sequence" in field.metadata:
+                imports.add("from ._serde_helpers import decode_enum_sequence, encode_enum_sequence")
+            if "encode_model_mapping" in field.metadata or "mapping_encoder" in field.metadata:
+                imports.add("from ._serde_helpers import encode_model_mapping, mapping_encoder")
+            if "decode_model_mapping" in field.metadata or "mapping_decoder" in field.metadata:
+                imports.add("from ._serde_helpers import decode_model_mapping, mapping_decoder")
+            if "nested(" in field.metadata:
+                uses_nested = True
+            if "flatten(" in field.metadata:
+                uses_flatten = True
+            if "enum_value(" in field.metadata:
+                uses_enum_value = True
+            if "Any" in field.type_hint:
+                needs_any = True
+                imports.add("from typing import Any")
             fields.append(field)
 
         fields.sort(key=lambda f: (not f.required, f.name))
         return ctx.ModelDescriptor(
             name=entry.python_name,
+            module_name=entry.module_name,
             description=entry.description,
             fields=fields,
             imports=sorted(imports),
             requires_datetime=any("datetime" in imp for imp in imports),
+            uses_nested=uses_nested,
+            uses_flatten=uses_flatten,
+            uses_enum_value=uses_enum_value,
+            needs_any=needs_any,
         )
 
     def _build_enum(self, entry: SchemaEntry) -> ctx.EnumDescriptor:
@@ -241,7 +316,12 @@ class ModelBuilder:
         for value in entry.schema.get("enum", []) or []:
             member_name = self.sanitizer.const(str(value))
             members.append(ctx.EnumValue(member_name=member_name, value=value))
-        return ctx.EnumDescriptor(name=entry.python_name, values=members, description=entry.description)
+        return ctx.EnumDescriptor(
+            name=entry.python_name,
+            module_name=entry.module_name,
+            values=members,
+            description=entry.description,
+        )
 
     def _build_metadata(self, wire_name: str, type_info: TypeInfo) -> str:
         alias = wire_name.replace('"', '\\"')
@@ -251,17 +331,57 @@ class ModelBuilder:
             return f'enum_value("{alias}", {type_info.enum})'
         if type_info.is_list and type_info.list_inner_model:
             return (
-                f'wire("{alias}", encode=encode_model_sequence, '
-                f'decode=lambda raw: decode_model_sequence(lambda: {type_info.list_inner_model}, raw))'
+                "wire(\n"
+                f'            "{alias}",\n'
+                "            encode=encode_model_sequence,\n"
+                f"            decode=lambda raw: decode_model_sequence(lambda: {type_info.list_inner_model}, raw),\n"
+                "        )"
             )
         if type_info.is_list and type_info.list_inner_enum:
             return (
-                f'wire("{alias}", encode=encode_enum_sequence, '
-                f'decode=lambda raw: decode_enum_sequence(lambda: {type_info.list_inner_enum}, raw))'
+                "wire(\n"
+                f'            "{alias}",\n'
+                "            encode=encode_enum_sequence,\n"
+                f"            decode=lambda raw: decode_enum_sequence(lambda: {type_info.list_inner_enum}, raw),\n"
+                "        )"
             )
         if type_info.is_signed_transaction:
             return f'nested("{alias}", lambda: SignedTransaction)'
         return f'wire("{alias}")'
+
+    def _collect_alias_imports(self, annotation: str, entry: SchemaEntry) -> list[str]:
+        imports: set[str] = set()
+        tokens = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", annotation))
+        builtins = {
+            "list",
+            "dict",
+            "set",
+            "tuple",
+            "frozenset",
+            "Optional",
+            "Union",
+            "Literal",
+            "int",
+            "float",
+            "str",
+            "bool",
+            "object",
+        }
+        for token in tokens:
+            if token in builtins or token == entry.python_name:
+                continue
+            if token == "Any":
+                imports.add("from typing import Any")
+                continue
+            if token == "SignedTransaction":
+                imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+                continue
+            dep_entry = self.registry.entries_by_python_name.get(token)
+            if dep_entry:
+                imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+        if "Any" in annotation:
+            imports.add("from typing import Any")
+        return sorted(imports)
 
 
 class OperationBuilder:
@@ -274,6 +394,7 @@ class OperationBuilder:
         self.uses_signed_transaction = False
         self.uses_msgpack = False
         self.uses_block_models = False
+        self.uses_literal = False
 
     def build(self) -> list[ctx.OperationGroup]:
         grouped: dict[str, list[ctx.OperationDescriptor]] = defaultdict(list)
@@ -292,15 +413,32 @@ class OperationBuilder:
     def _build_operation(self, path: str, method: str, op: dict[str, Any]) -> ctx.OperationDescriptor:
         operation_id = op.get("operationId") or self._derive_operation_id(method, path)
         tag = (op.get("tags") or ["default"])[0]
-        parameters, force_msgpack = self._build_parameters(op.get("parameters", []))
+        parameters, format_info = self._build_parameters(op.get("parameters", []))
         request_body = self._build_request_body(op.get("requestBody"), operation_id)
         response = self._build_response(op.get("responses", {}), operation_id)
-        prefer_msgpack = False
-        if response and "application/msgpack" in response.media_types and "application/json" in response.media_types:
-            prefer_msgpack = True
         path_params = [p for p in parameters if p.location == "path"]
         query_params = [p for p in parameters if p.location == "query"]
         header_params = [p for p in parameters if p.location == "header"]
+        format_options: list[str] | None = None
+        format_default: str | None = None
+        format_required = False
+        format_single: str | None = None
+        if format_info:
+            fmt_enum = format_info.get("enum") or []
+            format_required = format_info.get("required", False)
+            format_default = format_info.get("default")
+            if len(fmt_enum) == 1:
+                format_single = fmt_enum[0]
+                if format_default is None:
+                    format_default = format_single
+            elif fmt_enum:
+                format_options = list(fmt_enum)
+                if format_default is not None and format_default not in format_options:
+                    format_default = None
+                if len(format_options) > 1:
+                    self.uses_literal = True
+        else:
+            format_single = None
         return ctx.OperationDescriptor(
             name=self.sanitizer.snake(operation_id),
             http_method=method,
@@ -315,8 +453,10 @@ class OperationBuilder:
             request_body=request_body,
             response=response,
             operation_id=operation_id,
-            prefer_msgpack_flag=prefer_msgpack,
-            force_msgpack_query=force_msgpack,
+            format_options=format_options,
+            format_default=format_default,
+            format_required=format_required,
+            format_single=format_single,
         )
 
     def _derive_operation_id(self, method: str, path: str) -> str:
@@ -324,9 +464,9 @@ class OperationBuilder:
         raw = f"{method}_{slug}" if slug else method
         return self.sanitizer.pascal(raw)
 
-    def _build_parameters(self, params: list[dict[str, Any]]) -> tuple[list[ctx.ParameterDescriptor], bool]:
+    def _build_parameters(self, params: list[dict[str, Any]]) -> tuple[list[ctx.ParameterDescriptor], dict[str, Any] | None]:
         result: list[ctx.ParameterDescriptor] = []
-        force_msgpack = False
+        format_info: dict[str, Any] | None = None
         for param in params:
             param = self._resolve_parameter_ref(param)
             schema = param.get("schema") or {}
@@ -335,9 +475,13 @@ class OperationBuilder:
             if (
                 name == "format"
                 and param.get("in") == "query"
-                and schema.get("enum") == ["msgpack"]
             ):
-                force_msgpack = True
+                enum_values = schema.get("enum") or []
+                format_info = {
+                    "enum": list(enum_values),
+                    "default": schema.get("default"),
+                    "required": param.get("required", False),
+                }
                 continue
             type_info = self.resolver.resolve(schema, hint=self.sanitizer.pascal(name))
             result.append(
@@ -351,7 +495,7 @@ class OperationBuilder:
                     default_value="None" if not param.get("required", False) else None,
                 )
             )
-        return result, force_msgpack
+        return result, format_info
 
     def _resolve_parameter_ref(self, param: dict[str, Any]) -> dict[str, Any]:
         if "$ref" not in param:
@@ -366,12 +510,13 @@ class OperationBuilder:
         if "$ref" in request_body:
             request_body = self._resolve_request_body_ref(request_body)
         content = request_body.get("content") or {}
-        schema = None
+        schema: ctx.RawSchema | None = None
         media_types: list[str] = []
-        for media_type in ("application/json", "application/msgpack", "application/octet-stream"):
-            if media_type in content:
-                schema = content[media_type].get("schema")
-                media_types.append(media_type)
+        for media_type in sorted(content):
+            candidate = content[media_type].get("schema")
+            if candidate is not None and schema is None:
+                schema = candidate
+            media_types.append(media_type)
         if schema is None:
             return None
         type_info = self.resolver.resolve(schema, hint=f"{operation_id}Request")
@@ -443,10 +588,10 @@ class OperationBuilder:
 def build_client_descriptor(spec: ctx.ParsedSpec, package_name: str, sanitizer: IdentifierSanitizer) -> ctx.ClientDescriptor:
     registry = SchemaRegistry(spec, sanitizer)
     resolver = TypeResolver(registry)
-    model_builder = ModelBuilder(registry, resolver, sanitizer)
-    models, enums, aliases = model_builder.build()
     operation_builder = OperationBuilder(spec, resolver, sanitizer, registry)
     groups = operation_builder.build()
+    model_builder = ModelBuilder(registry, resolver, sanitizer)
+    models, enums, aliases = model_builder.build()
     class_name = sanitizer.pascal(package_name)
     uses_signed_txn = model_builder.uses_signed_transaction or operation_builder.uses_signed_transaction
     defaults = {

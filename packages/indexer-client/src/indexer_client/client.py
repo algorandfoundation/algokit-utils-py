@@ -30,8 +30,6 @@ class IndexerClient:
 
     def make_health_check(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> models.HealthCheck:
         """
         Returns 200 if healthy.
@@ -41,8 +39,9 @@ class IndexerClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -50,9 +49,15 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "HealthCheck"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "HealthCheck",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -66,8 +71,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline3LookupAccountAppLocalStatesResponseModel:
+    ) -> models.LookupAccountAppLocalStatesResponseModel:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -89,8 +93,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -98,10 +103,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline3LookupAccountAppLocalStatesResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountAppLocalStatesResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -114,8 +123,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline4LookupAccountAssetsResponseModel:
+    ) -> models.LookupAccountAssetsResponseModel:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -137,8 +145,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -146,10 +155,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline4LookupAccountAssetsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountAssetsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -161,8 +174,7 @@ class IndexerClient:
         round_: int | None = None,
         include_all: bool | None = None,
         exclude: list[str] | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline2LookupAccountByIdresponseModel:
+    ) -> models.LookupAccountByIdresponseModel:
         """
         Lookup account information.
         """
@@ -181,8 +193,9 @@ class IndexerClient:
         if exclude is not None:
             params["exclude"] = exclude
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -190,10 +203,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline2LookupAccountByIdresponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountByIdresponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -206,8 +223,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline5LookupAccountCreatedApplicationsResponseModel:
+    ) -> models.LookupAccountCreatedApplicationsResponseModel:
         """
         Lookup an account's created application parameters, optionally for a specific ID.
         """
@@ -229,8 +245,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -238,10 +255,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline5LookupAccountCreatedApplicationsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountCreatedApplicationsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -254,8 +275,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline6LookupAccountCreatedAssetsResponseModel:
+    ) -> models.LookupAccountCreatedAssetsResponseModel:
         """
         Lookup an account's created asset parameters, optionally for a specific ID.
         """
@@ -277,8 +297,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -286,10 +307,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline6LookupAccountCreatedAssetsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountCreatedAssetsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -313,8 +338,7 @@ class IndexerClient:
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
         rekey_to: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline7LookupAccountTransactionsResponseModel:
+    ) -> models.LookupAccountTransactionsResponseModel:
         """
         Lookup account transactions. Transactions are returned newest to oldest.
         """
@@ -369,8 +393,9 @@ class IndexerClient:
         if rekey_to is not None:
             params["rekey-to"] = rekey_to
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -378,10 +403,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline7LookupAccountTransactionsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAccountTransactionsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -390,8 +419,6 @@ class IndexerClient:
         self,
         application_id: int,
         name: str,
-        *,
-        request_timeout: float | None = None,
     ) -> models.Box:
         """
         Get box information for a given application.
@@ -405,8 +432,9 @@ class IndexerClient:
         if name is not None:
             params["name"] = name
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -414,9 +442,15 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Box"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Box",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -425,8 +459,7 @@ class IndexerClient:
         application_id: int,
         *,
         include_all: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline9LookupApplicationByIdresponseModel:
+    ) -> models.LookupApplicationByIdresponseModel:
         """
         Lookup application.
         """
@@ -439,8 +472,9 @@ class IndexerClient:
         if include_all is not None:
             params["include-all"] = include_all
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -448,10 +482,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline9LookupApplicationByIdresponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupApplicationByIdresponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -466,8 +504,7 @@ class IndexerClient:
         min_round: int | None = None,
         max_round: int | None = None,
         sender_address: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline11LookupApplicationLogsByIdresponseModel:
+    ) -> models.LookupApplicationLogsByIdresponseModel:
         """
         Lookup application logs.
         """
@@ -495,8 +532,9 @@ class IndexerClient:
         if sender_address is not None:
             params["sender-address"] = sender_address
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -504,10 +542,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline11LookupApplicationLogsByIdresponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupApplicationLogsByIdresponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -521,8 +563,7 @@ class IndexerClient:
         next_: str | None = None,
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline14LookupAssetBalancesResponseModel:
+    ) -> models.LookupAssetBalancesResponseModel:
         """
         Lookup the list of accounts who hold this asset
         """
@@ -547,8 +588,9 @@ class IndexerClient:
         if currency_less_than is not None:
             params["currency-less-than"] = currency_less_than
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -556,10 +598,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline14LookupAssetBalancesResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAssetBalancesResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -569,8 +615,7 @@ class IndexerClient:
         asset_id: int,
         *,
         include_all: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline13LookupAssetByIdresponseModel:
+    ) -> models.LookupAssetByIdresponseModel:
         """
         Lookup asset information.
         """
@@ -583,8 +628,9 @@ class IndexerClient:
         if include_all is not None:
             params["include-all"] = include_all
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -592,10 +638,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline13LookupAssetByIdresponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAssetByIdresponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -621,8 +671,7 @@ class IndexerClient:
         address_role: str | None = None,
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline15LookupAssetTransactionsResponseModel:
+    ) -> models.LookupAssetTransactionsResponseModel:
         """
         Lookup transactions for an asset. Transactions are returned oldest to newest.
         """
@@ -683,8 +732,9 @@ class IndexerClient:
         if rekey_to is not None:
             params["rekey-to"] = rekey_to
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -692,10 +742,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline15LookupAssetTransactionsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupAssetTransactionsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -705,7 +759,6 @@ class IndexerClient:
         round_number: int,
         *,
         header_only: bool | None = None,
-        request_timeout: float | None = None,
     ) -> models.Block:
         """
         Lookup block.
@@ -719,8 +772,9 @@ class IndexerClient:
         if header_only is not None:
             params["header-only"] = header_only
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -728,18 +782,22 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "Block"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "Block",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def lookup_transaction(
         self,
         txid: str,
-        *,
-        request_timeout: float | None = None,
-    ) -> models.Inline18LookupTransactionResponseModel:
+    ) -> models.LookupTransactionResponseModel:
         """
         Lookup a single transaction.
         """
@@ -750,8 +808,9 @@ class IndexerClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -759,10 +818,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline18LookupTransactionResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "LookupTransactionResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -783,8 +846,7 @@ class IndexerClient:
         round_: int | None = None,
         application_id: int | None = None,
         online_only: bool | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline1SearchForAccountsResponseModel:
+    ) -> models.SearchForAccountsResponseModel:
         """
         Search for accounts.
         """
@@ -825,8 +887,9 @@ class IndexerClient:
         if online_only is not None:
             params["online-only"] = online_only
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -834,10 +897,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline1SearchForAccountsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForAccountsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -848,8 +915,7 @@ class IndexerClient:
         *,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline10SearchForApplicationBoxesResponseModel:
+    ) -> models.SearchForApplicationBoxesResponseModel:
         """
         Get box names for a given application.
         """
@@ -865,8 +931,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -874,10 +941,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline10SearchForApplicationBoxesResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForApplicationBoxesResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -890,8 +961,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline8SearchForApplicationsResponseModel:
+    ) -> models.SearchForApplicationsResponseModel:
         """
         Search for applications
         """
@@ -914,8 +984,9 @@ class IndexerClient:
         if next_ is not None:
             params["next"] = next_
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -923,10 +994,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline8SearchForApplicationsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForApplicationsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -941,8 +1016,7 @@ class IndexerClient:
         name: str | None = None,
         unit: str | None = None,
         asset_id: int | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline12SearchForAssetsResponseModel:
+    ) -> models.SearchForAssetsResponseModel:
         """
         Search for assets.
         """
@@ -971,8 +1045,9 @@ class IndexerClient:
         if asset_id is not None:
             params["asset-id"] = asset_id
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -980,10 +1055,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline12SearchForAssetsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForAssetsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -1000,8 +1079,7 @@ class IndexerClient:
         proposers: list[str] | None = None,
         expired: list[str] | None = None,
         absent: list[str] | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline16SearchForBlockHeadersResponseModel:
+    ) -> models.SearchForBlockHeadersResponseModel:
         """
         Search for block headers. Block headers are returned in ascending round order.
         Transactions are not included in the output.
@@ -1037,8 +1115,9 @@ class IndexerClient:
         if absent is not None:
             params["absent"] = absent
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1046,10 +1125,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline16SearchForBlockHeadersResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForBlockHeadersResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -1077,8 +1160,7 @@ class IndexerClient:
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
         application_id: int | None = None,
-        request_timeout: float | None = None,
-    ) -> models.Inline17SearchForTransactionsResponseModel:
+    ) -> models.SearchForTransactionsResponseModel:
         """
         Search for transactions. Transactions are returned oldest to newest unless the address
         parameter is used, in which case results are returned newest to oldest.
@@ -1147,8 +1229,9 @@ class IndexerClient:
         if application_id is not None:
             params["application-id"] = application_id
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -1156,10 +1239,14 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(
-                response, {"is_binary": False, "model": "Inline17SearchForTransactionsResponseModel"}
+                response,
+                {
+                    "is_binary": False,
+                    "model": "SearchForTransactionsResponseModel",
+                },
             )
 
         raise UnexpectedStatusError(response.status_code, response.text)
@@ -1170,13 +1257,22 @@ class IndexerClient:
         payload: object,
         descriptor: dict[str, object],
         media_types: list[str],
-        *,
-        prefer_msgpack: bool,
     ) -> None:
         encoded = self._encode_payload(payload, descriptor)
-        if "application/msgpack" in media_types and prefer_msgpack:
+        binary_types = {"application/x-binary", "application/octet-stream"}
+        if bool(descriptor.get("is_binary")) or any(mt in binary_types for mt in media_types):
+            if encoded is None:
+                return
+            request_kwargs["content"] = encoded
+            if media_types:
+                request_kwargs.setdefault("headers", {})["content-type"] = media_types[0]
+            else:
+                request_kwargs.setdefault("headers", {})["content-type"] = "application/octet-stream"
+        elif "application/json" in media_types:
+            request_kwargs["json"] = encoded
+        elif "application/msgpack" in media_types:
             request_kwargs["content"] = msgpack.packb(encoded, use_bin_type=True)
-            request_kwargs["headers"]["content-type"] = "application/msgpack"
+            request_kwargs.setdefault("headers", {})["content-type"] = "application/msgpack"
         else:
             request_kwargs["json"] = encoded
 
@@ -1196,6 +1292,7 @@ class IndexerClient:
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
             data = msgpack.unpackb(response.content, raw=False)
+            data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
         else:
@@ -1209,3 +1306,21 @@ class IndexerClient:
             model_cls = getattr(models, list_model)
             return [from_wire(model_cls, item) for item in data]
         return data
+
+    def _normalize_msgpack(self, value: object) -> object:
+        if isinstance(value, dict):
+            normalized: dict[object, object] = {}
+            for key, item in value.items():
+                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+            return normalized
+        if isinstance(value, list):
+            return [self._normalize_msgpack(item) for item in value]
+        return value
+
+    def _ensure_str_key(self, key: object) -> object:
+        if isinstance(key, bytes):
+            try:
+                return key.decode("utf-8")
+            except UnicodeDecodeError:
+                return key
+        return key

@@ -16,11 +16,11 @@ def docstring(text: str | None, indent: int = 4, width: int = 88) -> str:
             continue
         wrapped = textwrap.fill(line, width=width)
         rendered_lines.extend(wrapped.splitlines())
-    rendered = "\n".join(f"{indent_str}{line}" if line else indent_str for line in rendered_lines)
+    rendered = "\n".join(f"{indent_str}{line}" if line else "" for line in rendered_lines)
     return f'{indent_str}"""\n{rendered}\n{indent_str}"""\n'
 
 
-def descriptor_literal(descriptor: object) -> str:
+def descriptor_literal(descriptor: object, indent: int = 0) -> str:
     if descriptor is None:
         return "{}"
     fields: dict[str, Any] = {}
@@ -28,7 +28,13 @@ def descriptor_literal(descriptor: object) -> str:
         value = getattr(descriptor, key, None)
         if value is not None:
             fields[key] = value
-    return repr(fields)
+    if not fields:
+        return "{}"
+    indent_str = " " * indent
+    inner_indent = indent_str + " " * 4
+    lines = [f'{inner_indent}"{key}": {value!r},' for key, value in fields.items()]
+    body = "\n".join(lines)
+    return f"{{\n{body}\n{indent_str}}}"
 
 
 def optional_hint(type_hint: str) -> str:

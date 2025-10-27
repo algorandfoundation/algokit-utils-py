@@ -1,0 +1,11 @@
+from __future__ import annotations
+
+from enum import Enum
+
+
+class {{ enum.name }}(Enum):
+{% if enum.description %}{{ enum.description | docstring(4) }}{% endif %}
+    {%- for value in enum.values %}
+    {{ value.member_name }} = {{ value.value | tojson }}
+    {%- endfor %}
+

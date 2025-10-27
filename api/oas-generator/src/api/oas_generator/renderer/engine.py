@@ -55,6 +55,15 @@ class TemplateRenderer:
         models_dir = target / "models"
         files[models_dir / "__init__.py"] = self._render_template("models/__init__.py.j2", context)
         files[models_dir / "_serde_helpers.py"] = self._render_template("models/_serde_helpers.py.j2", context)
+        for model in context["client"].models:
+            model_context = {**context, "model": model}
+            files[models_dir / f"{model.module_name}.py"] = self._render_template("models/model.py.j2", model_context)
+        for enum in context["client"].enums:
+            enum_context = {**context, "enum": enum}
+            files[models_dir / f"{enum.module_name}.py"] = self._render_template("models/enum.py.j2", enum_context)
+        for alias in context["client"].aliases:
+            alias_context = {**context, "alias": alias}
+            files[models_dir / f"{alias.module_name}.py"] = self._render_template("models/type_alias.py.j2", alias_context)
         if client.include_block_models:
             files[models_dir / "block.py"] = self._render_template("models/block.py.j2", context)
         files[target / "py.typed"] = ""
@@ -75,16 +84,28 @@ class TemplateRenderer:
                 if name not in model_exports:
                     model_exports.append(name)
         metadata_usage = self._collect_metadata_usage(client)
+        model_modules = [{"module": model.module_name, "name": model.name} for model in client.models]
+        enum_modules = [{"module": enum.module_name, "name": enum.name} for enum in client.enums]
+        alias_modules = [{"module": alias.module_name, "name": alias.name} for alias in client.aliases]
+        needs_literal = any(
+            (op.format_options and len(op.format_options) > 1)
+            for group in client.groups
+            for op in group.operations
+        )
         return {
             "client": client,
             "config": config,
             "model_exports": sorted(model_exports),
+            "model_modules": model_modules,
+            "enum_modules": enum_modules,
+            "alias_modules": alias_modules,
             "needs_model_sequence": metadata_usage["model_sequence"],
             "needs_enum_sequence": metadata_usage["enum_sequence"],
             "needs_enum_value": metadata_usage["enum_value"],
             "needs_datetime": any(model.requires_datetime for model in client.models),
             "client_needs_datetime": self._client_requires_datetime(client),
             "block_exports": self.BLOCK_MODEL_EXPORTS,
+            "needs_literal": needs_literal,
         }
 
     def _collect_metadata_usage(self, client: ctx.ClientDescriptor) -> dict[str, bool]:

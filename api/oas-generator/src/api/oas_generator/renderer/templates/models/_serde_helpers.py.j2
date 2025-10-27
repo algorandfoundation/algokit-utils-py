@@ -84,7 +84,9 @@ def decode_model_mapping(factory: Callable[[], type[T]], raw: object) -> dict[st
     return decoded or None
 
 
-def mapping_encoder(factory: Callable[[], type[T]]) -> Callable[[Mapping[str, object] | None], dict[str, object] | None]:
+def mapping_encoder(
+    factory: Callable[[], type[T]],
+) -> Callable[[Mapping[str, object] | None], dict[str, object] | None]:
     def _encode(mapping: Mapping[str, object] | None) -> dict[str, object] | None:
         return encode_model_mapping(factory, mapping)
 

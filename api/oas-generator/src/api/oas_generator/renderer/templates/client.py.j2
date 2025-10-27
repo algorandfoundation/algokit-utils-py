@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import is_dataclass
-from typing import Any
+from typing import Any{% if needs_literal %}, Literal{% endif %}
 
 {% if client_needs_datetime %}from datetime import datetime
 {% endif %}
@@ -43,27 +43,30 @@ class {{ client.class_name }}:
     {% else %}
     {% set return_type = 'None' %}
     {% endif %}
-    {% if request and request.model %}
+    {% if request is not none and request.model %}
     {% set body_type = 'models.' + request.model %}
-    {% elif request and request.list_model %}
+    {% elif request is not none and request.list_model %}
     {% set body_type = 'list[models.' + request.list_model + ']' %}
-    {% elif request %}
+    {% elif request is not none %}
     {% set body_type = request.type_hint %}
     {% endif %}
-    {% set supports_msgpack = operation.prefer_msgpack_flag or (request and 'application/msgpack' in request.media_types) or (response and 'application/msgpack' in response.media_types) %}
     {% set kw_required = (operation.query_parameters + operation.header_parameters) | selectattr('required') | list %}
     {% set kw_optional = (operation.query_parameters + operation.header_parameters) | rejectattr('required') | list %}
+    {% set has_keyword_only = (operation.format_options is not none) or kw_optional or (request is not none and not request.required) %}
     def {{ operation.name }}(
         self,
         {% for param in operation.path_parameters %}{{ param.name }}: {{ param.type_hint }},
         {% endfor %}{% for param in kw_required %}{{ param.name }}: {{ param.type_hint }},
-        {% endfor %}{% if request and request.required %}body: {{ body_type }},
-        {% endif %}
+        {% endfor %}{% if request is not none and request.required %}body: {{ body_type }},
+        {% endif %}{% if has_keyword_only %}
         *,
-        {% for param in kw_optional %}{{ param.name }}: {{ param.type_hint | optional_hint }}{% if param.default_value %} = {{ param.default_value }}{% else %} = None{% endif %},
-        {% endfor %}{% if request and not request.required %}body: {{ body_type | optional_hint }} = None,
-        {% endif %}{% if supports_msgpack %}prefer_msgpack: bool = False,
-        {% endif %}request_timeout: float | None = None,
+        {% if operation.format_options %}
+        response_format: Literal[{% for opt in operation.format_options %}{{ '"' ~ opt ~ '"' }}{% if not loop.last %}, {% endif %}{% endfor %}]{% if not operation.format_required %} | None{% endif %}{% if operation.format_required %}{% if operation.format_default %} = {{ '"' ~ operation.format_default ~ '"' }}{% endif %}{% else %}{% if operation.format_default %} = {{ '"' ~ operation.format_default ~ '"' }}{% else %} = None{% endif %}{% endif %},
+        {% endif %}{% for param in kw_optional %}
+        {{ param.name }}: {{ param.type_hint | optional_hint }}{% if param.default_value %} = {{ param.default_value }}{% else %} = None{% endif %},
+        {% endfor %}{% if request is not none and not request.required %}
+        body: {{ body_type | optional_hint }} = None,
+        {% endif %}{% endif %}
     ) -> {{ return_type }}:
 {% set doc = operation.summary or operation.description or operation.operation_id %}{{ doc | docstring(8) }}
         path = "{{ operation.path }}"
@@ -80,15 +83,41 @@ class {{ client.class_name }}:
         if {{ param.name }} is not None:
             headers["{{ param.wire_name }}"] = str({{ param.name }})
         {% endfor %}
-        {% if operation.force_msgpack_query %}
-        params["format"] = "msgpack"
+        {% set default_accept = 'application/json' %}
+        {% if response and 'application/json' not in response.media_types and response.media_types %}
+        {% set default_accept = response.media_types[0] %}
+        {% elif response and 'application/json' in response.media_types %}
+        {% set default_accept = 'application/json' %}
         {% endif %}
-        {% if supports_msgpack %}
-        accept = "application/msgpack" if prefer_msgpack else "application/json"
-        headers.setdefault("accept", accept)
-        {% else %}
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
+        {% if request %}
+        body_media_types = {{ request.media_types }}
         {% endif %}
+        {% if operation.format_options %}
+        selected_format = response_format
+        {% if operation.format_default %}
+        if selected_format is None:
+            selected_format = "{{ operation.format_default }}"
+        {% endif %}
+        if selected_format is not None:
+            params["format"] = selected_format
+            if selected_format == "msgpack":
+                accept_value = "application/msgpack"
+                {% if request %}
+                if "application/msgpack" in body_media_types:
+                    body_media_types = ["application/msgpack"]
+                {% endif %}
+        {% elif operation.format_single %}
+        params["format"] = "{{ operation.format_single }}"
+        {% if operation.format_single == "msgpack" %}
+        accept_value = "application/msgpack"
+        {% if request %}
+        if "application/msgpack" in body_media_types:
+            body_media_types = ["application/msgpack"]
+        {% endif %}
+        {% endif %}
+        {% endif %}
+        headers.setdefault("accept", accept_value or '{{ default_accept }}')
         request_kwargs: dict[str, Any] = {
             "method": "{{ operation.http_method }}",
             "url": path,
@@ -100,15 +129,19 @@ class {{ client.class_name }}:
             self._assign_body(
                 request_kwargs,
                 body,
-                {{ request | descriptor_literal }},
-                {{ request.media_types }},
-                prefer_msgpack={% if supports_msgpack %}prefer_msgpack{% else %}False{% endif %},
+                {{ request | descriptor_literal(16) }},
+                body_media_types,
             )
         {% endif %}
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            {% if response %}return self._decode_response(response, {{ response | descriptor_literal }})
-            {% else %}return None
+            {% if response %}
+            return self._decode_response(
+                response,
+                {{ response | descriptor_literal(16) }},
+            )
+            {% else %}
+            return None
             {% endif %}
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -120,13 +153,22 @@ class {{ client.class_name }}:
         payload: object,
         descriptor: dict[str, object],
         media_types: list[str],
-        *,
-        prefer_msgpack: bool,
     ) -> None:
         encoded = self._encode_payload(payload, descriptor)
-        if "application/msgpack" in media_types and prefer_msgpack:
+        binary_types = {"application/x-binary", "application/octet-stream"}
+        if bool(descriptor.get("is_binary")) or any(mt in binary_types for mt in media_types):
+            if encoded is None:
+                return
+            request_kwargs["content"] = encoded
+            if media_types:
+                request_kwargs.setdefault("headers", {})["content-type"] = media_types[0]
+            else:
+                request_kwargs.setdefault("headers", {})["content-type"] = "application/octet-stream"
+        elif "application/json" in media_types:
+            request_kwargs["json"] = encoded
+        elif "application/msgpack" in media_types:
             request_kwargs["content"] = msgpack.packb(encoded, use_bin_type=True)
-            request_kwargs["headers"]["content-type"] = "application/msgpack"
+            request_kwargs.setdefault("headers", {})["content-type"] = "application/msgpack"
         else:
             request_kwargs["json"] = encoded
 
@@ -145,7 +187,8 @@ class {{ client.class_name }}:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=False)
+            data = msgpack.unpackb(response.content, raw=False, strict_map_key=False)
+            data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
         else:
@@ -159,3 +202,21 @@ class {{ client.class_name }}:
             model_cls = getattr(models, list_model)
             return [from_wire(model_cls, item) for item in data]
         return data
+
+    def _normalize_msgpack(self, value: object) -> object:
+        if isinstance(value, dict):
+            normalized: dict[object, object] = {}
+            for key, item in value.items():
+                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+            return normalized
+        if isinstance(value, list):
+            return [self._normalize_msgpack(item) for item in value]
+        return value
+
+    def _ensure_str_key(self, key: object) -> object:
+        if isinstance(key, bytes):
+            try:
+                return key.decode("utf-8")
+            except UnicodeDecodeError:
+                return key
+        return key

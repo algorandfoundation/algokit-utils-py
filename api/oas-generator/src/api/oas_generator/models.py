@@ -35,10 +35,16 @@ class ModelField:
 @dataclass(slots=True)
 class ModelDescriptor:
     name: str
+    module_name: str
     description: str | None
     fields: list[ModelField]
     imports: list[str] = field(default_factory=list)
     requires_datetime: bool = False
+    uses_wire: bool = True
+    uses_nested: bool = False
+    uses_flatten: bool = False
+    uses_enum_value: bool = False
+    needs_any: bool = False
     requires_enum: bool = False
 
 
@@ -52,6 +58,7 @@ class EnumValue:
 @dataclass(slots=True)
 class EnumDescriptor:
     name: str
+    module_name: str
     values: list[EnumValue]
     description: str | None = None
 
@@ -59,7 +66,9 @@ class EnumDescriptor:
 @dataclass(slots=True)
 class TypeAliasDescriptor:
     name: str
+    module_name: str
     target: str
+    imports: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)
@@ -113,8 +122,10 @@ class OperationDescriptor:
     request_body: RequestBodyDescriptor | None
     response: ResponseDescriptor | None
     operation_id: str
-    prefer_msgpack_flag: bool = False
-    force_msgpack_query: bool = False
+    format_options: list[str] | None = None
+    format_default: str | None = None
+    format_required: bool = False
+    format_single: str | None = None
 
 
 @dataclass(slots=True)

@@ -30,8 +30,6 @@ class KmdClient:
     def create_wallet(
         self,
         body: models.CreateWalletRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletResponse:
         """
         Create a wallet
@@ -41,8 +39,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -54,22 +55,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "CreateWalletRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "CreateWalletRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def delete_key(
         self,
         body: models.DeleteKeyRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.DeletekeyResponse:
         """
         Delete a key
@@ -79,8 +86,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "DELETE",
             "url": path,
@@ -92,22 +102,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "DeleteKeyRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "DeleteKeyRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "DeletekeyResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "DeletekeyResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def delete_multisig(
         self,
         body: models.DeleteMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.DeletemultisigResponse:
         """
         Delete a multisig
@@ -117,8 +133,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "DELETE",
             "url": path,
@@ -130,22 +149,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "DeleteMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "DeleteMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "DeletemultisigResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "DeletemultisigResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_key(
         self,
         body: models.ExportKeyRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostkeyExportResponse:
         """
         Export a key
@@ -155,8 +180,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -168,22 +196,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ExportKeyRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ExportKeyRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostkeyExportResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostkeyExportResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_master_key(
         self,
         body: models.ExportMasterKeyRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmasterKeyExportResponse:
         """
         Export the master derivation key from a wallet
@@ -193,8 +227,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -206,22 +243,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ExportMasterKeyRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ExportMasterKeyRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmasterKeyExportResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmasterKeyExportResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_multisig(
         self,
         body: models.ExportMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmultisigExportResponse:
         """
         Export multisig address metadata
@@ -231,8 +274,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -244,22 +290,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ExportMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ExportMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmultisigExportResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmultisigExportResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def generate_key(
         self,
         body: models.GenerateKeyRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostkeyResponse:
         """
         Generate a key
@@ -269,8 +321,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -282,14 +337,22 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "GenerateKeyRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "GenerateKeyRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostkeyResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostkeyResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -297,7 +360,6 @@ class KmdClient:
         self,
         *,
         body: models.VersionsRequest | None = None,
-        request_timeout: float | None = None,
     ) -> models.VersionsResponse:
         """
         Retrieves the current version
@@ -307,8 +369,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -320,22 +385,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "VersionsRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "VersionsRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "VersionsResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "VersionsResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_wallet_info(
         self,
         body: models.WalletInfoRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletInfoResponse:
         """
         Get wallet info
@@ -345,8 +416,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -358,22 +432,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "WalletInfoRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "WalletInfoRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletInfoResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletInfoResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def import_key(
         self,
         body: models.ImportKeyRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostkeyImportResponse:
         """
         Import a key
@@ -383,8 +463,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -396,22 +479,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ImportKeyRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ImportKeyRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostkeyImportResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostkeyImportResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def import_multisig(
         self,
         body: models.ImportMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmultisigImportResponse:
         """
         Import a multisig account
@@ -421,8 +510,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -434,22 +526,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ImportMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ImportMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmultisigImportResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmultisigImportResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def init_wallet_handle_token(
         self,
         body: models.InitWalletHandleTokenRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletInitResponse:
         """
         Initialize a wallet handle token
@@ -459,8 +557,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -472,22 +573,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "InitWalletHandleTokenRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "InitWalletHandleTokenRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletInitResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletInitResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def list_keys_in_wallet(
         self,
         body: models.ListKeysRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostkeyListResponse:
         """
         List keys in wallet
@@ -497,8 +604,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -510,22 +620,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ListKeysRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ListKeysRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostkeyListResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostkeyListResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def list_multisg(
         self,
         body: models.ListMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmultisigListResponse:
         """
         List multisig accounts
@@ -535,8 +651,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -548,14 +667,22 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ListMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ListMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmultisigListResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmultisigListResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -563,7 +690,6 @@ class KmdClient:
         self,
         *,
         body: models.ListWalletsRequest | None = None,
-        request_timeout: float | None = None,
     ) -> models.GetwalletsResponse:
         """
         List wallets
@@ -573,8 +699,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -586,22 +715,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ListWalletsRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ListWalletsRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "GetwalletsResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "GetwalletsResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def release_wallet_handle_token(
         self,
         body: models.ReleaseWalletHandleTokenRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletReleaseResponse:
         """
         Release a wallet handle token
@@ -611,8 +746,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -624,22 +762,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "ReleaseWalletHandleTokenRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "ReleaseWalletHandleTokenRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletReleaseResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletReleaseResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def rename_wallet(
         self,
         body: models.RenameWalletRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletRenameResponse:
         """
         Rename a wallet
@@ -649,8 +793,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -662,22 +809,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "RenameWalletRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "RenameWalletRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletRenameResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletRenameResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def renew_wallet_handle_token(
         self,
         body: models.RenewWalletHandleTokenRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostwalletRenewResponse:
         """
         Renew a wallet handle token
@@ -687,8 +840,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -700,22 +856,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "RenewWalletHandleTokenRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "RenewWalletHandleTokenRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostwalletRenewResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostwalletRenewResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_multisig_program(
         self,
         body: models.SignProgramMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmultisigProgramSignResponse:
         """
         Sign a program for a multisig account
@@ -725,8 +887,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -738,22 +903,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "SignProgramMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "SignProgramMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmultisigProgramSignResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmultisigProgramSignResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_multisig_transaction(
         self,
         body: models.SignMultisigRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostmultisigTransactionSignResponse:
         """
         Sign a multisig transaction
@@ -763,8 +934,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -776,22 +950,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "SignMultisigRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "SignMultisigRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostmultisigTransactionSignResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostmultisigTransactionSignResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_program(
         self,
         body: models.SignProgramRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PostprogramSignResponse:
         """
         Sign program
@@ -801,8 +981,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -814,22 +997,28 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "SignProgramRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "SignProgramRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PostprogramSignResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PostprogramSignResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_transaction(
         self,
         body: models.SignTransactionRequest,
-        *,
-        request_timeout: float | None = None,
     ) -> models.PosttransactionSignResponse:
         """
         Sign a transaction
@@ -839,8 +1028,11 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "POST",
             "url": path,
@@ -852,21 +1044,27 @@ class KmdClient:
             self._assign_body(
                 request_kwargs,
                 body,
-                {"is_binary": False, "model": "SignTransactionRequest"},
-                ["application/json"],
-                prefer_msgpack=False,
+                {
+                    "is_binary": False,
+                    "model": "SignTransactionRequest",
+                },
+                body_media_types,
             )
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False, "model": "PosttransactionSignResponse"})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                    "model": "PosttransactionSignResponse",
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def swagger_handler(
         self,
-        *,
-        request_timeout: float | None = None,
     ) -> str:
         """
         Gets the current swagger spec.
@@ -876,8 +1074,9 @@ class KmdClient:
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
-        headers.setdefault("accept", "application/json")
+        accept_value: str | None = None
 
+        headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
             "url": path,
@@ -885,9 +1084,14 @@ class KmdClient:
             "headers": headers,
         }
 
-        response = self._client.request(timeout=request_timeout, **request_kwargs)
+        response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, {"is_binary": False})
+            return self._decode_response(
+                response,
+                {
+                    "is_binary": False,
+                },
+            )
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -897,13 +1101,22 @@ class KmdClient:
         payload: object,
         descriptor: dict[str, object],
         media_types: list[str],
-        *,
-        prefer_msgpack: bool,
     ) -> None:
         encoded = self._encode_payload(payload, descriptor)
-        if "application/msgpack" in media_types and prefer_msgpack:
+        binary_types = {"application/x-binary", "application/octet-stream"}
+        if bool(descriptor.get("is_binary")) or any(mt in binary_types for mt in media_types):
+            if encoded is None:
+                return
+            request_kwargs["content"] = encoded
+            if media_types:
+                request_kwargs.setdefault("headers", {})["content-type"] = media_types[0]
+            else:
+                request_kwargs.setdefault("headers", {})["content-type"] = "application/octet-stream"
+        elif "application/json" in media_types:
+            request_kwargs["json"] = encoded
+        elif "application/msgpack" in media_types:
             request_kwargs["content"] = msgpack.packb(encoded, use_bin_type=True)
-            request_kwargs["headers"]["content-type"] = "application/msgpack"
+            request_kwargs.setdefault("headers", {})["content-type"] = "application/msgpack"
         else:
             request_kwargs["json"] = encoded
 
@@ -923,6 +1136,7 @@ class KmdClient:
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
             data = msgpack.unpackb(response.content, raw=False)
+            data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
         else:
@@ -936,3 +1150,21 @@ class KmdClient:
             model_cls = getattr(models, list_model)
             return [from_wire(model_cls, item) for item in data]
         return data
+
+    def _normalize_msgpack(self, value: object) -> object:
+        if isinstance(value, dict):
+            normalized: dict[object, object] = {}
+            for key, item in value.items():
+                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+            return normalized
+        if isinstance(value, list):
+            return [self._normalize_msgpack(item) for item in value]
+        return value
+
+    def _ensure_str_key(self, key: object) -> object:
+        if isinstance(key, bytes):
+            try:
+                return key.decode("utf-8")
+            except UnicodeDecodeError:
+                return key
+        return key
