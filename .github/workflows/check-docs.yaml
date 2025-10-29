@@ -15,16 +15,16 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+        run: uv sync
 
       - name: Check docstrings are up to date
-        run: poetry run poe docstrings-check
+        run: uv run poe docstrings-check
 
       - name: Check docs are up to date
         run: |
-          poetry run poe docs-md-only
+          uv run poe docs-md-only
           git diff --exit-code ':!docs/markdown/autoapi/index.md' ':!docs/markdown/autoapi/algokit_utils/applications/app_factory/index.md' docs

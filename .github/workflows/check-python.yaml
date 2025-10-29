@@ -15,34 +15,23 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+        run: uv sync
 
       - name: Audit with pip-audit
         run: |
           # GHSA-4xh5-x5gv-qwph is safe to ignore since we are using a python version that is not affected
           #                     can remove once pip has fix
-          # audit non dev dependencies, no exclusions
-          poetry export --without=dev > requirements.txt && poetry run pip-audit -r requirements.txt --ignore-vuln GHSA-4xh5-x5gv-qwph 
-
-          # audit all dependencies, with exclusions. 
+          # Audit all installed dependencies with exclusions
           # If a vulnerability is found in a dev dependency without an available fix,
           # it can be temporarily ignored by adding --ignore-vuln e.g.
           # --ignore-vuln "GHSA-hcpj-qp55-gfph" # GitPython vulnerability, dev only dependency
-          poetry run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph 
+          uv run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
 
-      - name: Check formatting with Ruff
+      - name: Check codebase with ruff and mypy
         run: |
           # stop the build if there are files that don't meet formatting requirements
-          poetry run ruff format --check .
-
-      - name: Check linting with Ruff
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          poetry run ruff check .
-
-      - name: Check types with mypy
-        run: poetry run mypy
+          uv run poe lint

@@ -1,45 +1,68 @@
-[tool.poetry]
+[project]
 name = "algokit-utils"
 version = "4.2.2"
 description = "Utilities for Algorand development for use by AlgoKit"
-authors = ["Algorand Foundation <contact@algorand.foundation>"]
-license = "MIT"
+authors = [
+  { name = "Algorand Foundation", email = "contact@algorand.foundation" },
+]
+requires-python = "~=3.10.0"
 readme = "README.md"
+license = "MIT"
+dependencies = [
+  "py-algorand-sdk>=2.11.0,<3",
+  "httpx>=0.23.1,<=0.28.1",
+  "typing-extensions>=4.6.0",
+  "msgpack-types>=0.2.0,<=0.5.0",
+  "algokit-transact",
+  "algokit-common",
+  "algod-client",
+  "indexer-client",
+  "kmd-client",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-py-algorand-sdk = "^2.11.0"
-httpx = ">=0.23.1,<=0.28.1"
-typing-extensions = ">=4.6.0"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8"
-ruff = ">=0.1.6,<=0.11.8"
-pip-audit = "^2.5.6"
-pytest-mock = "^3.14"
-mypy = "^1.5.1"
-python-semantic-release = "^7.34.3"
-pytest-cov = "^6"
-pre-commit = "^3.4.0"
-python-dotenv = "^1.0.0"
-sphinx = "^8.0.0"
-poethepoet = ">=0.19,<0.35"
-pytest-httpx = "^0.35.0"
-pytest-xdist = "^3.6.1"
-linkify-it-py = "^2.0.3"
-setuptools = "^80.9.0"
-pydoclint = "^0.6.0"
-pytest-sugar = "^1.0.0"
-types-deprecated = "^1.2.15.20241117"
-sphinx-autobuild = "^2024.10.3"
-furo = "^2024.8.6"
-myst-parser = "^4.0.0"
-sphinx-autoapi = "^3.4.0"
-sphinx-markdown-builder = "^0.6.8"
+[tool.uv.sources]
+algokit-transact = { workspace = true }
+algokit-common = { workspace = true }
+algokit-abi = { workspace = true }
+algod-client = { workspace = true }
+indexer-client = { workspace = true }
+kmd-client = { workspace = true }
+oas-generator = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8,<9",
+  "ruff>=0.1.6,<=0.11.8",
+  "pip-audit>=2.5.6,<3",
+  "pytest-mock~=3.14",
+  "mypy>=1.5.1,<2",
+  "python-semantic-release>=7.34.3,<8",
+  "pytest-cov>=6,<7",
+  "pre-commit>=3.4.0,<4",
+  "python-dotenv>=1.0.0,<2",
+  "sphinx>=8.0.0,<9",
+  "poethepoet>=0.19,<0.35",
+  "pytest-httpx>=0.35.0,<0.36",
+  "pytest-xdist>=3.6.1,<4",
+  "linkify-it-py>=2.0.3,<3",
+  "setuptools>=80.9.0,<81",
+  "pydoclint>=0.6.0,<0.7",
+  "pytest-sugar>=1.0.0,<2",
+  "types-deprecated>=1.2.15.20241117,<2",
+  "sphinx-autobuild>=2024.10.3,<2025",
+  "furo>=2024.8.6,<2025",
+  "myst-parser>=4.0.0,<5",
+  "sphinx-autoapi>=3.4.0,<4",
+  "sphinx-markdown-builder>=0.6.8,<0.7",
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.5,<0.10.0"]
+build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 120
@@ -48,62 +71,63 @@ lint.select = [
   # ones we don't want/need are commented out to make it clear
   # which have been omitted on purpose vs which ones get added
   # in new ruff releases and should be considered for enabling
-  "F",      # pyflakes
-  "E", "W", # pycodestyle
-  "C90",    # mccabe
-  "I",      # isort
-  "N",      # PEP8 naming
-  "UP",     # pyupgrade
-  "YTT",    # flake8-2020
-  "ANN",    # flake8-annotations
+  "F",   # pyflakes
+  "E",
+  "W",   # pycodestyle
+  "C90", # mccabe
+  "I",   # isort
+  "N",   # PEP8 naming
+  "UP",  # pyupgrade
+  "YTT", # flake8-2020
+  "ANN", # flake8-annotations
   # "S",    # flake8-bandit
   # "BLE",  # flake8-blind-except
-  "FBT",    # flake8-boolean-trap
-  "B",      # flake8-bugbear
-  "A",      # flake8-builtins
+  "FBT", # flake8-boolean-trap
+  "B",   # flake8-bugbear
+  "A",   # flake8-builtins
   # "COM",  # flake8-commas
-  "C4",     # flake8-comprehensions
-  "DTZ",    # flake8-datetimez
-  "T10",    # flake8-debugger
+  "C4",  # flake8-comprehensions
+  "DTZ", # flake8-datetimez
+  "T10", # flake8-debugger
   # "DJ",   # flake8-django
   # "EM",   # flake8-errmsg
   # "EXE",  # flake8-executable
-  "ISC",    # flake8-implicit-str-concat
-  "ICN",    # flake8-import-conventions
+  "ISC", # flake8-implicit-str-concat
+  "ICN", # flake8-import-conventions
   # "G",    # flake8-logging-format
   # "INP",  # flake8-no-pep420
-  "PIE",    # flake8-pie
-  "T20",    # flake8-print
-  "PYI",    # flake8-pyi
-  "PT",     # flake8-pytest-style
-  "Q",      # flake8-quotes
-  "RSE",    # flake8-raise
-  "RET",    # flake8-return
-  "SLF",    # flake8-self
-  "SIM",    # flake8-simplify
-  "TID",    # flake8-tidy-imports
-  "ARG",    # flake8-unused-arguments
-  "PTH",    # flake8-use-pathlib
-  "ERA",    # eradicate
+  "PIE", # flake8-pie
+  "T20", # flake8-print
+  "PYI", # flake8-pyi
+  "PT",  # flake8-pytest-style
+  "Q",   # flake8-quotes
+  "RSE", # flake8-raise
+  "RET", # flake8-return
+  "SLF", # flake8-self
+  "SIM", # flake8-simplify
+  "TID", # flake8-tidy-imports
+  "ARG", # flake8-unused-arguments
+  "PTH", # flake8-use-pathlib
+  "ERA", # eradicate
   # "PD",   # pandas-vet
-  "PGH",    # pygrep-hooks
-  "PL",     # pylint
+  "PGH", # pygrep-hooks
+  "PL",  # pylint
   # "TRY",  # tryceratops
   # "NPY",  # NumPy-specific rules
-  "RUF",    # Ruff-specific rules
+  "RUF", # Ruff-specific rules
 ]
 lint.ignore = [
   "RET505", # allow else after return
   "SIM108", # allow if-else in place of ternary
-  "E111", # indentation is not a multiple of four
-  "E117", # over-indented
+  "E111",   # indentation is not a multiple of four
+  "E117",   # over-indented
   "ISC001", # single line implicit string concatenation
   "ISC002", # multi line implicit string concatenation
-  "Q000", # bad quotes inline string
-  "Q001", # bad quotes multiline string
-  "Q002", # bad quotes docstring
-  "Q003", # avoidable escaped quotes
-  "W191", # indentation contains tabs
+  "Q000",   # bad quotes inline string
+  "Q001",   # bad quotes multiline string
+  "Q002",   # bad quotes docstring
+  "Q003",   # avoidable escaped quotes
+  "W191",   # indentation contains tabs
   "ERA001", # commented out code
 ]
 # Exclude a variety of commonly ignored directories.
@@ -127,10 +151,16 @@ suppress-none-returning = true
 [tool.ruff.lint.per-file-ignores]
 "src/algokit_utils/applications/app_client.py" = ["SLF001"]
 "src/algokit_utils/applications/app_factory.py" = ["SLF001"]
-"tests/clients/test_algorand_client.py" = ["ERA001"]  
+"tests/clients/test_algorand_client.py" = ["ERA001"]
 "src/algokit_utils/_legacy_v2/**/*" = ["E501"]
-"tests/**/*" = ["PLR2004"]  
-"src/algokit_utils/__init__.py" = ["I001", "RUF022"]  # Ignore import sorting for __init__.py
+"tests/**/*" = ["PLR2004"]
+"packages/*/src/*/client.py" = ["C901", "PLR0912", "PLR0913"]
+"packages/algokit-transact/src/algokit_transact/__init__.py" = ["RUF022"]
+"src/algokit_utils/__init__.py" = [
+  "I001",
+  "RUF022",
+] # Ignore import sorting for __init__.py
+
 
 [tool.poe.tasks]
 docs = ["docs-md-only"]
@@ -138,17 +168,71 @@ docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false --exclude src/algokit_utils/_legacy_v2"
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
+[tool.poe.tasks.ruff-check]
+cmd = "uv run ruff check src tests packages"
+
+[tool.poe.tasks.mypy-check]
+cmd = "uv run mypy src packages"
+
+[tool.poe.tasks.lint]
+sequence = ["ruff-check", "mypy-check"]
+
+[tool.poe.tasks.ruff-format]
+cmd = "uv run ruff format src tests packages"
+
+[tool.poe.tasks.ruff-fix]
+cmd = "uv run ruff check --fix src tests packages"
+
+[tool.poe.tasks.format]
+sequence = ["ruff-format", "ruff-fix"]
+
+[tool.poe.tasks.check]
+sequence = ["lint"]
+
+[tool.poe.tasks.test-transact]
+cmd = "uv run --package algokit-transact pytest -n auto"
+cwd = "packages/algokit-transact"
+
+[tool.poe.tasks.test-core]
+cmd = "uv run pytest tests -n auto"
+
+[tool.poe.tasks.test-utils]
+cmd = "uv run pytest -n auto"
+
+[tool.poe.tasks.test]
+sequence = ["test-transact", "test-core", "test-utils"]
+
+[tool.poe.tasks.test-transact-ci]
+cmd = "uv run --package algokit-transact pytest -n auto --cov=algokit_transact --cov-report=term-missing:skip-covered --junitxml=pytest-junit-transact.xml"
+cwd = "packages/algokit-transact"
+
+[tool.poe.tasks.test-utils-ci]
+cmd = "uv run pytest -n auto --cov=algokit_utils --cov-report=term-missing:skip-covered --junitxml=pytest-junit-utils.xml"
+
+[tool.poe.tasks.test-ci]
+sequence = ["test-transact-ci", "test-utils-ci"]
+
 [tool.pytest.ini_options]
-pythonpath = ["src", "tests"]
-norecursedirs = ["src"]  # Ignore test collection in source directory, otherwise picks up TestNet* prefixed abstractions
+pythonpath = ["src"]
+testpaths = ["tests"]
+norecursedirs = [
+  "src",
+  ".*",
+  ".git",
+  ".venv",
+  "dist",
+  "build",
+  "docs",
+  ".references",
+] # Ignore test collection in source directory and common hidden/build folders
 filterwarnings = [
-    # Ignore deprecations in utils legacy v2 is removed
-    "ignore::DeprecationWarning",
+  # Ignore deprecations in utils legacy v2 is removed
+  "ignore::DeprecationWarning",
 ]
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2"]
+exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2", "packages/.*/tests"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -160,10 +244,14 @@ disallow_untyped_decorators = true
 disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
-
-untyped_calls_exclude = [
-    "algosdk",
+mypy_path = [
+  "packages/algokit-common/src",
+  "packages/algokit-transact/src",
+  "packages/algokit-abi/src",
+  "src",
 ]
+
+untyped_calls_exclude = ["algosdk"]
 
 [[tool.mypy.overrides]]
 module = ["algosdk", "algosdk.*"]
@@ -174,12 +262,31 @@ module = ["tests.transactions.test_transaction_composer"]
 disable_error_code = ["call-overload", "union-attr"]
 
 [tool.semantic_release]
-version_toml = "pyproject.toml:tool.poetry.version"
+version_toml = "pyproject.toml:project.version"
 remove_dist = false
-build_command = "poetry build --format wheel"
+build_command = "uv build"
 version_source = "tag"
 major_on_zero = true
 upload_to_repository = false
 tag_commit = true
 branch = "main"
 commit_message = "{version}\n\nskip-checks: true"
+
+[[tool.mypy.overrides]]
+module = ["packages.algokit_abi.tests.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["msgpack", "msgpack.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+  "algod_client",
+  "algod_client.*",
+  "indexer_client",
+  "indexer_client.*",
+  "kmd_client",
+  "kmd_client.*",
+]
+ignore_errors = true
