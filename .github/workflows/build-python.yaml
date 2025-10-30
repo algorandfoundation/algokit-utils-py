@@ -39,16 +39,14 @@ jobs:
         continue-on-error: true # forks fail to add a comment, so continue any way
         with:
           pytest-coverage-path: ./pytest-coverage.txt
-          junitxml-path: ./pytest-junit-utils.xml
+          junitxml-path: ./pytest-junit.xml
 
       - name: Upload test results and coverage artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results-python-${{ matrix.python }}
-          path: |
-            pytest-junit-utils.xml
-            packages/algokit-transact/pytest-junit-transact.xml
+          path: pytest-junit.xml
           retention-days: 30
 
       - name: Build Wheel

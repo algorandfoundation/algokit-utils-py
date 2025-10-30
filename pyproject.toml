@@ -184,32 +184,25 @@ sequence = ["ruff-format", "ruff-fix"]
 [tool.poe.tasks.check]
 sequence = ["lint"]
 
-[tool.poe.tasks.test-transact]
-cmd = "uv run --package algokit-transact pytest -n auto"
-cwd = "packages/algokit-transact"
-
-[tool.poe.tasks.test-core]
-cmd = "uv run pytest tests -n auto"
-
-[tool.poe.tasks.test-utils]
-cmd = "uv run pytest -n auto"
-
 [tool.poe.tasks.test]
-sequence = ["test-transact", "test-core", "test-utils"]
-
-[tool.poe.tasks.test-transact-ci]
-cmd = "uv run --package algokit-transact pytest -n auto --cov=algokit_transact --cov-report=term-missing:skip-covered --junitxml=pytest-junit-transact.xml"
-cwd = "packages/algokit-transact"
-
-[tool.poe.tasks.test-utils-ci]
-cmd = "uv run pytest -n auto --cov=algokit_utils --cov-report=term-missing:skip-covered --junitxml=pytest-junit-utils.xml"
+cmd = "uv run pytest"
 
 [tool.poe.tasks.test-ci]
-sequence = ["test-transact-ci", "test-utils-ci"]
+ref = """test \
+        --cov=algokit_abi \
+        --cov=algokit_algod_client \
+        --cov=algokit_common \
+        --cov=algokit_indexer_client \
+        --cov=algokit_kmd_client \
+        --cov=algokit_transact \
+        --cov=algokit_utils \
+        --cov-report=term-missing:skip-covered \
+        --junitxml=pytest-junit.xml"""
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+addopts = "-n auto"
 norecursedirs = [
   "src",
   ".*",
