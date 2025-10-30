@@ -20,18 +20,19 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --group cicd
 
       - name: pytest + coverage
         shell: bash
         run: |
           set -o pipefail
-          pipx install algokit
-          algokit localnet start
+          uv run algokit localnet start
           uv run poe test-ci 2>&1 | tee pytest-coverage.txt
-          algokit localnet stop
+          uv run algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
