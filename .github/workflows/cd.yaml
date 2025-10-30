@@ -54,16 +54,11 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app_token.outputs.token }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+        run: uv sync
 
       - name: Get branch name
         shell: bash
@@ -76,13 +71,13 @@ jobs:
       - name: Create Continuous Deployment - Beta (non-prod)
         if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
         run: |
-          poetry run semantic-release \
+          uv run semantic-release \
             -v DEBUG \
             --prerelease \
             --define=branch=main \
             --define=upload_to_repository=true \
             publish
-          gh release edit --prerelease "v$(poetry run semantic-release print-version --current)"
+          gh release edit --prerelease "v$(uv run semantic-release print-version --current)"
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           REPOSITORY_USERNAME: __token__
@@ -91,7 +86,7 @@ jobs:
       - name: Create Continuous Deployment - Production
         if: steps.get_branch.outputs.branch == 'main' && inputs.production_release
         run: |
-          poetry run semantic-release \
+          uv run semantic-release \
             -v DEBUG \
             --define=version_source="commit" \
             --define=patch_without_tag=true \

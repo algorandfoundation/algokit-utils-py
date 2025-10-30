@@ -18,20 +18,21 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: uv sync --group cicd
 
       - name: pytest + coverage
         shell: bash
         run: |
           set -o pipefail
-          pipx install algokit
-          algokit localnet start
-          poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
-          algokit localnet stop
+          uv run algokit localnet start
+          uv run poe test-ci 2>&1 | tee pytest-coverage.txt
+          uv run algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
@@ -41,5 +42,13 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest-junit.xml
 
+      - name: Upload test results and coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-python-${{ matrix.python }}
+          path: pytest-junit.xml
+          retention-days: 30
+
       - name: Build Wheel
-        run: poetry build --format wheel
+        run: uv build
