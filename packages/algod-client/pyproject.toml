@@ -1,5 +1,5 @@
 [project]
-name = "algod-client"
+name = "algokit-algod-client"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
