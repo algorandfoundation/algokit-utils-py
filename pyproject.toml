@@ -11,27 +11,11 @@ license = "MIT"
 dependencies = [
   "py-algorand-sdk>=2.11.0,<3",
   "httpx>=0.23.1,<=0.28.1",
-  "typing-extensions>=4.6.0",
+  "msgpack>=1.0.0,<2",
   "msgpack-types>=0.2.0,<=0.5.0",
-  "algokit-transact",
-  "algokit-common",
-  "algod-client",
-  "indexer-client",
-  "kmd-client",
+  "pynacl>=1.4.0,<2",
+  "typing-extensions>=4.6.0",
 ]
-
-
-[tool.uv.sources]
-algokit-transact = { workspace = true }
-algokit-common = { workspace = true }
-algokit-abi = { workspace = true }
-algod-client = { workspace = true }
-indexer-client = { workspace = true }
-kmd-client = { workspace = true }
-oas-generator = { workspace = true }
-
-[tool.uv.workspace]
-members = ["packages/*"]
 
 [dependency-groups]
 dev = [
@@ -63,6 +47,17 @@ dev = [
 [build-system]
 requires = ["uv_build>=0.9.5,<0.10.0"]
 build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = [
+  "algokit_abi",
+  "algokit_algod_client",
+  "algokit_common",
+  "algokit_indexer_client",
+  "algokit_kmd_client",
+  "algokit_transact",
+  "algokit_utils",
+]
 
 [tool.ruff]
 line-length = 120
@@ -169,19 +164,19 @@ docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring f
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
 [tool.poe.tasks.ruff-check]
-cmd = "uv run ruff check src tests packages"
+cmd = "uv run ruff check src tests"
 
 [tool.poe.tasks.mypy-check]
-cmd = "uv run mypy src packages"
+cmd = "uv run mypy src"
 
 [tool.poe.tasks.lint]
 sequence = ["ruff-check", "mypy-check"]
 
 [tool.poe.tasks.ruff-format]
-cmd = "uv run ruff format src tests packages"
+cmd = "uv run ruff format src tests"
 
 [tool.poe.tasks.ruff-fix]
-cmd = "uv run ruff check --fix src tests packages"
+ref = "ruff-check --fix"
 
 [tool.poe.tasks.format]
 sequence = ["ruff-format", "ruff-fix"]
@@ -232,7 +227,7 @@ filterwarnings = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2", "packages/.*/tests"]
+exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -245,9 +240,6 @@ disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
 mypy_path = [
-  "packages/algokit-common/src",
-  "packages/algokit-transact/src",
-  "packages/algokit-abi/src",
   "src",
 ]
 
@@ -271,10 +263,6 @@ upload_to_repository = false
 tag_commit = true
 branch = "main"
 commit_message = "{version}\n\nskip-checks: true"
-
-[[tool.mypy.overrides]]
-module = ["packages.algokit_abi.tests.*"]
-ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = ["msgpack", "msgpack.*"]
