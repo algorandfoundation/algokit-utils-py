@@ -152,8 +152,7 @@ suppress-none-returning = true
 "tests/clients/test_algorand_client.py" = ["ERA001"]
 "src/algokit_utils/_legacy_v2/**/*" = ["E501"]
 "tests/**/*" = ["PLR2004"]
-"packages/*/src/*/client.py" = ["C901", "PLR0912", "PLR0913"]
-"packages/algokit-transact/src/algokit_transact/__init__.py" = ["RUF022"]
+"src/algokit_transact/__init__.py" = ["RUF022"]
 "src/algokit_utils/__init__.py" = [
   "I001",
   "RUF022",
