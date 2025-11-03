@@ -1,7 +1,3 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import nacl.signing
 
 from algokit_common import MAX_TX_GROUP_SIZE
@@ -17,9 +13,8 @@ from algokit_transact import (
     group_transactions,
 )
 
-if TYPE_CHECKING:
-    from .common import TransactionVector
-    from .conftest import VectorLookup
+from .common import TransactionVector
+from .conftest import VectorLookup
 
 EXPECTED_GROUP_ID = bytes(
     [

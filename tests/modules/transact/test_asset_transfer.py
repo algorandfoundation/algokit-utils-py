@@ -1,13 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 
 from algokit_transact import TransactionValidationError, validate_transaction
 
 from ._helpers import iter_asset_transfer_vectors
 from ._validation import build_asset_transfer, clone_transaction
+from .conftest import VectorLookup
 from .transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
@@ -20,9 +17,6 @@ from .transaction_asserts import (
     assert_multisig_example,
     assert_transaction_id,
 )
-
-if TYPE_CHECKING:
-    from .conftest import VectorLookup
 
 
 @pytest.mark.parametrize(("label", "key"), list(iter_asset_transfer_vectors()))

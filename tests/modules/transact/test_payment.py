@@ -1,10 +1,7 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from algokit_transact import PaymentTransactionFields, validate_transaction
 
 from ._validation import clone_transaction
+from .conftest import VectorLookup
 from .transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
@@ -17,9 +14,6 @@ from .transaction_asserts import (
     assert_multisig_example,
     assert_transaction_id,
 )
-
-if TYPE_CHECKING:
-    from .conftest import VectorLookup
 
 
 def test_example(vector_lookup: VectorLookup) -> None:

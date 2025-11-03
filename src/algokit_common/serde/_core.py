@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
@@ -69,6 +67,7 @@ def wire(
         "pass_obj": pass_obj,
     }
 
+ChildType = type[object] | Callable[[], type[object]] | None
 
 def flatten(
     child_cls: ChildType,
@@ -87,7 +86,6 @@ def nested(
     return {"kind": "nested", "alias": alias, "child_cls": child_cls, "present_if": present_if}
 
 
-ChildType = type[object] | Callable[[], type[object]] | None
 
 
 @dataclass(slots=True)

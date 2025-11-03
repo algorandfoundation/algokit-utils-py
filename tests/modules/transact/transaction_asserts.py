@@ -1,7 +1,5 @@
 """Helper assertions mirroring ``transaction_asserts.ts`` from TS suite."""
 
-from __future__ import annotations
-
 import nacl.signing
 
 from algokit_transact import (

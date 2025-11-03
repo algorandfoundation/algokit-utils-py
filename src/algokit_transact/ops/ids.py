@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from algokit_common import base32_nopad_encode, sha512_256
 from algokit_common.constants import TRANSACTION_ID_LENGTH
 from algokit_transact.codec.transaction import encode_transaction

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
@@ -14,6 +12,6 @@ class AlgokitTransactError(Exception):
 class TransactionValidationError(AlgokitTransactError):
     """Raised when a transaction fails validation."""
 
-    def __init__(self, message: str, *, issues: Sequence[ValidationIssue] | None = None) -> None:
+    def __init__(self, message: str, *, issues: "Sequence[ValidationIssue] | None" = None) -> None:
         super().__init__(message)
         self.issues: tuple[ValidationIssue, ...] = tuple(issues or ())

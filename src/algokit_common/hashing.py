@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Final
 
 from Cryptodome.Hash import SHA512

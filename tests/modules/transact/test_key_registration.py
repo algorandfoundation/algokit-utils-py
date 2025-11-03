@@ -1,13 +1,10 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import pytest
 
 from algokit_transact import TransactionValidationError, validate_transaction
 
 from ._helpers import iter_key_registration_vectors
 from ._validation import build_key_registration, clone_transaction
+from .conftest import VectorLookup
 from .transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
@@ -20,9 +17,6 @@ from .transaction_asserts import (
     assert_multisig_example,
     assert_transaction_id,
 )
-
-if TYPE_CHECKING:
-    from .conftest import VectorLookup
 
 ZERO32 = b"\x00" * 32
 ZERO64 = b"\x00" * 64

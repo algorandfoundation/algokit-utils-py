@@ -4,8 +4,6 @@ This module mirrors the role of ``common.ts`` in the TypeScript workspace by
 providing ready-to-use test vectors and helpers for parametrisation.
 """
 
-from __future__ import annotations
-
 import json
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass

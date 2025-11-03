@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import cast
@@ -27,10 +25,84 @@ class BoxReference:
         object.__setattr__(self, "name", bytes(self.name))
 
 
+
 @dataclass(slots=True, frozen=True)
 class _WireBoxReference:
     index: int
     name: bytes
+
+def _encode_box_references(
+    app_call: "AppCallTransactionFields",
+    value: object,
+) -> list[dict[str, object]] | None:
+    if value is None:
+        return None
+    if not isinstance(value, Iterable):
+        raise EncodeError("Box references must be iterable")
+    raw_refs = _coerce_box_sequence(cast(Iterable[BoxReference | _WireBoxReference], value))
+    if not raw_refs:
+        return None
+
+    app_refs = tuple(app_call.app_references or ())
+    encoded: list[dict[str, object]] = []
+    for raw in raw_refs:
+        ref = _normalize_box_reference(app_call, raw)
+        index = _map_box_app_id_to_index(ref.app_id, app_call, app_refs)
+        encoded.append({"i": index, "n": ref.name})
+    return encoded
+
+
+def _decode_box_references(value: object) -> tuple[_WireBoxReference, ...] | None:
+    if value is None:
+        return None
+    if isinstance(value, list):
+        entries: list[_WireBoxReference] = []
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            index = int(item.get("i", 0))
+            name_payload = item.get("n", b"")
+            if isinstance(name_payload, bytes | bytearray | memoryview | list | tuple):
+                name = bytes(name_payload)
+            else:
+                name = b""
+            entries.append(_WireBoxReference(index=index, name=name))
+        return tuple(entries) if entries else None
+    return None
+
+
+
+@dataclass(slots=True, frozen=True)
+class AppCallTransactionFields:
+    app_id: int = field(default=0, metadata=wire("apid"))
+    on_complete: OnApplicationComplete = field(
+        default=OnApplicationComplete.NoOp, metadata=enum_value("apan", OnApplicationComplete)
+    )
+    approval_program: bytes | None = field(default=None, metadata=wire("apap"))
+    clear_state_program: bytes | None = field(default=None, metadata=wire("apsu"))
+    global_state_schema: StateSchema | None = field(default=None, metadata=nested("apgs", StateSchema))
+    local_state_schema: StateSchema | None = field(default=None, metadata=nested("apls", StateSchema))
+    args: tuple[bytes, ...] | None = field(default=None, metadata=bytes_seq("apaa"))
+    account_references: tuple[str, ...] | None = field(default=None, metadata=addr_seq("apat"))
+    app_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apfa"))
+    asset_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apas"))
+    extra_program_pages: int | None = field(default=None, metadata=wire("apep"))
+    box_references: tuple[BoxReference, ...] | None = field(
+        default=None,
+        metadata=wire(
+            "apbx",
+            encode=_encode_box_references,
+            decode=_decode_box_references,
+            pass_obj=True,
+        ),
+    )
+
+    def __post_init__(self) -> None:
+        if not self.box_references:
+            return
+        normalized = tuple(_normalize_box_reference(self, item) for item in _coerce_box_sequence(self.box_references))
+        object.__setattr__(self, "box_references", normalized or None)
+
 
 
 def _coerce_box_sequence(
@@ -79,75 +151,3 @@ def _map_box_app_id_to_index(
             "Box reference app id must exist in application references",
         ) from exc
     return pos + 1
-
-
-def _encode_box_references(
-    app_call: AppCallTransactionFields,
-    value: object,
-) -> list[dict[str, object]] | None:
-    if value is None:
-        return None
-    if not isinstance(value, Iterable):
-        raise EncodeError("Box references must be iterable")
-    raw_refs = _coerce_box_sequence(cast(Iterable[BoxReference | _WireBoxReference], value))
-    if not raw_refs:
-        return None
-
-    app_refs = tuple(app_call.app_references or ())
-    encoded: list[dict[str, object]] = []
-    for raw in raw_refs:
-        ref = _normalize_box_reference(app_call, raw)
-        index = _map_box_app_id_to_index(ref.app_id, app_call, app_refs)
-        encoded.append({"i": index, "n": ref.name})
-    return encoded
-
-
-def _decode_box_references(value: object) -> tuple[_WireBoxReference, ...] | None:
-    if value is None:
-        return None
-    if isinstance(value, list):
-        entries: list[_WireBoxReference] = []
-        for item in value:
-            if not isinstance(item, dict):
-                continue
-            index = int(item.get("i", 0))
-            name_payload = item.get("n", b"")
-            if isinstance(name_payload, bytes | bytearray | memoryview | list | tuple):
-                name = bytes(name_payload)
-            else:
-                name = b""
-            entries.append(_WireBoxReference(index=index, name=name))
-        return tuple(entries) if entries else None
-    return None
-
-
-@dataclass(slots=True, frozen=True)
-class AppCallTransactionFields:
-    app_id: int = field(default=0, metadata=wire("apid"))
-    on_complete: OnApplicationComplete = field(
-        default=OnApplicationComplete.NoOp, metadata=enum_value("apan", OnApplicationComplete)
-    )
-    approval_program: bytes | None = field(default=None, metadata=wire("apap"))
-    clear_state_program: bytes | None = field(default=None, metadata=wire("apsu"))
-    global_state_schema: StateSchema | None = field(default=None, metadata=nested("apgs", StateSchema))
-    local_state_schema: StateSchema | None = field(default=None, metadata=nested("apls", StateSchema))
-    args: tuple[bytes, ...] | None = field(default=None, metadata=bytes_seq("apaa"))
-    account_references: tuple[str, ...] | None = field(default=None, metadata=addr_seq("apat"))
-    app_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apfa"))
-    asset_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apas"))
-    extra_program_pages: int | None = field(default=None, metadata=wire("apep"))
-    box_references: tuple[BoxReference, ...] | None = field(
-        default=None,
-        metadata=wire(
-            "apbx",
-            encode=_encode_box_references,
-            decode=_decode_box_references,
-            pass_obj=True,
-        ),
-    )
-
-    def __post_init__(self) -> None:
-        if not self.box_references:
-            return
-        normalized = tuple(_normalize_box_reference(self, item) for item in _coerce_box_sequence(self.box_references))
-        object.__setattr__(self, "box_references", normalized or None)

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from algokit_common import address_from_public_key, public_key_from_address
 
 
