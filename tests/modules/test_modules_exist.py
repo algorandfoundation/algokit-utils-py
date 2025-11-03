@@ -1,3 +1,5 @@
+import importlib
+
 import pytest
 
 
@@ -12,6 +14,6 @@ import pytest
         "algokit_indexer_client",
     ],
 )
-def test_transact_module_exists(module_name: str) -> None:
-    module = __import__(module_name)
+def test_module_exists(module_name: str) -> None:
+    module = importlib.import_module(module_name)
     assert module, "module should exist"
