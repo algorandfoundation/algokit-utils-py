@@ -12,6 +12,7 @@ from algokit_transact import (
     BoxReference,
     KeyRegistrationTransactionFields,
     OnApplicationComplete,
+    ResourceReference,
     StateSchema,
     Transaction,
     TransactionValidationError,
@@ -37,6 +38,7 @@ def build_app_call(  # noqa: PLR0913
     asset_references: Iterable[int] | None = None,
     extra_program_pages: int | None = None,
     box_references: Iterable[BoxReference] | None = None,
+    access: Iterable[ResourceReference] | None = None,
 ) -> AppCallTransactionFields:
     return AppCallTransactionFields(
         app_id=app_id,
@@ -51,6 +53,7 @@ def build_app_call(  # noqa: PLR0913
         asset_references=tuple(asset_references) if asset_references is not None else None,
         extra_program_pages=extra_program_pages,
         box_references=tuple(box_references) if box_references is not None else None,
+        access=tuple(access) if access is not None else None,
     )
 
 

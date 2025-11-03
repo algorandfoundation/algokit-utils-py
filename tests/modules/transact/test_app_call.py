@@ -26,54 +26,78 @@ from .transaction_asserts import (
     assert_transaction_id,
 )
 
+# Polytest Suite: App Call
 
+# Polytest Group: Transaction Tests
+
+
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A human-readable example of forming a transaction and signing it"""
     assert_example(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_multisig_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A human-readable example of forming a transaction and signing it with a multisignature sig"""
     assert_multisig_example(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_get_transaction_id(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A transaction id can be obtained from a transaction"""
     assert_transaction_id(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_assign_fee(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A fee can be calculated and assigned to a transaction"""
     assert_assign_fee(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_get_encoded_transaction_type(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """The transaction type of an encoded transaction can be retrieved"""
     assert_encoded_transaction_type(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_decode_without_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A transaction without TX prefix and valid fields is decoded properly"""
     assert_decode_without_prefix(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_decode_with_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A transaction with TX prefix and valid fields is decoded properly"""
     assert_decode_with_prefix(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_encode_with_auth_address(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """An auth address can be attached to a encoded transaction with a signature"""
     assert_encode_with_auth_address(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_encode_with_signature(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A signature can be attached to a encoded transaction"""
     assert_encode_with_signature(label, vector_lookup(key))
 
 
+@pytest.mark.group_transaction_tests
 @pytest.mark.parametrize(("label", "key"), list(iter_app_call_vectors()))
 def test_encode(label: str, key: str, vector_lookup: VectorLookup) -> None:
+    """A transaction with valid fields is encoded properly"""
     assert_encode(label, vector_lookup(key))
 
 
@@ -398,13 +422,13 @@ def test_should_throw_error_when_args_total_size_exceeds_maximum(base_call_trans
 
 
 def test_should_throw_error_when_too_many_account_references_are_provided(base_call_transaction: Transaction) -> None:
-    accounts = tuple("A" * 58 for _ in range(5))
+    accounts = tuple("A" * 58 for _ in range(9))  # Max is 8
     tx = clone_transaction(
         base_call_transaction,
         app_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, account_references=accounts),
     )
 
-    assert_validation_error(tx, "App call validation failed: Account references cannot exceed 4 refs")
+    assert_validation_error(tx, "App call validation failed: Account references cannot exceed 8 refs")
 
 
 def test_should_throw_error_when_too_many_app_references_are_provided(base_call_transaction: Transaction) -> None:
