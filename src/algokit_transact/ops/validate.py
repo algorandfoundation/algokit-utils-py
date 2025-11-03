@@ -6,7 +6,7 @@ from algokit_common.constants import (
     MAX_ACCOUNT_REFERENCES,
     MAX_APP_ARGS,
     MAX_APP_REFERENCES,
-    MAX_ARGS_TOTAL_BYTES,
+    MAX_ARGS_SIZE,
     MAX_ASSET_DECIMALS,
     MAX_ASSET_NAME_LENGTH,
     MAX_ASSET_REFERENCES,
@@ -16,7 +16,7 @@ from algokit_common.constants import (
     MAX_EXTRA_PROGRAM_PAGES,
     MAX_GLOBAL_STATE_KEYS,
     MAX_LOCAL_STATE_KEYS,
-    MAX_TOTAL_REFERENCES,
+    MAX_OVERALL_REFERENCES,
     PROGRAM_PAGE_SIZE,
 )
 from algokit_transact.exceptions import TransactionValidationError
@@ -276,13 +276,13 @@ def _validate_app_args_limits(app_call: AppCallTransactionFields) -> list[Valida
             )
         )
     total_size = sum(len(arg) for arg in app_call.args)
-    if total_size > MAX_ARGS_TOTAL_BYTES:
+    if total_size > MAX_ARGS_SIZE:
         issues.append(
             _issue(
                 ValidationIssueCode.FIELD_TOO_LONG,
-                f"Args total size cannot exceed {MAX_ARGS_TOTAL_BYTES} bytes",
+                f"Args total size cannot exceed {MAX_ARGS_SIZE} bytes",
                 field="Args total size",
-                context={"max": MAX_ARGS_TOTAL_BYTES, "actual": total_size, "unit": "bytes"},
+                context={"max": MAX_ARGS_SIZE, "actual": total_size, "unit": "bytes"},
             )
         )
     return issues
@@ -344,14 +344,14 @@ def _validate_total_reference_limit(app_call: AppCallTransactionFields) -> list[
         + len(app_call.asset_references or ())
         + len(app_call.box_references or ())
     )
-    if total_refs <= MAX_TOTAL_REFERENCES:
+    if total_refs <= MAX_OVERALL_REFERENCES:
         return []
     return [
         _issue(
             ValidationIssueCode.FIELD_TOO_LONG,
-            f"Total references cannot exceed {MAX_TOTAL_REFERENCES} refs",
+            f"Total references cannot exceed {MAX_OVERALL_REFERENCES} refs",
             field="Total references",
-            context={"max": MAX_TOTAL_REFERENCES, "actual": total_refs, "unit": "refs"},
+            context={"max": MAX_OVERALL_REFERENCES, "actual": total_refs, "unit": "refs"},
         )
     ]
 

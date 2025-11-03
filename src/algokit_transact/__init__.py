@@ -18,7 +18,13 @@ from algokit_transact.exceptions import (
     AlgokitTransactError,
     TransactionValidationError,
 )
-from algokit_transact.models.app_call import AppCallTransactionFields, BoxReference
+from algokit_transact.models.app_call import (
+    AppCallTransactionFields,
+    BoxReference,
+    HoldingReference,
+    LocalsReference,
+    ResourceReference,
+)
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
 from algokit_transact.models.asset_freeze import AssetFreezeTransactionFields
 from algokit_transact.models.asset_transfer import AssetTransferTransactionFields
@@ -77,6 +83,9 @@ __all__ = [
     "AlgokitTransactError",
     "AppCallTransactionFields",
     "BoxReference",
+    "HoldingReference",
+    "LocalsReference",
+    "ResourceReference",
     "AssetConfigTransactionFields",
     "AssetFreezeTransactionFields",
     "AssetTransferTransactionFields",

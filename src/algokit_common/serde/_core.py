@@ -67,7 +67,9 @@ def wire(
         "pass_obj": pass_obj,
     }
 
+
 ChildType = type[object] | Callable[[], type[object]] | None
+
 
 def flatten(
     child_cls: ChildType,
@@ -84,8 +86,6 @@ def nested(
     present_if: Callable[[Mapping[str, object]], bool] | None = None,
 ) -> dict[str, object]:
     return {"kind": "nested", "alias": alias, "child_cls": child_cls, "present_if": present_if}
-
-
 
 
 @dataclass(slots=True)
