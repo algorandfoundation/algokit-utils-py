@@ -1,0 +1,24 @@
+
+
+from dataclasses import dataclass, field
+{% if model.needs_any %}from typing import Any
+{% endif %}{% set helper_ns = namespace(items=[]) %}{% if model.uses_wire %}{% set helper_ns.items = helper_ns.items + ['wire'] %}{% endif %}{% if model.uses_nested %}{% set helper_ns.items = helper_ns.items + ['nested'] %}{% endif %}{% if model.uses_flatten %}{% set helper_ns.items = helper_ns.items + ['flatten'] %}{% endif %}{% if model.uses_enum_value %}{% set helper_ns.items = helper_ns.items + ['enum_value'] %}{% endif %}{% if helper_ns.items %}from algokit_common.serde import {{ helper_ns.items | join(', ') }}
+{% endif %}{% for imp in model.imports %}{{ imp }}
+{% endfor %}
+
+
+@dataclass(slots=True)
+class {{ model.name }}:
+{% if model.description %}{{ model.description | docstring(4) }}{% endif %}
+    {%- for field in model.fields %}
+    {{ field.name }}: {{ field.type_hint }} = field(
+        {%- if field.default_value %}
+        default={{ field.default_value }},
+        {%- endif %}
+        {%- if field.default_factory %}
+        default_factory={{ field.default_factory }},
+        {%- endif %}
+        metadata={{ field.metadata }},
+    )
+    {%- endfor %}
+

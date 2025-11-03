@@ -46,6 +46,9 @@ dev = [
   "sphinx-autoapi>=3.4.0,<4",
   "sphinx-markdown-builder>=0.6.8,<0.7",
 ]
+api-generator = [
+  "oas-generator",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.5,<0.10.0"]
@@ -61,6 +64,9 @@ module-name = [
   "algokit_transact",
   "algokit_utils",
 ]
+
+[tool.uv.sources]
+oas-generator = { path = "api/oas-generator", editable = true }
 
 [tool.ruff]
 line-length = 120
@@ -200,6 +206,35 @@ ref = """test \
         --cov=algokit_utils \
         --cov-report=term-missing:skip-covered \
         --junitxml=pytest-junit.xml"""
+
+
+[tool.poe.tasks.generate-algod-client]
+sequence = [
+  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/algod.oas3.json --out src --package algokit_algod_client" },
+  { cmd = "uv run ruff check --fix src/algokit_algod_client" },
+  { cmd = "uv run ruff format src/algokit_algod_client" },
+]
+
+[tool.poe.tasks.generate-indexer-client]
+sequence = [
+  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/indexer.oas3.json --out src --package algokit_indexer_client" },
+  { cmd = "uv run ruff check --fix src/algokit_indexer_client" },
+  { cmd = "uv run ruff format src/algokit_indexer_client" },
+]
+
+[tool.poe.tasks.generate-kmd-client]
+sequence = [
+  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/kmd.oas3.json --out src --package algokit_kmd_client" },
+  { cmd = "uv run ruff check --fix src/algokit_kmd_client" },
+  { cmd = "uv run ruff format src/algokit_kmd_client" },
+]
+
+[tool.poe.tasks.generate-api-clients]
+sequence = [
+  "generate-algod-client",
+  "generate-indexer-client",
+  "generate-kmd-client",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

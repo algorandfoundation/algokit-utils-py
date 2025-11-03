@@ -1,0 +1,281 @@
+
+
+from dataclasses import is_dataclass
+from typing import Any, Literal, TypeVar, overload
+
+{% if client_needs_datetime %}from datetime import datetime
+{% endif %}
+
+import httpx
+import msgpack
+
+from algokit_common.serde import from_wire, to_wire
+
+from . import models
+from .config import ClientConfig
+from .exceptions import UnexpectedStatusError
+from .types import Headers
+
+ModelT = TypeVar("ModelT")
+ListModelT = TypeVar("ListModelT")
+PrimitiveT = TypeVar("PrimitiveT")
+
+
+class {{ client.class_name }}:
+    def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
+        self._config = config or ClientConfig()
+        self._client = http_client or httpx.Client(
+            base_url=self._config.base_url,
+            timeout=self._config.timeout,
+            verify=self._config.verify,
+        )
+
+    def close(self) -> None:
+        self._client.close()
+
+{%- for group in client.groups %}
+    # {{ group.tag }}
+    {%- for operation in group.operations %}
+    {% set response = operation.response %}
+    {% set request = operation.request_body %}
+    {% if response and response.model %}
+    {% set return_type = 'models.' + response.model %}
+    {% elif response and response.list_model %}
+    {% set return_type = 'list[models.' + response.list_model + ']' %}
+    {% elif response %}
+    {% set return_type = response.type_hint %}
+    {% else %}
+    {% set return_type = 'None' %}
+    {% endif %}
+    {% if request is not none and request.model %}
+    {% set body_type = 'models.' + request.model %}
+    {% elif request is not none and request.list_model %}
+    {% set body_type = 'list[models.' + request.list_model + ']' %}
+    {% elif request is not none %}
+    {% set body_type = request.type_hint %}
+    {% endif %}
+    {% set kw_required = (operation.query_parameters + operation.header_parameters) | selectattr('required') | list %}
+    {% set kw_optional = (operation.query_parameters + operation.header_parameters) | rejectattr('required') | list %}
+    {% set has_keyword_only = (operation.format_options is not none) or kw_optional or (request is not none and not request.required) %}
+    def {{ operation.name }}(  # noqa: C901, PLR0912, PLR0913
+        self,
+        {% for param in operation.path_parameters %}{{ param.name }}: {{ param.type_hint }},
+        {% endfor %}{% for param in kw_required %}{{ param.name }}: {{ param.type_hint }},
+        {% endfor %}{% if request is not none and request.required %}body: {{ body_type }},
+        {% endif %}{% if has_keyword_only %}
+        *,
+        {% if operation.format_options %}
+        response_format: Literal[{% for opt in operation.format_options %}{{ '"' ~ opt ~ '"' }}{% if not loop.last %}, {% endif %}{% endfor %}]{% if not operation.format_required %} | None{% endif %}{% if operation.format_required %}{% if operation.format_default %} = {{ '"' ~ operation.format_default ~ '"' }}{% endif %}{% else %}{% if operation.format_default %} = {{ '"' ~ operation.format_default ~ '"' }}{% else %} = None{% endif %}{% endif %},
+        {% endif %}{% for param in kw_optional %}
+        {{ param.name }}: {{ param.type_hint | optional_hint }}{% if param.default_value %} = {{ param.default_value }}{% else %} = None{% endif %},
+        {% endfor %}{% if request is not none and not request.required %}
+        body: {{ body_type | optional_hint }} = None,
+        {% endif %}{% endif %}
+    ) -> {{ return_type }}:
+{% set doc = operation.summary or operation.description or operation.operation_id %}{{ doc | docstring(8) }}
+        path = "{{ operation.path }}"
+        {%- for param in operation.path_parameters %}
+        path = path.replace("{{ '{' + param.wire_name + '}' }}", str({{ param.name }}))
+        {% endfor %}
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+        {%- for param in operation.query_parameters %}
+        if {{ param.name }} is not None:
+            params["{{ param.wire_name }}"] = {{ param.name }}
+        {% endfor %}
+        {%- for param in operation.header_parameters %}
+        if {{ param.name }} is not None:
+            headers["{{ param.wire_name }}"] = str({{ param.name }})
+        {% endfor %}
+        {% set default_accept = 'application/json' %}
+        {% if response and 'application/json' not in response.media_types and response.media_types %}
+        {% set default_accept = response.media_types[0] %}
+        {% elif response and 'application/json' in response.media_types %}
+        {% set default_accept = 'application/json' %}
+        {% endif %}
+        accept_value: str | None = None
+        {% if request %}
+        body_media_types = {{ request.media_types }}
+        {% endif %}
+        {% if operation.format_options %}
+        selected_format = response_format
+        {% if operation.format_default %}
+        if selected_format is None:
+            selected_format = "{{ operation.format_default }}"
+        {% endif %}
+        if selected_format is not None:
+            params["format"] = selected_format
+            if selected_format == "msgpack":
+                accept_value = "application/msgpack"
+                {% if request %}
+                if "application/msgpack" in body_media_types:
+                    body_media_types = ["application/msgpack"]
+                {% endif %}
+        {% elif operation.format_single %}
+        params["format"] = "{{ operation.format_single }}"
+        {% if operation.format_single == "msgpack" %}
+        accept_value = "application/msgpack"
+        {% if request %}
+        if "application/msgpack" in body_media_types:
+            body_media_types = ["application/msgpack"]
+        {% endif %}
+        {% endif %}
+        {% endif %}
+        headers.setdefault("accept", accept_value or '{{ default_accept }}')
+        request_kwargs: dict[str, Any] = {
+            "method": "{{ operation.http_method }}",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+        {% if request %}
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {{ request | descriptor_literal(16) }},
+                body_media_types,
+            )
+        {% endif %}
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            {% if response %}
+            {% set decode_args = response | response_decode_arguments(16) %}
+            return self._decode_response(
+                response{{ decode_args }}
+            )
+            {% else %}
+            return None
+            {% endif %}
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    {% endfor %}
+{% endfor %}
+    def _assign_body(
+        self,
+        request_kwargs: dict[str, Any],
+        payload: object,
+        descriptor: dict[str, object],
+        media_types: list[str],
+    ) -> None:
+        encoded = self._encode_payload(payload, descriptor)
+        binary_types = {"application/x-binary", "application/octet-stream"}
+        if bool(descriptor.get("is_binary")) or any(mt in binary_types for mt in media_types):
+            if encoded is None:
+                return
+            request_kwargs["content"] = encoded
+            if media_types:
+                request_kwargs.setdefault("headers", {})["content-type"] = media_types[0]
+            else:
+                request_kwargs.setdefault("headers", {})["content-type"] = "application/octet-stream"
+        elif "application/json" in media_types:
+            request_kwargs["json"] = encoded
+        elif "application/msgpack" in media_types:
+            request_kwargs["content"] = msgpack.packb(encoded, use_bin_type=True)
+            request_kwargs.setdefault("headers", {})["content-type"] = "application/msgpack"
+        else:
+            request_kwargs["json"] = encoded
+
+    def _encode_payload(self, payload: object, descriptor: dict[str, object]) -> object:
+        if payload is None:
+            return None
+        if is_dataclass(payload):
+            return to_wire(payload)
+        list_model = descriptor.get("list_model")
+        if list_model and isinstance(payload, list):
+            return [to_wire(item) if is_dataclass(item) else item for item in payload]
+        return payload
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        model: type[ModelT],
+        is_binary: bool = False,
+    ) -> ModelT:
+        ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        list_model: type[ListModelT],
+        is_binary: bool = False,
+    ) -> list[ListModelT]:
+        ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        type_: type[PrimitiveT],
+        is_binary: bool = False,
+    ) -> PrimitiveT:
+        ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        is_binary: Literal[True],
+    ) -> bytes:
+        ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        type_: None = None,
+        is_binary: bool = False,
+    ) -> object:
+        ...
+
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        model: type[Any] | None = None,
+        list_model: type[Any] | None = None,
+        type_: type[Any] | None = None,
+        is_binary: bool = False,
+    ) -> object:
+        if is_binary:
+            return response.content
+        content_type = response.headers.get("content-type", "application/json")
+        if "msgpack" in content_type:
+            data = msgpack.unpackb(response.content, raw=False, strict_map_key=False)
+            data = self._normalize_msgpack(data)
+        elif content_type.startswith("application/json"):
+            data = response.json()
+        else:
+            data = response.text
+        if model is not None:
+            return from_wire(model, data)
+        if list_model is not None:
+            return [from_wire(list_model, item) for item in data]
+        if type_ is not None:
+            return data
+        return data
+
+    def _normalize_msgpack(self, value: object) -> object:
+        if isinstance(value, dict):
+            normalized: dict[object, object] = {}
+            for key, item in value.items():
+                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+            return normalized
+        if isinstance(value, list):
+            return [self._normalize_msgpack(item) for item in value]
+        return value
+
+    def _ensure_str_key(self, key: object) -> object:
+        if isinstance(key, bytes):
+            try:
+                return key.decode("utf-8")
+            except UnicodeDecodeError:
+                return key
+        return key
