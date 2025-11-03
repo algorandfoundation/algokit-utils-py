@@ -104,11 +104,11 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: SigningAccou
     built = composer.build_transactions()
     response = composer.send({"max_rounds_to_wait": 20})
     created_asset = algorand.client.algod.asset_info(
-        algorand.client.algod.pending_transaction_info(response.tx_ids[0])["asset-index"]  # type: ignore[call-overload]
+        algorand.client.algod.pending_transaction_info(response.tx_ids[0])["asset-index"]
     )["params"]
 
     assert len(response.tx_ids) == 1
-    assert response.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert response.confirmations[-1]["confirmed-round"] > 0
     assert isinstance(built.transactions[0], AssetCreateTxn)
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
@@ -137,9 +137,9 @@ def test_add_asset_config(
     signed_asset_txn = asset_txn.sign(funded_account.signer.private_key)
     tx_id = algorand.client.algod.send_transaction(signed_asset_txn)
     asset_before_config = algorand.client.algod.asset_info(
-        algorand.client.algod.pending_transaction_info(tx_id)["asset-index"]  # type: ignore[call-overload]
+        algorand.client.algod.pending_transaction_info(tx_id)["asset-index"]
     )
-    asset_before_config_index = asset_before_config["index"]  # type: ignore[call-overload]
+    asset_before_config_index = asset_before_config["index"]
 
     composer = TransactionComposer(
         algod=algorand.client.algod,
@@ -161,7 +161,7 @@ def test_add_asset_config(
     assert txn.manager == funded_secondary_account.address
 
     composer.send({"max_rounds_to_wait": 20})
-    updated_asset = algorand.client.algod.asset_info(asset_id=asset_before_config_index)["params"]  # type: ignore[call-overload]
+    updated_asset = algorand.client.algod.asset_info(asset_id=asset_before_config_index)["params"]
     assert updated_asset["manager"] == funded_secondary_account.address
 
 
@@ -206,7 +206,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Sign
         )
     )
     response = composer.send()
-    app_id = algorand.client.algod.pending_transaction_info(response.tx_ids[0])["application-index"]  # type: ignore[call-overload]
+    app_id = algorand.client.algod.pending_transaction_info(response.tx_ids[0])["application-index"]
 
     composer = TransactionComposer(
         algod=algorand.client.algod,
@@ -317,7 +317,7 @@ def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     response = composer.send()
     assert isinstance(response, SendAtomicTransactionComposerResults)
     assert len(response.tx_ids) == 1
-    assert response.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert response.confirmations[-1]["confirmed-round"] > 0
 
 
 def test_arc2_note() -> None:
