@@ -5,7 +5,7 @@ The implementation mirrors the serde utilities that previously lived in
 wire-format logic.
 """
 
-from ._core import (
+from algokit_common.serde._core import (
     DecodeError,
     EncodeError,
     addr,
