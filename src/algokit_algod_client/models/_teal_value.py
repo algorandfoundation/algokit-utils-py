@@ -12,7 +12,7 @@ class TealValue:
     Represents a TEAL value.
     """
 
-    bytes: bytes = field(
+    bytes_: bytes = field(
         metadata=wire("bytes"),
     )
     type_: int = field(

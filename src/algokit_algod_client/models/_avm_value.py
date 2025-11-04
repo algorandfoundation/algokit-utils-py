@@ -15,7 +15,7 @@ class AvmValue:
     type_: int = field(
         metadata=wire("type"),
     )
-    bytes: str | None = field(
+    bytes_: str | None = field(
         default=None,
         metadata=wire("bytes"),
     )

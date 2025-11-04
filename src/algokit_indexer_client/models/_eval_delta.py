@@ -15,7 +15,7 @@ class EvalDelta:
     action: int = field(
         metadata=wire("action"),
     )
-    bytes: str | None = field(
+    bytes_: str | None = field(
         default=None,
         metadata=wire("bytes"),
     )

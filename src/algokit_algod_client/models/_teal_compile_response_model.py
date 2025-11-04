@@ -8,7 +8,7 @@ from algokit_common.serde import wire
 
 @dataclass(slots=True)
 class TealCompileResponseModel:
-    hash: str = field(
+    hash_: str = field(
         metadata=wire("hash"),
     )
     result: str = field(
