@@ -72,7 +72,7 @@ Complete metadata about a deployed app
 
 Cache of {py:class}\`ApplicationMetaData\` for a specific creator
 
-Can be used as an argument to {py:class}\`ApplicationClient\` to reduce the number of calls when deploying multiple
+Can be used as an argument to {py:class}\`AppClient\` to reduce the number of calls when deploying multiple
 apps or discovering multiple app_ids
 
 #### creator *: str*

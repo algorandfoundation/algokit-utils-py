@@ -9,7 +9,6 @@ from algosdk.source_map import SourceMap
 from algosdk.transaction import OnComplete, Transaction
 from typing_extensions import Self
 
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import (
     ABIReturn,
@@ -78,7 +77,7 @@ __all__ = [
 @dataclass(kw_only=True, frozen=True)
 class AppFactoryParams:
     algorand: AlgorandClient
-    app_spec: Arc56Contract | ApplicationSpecification | str
+    app_spec: Arc56Contract | str
     app_name: str | None = None
     default_sender: str | None = None
     default_signer: TransactionSigner | None = None
