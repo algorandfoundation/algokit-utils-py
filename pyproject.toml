@@ -207,27 +207,24 @@ ref = """test \
         --cov-report=term-missing:skip-covered \
         --junitxml=pytest-junit.xml"""
 
+[tool.poe.tasks.generate-client]
+sequence = [
+  { cmd = "uv run --group api-generator oas-generator --spec api/specs/${SPEC}.oas3.json --out src --package algokit_${SPEC}_client" },
+  { cmd = "ruff check --fix src/algokit_${SPEC}_client" },
+  { cmd = "ruff format src/algokit_${SPEC}_client" },
+]
 
 [tool.poe.tasks.generate-algod-client]
-sequence = [
-  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/algod.oas3.json --out src --package algokit_algod_client" },
-  { cmd = "uv run ruff check --fix src/algokit_algod_client" },
-  { cmd = "uv run ruff format src/algokit_algod_client" },
-]
+ref = "generate-client"
+env.SPEC = "algod"
 
 [tool.poe.tasks.generate-indexer-client]
-sequence = [
-  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/indexer.oas3.json --out src --package algokit_indexer_client" },
-  { cmd = "uv run ruff check --fix src/algokit_indexer_client" },
-  { cmd = "uv run ruff format src/algokit_indexer_client" },
-]
+ref = "generate-client"
+env.SPEC = "indexer"
 
 [tool.poe.tasks.generate-kmd-client]
-sequence = [
-  { cmd = "uv run --group api-generator python -m oas_generator.cli --spec api/specs/kmd.oas3.json --out src --package algokit_kmd_client" },
-  { cmd = "uv run ruff check --fix src/algokit_kmd_client" },
-  { cmd = "uv run ruff format src/algokit_kmd_client" },
-]
+ref = "generate-client"
+env.SPEC = "kmd"
 
 [tool.poe.tasks.generate-api-clients]
 sequence = [
