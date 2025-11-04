@@ -1,26 +1,11 @@
+import builtins
 import keyword
 import re
 from dataclasses import dataclass
 
 _NON_WORD = re.compile(r"[^0-9a-zA-Z]+")
 _LOWER_TO_UPPER = re.compile(r"([a-z0-9])([A-Z])")
-
-_PY_RESERVED = set(keyword.kwlist) | {
-    "self",
-    "cls",
-    "async",
-    "await",
-    "match",
-    "case",
-    "type",
-    "format",
-    "min",
-    "max",
-    "round",
-    "next",
-    "id",
-}
-
+_PY_RESERVED = {*keyword.kwlist, *keyword.softkwlist, *dir(builtins), "self", "cls"}
 
 @dataclass(slots=True)
 class IdentifierSanitizer:
@@ -53,7 +38,7 @@ class IdentifierSanitizer:
         return self.snake(raw).upper()
 
     def module(self, raw: str) -> str:
-        return self.snake(raw)
+        return "_" + self.snake(raw)
 
     def distribution(self, package_name: str) -> str:
         return package_name.replace("_", "-")
