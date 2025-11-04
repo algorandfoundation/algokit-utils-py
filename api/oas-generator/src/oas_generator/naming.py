@@ -53,7 +53,7 @@ class IdentifierSanitizer:
         return self.snake(raw).upper()
 
     def module(self, raw: str) -> str:
-        return self.snake(raw)
+        return "_" + self.snake(raw)
 
     def distribution(self, package_name: str) -> str:
         return package_name.replace("_", "-")
