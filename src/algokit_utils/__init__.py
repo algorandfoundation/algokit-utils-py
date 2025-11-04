@@ -19,6 +19,3 @@ from algokit_utils.clients import *  # noqa: F403
 from algokit_utils.transactions import *  # noqa: F403
 from algokit_utils.errors import *  # noqa: F403
 from algokit_utils.algorand import *  # noqa: F403
-
-# Legacy types and utilities
-from algokit_utils._legacy_v2 import *  # noqa: F403

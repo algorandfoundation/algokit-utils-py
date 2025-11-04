@@ -13,7 +13,6 @@ from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
 from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.applications.app_deployer import ApplicationLookup
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
@@ -220,7 +219,7 @@ class ClientManager:
 
     def get_app_factory(
         self,
-        app_spec: Arc56Contract | ApplicationSpecification | str,
+        app_spec: Arc56Contract | str,
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
@@ -257,7 +256,7 @@ class ClientManager:
 
     def get_app_client_by_id(
         self,
-        app_spec: (Arc56Contract | ApplicationSpecification | str),
+        app_spec: (Arc56Contract | str),
         app_id: int,
         app_name: str | None = None,
         default_sender: str | None = None,
@@ -297,7 +296,7 @@ class ClientManager:
 
     def get_app_client_by_network(
         self,
-        app_spec: (Arc56Contract | ApplicationSpecification | str),
+        app_spec: (Arc56Contract | str),
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
@@ -334,7 +333,7 @@ class ClientManager:
         self,
         creator_address: str,
         app_name: str,
-        app_spec: Arc56Contract | ApplicationSpecification | str,
+        app_spec: Arc56Contract | str,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,

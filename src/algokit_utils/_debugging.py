@@ -12,9 +12,10 @@ from algosdk.atomic_transaction_composer import (
     SimulateAtomicTransactionResponse,
 )
 from algosdk.encoding import checksum
+from algosdk.source_map import SourceMap
 from algosdk.v2client.models import SimulateRequest, SimulateRequestTransactionGroup, SimulateTraceConfig
 
-from algokit_utils._legacy_v2.common import Program
+from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.models.application import CompiledTeal
 
 if typing.TYPE_CHECKING:
@@ -69,7 +70,7 @@ class PersistSourceMapInput:
         app_name: str,
         file_name: str,
         raw_teal: str | None = None,
-        compiled_teal: CompiledTeal | Program | None = None,
+        compiled_teal: CompiledTeal | None = None,
     ):
         self.compiled_teal = compiled_teal
         self.app_name = app_name
@@ -81,9 +82,7 @@ class PersistSourceMapInput:
         return cls(app_name, file_name, raw_teal=raw_teal)
 
     @classmethod
-    def from_compiled_teal(
-        cls, compiled_teal: CompiledTeal | Program, app_name: str, file_name: str
-    ) -> "PersistSourceMapInput":
+    def from_compiled_teal(cls, compiled_teal: CompiledTeal, app_name: str, file_name: str) -> "PersistSourceMapInput":
         return cls(app_name, file_name, compiled_teal=compiled_teal)
 
     @property
@@ -119,6 +118,13 @@ def _write_to_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def _compile_raw_teal(raw_teal: str, client: "AlgodClient") -> tuple[bytes, SourceMap, str]:
+    teal_to_compile = AppManager.strip_teal_comments(raw_teal)
+    compiled = client.compile(teal_to_compile, source_map=True)
+    compiled_bytes = base64.b64decode(compiled["result"])
+    return compiled_bytes, SourceMap(compiled.get("sourcemap", {})), raw_teal
+
+
 def _build_avm_sourcemap(
     *,
     app_name: str,
@@ -126,27 +132,20 @@ def _build_avm_sourcemap(
     output_path: Path,
     client: "AlgodClient",
     raw_teal: str | None = None,
-    compiled_teal: CompiledTeal | Program | None = None,
+    compiled_teal: CompiledTeal | None = None,
     with_sources: bool = True,
 ) -> AVMDebuggerSourceMapEntry:
     if not raw_teal and not compiled_teal:
         raise ValueError("Either raw teal or compiled teal must be provided")
 
-    # Handle both legacy Program and new CompiledTeal
-    if isinstance(compiled_teal, Program):
-        program_hash = base64.b64encode(checksum(compiled_teal.raw_binary)).decode()
-        source_map = compiled_teal.source_map.__dict__
-        teal_content = compiled_teal.teal
-    elif isinstance(compiled_teal, CompiledTeal):
+    if isinstance(compiled_teal, CompiledTeal):
         program_hash = base64.b64encode(checksum(compiled_teal.compiled_base64_to_bytes)).decode()
         source_map = compiled_teal.source_map.__dict__ if compiled_teal.source_map else {}
         teal_content = compiled_teal.teal
     else:
-        # Handle raw TEAL case
-        result = Program(str(raw_teal), client=client)
-        program_hash = base64.b64encode(checksum(result.raw_binary)).decode()
-        source_map = result.source_map.__dict__
-        teal_content = result.teal
+        compiled_bytes, source_map_obj, teal_content = _compile_raw_teal(str(raw_teal), client)
+        program_hash = base64.b64encode(checksum(compiled_bytes)).decode()
+        source_map = source_map_obj.__dict__
 
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
 

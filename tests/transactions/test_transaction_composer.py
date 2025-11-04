@@ -57,12 +57,11 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
 
 @pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient) -> SigningAccount:
-    private_key, _ = algosdk.account.generate_account()
-    address = str(algosdk.account.address_from_private_key(private_key))
-    dispenser = algorand.account.localnet_dispenser()
+    private_key, address = algosdk.account.generate_account()
     new_account = SigningAccount(private_key=private_key, address=address)
+    dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
+        new_account.address, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
     return new_account
 

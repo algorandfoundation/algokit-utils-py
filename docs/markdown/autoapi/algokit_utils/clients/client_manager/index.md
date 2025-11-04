@@ -149,7 +149,7 @@ Get a TestNet dispenser API client.
 * **Returns:**
   TestNet dispenser client instance
 
-#### get_app_factory(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | algokit_utils._legacy_v2.application_specification.ApplicationSpecification | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → [algokit_utils.applications.app_factory.AppFactory](../../applications/app_factory/index.md#algokit_utils.applications.app_factory.AppFactory)
+#### get_app_factory(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → [algokit_utils.applications.app_factory.AppFactory](../../applications/app_factory/index.md#algokit_utils.applications.app_factory.AppFactory)
 
 Get an application factory for deploying smart contracts.
 
@@ -165,7 +165,7 @@ Get an application factory for deploying smart contracts.
 * **Returns:**
   Application factory instance
 
-#### get_app_client_by_id(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | algokit_utils._legacy_v2.application_specification.ApplicationSpecification | str, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_id(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client for an existing application by ID.
 
@@ -182,7 +182,7 @@ Get an application client for an existing application by ID.
 * **Returns:**
   Application client instance
 
-#### get_app_client_by_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | algokit_utils._legacy_v2.application_specification.ApplicationSpecification | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client for an existing application by network.
 
@@ -198,7 +198,7 @@ Get an application client for an existing application by network.
 * **Returns:**
   Application client instance
 
-#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | algokit_utils._legacy_v2.application_specification.ApplicationSpecification | str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client by creator address and name.
 

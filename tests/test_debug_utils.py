@@ -24,7 +24,7 @@ from algokit_utils._debugging import (
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams
-from algokit_utils.common import Program
+from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.models import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -121,8 +121,9 @@ int 1
 #pragma version 9
 int 1
 """
-    compiled_approval = Program(approval, algorand.client.algod)
-    compiled_clear = Program(clear, algorand.client.algod)
+    app_manager = AppManager(algorand.client.algod)
+    compiled_approval = app_manager.compile_teal(AppManager.strip_teal_comments(approval))
+    compiled_clear = app_manager.compile_teal(AppManager.strip_teal_comments(clear))
     sources = [
         PersistSourceMapInput(compiled_teal=compiled_approval, app_name="cool_app", file_name="approval.teal"),
         PersistSourceMapInput(compiled_teal=compiled_clear, app_name="cool_app", file_name="clear"),
