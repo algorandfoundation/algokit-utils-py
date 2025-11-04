@@ -24,7 +24,24 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --group cicd
+        run: uv sync --group cicd --group api-generator
+
+      - name: Generate API clients
+        run: uv run poe generate-api-clients
+
+      - name: Check API output stability
+        shell: bash
+        run: |
+          git status --porcelain src > /tmp/post_api_status.txt
+          if [ -s /tmp/post_api_status.txt ]; then
+            echo "❌ API OpenAPI sync needed!"
+            git status --porcelain src
+            git diff -- src
+            echo "🔧 Run 'uv run poe generate-api-clients' locally and commit the results."
+            exit 1
+          else
+            echo "✅ API OpenAPI sync passed"
+          fi
 
       - name: pytest + coverage
         shell: bash

@@ -46,6 +46,9 @@ dev = [
   "sphinx-autoapi>=3.4.0,<4",
   "sphinx-markdown-builder>=0.6.8,<0.7",
 ]
+api-generator = [
+  "oas-generator",
+]
 
 [build-system]
 requires = ["uv_build>=0.9.5,<0.10.0"]
@@ -61,6 +64,9 @@ module-name = [
   "algokit_transact",
   "algokit_utils",
 ]
+
+[tool.uv.sources]
+oas-generator = { path = "api/oas-generator", editable = true }
 
 [tool.ruff]
 line-length = 120
@@ -166,16 +172,16 @@ docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring f
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
 [tool.poe.tasks.ruff-check]
-cmd = "uv run ruff check src tests"
+cmd = "ruff check src tests"
 
 [tool.poe.tasks.mypy-check]
-cmd = "uv run mypy src"
+cmd = "mypy src"
 
 [tool.poe.tasks.lint]
 sequence = ["ruff-check", "mypy-check"]
 
 [tool.poe.tasks.ruff-format]
-cmd = "uv run ruff format src tests"
+cmd = "ruff format src tests"
 
 [tool.poe.tasks.ruff-fix]
 ref = "ruff-check --fix"
@@ -187,7 +193,7 @@ sequence = ["ruff-format", "ruff-fix"]
 sequence = ["lint"]
 
 [tool.poe.tasks.test]
-cmd = "uv run pytest"
+cmd = "pytest"
 
 [tool.poe.tasks.test-ci]
 ref = """test \
@@ -200,6 +206,32 @@ ref = """test \
         --cov=algokit_utils \
         --cov-report=term-missing:skip-covered \
         --junitxml=pytest-junit.xml"""
+
+[tool.poe.tasks.generate-client]
+sequence = [
+  { cmd = "uv run --group api-generator oas-generator --spec api/specs/${SPEC}.oas3.json --out src --package algokit_${SPEC}_client" },
+  { cmd = "ruff check --fix src/algokit_${SPEC}_client" },
+  { cmd = "ruff format src/algokit_${SPEC}_client" },
+]
+
+[tool.poe.tasks.generate-algod-client]
+ref = "generate-client"
+env.SPEC = "algod"
+
+[tool.poe.tasks.generate-indexer-client]
+ref = "generate-client"
+env.SPEC = "indexer"
+
+[tool.poe.tasks.generate-kmd-client]
+ref = "generate-client"
+env.SPEC = "kmd"
+
+[tool.poe.tasks.generate-api-clients]
+sequence = [
+  "generate-algod-client",
+  "generate-indexer-client",
+  "generate-kmd-client",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
@@ -262,14 +294,3 @@ commit_message = "{version}\n\nskip-checks: true"
 [[tool.mypy.overrides]]
 module = ["msgpack", "msgpack.*"]
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-  "algod_client",
-  "algod_client.*",
-  "indexer_client",
-  "indexer_client.*",
-  "kmd_client",
-  "kmd_client.*",
-]
-ignore_errors = true
