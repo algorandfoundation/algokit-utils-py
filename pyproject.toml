@@ -297,14 +297,3 @@ commit_message = "{version}\n\nskip-checks: true"
 [[tool.mypy.overrides]]
 module = ["msgpack", "msgpack.*"]
 ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = [
-  "algod_client",
-  "algod_client.*",
-  "indexer_client",
-  "indexer_client.*",
-  "kmd_client",
-  "kmd_client.*",
-]
-ignore_errors = true
