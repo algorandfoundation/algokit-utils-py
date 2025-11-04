@@ -1,2 +1,0 @@
-INFO: SampleApp not found in {creator_account} account, deploying app.
-INFO: SampleApp (1.0) deployed successfully, with app id {app0}.

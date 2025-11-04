@@ -6,9 +6,9 @@ import pytest
 from algosdk.transaction import OnComplete
 
 from algokit_utils import SigningAccount
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -68,27 +68,31 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
-    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+def hello_world_arc56_app_spec(raw_hello_world_arc32_app_spec: str) -> Arc56Contract:
+    return Arc56Contract.from_arc32(raw_hello_world_arc32_app_spec)
 
 
 @pytest.fixture
-def test_hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, test_hello_world_arc32_app_spec: ApplicationSpecification
+def hello_world_arc56_app_id(
+    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc56_app_spec: Arc56Contract
 ) -> int:
-    global_schema = test_hello_world_arc32_app_spec.global_state_schema
-    local_schema = test_hello_world_arc32_app_spec.local_state_schema
+    global_schema = hello_world_arc56_app_spec.state.schema.global_state
+    local_schema = hello_world_arc56_app_spec.state.schema.local_state
+    source = hello_world_arc56_app_spec.source
+    assert source, "Source programs must be present"
+    approval_program = source.get_decoded_approval()
+    clear_program = source.get_decoded_clear()
+
     response = algorand.send.app_create(
         AppCreateParams(
             sender=funded_account.address,
-            approval_program=test_hello_world_arc32_app_spec.approval_program,
-            clear_state_program=test_hello_world_arc32_app_spec.clear_program,
+            approval_program=approval_program,
+            clear_state_program=clear_program,
             schema={
-                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
-                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "global_ints": int(global_schema.ints) if global_schema.ints else 0,
+                "global_byte_slices": int(global_schema.bytes) if global_schema.bytes else 0,
+                "local_ints": int(local_schema.ints) if local_schema.ints else 0,
+                "local_byte_slices": int(local_schema.bytes) if local_schema.bytes else 0,
             },
         )
     )
@@ -407,30 +411,43 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
 
 
 def test_app_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
+    hello_world_arc56_app_id: int,
+    transaction_sender: AlgorandClientTransactionSender,
+    sender: SigningAccount,
 ) -> None:
-    params = AppCallParams(
-        app_id=test_hello_world_arc32_app_id,
-        sender=sender.address,
-        on_complete=OnComplete.NoOpOC,
-        args=[b"\x02\xbe\xce\x11", b"test"],
+    method = algosdk.abi.Method.from_signature("hello(string)string")
+    selector = method.get_selector()
+    encoded_arg = algosdk.abi.ABIType.from_string("string").encode("test")
+
+    result = transaction_sender.app_call(
+        AppCallParams(
+            app_id=hello_world_arc56_app_id,
+            sender=sender.address,
+            on_complete=OnComplete.NoOpOC,
+            args=[selector, encoded_arg],
+        )
     )
 
-    result = transaction_sender.app_call(params)
-    assert not result.abi_return  # TODO: improve checks
+    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.transaction.application_call
 
 
 def test_app_call_method_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
+    hello_world_arc56_app_id: int,
+    transaction_sender: AlgorandClientTransactionSender,
+    sender: SigningAccount,
 ) -> None:
-    params = AppCallMethodCallParams(
-        app_id=test_hello_world_arc32_app_id,
-        sender=sender.address,
-        method=algosdk.abi.Method.from_signature("hello(string)string"),
-        args=["test"],
+    method = algosdk.abi.Method.from_signature("hello(string)string")
+
+    result = transaction_sender.app_call_method_call(
+        AppCallMethodCallParams(
+            app_id=hello_world_arc56_app_id,
+            sender=sender.address,
+            method=method,
+            args=["test"],
+        )
     )
 
-    result = transaction_sender.app_call_method_call(params)
     assert result.abi_return
     assert result.abi_return.value == "Hello2, test"
 
