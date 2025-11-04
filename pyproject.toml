@@ -172,16 +172,16 @@ docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring f
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 
 [tool.poe.tasks.ruff-check]
-cmd = "uv run ruff check src tests"
+cmd = "ruff check src tests"
 
 [tool.poe.tasks.mypy-check]
-cmd = "uv run mypy src"
+cmd = "mypy src"
 
 [tool.poe.tasks.lint]
 sequence = ["ruff-check", "mypy-check"]
 
 [tool.poe.tasks.ruff-format]
-cmd = "uv run ruff format src tests"
+cmd = "ruff format src tests"
 
 [tool.poe.tasks.ruff-fix]
 ref = "ruff-check --fix"
@@ -193,7 +193,7 @@ sequence = ["ruff-format", "ruff-fix"]
 sequence = ["lint"]
 
 [tool.poe.tasks.test]
-cmd = "uv run pytest"
+cmd = "pytest"
 
 [tool.poe.tasks.test-ci]
 ref = """test \
