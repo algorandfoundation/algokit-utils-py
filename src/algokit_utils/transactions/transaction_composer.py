@@ -6,6 +6,7 @@ import re
 from collections.abc import Callable
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from typing import TYPE_CHECKING, Any, TypedDict, Union, cast
 
 import algosdk
@@ -30,6 +31,7 @@ from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.transactions.fee_coverage import FeeDelta, FeePriorities, FeePriority
 
 if TYPE_CHECKING:
     from algosdk.abi import Method
@@ -82,6 +84,12 @@ __all__ = [
 MAX_TRANSACTION_GROUP_SIZE = 16
 MAX_APP_CALL_FOREIGN_REFERENCES = 8
 MAX_APP_CALL_ACCOUNT_REFERENCES = 4
+
+
+class GroupStatus(Enum):
+    BUILDING = "BUILDING"
+    BUILT = "BUILT"
+    SUBMITTED = "SUBMITTED"
 
 
 class InvalidErrorTransformerValueError(Exception):
@@ -563,8 +571,6 @@ class BuiltTransactions:
 class TransactionComposerBuildResult:
     """Result of building transactions with TransactionComposer."""
 
-    atc: AtomicTransactionComposer
-    """The AtomicTransactionComposer instance"""
     transactions: list[TransactionWithSigner]
     """The list of transactions with signers"""
     method_calls: dict[int, Method]
@@ -613,7 +619,7 @@ class ExecutionInfoTxn:
 
     unnamed_resources_accessed: UnnamedResourcesAccessed | None = None
     """The unnamed resources accessed in the transaction"""
-    required_fee_delta: int = 0
+    required_fee_delta: FeeDelta | None = None
     """The required fee delta for the transaction"""
 
 
@@ -630,8 +636,8 @@ class ExecutionInfo:
 @dataclass
 class _TransactionWithPriority:
     txn: algosdk.transaction.Transaction
-    priority: int
-    fee_delta: int
+    priority: FeePriority
+    fee_delta: FeeDelta
     index: int
 
 
@@ -714,6 +720,7 @@ def _get_group_execution_info(  # noqa: C901
     result = empty_signer_atc.simulate(algod, simulate_request)
 
     group_response = result.simulate_response["txn-groups"][0]
+    group = atc.build_group()
 
     if group_response.get("failure-message"):
         msg = group_response["failure-message"]
@@ -735,15 +742,20 @@ def _get_group_execution_info(  # noqa: C901
         if not txn_result:
             continue
 
-        original_txn = atc.build_group()[i].txn
+        # Build group once outside loop for efficiency; original_txns cached
+        original_txn = group[i].txn
 
-        required_fee_delta = 0
+        required_fee_delta: FeeDelta | None = None
         if cover_app_call_inner_transaction_fees:
             required_fee_delta = _calculate_required_fee_delta(
                 original_txn,
                 txn_result,
-                per_byte_txn_fee=suggested_params.fee if suggested_params else 0,
-                min_txn_fee=int(suggested_params.min_fee) if suggested_params else 1000,
+                per_byte_txn_fee=suggested_params.fee
+                if suggested_params and getattr(suggested_params, "fee", None) is not None
+                else 0,
+                min_txn_fee=int(suggested_params.min_fee)
+                if suggested_params and getattr(suggested_params, "min_fee", None) is not None
+                else 1000,
             )
 
         txn_results.append(
@@ -765,30 +777,48 @@ def _get_group_execution_info(  # noqa: C901
 
 def _calculate_required_fee_delta(
     txn: transaction.Transaction, txn_result: dict[str, Any], *, per_byte_txn_fee: int, min_txn_fee: int
-) -> int:
-    # Calculate parent transaction fee
+) -> FeeDelta | None:
+    # Defensive casts; ensure integers
+    try:
+        per_byte_txn_fee_int = int(per_byte_txn_fee)
+    except Exception:
+        per_byte_txn_fee_int = 0
+    try:
+        min_txn_fee_int = int(min_txn_fee) if isinstance(min_txn_fee, int | str | bytes) else 1000
+    except Exception:
+        min_txn_fee_int = 1000
+
     original_txn_size = txn.estimate_size()
     assert isinstance(original_txn_size, int), "expected txn size to be an int"
-    parent_per_byte_fee = per_byte_txn_fee * (original_txn_size + 75)
-    parent_min_fee = max(parent_per_byte_fee, min_txn_fee)
-    original_txn_fee = txn.fee
+    parent_per_byte_fee = per_byte_txn_fee_int * (original_txn_size + 75)
+    parent_min_fee = max(parent_per_byte_fee, min_txn_fee_int)
+    original_txn_fee = txn.fee if isinstance(txn.fee, int) else min_txn_fee_int
     assert isinstance(original_txn_fee, int), "expected original txn fee to be an int"
-    parent_fee_delta = parent_min_fee - original_txn_fee
+    parent_fee_delta = FeeDelta.from_int(int(parent_min_fee - original_txn_fee))
 
     if isinstance(txn, algosdk.transaction.ApplicationCallTxn):
         # Calculate inner transaction fees recursively
         def calculate_inner_fee_delta(inner_txns: list[dict], acc: int = 0) -> int:
             for inner_txn in reversed(inner_txns):
+                inner_fee_val = inner_txn.get("txn", {}).get("txn", {}).get("fee", 0)
+                try:
+                    inner_fee_int = int(inner_fee_val) if isinstance(inner_fee_val, int | str | bytes) else 0
+                except Exception:
+                    inner_fee_int = 0
                 current_fee_delta = (
-                    calculate_inner_fee_delta(inner_txn["inner-txns"], acc) if inner_txn.get("inner-txns") else acc
-                ) + (min_txn_fee - inner_txn["txn"]["txn"].get("fee", 0))
+                    calculate_inner_fee_delta(inner_txn.get("inner-txns", []), acc)
+                    if inner_txn.get("inner-txns")
+                    else acc
+                ) + (min_txn_fee_int - inner_fee_int)
                 acc = max(0, current_fee_delta)
             return acc
 
-        inner_fee_delta = calculate_inner_fee_delta(txn_result.get("inner-txns", []))
-        return inner_fee_delta + parent_fee_delta
-    else:
-        return parent_fee_delta
+        inner_fee_delta = FeeDelta.from_int(calculate_inner_fee_delta(txn_result.get("inner-txns", [])))
+        if inner_fee_delta and parent_fee_delta:
+            return inner_fee_delta.add(parent_fee_delta)
+        return inner_fee_delta or parent_fee_delta
+
+    return parent_fee_delta
 
 
 def _find_available_transaction_index(
@@ -874,62 +904,73 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
     max_fees = additional_atc_context.max_fees if additional_atc_context else None
 
     group = atc.build_group()
+    # Sanitize fees on built group transactions
+    suggested_params_local = additional_atc_context.suggested_params if additional_atc_context else None
+    for ts in group:
+        if not isinstance(getattr(ts.txn, "fee", None), int):
+            min_fee_local = 0
+            if suggested_params_local and getattr(suggested_params_local, "min_fee", None) is not None:
+                try:
+                    min_fee_local = int(suggested_params_local.min_fee)
+                except Exception:
+                    min_fee_local = 0
+            ts.txn.fee = min_fee_local or 1000
 
     # Handle transaction fees if needed
+    additional_fees: dict[int, int] = {}
     if cover_app_call_inner_transaction_fees:
-        # Sort transactions by fee priority
         txns_with_priority: list[_TransactionWithPriority] = []
         for i, txn_info in enumerate(execution_info.txns or []):
-            if not txn_info:
+            if not txn_info or not txn_info.required_fee_delta:
                 continue
+
             txn = group[i].txn
             max_fee = max_fees.get(i).micro_algo if max_fees and i in max_fees else None  # type: ignore[union-attr]
             immutable_fee = max_fee is not None and max_fee == txn.fee
-            priority_multiplier = (
-                1000
-                if (
-                    txn_info.required_fee_delta > 0
-                    and (immutable_fee or not isinstance(txn, algosdk.transaction.ApplicationCallTxn))
+
+            if txn_info.required_fee_delta.is_deficit():
+                deficit = txn_info.required_fee_delta.amount
+                if immutable_fee or not isinstance(txn, algosdk.transaction.ApplicationCallTxn):
+                    priority: FeePriority = FeePriorities.immutable(deficit)
+                else:
+                    priority = FeePriorities.modifiable(deficit)
+                txns_with_priority.append(
+                    _TransactionWithPriority(
+                        txn=txn,
+                        index=i,
+                        fee_delta=txn_info.required_fee_delta,
+                        priority=priority,
+                    )
                 )
-                else 1
-            )
 
-            txns_with_priority.append(
-                _TransactionWithPriority(
-                    txn=txn,
-                    index=i,
-                    fee_delta=txn_info.required_fee_delta,
-                    priority=txn_info.required_fee_delta * priority_multiplier
-                    if txn_info.required_fee_delta > 0
-                    else -1,
-                )
-            )
-
-        # Sort by priority descending
-        txns_with_priority.sort(key=lambda x: x.priority, reverse=True)
-
-        # Calculate surplus fees and additional fees needed
-        surplus_fees = sum(
-            txn_info.required_fee_delta * -1
-            for txn_info in execution_info.txns or []
-            if txn_info is not None and txn_info.required_fee_delta < 0
+        txns_with_priority.sort(
+            key=lambda item: (item.priority.priority_type(), item.priority.deficit_amount(), item.index),
+            reverse=True,
         )
 
-        additional_fees = {}
+        surplus_fees = 0
+        for txn_info in execution_info.txns or []:
+            if txn_info and txn_info.required_fee_delta and txn_info.required_fee_delta.is_surplus():
+                surplus_fees += txn_info.required_fee_delta.amount
 
-        # Distribute surplus fees to cover deficits
         for txn_obj in txns_with_priority:
-            if txn_obj.fee_delta > 0:
-                if surplus_fees >= txn_obj.fee_delta:
-                    surplus_fees -= txn_obj.fee_delta
-                else:
-                    additional_fees[txn_obj.index] = txn_obj.fee_delta - surplus_fees
-                    surplus_fees = 0
+            if not txn_obj.fee_delta.is_deficit():
+                continue
+
+            deficit = txn_obj.fee_delta.amount
+            if surplus_fees >= deficit:
+                surplus_fees -= deficit
+                continue
+
+            additional_fees[txn_obj.index] = deficit - surplus_fees
+            surplus_fees = 0
 
     def populate_group_resource(  # noqa: PLR0915, PLR0912, C901
         txns: list[TransactionWithSigner], reference: str | dict[str, Any] | int, ref_type: str
     ) -> None:
         """Helper function to populate group-level resources."""
+        # TODO: PD - access list references
+        # removed shared box_ref variable; each box branch now computes its own reference
 
         def is_appl_below_limit(t: TransactionWithSigner) -> bool:
             if not isinstance(t.txn, transaction.ApplicationCallTxn):
@@ -1050,14 +1091,18 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
             foreign_apps.append(app_id)
             app_txn.foreign_apps = foreign_apps
         elif ref_type == "box":
-            # ensure app_id is added before calling translate_box_reference
-            app_id = box_ref[0]
+            # compute box_ref locally from reference dict
+            ref_dict = cast(dict[str, Any], reference)
+            local_box_ref = (ref_dict["app"], base64.b64decode(ref_dict["name"]))
+            app_id = local_box_ref[0]
             if app_id != 0:
                 foreign_apps = list(getattr(app_txn, "foreign_apps", []) or [])
                 foreign_apps.append(app_id)
                 app_txn.foreign_apps = foreign_apps
             boxes = list(getattr(app_txn, "boxes", []) or [])
-            boxes.append(BoxReference.translate_box_reference(box_ref, app_txn.foreign_apps or [], app_txn.index))  # type: ignore[arg-type]
+            boxes.append(
+                BoxReference.translate_box_reference(local_box_ref, app_txn.foreign_apps or [], app_txn.index)
+            )
             app_txn.boxes = boxes
         elif ref_type == "asset":
             asset_id = int(cast(str | int, reference))
@@ -1137,6 +1182,7 @@ def prepare_group_for_sending(  # noqa: C901, PLR0912, PLR0915
                     f"An additional fee of {additional_fee} µALGO is required for non app call transaction {i}"
                 )
 
+            # TODO: PD - review this way of assigning fee
             transaction_fee = cur_txn.fee + additional_fee
             max_fee = max_fees.get(i).micro_algo if max_fees and i in max_fees else None  # type: ignore[union-attr]
 
@@ -1384,7 +1430,7 @@ class TransactionComposer:
         # Map of transaction index in the atc to a max logical fee.
         # This is set using the value of either maxFee or staticFee.
         self._txn_max_fees: dict[int, AlgoAmount] = {}
-        self._txns: list[TransactionWithSigner | TxnParams | AtomicTransactionComposer] = []
+        self._txns: list[TransactionWithSigner | TxnParams | algosdk.transaction.Transaction] = []
         self._atc: AtomicTransactionComposer = AtomicTransactionComposer()
         self._algod: AlgodClient = algod
         self._default_get_send_params = lambda: self._algod.suggested_params()
@@ -1394,6 +1440,27 @@ class TransactionComposer:
         self._default_validity_window_is_explicit: bool = default_validity_window is not None
         self._app_manager = app_manager or AppManager(algod)
         self._error_transformers: list[ErrorTransformer] = error_transformers or []
+        self._status: GroupStatus = GroupStatus.BUILDING
+        self._cached_suggested_params: SuggestedParams | None = None
+
+    def status(self) -> GroupStatus:
+        return self._status
+
+    def _ensure_modifiable(self) -> None:
+        if self._status != GroupStatus.BUILDING:
+            raise ValueError(f"Cannot modify transaction group in status {self._status}; expected BUILDING.")
+
+    def _ensure_group_size(self, additional: int) -> None:
+        # Cheap estimation: count logical txn containers; method calls may expand to >1
+        current_estimate = len(self._txns)
+        if current_estimate + additional > MAX_TRANSACTION_GROUP_SIZE:
+            raise ValueError(
+
+                    f"Adding {additional} transaction(s) would exceed max group size of "
+                    f"{MAX_TRANSACTION_GROUP_SIZE} (estimated size {current_estimate})."
+
+            )
+        # Final enforcement happens in build(); if expansion exceeds limit we error then.
 
     def _transform_error(self, original_error: Exception) -> Exception:
         """Transform an error using registered error transformers.
@@ -1435,6 +1502,8 @@ class TransactionComposer:
         :example:
             >>> composer.add_transaction(transaction)
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(TransactionWithSigner(txn=transaction, signer=signer or self._get_signer(transaction.sender)))
         return self
 
@@ -1454,6 +1523,8 @@ class TransactionComposer:
         :param params: The payment transaction parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1479,6 +1550,8 @@ class TransactionComposer:
         :param params: The asset creation parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1500,6 +1573,8 @@ class TransactionComposer:
         :param params: The asset configuration parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1519,6 +1594,8 @@ class TransactionComposer:
         :param params: The asset freeze parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1535,6 +1612,8 @@ class TransactionComposer:
         :param params: The asset destruction parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1555,6 +1634,8 @@ class TransactionComposer:
         :param params: The asset transfer parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1572,6 +1653,8 @@ class TransactionComposer:
         :param params: The asset opt-in parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1589,6 +1672,8 @@ class TransactionComposer:
         :param params: The asset opt-out parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1615,6 +1700,8 @@ class TransactionComposer:
         :param params: The application creation parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1639,6 +1726,8 @@ class TransactionComposer:
         :param params: The application update parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1661,6 +1750,8 @@ class TransactionComposer:
         :param params: The application deletion parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1682,6 +1773,8 @@ class TransactionComposer:
         :param params: The application call parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1744,6 +1837,8 @@ class TransactionComposer:
             ...     )
             ... )
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1753,6 +1848,8 @@ class TransactionComposer:
         :param params: The application update method call parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1762,6 +1859,8 @@ class TransactionComposer:
         :param params: The application deletion method call parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1771,6 +1870,8 @@ class TransactionComposer:
         :param params: The application call method call parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1780,6 +1881,8 @@ class TransactionComposer:
         :param params: The online key registration parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
         return self
 
@@ -1789,21 +1892,9 @@ class TransactionComposer:
         :param params: The offline key registration parameters
         :return: The transaction composer instance for chaining
         """
+        self._ensure_modifiable()
+        self._ensure_group_size(1)
         self._txns.append(params)
-        return self
-
-    def add_atc(self, atc: AtomicTransactionComposer) -> TransactionComposer:
-        """Add an existing AtomicTransactionComposer's transactions.
-
-        :param atc: The AtomicTransactionComposer to add
-        :return: The transaction composer instance for chaining
-
-        :example:
-            >>> atc = AtomicTransactionComposer()
-            >>> atc.add_transaction(TransactionWithSigner(transaction, signer))
-            >>> composer.add_atc(atc)
-        """
-        self._txns.append(atc)
         return self
 
     def count(self) -> int:
@@ -1819,7 +1910,9 @@ class TransactionComposer:
         :return: The built transaction group result
         """
         if self._atc.get_status() == algosdk.atomic_transaction_composer.AtomicTransactionComposerStatus.BUILDING:
-            suggested_params = self._get_suggested_params()
+            # Cache suggested params for this build lifecycle
+            self._cached_suggested_params = self._cached_suggested_params or self._get_suggested_params()
+            suggested_params = self._cached_suggested_params
             txn_with_signers: list[TransactionWithSignerAndContext] = []
 
             for txn in self._txns:
@@ -1832,11 +1925,19 @@ class TransactionComposer:
                 if ts.context.max_fee:
                     self._txn_max_fees[len(self._atc.txn_list) - 1] = ts.context.max_fee
 
-        return TransactionComposerBuildResult(
-            atc=self._atc,
+            # Final expanded group size enforcement; method calls may have expanded
+            final_size = len(self._atc.txn_list)
+            if final_size > MAX_TRANSACTION_GROUP_SIZE:
+                raise ValueError(
+                    f"Expanded transaction group size {final_size} exceeds maximum of {MAX_TRANSACTION_GROUP_SIZE}."
+                )
+
+        result = TransactionComposerBuildResult(
             transactions=self._atc.build_group(),
             method_calls=self._atc.method_dict,
         )
+        self._status = GroupStatus.BUILT
+        return result
 
     def rebuild(self) -> TransactionComposerBuildResult:
         """Rebuild the transaction group from scratch.
@@ -1844,6 +1945,9 @@ class TransactionComposer:
         :return: The rebuilt transaction group result
         """
         self._atc = AtomicTransactionComposer()
+        self._status = GroupStatus.BUILDING
+        # Invalidate cached suggested params when starting a fresh build lifecycle
+        self._cached_suggested_params = None
         return self.build()
 
     def build_transactions(self) -> BuiltTransactions:
@@ -1851,7 +1955,9 @@ class TransactionComposer:
 
         :return: The built transactions result
         """
-        suggested_params = self._get_suggested_params()
+        # Reuse cached suggested params if we are within the same build lifecycle; otherwise fetch new ones.
+        # This avoids multiple network calls when count() or other build-only introspection helpers are used.
+        suggested_params = self._cached_suggested_params or self._get_suggested_params()
 
         transactions: list[algosdk.transaction.Transaction] = []
         method_calls: dict[int, Method] = {}
@@ -1914,7 +2020,7 @@ class TransactionComposer:
             wait_rounds = last_round - first_round + 1
 
         try:
-            return send_atomic_transaction_composer(
+            result = send_atomic_transaction_composer(
                 self._atc,
                 self._algod,
                 max_rounds_to_wait=wait_rounds,
@@ -1926,6 +2032,10 @@ class TransactionComposer:
                     max_fees=self._txn_max_fees,
                 ),
             )
+            self._status = GroupStatus.SUBMITTED
+            # Invalidate cached suggested params after successful submission lifecycle
+            self._cached_suggested_params = None
+            return result
         except Exception as original_error:
             raise self._transform_error(original_error) from original_error
 
@@ -1993,6 +2103,8 @@ class TransactionComposer:
                 simulation_round,
             )
             self._handle_simulate_error(response)
+            # Ensure group status remains BUILT post-simulation unless already SUBMITTED
+            self._status = GroupStatus.BUILT if self._status != GroupStatus.SUBMITTED else self._status
             return SendAtomicTransactionComposerResults(
                 confirmations=response.simulate_response.get("txn-groups", [{"txn-results": [{"txn-result": {}}]}])[0][
                     "txn-results"
@@ -2019,6 +2131,8 @@ class TransactionComposer:
             "txn-results"
         ]
 
+        # Ensure group status remains BUILT post-simulation unless already SUBMITTED
+        self._status = GroupStatus.BUILT if self._status != GroupStatus.SUBMITTED else self._status
         return SendAtomicTransactionComposerResults(
             confirmations=[txn["txn-result"] for txn in confirmation_results],
             transactions=[TransactionWrapper(txn.txn) for txn in atc.txn_list],
@@ -2053,32 +2167,7 @@ class TransactionComposer:
         arc2_payload = f"{note['dapp_name']}:{note['format']}{data}"
         return arc2_payload.encode("utf-8")
 
-    def _build_atc(self, atc: AtomicTransactionComposer) -> list[TransactionWithSignerAndContext]:
-        group = atc.build_group()
-
-        txn_with_signers = []
-        for idx, ts in enumerate(group):
-            ts.txn.group = None
-            if atc.method_dict.get(idx):
-                txn_with_signers.append(
-                    TransactionWithSignerAndContext(
-                        txn=ts.txn,
-                        signer=ts.signer,
-                        context=TransactionContext(abi_method=atc.method_dict.get(idx)),
-                    )
-                )
-            else:
-                txn_with_signers.append(
-                    TransactionWithSignerAndContext(
-                        txn=ts.txn,
-                        signer=ts.signer,
-                        context=TransactionContext(abi_method=None),
-                    )
-                )
-
-        return txn_with_signers
-
-    def _common_txn_build_step(  # noqa: C901
+    def _common_txn_build_step(  # noqa: C901, PLR0912
         self,
         build_txn: Callable[[dict], algosdk.transaction.Transaction],
         params: _CommonTxnParams,
@@ -2124,6 +2213,17 @@ class TransactionComposer:
 
         txn = build_txn(txn_params)
 
+        # Ensure fee is a concrete int; fall back to suggested min fee if missing/non-int
+        if not isinstance(getattr(txn, "fee", None), int):
+            sp_obj = txn_params.get("sp")
+            min_fee = 0
+            if sp_obj and getattr(sp_obj, "min_fee", None) is not None:
+                try:
+                    min_fee = int(sp_obj.min_fee)
+                except Exception:
+                    min_fee = 0
+            txn.fee = min_fee or 1000
+
         if params.extra_fee:
             txn.fee += params.extra_fee.micro_algo
 
@@ -2165,6 +2265,15 @@ class TransactionComposer:
                     continue
 
                 if isinstance(arg, algosdk.transaction.Transaction):
+                    # Sanitize fee on raw transaction argument
+                    if not isinstance(getattr(arg, "fee", None), int):
+                        min_fee = 0
+                        if getattr(suggested_params, "min_fee", None) is not None:
+                            try:
+                                min_fee = int(suggested_params.min_fee)
+                            except Exception:
+                                min_fee = 0
+                        arg.fee = min_fee or 1000
                     # Wrap in TransactionWithSigner
                     signer = (
                         params.signer.signer
@@ -2197,25 +2306,25 @@ class TransactionComposer:
                         method_args.append(temp_txn_with_signers[-1])
                         continue
                     case AppCallParams():
-                        txn = self._build_app_call(arg, suggested_params)
+                        built_txn = self._build_app_call(arg, suggested_params)
                     case PaymentParams():
-                        txn = self._build_payment(arg, suggested_params)
+                        built_txn = self._build_payment(arg, suggested_params)
                     case AssetOptInParams():
-                        txn = self._build_asset_transfer(
+                        built_txn = self._build_asset_transfer(
                             AssetTransferParams(**arg.__dict__, receiver=arg.sender, amount=0), suggested_params
                         )
                     case AssetCreateParams():
-                        txn = self._build_asset_create(arg, suggested_params)
+                        built_txn = self._build_asset_create(arg, suggested_params)
                     case AssetConfigParams():
-                        txn = self._build_asset_config(arg, suggested_params)
+                        built_txn = self._build_asset_config(arg, suggested_params)
                     case AssetDestroyParams():
-                        txn = self._build_asset_destroy(arg, suggested_params)
+                        built_txn = self._build_asset_destroy(arg, suggested_params)
                     case AssetFreezeParams():
-                        txn = self._build_asset_freeze(arg, suggested_params)
+                        built_txn = self._build_asset_freeze(arg, suggested_params)
                     case AssetTransferParams():
-                        txn = self._build_asset_transfer(arg, suggested_params)
+                        built_txn = self._build_asset_transfer(arg, suggested_params)
                     case OnlineKeyRegistrationParams() | OfflineKeyRegistrationParams():
-                        txn = self._build_key_reg(arg, suggested_params)
+                        built_txn = self._build_key_reg(arg, suggested_params)
                     case _:
                         raise ValueError(f"Unsupported method arg transaction type: {arg!s}")
 
@@ -2226,7 +2335,7 @@ class TransactionComposer:
                 )
                 method_args.append(
                     TransactionWithSignerAndContext(
-                        txn=txn.txn,
+                        txn=built_txn.txn,
                         signer=signer or (NULL_SIGNER if not include_signer else self._get_signer(params.sender)),
                         context=TransactionContext(abi_method=params.method),
                     )
@@ -2307,12 +2416,36 @@ class TransactionComposer:
 
         result = self._common_txn_build_step(lambda x: _add_method_call_and_return_txn(x), params, txn_params)
 
-        build_atc_resp = self._build_atc(method_atc)
-        response = []
-        for i, v in enumerate(build_atc_resp):
-            max_fee = result.context.max_fee if i == method_atc.get_tx_count() - 1 else max_fees.get(i)
-            context = TransactionContext(abi_method=v.context.abi_method, max_fee=max_fee)
-            response.append(TransactionWithSignerAndContext(txn=v.txn, signer=v.signer, context=context))
+        group: list[TransactionWithSigner] = method_atc.build_group()
+        response: list[TransactionWithSignerAndContext] = []
+        total_txns = method_atc.get_tx_count()
+
+        for idx, ts in enumerate(group):
+            txn: algosdk.transaction.Transaction = ts.txn
+            # Sanitise fee; fall back to suggested min fee or 1000 if missing/non-int
+            if not isinstance(getattr(txn, "fee", None), int):
+                min_fee = 0
+                if getattr(suggested_params, "min_fee", None) is not None:
+                    try:
+                        min_fee = int(suggested_params.min_fee)
+                    except Exception:
+                        min_fee = 0
+                txn.fee = min_fee or 1000
+
+            # Ensure group is reset; we rebuild groups when executing
+            txn.group = None
+
+            abi_method = method_atc.method_dict.get(idx)
+            max_fee = result.context.max_fee if idx == total_txns - 1 else max_fees.get(idx)
+            context = TransactionContext(abi_method=abi_method, max_fee=max_fee)
+
+            response.append(
+                TransactionWithSignerAndContext(
+                    txn=txn,
+                    signer=ts.signer,
+                    context=context,
+                )
+            )
 
         return response
 
@@ -2514,7 +2647,7 @@ class TransactionComposer:
 
     def _build_txn(  # noqa: C901, PLR0912, PLR0911
         self,
-        txn: TransactionWithSigner | TxnParams | AtomicTransactionComposer,
+        txn: TransactionWithSigner | TxnParams | algosdk.transaction.Transaction,
         suggested_params: algosdk.transaction.SuggestedParams,
         *,
         include_signer: bool,
@@ -2524,8 +2657,6 @@ class TransactionComposer:
                 return [
                     TransactionWithSignerAndContext(txn=txn.txn, signer=txn.signer, context=TransactionContext.empty())
                 ]
-            case AtomicTransactionComposer():
-                return self._build_atc(txn)
             case algosdk.transaction.Transaction():
                 signer = NULL_SIGNER if not include_signer else self._get_signer(txn.sender)
                 return [TransactionWithSignerAndContext(txn=txn, signer=signer, context=TransactionContext.empty())]
