@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class AccountParticipation:
@@ -14,7 +16,11 @@ class AccountParticipation:
     """
 
     selection_participation_key: bytes = field(
-        metadata=wire("selection-participation-key"),
+        metadata=wire(
+            "selection-participation-key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     vote_first_valid: int = field(
         metadata=wire("vote-first-valid"),
@@ -26,9 +32,17 @@ class AccountParticipation:
         metadata=wire("vote-last-valid"),
     )
     vote_participation_key: bytes = field(
-        metadata=wire("vote-participation-key"),
+        metadata=wire(
+            "vote-participation-key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     state_proof_key: bytes | None = field(
         default=None,
-        metadata=wire("state-proof-key"),
+        metadata=wire(
+            "state-proof-key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

@@ -1,3 +1,4 @@
+from base64 import b64encode
 from collections.abc import Callable
 from typing import Any, cast
 
@@ -101,10 +102,10 @@ class KmdAccountManager:
             return None
 
         private_key = kmd_client.export_key(ExportKeyRequest(matched_address, wallet_handle, "")).private_key
-        # TODO: Fix auto generation of private key, return type is str but it claims to be bytes
         if not private_key:
             raise Exception(f"Error exporting key for address {matched_address} from KMD wallet {wallet_name}")
-        return KmdAccount(private_key=str(private_key), address=sender)
+        private_key_str = b64encode(private_key).decode("ascii")
+        return KmdAccount(private_key=private_key_str, address=sender)
 
     def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> KmdAccount:
         """Gets or creates a funded account in a KMD wallet of the given name.

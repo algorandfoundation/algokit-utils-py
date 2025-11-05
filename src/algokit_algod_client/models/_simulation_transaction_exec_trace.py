@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
 from ._simulation_opcode_trace_unit import SimulationOpcodeTraceUnit
 
 
@@ -18,7 +18,11 @@ class SimulationTransactionExecTrace:
 
     approval_program_hash: bytes | None = field(
         default=None,
-        metadata=wire("approval-program-hash"),
+        metadata=wire(
+            "approval-program-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     approval_program_trace: list[SimulationOpcodeTraceUnit] | None = field(
         default=None,
@@ -30,7 +34,11 @@ class SimulationTransactionExecTrace:
     )
     clear_state_program_hash: bytes | None = field(
         default=None,
-        metadata=wire("clear-state-program-hash"),
+        metadata=wire(
+            "clear-state-program-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     clear_state_program_trace: list[SimulationOpcodeTraceUnit] | None = field(
         default=None,
@@ -58,7 +66,11 @@ class SimulationTransactionExecTrace:
     )
     logic_sig_hash: bytes | None = field(
         default=None,
-        metadata=wire("logic-sig-hash"),
+        metadata=wire(
+            "logic-sig-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     logic_sig_trace: list[SimulationOpcodeTraceUnit] | None = field(
         default=None,

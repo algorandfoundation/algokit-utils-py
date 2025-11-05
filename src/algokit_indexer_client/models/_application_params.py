@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._application_state_schema import ApplicationStateSchema
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
 from ._teal_key_value import TealKeyValue
 
 
@@ -18,11 +18,19 @@ class ApplicationParams:
 
     approval_program: bytes | None = field(
         default=None,
-        metadata=wire("approval-program"),
+        metadata=wire(
+            "approval-program",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     clear_state_program: bytes | None = field(
         default=None,
-        metadata=wire("clear-state-program"),
+        metadata=wire(
+            "clear-state-program",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     creator: str | None = field(
         default=None,

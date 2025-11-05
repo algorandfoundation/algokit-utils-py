@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import nested, wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 from ._transaction_signature_logicsig import TransactionSignatureLogicsig
 from ._transaction_signature_multisig import TransactionSignatureMultisig
 
@@ -26,5 +27,9 @@ class TransactionSignature:
     )
     sig: bytes | None = field(
         default=None,
-        metadata=wire("sig"),
+        metadata=wire(
+            "sig",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

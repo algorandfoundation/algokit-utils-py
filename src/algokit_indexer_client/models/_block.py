@@ -9,7 +9,7 @@ from ._block_rewards import BlockRewards
 from ._block_upgrade_state import BlockUpgradeState
 from ._block_upgrade_vote import BlockUpgradeVote
 from ._participation_updates import ParticipationUpdates
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
 from ._state_proof_tracking import StateProofTracking
 from ._transaction import Transaction
 
@@ -24,28 +24,48 @@ class Block:
     """
 
     genesis_hash: bytes = field(
-        metadata=wire("genesis-hash"),
+        metadata=wire(
+            "genesis-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     genesis_id: str = field(
         metadata=wire("genesis-id"),
     )
     previous_block_hash: bytes = field(
-        metadata=wire("previous-block-hash"),
+        metadata=wire(
+            "previous-block-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     round_: int = field(
         metadata=wire("round"),
     )
     seed: bytes = field(
-        metadata=wire("seed"),
+        metadata=wire(
+            "seed",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     timestamp: int = field(
         metadata=wire("timestamp"),
     )
     transactions_root: bytes = field(
-        metadata=wire("transactions-root"),
+        metadata=wire(
+            "transactions-root",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     transactions_root_sha256: bytes = field(
-        metadata=wire("transactions-root-sha256"),
+        metadata=wire(
+            "transactions-root-sha256",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     bonus: int | None = field(
         default=None,
@@ -61,7 +81,11 @@ class Block:
     )
     previous_block_hash_512: bytes | None = field(
         default=None,
-        metadata=wire("previous-block-hash-512"),
+        metadata=wire(
+            "previous-block-hash-512",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     proposer: str | None = field(
         default=None,
@@ -93,7 +117,11 @@ class Block:
     )
     transactions_root_sha512: bytes | None = field(
         default=None,
-        metadata=wire("transactions-root-sha512"),
+        metadata=wire(
+            "transactions-root-sha512",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     txn_counter: int | None = field(
         default=None,
