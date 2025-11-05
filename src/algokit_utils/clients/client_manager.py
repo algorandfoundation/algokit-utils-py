@@ -5,16 +5,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, TypeVar
 from urllib import parse
 
-import algosdk
 from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.kmd import KMDClient
 from algosdk.source_map import SourceMap
 from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
-from algokit_utils.applications.app_deployer import ApplicationLookup
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
+from algokit_indexer_client import ClientConfig as IndexerClientConfig
+from algokit_indexer_client import IndexerClient
+from algokit_kmd_client import ClientConfig as KmdClientConfig
+from algokit_kmd_client import KmdClient
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
@@ -22,7 +21,9 @@ from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedA
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_client import AppClient, AppClientCompilationParams
+    from algokit_utils.applications.app_deployer import ApplicationLookup
     from algokit_utils.applications.app_factory import AppFactory
+    from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 
 __all__ = [
     "AlgoSdkClients",
@@ -46,9 +47,9 @@ class AlgoSdkClients:
 
     def __init__(
         self,
-        algod: algosdk.v2client.algod.AlgodClient,
+        algod: AlgodClient,
         indexer: IndexerClient | None = None,
-        kmd: KMDClient | None = None,
+        kmd: KmdClient | None = None,
     ):
         self.algod = algod
         self.indexer = indexer
@@ -134,7 +135,7 @@ class ClientManager:
 
     @property
     def indexer(self) -> IndexerClient:
-        """Returns an algosdk Indexer API client.
+        """Returns an Indexer API client.
 
         :raises ValueError: If no Indexer client is configured
         :return: Indexer client instance
@@ -152,8 +153,8 @@ class ClientManager:
         return self._indexer
 
     @property
-    def kmd(self) -> KMDClient:
-        """Returns an algosdk KMD API client.
+    def kmd(self) -> KmdClient:
+        """Returns a KMD-compatible API client.
 
         :raises ValueError: If no KMD client is configured
         :return: KMD client instance
@@ -392,16 +393,20 @@ class ClientManager:
         return ClientManager.get_algod_client(ClientManager.get_algod_config_from_environment())
 
     @staticmethod
-    def get_kmd_client(config: AlgoClientNetworkConfig) -> KMDClient:
+    def get_kmd_client(config: AlgoClientNetworkConfig) -> KmdClient:
         """Get a KMD client from config or environment.
 
         :param config: Optional client configuration
         :return: KMD client instance
         """
-        return KMDClient(config.token, config.full_url())
+        client_config = KmdClientConfig(
+            base_url=config.full_url(),
+            token=config.token or None,
+        )
+        return KmdClient(client_config)
 
     @staticmethod
-    def get_kmd_client_from_environment() -> KMDClient:
+    def get_kmd_client_from_environment() -> KmdClient:
         """Get a KMD client from environment variables.
 
         :return: KMD client instance
@@ -415,12 +420,11 @@ class ClientManager:
         :param config: Optional client configuration
         :return: Indexer client instance
         """
-        headers = {"X-Indexer-API-Token": config.token}
-        return IndexerClient(
-            indexer_token=config.token,
-            indexer_address=config.full_url(),
-            headers=headers,
+        client_config = IndexerClientConfig(
+            base_url=config.full_url(),
+            token=config.token or None,
         )
+        return IndexerClient(client_config)
 
     @staticmethod
     def get_indexer_client_from_environment() -> IndexerClient:

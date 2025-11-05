@@ -1,8 +1,13 @@
 from collections.abc import Callable
 from typing import Any, cast
 
-from algosdk.kmd import KMDClient
-
+from algokit_common.constants import KMD_DEFAULT_WALLET_DRIVER
+from algokit_kmd_client.client import KmdClient
+from algokit_kmd_client.models._create_wallet_request import CreateWalletRequest
+from algokit_kmd_client.models._export_key_request import ExportKeyRequest
+from algokit_kmd_client.models._generate_key_request import GenerateKeyRequest
+from algokit_kmd_client.models._init_wallet_handle_token_request import InitWalletHandleTokenRequest
+from algokit_kmd_client.models._list_keys_request import ListKeysRequest
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.account import SigningAccount
@@ -28,7 +33,7 @@ class KmdAccount(SigningAccount):
 class KmdAccountManager:
     """Provides abstractions over KMD that makes it easier to get and manage accounts."""
 
-    _kmd: KMDClient | None
+    _kmd: KmdClient | None
 
     def __init__(self, client_manager: ClientManager) -> None:
         self._client_manager = client_manager
@@ -37,7 +42,7 @@ class KmdAccountManager:
         except ValueError:
             self._kmd = None
 
-    def kmd(self) -> KMDClient:
+    def kmd(self) -> KmdClient:
         """Returns the KMD client, initializing it if needed.
 
         :raises Exception: If KMD client is not configured and not running against LocalNet
@@ -71,14 +76,16 @@ class KmdAccountManager:
         """
 
         kmd_client = self.kmd()
-        wallets = kmd_client.list_wallets()
-        wallet = next((w for w in wallets if w["name"] == wallet_name), None)
+        wallets = kmd_client.list_wallets().wallets or []
+        wallet = next((w for w in wallets if w.name == wallet_name), None)
         if not wallet:
             return None
 
-        wallet_id = wallet["id"]
-        wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
-        addresses = kmd_client.list_keys(wallet_handle)
+        wallet_id = wallet.id_
+        wallet_handle = kmd_client.init_wallet_handle_token(
+            InitWalletHandleTokenRequest(wallet_id, "")
+        ).wallet_handle_token
+        addresses = kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle)).addresses or []
 
         matched_address = None
         if predicate:
@@ -93,8 +100,11 @@ class KmdAccountManager:
         if not matched_address:
             return None
 
-        private_key = kmd_client.export_key(wallet_handle, "", matched_address)
-        return KmdAccount(private_key=private_key, address=sender)
+        private_key = kmd_client.export_key(ExportKeyRequest(matched_address, wallet_handle, "")).private_key
+        # TODO: Fix auto generation of private key, return type is str but it claims to be bytes
+        if not private_key:
+            raise Exception(f"Error exporting key for address {matched_address} from KMD wallet {wallet_name}")
+        return KmdAccount(private_key=str(private_key), address=sender)
 
     def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> KmdAccount:
         """Gets or creates a funded account in a KMD wallet of the given name.
@@ -112,9 +122,16 @@ class KmdAccountManager:
             return existing
 
         kmd_client = self.kmd()
-        wallet_id = kmd_client.create_wallet(name, "")["id"]
-        wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
-        kmd_client.generate_key(wallet_handle)
+        wallet = kmd_client.create_wallet(
+            CreateWalletRequest(wallet_name=name, wallet_password="", wallet_driver_name=KMD_DEFAULT_WALLET_DRIVER)
+        ).wallet
+        if not wallet:
+            raise Exception(f"Error creating KMD wallet with name {name}")
+        wallet_id = wallet.id_
+        wallet_handle = kmd_client.init_wallet_handle_token(
+            InitWalletHandleTokenRequest(wallet_id, "")
+        ).wallet_handle_token
+        kmd_client.generate_key(GenerateKeyRequest(wallet_handle_token=wallet_handle))
 
         account = self.get_wallet_account(name)
         assert account is not None
