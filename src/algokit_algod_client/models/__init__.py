@@ -48,7 +48,7 @@ from ._get_application_boxes_response_model import GetApplicationBoxesResponseMo
 from ._get_block_hash_response_model import GetBlockHashResponseModel
 from ._get_block_logs_response_model import GetBlockLogsResponseModel
 from ._get_block_time_stamp_offset_response_model import GetBlockTimeStampOffsetResponseModel
-from ._get_block_txids_response_model import GetBlockTxidsResponseModel
+from ._get_block_tx_ids_response_model import GetBlockTxIdsResponseModel
 from ._get_pending_transactions_by_address_response_model import GetPendingTransactionsByAddressResponseModel
 from ._get_pending_transactions_response_model import GetPendingTransactionsResponseModel
 from ._get_status_response_model import GetStatusResponseModel
@@ -75,6 +75,7 @@ from ._simulate_unnamed_resources_accessed import SimulateUnnamedResourcesAccess
 from ._simulation_eval_overrides import SimulationEvalOverrides
 from ._simulation_opcode_trace_unit import SimulationOpcodeTraceUnit
 from ._simulation_transaction_exec_trace import SimulationTransactionExecTrace
+from ._source_map import SourceMap
 from ._start_catchup_response_model import StartCatchupResponseModel
 from ._state_delta import StateDelta
 from ._state_proof import StateProof
@@ -153,7 +154,7 @@ __all__ = [
     "GetBlockHashResponseModel",
     "GetBlockLogsResponseModel",
     "GetBlockTimeStampOffsetResponseModel",
-    "GetBlockTxidsResponseModel",
+    "GetBlockTxIdsResponseModel",
     "GetPendingTransactionsByAddressResponseModel",
     "GetPendingTransactionsResponseModel",
     "GetStatusResponseModel",
@@ -180,6 +181,7 @@ __all__ = [
     "SimulationEvalOverrides",
     "SimulationOpcodeTraceUnit",
     "SimulationTransactionExecTrace",
+    "SourceMap",
     "StartCatchupResponseModel",
     "StateDelta",
     "StateProof",

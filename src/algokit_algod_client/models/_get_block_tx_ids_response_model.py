@@ -7,7 +7,7 @@ from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
-class GetBlockTxidsResponseModel:
-    block_txids: list[str] = field(
-        metadata=wire("blockTxids"),
+class GetBlockTxIdsResponseModel:
+    block_tx_ids: list[str] = field(
+        metadata=wire("block_tx_ids"),
     )

@@ -854,10 +854,10 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block_txids(
+    def get_block_tx_ids(
         self,
         round_: int,
-    ) -> models.GetBlockTxidsResponseModel:
+    ) -> models.GetBlockTxIdsResponseModel:
         """
         Get the top level transaction IDs for the block on the given round.
         """
@@ -880,7 +880,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTxidsResponseModel)
+            return self._decode_response(response, model=models.GetBlockTxIdsResponseModel)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
