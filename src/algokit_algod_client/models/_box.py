@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class Box:
@@ -13,11 +15,19 @@ class Box:
     """
 
     name: bytes = field(
-        metadata=wire("name"),
+        metadata=wire(
+            "name",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     round_: int = field(
         metadata=wire("round"),
     )
     value: bytes = field(
-        metadata=wire("value"),
+        metadata=wire(
+            "value",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

@@ -27,6 +27,7 @@ class TypeInfo:
     list_inner_model: str | None = None
     list_inner_enum: str | None = None
     is_bytes: bool = False
+    list_inner_is_bytes: bool = False
     is_signed_transaction: bool = False
     needs_datetime: bool = False
     imports: set[str] = field(default_factory=set)
@@ -174,6 +175,7 @@ class TypeResolver:
             is_list=True,
             list_inner_model=inner.model,
             list_inner_enum=inner.enum,
+            list_inner_is_bytes=inner.is_bytes,
             is_signed_transaction=inner.is_signed_transaction,
             needs_datetime=inner.needs_datetime,
             imports=set(inner.imports),
@@ -283,6 +285,10 @@ class ModelBuilder:
                 imports.add("from ._serde_helpers import encode_model_mapping, mapping_encoder")
             if "decode_model_mapping" in field.metadata or "mapping_decoder" in field.metadata:
                 imports.add("from ._serde_helpers import decode_model_mapping, mapping_decoder")
+            if "encode_bytes_base64" in field.metadata or "decode_bytes_base64" in field.metadata:
+                imports.add("from ._serde_helpers import decode_bytes_base64, encode_bytes_base64")
+            if "encode_bytes_sequence" in field.metadata or "decode_bytes_sequence" in field.metadata:
+                imports.add("from ._serde_helpers import decode_bytes_sequence, encode_bytes_sequence")
             if "nested(" in field.metadata:
                 uses_nested = True
             if "flatten(" in field.metadata:
@@ -389,6 +395,22 @@ class ModelBuilder:
                 f'            "{alias}",\n'
                 "            encode=encode_enum_sequence,\n"
                 f"            decode=lambda raw: decode_enum_sequence(lambda: {type_info.list_inner_enum}, raw),\n"
+                "        )"
+            )
+        if type_info.is_list and type_info.list_inner_is_bytes:
+            return (
+                "wire(\n"
+                f'            "{alias}",\n'
+                "            encode=encode_bytes_sequence,\n"
+                "            decode=decode_bytes_sequence,\n"
+                "        )"
+            )
+        if type_info.is_bytes:
+            return (
+                "wire(\n"
+                f'            "{alias}",\n'
+                "            encode=encode_bytes_base64,\n"
+                "            decode=decode_bytes_base64,\n"
                 "        )"
             )
         if type_info.is_signed_transaction:

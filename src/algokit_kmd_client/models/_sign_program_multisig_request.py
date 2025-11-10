@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._multisig_sig import MultisigSig
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
@@ -20,7 +21,11 @@ class SignProgramMultisigRequest:
     )
     data: bytes | None = field(
         default=None,
-        metadata=wire("data"),
+        metadata=wire(
+            "data",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     partial_multisig: MultisigSig | None = field(
         default=None,

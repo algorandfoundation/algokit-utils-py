@@ -3,11 +3,11 @@ import time
 
 import typing_extensions
 from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.kmd import KMDClient
 from algosdk.transaction import SuggestedParams
 from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
+from algokit_indexer_client import IndexerClient
+from algokit_kmd_client.client import KmdClient
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
@@ -328,7 +328,7 @@ class AlgorandClient:
 
     @staticmethod
     def from_clients(
-        algod: AlgodClient, indexer: IndexerClient | None = None, kmd: KMDClient | None = None
+        algod: AlgodClient, indexer: IndexerClient | None = None, kmd: KmdClient | None = None
     ) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing to the given client(s).

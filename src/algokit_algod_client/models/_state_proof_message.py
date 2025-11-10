@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class StateProofMessage:
@@ -13,7 +15,11 @@ class StateProofMessage:
     """
 
     block_headers_commitment: bytes = field(
-        metadata=wire("BlockHeadersCommitment"),
+        metadata=wire(
+            "BlockHeadersCommitment",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     first_attested_round: int = field(
         metadata=wire("FirstAttestedRound"),
@@ -25,5 +31,9 @@ class StateProofMessage:
         metadata=wire("LnProvenWeight"),
     )
     voters_commitment: bytes = field(
-        metadata=wire("VotersCommitment"),
+        metadata=wire(
+            "VotersCommitment",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

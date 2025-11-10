@@ -8,7 +8,7 @@ from algokit_common.serde import enum_value, nested, wire
 from ._box_reference import BoxReference
 from ._on_completion import OnCompletion
 from ._resource_ref import ResourceRef
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
 from ._state_schema import StateSchema
 
 
@@ -45,7 +45,11 @@ class TransactionApplication:
     )
     approval_program: bytes | None = field(
         default=None,
-        metadata=wire("approval-program"),
+        metadata=wire(
+            "approval-program",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     box_references: list[BoxReference] | None = field(
         default=None,
@@ -57,7 +61,11 @@ class TransactionApplication:
     )
     clear_state_program: bytes | None = field(
         default=None,
-        metadata=wire("clear-state-program"),
+        metadata=wire(
+            "clear-state-program",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     extra_program_pages: int | None = field(
         default=None,

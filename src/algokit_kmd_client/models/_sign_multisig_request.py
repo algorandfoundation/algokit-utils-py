@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._multisig_sig import MultisigSig
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
@@ -28,7 +29,11 @@ class SignMultisigRequest:
     )
     transaction: bytes | None = field(
         default=None,
-        metadata=wire("transaction"),
+        metadata=wire(
+            "transaction",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     wallet_handle_token: str | None = field(
         default=None,

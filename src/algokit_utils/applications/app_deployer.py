@@ -5,8 +5,8 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 from algosdk.logic import get_application_address
-from algosdk.v2client.indexer import IndexerClient
 
+from algokit_indexer_client import IndexerClient
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.enums import OnSchemaBreak, OnUpdate, OperationPerformed
@@ -708,34 +708,37 @@ class AppDeployer:
         app_lookup: dict[str, ApplicationMetaData] = {}
 
         # Get all apps created by account
-        created_apps = self._indexer.search_applications(creator=creator_address)
+        # TODO: See if empty iterable responses can be changed to empty lists instead of None
+        created_apps = self._indexer.search_for_applications(creator=creator_address).applications or []
 
-        for app in created_apps["applications"]:
-            app_id = app["id"]
+        for app in created_apps:
+            app_id = app.id_
 
             # Get creation transaction
-            creation_txns = self._indexer.search_transactions(
+            creation_txns = self._indexer.search_for_transactions(
                 application_id=app_id,
-                min_round=app["created-at-round"],
+                min_round=app.created_at_round,
                 address=creator_address,
                 address_role="sender",
-                note_prefix=APP_DEPLOY_NOTE_DAPP.encode(),
+                note_prefix=APP_DEPLOY_NOTE_DAPP,
                 limit=1,
-            )
+            ).transactions
 
-            if not creation_txns["transactions"]:
+            if not creation_txns:
                 continue
 
-            creation_txn = creation_txns["transactions"][0]
+            creation_txn = creation_txns[0]
 
             try:
-                note = base64.b64decode(creation_txn["note"]).decode()
+                if not creation_txn.note:
+                    continue
+                note = base64.b64decode(creation_txn.note).decode()
                 if not note.startswith(f"{APP_DEPLOY_NOTE_DAPP}:j"):
                     continue
 
                 metadata = json.loads(note[len(APP_DEPLOY_NOTE_DAPP) + 2 :])
 
-                if metadata.get("name"):
+                if metadata.get("name") and creation_txn.confirmed_round:
                     app_lookup[metadata["name"]] = ApplicationMetaData(
                         reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
                         deploy_metadata=AppDeploymentMetaData(
@@ -744,9 +747,9 @@ class AppDeployer:
                             deletable=metadata.get("deletable"),
                             updatable=metadata.get("updatable"),
                         ),
-                        created_round=creation_txn["confirmed-round"],
-                        updated_round=creation_txn["confirmed-round"],
-                        deleted=app.get("deleted", False),
+                        created_round=creation_txn.confirmed_round,
+                        updated_round=creation_txn.confirmed_round,
+                        deleted=app.deleted if app.deleted is not None else False,
                     )
             except Exception as e:
                 config.logger.warning(

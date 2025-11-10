@@ -8,6 +8,7 @@ from algokit_common.serde import nested, wire
 from ._build_version_contains_the_current_algod_build_version_information import (
     BuildVersionContainsTheCurrentAlgodBuildVersionInformation,
 )
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
@@ -20,7 +21,11 @@ class VersionContainsTheCurrentAlgodVersion:
         metadata=nested("build", lambda: BuildVersionContainsTheCurrentAlgodBuildVersionInformation),
     )
     genesis_hash_b64: bytes = field(
-        metadata=wire("genesis_hash_b64"),
+        metadata=wire(
+            "genesis_hash_b64",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     genesis_id: str = field(
         metadata=wire("genesis_id"),

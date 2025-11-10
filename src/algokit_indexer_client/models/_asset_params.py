@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class AssetParams:
@@ -44,7 +46,11 @@ class AssetParams:
     )
     metadata_hash: bytes | None = field(
         default=None,
-        metadata=wire("metadata-hash"),
+        metadata=wire(
+            "metadata-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     name: str | None = field(
         default=None,
@@ -52,7 +58,11 @@ class AssetParams:
     )
     name_b64: bytes | None = field(
         default=None,
-        metadata=wire("name-b64"),
+        metadata=wire(
+            "name-b64",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     reserve: str | None = field(
         default=None,
@@ -64,7 +74,11 @@ class AssetParams:
     )
     unit_name_b64: bytes | None = field(
         default=None,
-        metadata=wire("unit-name-b64"),
+        metadata=wire(
+            "unit-name-b64",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     url: str | None = field(
         default=None,
@@ -72,5 +86,9 @@ class AssetParams:
     )
     url_b64: bytes | None = field(
         default=None,
-        metadata=wire("url-b64"),
+        metadata=wire(
+            "url-b64",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._merkle_array_proof import MerkleArrayProof
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
 from ._state_proof_reveal import StateProofReveal
 
 
@@ -41,7 +41,11 @@ class StateProofFields:
     )
     sig_commit: bytes | None = field(
         default=None,
-        metadata=wire("sig-commit"),
+        metadata=wire(
+            "sig-commit",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     sig_proofs: MerkleArrayProof | None = field(
         default=None,
