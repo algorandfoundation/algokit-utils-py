@@ -240,7 +240,8 @@ class ModelBuilder:
 
         for prop_name in sorted(properties):
             prop_schema = properties[prop_name] or {}
-            wire_name = prop_schema.get("x-algokit-field-rename") or prop_name
+            wire_name = prop_name
+            python_name_hint = prop_schema.get("x-algokit-field-rename") or prop_name
             type_info = self.resolver.resolve(prop_schema, hint=entry.python_name + self.sanitizer.pascal(prop_name))
             if type_info.is_signed_transaction:
                 self.uses_signed_transaction = True
@@ -250,7 +251,7 @@ class ModelBuilder:
                 annotation = f"{annotation} | None"
             annotation = self._apply_forward_reference_annotation(annotation, entry, type_info)
             field = ctx.ModelField(
-                name=self.sanitizer.snake(wire_name),
+                name=self.sanitizer.snake(python_name_hint),
                 wire_name=wire_name,
                 type_hint=annotation,
                 required=prop_name in required,

@@ -14,7 +14,7 @@ class DryrunSource:
     """
 
     app_id: int = field(
-        metadata=wire("app_id"),
+        metadata=wire("app-index"),
     )
     field_name: str = field(
         metadata=wire("field-name"),

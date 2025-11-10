@@ -10,6 +10,7 @@ from algokit_common.serde import from_wire, to_wire
 
 T = TypeVar("T")
 E = TypeVar("E", bound=Enum)
+KT = TypeVar("KT")
 BytesLike: TypeAlias = bytes | bytearray | memoryview
 
 
@@ -32,7 +33,10 @@ def decode_bytes_base64(raw: object) -> bytes:
         try:
             return base64.b64decode(raw.encode("ascii"), validate=True)
         except (BinasciiError, UnicodeEncodeError) as exc:
-            raise ValueError("Invalid base64 payload") from exc
+            try:
+                return raw.encode("utf-8")
+            except UnicodeEncodeError as fallback_exc:
+                raise ValueError("Invalid base64 payload") from fallback_exc
     raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
 
 
@@ -109,7 +113,10 @@ def decode_enum_sequence(enum_factory: Callable[[], type[E]], raw: object) -> li
 
 
 def encode_model_mapping(
-    factory: Callable[[], type[T]], mapping: Mapping[str, object] | None
+    factory: Callable[[], type[T]],
+    mapping: Mapping[object, object] | None,
+    *,
+    key_encoder: Callable[[object], str] | None = None,
 ) -> dict[str, object] | None:
     if mapping is None:
         return None
@@ -118,35 +125,54 @@ def encode_model_mapping(
     for key, value in mapping.items():
         if value is None:
             continue
-        if isinstance(value, cls) or is_dataclass(value):
-            encoded[str(key)] = to_wire(value)
+        encoded_key: str
+        if key_encoder is not None:
+            encoded_key = key_encoder(key)
+        elif isinstance(key, str):
+            encoded_key = key
         else:
-            encoded[str(key)] = value
+            encoded_key = str(key)
+        if isinstance(value, cls) or is_dataclass(value):
+            encoded[encoded_key] = to_wire(value)
+        else:
+            encoded[encoded_key] = value
     return encoded or None
 
 
-def decode_model_mapping(factory: Callable[[], type[T]], raw: object) -> dict[str, T] | None:
+def decode_model_mapping(
+    factory: Callable[[], type[T]],
+    raw: object,
+    *,
+    key_decoder: Callable[[object], KT] | None = None,
+) -> dict[KT, T] | None:
     if not isinstance(raw, Mapping):
         return None
     cls = factory()
-    decoded: dict[str, T] = {}
+    decoded: dict[KT, T] = {}
     for key, value in raw.items():
         if isinstance(value, Mapping):
-            decoded[str(key)] = from_wire(cls, value)
+            decoded_key = key_decoder(key) if key_decoder is not None else key
+            decoded[decoded_key] = from_wire(cls, value)
     return decoded or None
 
 
 def mapping_encoder(
     factory: Callable[[], type[T]],
-) -> Callable[[Mapping[str, object] | None], dict[str, object] | None]:
-    def _encode(mapping: Mapping[str, object] | None) -> dict[str, object] | None:
-        return encode_model_mapping(factory, mapping)
+    *,
+    key_encoder: Callable[[object], str] | None = None,
+) -> Callable[[Mapping[object, object] | None], dict[str, object] | None]:
+    def _encode(mapping: Mapping[object, object] | None) -> dict[str, object] | None:
+        return encode_model_mapping(factory, mapping, key_encoder=key_encoder)
 
     return _encode
 
 
-def mapping_decoder(factory: Callable[[], type[T]]) -> Callable[[object], dict[str, T] | None]:
-    def _decode(raw: object) -> dict[str, T] | None:
-        return decode_model_mapping(factory, raw)
+def mapping_decoder(
+    factory: Callable[[], type[T]],
+    *,
+    key_decoder: Callable[[object], KT] | None = None,
+) -> Callable[[object], dict[KT, T] | None]:
+    def _decode(raw: object) -> dict[KT, T] | None:
+        return decode_model_mapping(factory, raw, key_decoder=key_decoder)
 
     return _decode

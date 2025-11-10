@@ -264,18 +264,7 @@ class {{ client.class_name }}:
 
     def _normalize_msgpack(self, value: object) -> object:
         if isinstance(value, dict):
-            normalized: dict[object, object] = {}
-            for key, item in value.items():
-                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
-            return normalized
+            return {key: self._normalize_msgpack(item) for key, item in value.items()}
         if isinstance(value, list):
             return [self._normalize_msgpack(item) for item in value]
         return value
-
-    def _ensure_str_key(self, key: object) -> object:
-        if isinstance(key, bytes):
-            try:
-                return key.decode("utf-8")
-            except UnicodeDecodeError:
-                return key
-        return key

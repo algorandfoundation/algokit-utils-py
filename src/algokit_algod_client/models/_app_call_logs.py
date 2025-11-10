@@ -16,7 +16,7 @@ class AppCallLogs:
     """
 
     app_id: int = field(
-        metadata=wire("app_id"),
+        metadata=wire("application-index"),
     )
     logs: list[bytes] = field(
         metadata=wire(

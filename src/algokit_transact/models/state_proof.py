@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import cast
 
@@ -62,11 +62,11 @@ class StateProof:
     sig_proofs: MerkleArrayProof | None = field(default=None, metadata=nested("S", MerkleArrayProof))
     part_proofs: MerkleArrayProof | None = field(default=None, metadata=nested("P", MerkleArrayProof))
     merkle_signature_salt_version: int | None = field(default=None, metadata=wire("v"))
-    reveals: tuple[Reveal, ...] | None = field(
+    reveals: dict[int, Reveal] | None = field(
         default=None,
         metadata=wire(
             "r",
-            encode=lambda obj: _encode_reveals(cast(tuple[Reveal, ...] | None, obj)),
+            encode=lambda obj: _encode_reveals(cast(dict[int, Reveal] | None, obj)),
             decode=lambda obj: _decode_reveals(obj),
         ),
     )
@@ -90,38 +90,64 @@ class StateProofTransactionFields:
     message: StateProofMessage | None = field(default=None, metadata=nested("spmsg", StateProofMessage))
 
 
-def _encode_reveals(seq: tuple[Reveal, ...] | None) -> dict[int, dict[str, object]] | None:
-    match seq:
-        case None | ():
-            return None
-        case _:
-            return {
-                pos if isinstance(pos := to_wire(item).get("pos"), int) else idx: {
-                    k: v for k in ("p", "s") if (v := to_wire(item).get(k)) is not None
-                }
-                for idx, item in enumerate(seq)
-            }
+def _encode_reveals(mapping: Mapping[int, Reveal] | Iterable[Reveal] | None) -> dict[int, dict[str, object]] | None:
+    if mapping is None:
+        return None
+    entries: Iterable[tuple[int, Reveal]]
+    if isinstance(mapping, Mapping):
+        entries = (
+            (_coerce_reveal_position(key, idx), reveal)
+            for idx, (key, reveal) in enumerate(mapping.items())
+        )
+    else:
+        entries = (
+            (_coerce_reveal_position(getattr(reveal, "position", None), idx), reveal)
+            for idx, reveal in enumerate(mapping)
+        )
+    encoded: dict[int, dict[str, object]] = {}
+    for position, reveal in entries:
+        data = to_wire(reveal)
+        payload = {key: value for key in ("p", "s") if (value := data.get(key)) is not None}
+        if payload:
+            encoded[int(position)] = payload
+    return encoded or None
 
 
-def _decode_reveals(obj: object | None) -> tuple[Reveal, ...] | None:
+def _decode_reveals(obj: object | None) -> dict[int, Reveal] | None:
     if obj is None:
         return None
 
     if isinstance(obj, Mapping):
-        # Also support legacy map form: { pos: {p:..., s:...} }
-        return tuple(
-            from_wire(
-                Reveal, {**(v if isinstance(v, Mapping) else {}), "pos": int(k) if isinstance(k, int | str) else 0}
-            )
-            for k, v in obj.items()
-        )
+        decoded: dict[int, Reveal] = {}
+        for key, value in obj.items():
+            if not isinstance(value, Mapping):
+                continue
+            position = _coerce_reveal_position(key, len(decoded))
+            payload = dict(value)
+            payload.setdefault("pos", position)
+            decoded[position] = from_wire(Reveal, payload)
+        return decoded or None
 
     if isinstance(obj, list):
-        return tuple(
-            from_wire(
-                Reveal, {**(v if isinstance(v, Mapping) else {}), "pos": v.get("pos") if isinstance(v, Mapping) else i}
-            )
-            for i, v in enumerate(obj)
-        )
+        decoded_list: dict[int, Reveal] = {}
+        for idx, value in enumerate(obj):
+            if not isinstance(value, Mapping):
+                continue
+            position = _coerce_reveal_position(value.get("pos"), idx)
+            payload = dict(value)
+            payload["pos"] = position
+            decoded_list[position] = from_wire(Reveal, payload)
+        return decoded_list or None
 
     return None
+
+
+def _coerce_reveal_position(raw: object, fallback: int) -> int:
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, str):
+        try:
+            return int(raw)
+        except ValueError:
+            return fallback
+    return fallback

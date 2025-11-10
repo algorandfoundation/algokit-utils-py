@@ -26,7 +26,7 @@ class PendingTransactionResponse:
     )
     app_id: int | None = field(
         default=None,
-        metadata=wire("app_id"),
+        metadata=wire("application-index"),
     )
     asset_closing_amount: int | None = field(
         default=None,
@@ -34,7 +34,7 @@ class PendingTransactionResponse:
     )
     asset_id: int | None = field(
         default=None,
-        metadata=wire("asset_id"),
+        metadata=wire("asset-index"),
     )
     close_rewards: int | None = field(
         default=None,

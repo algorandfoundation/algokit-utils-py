@@ -86,11 +86,11 @@ class Transaction:
     )
     created_app_id: int | None = field(
         default=None,
-        metadata=wire("created_app_id"),
+        metadata=wire("created-application-index"),
     )
     created_asset_id: int | None = field(
         default=None,
-        metadata=wire("created_asset_id"),
+        metadata=wire("created-asset-index"),
     )
     genesis_hash: bytes | None = field(
         default=None,

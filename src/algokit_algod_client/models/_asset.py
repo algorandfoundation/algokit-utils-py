@@ -15,7 +15,7 @@ class Asset:
     """
 
     id_: int = field(
-        metadata=wire("id"),
+        metadata=wire("index"),
     )
     params: AssetParams = field(
         metadata=nested("params", lambda: AssetParams),
