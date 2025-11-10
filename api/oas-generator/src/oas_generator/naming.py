@@ -7,6 +7,7 @@ _NON_WORD = re.compile(r"[^0-9a-zA-Z]+")
 _LOWER_TO_UPPER = re.compile(r"([a-z0-9])([A-Z])")
 _PY_RESERVED = {*keyword.kwlist, *keyword.softkwlist, *dir(builtins), "self", "cls"}
 
+
 @dataclass(slots=True)
 class IdentifierSanitizer:
     """Deterministic naming helper shared across generator stages."""

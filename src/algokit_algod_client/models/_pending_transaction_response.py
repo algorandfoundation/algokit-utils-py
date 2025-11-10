@@ -8,7 +8,7 @@ from algokit_transact.models.signed_transaction import SignedTransaction
 
 from ._account_state_delta import AccountStateDelta
 from ._eval_delta_key_value import EvalDeltaKeyValue
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import decode_bytes_sequence, decode_model_sequence, encode_bytes_sequence, encode_model_sequence
 
 
 @dataclass(slots=True)
@@ -74,7 +74,11 @@ class PendingTransactionResponse:
     )
     logs: list[bytes] | None = field(
         default=None,
-        metadata=wire("logs"),
+        metadata=wire(
+            "logs",
+            encode=encode_bytes_sequence,
+            decode=decode_bytes_sequence,
+        ),
     )
     receiver_rewards: int | None = field(
         default=None,

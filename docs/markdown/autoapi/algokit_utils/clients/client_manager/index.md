@@ -9,7 +9,7 @@
 
 ## Module Contents
 
-### *class* algokit_utils.clients.client_manager.AlgoSdkClients(algod: algosdk.v2client.algod.AlgodClient, indexer: algosdk.v2client.indexer.IndexerClient | None = None, kmd: algosdk.kmd.KMDClient | None = None)
+### *class* algokit_utils.clients.client_manager.AlgoSdkClients(algod: algosdk.v2client.algod.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.KmdClient | None = None)
 
 Container for Algorand SDK client instances.
 
@@ -81,25 +81,25 @@ Returns an algosdk Algod API client.
 * **Returns:**
   Algod client instance
 
-#### *property* indexer *: algosdk.v2client.indexer.IndexerClient*
+#### *property* indexer *: algokit_indexer_client.IndexerClient*
 
-Returns an algosdk Indexer API client.
+Returns an Indexer API client.
 
 * **Raises:**
   **ValueError** – If no Indexer client is configured
 * **Returns:**
   Indexer client instance
 
-#### *property* indexer_if_present *: algosdk.v2client.indexer.IndexerClient | None*
+#### *property* indexer_if_present *: algokit_indexer_client.IndexerClient | None*
 
 Returns the Indexer client if configured, otherwise None.
 
 * **Returns:**
   Indexer client instance or None
 
-#### *property* kmd *: algosdk.kmd.KMDClient*
+#### *property* kmd *: algokit_kmd_client.KmdClient*
 
-Returns an algosdk KMD API client.
+Returns a KMD-compatible API client.
 
 * **Raises:**
   **ValueError** – If no KMD client is configured
@@ -231,7 +231,7 @@ Get an Algod client from environment variables.
 * **Returns:**
   Algod client instance
 
-#### *static* get_kmd_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.kmd.KMDClient
+#### *static* get_kmd_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algokit_kmd_client.KmdClient
 
 Get a KMD client from config or environment.
 
@@ -240,14 +240,14 @@ Get a KMD client from config or environment.
 * **Returns:**
   KMD client instance
 
-#### *static* get_kmd_client_from_environment() → algosdk.kmd.KMDClient
+#### *static* get_kmd_client_from_environment() → algokit_kmd_client.KmdClient
 
 Get a KMD client from environment variables.
 
 * **Returns:**
   KMD client instance
 
-#### *static* get_indexer_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.v2client.indexer.IndexerClient
+#### *static* get_indexer_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algokit_indexer_client.IndexerClient
 
 Get an Indexer client from config or environment.
 
@@ -256,7 +256,7 @@ Get an Indexer client from config or environment.
 * **Returns:**
   Indexer client instance
 
-#### *static* get_indexer_client_from_environment() → algosdk.v2client.indexer.IndexerClient
+#### *static* get_indexer_client_from_environment() → algokit_indexer_client.IndexerClient
 
 Get an Indexer client from environment variables.
 

@@ -7,7 +7,14 @@ from algokit_common.serde import nested, wire
 
 from ._account_state_delta import AccountStateDelta
 from ._eval_delta_key_value import EvalDeltaKeyValue
-from ._serde_helpers import decode_model_sequence, encode_model_sequence
+from ._serde_helpers import (
+    decode_bytes_base64,
+    decode_bytes_sequence,
+    decode_model_sequence,
+    encode_bytes_base64,
+    encode_bytes_sequence,
+    encode_model_sequence,
+)
 from ._transaction_application import TransactionApplication
 from ._transaction_asset_config import TransactionAssetConfig
 from ._transaction_asset_freeze import TransactionAssetFreeze
@@ -87,7 +94,11 @@ class Transaction:
     )
     genesis_hash: bytes | None = field(
         default=None,
-        metadata=wire("genesis-hash"),
+        metadata=wire(
+            "genesis-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     genesis_id: str | None = field(
         default=None,
@@ -103,7 +114,11 @@ class Transaction:
     )
     group: bytes | None = field(
         default=None,
-        metadata=wire("group"),
+        metadata=wire(
+            "group",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     heartbeat_transaction: TransactionHeartbeat | None = field(
         default=None,
@@ -131,7 +146,11 @@ class Transaction:
     )
     lease: bytes | None = field(
         default=None,
-        metadata=wire("lease"),
+        metadata=wire(
+            "lease",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     local_state_delta: list[AccountStateDelta] | None = field(
         default=None,
@@ -143,11 +162,19 @@ class Transaction:
     )
     logs: list[bytes] | None = field(
         default=None,
-        metadata=wire("logs"),
+        metadata=wire(
+            "logs",
+            encode=encode_bytes_sequence,
+            decode=decode_bytes_sequence,
+        ),
     )
     note: bytes | None = field(
         default=None,
-        metadata=wire("note"),
+        metadata=wire(
+            "note",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     payment_transaction: TransactionPayment | None = field(
         default=None,

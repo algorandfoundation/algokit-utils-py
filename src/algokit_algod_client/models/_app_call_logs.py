@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_sequence, encode_bytes_sequence
+
 
 @dataclass(slots=True)
 class AppCallLogs:
@@ -17,7 +19,11 @@ class AppCallLogs:
         metadata=wire("app_id"),
     )
     logs: list[bytes] = field(
-        metadata=wire("logs"),
+        metadata=wire(
+            "logs",
+            encode=encode_bytes_sequence,
+            decode=decode_bytes_sequence,
+        ),
     )
     tx_id: str = field(
         metadata=wire("txId"),

@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._hb_proof_fields import HbProofFields
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
@@ -27,8 +28,16 @@ class TransactionHeartbeat:
         metadata=nested("hb-proof", lambda: HbProofFields),
     )
     hb_seed: bytes = field(
-        metadata=wire("hb-seed"),
+        metadata=wire(
+            "hb-seed",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     hb_vote_id: bytes = field(
-        metadata=wire("hb-vote-id"),
+        metadata=wire(
+            "hb-vote-id",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

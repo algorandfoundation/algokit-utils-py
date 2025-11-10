@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class TransactionParamsResponseModel:
@@ -20,7 +22,11 @@ class TransactionParamsResponseModel:
         metadata=wire("fee"),
     )
     genesis_hash: bytes = field(
-        metadata=wire("genesis-hash"),
+        metadata=wire(
+            "genesis-hash",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     genesis_id: str = field(
         metadata=wire("genesis-id"),

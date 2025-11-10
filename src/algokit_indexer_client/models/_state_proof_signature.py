@@ -6,13 +6,18 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._merkle_array_proof import MerkleArrayProof
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
 class StateProofSignature:
     falcon_signature: bytes | None = field(
         default=None,
-        metadata=wire("falcon-signature"),
+        metadata=wire(
+            "falcon-signature",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     merkle_array_index: int | None = field(
         default=None,
@@ -24,5 +29,9 @@ class StateProofSignature:
     )
     verifying_key: bytes | None = field(
         default=None,
-        metadata=wire("verifying-key"),
+        metadata=wire(
+            "verifying-key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

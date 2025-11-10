@@ -242,7 +242,7 @@ Returns an AlgorandClient pointing at MainNet using AlgoNode.
   algorand = AlgorandClient.mainnet()
   ```
 
-#### *static* from_clients(algod: algosdk.v2client.algod.AlgodClient, indexer: algosdk.v2client.indexer.IndexerClient | None = None, kmd: algosdk.kmd.KMDClient | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
+#### *static* from_clients(algod: algosdk.v2client.algod.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.client.KmdClient | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
 
 Returns an AlgorandClient pointing to the given client(s).
 

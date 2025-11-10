@@ -24,7 +24,7 @@ Provides an account implementation that can be used to sign transactions using k
 
 Provides abstractions over KMD that makes it easier to get and manage accounts.
 
-#### kmd() → algosdk.kmd.KMDClient
+#### kmd() → algokit_kmd_client.client.KmdClient
 
 Returns the KMD client, initializing it if needed.
 
@@ -46,6 +46,8 @@ if no predicate is provided.
   * **sender** – Optional sender address to use this signer for (aka a rekeyed account)
 * **Returns:**
   The signing account or None if no matching wallet or account was found
+* **Raises:**
+  **Exception** – If error received while exporting the private key from KMD
 
 #### get_or_create_wallet_account(name: str, fund_with: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → [KmdAccount](#algokit_utils.accounts.kmd_account_manager.KmdAccount)
 
@@ -58,6 +60,8 @@ Provides idempotent access to accounts from LocalNet without specifying the priv
   * **fund_with** – The number of Algos to fund the account with when created
 * **Returns:**
   An Algorand account with private key loaded
+* **Raises:**
+  **Exception** – If error received while creating the wallet or funding the account
 
 #### get_localnet_dispenser_account() → [KmdAccount](#algokit_utils.accounts.kmd_account_manager.KmdAccount)
 
