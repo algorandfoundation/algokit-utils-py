@@ -11,3 +11,11 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 ### KMD
 
 - algokit-core repo on a branch called feat/account-manager, we had a minor refinement in OAS spec for kmd adding a default value for wallet driver field as well as the generator adjustments to ensure generated model for related endpoint falls back to default 'sqlite' value. Do we want to restore this approach?:
+
+## ABI
+
+- decoding `byte`, `byte[]` and `byte[n]` now results in a python `bytes` type instead of `list[int]`
+- encoding `byte` now accepts `bytes` or `int` types
+- decoding `ufixed` types now returns a `decimal.Decimal` instead of an `int`
+- encoding `ufixed` types now accepts a `decimal.Decimal` or an `int`
+- tuple types decode to `tuple` instead of `list`
