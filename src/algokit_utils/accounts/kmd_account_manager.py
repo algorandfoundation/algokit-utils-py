@@ -74,6 +74,8 @@ class KmdAccountManager:
         :param predicate: Optional filter to use to find the account (otherwise gets a random account from the wallet)
         :param sender: Optional sender address to use this signer for (aka a rekeyed account)
         :return: The signing account or None if no matching wallet or account was found
+
+        :raises Exception: If error received while exporting the private key from KMD
         """
 
         kmd_client = self.kmd()
@@ -115,6 +117,8 @@ class KmdAccountManager:
         :param name: The name of the wallet to retrieve / create
         :param fund_with: The number of Algos to fund the account with when created
         :return: An Algorand account with private key loaded
+
+        :raises Exception: If error received while creating the wallet or funding the account
         """
         fund_with = fund_with or AlgoAmount.from_algo(1000)
 

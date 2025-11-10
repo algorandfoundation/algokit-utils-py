@@ -1,8 +1,8 @@
 repos:
   - repo: local
     hooks:
-      - id: ruff-format
-        name: ruff-format
+      - id: format
+        name: format
         description: "Run 'ruff format' for extremely fast Python formatting"
         entry: uv run ruff format
         language: system
@@ -11,30 +11,20 @@ repos:
         require_serial: true
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
+        pass_filenames: false
         files: "^(src|tests)/"
-      - id: ruff
-        name: ruff
-        description: "Run 'ruff' for extremely fast Python linting"
-        entry: uv run ruff check
-        language: system
-        "types": [python]
-        args: [--fix]
-        require_serial: false
-        additional_dependencies: []
-        minimum_pre_commit_version: "0"
-        files: "^(src|tests)/"
-        exclude: "^tests/artifacts/"
-      - id: mypy
-        name: mypy
-        description: "`mypy` will check Python types for correctness"
-        entry: uv run mypy
+      - id: lint
+        name: lint
+        description: "`mypy` and 'ruff' will check Python types for correctness"
+        entry: uv run poe lint
         language: system
         types_or: [python, pyi]
+        args: []
         require_serial: true
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
+        pass_filenames: false
         files: "^(src|tests)/"
-        exclude: "^tests/artifacts/"
       - id: docstrings-check
         name: docstrings-check
         description: "Check docstrings for correctness"
