@@ -8,9 +8,9 @@ from typing import Callable, TypeAlias, TypeVar
 
 from algokit_common.serde import from_wire, to_wire
 
-T = TypeVar("T")
-E = TypeVar("E", bound=Enum)
-KT = TypeVar("KT")
+DecodedT = TypeVar("DecodedT")
+EnumValueT = TypeVar("EnumValueT", bound=Enum)
+MapKeyT = TypeVar("MapKeyT")
 BytesLike: TypeAlias = bytes | bytearray | memoryview
 
 
@@ -33,11 +33,22 @@ def decode_bytes_base64(raw: object) -> bytes:
         try:
             return base64.b64decode(raw.encode("ascii"), validate=True)
         except (BinasciiError, UnicodeEncodeError) as exc:
+            raise ValueError("Invalid base64 payload") from exc
+    raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
+
+
+def decode_bytes_map_key(raw: object) -> bytes:
+    if isinstance(raw, bytes | bytearray | memoryview):
+        return bytes(raw)
+    if isinstance(raw, str):
+        try:
+            return decode_bytes_base64(raw)
+        except ValueError:
             try:
                 return raw.encode("utf-8")
             except UnicodeEncodeError as fallback_exc:
-                raise ValueError("Invalid base64 payload") from fallback_exc
-    raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
+                raise ValueError("Invalid bytes map key") from fallback_exc
+    raise TypeError(f"Unsupported map key for bytes field: {type(raw)!r}")
 
 
 def encode_bytes_sequence(values: Iterable[BytesLike | None] | None) -> list[str | None] | None:
@@ -77,11 +88,11 @@ def encode_model_sequence(values: Iterable[object] | None) -> list[dict[str, obj
     return encoded or None
 
 
-def decode_model_sequence(cls_factory: Callable[[], type[T]], raw: object) -> list[T] | None:
+def decode_model_sequence(cls_factory: Callable[[], type[DecodedT]], raw: object) -> list[DecodedT] | None:
     if not isinstance(raw, list):
         return None
     cls = cls_factory()
-    decoded: list[T] = []
+    decoded: list[DecodedT] = []
     for item in raw:
         if isinstance(item, Mapping):
             decoded.append(from_wire(cls, item))
@@ -99,11 +110,11 @@ def encode_enum_sequence(values: Iterable[object] | None) -> list[object] | None
     return encoded or None
 
 
-def decode_enum_sequence(enum_factory: Callable[[], type[E]], raw: object) -> list[E] | None:
+def decode_enum_sequence(enum_factory: Callable[[], type[EnumValueT]], raw: object) -> list[EnumValueT] | None:
     if not isinstance(raw, list):
         return None
     enum_cls = enum_factory()
-    decoded: list[E] = []
+    decoded: list[EnumValueT] = []
     for item in raw:
         try:
             decoded.append(enum_cls(item))
@@ -113,7 +124,7 @@ def decode_enum_sequence(enum_factory: Callable[[], type[E]], raw: object) -> li
 
 
 def encode_model_mapping(
-    factory: Callable[[], type[T]],
+    factory: Callable[[], type[DecodedT]],
     mapping: Mapping[object, object] | None,
     *,
     key_encoder: Callable[[object], str] | None = None,
@@ -140,15 +151,15 @@ def encode_model_mapping(
 
 
 def decode_model_mapping(
-    factory: Callable[[], type[T]],
+    factory: Callable[[], type[DecodedT]],
     raw: object,
     *,
-    key_decoder: Callable[[object], KT] | None = None,
-) -> dict[KT, T] | None:
+    key_decoder: Callable[[object], MapKeyT] | None = None,
+) -> dict[MapKeyT, DecodedT] | None:
     if not isinstance(raw, Mapping):
         return None
     cls = factory()
-    decoded: dict[KT, T] = {}
+    decoded: dict[MapKeyT, DecodedT] = {}
     for key, value in raw.items():
         if isinstance(value, Mapping):
             decoded_key = key_decoder(key) if key_decoder is not None else key
@@ -156,8 +167,14 @@ def decode_model_mapping(
     return decoded or None
 
 
+def decode_optional_bool(raw: object) -> bool | None:
+    if raw is None:
+        return None
+    return bool(raw)
+
+
 def mapping_encoder(
-    factory: Callable[[], type[T]],
+    factory: Callable[[], type[DecodedT]],
     *,
     key_encoder: Callable[[object], str] | None = None,
 ) -> Callable[[Mapping[object, object] | None], dict[str, object] | None]:
@@ -168,11 +185,11 @@ def mapping_encoder(
 
 
 def mapping_decoder(
-    factory: Callable[[], type[T]],
+    factory: Callable[[], type[DecodedT]],
     *,
-    key_decoder: Callable[[object], KT] | None = None,
-) -> Callable[[object], dict[KT, T] | None]:
-    def _decode(raw: object) -> dict[KT, T] | None:
+    key_decoder: Callable[[object], MapKeyT] | None = None,
+) -> Callable[[object], dict[MapKeyT, DecodedT] | None]:
+    def _decode(raw: object) -> dict[MapKeyT, DecodedT] | None:
         return decode_model_mapping(factory, raw, key_decoder=key_decoder)
 
     return _decode

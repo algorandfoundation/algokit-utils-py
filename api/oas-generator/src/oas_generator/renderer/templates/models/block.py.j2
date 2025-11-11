@@ -4,13 +4,14 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from algokit_common.serde import flatten, nested, wire
+from algokit_common.serde import flatten, nested, wire, addr
 from algokit_transact.models.signed_transaction import SignedTransaction
 
 from ._serde_helpers import (
-    decode_bytes_base64,
+    decode_bytes_map_key,
     decode_model_mapping,
     decode_model_sequence,
+    decode_optional_bool,
     encode_bytes_base64,
     encode_model_mapping,
     encode_model_sequence,
@@ -64,8 +65,18 @@ def _decode_state_proof_tracking_key(key: object) -> int:
 
 
 def _decode_block_state_delta(raw: object) -> BlockStateDelta | None:
-    decoded = decode_model_mapping(lambda: BlockEvalDelta, raw, key_decoder=decode_bytes_base64)
+    decoded = decode_model_mapping(lambda: BlockEvalDelta, raw, key_decoder=decode_bytes_map_key)
     return decoded or None
+
+
+def _encode_local_delta_index_key(key: object) -> str:
+    if isinstance(key, bool):
+        return str(int(key))
+    if isinstance(key, int):
+        return str(key)
+    if isinstance(key, str):
+        return str(int(key))
+    raise TypeError("Local delta keys must be numeric")
 
 
 def _encode_local_deltas(mapping: Mapping[int, BlockStateDelta] | None) -> dict[str, object] | None:
@@ -75,7 +86,7 @@ def _encode_local_deltas(mapping: Mapping[int, BlockStateDelta] | None) -> dict[
     for key, value in mapping.items():
         encoded = _encode_block_state_delta(value)
         if encoded:
-            out[str(int(key))] = encoded
+            out[_encode_local_delta_index_key(key)] = encoded
     return out or None
 
 
@@ -156,8 +167,8 @@ class SignedTxnInBlock:
     )
     config_asset: int | None = field(default=None, metadata=wire("caid"))
     application_id: int | None = field(default=None, metadata=wire("apid"))
-    has_genesis_id: bool | None = field(default=None, metadata=wire("hgi"))
-    has_genesis_hash: bool | None = field(default=None, metadata=wire("hgh"))
+    has_genesis_id: bool | None = field(default=None, metadata=wire("hgi", decode=decode_optional_bool))
+    has_genesis_hash: bool | None = field(default=None, metadata=wire("hgh", decode=decode_optional_bool))
 
 
 @dataclass(slots=True)
@@ -206,12 +217,12 @@ class Block:
     timestamp: int | None = field(default=None, metadata=wire("ts"))
     genesis_id: str | None = field(default=None, metadata=wire("gen"))
     genesis_hash: bytes | None = field(default=None, metadata=wire("gh"))
-    proposer: bytes | None = field(default=None, metadata=wire("prp"))
+    proposer: bytes | None = field(default=None, metadata=addr("prp"))
     fees_collected: int | None = field(default=None, metadata=wire("fc"))
     bonus: int | None = field(default=None, metadata=wire("bi"))
     proposer_payout: int | None = field(default=None, metadata=wire("pp"))
-    fee_sink: bytes | None = field(default=None, metadata=wire("fees"))
-    rewards_pool: bytes | None = field(default=None, metadata=wire("rwd"))
+    fee_sink: bytes | None = field(default=None, metadata=addr("fees"))
+    rewards_pool: bytes | None = field(default=None, metadata=addr("rwd"))
     rewards_level: int | None = field(default=None, metadata=wire("earn"))
     rewards_rate: int | None = field(default=None, metadata=wire("rate"))
     rewards_residue: int | None = field(default=None, metadata=wire("frac"))

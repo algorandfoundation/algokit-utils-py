@@ -694,4 +694,5 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
+        include_ledger_state_delta_models="LedgerStateDelta" in registry.entries,
     )

@@ -146,3 +146,4 @@ class ClientDescriptor:
     uses_signed_transaction: bool = False
     uses_msgpack: bool = False
     include_block_models: bool = False
+    include_ledger_state_delta_models: bool = False

@@ -96,7 +96,7 @@ def _encode_reveals(mapping: Mapping[int, Reveal] | Iterable[Reveal] | None) -> 
     entries: Iterable[tuple[int, Reveal]]
     if isinstance(mapping, Mapping):
         entries = (
-            (_coerce_reveal_position(key, idx), reveal)
+            (key if isinstance(key, int) else _coerce_reveal_position(key, idx), reveal)
             for idx, (key, reveal) in enumerate(mapping.items())
         )
     else:
@@ -150,4 +150,5 @@ def _coerce_reveal_position(raw: object, fallback: int) -> int:
             return int(raw)
         except ValueError:
             return fallback
+    # Fallback silently to preserve legacy behavior when nodes omit this field.
     return fallback
