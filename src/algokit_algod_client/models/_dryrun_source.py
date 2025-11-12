@@ -13,7 +13,7 @@ class DryrunSource:
     transactions or application state.
     """
 
-    app_index: int = field(
+    app_id: int = field(
         metadata=wire("app-index"),
     )
     field_name: str = field(

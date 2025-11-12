@@ -14,7 +14,7 @@ class Asset:
     Specifies both the unique identifier and the parameters for an asset
     """
 
-    index: int = field(
+    id_: int = field(
         metadata=wire("index"),
     )
     params: AssetParams = field(

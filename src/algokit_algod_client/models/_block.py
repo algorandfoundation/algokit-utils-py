@@ -3,14 +3,17 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
-from algokit_common.serde import flatten, nested, wire
+from algokit_common.serde import addr, flatten, nested, wire
 from algokit_transact.models.signed_transaction import SignedTransaction
 
 from ._serde_helpers import (
+    decode_bytes_map_key,
     decode_model_mapping,
     decode_model_sequence,
+    decode_optional_bool,
+    encode_bytes_base64,
     encode_model_mapping,
     encode_model_sequence,
     mapping_decoder,
@@ -30,41 +33,81 @@ __all__ = [
 ]
 
 
-BlockStateDelta = dict[str, "BlockEvalDelta"]
-BlockStateProofTracking = dict[str, "BlockStateProofTrackingData"]
+BlockStateDelta = dict[bytes, "BlockEvalDelta"]
+BlockStateProofTracking = dict[int, "BlockStateProofTrackingData"]
 
 
 def _encode_block_state_delta(value: BlockStateDelta | None) -> dict[str, object] | None:
     if value is None:
         return None
-    return encode_model_mapping(lambda: BlockEvalDelta, value)
+    return encode_model_mapping(
+        lambda: BlockEvalDelta,
+        cast(Mapping[object, object], value),
+        key_encoder=_encode_state_delta_key,
+    )
+
+
+def _encode_state_delta_key(key: object) -> str:
+    if isinstance(key, bytes):
+        return encode_bytes_base64(key)
+    if isinstance(key, memoryview):
+        return encode_bytes_base64(bytes(key))
+    if isinstance(key, bytearray):
+        return encode_bytes_base64(bytes(key))
+    raise TypeError("State delta keys must be bytes-like")
+
+
+def _decode_state_proof_tracking_key(key: object) -> int:
+    if isinstance(key, int):
+        return key
+    if isinstance(key, str):
+        return int(key)
+    raise TypeError("State proof tracking keys must be numeric")
 
 
 def _decode_block_state_delta(raw: object) -> BlockStateDelta | None:
-    decoded = decode_model_mapping(lambda: BlockEvalDelta, raw)
+    decoded = decode_model_mapping(lambda: BlockEvalDelta, raw, key_decoder=decode_bytes_map_key)
     return decoded or None
 
 
-def _encode_local_deltas(mapping: Mapping[str, BlockStateDelta] | None) -> dict[str, object] | None:
+def _encode_local_delta_index_key(key: object) -> str:
+    if isinstance(key, bool):
+        return str(int(key))
+    if isinstance(key, int):
+        return str(key)
+    if isinstance(key, str):
+        return str(int(key))
+    raise TypeError("Local delta keys must be numeric")
+
+
+def _encode_local_deltas(mapping: Mapping[int, BlockStateDelta] | None) -> dict[str, object] | None:
     if mapping is None:
         return None
     out: dict[str, object] = {}
     for key, value in mapping.items():
-        encoded = encode_model_mapping(lambda: BlockEvalDelta, value)
+        encoded = _encode_block_state_delta(value)
         if encoded:
-            out[str(key)] = encoded
+            out[_encode_local_delta_index_key(key)] = encoded
     return out or None
 
 
-def _decode_local_deltas(raw: object) -> dict[str, BlockStateDelta] | None:
+def _decode_local_deltas(raw: object) -> dict[int, BlockStateDelta] | None:
     if not isinstance(raw, Mapping):
         return None
-    out: dict[str, BlockStateDelta] = {}
+    out: dict[int, BlockStateDelta] = {}
     for key, value in raw.items():
-        decoded = decode_model_mapping(lambda: BlockEvalDelta, value)
+        decoded = _decode_block_state_delta(value)
         if decoded is not None:
-            out[str(key)] = decoded
+            out[_decode_local_delta_index_key(key)] = decoded
     return out or None
+
+
+def _decode_local_delta_index_key(key: object) -> int:
+    if isinstance(key, int):
+        return key
+    if isinstance(key, str):
+        return int(key)
+    raise TypeError("Local delta keys must be numeric")
 
 
 @dataclass(slots=True)
@@ -84,8 +127,8 @@ class BlockAccountStateDelta:
     delta: BlockStateDelta = field(
         metadata=wire(
             "delta",
-            encode=lambda value: encode_model_mapping(lambda: BlockEvalDelta, value),
-            decode=lambda raw: decode_model_mapping(lambda: BlockEvalDelta, raw),
+            encode=_encode_block_state_delta,
+            decode=_decode_block_state_delta,
         )
     )
 
@@ -125,8 +168,8 @@ class SignedTxnInBlock:
     )
     config_asset: int | None = field(default=None, metadata=wire("caid"))
     application_id: int | None = field(default=None, metadata=wire("apid"))
-    has_genesis_id: bool | None = field(default=None, metadata=wire("hgi"))
-    has_genesis_hash: bool | None = field(default=None, metadata=wire("hgh"))
+    has_genesis_id: bool | None = field(default=None, metadata=wire("hgi", decode=decode_optional_bool))
+    has_genesis_hash: bool | None = field(default=None, metadata=wire("hgh", decode=decode_optional_bool))
 
 
 @dataclass(slots=True)
@@ -141,7 +184,7 @@ class BlockAppEvalDelta:
             decode=_decode_block_state_delta,
         ),
     )
-    local_deltas: dict[str, BlockStateDelta] | None = field(
+    local_deltas: dict[int, BlockStateDelta] | None = field(
         default=None,
         metadata=wire(
             "ld",
@@ -175,12 +218,12 @@ class Block:
     timestamp: int | None = field(default=None, metadata=wire("ts"))
     genesis_id: str | None = field(default=None, metadata=wire("gen"))
     genesis_hash: bytes | None = field(default=None, metadata=wire("gh"))
-    proposer: bytes | None = field(default=None, metadata=wire("prp"))
+    proposer: bytes | None = field(default=None, metadata=addr("prp"))
     fees_collected: int | None = field(default=None, metadata=wire("fc"))
     bonus: int | None = field(default=None, metadata=wire("bi"))
     proposer_payout: int | None = field(default=None, metadata=wire("pp"))
-    fee_sink: bytes | None = field(default=None, metadata=wire("fees"))
-    rewards_pool: bytes | None = field(default=None, metadata=wire("rwd"))
+    fee_sink: bytes | None = field(default=None, metadata=addr("fees"))
+    rewards_pool: bytes | None = field(default=None, metadata=addr("rwd"))
     rewards_level: int | None = field(default=None, metadata=wire("earn"))
     rewards_rate: int | None = field(default=None, metadata=wire("rate"))
     rewards_residue: int | None = field(default=None, metadata=wire("frac"))
@@ -199,7 +242,10 @@ class Block:
         metadata=wire(
             "spt",
             encode=mapping_encoder(lambda: BlockStateProofTrackingData),
-            decode=mapping_decoder(lambda: BlockStateProofTrackingData),
+            decode=mapping_decoder(
+                lambda: BlockStateProofTrackingData,
+                key_decoder=_decode_state_proof_tracking_key,
+            ),
         ),
     )
     expired_participation_accounts: list[bytes] | None = field(

@@ -84,11 +84,11 @@ class Transaction:
         default=None,
         metadata=wire("confirmed-round"),
     )
-    created_application_index: int | None = field(
+    created_app_id: int | None = field(
         default=None,
         metadata=wire("created-application-index"),
     )
-    created_asset_index: int | None = field(
+    created_asset_id: int | None = field(
         default=None,
         metadata=wire("created-asset-index"),
     )

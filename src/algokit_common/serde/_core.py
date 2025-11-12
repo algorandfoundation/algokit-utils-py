@@ -1,7 +1,7 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
-from typing import TypeVar, cast
+from typing import TypeVar, cast, get_args, get_origin
 
 from algokit_common import address_from_public_key, public_key_from_address
 from algokit_common.serde._primitives import (
@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 
-T = TypeVar("T")
+DecodedValueT = TypeVar("DecodedValueT")
 
 
 class EncodeError(ValueError):
@@ -46,7 +46,7 @@ def wire(
     alias: str,
     *,
     encode: Callable[..., object] | None = None,
-    decode: Callable[[object], object] | type | None = None,
+    decode: Callable[..., object] | type | None = None,
     omit_if_none: bool = True,
     keep_zero: bool = False,
     keep_false: bool = False,
@@ -69,6 +69,22 @@ def wire(
 
 
 ChildType = type[object] | Callable[[], type[object]] | None
+
+
+def _expects_text_value(type_hint: object) -> bool:
+    if isinstance(type_hint, type) and issubclass(type_hint, Enum):
+        return True
+    if type_hint is str:
+        return True
+    origin = get_origin(type_hint)
+    if origin is None:
+        return False
+    if origin is str:
+        return True
+    if origin in (list, tuple, set, frozenset, dict):
+        return False
+    args = [arg for arg in get_args(type_hint) if arg is not type(None)]
+    return any(_expects_text_value(arg) for arg in args)
 
 
 def flatten(
@@ -104,6 +120,7 @@ class _FieldHandler:
     nested_alias: str | None
     present_if: Callable[[Mapping[str, object]], bool] | None = None
     pass_obj: bool = False
+    expects_text: bool = False
 
 
 class _SerdePlan:
@@ -143,6 +160,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     child_cls=None,
                     nested_alias=None,
                     pass_obj=bool(meta.get("pass_obj", False)),
+                    expects_text=_expects_text_value(f.type),
                 )
             )
         elif kind == "nested":
@@ -306,7 +324,18 @@ def _decode_wire_field(kwargs: dict[str, object], h: _FieldHandler, payload: Map
             raise DecodeError(f"Missing required field {h.name!r} (alias {alias!r})")
         kwargs[h.name] = None
         return
-    kwargs[h.name] = _decode_with_hint(raw, h.decode_fn)
+    value = raw
+    needs_text = bool(
+        h.expects_text and (h.decode_fn is None or (isinstance(h.decode_fn, type) and issubclass(h.decode_fn, Enum)))
+    )
+    if needs_text and isinstance(value, bytes | bytearray | memoryview):
+        raw_bytes = bytes(value)
+        try:
+            value = raw_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            # Some Algorand fields legitimately carry printable data inside binary slots.
+            value = raw_bytes
+    kwargs[h.name] = _decode_with_hint(value, h.decode_fn)
 
 
 def _decode_nested_field(kwargs: dict[str, object], h: _FieldHandler, payload: Mapping[str, object]) -> None:
@@ -374,7 +403,7 @@ def _has_path(source: Mapping[str, object], path: str) -> bool:
     return True
 
 
-def from_wire(cls: type[T], payload: Mapping[str, object]) -> T:
+def from_wire(cls: type[DecodedValueT], payload: Mapping[str, object]) -> DecodedValueT:
     """Decode a wire dict into a dataclass instance using field metadata."""
     plan = _plan_for(cls)
     kwargs: dict[str, object] = {}
@@ -386,7 +415,7 @@ def from_wire(cls: type[T], payload: Mapping[str, object]) -> T:
         elif h.kind == "flatten":
             _decode_flatten_field(kwargs, h, payload)
     try:
-        return cast(T, plan.cls(**kwargs))
+        return cast(DecodedValueT, plan.cls(**kwargs))
     except TypeError as exc:
         raise DecodeError(f"Failed to construct {plan.cls.__name__}: {exc}") from exc
 

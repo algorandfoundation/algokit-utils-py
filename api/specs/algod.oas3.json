@@ -434,9 +434,9 @@
             "description": "Maximum number of results to return.",
             "schema": {
               "type": "integer",
-              "x-algokit-bigint": true
+              "x-go-type": "uint64"
             },
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           {
             "name": "next",
@@ -680,9 +680,9 @@
             "description": "Truncated number of transactions to display. If max=0, returns all pending txns.",
             "schema": {
               "type": "integer",
-              "x-algokit-bigint": true
+              "x-go-type": "uint64"
             },
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           {
             "name": "format",
@@ -886,7 +886,7 @@
       "get": {
         "tags": ["public", "nonparticipating"],
         "summary": "Get the top level transaction IDs for the block on the given round.",
-        "operationId": "GetBlockTxids",
+        "operationId": "GetBlockTxIds",
         "parameters": [
           {
             "name": "round",
@@ -917,7 +917,8 @@
                       "description": "Block transaction IDs.",
                       "items": {
                         "type": "string"
-                      }
+                      },
+                      "x-algokit-field-rename": "block_tx_ids"
                     }
                   }
                 }
@@ -1272,11 +1273,13 @@
                     "online-money": {
                       "type": "integer",
                       "description": "OnlineMoney",
+                      "x-go-type": "uint64",
                       "x-algokit-bigint": true
                     },
                     "total-money": {
                       "type": "integer",
                       "description": "TotalMoney",
+                      "x-go-type": "uint64",
                       "x-algokit-bigint": true
                     }
                   },
@@ -1902,42 +1905,42 @@
                     "catchpoint-total-accounts": {
                       "type": "integer",
                       "description": "The total number of accounts included in the current catchpoint",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-processed-accounts": {
                       "type": "integer",
                       "description": "The number of accounts from the current catchpoint that have been processed so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-verified-accounts": {
                       "type": "integer",
                       "description": "The number of accounts from the current catchpoint that have been verified so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-total-kvs": {
                       "type": "integer",
                       "description": "The total number of key-values (KVs) included in the current catchpoint",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-processed-kvs": {
                       "type": "integer",
                       "description": "The number of key-values (KVs) from the current catchpoint that have been processed so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-verified-kvs": {
                       "type": "integer",
                       "description": "The number of key-values (KVs) from the current catchpoint that have been verified so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-total-blocks": {
                       "type": "integer",
                       "description": "The total number of blocks that are required to complete the current catchpoint catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-acquired-blocks": {
                       "type": "integer",
                       "description": "The number of blocks that have already been obtained by the node as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "upgrade-delay": {
                       "type": "integer",
@@ -2099,42 +2102,42 @@
                     "catchpoint-total-accounts": {
                       "type": "integer",
                       "description": "The total number of accounts included in the current catchpoint",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-processed-accounts": {
                       "type": "integer",
                       "description": "The number of accounts from the current catchpoint that have been processed so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-verified-accounts": {
                       "type": "integer",
                       "description": "The number of accounts from the current catchpoint that have been verified so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-total-kvs": {
                       "type": "integer",
                       "description": "The total number of key-values (KVs) included in the current catchpoint",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-processed-kvs": {
                       "type": "integer",
                       "description": "The number of key-values (KVs) from the current catchpoint that have been processed so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-verified-kvs": {
                       "type": "integer",
                       "description": "The number of key-values (KVs) from the current catchpoint that have been verified so far as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-total-blocks": {
                       "type": "integer",
                       "description": "The total number of blocks that are required to complete the current catchpoint catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "catchpoint-acquired-blocks": {
                       "type": "integer",
                       "description": "The number of blocks that have already been obtained by the node as part of the catchup",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "upgrade-delay": {
                       "type": "integer",
@@ -2423,7 +2426,7 @@
                     "version": {
                       "type": "integer",
                       "description": "The version of this response object.",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     },
                     "last-round": {
                       "type": "integer",
@@ -2528,6 +2531,7 @@
                     "fee": {
                       "type": "integer",
                       "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol.",
+                      "x-go-type": "uint64",
                       "x-algokit-bigint": true
                     },
                     "genesis-hash": {
@@ -2549,6 +2553,7 @@
                     "min-fee": {
                       "type": "integer",
                       "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol.",
+                      "x-go-type": "uint64",
                       "x-algokit-bigint": true
                     }
                   },
@@ -2607,9 +2612,9 @@
             "description": "Truncated number of transactions to display. If max=0, returns all pending txns.",
             "schema": {
               "type": "integer",
-              "x-algokit-bigint": true
+              "x-go-type": "uint64"
             },
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           {
             "name": "format",
@@ -3353,9 +3358,9 @@
             "description": "Max number of box names to return. If max is not set, or max == 0, returns all box-names.",
             "schema": {
               "type": "integer",
-              "x-algokit-bigint": true
+              "x-go-type": "uint64"
             },
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           }
         ],
         "responses": {
@@ -3833,9 +3838,7 @@
                       "description": "base64 encoded program bytes"
                     },
                     "sourcemap": {
-                      "type": "object",
-                      "properties": {},
-                      "description": "JSON of the source map"
+                      "$ref": "#/components/schemas/SourceMap"
                     }
                   }
                 }
@@ -4284,7 +4287,7 @@
                     "offset": {
                       "type": "integer",
                       "description": "Timestamp offset in seconds.",
-                      "x-algokit-bigint": true
+                      "x-go-type": "uint64"
                     }
                   }
                 }
@@ -4323,9 +4326,9 @@
             "schema": {
               "minimum": 0,
               "type": "integer",
-              "x-algokit-bigint": true
+              "x-go-type": "uint64"
             },
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           }
         ],
         "responses": {
@@ -4426,15 +4429,7 @@
       },
       "Genesis": {
         "title": "Genesis File in JSON",
-        "required": [
-          "alloc",
-          "fees",
-          "id",
-          "network",
-          "proto",
-          "rwd",
-          "timestamp"
-        ],
+        "required": ["alloc", "fees", "id", "network", "proto", "rwd"],
         "type": "object",
         "properties": {
           "alloc": {
@@ -4539,18 +4534,14 @@
           },
           "total-apps-opted-in": {
             "type": "integer",
-            "description": "The count of all applications that have been opted in, equivalent to the count of application local data (AppLocalState objects) stored in this account.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "The count of all applications that have been opted in, equivalent to the count of application local data (AppLocalState objects) stored in this account."
           },
           "apps-total-schema": {
             "$ref": "#/components/schemas/ApplicationStateSchema"
           },
           "apps-total-extra-pages": {
             "type": "integer",
-            "description": "\\[teap\\] the sum of all extra application program pages for this account.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "\\[teap\\] the sum of all extra application program pages for this account."
           },
           "assets": {
             "type": "array",
@@ -4561,9 +4552,7 @@
           },
           "total-assets-opted-in": {
             "type": "integer",
-            "description": "The count of all assets that have been opted in, equivalent to the count of AssetHolding objects held by this account.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "The count of all assets that have been opted in, equivalent to the count of AssetHolding objects held by this account."
           },
           "created-apps": {
             "type": "array",
@@ -4574,9 +4563,7 @@
           },
           "total-created-apps": {
             "type": "integer",
-            "description": "The count of all apps (AppParams objects) created by this account.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "The count of all apps (AppParams objects) created by this account."
           },
           "created-assets": {
             "type": "array",
@@ -4587,21 +4574,15 @@
           },
           "total-created-assets": {
             "type": "integer",
-            "description": "The count of all assets (AssetParams objects) created by this account.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "The count of all assets (AssetParams objects) created by this account."
           },
           "total-boxes": {
             "type": "integer",
-            "description": "\\[tbx\\] The number of existing boxes created by this account's app.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "\\[tbx\\] The number of existing boxes created by this account's app."
           },
           "total-box-bytes": {
             "type": "integer",
-            "description": "\\[tbxb\\] The total number of bytes used by this account's app's box keys and values.",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "\\[tbxb\\] The total number of bytes used by this account's app's box keys and values."
           },
           "participation": {
             "$ref": "#/components/schemas/AccountParticipation"
@@ -4701,6 +4682,7 @@
           "vote-key-dilution": {
             "type": "integer",
             "description": "\\[voteKD\\] Number of subkeys in each batch of participation keys.",
+            "x-go-type": "uint64",
             "x-algokit-bigint": true
           },
           "vote-last-valid": {
@@ -4732,6 +4714,7 @@
             "type": "integer",
             "description": "unique asset identifier",
             "x-go-type": "basics.AssetIndex",
+            "x-algokit-field-rename": "id",
             "x-algokit-bigint": true
           },
           "params": {
@@ -4780,9 +4763,7 @@
             "maximum": 19,
             "minimum": 0,
             "type": "integer",
-            "description": "\\[dc\\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive).",
-            "format": "uint64",
-            "x-algokit-bigint": true
+            "description": "\\[dc\\] The number of digits to use after the decimal point when displaying this asset. If 0, the asset is not divisible. If 1, the base unit of the asset is in tenths. If 2, the base unit of the asset is in hundredths, and so on. This value must be between 0 and 19 (inclusive)."
           },
           "default-frozen": {
             "type": "boolean",
@@ -4980,7 +4961,9 @@
         "type": "object",
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+            "format": "byte"
           },
           "value": {
             "$ref": "#/components/schemas/TealValue"
@@ -5072,7 +5055,9 @@
         "type": "object",
         "properties": {
           "key": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+            "format": "byte"
           },
           "value": {
             "$ref": "#/components/schemas/EvalDelta"
@@ -5158,7 +5143,7 @@
           "version": {
             "type": "integer",
             "description": "\\[v\\] the number of updates to the application programs",
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           }
         },
         "description": "Stores the global information associated with an application."
@@ -5348,12 +5333,12 @@
             "type": "string"
           },
           "txn-index": {
-            "type": "integer",
-            "x-algokit-bigint": true
+            "type": "integer"
           },
           "app-index": {
             "type": "integer",
             "x-go-type": "basics.AppIndex",
+            "x-algokit-field-rename": "app_id",
             "x-algokit-bigint": true
           }
         },
@@ -5602,11 +5587,13 @@
           "closing-amount": {
             "type": "integer",
             "description": "Closing amount for the transaction.",
+            "x-go-type": "uint64",
             "x-algokit-bigint": true
           },
           "asset-closing-amount": {
             "type": "integer",
             "description": "The number of the asset's unit that were transferred to the close-to address.",
+            "x-go-type": "uint64",
             "x-algokit-bigint": true
           },
           "confirmed-round": {
@@ -5622,11 +5609,13 @@
           "receiver-rewards": {
             "type": "integer",
             "description": "Rewards in microalgos applied to the receiver account.",
+            "x-go-type": "uint64",
             "x-algokit-bigint": true
           },
           "sender-rewards": {
             "type": "integer",
             "description": "Rewards in microalgos applied to the sender account.",
+            "x-go-type": "uint64",
             "x-algokit-bigint": true
           },
           "local-state-delta": {
@@ -5752,7 +5741,7 @@
           "index": {
             "type": "integer",
             "description": "The index of the light block header in the vector commitment tree",
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           "treedepth": {
             "type": "integer",
@@ -6147,12 +6136,12 @@
           "treedepth": {
             "type": "integer",
             "description": "Represents the depth of the tree that is being proven, i.e. the number of edges from a leaf to the root.",
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           "idx": {
             "type": "integer",
             "description": "Index of the transaction in the block's payset.",
-            "x-algokit-bigint": true
+            "x-go-type": "uint64"
           },
           "hashtype": {
             "type": "string",
@@ -6161,6 +6150,34 @@
           }
         },
         "description": "Proof of transaction in a block."
+      },
+      "SourceMap": {
+        "type": "object",
+        "required": ["version", "sources", "names", "mappings"],
+        "properties": {
+          "version": {
+            "type": "integer"
+          },
+          "sources": {
+            "description": "A list of original sources used by the \"mappings\" entry.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "names": {
+            "description": "A list of symbol names used by the \"mappings\" entry.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mappings": {
+            "description": "A string with the encoded mapping data.",
+            "type": "string"
+          }
+        },
+        "description": "Source map for the program"
       }
     },
     "responses": {
@@ -6175,7 +6192,7 @@
                 "offset": {
                   "type": "integer",
                   "description": "Timestamp offset in seconds.",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 }
               }
             }
@@ -6387,7 +6404,8 @@
                   "description": "Block transaction IDs.",
                   "items": {
                     "type": "string"
-                  }
+                  },
+                  "x-algokit-field-rename": "block_tx_ids"
                 }
               }
             }
@@ -6524,42 +6542,42 @@
                 "catchpoint-total-accounts": {
                   "type": "integer",
                   "description": "The total number of accounts included in the current catchpoint",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-processed-accounts": {
                   "type": "integer",
                   "description": "The number of accounts from the current catchpoint that have been processed so far as part of the catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-verified-accounts": {
                   "type": "integer",
                   "description": "The number of accounts from the current catchpoint that have been verified so far as part of the catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-total-kvs": {
                   "type": "integer",
                   "description": "The total number of key-values (KVs) included in the current catchpoint",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-processed-kvs": {
                   "type": "integer",
                   "description": "The number of key-values (KVs) from the current catchpoint that have been processed so far as part of the catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-verified-kvs": {
                   "type": "integer",
                   "description": "The number of key-values (KVs) from the current catchpoint that have been verified so far as part of the catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-total-blocks": {
                   "type": "integer",
                   "description": "The total number of blocks that are required to complete the current catchpoint catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "catchpoint-acquired-blocks": {
                   "type": "integer",
                   "description": "The number of blocks that have already been obtained by the node as part of the catchup",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "upgrade-delay": {
                   "type": "integer",
@@ -6699,7 +6717,7 @@
                 "version": {
                   "type": "integer",
                   "description": "The version of this response object.",
-                  "x-algokit-bigint": true
+                  "x-go-type": "uint64"
                 },
                 "last-round": {
                   "type": "integer",
@@ -6764,11 +6782,13 @@
                 "online-money": {
                   "type": "integer",
                   "description": "OnlineMoney",
+                  "x-go-type": "uint64",
                   "x-algokit-bigint": true
                 },
                 "total-money": {
                   "type": "integer",
                   "description": "TotalMoney",
+                  "x-go-type": "uint64",
                   "x-algokit-bigint": true
                 }
               },
@@ -6799,6 +6819,7 @@
                 "fee": {
                   "type": "integer",
                   "description": "Fee is the suggested transaction fee\nFee is in units of micro-Algos per byte.\nFee may fall to zero but transactions must still have a fee of\nat least MinTxnFee for the current network protocol.",
+                  "x-go-type": "uint64",
                   "x-algokit-bigint": true
                 },
                 "genesis-hash": {
@@ -6820,6 +6841,7 @@
                 "min-fee": {
                   "type": "integer",
                   "description": "The minimum transaction fee (not per byte) required for the\ntxn to validate for the current network protocol.",
+                  "x-go-type": "uint64",
                   "x-algokit-bigint": true
                 }
               },
@@ -6894,9 +6916,7 @@
                   "description": "base64 encoded program bytes"
                 },
                 "sourcemap": {
-                  "type": "object",
-                  "properties": {},
-                  "description": "JSON of the source map"
+                  "$ref": "#/components/schemas/SourceMap"
                 }
               }
             }
@@ -6996,9 +7016,9 @@
         "description": "Maximum number of results to return.",
         "schema": {
           "type": "integer",
-          "x-algokit-bigint": true
+          "x-go-type": "uint64"
         },
-        "x-algokit-bigint": true
+        "x-go-type": "uint64"
       },
       "max": {
         "name": "max",
@@ -7006,9 +7026,9 @@
         "description": "Truncated number of transactions to display. If max=0, returns all pending txns.",
         "schema": {
           "type": "integer",
-          "x-algokit-bigint": true
+          "x-go-type": "uint64"
         },
-        "x-algokit-bigint": true
+        "x-go-type": "uint64"
       },
       "next": {
         "name": "next",

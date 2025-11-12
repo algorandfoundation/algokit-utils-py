@@ -854,10 +854,10 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block_txids(
+    def get_block_tx_ids(
         self,
         round_: int,
-    ) -> models.GetBlockTxidsResponseModel:
+    ) -> models.GetBlockTxIdsResponseModel:
         """
         Get the top level transaction IDs for the block on the given round.
         """
@@ -880,7 +880,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTxidsResponseModel)
+            return self._decode_response(response, model=models.GetBlockTxIdsResponseModel)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1937,7 +1937,7 @@ class AlgodClient:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=False, strict_map_key=False)
+            data = msgpack.unpackb(response.content, raw=True, strict_map_key=False)
             data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
@@ -1955,13 +1955,13 @@ class AlgodClient:
         if isinstance(value, dict):
             normalized: dict[object, object] = {}
             for key, item in value.items():
-                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+                normalized[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
             return normalized
         if isinstance(value, list):
             return [self._normalize_msgpack(item) for item in value]
         return value
 
-    def _ensure_str_key(self, key: object) -> object:
+    def _coerce_msgpack_key(self, key: object) -> object:
         if isinstance(key, bytes):
             try:
                 return key.decode("utf-8")
