@@ -186,6 +186,11 @@ class LedgerAppParams:
     local_state_schema: LedgerStateSchema = field(metadata=nested("lsch", lambda: LedgerStateSchema))
     global_state_schema: LedgerStateSchema = field(metadata=nested("gsch", lambda: LedgerStateSchema))
     extra_program_pages: int = field(metadata=wire("epp"))
+    version: int | None = field(default=None, metadata=wire("v"))
+    size_sponsor: str | None = field(
+        default=None,
+        metadata=addr("ss"),
+    )
     global_state: dict[bytes, LedgerTealValue] | None = field(
         default=None,
         metadata=wire(
@@ -329,9 +334,9 @@ class LedgerAccountBaseData:
     incentive_eligible: bool = field(metadata=wire("IncentiveEligible"))
     total_app_schema: LedgerStateSchema = field(metadata=nested("TotalAppSchema", lambda: LedgerStateSchema))
     total_extra_app_pages: int = field(metadata=wire("TotalExtraAppPages"))
-    total_app_params: int = field(metadata=wire("TotalLedgerAppParams"))
-    total_app_local_states: int = field(metadata=wire("TotalLedgerAppLocalStates"))
-    total_asset_params: int = field(metadata=wire("TotalLedgerAssetParams"))
+    total_app_params: int = field(metadata=wire("TotalAppParams"))
+    total_app_local_states: int = field(metadata=wire("TotalAppLocalStates"))
+    total_asset_params: int = field(metadata=wire("TotalAssetParams"))
     total_assets: int = field(metadata=wire("TotalAssets"))
     total_boxes: int = field(metadata=wire("TotalBoxes"))
     total_box_bytes: int = field(metadata=wire("TotalBoxBytes"))
