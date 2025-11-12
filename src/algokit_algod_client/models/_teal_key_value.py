@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import nested, wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 from ._teal_value import TealValue
 
 
@@ -14,8 +15,12 @@ class TealKeyValue:
     Represents a key-value pair in an application store.
     """
 
-    key: str = field(
-        metadata=wire("key"),
+    key: bytes = field(
+        metadata=wire(
+            "key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     value: TealValue = field(
         metadata=nested("value", lambda: TealValue),

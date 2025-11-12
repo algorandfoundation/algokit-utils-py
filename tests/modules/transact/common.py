@@ -305,23 +305,24 @@ def _parse_sigslot(payload: Mapping[str, Any] | None) -> SigslotCommit | None:
     )
 
 
-def _parse_reveals(payload: object) -> tuple[Reveal, ...] | None:
+def _parse_reveals(payload: object) -> dict[int, Reveal] | None:
     if not isinstance(payload, list):
         return None
-    reveals: list[Reveal] = []
-    for item in payload:
+    reveals: dict[int, Reveal] = {}
+    for idx, item in enumerate(payload):
         if not isinstance(item, Mapping):
             continue
-        reveals.append(
-            Reveal(
-                participant=_parse_participant(
-                    item.get("participant") if isinstance(item.get("participant"), Mapping) else None
-                ),
-                sigslot=_parse_sigslot(item.get("sigslot") if isinstance(item.get("sigslot"), Mapping) else None),
-                position=_maybe_int(item.get("position", 0)),
-            )
+        position = _maybe_int(item.get("position"))
+        if position is None:
+            position = idx
+        reveals[position] = Reveal(
+            participant=_parse_participant(
+                item.get("participant") if isinstance(item.get("participant"), Mapping) else None
+            ),
+            sigslot=_parse_sigslot(item.get("sigslot") if isinstance(item.get("sigslot"), Mapping) else None),
+            position=position,
         )
-    return tuple(reveals)
+    return reveals or None
 
 
 def _parse_state_proof(payload: Mapping[str, Any] | None) -> StateProof | None:

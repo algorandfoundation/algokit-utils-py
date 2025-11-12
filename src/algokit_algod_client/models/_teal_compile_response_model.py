@@ -3,7 +3,9 @@
 
 from dataclasses import dataclass, field
 
-from algokit_common.serde import wire
+from algokit_common.serde import nested, wire
+
+from ._source_map import SourceMap
 
 
 @dataclass(slots=True)
@@ -14,7 +16,7 @@ class TealCompileResponseModel:
     result: str = field(
         metadata=wire("result"),
     )
-    sourcemap: dict[str, object] | None = field(
+    sourcemap: SourceMap | None = field(
         default=None,
-        metadata=wire("sourcemap"),
+        metadata=nested("sourcemap", lambda: SourceMap),
     )

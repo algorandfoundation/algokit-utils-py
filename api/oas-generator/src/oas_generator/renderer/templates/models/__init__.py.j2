@@ -1,11 +1,14 @@
 
 
 {% if client.uses_signed_transaction %}from algokit_transact.models.signed_transaction import SignedTransaction
-{% endif %}{% for item in model_modules %}from .{{ item.module }} import {{ item.name }}
-{% endfor %}{% for item in enum_modules %}from .{{ item.module }} import {{ item.name }}
+{% endif %}{% for item in model_modules %}{% if not (client.include_ledger_state_delta_models and item.name == "LedgerStateDelta") %}from .{{ item.module }} import {{ item.name }}
+{% endif %}{% endfor %}{% for item in enum_modules %}from .{{ item.module }} import {{ item.name }}
 {% endfor %}{% for item in alias_modules %}from .{{ item.module }} import {{ item.name }}
-{% endfor %}{% if client.include_block_models %}from .block import (
+{% endfor %}{% if client.include_block_models %}from ._block import (
     {{ block_exports | join(',\n    ') }}
+)
+{% endif %}{% if client.include_ledger_state_delta_models %}from ._ledger_state_delta import (
+    {{ ledger_state_delta_exports | join(',\n    ') }}
 )
 {% endif %}
 
@@ -13,4 +16,3 @@ __all__ = [
     {% for name in model_exports %}"{{ name }}",
     {% endfor %}
 ]
-

@@ -33,9 +33,6 @@ class GenesisFileInJson:
     rwd: str = field(
         metadata=wire("rwd"),
     )
-    timestamp: int = field(
-        metadata=wire("timestamp"),
-    )
     comment: str | None = field(
         default=None,
         metadata=wire("comment"),
@@ -43,4 +40,8 @@ class GenesisFileInJson:
     devmode: bool | None = field(
         default=None,
         metadata=wire("devmode"),
+    )
+    timestamp: int | None = field(
+        default=None,
+        metadata=wire("timestamp"),
     )

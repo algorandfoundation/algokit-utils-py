@@ -1223,7 +1223,7 @@ class IndexerClient:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=False, strict_map_key=False)
+            data = msgpack.unpackb(response.content, raw=True, strict_map_key=False)
             data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
@@ -1241,13 +1241,13 @@ class IndexerClient:
         if isinstance(value, dict):
             normalized: dict[object, object] = {}
             for key, item in value.items():
-                normalized[self._ensure_str_key(key)] = self._normalize_msgpack(item)
+                normalized[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
             return normalized
         if isinstance(value, list):
             return [self._normalize_msgpack(item) for item in value]
         return value
 
-    def _ensure_str_key(self, key: object) -> object:
+    def _coerce_msgpack_key(self, key: object) -> object:
         if isinstance(key, bytes):
             try:
                 return key.decode("utf-8")
