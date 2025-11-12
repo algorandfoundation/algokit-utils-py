@@ -46,7 +46,7 @@ def wire(
     alias: str,
     *,
     encode: Callable[..., object] | None = None,
-    decode: Callable[[object], object] | type | None = None,
+    decode: Callable[..., object] | type | None = None,
     omit_if_none: bool = True,
     keep_zero: bool = False,
     keep_false: bool = False,
@@ -329,7 +329,7 @@ def _decode_wire_field(kwargs: dict[str, object], h: _FieldHandler, payload: Map
         h.expects_text and (h.decode_fn is None or (isinstance(h.decode_fn, type) and issubclass(h.decode_fn, Enum)))
     )
     if needs_text and isinstance(value, bytes | bytearray | memoryview):
-        raw_bytes = bytes(cast(bytes | bytearray | memoryview, value))
+        raw_bytes = bytes(value)
         try:
             value = raw_bytes.decode("utf-8")
         except UnicodeDecodeError:
