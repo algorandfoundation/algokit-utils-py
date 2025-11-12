@@ -235,6 +235,11 @@ sequence = [
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+    "group_transaction_tests",
+    "group_transaction_group_tests",
+    "group_generic_transaction_tests",
+]
 addopts = "-n auto"
 norecursedirs = [
   "src",
