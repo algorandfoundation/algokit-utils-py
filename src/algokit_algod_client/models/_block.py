@@ -3,7 +3,7 @@
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Any, cast
+from typing import cast
 
 from algokit_common.serde import addr, flatten, nested, wire
 from algokit_transact.models.signed_transaction import SignedTransaction
@@ -156,7 +156,6 @@ class SignedTxnInBlock:
     """Signed transaction details with block-specific apply data."""
 
     signed_transaction: SignedTransaction = field(metadata=flatten(lambda: SignedTransaction))
-    logic_signature: dict[str, Any] | None = field(default=None, metadata=wire("lsig"))
     closing_amount: int | None = field(default=None, metadata=wire("ca"))
     asset_closing_amount: int | None = field(default=None, metadata=wire("aca"))
     sender_rewards: int | None = field(default=None, metadata=wire("rs"))
