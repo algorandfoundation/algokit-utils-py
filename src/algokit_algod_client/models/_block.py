@@ -21,6 +21,7 @@ from ._serde_helpers import (
 )
 
 __all__ = [
+    "ApplyData",
     "Block",
     "BlockAccountStateDelta",
     "BlockAppEvalDelta",
@@ -30,6 +31,7 @@ __all__ = [
     "BlockStateProofTrackingData",
     "GetBlock",
     "SignedTxnInBlock",
+    "SignedTxnWithAD",
 ]
 
 
@@ -152,10 +154,9 @@ class BlockStateProofTrackingData:
 
 
 @dataclass(slots=True)
-class SignedTxnInBlock:
-    """Signed transaction details with block-specific apply data."""
+class ApplyData:
+    """Transaction execution apply data containing state changes and rewards."""
 
-    signed_transaction: SignedTransaction = field(metadata=flatten(lambda: SignedTransaction))
     closing_amount: int | None = field(default=None, metadata=wire("ca"))
     asset_closing_amount: int | None = field(default=None, metadata=wire("aca"))
     sender_rewards: int | None = field(default=None, metadata=wire("rs"))
@@ -167,6 +168,21 @@ class SignedTxnInBlock:
     )
     config_asset: int | None = field(default=None, metadata=wire("caid"))
     application_id: int | None = field(default=None, metadata=wire("apid"))
+
+
+@dataclass(slots=True)
+class SignedTxnWithAD:
+    """Signed transaction with associated apply data."""
+
+    signed_transaction: SignedTransaction = field(metadata=flatten(lambda: SignedTransaction))
+    apply_data: ApplyData = field(metadata=flatten(lambda: ApplyData))
+
+
+@dataclass(slots=True)
+class SignedTxnInBlock:
+    """Signed transaction details with block-specific apply data."""
+
+    signed_transaction: SignedTxnWithAD = field(metadata=flatten(lambda: SignedTxnWithAD))
     has_genesis_id: bool | None = field(default=None, metadata=wire("hgi", decode=decode_optional_bool))
     has_genesis_hash: bool | None = field(default=None, metadata=wire("hgh", decode=decode_optional_bool))
 

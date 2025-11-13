@@ -1,6 +1,7 @@
 # AUTO-GENERATED: oas_generator
 
 from collections.abc import Callable, Mapping
+from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import TypeVar, cast
 
@@ -76,8 +77,7 @@ def _encode_teal_value_map(mapping: Mapping[bytes, "LedgerTealValue"] | None) ->
 
 
 def _decode_teal_value_map(raw: object) -> dict[bytes, "LedgerTealValue"] | None:
-    decoded = decode_model_mapping(lambda: LedgerTealValue, raw, key_decoder=_decode_bytes_key)
-    return decoded or None
+    return decode_model_mapping(lambda: LedgerTealValue, raw, key_decoder=_decode_bytes_key)
 
 
 def _encode_kv_delta_map(mapping: Mapping[bytes, "LedgerKvValueDelta"] | None) -> dict[str, object] | None:
@@ -91,8 +91,7 @@ def _encode_kv_delta_map(mapping: Mapping[bytes, "LedgerKvValueDelta"] | None) -
 
 
 def _decode_kv_delta_map(raw: object) -> dict[bytes, "LedgerKvValueDelta"] | None:
-    decoded = decode_model_mapping(lambda: LedgerKvValueDelta, raw, key_decoder=_decode_bytes_key)
-    return decoded or None
+    return decode_model_mapping(lambda: LedgerKvValueDelta, raw, key_decoder=_decode_bytes_key)
 
 
 def _encode_txid_map(mapping: Mapping[bytes, "LedgerIncludedTransactions"] | None) -> dict[str, object] | None:
@@ -106,19 +105,14 @@ def _encode_txid_map(mapping: Mapping[bytes, "LedgerIncludedTransactions"] | Non
 
 
 def _decode_txid_map(raw: object) -> dict[bytes, "LedgerIncludedTransactions"] | None:
-    decoded = decode_model_mapping(lambda: LedgerIncludedTransactions, raw, key_decoder=_decode_bytes_key)
-    return decoded or None
+    return decode_model_mapping(lambda: LedgerIncludedTransactions, raw, key_decoder=_decode_bytes_key)
 
 
 def _encode_creatables(mapping: Mapping[int, "LedgerModifiedCreatable | None"] | None) -> dict[int, object] | None:
     if not mapping:
         return None
-    encoded: dict[int, object] = {}
-    for key, value in mapping.items():
-        if value is None:
-            continue
-        encoded[int(key)] = to_wire(value)
-    return encoded or None
+    encoded: dict[int, object] = {int(k): to_wire(v) for k, v in mapping.items() if v is not None}
+    return encoded if encoded else None
 
 
 def _decode_creatables(raw: object) -> dict[int, "LedgerModifiedCreatable"] | None:
@@ -126,25 +120,43 @@ def _decode_creatables(raw: object) -> dict[int, "LedgerModifiedCreatable"] | No
         return None
     decoded: dict[int, LedgerModifiedCreatable] = {}
     for key, value in raw.items():
-        if not isinstance(value, Mapping):
-            continue
-        try:
-            decoded[int(key)] = from_wire(LedgerModifiedCreatable, value)
-        except (DecodeError, TypeError, ValueError):
-            continue
-    return decoded or None
+        if isinstance(value, Mapping):
+            with suppress(DecodeError, TypeError, ValueError):
+                decoded[int(key)] = from_wire(LedgerModifiedCreatable, value)
+    return decoded if decoded else None
+
+
+def _decode_tx_leases(raw: object) -> list[tuple[dict[bytes, bytes], int]] | None:
+    """Decode txleases from dict with tuple keys to list of pairs (Option 4).
+
+    Converts dict structure {('__dict_key__', ((b'Lease', ...), (b'Sender', ...))): expiration}
+    to list of pairs [({b'Lease': ..., b'Sender': ...}, expiration), ...]
+    """
+    if not isinstance(raw, Mapping):
+        return None
+    _tuple_len = 2
+    result: list[tuple[dict[bytes, bytes], int]] = []
+    for key, expiration in raw.items():
+        if (
+            isinstance(key, tuple)
+            and len(key) == _tuple_len
+            and key[0] == "__dict_key__"
+            and isinstance(key[1], tuple)
+            and len(key[1]) == _tuple_len
+        ):
+            # Reconstruct dict from tuple: key[1] is ((b'Lease', ...), (b'Sender', ...))
+            key_dict = dict(key[1])
+            if isinstance(expiration, int):
+                result.append((key_dict, expiration))
+    return result if result else None
 
 
 def _encode_optional_sequence(values: list[object] | None) -> list[dict[str, object]] | None:
-    if values is None:
-        return None
-    encoded = encode_model_sequence(values)
-    return encoded or None
+    return encode_model_sequence(values) if values is not None else None
 
 
 def _decode_sequence(factory: Callable[[], type[DecodedT]], raw: object) -> list[DecodedT]:
-    decoded = decode_model_sequence(factory, raw)
-    return decoded or []
+    return decode_model_sequence(factory, raw) or []
 
 
 @dataclass(slots=True)
@@ -185,7 +197,7 @@ class LedgerAppParams:
     )
     local_state_schema: LedgerStateSchema = field(metadata=nested("lsch", lambda: LedgerStateSchema))
     global_state_schema: LedgerStateSchema = field(metadata=nested("gsch", lambda: LedgerStateSchema))
-    extra_program_pages: int = field(metadata=wire("epp"))
+    extra_program_pages: int = field(default=0, metadata=wire("epp"))
     version: int | None = field(default=None, metadata=wire("v"))
     size_sponsor: str | None = field(
         default=None,
@@ -244,8 +256,8 @@ class LedgerAppResourceRecord:
 
 @dataclass(slots=True)
 class LedgerAssetHolding:
-    amount: int = field(metadata=wire("a"))
-    frozen: bool = field(metadata=wire("f"))
+    amount: int = field(default=0, metadata=wire("a"))
+    frozen: bool = field(default=False, metadata=wire("f"))
 
 
 @dataclass(slots=True)
@@ -259,9 +271,9 @@ class LedgerAssetHoldingDelta:
 
 @dataclass(slots=True)
 class LedgerAssetParams:
-    total: int = field(metadata=wire("t"))
-    decimals: int = field(metadata=wire("dc"))
-    default_frozen: bool = field(metadata=wire("df"))
+    total: int = field(default=0, metadata=wire("t"))
+    decimals: int = field(default=0, metadata=wire("dc"))
+    default_frozen: bool = field(default=False, metadata=wire("df"))
     unit_name: str | None = field(default=None, metadata=wire("un"))
     asset_name: str | None = field(default=None, metadata=wire("an"))
     url: str | None = field(default=None, metadata=wire("au"))
@@ -415,7 +427,7 @@ class LedgerModifiedCreatable:
     creatable_type: int = field(metadata=wire("Ctype"))
     created: bool = field(metadata=wire("Created"))
     creator: str = field(metadata=addr("Creator"))
-    ndeltas: int = field(metadata=wire("Ndeltas"))
+    n_deltas: int = field(metadata=wire("Ndeltas"))
 
 
 @dataclass(slots=True)
@@ -447,7 +459,7 @@ class LedgerStateDelta:
             decode=_decode_kv_delta_map,
         ),
     )
-    txids: dict[bytes, LedgerIncludedTransactions] | None = field(
+    tx_ids: dict[bytes, LedgerIncludedTransactions] | None = field(
         default=None,
         metadata=wire(
             "Txids",
@@ -455,7 +467,27 @@ class LedgerStateDelta:
             decode=_decode_txid_map,
         ),
     )
-    txleases: object | None = field(default=None, metadata=wire("Txleases"))
+    tx_leases: list[tuple[dict[bytes, bytes], int]] | None = field(
+        default=None,
+        metadata=wire("Txleases", decode=_decode_tx_leases),
+    )
+    """Transaction leases as list of pairs (key dict, expiration round).
+
+    This field contains a list of tuples where each tuple is:
+    (key_dict, expiration_round)
+
+    The key_dict is a dict with keys:
+    - b'Lease': bytes (32-byte lease identifier)
+    - b'Sender': bytes (32-byte sender address)
+
+    Example::
+        delta = client.get_ledger_state_delta(round_=24098947)
+        if delta.tx_leases:
+            for key_dict, expiration in delta.tx_leases:
+                lease_bytes = key_dict[b'Lease']
+                sender_bytes = key_dict[b'Sender']
+                print(f"Lease: {lease_bytes.hex()}, expires at round {expiration}")
+    """
     creatables: dict[int, LedgerModifiedCreatable] | None = field(
         default=None,
         metadata=wire(

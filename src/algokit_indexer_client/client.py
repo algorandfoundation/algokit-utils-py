@@ -19,6 +19,14 @@ ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
 PrimitiveT = TypeVar("PrimitiveT")
 
+# Prefixed markers used when converting unhashable msgpack map keys into hashable tuples
+_UNHASHABLE_PREFIXES: dict[str, str] = {
+    "dict": "__dict_key__",
+    "list": "__list_key__",
+    "set": "__set_key__",
+    "generic": "__unhashable__",
+}
+
 
 class IndexerClient:
     def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
@@ -1223,7 +1231,22 @@ class IndexerClient:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=True, strict_map_key=False)
+            # Handle msgpack unpacking with support for unhashable keys
+            # Use Unpacker for more control over the unpacking process
+            unpacker = msgpack.Unpacker(
+                raw=True,
+                strict_map_key=False,
+                object_pairs_hook=self._msgpack_pairs_hook,
+            )
+            unpacker.feed(response.content)
+            try:
+                data = unpacker.unpack()
+            except TypeError:
+                # If unpacking fails due to unhashable keys, try without the hook
+                # and handle in normalization
+                unpacker = msgpack.Unpacker(raw=True, strict_map_key=False)
+                unpacker.feed(response.content)
+                data = unpacker.unpack()
             data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
@@ -1238,11 +1261,36 @@ class IndexerClient:
         return data
 
     def _normalize_msgpack(self, value: object) -> object:
+        # Handle pairs returned from msgpack_pairs_hook when keys are unhashable
+        _pair_length = 2
+        if isinstance(value, list) and value and isinstance(value[0], tuple | list) and len(value[0]) == _pair_length:
+            # Convert to dict with normalized keys
+            pairs_dict: dict[object, object] = {}
+            for pair in value:
+                if isinstance(pair, tuple | list) and len(pair) == _pair_length:
+                    k, v = pair
+                    # For unhashable keys (like dict keys), use a tuple representation
+                    try:
+                        normalized_key = self._coerce_msgpack_key(k)
+                        pairs_dict[normalized_key] = self._normalize_msgpack(v)
+                    except TypeError:
+                        # Key is unhashable - use tuple representation
+                        normalized_key = ("__unhashable__", id(k), str(k))
+                        pairs_dict[normalized_key] = self._normalize_msgpack(v)
+            return pairs_dict
         if isinstance(value, dict):
-            normalized: dict[object, object] = {}
-            for key, item in value.items():
-                normalized[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
-            return normalized
+            # Safely normalize maps: coerce string/bytes keys, but tolerate complex/unhashable keys
+            try:
+                normalized_dict: dict[object, object] = {}
+                for key, item in value.items():
+                    normalized_dict[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
+                return normalized_dict
+            except TypeError:
+                # Some maps can decode to object/dict keys; keep original keys and
+                # only normalize values to avoid "unhashable type: 'dict'" errors.
+                for k, item in list(value.items()):
+                    value[k] = self._normalize_msgpack(item)
+                return value
         if isinstance(value, list):
             return [self._normalize_msgpack(item) for item in value]
         return value
@@ -1254,3 +1302,36 @@ class IndexerClient:
             except UnicodeDecodeError:
                 return key
         return key
+
+    def _msgpack_pairs_hook(self, pairs: list[tuple[object, object]] | list[list[object]]) -> dict[object, object]:
+        # Convert pairs to dict, handling unhashable keys by converting them to hashable tuples
+        out: dict[object, object] = {}
+        _hashable_type_tuple = (str, int, float, bool, type(None), bytes)
+
+        for k, v in pairs:
+            if isinstance(k, dict | list | set):
+                # Convert unhashable key to hashable tuple
+                hashable_key: tuple[str, object]
+                if isinstance(k, dict):
+                    try:
+                        hashable_key = (_UNHASHABLE_PREFIXES["dict"], tuple(sorted(k.items())))
+                    except TypeError:
+                        hashable_key = (_UNHASHABLE_PREFIXES["dict"], str(k))
+                elif isinstance(k, list):
+                    prefix = _UNHASHABLE_PREFIXES["list"]
+                    hashable_key = (prefix, tuple(k) if all(isinstance(x, _hashable_type_tuple) for x in k) else str(k))
+                else:  # set
+                    prefix = _UNHASHABLE_PREFIXES["set"]
+                    if all(isinstance(x, _hashable_type_tuple) for x in k):
+                        hashable_key = (prefix, tuple(sorted(k)))
+                    else:
+                        hashable_key = (prefix, str(k))
+                out[hashable_key] = v
+            else:
+                # Key should be hashable, use as-is
+                try:
+                    out[k] = v
+                except TypeError:
+                    # Unexpected unhashable type, convert to tuple
+                    out[(_UNHASHABLE_PREFIXES["generic"], str(type(k).__name__), str(k))] = v
+        return out
