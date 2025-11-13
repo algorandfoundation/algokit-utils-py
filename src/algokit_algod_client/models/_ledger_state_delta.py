@@ -126,31 +126,6 @@ def _decode_creatables(raw: object) -> dict[int, "LedgerModifiedCreatable"] | No
     return decoded if decoded else None
 
 
-def _decode_tx_leases(raw: object) -> list[tuple[dict[bytes, bytes], int]] | None:
-    """Decode txleases from dict with tuple keys to list of pairs (Option 4).
-
-    Converts dict structure {('__dict_key__', ((b'Lease', ...), (b'Sender', ...))): expiration}
-    to list of pairs [({b'Lease': ..., b'Sender': ...}, expiration), ...]
-    """
-    if not isinstance(raw, Mapping):
-        return None
-    _tuple_len = 2
-    result: list[tuple[dict[bytes, bytes], int]] = []
-    for key, expiration in raw.items():
-        if (
-            isinstance(key, tuple)
-            and len(key) == _tuple_len
-            and key[0] == "__dict_key__"
-            and isinstance(key[1], tuple)
-            and len(key[1]) == _tuple_len
-        ):
-            # Reconstruct dict from tuple: key[1] is ((b'Lease', ...), (b'Sender', ...))
-            key_dict = dict(key[1])
-            if isinstance(expiration, int):
-                result.append((key_dict, expiration))
-    return result if result else None
-
-
 def _encode_optional_sequence(values: list[object] | None) -> list[dict[str, object]] | None:
     return encode_model_sequence(values) if values is not None else None
 
@@ -467,27 +442,6 @@ class LedgerStateDelta:
             decode=_decode_txid_map,
         ),
     )
-    tx_leases: list[tuple[dict[bytes, bytes], int]] | None = field(
-        default=None,
-        metadata=wire("Txleases", decode=_decode_tx_leases),
-    )
-    """Transaction leases as list of pairs (key dict, expiration round).
-
-    This field contains a list of tuples where each tuple is:
-    (key_dict, expiration_round)
-
-    The key_dict is a dict with keys:
-    - b'Lease': bytes (32-byte lease identifier)
-    - b'Sender': bytes (32-byte sender address)
-
-    Example::
-        delta = client.get_ledger_state_delta(round_=24098947)
-        if delta.tx_leases:
-            for key_dict, expiration in delta.tx_leases:
-                lease_bytes = key_dict[b'Lease']
-                sender_bytes = key_dict[b'Sender']
-                print(f"Lease: {lease_bytes.hex()}, expires at round {expiration}")
-    """
     creatables: dict[int, LedgerModifiedCreatable] | None = field(
         default=None,
         metadata=wire(
