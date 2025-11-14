@@ -22,7 +22,11 @@ def descriptor_literal(descriptor: object, indent: int = 0) -> str:
     if descriptor is None:
         return "{}"
     fields: dict[str, Any] = {}
-    for key in ("is_binary", "model", "list_model", "enum", "list_enum"):
+    bool_fields = ("is_binary", "is_raw_msgpack")
+    for key in bool_fields:
+        if getattr(descriptor, key, False):
+            fields[key] = True
+    for key in ("model", "list_model", "enum", "list_enum"):
         value = getattr(descriptor, key, None)
         if value is not None:
             fields[key] = value
@@ -41,15 +45,25 @@ def response_decode_arguments(descriptor: object, indent: int = 0) -> str:
     model = getattr(descriptor, "model", None) or getattr(descriptor, "enum", None)
     list_model = getattr(descriptor, "list_model", None) or getattr(descriptor, "list_enum", None)
     is_binary = bool(getattr(descriptor, "is_binary", False))
+    raw_msgpack = bool(getattr(descriptor, "is_raw_msgpack", False))
     type_hint = getattr(descriptor, "type_hint", None)
     parts: list[str] = []
     if is_binary:
         parts.append("is_binary=True")
+    if raw_msgpack:
+        parts.append("raw_msgpack=True")
     if model:
         parts.append(f"model=models.{model}")
     if list_model:
         parts.append(f"list_model=models.{list_model}")
-    if not model and not list_model and not is_binary and type_hint and type_hint != "object":
+    if (
+        not model
+        and not list_model
+        and not is_binary
+        and not raw_msgpack
+        and type_hint
+        and type_hint != "object"
+    ):
         parts.append(f"type_={type_hint}")
     if not parts:
         return ""
