@@ -1181,6 +1181,7 @@ class IndexerClient:
         *,
         model: type[ModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> ModelT: ...
 
     @overload
@@ -1190,6 +1191,7 @@ class IndexerClient:
         *,
         list_model: type[ListModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> list[ListModelT]: ...
 
     @overload
@@ -1199,6 +1201,7 @@ class IndexerClient:
         *,
         type_: type[PrimitiveT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> PrimitiveT: ...
 
     @overload
@@ -1207,6 +1210,15 @@ class IndexerClient:
         response: httpx.Response,
         *,
         is_binary: Literal[True],
+        raw_msgpack: bool = False,
+    ) -> bytes: ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        raw_msgpack: Literal[True],
     ) -> bytes: ...
 
     @overload
@@ -1216,6 +1228,7 @@ class IndexerClient:
         *,
         type_: None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object: ...
 
     def _decode_response(
@@ -1226,8 +1239,9 @@ class IndexerClient:
         list_model: type[Any] | None = None,
         type_: type[Any] | None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object:
-        if is_binary:
+        if is_binary or raw_msgpack:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:

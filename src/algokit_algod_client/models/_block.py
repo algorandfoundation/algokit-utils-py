@@ -30,6 +30,7 @@ __all__ = [
     "BlockStateProofTracking",
     "BlockStateProofTrackingData",
     "GetBlock",
+    "ParticipationUpdates",
     "SignedTxnInBlock",
     "SignedTxnWithAD",
 ]
@@ -179,6 +180,20 @@ class SignedTxnWithAD:
 
 
 @dataclass(slots=True)
+class ParticipationUpdates:
+    """Participation account updates embedded in a block."""
+
+    expired_participation_accounts: list[bytes] | None = field(
+        default=None,
+        metadata=wire("partupdrmv"),
+    )
+    absent_participation_accounts: list[bytes] | None = field(
+        default=None,
+        metadata=wire("partupdabs"),
+    )
+
+
+@dataclass(slots=True)
 class SignedTxnInBlock:
     """Signed transaction details with block-specific apply data."""
 
@@ -263,13 +278,9 @@ class Block:
             ),
         ),
     )
-    expired_participation_accounts: list[bytes] | None = field(
+    participation_updates: ParticipationUpdates | None = field(
         default=None,
-        metadata=wire("partupdrmv"),
-    )
-    absent_participation_accounts: list[bytes] | None = field(
-        default=None,
-        metadata=wire("partupdabs"),
+        metadata=flatten(lambda: ParticipationUpdates),
     )
     transactions: list[SignedTxnInBlock] | None = field(
         default=None,

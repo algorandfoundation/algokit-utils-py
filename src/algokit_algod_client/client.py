@@ -922,7 +922,7 @@ class AlgodClient:
     def get_ledger_state_delta(
         self,
         round_: int,
-    ) -> models.LedgerStateDelta:
+    ) -> bytes:
         """
         Get a LedgerStateDelta object for a given round
         """
@@ -949,14 +949,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LedgerStateDelta)
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta_for_transaction_group(
         self,
         id_: str,
-    ) -> models.LedgerStateDelta:
+    ) -> bytes:
         """
         Get a LedgerStateDelta object for a given transaction group
         """
@@ -983,7 +983,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LedgerStateDelta)
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1231,7 +1231,7 @@ class AlgodClient:
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
         round_: int,
-    ) -> models.GetTransactionGroupLedgerStateDeltasForRoundResponseModel:
+    ) -> bytes:
         """
         Get LedgerStateDelta objects for all transaction groups in a given round
         """
@@ -1258,9 +1258,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(
-                response, model=models.GetTransactionGroupLedgerStateDeltasForRoundResponseModel
-            )
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1604,7 +1602,6 @@ class AlgodClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SimulateRequest",
                 },
                 body_media_types,
@@ -1757,7 +1754,6 @@ class AlgodClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "DryrunRequest",
                 },
                 body_media_types,
@@ -1895,6 +1891,7 @@ class AlgodClient:
         *,
         model: type[ModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> ModelT: ...
 
     @overload
@@ -1904,6 +1901,7 @@ class AlgodClient:
         *,
         list_model: type[ListModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> list[ListModelT]: ...
 
     @overload
@@ -1913,6 +1911,7 @@ class AlgodClient:
         *,
         type_: type[PrimitiveT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> PrimitiveT: ...
 
     @overload
@@ -1921,6 +1920,15 @@ class AlgodClient:
         response: httpx.Response,
         *,
         is_binary: Literal[True],
+        raw_msgpack: bool = False,
+    ) -> bytes: ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        raw_msgpack: Literal[True],
     ) -> bytes: ...
 
     @overload
@@ -1930,6 +1938,7 @@ class AlgodClient:
         *,
         type_: None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object: ...
 
     def _decode_response(
@@ -1940,8 +1949,9 @@ class AlgodClient:
         list_model: type[Any] | None = None,
         type_: type[Any] | None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object:
-        if is_binary:
+        if is_binary or raw_msgpack:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:

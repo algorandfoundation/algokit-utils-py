@@ -98,6 +98,7 @@ class ResponseDescriptor:
     media_types: list[str]
     description: str | None
     is_binary: bool = False
+    is_raw_msgpack: bool = False
     model: str | None = None
     list_model: str | None = None
     enum: str | None = None
@@ -146,4 +147,3 @@ class ClientDescriptor:
     uses_signed_transaction: bool = False
     uses_msgpack: bool = False
     include_block_models: bool = False
-    include_ledger_state_delta_models: bool = False

@@ -70,7 +70,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "CreateWalletRequest",
                 },
                 body_media_types,
@@ -111,7 +110,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "DeleteKeyRequest",
                 },
                 body_media_types,
@@ -152,7 +150,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "DeleteMultisigRequest",
                 },
                 body_media_types,
@@ -193,7 +190,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ExportKeyRequest",
                 },
                 body_media_types,
@@ -234,7 +230,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ExportMasterKeyRequest",
                 },
                 body_media_types,
@@ -275,7 +270,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ExportMultisigRequest",
                 },
                 body_media_types,
@@ -316,7 +310,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "GenerateKeyRequest",
                 },
                 body_media_types,
@@ -358,7 +351,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "VersionsRequest",
                 },
                 body_media_types,
@@ -399,7 +391,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "WalletInfoRequest",
                 },
                 body_media_types,
@@ -440,7 +431,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ImportKeyRequest",
                 },
                 body_media_types,
@@ -481,7 +471,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ImportMultisigRequest",
                 },
                 body_media_types,
@@ -522,7 +511,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "InitWalletHandleTokenRequest",
                 },
                 body_media_types,
@@ -563,7 +551,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ListKeysRequest",
                 },
                 body_media_types,
@@ -604,7 +591,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ListMultisigRequest",
                 },
                 body_media_types,
@@ -646,7 +632,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ListWalletsRequest",
                 },
                 body_media_types,
@@ -687,7 +672,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "ReleaseWalletHandleTokenRequest",
                 },
                 body_media_types,
@@ -728,7 +712,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "RenameWalletRequest",
                 },
                 body_media_types,
@@ -769,7 +752,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "RenewWalletHandleTokenRequest",
                 },
                 body_media_types,
@@ -810,7 +792,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SignProgramMultisigRequest",
                 },
                 body_media_types,
@@ -851,7 +832,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SignMultisigRequest",
                 },
                 body_media_types,
@@ -892,7 +872,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SignProgramRequest",
                 },
                 body_media_types,
@@ -933,7 +912,6 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SignTransactionRequest",
                 },
                 body_media_types,
@@ -1014,6 +992,7 @@ class KmdClient:
         *,
         model: type[ModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> ModelT: ...
 
     @overload
@@ -1023,6 +1002,7 @@ class KmdClient:
         *,
         list_model: type[ListModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> list[ListModelT]: ...
 
     @overload
@@ -1032,6 +1012,7 @@ class KmdClient:
         *,
         type_: type[PrimitiveT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> PrimitiveT: ...
 
     @overload
@@ -1040,6 +1021,15 @@ class KmdClient:
         response: httpx.Response,
         *,
         is_binary: Literal[True],
+        raw_msgpack: bool = False,
+    ) -> bytes: ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        raw_msgpack: Literal[True],
     ) -> bytes: ...
 
     @overload
@@ -1049,6 +1039,7 @@ class KmdClient:
         *,
         type_: None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object: ...
 
     def _decode_response(
@@ -1059,8 +1050,9 @@ class KmdClient:
         list_model: type[Any] | None = None,
         type_: type[Any] | None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object:
-        if is_binary:
+        if is_binary or raw_msgpack:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
