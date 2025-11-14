@@ -1,7 +1,7 @@
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, ClassVar
 
 from oas_generator import models as ctx
 from oas_generator.naming import IdentifierSanitizer
@@ -31,6 +31,13 @@ class TypeInfo:
     is_signed_transaction: bool = False
     needs_datetime: bool = False
     imports: set[str] = field(default_factory=set)
+
+
+LEDGER_STATE_DELTA_MODEL_NAMES: set[str] = {
+    "LedgerStateDelta",
+    "LedgerStateDeltaForTransactionGroup",
+    "GetTransactionGroupLedgerStateDeltasForRoundResponseModel",
+}
 
 
 class SchemaRegistry:
@@ -454,6 +461,12 @@ class ModelBuilder:
 
 
 class OperationBuilder:
+    RAW_LEDGER_STATE_DELTA_OPERATIONS: ClassVar[set[str]] = {
+        "GetLedgerStateDelta",
+        "GetLedgerStateDeltaForTransactionGroup",
+        "GetTransactionGroupLedgerStateDeltasForRound",
+    }
+
     def __init__(
         self, spec: ctx.ParsedSpec, resolver: TypeResolver, sanitizer: IdentifierSanitizer, registry: SchemaRegistry
     ) -> None:
@@ -622,6 +635,17 @@ class OperationBuilder:
             if media_type in content:
                 schema = content[media_type].get("schema")
                 media_types.append(media_type)
+        if operation_id in self.RAW_LEDGER_STATE_DELTA_OPERATIONS:
+            if not media_types:
+                media_types = ["application/msgpack"]
+            if "application/msgpack" in media_types:
+                self.uses_msgpack = True
+            return ctx.ResponseDescriptor(
+                type_hint="bytes",
+                media_types=media_types,
+                description=payload.get("description"),
+                is_raw_msgpack=True,
+            )
         if operation_id == "GetBlock" and schema is not None:
             self.uses_block_models = True
             media_types = media_types or ["application/json"]
@@ -673,6 +697,7 @@ def build_client_descriptor(
     groups = operation_builder.build()
     model_builder = ModelBuilder(registry, resolver, sanitizer)
     models, enums, aliases = model_builder.build()
+    models = [model for model in models if model.name not in LEDGER_STATE_DELTA_MODEL_NAMES]
     uses_signed_txn = model_builder.uses_signed_transaction or operation_builder.uses_signed_transaction
     defaults = {
         "algod_client": ("http://localhost:4001", "X-Algo-API-Token"),
@@ -694,5 +719,4 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
-        include_ledger_state_delta_models="LedgerStateDelta" in registry.entries,
     )
