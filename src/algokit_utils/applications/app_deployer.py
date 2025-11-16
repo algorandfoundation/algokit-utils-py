@@ -317,9 +317,9 @@ class AppDeployer:
 
         existing_approval = base64.b64encode(existing_app_record.approval_program).decode()
         existing_clear = base64.b64encode(existing_app_record.clear_state_program).decode()
-        existing_extra_pages = calculate_extra_program_pages(
-            existing_app_record.approval_program, existing_app_record.clear_state_program
-        )
+        extra_pages = existing_app_record.extra_program_pages or 0
+
+        calculate_extra_program_pages(existing_app_record.approval_program, existing_app_record.clear_state_program)
 
         new_approval = base64.b64encode(approval_program).decode()
         new_clear = base64.b64encode(clear_program).decode()
@@ -335,7 +335,7 @@ class AppDeployer:
             < (deployment.create_params.schema.get("local_byte_slices", 0) if deployment.create_params.schema else 0)
             or existing_app_record.global_byte_slices
             < (deployment.create_params.schema.get("global_byte_slices", 0) if deployment.create_params.schema else 0)
-            or existing_extra_pages < new_extra_pages
+            or extra_pages < new_extra_pages
         )
 
         if is_schema_break:

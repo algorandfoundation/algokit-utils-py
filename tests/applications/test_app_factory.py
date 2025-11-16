@@ -240,7 +240,7 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert update_deploy_result.app.updated_round == confirmed_round
 
 
-def test_deploy_app_update_detects_extra_pages_as_breaking_change(
+def test_deploy_app_update_detects_extra_page_deficit_as_breaking_change(
     algorand: AlgorandClient, funded_account: SigningAccount
 ) -> None:
     small_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "small.arc56.json").read_text()
@@ -269,6 +269,36 @@ def test_deploy_app_update_detects_extra_pages_as_breaking_change(
     assert update_deploy_result.create_result
 
     assert small_client.app_id != large_client.app_id
+
+
+def test_deploy_app_update_detects_extra_page_surplus_as_non_breaking_change(
+    algorand: AlgorandClient, funded_account: SigningAccount
+) -> None:
+    small_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "small.arc56.json").read_text()
+    large_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "large.arc56.json").read_text()
+    factory = algorand.client.get_app_factory(
+        app_spec=small_app_spec,
+        default_sender=funded_account.address,
+    )
+    small_client, create_deploy_result = factory.deploy(
+        compilation_params={
+            "updatable": True,
+        },
+        create_params=AppClientBareCallCreateParams(extra_program_pages=1),
+    )
+    assert create_deploy_result.operation_performed == OperationPerformed.Create
+    assert create_deploy_result.create_result
+
+    factory._app_spec = Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
+    large_client, update_deploy_result = factory.deploy(
+        compilation_params={
+            "updatable": True,
+        },
+        on_schema_break=OnSchemaBreak.AppendApp,
+        on_update=OnUpdate.UpdateApp,
+    )
+    assert update_deploy_result.operation_performed == OperationPerformed.Update
+    assert small_client.app_id == large_client.app_id
 
 
 def test_deploy_app_update_abi(factory: AppFactory) -> None:
