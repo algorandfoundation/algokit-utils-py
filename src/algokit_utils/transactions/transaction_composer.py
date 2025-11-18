@@ -1844,6 +1844,7 @@ class TransactionComposer:
         :return: The rebuilt transaction group result
         """
         self._atc = AtomicTransactionComposer()
+        self._txn_max_fees = {}
         return self.build()
 
     def build_transactions(self) -> BuiltTransactions:
