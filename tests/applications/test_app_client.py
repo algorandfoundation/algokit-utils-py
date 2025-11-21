@@ -597,7 +597,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
             "name1",
             b"test_bytes",  # Updated to match Bytes type
             "byte[]",
-            [116, 101, 115, 116, 95, 98, 121, 116, 101, 115],
+            b"test_bytes",
         ),
         (
             "name2",
@@ -619,9 +619,9 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
         ),
         (
             "name5",  # Updated to use string key
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
             "byte[4]",
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
         ),
     ],
 )
@@ -662,7 +662,7 @@ def test_box_methods_with_manually_encoded_abi_args(
         ("box_str", "set_box_str", "string", "string"),
         ("box_int", "set_box_int", 123, "uint32"),
         ("box_int512", "set_box_int512", 2**256, "uint512"),
-        ("box_static", "set_box_static", [1, 2, 3, 4], "byte[4]"),
+        ("box_static", "set_box_static", bytes([1, 2, 3, 4]), "byte[4]"),
         ("", "set_struct", ("box1", 123), "(string,uint64)"),
     ],
 )
