@@ -1,17 +1,15 @@
-from __future__ import annotations
-
 import base64
 import copy
 import json
 import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, fields, replace
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
-import algosdk
-from algosdk.source_map import SourceMap
-from algosdk.transaction import OnComplete, Transaction
-
+import algokit_algosdk as algosdk
+from algokit_algosdk.source_map import SourceMap
+from algokit_transact.models.common import OnApplicationComplete
+from algokit_transact.models.transaction import Transaction
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
     ABIReturn,
@@ -36,6 +34,7 @@ from algokit_utils.applications.app_spec.arc56 import (
 )
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
+from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.application import (
     AppSourceMaps,
     AppState,
@@ -54,7 +53,7 @@ from algokit_utils.transactions.transaction_composer import (
     AppUpdateParams,
     BuiltTransactions,
     PaymentParams,
-    SendAtomicTransactionComposerResults,
+    SendTransactionComposerResults,
 )
 from algokit_utils.transactions.transaction_sender import (
     SendAppTransactionResult,
@@ -63,15 +62,14 @@ from algokit_utils.transactions.transaction_sender import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from algosdk.atomic_transaction_composer import TransactionSigner
-
     from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_deployer import ApplicationLookup
     from algokit_utils.applications.app_manager import AppManager
-    from algokit_utils.models.amount import AlgoAmount
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
+    from algokit_utils.protocols.signer import TransactionSigner
+else:
+    AlgorandClient = ApplicationLookup = AppManager = TransactionSigner = Any  # type: ignore[assignment]
+    BoxIdentifier = BoxReference = TealTemplateParams = Any  # type: ignore[assignment]
 
 __all__ = [
     "AppClient",
@@ -167,11 +165,11 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
 
 
 CreateOnComplete = Literal[
-    OnComplete.NoOpOC,
-    OnComplete.UpdateApplicationOC,
-    OnComplete.DeleteApplicationOC,
-    OnComplete.OptInOC,
-    OnComplete.CloseOutOC,
+    OnApplicationComplete.NoOp,
+    OnApplicationComplete.UpdateApplication,
+    OnApplicationComplete.DeleteApplication,
+    OnApplicationComplete.OptIn,
+    OnApplicationComplete.CloseOut,
 ]
 
 
@@ -243,7 +241,7 @@ class CommonAppCallParams:
     """First valid round number"""
     last_valid_round: int | None = None
     """Last valid round number"""
-    on_complete: OnComplete | None = None
+    on_complete: OnApplicationComplete | None = None
     """Optional on complete action"""
 
 
@@ -374,7 +372,7 @@ class _AppClientBoxMethods:
 
 
 class _StateAccessor:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
@@ -551,14 +549,14 @@ class _StateAccessor:
 
 
 class _BareParamsBuilder:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
         self._app_spec = client._app_spec
 
     def _get_bare_params(
-        self, params: dict[str, Any] | None, on_complete: algosdk.transaction.OnComplete | None = None
+        self, params: dict[str, Any] | None, on_complete: OnApplicationComplete | None = None
     ) -> dict[str, Any]:
         params = params or {}
         sender = self._client._get_sender(params.get("sender"))
@@ -567,7 +565,7 @@ class _BareParamsBuilder:
             "app_id": self._app_id,
             "sender": sender,
             "signer": self._client._get_signer(params.get("sender"), params.get("signer")),
-            "on_complete": on_complete or OnComplete.NoOpOC,
+            "on_complete": on_complete or OnApplicationComplete.NoOp,
         }
 
     def update(
@@ -580,7 +578,7 @@ class _BareParamsBuilder:
         :return: Parameters for updating the application
         """
         call_params: AppUpdateParams = AppUpdateParams(
-            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.UpdateApplicationOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnApplicationComplete.UpdateApplication)
         )
         return call_params
 
@@ -591,7 +589,7 @@ class _BareParamsBuilder:
         :return: Parameters for opting into the application
         """
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.OptInOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnApplicationComplete.OptIn)
         )
         return call_params
 
@@ -602,7 +600,7 @@ class _BareParamsBuilder:
         :return: Parameters for deleting the application
         """
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.DeleteApplicationOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnApplicationComplete.DeleteApplication)
         )
         return call_params
 
@@ -613,7 +611,7 @@ class _BareParamsBuilder:
         :return: Parameters for clearing application state
         """
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.ClearStateOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnApplicationComplete.ClearState)
         )
         return call_params
 
@@ -624,27 +622,29 @@ class _BareParamsBuilder:
         :return: Parameters for closing out of the application
         """
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__ if params else {}, OnComplete.CloseOutOC)
+            **self._get_bare_params(params.__dict__ if params else {}, OnApplicationComplete.CloseOut)
         )
         return call_params
 
     def call(
-        self, params: AppClientBareCallParams | None = None, on_complete: OnComplete | None = OnComplete.NoOpOC
+        self,
+        params: AppClientBareCallParams | None = None,
+        on_complete: OnApplicationComplete | None = OnApplicationComplete.NoOp,
     ) -> AppCallParams:
         """Create parameters for calling an application.
 
         :param params: Optional call parameters with on complete action, defaults to None
-        :param on_complete: The OnComplete action, defaults to OnComplete.NoOpOC
+        :param on_complete: The OnApplicationComplete action, defaults to OnApplicationComplete.NoOp
         :return: Parameters for calling the application
         """
         call_params: AppCallParams = AppCallParams(
-            **self._get_bare_params(params.__dict__ if params else {}, on_complete or OnComplete.NoOpOC)
+            **self._get_bare_params(params.__dict__ if params else {}, on_complete or OnApplicationComplete.NoOp)
         )
         return call_params
 
 
 class _MethodParamsBuilder:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
@@ -689,7 +689,7 @@ class _MethodParamsBuilder:
         :return: Parameters for opting into the application
         """
         input_params = self._get_abi_params(
-            params.__dict__, on_complete=params.on_complete or algosdk.transaction.OnComplete.OptInOC
+            params.__dict__, on_complete=params.on_complete or OnApplicationComplete.OptIn
         )
         return AppCallMethodCallParams(**input_params)
 
@@ -700,7 +700,7 @@ class _MethodParamsBuilder:
         :return: Parameters for calling the application method
         """
         input_params = self._get_abi_params(
-            params.__dict__, on_complete=params.on_complete or algosdk.transaction.OnComplete.NoOpOC
+            params.__dict__, on_complete=params.on_complete or OnApplicationComplete.NoOp
         )
         return AppCallMethodCallParams(**input_params)
 
@@ -711,7 +711,7 @@ class _MethodParamsBuilder:
         :return: Parameters for deleting the application
         """
         input_params = self._get_abi_params(
-            params.__dict__, on_complete=params.on_complete or algosdk.transaction.OnComplete.DeleteApplicationOC
+            params.__dict__, on_complete=params.on_complete or OnApplicationComplete.DeleteApplication
         )
         return AppDeleteMethodCallParams(**input_params)
 
@@ -734,7 +734,7 @@ class _MethodParamsBuilder:
 
         input_params = {
             **self._get_abi_params(
-                params.__dict__, on_complete=params.on_complete or algosdk.transaction.OnComplete.UpdateApplicationOC
+                params.__dict__, on_complete=params.on_complete or OnApplicationComplete.UpdateApplication
             ),
             **compile_params,
         }
@@ -750,11 +750,11 @@ class _MethodParamsBuilder:
         :return: Parameters for closing out of the application
         """
         input_params = self._get_abi_params(
-            params.__dict__, on_complete=params.on_complete or algosdk.transaction.OnComplete.CloseOutOC
+            params.__dict__, on_complete=params.on_complete or OnApplicationComplete.CloseOut
         )
         return AppCallMethodCallParams(**input_params)
 
-    def _get_abi_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+    def _get_abi_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         input_params = copy.deepcopy(params)
 
         input_params["app_id"] = self._app_id
@@ -774,7 +774,7 @@ class _MethodParamsBuilder:
 
 
 class _AppClientBareCallCreateTransactionMethods:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
 
@@ -839,23 +839,27 @@ class _AppClientBareCallCreateTransactionMethods:
         )
 
     def call(
-        self, params: AppClientBareCallParams | None = None, on_complete: OnComplete | None = OnComplete.NoOpOC
+        self,
+        params: AppClientBareCallParams | None = None,
+        on_complete: OnApplicationComplete | None = OnApplicationComplete.NoOp,
     ) -> Transaction:
         """Create a transaction to call an application.
 
         Creates a transaction that will call this application with the specified parameters.
 
         :param params: Parameters for the application call including on complete action, defaults to None
-        :param on_complete: The OnComplete action, defaults to OnComplete.NoOpOC
+        :param on_complete: The OnApplicationComplete action, defaults to OnApplicationComplete.NoOp
         :return: The constructed application call transaction
         """
         return self._algorand.create_transaction.app_call(
-            self._client.params.bare.call(params or AppClientBareCallParams(), on_complete or OnComplete.NoOpOC)
+            self._client.params.bare.call(
+                params or AppClientBareCallParams(), on_complete or OnApplicationComplete.NoOp
+            )
         )
 
 
 class _TransactionCreator:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
@@ -928,7 +932,7 @@ class _TransactionCreator:
 
 
 class _AppClientBareSendAccessor:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
@@ -1040,7 +1044,7 @@ class _AppClientBareSendAccessor:
     def call(
         self,
         params: AppClientBareCallParams | None = None,
-        on_complete: OnComplete | None = None,
+        on_complete: OnApplicationComplete | None = None,
         send_params: SendParams | None = None,
     ) -> SendAppTransactionResult[ABIReturn]:
         """Send an application call transaction.
@@ -1048,7 +1052,7 @@ class _AppClientBareSendAccessor:
         Creates and sends a transaction that will call this application with the specified parameters.
 
         :param params: Parameters for the application call including transaction options, defaults to None
-        :param on_complete: The OnComplete action, defaults to None
+        :param on_complete: The OnApplicationComplete action, defaults to None
         :param send_params: Send parameters, defaults to None
         :return: The result of sending the transaction, including ABI return value if applicable
         """
@@ -1060,7 +1064,7 @@ class _AppClientBareSendAccessor:
 
 
 class _TransactionSender:
-    def __init__(self, client: AppClient) -> None:
+    def __init__(self, client: "AppClient") -> None:
         self._client = client
         self._algorand = client._algorand
         self._app_id = client._app_id
@@ -1183,12 +1187,17 @@ class _TransactionSender:
         :return: The result of sending or simulating the transaction, including ABI return value if applicable
         """
         is_read_only_call = (
-            params.on_complete == algosdk.transaction.OnComplete.NoOpOC or params.on_complete is None
+            params.on_complete == OnApplicationComplete.NoOp or params.on_complete is None
         ) and self._app_spec.get_arc56_method(params.method).readonly
 
         if is_read_only_call:
             readonly_params = params
             readonly_send_params = send_params or SendParams()
+            static_fee = readonly_params.static_fee
+            reported_fee = (
+                params.static_fee.micro_algo if params.static_fee else self._algorand.get_suggested_params().min_fee
+            )
+            reset_reported_fee = False
 
             # Read-only calls do not require fees to be paid, as they are only simulated on the network.
             # With maximum opcode budget provided, ensure_budget won't create inner transactions,
@@ -1196,12 +1205,17 @@ class _TransactionSender:
             # If max_fee is provided, use it as static_fee for potential benefits.
             if readonly_send_params.get("cover_app_call_inner_transaction_fees") and params.max_fee is not None:
                 readonly_params = replace(readonly_params, static_fee=params.max_fee, extra_fee=None)
+                static_fee = params.max_fee
+            elif static_fee is None:
+                fallback_fee = params.max_fee or AlgoAmount.from_micro_algo(MAX_SIMULATE_OPCODE_BUDGET)
+                readonly_params = replace(readonly_params, static_fee=fallback_fee, extra_fee=None)
+                reset_reported_fee = True
 
             method_call_to_simulate = self._algorand.new_group().add_app_call_method_call(
                 self._client.params.call(readonly_params)
             )
 
-            def run_simulate() -> SendAtomicTransactionComposerResults:
+            def run_simulate() -> SendTransactionComposerResults:
                 try:
                     return method_call_to_simulate.simulate(
                         allow_unnamed_resources=readonly_send_params.get("populate_app_call_resources") or True,
@@ -1223,11 +1237,14 @@ class _TransactionSender:
 
             simulate_response = self._client._handle_call_errors(run_simulate)
 
+            wrapped_transactions = simulate_response.transactions
+            if reset_reported_fee:
+                wrapped_transactions = [replace(txn, fee=reported_fee) for txn in wrapped_transactions]
             return SendAppTransactionResult[Arc56ReturnValueType](
                 tx_ids=simulate_response.tx_ids,
-                transactions=simulate_response.transactions,
-                transaction=simulate_response.transactions[-1],
-                confirmation=simulate_response.confirmations[-1] if simulate_response.confirmations else b"",
+                transactions=wrapped_transactions,
+                transaction=wrapped_transactions[-1],
+                confirmation=simulate_response.confirmations[-1],
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
@@ -1436,7 +1453,7 @@ class AppClient:
         default_signer: TransactionSigner | None = None,
         approval_source_map: SourceMap | None = None,
         clear_source_map: SourceMap | None = None,
-    ) -> AppClient:
+    ) -> "AppClient":
         """Create an AppClient instance from network information.
 
         :param app_spec: The application specification
@@ -1511,7 +1528,7 @@ class AppClient:
         clear_source_map: SourceMap | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: ApplicationLookup | None = None,
-    ) -> AppClient:
+    ) -> "AppClient":
         """Create an AppClient instance from creator address and application name.
 
         :param creator_address: The address of the application creator
@@ -1752,7 +1769,7 @@ class AppClient:
         default_signer: TransactionSigner | None = _MISSING,  # type: ignore[assignment]
         approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
         clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
-    ) -> AppClient:
+    ) -> "AppClient":
         """Create a cloned AppClient instance with optionally overridden parameters.
 
         :param app_name: Optional new application name
@@ -1971,19 +1988,13 @@ class AppClient:
                 txn = t
                 break
 
-        if not txn or not hasattr(txn, "application_call"):
+        app_call = getattr(txn, "app_call", None)
+        if not txn or app_call is None:
             return False
 
-        def programs_defined_and_equal(a: bytes | None, b: bytes | None) -> bool:
-            if a is None or b is None:
-                return False
-            return a == b
-
-        app_call = txn.application_call
-        return programs_defined_and_equal(
-            getattr(app_call, "clear_program", None), self._last_compiled.get("clear")
-        ) and programs_defined_and_equal(
-            getattr(app_call, "approval_program", None), self._last_compiled.get("approval")
+        return bool(
+            app_call.clear_state_program == self._last_compiled.get("clear")
+            and app_call.approval_program == self._last_compiled.get("approval")
         )
 
     def _handle_call_errors_transform(self, error: Exception) -> Exception:
@@ -2039,7 +2050,7 @@ class AppClient:
     ) -> TransactionSigner | TransactionSignerAccountProtocol | None:
         return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
-    def _get_bare_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+    def _get_bare_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
         return {
             **params,
@@ -2144,7 +2155,7 @@ class AppClient:
 
         return result
 
-    def _get_abi_params(self, params: dict[str, Any], on_complete: algosdk.transaction.OnComplete) -> dict[str, Any]:
+    def _get_abi_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
         method = self._app_spec.get_arc56_method(params["method"])
         args = self._get_abi_args_with_default_values(

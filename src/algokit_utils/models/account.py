@@ -1,11 +1,23 @@
+import base64
 import dataclasses
+from typing import Any, cast
 
-import algosdk
-import algosdk.atomic_transaction_composer
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, LogicSigTransactionSigner, TransactionSigner
-from algosdk.transaction import LogicSigAccount as AlgosdkLogicSigAccount
-from algosdk.transaction import Multisig, MultisigTransaction
-from typing_extensions import deprecated
+import algokit_algosdk as algosdk
+from algokit_algosdk import encoding
+from algokit_algosdk.logicsig import LogicSigAccount as AlgoKitLogicSigAccount
+from algokit_algosdk.multisig import Multisig as AlgoKitMultisig
+from algokit_algosdk.signer import (
+    make_basic_account_transaction_signer,
+    make_logic_sig_transaction_signer,
+    make_multisig_transaction_signer,
+)
+from algokit_algosdk.transaction import Multisig as TxMultisig
+from algokit_algosdk.transaction import MultisigTransaction
+from algokit_transact.models.transaction import Transaction as AlgokitTransaction
+from algokit_utils.protocols.signer import TransactionSigner
+
+AlgosdkLogicSigAccount = AlgoKitLogicSigAccount
+Multisig = AlgoKitMultisig
 
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
@@ -30,8 +42,6 @@ class TransactionSignerAccount:
     def __post_init__(self) -> None:
         if not isinstance(self.address, str):
             raise TypeError("Address must be a string")
-        if not isinstance(self.signer, TransactionSigner):
-            raise TypeError("Signer must be a TransactionSigner instance")
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -45,10 +55,11 @@ class SigningAccount:
     """Base64 encoded private key"""
     address: str = dataclasses.field(default="")
     """Address for this account"""
+    _signer: TransactionSigner | None = dataclasses.field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.address:
-            self.address = str(algosdk.account.address_from_private_key(self.private_key))
+            self.address = _address_from_private_key(self.private_key)
 
     @property
     def public_key(self) -> bytes:
@@ -56,29 +67,16 @@ class SigningAccount:
 
         :return: The public key as bytes
         """
-        public_key = algosdk.encoding.decode_address(self.address)
+        public_key = encoding.decode_address(self.address)
         assert isinstance(public_key, bytes)
         return public_key
 
     @property
-    def signer(self) -> AccountTransactionSigner:
-        """Get an AccountTransactionSigner for this account.
-
-        :return: A transaction signer for this account
-        """
-        return AccountTransactionSigner(self.private_key)
-
-    @deprecated(
-        "Use `algorand.account.random()` or `SigningAccount(private_key=algosdk.account.generate_account()[0])` instead"
-    )
-    @staticmethod
-    def new_account() -> "SigningAccount":
-        """Create a new random account.
-
-        :return: A new Account instance
-        """
-        private_key, address = algosdk.account.generate_account()
-        return SigningAccount(private_key=private_key)
+    def signer(self) -> TransactionSigner:
+        """Get the AlgoKit-native transaction signer callable."""
+        if not self._signer:
+            self._signer = cast(TransactionSigner, make_basic_account_transaction_signer(self.private_key))
+        return self._signer
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -107,20 +105,29 @@ class MultiSigAccount:
     _signing_accounts: list[SigningAccount]
     _addr: str
     _signer: TransactionSigner
-    _multisig: Multisig
+    _multisig: TxMultisig
+    _algokit_multisig: AlgoKitMultisig
 
     def __init__(self, multisig_params: MultisigMetadata, signing_accounts: list[SigningAccount]) -> None:
         self._params = multisig_params
         self._signing_accounts = signing_accounts
-        self._multisig = Multisig(multisig_params.version, multisig_params.threshold, multisig_params.addresses)
-        self._addr = str(self._multisig.address())
-        self._signer = algosdk.atomic_transaction_composer.MultisigTransactionSigner(
-            self._multisig,
-            [account.private_key for account in signing_accounts],
+        self._multisig = TxMultisig(  # type: ignore[no-untyped-call]
+            multisig_params.version, multisig_params.threshold, multisig_params.addresses
+        )
+        self._algokit_multisig = AlgoKitMultisig(
+            multisig_params.version, multisig_params.threshold, multisig_params.addresses
+        )
+        self._addr = str(self._multisig.address())  # type: ignore[no-untyped-call]
+        self._signer = cast(
+            TransactionSigner,
+            make_multisig_transaction_signer(
+                self._algokit_multisig,
+                [account.private_key for account in signing_accounts],
+            ),
         )
 
     @property
-    def multisig(self) -> Multisig:
+    def multisig(self) -> TxMultisig:
         """Get the underlying `algosdk.transaction.Multisig` object instance.
 
         :return: The `algosdk.transaction.Multisig` object instance
@@ -153,24 +160,18 @@ class MultiSigAccount:
 
     @property
     def signer(self) -> TransactionSigner:
-        """Get the transaction signer for this multisig account.
-
-        :return: The multisig transaction signer
-        """
+        """Get the AlgoKit-native signer callable for this multisig account."""
         return self._signer
 
-    def sign(self, transaction: algosdk.transaction.Transaction) -> MultisigTransaction:
+    def sign(self, transaction: AlgokitTransaction) -> MultisigTransaction:
         """Sign the given transaction with all present signers.
 
         :param transaction: Either a transaction object or a raw, partially signed transaction
         :return: The transaction signed by the present signers
         """
-        msig_txn = MultisigTransaction(
-            transaction,
-            self._multisig,
-        )
+        msig_txn = MultisigTransaction(cast(Any, transaction), self._multisig)
         for signer in self._signing_accounts:
-            msig_txn.sign(signer.private_key)
+            msig_txn.sign(signer.private_key)  # type: ignore[no-untyped-call]
 
         return msig_txn
 
@@ -182,10 +183,12 @@ class LogicSigAccount:
     Provides functionality to manage and sign transactions for a logic sig account.
     """
 
-    _signer: LogicSigTransactionSigner
+    _signer: TransactionSigner
+    _algokit_lsig: AlgoKitLogicSigAccount
 
     def __init__(self, program: bytes, args: list[bytes] | None) -> None:
-        self._signer = LogicSigTransactionSigner(AlgosdkLogicSigAccount(program, args))
+        self._algokit_lsig = AlgoKitLogicSigAccount(program, args)
+        self._signer = cast(TransactionSigner, make_logic_sig_transaction_signer(self._algokit_lsig))
 
     @property
     def lsig(self) -> AlgosdkLogicSigAccount:
@@ -193,7 +196,7 @@ class LogicSigAccount:
 
         :return: The `algosdk.transaction.LogicSigAccount` object instance
         """
-        return self._signer.lsig
+        return cast(AlgosdkLogicSigAccount, cast(Any, self._signer).lsig)
 
     @property
     def address(self) -> str:
@@ -206,12 +209,24 @@ class LogicSigAccount:
 
         :return: The logic sig account address
         """
-        return self._signer.lsig.address()
+        lsig_data = cast(Any, self._algokit_lsig)
+        legacy_account = AlgosdkLogicSigAccount(lsig_data.program, lsig_data.args)
+        return legacy_account.address()
 
     @property
-    def signer(self) -> LogicSigTransactionSigner:
-        """Get the transaction signer for this multisig account.
-
-        :return: The multisig transaction signer
-        """
+    def signer(self) -> TransactionSigner:
+        """Get the AlgoKit-native signer callable for this logic sig account."""
         return self._signer
+
+    @property
+    def algokit_lsig(self) -> AlgoKitLogicSigAccount:
+        """Expose the AlgoKit-native representation."""
+        return self._algokit_lsig
+
+
+def _address_from_private_key(private_key: str) -> str:
+    decoded = base64.b64decode(private_key)
+    public_key = decoded[algosdk.constants.key_len_bytes :]
+    encoded = encoding.encode_address(public_key)
+    assert isinstance(encoded, str)
+    return encoded

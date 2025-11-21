@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import algosdk
-from algosdk.source_map import SourceMap
+import algokit_algosdk as algosdk
+from algokit_algosdk.source_map import SourceMap
 
 if TYPE_CHECKING:
     pass

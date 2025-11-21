@@ -1,11 +1,10 @@
-import base64
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import TypeAlias
 
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
-from algosdk.box_reference import BoxReference as AlgosdkBoxReference
+from algokit_transact import BoxReference as AlgoKitTransactBoxReference
+from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 
 __all__ = [
     "BoxIdentifier",
@@ -48,22 +47,7 @@ class DataTypeFlag(IntEnum):
 TealTemplateParams: TypeAlias = Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
 
 
-BoxIdentifier: TypeAlias = str | bytes | AccountTransactionSigner
+BoxIdentifier: TypeAlias = str | bytes | TransactionSignerAccountProtocol
 
 
-class BoxReference(AlgosdkBoxReference):
-    def __init__(self, app_id: int, name: bytes | str):
-        super().__init__(app_index=app_id, name=self._b64_decode(name))
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, (BoxReference | AlgosdkBoxReference)):
-            return self.app_index == other.app_index and self.name == other.name
-        return False
-
-    def _b64_decode(self, value: str | bytes) -> bytes:
-        if isinstance(value, str):
-            try:
-                return base64.b64decode(value)
-            except Exception:
-                return value.encode("utf-8")
-        return value
+BoxReference = AlgoKitTransactBoxReference

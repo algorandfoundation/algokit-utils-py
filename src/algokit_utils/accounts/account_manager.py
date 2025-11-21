@@ -1,15 +1,15 @@
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, overload
+from typing import Any, cast
 
-import algosdk
-from algosdk import mnemonic
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.mnemonic import to_private_key
-from algosdk.transaction import SuggestedParams
-from typing_extensions import Self, deprecated
+from typing_extensions import Self
 
+import algokit_algosdk as algosdk
+from algokit_algod_client import models as algod_models
+from algokit_algosdk import mnemonic
+from algokit_algosdk.mnemonic import to_private_key
+from algokit_common.serde import to_wire
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
@@ -25,10 +25,12 @@ from algokit_utils.models.account import (
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
-    SendAtomicTransactionComposerResults,
+    SendTransactionComposerResults,
     TransactionComposer,
+    TransactionComposerParams,
 )
 from algokit_utils.transactions.transaction_sender import SendSingleTransactionResult
 
@@ -215,47 +217,6 @@ class AccountManager:
         )
         return self
 
-    @overload
-    def set_signer_from_account(self, account: TransactionSignerAccountProtocol) -> Self:
-        """
-        Tracks the given account for later signing.
-
-        Note: If you are generating accounts via the various methods on `AccountManager`
-        (like `random`, `from_mnemonic`, `logic_sig`, etc.) then they automatically get tracked.
-
-        :param account: The account to register
-        :returns: The `AccountManager` instance for method chaining
-
-        :example:
-            >>> account_manager = AccountManager(client_manager)
-            >>> account_manager.set_signer_from_account(
-            ...     SigningAccount(private_key=algosdk.account.generate_account()[0])
-            ... )
-            >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
-            >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
-        """
-
-    @overload
-    @deprecated("Use set_signer_from_account(account) instead of set_signer_from_account(signer)")
-    def set_signer_from_account(self, signer: TransactionSignerAccountProtocol) -> Self:
-        """
-        Tracks the given account for later signing.
-
-        Note: If you are generating accounts via the various methods on `AccountManager`
-        (like `random`, `from_mnemonic`, `logic_sig`, etc.) then they automatically get tracked.
-
-        :param signer: The account to register (deprecated, use account parameter instead)
-        :returns: The `AccountManager` instance for method chaining
-
-        :example:
-            >>> account_manager = AccountManager(client_manager)
-            >>> account_manager.set_signer_from_account(
-            ...     SigningAccount(private_key=algosdk.account.generate_account()[0])
-            ... )
-            >>> account_manager.set_signer_from_account(LogicSigAccount(AlgosdkLogicSigAccount(program, args)))
-            >>> account_manager.set_signer_from_account(MultiSigAccount(multisig_params, [account1, account2]))
-        """
-
     def set_signer_from_account(
         self,
         *args: TransactionSignerAccountProtocol,
@@ -313,14 +274,19 @@ class AccountManager:
         :param sender: The sender address or account
         :returns: The `TransactionSigner`
         :raises ValueError: If no signer is found and no default signer is set
+        :raises TypeError: If a registered signer has an unexpected type
 
         :example:
             >>> signer = account_manager.get_signer("SENDERADDRESS")
         """
-        signer = self._accounts.get(self._get_address(sender)) or self._default_signer
-        if not signer:
+        signer_or_account = self._accounts.get(self._get_address(sender)) or self._default_signer
+        if not signer_or_account:
             raise ValueError(f"No signer found for address {sender}")
-        return signer if isinstance(signer, TransactionSigner) else signer.signer
+        if isinstance(signer_or_account, TransactionSigner):
+            return signer_or_account
+        if isinstance(signer_or_account, TransactionSignerAccountProtocol):
+            return signer_or_account.signer
+        raise TypeError(f"Unexpected signer type {type(signer_or_account)}")
 
     def get_account(self, sender: str) -> TransactionSignerAccountProtocol:
         """
@@ -357,13 +323,39 @@ class AccountManager:
             >>> address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
             >>> account_info = account_manager.get_information(address)
         """
-        info = self._client_manager.algod.account_info(self._get_address(sender))
-        assert isinstance(info, dict)
-        info = {k.replace("-", "_"): v for k, v in info.items()}
-        for key, value in info.items():
-            if key in ("amount", "amount_without_pending_rewards", "min_balance", "pending_rewards", "rewards"):
-                info[key] = AlgoAmount.from_micro_algo(value)
-        return AccountInformation(**info)
+        account_info = self._client_manager.algod.account_information(self._get_address(sender))
+        return self._build_account_information(account_info)
+
+    def _build_account_information(self, account_info: algod_models.Account) -> AccountInformation:
+        """Convert a typed algod account model into an AccountInformation dataclass."""
+        return AccountInformation(
+            address=account_info.address,
+            amount=AlgoAmount.from_micro_algo(account_info.amount),
+            amount_without_pending_rewards=AlgoAmount.from_micro_algo(account_info.amount_without_pending_rewards),
+            min_balance=AlgoAmount.from_micro_algo(account_info.min_balance),
+            pending_rewards=AlgoAmount.from_micro_algo(account_info.pending_rewards),
+            rewards=AlgoAmount.from_micro_algo(account_info.rewards),
+            round=account_info.round_,
+            status=account_info.status,
+            total_apps_opted_in=account_info.total_apps_opted_in,
+            total_assets_opted_in=account_info.total_assets_opted_in,
+            total_box_bytes=getattr(account_info, "total_box_bytes", None),
+            total_boxes=getattr(account_info, "total_boxes", None),
+            total_created_apps=account_info.total_created_apps,
+            total_created_assets=account_info.total_created_assets,
+            apps_local_state=[to_wire(app) for app in account_info.apps_local_state]
+            if account_info.apps_local_state
+            else None,
+            apps_total_extra_pages=account_info.apps_total_extra_pages,
+            apps_total_schema=to_wire(account_info.apps_total_schema) if account_info.apps_total_schema else None,
+            assets=[to_wire(asset) for asset in account_info.assets] if account_info.assets else None,
+            auth_addr=account_info.auth_addr,
+            closed_at_round=getattr(account_info, "closed_at_round", None),
+            created_apps=[to_wire(app) for app in account_info.created_apps] if account_info.created_apps else None,
+            created_assets=[to_wire(asset) for asset in account_info.created_assets]
+            if account_info.created_assets
+            else None,
+        )
 
     def _register_account(self, private_key: str, address: str | None = None) -> SigningAccount:
         """
@@ -373,10 +365,11 @@ class AccountManager:
         :param address: The address for the account
         :returns: The registered Account instance
         """
-        address = address or str(algosdk.account.address_from_private_key(private_key))
+        address = address or str(algosdk.account.address_from_private_key(private_key))  # type: ignore[no-untyped-call]
         account = SigningAccount(private_key=private_key, address=address)
         self._accounts[address or account.address] = TransactionSignerAccount(
-            address=account.address, signer=account.signer
+            address=account.address,
+            signer=account.signer,
         )
         return account
 
@@ -419,7 +412,8 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        return self._register_account(to_private_key(mnemonic), sender)
+        private_key = cast(str, to_private_key(mnemonic))  # type: ignore[no-untyped-call]
+        return self._register_account(private_key, sender)
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> SigningAccount:
         """
@@ -451,7 +445,7 @@ class AccountManager:
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
         if account_mnemonic:
-            private_key = mnemonic.to_private_key(account_mnemonic)
+            private_key = cast(str, mnemonic.to_private_key(account_mnemonic))  # type: ignore[no-untyped-call]
             return self._register_account(private_key)
 
         if self._client_manager.is_localnet():
@@ -524,7 +518,7 @@ class AccountManager:
         :example:
             >>> account = account_manager.random()
         """
-        private_key, _ = algosdk.account.generate_account()
+        private_key, _ = algosdk.account.generate_account()  # type: ignore[no-untyped-call]
         return self._register_account(private_key)
 
     def localnet_dispenser(self) -> SigningAccount:
@@ -592,7 +586,7 @@ class AccountManager:
         first_valid_round: int | None = None,
         last_valid_round: int | None = None,
         suppress_log: bool | None = None,
-    ) -> SendAtomicTransactionComposerResults:
+    ) -> SendTransactionComposerResults:
         """
         Rekey an account to a new address.
 
@@ -756,15 +750,10 @@ class AccountManager:
             .send(send_params)
         )
 
+        base_result = SendSingleTransactionResult.from_composer_result(result)
         return EnsureFundedResult(
-            returns=result.returns,
-            transactions=result.transactions,
-            confirmations=result.confirmations,
-            tx_ids=result.tx_ids,
-            group_id=result.group_id,
-            transaction_id=result.tx_ids[0],
-            confirmation=result.confirmations[0],
-            transaction=result.transactions[0],
+            **vars(base_result),
+            transaction_id=base_result.tx_id or result.tx_ids[0],
             amount_funded=amount_funded,
         )
 
@@ -862,15 +851,10 @@ class AccountManager:
             .send(send_params)
         )
 
+        base_result = SendSingleTransactionResult.from_composer_result(result)
         return EnsureFundedResult(
-            returns=result.returns,
-            transactions=result.transactions,
-            confirmations=result.confirmations,
-            tx_ids=result.tx_ids,
-            group_id=result.group_id,
-            transaction_id=result.tx_ids[0],
-            confirmation=result.confirmations[0],
-            transaction=result.transactions[0],
+            **vars(base_result),
+            transaction_id=base_result.tx_id or result.tx_ids[0],
             amount_funded=amount_funded,
         )
 
@@ -940,16 +924,17 @@ class AccountManager:
             case _:
                 raise ValueError(f"Unknown sender type: {type(sender)}")
 
-    def _get_composer(self, get_suggested_params: Callable[[], SuggestedParams] | None = None) -> TransactionComposer:
-        if get_suggested_params is None:
-
-            def _get_suggested_params() -> SuggestedParams:
-                return self._client_manager.algod.suggested_params()
-
-            get_suggested_params = _get_suggested_params
+    def _get_composer(
+        self, get_suggested_params: Callable[[], algod_models.SuggestedParams] | None = None
+    ) -> TransactionComposer:
+        get_suggested_params = get_suggested_params or self._client_manager.algod.suggested_params
 
         return TransactionComposer(
-            algod=self._client_manager.algod, get_signer=self.get_signer, get_suggested_params=get_suggested_params
+            TransactionComposerParams(
+                algod=self._client_manager.algod,
+                get_signer=self.get_signer,
+                get_suggested_params=get_suggested_params,
+            )
         )
 
     def _calculate_fund_amount(

@@ -1,17 +1,13 @@
 import base64
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, Sequence
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
-
-from algosdk.atomic_transaction_composer import (
-    SimulateAtomicTransactionResponse,
-)
 
 from algokit_utils.models.simulate import SimulationTrace
 
 if TYPE_CHECKING:
-    from algosdk.source_map import SourceMap as AlgoSourceMap
+    from algokit_algosdk.source_map import SourceMap as AlgoSourceMap
 __all__ = [
     "LogicError",
     "LogicErrorData",
@@ -101,21 +97,36 @@ error please provide an approval SourceMap. Either by:
         return "\n\t" + "\n\t".join(program_lines[lines_before:lines_after])
 
 
-def create_simulate_traces_for_logic_error(simulate: SimulateAtomicTransactionResponse) -> list[SimulationTrace]:
-    traces = []
-    if hasattr(simulate, "simulate_response") and hasattr(simulate, "failed_at") and simulate.failed_at:
-        for txn_group in simulate.simulate_response["txn-groups"]:
-            app_budget_added = txn_group.get("app-budget-added", None)
-            app_budget_consumed = txn_group.get("app-budget-consumed", None)
-            failure_message = txn_group.get("failure-message", None)
-            txn_result = txn_group.get("txn-results", [{}])[0]
-            exec_trace = txn_result.get("exec-trace", {})
-            traces.append(
-                SimulationTrace(
-                    app_budget_added=app_budget_added,
-                    app_budget_consumed=app_budget_consumed,
-                    failure_message=failure_message,
-                    exec_trace=exec_trace,
-                )
+def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationTrace]:
+    traces: list[SimulationTrace] = []
+    simulate_response = getattr(simulate, "simulate_response", None)
+    failed_at = getattr(simulate, "failed_at", None)
+
+    if not failed_at or not isinstance(simulate_response, Mapping):
+        return traces
+
+    txn_groups = simulate_response.get("txn-groups", [])
+    if not isinstance(txn_groups, Sequence):
+        return traces
+
+    for txn_group in txn_groups:
+        if not isinstance(txn_group, Mapping):
+            continue
+        app_budget_added = txn_group.get("app-budget-added")
+        app_budget_consumed = txn_group.get("app-budget-consumed")
+        failure_message = txn_group.get("failure-message")
+        txn_results = txn_group.get("txn-results", [])
+        txn_result = txn_results[0] if isinstance(txn_results, Sequence) and txn_results else {}
+        exec_trace_mapping = txn_result.get("exec-trace", {}) if isinstance(txn_result, Mapping) else {}
+        exec_trace: dict[str, object] = {}
+        if isinstance(exec_trace_mapping, Mapping):
+            exec_trace = {str(key): value for key, value in exec_trace_mapping.items()}
+        traces.append(
+            SimulationTrace(
+                app_budget_added=app_budget_added,
+                app_budget_consumed=app_budget_consumed,
+                failure_message=failure_message,
+                exec_trace=exec_trace,
             )
+        )
     return traces

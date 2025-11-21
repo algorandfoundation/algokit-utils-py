@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 from decimal import Decimal
 from typing import overload
 
-import algosdk
 from typing_extensions import Self
+
+import algokit_algosdk as algosdk
 
 __all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transaction_fees"]
 
@@ -55,10 +54,10 @@ class AlgoAmount:
 
         :returns: The amount in Algo.
         """
-        return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
+        return Decimal(self.amount_in_micro_algo) / Decimal(algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
 
     @staticmethod
-    def from_algo(amount: int | Decimal) -> AlgoAmount:
+    def from_algo(amount: int | Decimal) -> "AlgoAmount":
         """Create an AlgoAmount object representing the given number of Algo.
 
         :param amount: The amount in Algo.
@@ -70,7 +69,7 @@ class AlgoAmount:
         return AlgoAmount(algo=amount)
 
     @staticmethod
-    def from_micro_algo(amount: int) -> AlgoAmount:
+    def from_micro_algo(amount: int) -> "AlgoAmount":
         """Create an AlgoAmount object representing the given number of µAlgo.
 
         :param amount: The amount in µAlgo.
@@ -87,17 +86,17 @@ class AlgoAmount:
     def __int__(self) -> int:
         return self.micro_algo
 
-    def __add__(self, other: AlgoAmount) -> AlgoAmount:
+    def __add__(self, other: "AlgoAmount") -> "AlgoAmount":
         if isinstance(other, AlgoAmount):
             total_micro_algos = self.micro_algo + other.micro_algo
         else:
             raise TypeError(f"Unsupported operand type(s) for +: 'AlgoAmount' and '{type(other).__name__}'")
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __radd__(self, other: AlgoAmount) -> AlgoAmount:
+    def __radd__(self, other: "AlgoAmount") -> "AlgoAmount":
         return self.__add__(other)
 
-    def __iadd__(self, other: AlgoAmount) -> Self:
+    def __iadd__(self, other: "AlgoAmount") -> Self:
         if isinstance(other, AlgoAmount):
             self.amount_in_micro_algo += other.micro_algo
         else:
@@ -146,20 +145,20 @@ class AlgoAmount:
             return self.amount_in_micro_algo >= int(other)
         raise TypeError(f"Unsupported operand type(s) for >=: 'AlgoAmount' and '{type(other).__name__}'")
 
-    def __sub__(self, other: AlgoAmount) -> AlgoAmount:
+    def __sub__(self, other: "AlgoAmount") -> "AlgoAmount":
         if isinstance(other, AlgoAmount):
             total_micro_algos = self.micro_algo - other.micro_algo
         else:
             raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __rsub__(self, other: int) -> AlgoAmount:
+    def __rsub__(self, other: int) -> "AlgoAmount":
         if isinstance(other, (int)):
             total_micro_algos = int(other) - self.micro_algo
             return AlgoAmount.from_micro_algo(total_micro_algos)
         raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
 
-    def __isub__(self, other: AlgoAmount) -> Self:
+    def __isub__(self, other: "AlgoAmount") -> Self:
         if isinstance(other, AlgoAmount):
             self.amount_in_micro_algo -= other.micro_algo
         else:
@@ -168,7 +167,7 @@ class AlgoAmount:
 
 
 # Helper functions
-def algo(algo: int) -> AlgoAmount:
+def algo(algo: int) -> "AlgoAmount":
     """Create an AlgoAmount object representing the given number of Algo.
 
     :param algo: The number of Algo to create an AlgoAmount object for.
@@ -177,7 +176,7 @@ def algo(algo: int) -> AlgoAmount:
     return AlgoAmount.from_algo(algo)
 
 
-def micro_algo(micro_algo: int) -> AlgoAmount:
+def micro_algo(micro_algo: int) -> "AlgoAmount":
     """Create an AlgoAmount object representing the given number of µAlgo.
 
     :param micro_algo: The number of µAlgo to create an AlgoAmount object for.
@@ -189,7 +188,7 @@ def micro_algo(micro_algo: int) -> AlgoAmount:
 ALGORAND_MIN_TX_FEE = micro_algo(1_000)
 
 
-def transaction_fees(number_of_transactions: int) -> AlgoAmount:
+def transaction_fees(number_of_transactions: int) -> "AlgoAmount":
     """Calculate the total transaction fees for a given number of transactions.
 
     :param number_of_transactions: The number of transactions to calculate the fees for.

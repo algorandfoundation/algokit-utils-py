@@ -8,8 +8,8 @@ __all__ = [
 
 @dataclasses.dataclass
 class AlgoClientNetworkConfig:
-    """Connection details for connecting to an {py:class}`algosdk.v2client.algod.AlgodClient` or
-    {py:class}`algosdk.v2client.indexer.IndexerClient`"""
+    """Connection details for connecting to an {py:class}`algokit_algod_client.AlgodClient` or
+    {py:class}`algokit_indexer_client.IndexerClient` instance."""
 
     server: str
     """URL for the service e.g. `http://localhost` or `https://testnet-api.algonode.cloud`"""

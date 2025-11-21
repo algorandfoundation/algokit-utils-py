@@ -1,17 +1,12 @@
-from __future__ import annotations
-
+import base64
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import Any, TypeAlias, cast
 
-import algosdk
-from algosdk.abi.method import Method as AlgorandABIMethod
-from algosdk.atomic_transaction_composer import ABIResult
-
+import algokit_algosdk as algosdk
+from algokit_algosdk.abi.method import Method as AlgorandABIMethod
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, StructField
 from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
-
-if TYPE_CHECKING:
-    from algokit_utils.models.state import BoxName
+from algokit_utils.models.state import BoxName
 
 ABIValue: TypeAlias = (
     bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"]
@@ -23,8 +18,63 @@ Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 ABIType: TypeAlias = algosdk.abi.ABIType
 ABIArgumentType: TypeAlias = algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType
 
+ABI_RETURN_HASH = b"\x15\x1f\x7c\x75"
+ABI_RETURN_PREFIX_LENGTH = len(ABI_RETURN_HASH)
+
+
+@dataclass(slots=True)
+class ABIResult:
+    tx_id: str
+    raw_value: bytes
+    return_value: ABIValue | None
+    decode_error: Exception | None
+    tx_info: dict[str, Any]
+    method: AlgorandABIMethod
+
+
+def parse_abi_method_result(method: AlgorandABIMethod, tx_id: str, txn: dict[str, Any]) -> ABIResult:
+    raw_value = b""
+    return_value: ABIValue | None = None
+    decode_error: Exception | None = None
+
+    try:
+        if method.returns.type == algosdk.abi.Returns.VOID:
+            return ABIResult(
+                tx_id=tx_id,
+                raw_value=raw_value,
+                return_value=return_value,
+                decode_error=decode_error,
+                tx_info=txn,
+                method=method,
+            )
+
+        logs = txn.get("logs", [])
+        if not logs:
+            raise ValueError("App call transaction did not log a return value")
+
+        result_bytes = base64.b64decode(logs[-1])
+        if len(result_bytes) < ABI_RETURN_PREFIX_LENGTH or result_bytes[:ABI_RETURN_PREFIX_LENGTH] != ABI_RETURN_HASH:
+            raise ValueError("App call transaction did not log a return value")
+
+        raw_value = result_bytes[ABI_RETURN_PREFIX_LENGTH:]
+        method_return_type = cast(algosdk.abi.ABIType, method.returns.type)
+        return_value = method_return_type.decode(raw_value)
+    except Exception as err:
+        decode_error = err
+
+    return ABIResult(
+        tx_id=tx_id,
+        raw_value=raw_value,
+        return_value=return_value,
+        decode_error=decode_error,
+        tx_info=txn,
+        method=method,
+    )
+
+
 __all__ = [
     "ABIArgumentType",
+    "ABIResult",
     "ABIReturn",
     "ABIStruct",
     "ABIType",
@@ -37,6 +87,7 @@ __all__ = [
     "get_abi_tuple_from_abi_struct",
     "get_abi_tuple_type_from_abi_struct_definition",
     "get_arc56_value",
+    "parse_abi_method_result",
 ]
 
 
