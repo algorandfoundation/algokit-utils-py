@@ -178,6 +178,7 @@ cmd = "mypy src"
 
 [tool.poe.tasks.lint]
 sequence = ["ruff-check", "mypy-check"]
+ignore_fail = "return_non_zero"
 
 [tool.poe.tasks.ruff-format]
 cmd = "ruff format src tests"
