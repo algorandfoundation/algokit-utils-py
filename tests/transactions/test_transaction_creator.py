@@ -1,18 +1,9 @@
+import base64
 from pathlib import Path
 
-import algosdk
 import pytest
-from algosdk.transaction import (
-    ApplicationCallTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    KeyregTxn,
-    PaymentTxn,
-)
 
+import algokit_algosdk as algosdk
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -65,10 +56,10 @@ def test_create_payment_transaction(algorand: AlgorandClient, funded_account: Si
         )
     )
 
-    assert isinstance(txn, PaymentTxn)
+    assert txn.payment
     assert txn.sender == funded_account.address
-    assert txn.receiver == funded_account.address
-    assert txn.amt == AlgoAmount.from_algo(1).micro_algo
+    assert txn.payment.receiver == funded_account.address
+    assert txn.payment.amount == AlgoAmount.from_algo(1).micro_algo
 
 
 def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -85,14 +76,14 @@ def test_create_asset_create_transaction(algorand: AlgorandClient, funded_accoun
         )
     )
 
-    assert isinstance(txn, AssetCreateTxn)
+    assert txn.asset_config
     assert txn.sender == funded_account.address
-    assert txn.total == expected_total
-    assert txn.decimals == 0
-    assert txn.default_frozen is False
-    assert txn.unit_name == "TEST"
-    assert txn.asset_name == "Test Asset"
-    assert txn.url == "https://example.com"
+    assert txn.asset_config.total == expected_total
+    assert txn.asset_config.decimals == 0
+    assert txn.asset_config.default_frozen is False
+    assert txn.asset_config.unit_name == "TEST"
+    assert txn.asset_config.asset_name == "Test Asset"
+    assert txn.asset_config.url == "https://example.com"
 
 
 def test_create_asset_config_transaction(
@@ -106,10 +97,10 @@ def test_create_asset_config_transaction(
         )
     )
 
-    assert isinstance(txn, AssetConfigTxn)
+    assert txn.asset_config
     assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.manager == funded_secondary_account.address
+    assert txn.asset_config.asset_id == 1
+    assert txn.asset_config.manager == funded_secondary_account.address
 
 
 def test_create_asset_freeze_transaction(
@@ -124,11 +115,11 @@ def test_create_asset_freeze_transaction(
         )
     )
 
-    assert isinstance(txn, AssetFreezeTxn)
+    assert txn.asset_freeze
     assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.target == funded_secondary_account.address
-    assert txn.new_freeze_state is True
+    assert txn.asset_freeze.asset_id == 1
+    assert txn.asset_freeze.freeze_target == funded_secondary_account.address
+    assert txn.asset_freeze.frozen is True
 
 
 def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -139,9 +130,9 @@ def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_accou
         )
     )
 
-    assert isinstance(txn, AssetDestroyTxn)
+    assert txn.asset_config
     assert txn.sender == funded_account.address
-    assert txn.index == 1
+    assert txn.asset_config.asset_id == 1
 
 
 def test_create_asset_transfer_transaction(
@@ -157,11 +148,11 @@ def test_create_asset_transfer_transaction(
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
+    assert txn.asset_transfer
     assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == expected_amount
-    assert txn.receiver == funded_secondary_account.address
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == expected_amount
+    assert txn.asset_transfer.receiver == funded_secondary_account.address
 
 
 def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -172,11 +163,11 @@ def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_accoun
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
+    assert txn.asset_transfer
     assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == 0
-    assert txn.receiver == funded_account.address
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == 0
+    assert txn.asset_transfer.receiver == funded_account.address
 
 
 def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -188,12 +179,12 @@ def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_accou
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
+    assert txn.asset_transfer
     assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == 0
-    assert txn.receiver == funded_account.address
-    assert txn.close_assets_to == funded_account.address
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == 0
+    assert txn.asset_transfer.receiver == funded_account.address
+    assert txn.asset_transfer.close_remainder_to == funded_account.address
 
 
 def test_create_app_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -208,10 +199,10 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
         )
     )
 
-    assert isinstance(txn, ApplicationCallTxn)
+    assert txn.app_call
     assert txn.sender == funded_account.address
-    assert txn.approval_program == b"\x06\x81\x01"
-    assert txn.clear_program == b"\x06\x81\x01"
+    assert txn.app_call.approval_program == b"\x06\x81\x01"
+    assert txn.app_call.clear_state_program == b"\x06\x81\x01"
 
 
 def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -227,7 +218,9 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
             schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
-    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_ids[0])["application-index"]  # type: ignore[call-overload]
+    confirmation = algorand.client.algod.pending_transaction_information(create_result.tx_ids[0])
+    assert confirmation.app_id is not None
+    app_id = confirmation.app_id
 
     # Then test creating a method call transaction
     result = algorand.create_transaction.app_call_method_call(
@@ -240,16 +233,17 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
     )
 
     assert len(result.transactions) == 1
-    assert isinstance(result.transactions[0], ApplicationCallTxn)
-    assert result.transactions[0].sender == funded_account.address
-    assert result.transactions[0].index == app_id
+    transactions = result.transactions[0]
+    assert transactions.app_call
+    assert transactions.sender == funded_account.address
+    assert transactions.app_call.app_id == app_id
 
 
 def test_create_online_key_registration_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     sp = algorand.get_suggested_params()
     expected_dilution = 100
-    expected_first = sp.first
-    expected_last = sp.first + int(10e6)
+    expected_first = sp.first_valid
+    expected_last = sp.first_valid + int(10e6)
 
     txn = algorand.create_transaction.online_key_registration(
         OnlineKeyRegistrationParams(
@@ -263,10 +257,12 @@ def test_create_online_key_registration_transaction(algorand: AlgorandClient, fu
         )
     )
 
-    assert isinstance(txn, KeyregTxn)
+    assert txn.key_registration
     assert txn.sender == funded_account.address
-    assert txn.selkey == "LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk="
-    assert txn.sprfkey == b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=="
-    assert txn.votefst == expected_first
-    assert txn.votelst == expected_last
-    assert txn.votekd == expected_dilution
+    assert txn.key_registration.selection_key == base64.b64decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")
+    assert txn.key_registration.state_proof_key == base64.b64decode(
+        "RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=="
+    )
+    assert txn.key_registration.vote_first == expected_first
+    assert txn.key_registration.vote_last == expected_last
+    assert txn.key_registration.vote_key_dilution == expected_dilution

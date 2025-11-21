@@ -2,6 +2,7 @@ import httpx
 import pytest
 from pytest_httpx._httpx_mock import HTTPXMock
 
+from algokit_utils.accounts.account_manager import AccountInformation
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.clients.dispenser_api_client import DispenserApiConfig, TestNetDispenserApiClient
 from algokit_utils.models.account import SigningAccount
@@ -45,9 +46,9 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
     account_info = algorand.account.get_information(second_account)
 
     assert result.transaction.payment
-    assert result.transaction.payment.amt == 5_000_000
+    assert result.transaction.payment.amount == 5_000_000
 
-    assert result.transaction.payment.sender == funded_account.address == result.confirmation["txn"]["txn"]["snd"]  # type: ignore  # noqa: PGH003
+    assert result.transaction.sender == funded_account.address == result.confirmation.txn.transaction.sender
     assert account_info.amount == 5_000_000
 
 
@@ -317,7 +318,8 @@ def test_ensure_funded(algorand: AlgorandClient, funded_account: SigningAccount)
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert to_account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algo(1)
+    expected_balance = MINIMUM_BALANCE + AlgoAmount.from_algo(1)
+    assert to_account_info.amount == expected_balance.micro_algo
 
 
 def test_ensure_funded_uses_dispenser_by_default(
@@ -334,10 +336,11 @@ def test_ensure_funded_uses_dispenser_by_default(
 
     assert result is not None
     assert result.transaction.payment is not None
-    assert result.transaction.payment.sender == dispenser.address
+    assert result.transaction.sender == dispenser.address
 
     account_info = algorand.account.get_information(second_account)
-    assert account_info.amount == MINIMUM_BALANCE + AlgoAmount.from_algo(1)
+    expected_balance = MINIMUM_BALANCE + AlgoAmount.from_algo(1)
+    assert account_info.amount == expected_balance.micro_algo
 
 
 def test_ensure_funded_respects_minimum_funding_increment(
@@ -353,7 +356,7 @@ def test_ensure_funded_respects_minimum_funding_increment(
     assert response is not None
 
     to_account_info = algorand.account.get_information(test_account)
-    assert to_account_info.amount == AlgoAmount.from_algo(1)
+    assert to_account_info.amount == AlgoAmount.from_algo(1).micro_algo
 
 
 def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, httpx_mock: HTTPXMock) -> None:
@@ -368,6 +371,19 @@ def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, http
         method="POST",
         json={"amount": 1, "txID": "dummy_tx_id"},
     )
+
+    fake_account_info = AccountInformation(
+        address=account_to_fund.address,
+        amount=AlgoAmount.from_micro_algo(0),
+        amount_without_pending_rewards=AlgoAmount.from_micro_algo(0),
+        min_balance=AlgoAmount.from_micro_algo(100_000),
+        pending_rewards=AlgoAmount.from_micro_algo(0),
+        rewards=AlgoAmount.from_micro_algo(0),
+        round=1,
+        status="Offline",
+    )
+    monkeypatch.setattr(algorand.account, "get_information", lambda _: fake_account_info)
+    monkeypatch.setattr(algorand.account._client_manager, "is_testnet", lambda: True)  # noqa: SLF001
 
     result = algorand.account.ensure_funded_from_testnet_dispenser_api(
         account_to_fund=account_to_fund,
@@ -403,6 +419,19 @@ def test_ensure_funded_testnet_api_bad_response(monkeypatch: pytest.MonkeyPatch,
         url=f"{DispenserApiConfig.BASE_URL}/fund/0",
         method="POST",
     )
+
+    fake_account_info = AccountInformation(
+        address=account_to_fund.address,
+        amount=AlgoAmount.from_micro_algo(0),
+        amount_without_pending_rewards=AlgoAmount.from_micro_algo(0),
+        min_balance=AlgoAmount.from_micro_algo(100_000),
+        pending_rewards=AlgoAmount.from_micro_algo(0),
+        rewards=AlgoAmount.from_micro_algo(0),
+        round=1,
+        status="Offline",
+    )
+    monkeypatch.setattr(algorand.account, "get_information", lambda _: fake_account_info)
+    monkeypatch.setattr(algorand.account._client_manager, "is_testnet", lambda: True)  # noqa: SLF001
 
     with pytest.raises(Exception, match="fund_limit_exceeded"):
         algorand.account.ensure_funded_from_testnet_dispenser_api(

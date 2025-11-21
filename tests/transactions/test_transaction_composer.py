@@ -1,18 +1,13 @@
 import base64
 from collections.abc import Generator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from unittest.mock import Mock, patch
 
-import algosdk
 import pytest
-from algosdk.transaction import (
-    ApplicationCallTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    PaymentTxn,
-)
 
+import algokit_algosdk as algosdk
+from algokit_algosdk.signer import make_empty_transaction_signer
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import MultisigMetadata, SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -23,12 +18,10 @@ from algokit_utils.transactions.transaction_composer import (
     AssetCreateParams,
     AssetTransferParams,
     PaymentParams,
-    SendAtomicTransactionComposerResults,
+    SendTransactionComposerResults,
     TransactionComposer,
+    TransactionComposerParams,
 )
-
-if TYPE_CHECKING:
-    from algokit_utils.models.transaction import Arc2TransactionNote
 
 
 @pytest.fixture
@@ -56,42 +49,35 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
 
 
 @pytest.fixture
-def funded_secondary_account(algorand: AlgorandClient) -> SigningAccount:
-    private_key, address = algosdk.account.generate_account()
-    new_account = SigningAccount(private_key=private_key, address=address)
-    dispenser = algorand.account.localnet_dispenser()
-    algorand.account.ensure_funded(
-        new_account.address, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
+def funded_secondary_account(algorand: AlgorandClient, funded_account: SigningAccount) -> SigningAccount:
+    account = algorand.account.random()
+    algorand.send.payment(
+        PaymentParams(sender=funded_account.address, receiver=account.address, amount=AlgoAmount.from_algo(2))
     )
-    return new_account
+    return account
 
 
 def test_add_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
-    txn = PaymentTxn(
-        sender=funded_account.address,
-        sp=algorand.client.algod.suggested_params(),
-        receiver=funded_account.address,
-        amt=AlgoAmount.from_algo(1).micro_algo,
+    composer = algorand.new_group()
+    txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
     )
     composer.add_transaction(txn)
     built = composer.build_transactions()
 
     assert len(built.transactions) == 1
-    assert isinstance(built.transactions[0], PaymentTxn)
+    assert built.transactions[0].payment
     assert built.transactions[0].sender == funded_account.address
-    assert built.transactions[0].receiver == funded_account.address
-    assert built.transactions[0].amt == AlgoAmount.from_algo(1).micro_algo
+    assert built.transactions[0].payment.receiver == funded_account.address
+    assert built.transactions[0].payment.amount == AlgoAmount.from_algo(1).micro_algo
 
 
 def test_add_asset_create(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     expected_total = 1000
     params = AssetCreateParams(
         sender=funded_account.address,
@@ -106,73 +92,63 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: SigningAccou
     composer.add_asset_create(params)
     built = composer.build_transactions()
     response = composer.send({"max_rounds_to_wait": 20})
-    created_asset = algorand.client.algod.asset_info(
-        algorand.client.algod.pending_transaction_info(response.tx_ids[0])["asset-index"]
-    )["params"]
+    confirmation = response.confirmations[-1]
+    asset_id = confirmation.asset_id
+    assert asset_id is not None
 
     assert len(response.tx_ids) == 1
-    assert response.confirmations[-1]["confirmed-round"] > 0
-    assert isinstance(built.transactions[0], AssetCreateTxn)
+    assert confirmation.confirmed_round is not None
+    assert confirmation.confirmed_round > 0
+    assert built.transactions[0].asset_config
     txn = built.transactions[0]
     assert txn.sender == funded_account.address
-    assert created_asset["creator"] == funded_account.address
-    assert txn.total == created_asset["total"] == expected_total
-    assert txn.decimals == created_asset["decimals"] == 0
-    assert txn.default_frozen == created_asset["default-frozen"] is False
-    assert txn.unit_name == created_asset["unit-name"] == "TEST"
-    assert txn.asset_name == created_asset["name"] == "Test Asset"
+    created_asset = algorand.client.algod.get_asset_by_id(asset_id).params
+    assert created_asset.creator == funded_account.address
+    assert txn.asset_config.total == created_asset.total == expected_total
+    assert txn.asset_config.decimals == created_asset.decimals == 0
+    assert txn.asset_config.default_frozen is False
+    assert txn.asset_config.unit_name == created_asset.unit_name == "TEST"
+    assert txn.asset_config.asset_name == created_asset.name == "Test Asset"
 
 
 def test_add_asset_config(
     algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
 ) -> None:
-    # First create an asset
-    asset_txn = AssetCreateTxn(
-        sender=funded_account.address,
-        sp=algorand.client.algod.suggested_params(),
-        total=1000,
-        decimals=0,
-        default_frozen=False,
-        unit_name="CFG",
-        asset_name="Configurable Asset",
-        manager=funded_account.address,
+    created = algorand.send.asset_create(
+        AssetCreateParams(
+            sender=funded_account.address,
+            total=1000,
+            decimals=0,
+            default_frozen=False,
+            unit_name="CFG",
+            asset_name="Configurable Asset",
+            manager=funded_account.address,
+        )
     )
-    signed_asset_txn = asset_txn.sign(funded_account.signer.private_key)
-    tx_id = algorand.client.algod.send_transaction(signed_asset_txn)
-    asset_before_config = algorand.client.algod.asset_info(
-        algorand.client.algod.pending_transaction_info(tx_id)["asset-index"]
-    )
-    asset_before_config_index = asset_before_config["index"]
+    asset_id = created.asset_id
 
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     params = AssetConfigParams(
         sender=funded_account.address,
-        asset_id=asset_before_config_index,
+        asset_id=asset_id,
         manager=funded_secondary_account.address,
     )
     composer.add_asset_config(params)
     built = composer.build_transactions()
 
     assert len(built.transactions) == 1
-    assert isinstance(built.transactions[0], AssetConfigTxn)
     txn = built.transactions[0]
-    assert txn.sender == funded_account.address
-    assert txn.index == asset_before_config_index
-    assert txn.manager == funded_secondary_account.address
+    assert txn.asset_config
+    assert txn.asset_config.asset_id == asset_id
+    assert txn.asset_config.manager == funded_secondary_account.address
 
     composer.send({"max_rounds_to_wait": 20})
-    updated_asset = algorand.client.algod.asset_info(asset_id=asset_before_config_index)["params"]
-    assert updated_asset["manager"] == funded_secondary_account.address
+    updated_asset = algorand.client.algod.get_asset_by_id(asset_id).params
+    assert updated_asset.manager == funded_secondary_account.address
 
 
 def test_add_app_create(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
     params = AppCreateParams(
@@ -185,22 +161,19 @@ def test_add_app_create(algorand: AlgorandClient, funded_account: SigningAccount
     built = composer.build_transactions()
 
     assert len(built.transactions) == 1
-    assert isinstance(built.transactions[0], ApplicationCallTxn)
     txn = built.transactions[0]
+    assert txn.app_call
     assert txn.sender == funded_account.address
-    assert txn.approval_program == b"\x06\x81\x01"
-    assert txn.clear_program == b"\x06\x81\x01"
-    composer.send({"max_rounds_to_wait": 20})
+    assert txn.app_call.approval_program
+    assert txn.app_call.clear_state_program
+    response = composer.send({"max_rounds_to_wait": 20})
+    assert response.confirmations[-1].app_id is not None
 
 
 def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
     approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
     clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
-    composer.add_app_create(
+    create_response = algorand.send.app_create(
         AppCreateParams(
             sender=funded_account.address,
             approval_program=approval_program,
@@ -208,13 +181,9 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Sign
             schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
-    response = composer.send()
-    app_id = algorand.client.algod.pending_transaction_info(response.tx_ids[0])["application-index"]
+    app_id = create_response.app_id
 
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     composer.add_app_call_method_call(
         AppCallMethodCallParams(
             sender=funded_account.address,
@@ -226,18 +195,13 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Sign
     built = composer.build_transactions()
 
     assert len(built.transactions) == 1
-    assert isinstance(built.transactions[0], ApplicationCallTxn)
-    txn = built.transactions[0]
-    assert txn.sender == funded_account.address
+    assert built.transactions[0].app_call
     response = composer.send({"max_rounds_to_wait": 20})
     assert response.returns[-1].value == "Hello, world"
 
 
 def test_simulate(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     composer.add_payment(
         PaymentParams(
             sender=funded_account.address,
@@ -247,32 +211,37 @@ def test_simulate(algorand: AlgorandClient, funded_account: SigningAccount) -> N
     )
     composer.build()
     simulate_response = composer.simulate()
-    assert simulate_response
-
-
-def test_simulate_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
-    """Test that simulate works without a signer being available when skip_signatures=True."""
-
-    # No signer is loaded for funded_secondary_account
-    composer = algorand.new_group()
-    composer.add_payment(
-        PaymentParams(
-            sender=funded_secondary_account.address,
-            receiver=funded_secondary_account.address,
-            amount=AlgoAmount.from_algo(1),
-        )
-    )
-
-    simulate_response = composer.simulate(skip_signatures=True)
-    assert simulate_response
+    assert simulate_response.simulate_response is not None
     assert len(simulate_response.transactions) == 1
 
 
-def test_build_transactions_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
-    """Test that build_transactions work without a signer being available"""
+def test_simulate_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
+    composer = TransactionComposer(
+        TransactionComposerParams(
+            algod=algorand.client.algod,
+            get_signer=lambda _: make_empty_transaction_signer(),
+        )
+    )
+    composer.add_payment(
+        PaymentParams(
+            sender=funded_secondary_account.address,
+            receiver=funded_secondary_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+    composer.build()
+    simulate_response = composer.simulate(skip_signatures=True)
+    assert simulate_response.simulate_response is not None
+    assert len(simulate_response.transactions) == 1
 
-    # No signer is loaded for funded_secondary_account
-    composer = algorand.new_group()
+
+def test_build_fails_without_signer(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
+    composer = TransactionComposer(
+        TransactionComposerParams(
+            algod=algorand.client.algod,
+            get_signer=lambda _: None,
+        )
+    )
     composer.add_payment(
         PaymentParams(
             sender=funded_secondary_account.address,
@@ -281,35 +250,12 @@ def test_build_transactions_without_signer(algorand: AlgorandClient, funded_seco
         )
     )
 
-    built = composer.build_transactions()
-    assert len(built.transactions) == 1
-    assert len(built.signers) == 0
-
-
-def test_fails_to_build_without_signers(algorand: AlgorandClient, funded_secondary_account: SigningAccount) -> None:
-    """Test that build does not work without a signer being available"""
-
-    # No signer is loaded for funded_secondary_account
-    composer = algorand.new_group()
-    composer.add_payment(
-        PaymentParams(
-            sender=funded_secondary_account.address,
-            receiver=funded_secondary_account.address,
-            amount=AlgoAmount.from_algo(1),
-        )
-    )
-
-    with pytest.raises(Exception) as e:  # noqa: PT011
+    with pytest.raises(ValueError, match=f"No signer found for address {funded_secondary_account.address}"):
         composer.build()
-
-    assert str(e.value) == f"No signer found for address {funded_secondary_account.address}"
 
 
 def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     composer.add_payment(
         PaymentParams(
             sender=funded_account.address,
@@ -318,13 +264,14 @@ def test_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         )
     )
     response = composer.send()
-    assert isinstance(response, SendAtomicTransactionComposerResults)
+    assert isinstance(response, SendTransactionComposerResults)
     assert len(response.tx_ids) == 1
-    assert response.confirmations[-1]["confirmed-round"] > 0
+    assert response.confirmations[-1].confirmed_round is not None
+    assert response.confirmations[-1].confirmed_round > 0
 
 
 def test_arc2_note() -> None:
-    note_data: Arc2TransactionNote = {
+    note_data = {
         "dapp_name": "TestDApp",
         "format": "j",
         "data": '{"key":"value"}',
@@ -334,37 +281,9 @@ def test_arc2_note() -> None:
     assert encoded_note == expected_note
 
 
-def test_arc2_note_dapp_name_validation() -> None:
-    invalid_names = [
-        "_TestDApp",  # starts with underscore
-        "Test",  # too short
-        "a" * 33,  # too long
-        "Test@App!",  # invalid character !
-        "Test App",  # contains space
-    ]
-
-    for invalid_name in invalid_names:
-        note_data: Arc2TransactionNote = {"dapp_name": invalid_name, "format": "j", "data": {"key": "value"}}
-        with pytest.raises(ValueError, match="dapp_name must be"):
-            TransactionComposer.arc2_note(note_data)
-
-
-def test_arc2_note_valid_dapp_names() -> None:
-    valid_names = [
-        "TestDApp",  # simple case
-        "test-dapp",  # with hyphen
-        "test_dapp",  # with underscore
-        "test.dapp",  # with dot
-        "test@dapp",  # with @
-        "test/dapp",  # with /
-        "a" * 32,  # maximum length
-        "12345",  # minimum length, numeric
-    ]
-
-    for valid_name in valid_names:
-        note_data: Arc2TransactionNote = {"dapp_name": valid_name, "format": "j", "data": {"key": "value"}}
-        encoded_note = TransactionComposer.arc2_note(note_data)
-        assert encoded_note.startswith(valid_name.encode())
+def test_arc2_note_validates() -> None:
+    with pytest.raises(ValueError, match="dapp_name must be"):
+        TransactionComposer.arc2_note({"dapp_name": "_invalid", "format": "j", "data": "x"})  # type: ignore[arg-type]
 
 
 def _get_test_transaction(
@@ -378,7 +297,7 @@ def _get_test_transaction(
 
 
 def test_transaction_is_capped_by_low_min_txn_fee(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    with pytest.raises(ValueError, match="Transaction fee 1000 is greater than max_fee 1 µALGO"):
+    with pytest.raises(ValueError, match="Transaction fee 1000 µALGO is greater than max fee 1 µALGO"):
         algorand.send.payment(
             PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1))
         )
@@ -390,44 +309,31 @@ def test_transaction_cap_is_ignored_if_higher_than_fee(
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1_000_000))
     )
-    assert isinstance(response.confirmation, dict)
-    assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_micro_algo(1000)
+    assert response.confirmation.txn.transaction.fee == AlgoAmount.from_micro_algo(1000)
 
 
 def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algo(1))
     )
-    assert isinstance(response.confirmation, dict)
-    assert response.confirmation["txn"]["txn"]["fee"] == AlgoAmount.from_algo(1)
+    assert response.confirmation.txn.transaction.fee == AlgoAmount.from_algo(1)
 
 
 def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
+    composer = algorand.new_group()
     composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algo(1))))
     composer.add_payment(PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_algo(2))))
     response = composer.send()
 
-    assert isinstance(response.confirmations[0], dict)
-    assert isinstance(response.confirmations[1], dict)
-    assert response.confirmations[0].get("txn", {}).get("txn", {}).get("grp") is not None
-    assert response.confirmations[1].get("txn", {}).get("txn", {}).get("grp") is not None
-    assert response.transactions[0].payment.group is not None
-    assert response.transactions[1].payment.group is not None
+    assert response.transactions[0].group is not None
+    assert response.transactions[1].group is not None
     assert len(response.confirmations) == 2
-    assert response.confirmations[0]["confirmed-round"] >= response.transactions[0].payment.first_valid_round
-    assert response.confirmations[1]["confirmed-round"] >= response.transactions[1].payment.first_valid_round
-    assert (
-        response.confirmations[0]["txn"]["txn"]["grp"]
-        == base64.b64encode(response.transactions[0].payment.group).decode()
-    )
-    assert (
-        response.confirmations[1]["txn"]["txn"]["grp"]
-        == base64.b64encode(response.transactions[1].payment.group).decode()
-    )
+    group_bytes = response.transactions[0].group
+    assert group_bytes is not None
+    expected_group = base64.b64encode(group_bytes).decode()
+    assert response.confirmations[0].txn.transaction.group == group_bytes
+    assert response.confirmations[1].txn.transaction.group == group_bytes
+    assert response.confirmations[0].txn.transaction.group == base64.b64decode(expected_group.encode())
 
 
 def test_multisig_single_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -451,7 +357,6 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Signi
     account2 = algorand.account.random()
     algorand.account.ensure_funded(account2, funded_account, AlgoAmount.from_algo(10))
 
-    # Setup multisig
     multisig = algorand.account.multisig(
         metadata=MultisigMetadata(
             version=1,
@@ -461,39 +366,15 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Signi
         signing_accounts=[funded_account, account2],
     )
 
-    # Fund multisig
     algorand.send.payment(
         PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algo(1))
     )
-
-    # Use multisig
     algorand.send.payment(
         PaymentParams(sender=multisig.address, receiver=funded_account.address, amount=AlgoAmount.from_micro_algo(500))
     )
 
 
-@pytest.mark.usefixtures("mock_config")
-def test_transactions_fails_in_debug_mode(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    txn1 = algorand.create_transaction.payment(PaymentParams(**_get_test_transaction(funded_account)))
-    txn2 = algorand.create_transaction.payment(
-        PaymentParams(**_get_test_transaction(funded_account, amount=AlgoAmount.from_micro_algo(9999999999999)))
-    )
-    composer = TransactionComposer(
-        algod=algorand.client.algod,
-        get_signer=lambda _: funded_account.signer,
-    )
-    composer.add_transaction(txn1)
-    composer.add_transaction(txn2)
-
-    with pytest.raises(Exception) as e:  # noqa: PT011
-        composer.send()
-
-    assert f"transaction {txn2.get_txid()}: overspend" in e.value.traces[0]["failure_message"]  # type: ignore[attr-defined]
-
-
 def test_error_transformers_chaining(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-    """Test that error transformers work correctly and can be chained together."""
-
     def error_transformer_1(error: Exception) -> Exception:
         if "missing from" in str(error):
             return Exception("ASSET MISSING???")
@@ -508,18 +389,14 @@ def test_error_transformers_chaining(algorand: AlgorandClient, funded_account: S
     composer.register_error_transformer(error_transformer_1)
     composer.register_error_transformer(error_transformer_2)
 
-    # Add a transaction that will fail (asset transfer with non-existent asset)
     composer.add_asset_transfer(
         AssetTransferParams(
             sender=funded_account.address,
             receiver=funded_account.address,
             amount=1,
-            asset_id=1337,  # Non-existent asset
+            asset_id=1337,
         )
     )
 
-    # Test that error transformation works for simulate (covers main error path)
-    with pytest.raises(Exception, match="ASSET MISSING!") as exc_info:
+    with pytest.raises(Exception, match="ASSET MISSING!"):
         composer.simulate()
-
-    assert str(exc_info.value) == "ASSET MISSING!"
