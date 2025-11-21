@@ -34,6 +34,6 @@ class MultisigSubsignature:
 class MultisigSignature:
     version: int = field(metadata=wire("v", keep_zero=True))
     threshold: int = field(metadata=wire("thr", keep_zero=True))
-    subsignatures: tuple[MultisigSubsignature, ...] = field(
+    subsignatures: list[MultisigSubsignature] = field(
         metadata=wire("subsig", encode=_encode_subsig_seq, decode=_decode_subsig_seq)
     )
