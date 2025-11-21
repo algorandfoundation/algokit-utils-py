@@ -400,9 +400,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    response = AppManager.get_abi_return(
-        result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
-    )
+    response = AppManager.get_abi_return(result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn"))
     expected_return = f"Sent {amount.micro_algo}. test"
     assert result.abi_return == expected_return
     assert response
@@ -496,8 +494,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
 
     # Assuming the method returns a string matching the format below
     expected_return = AppManager.get_abi_return(
-        result.confirmations[0],
-        test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
+        result.confirmations[0], test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs")
     )
     assert result.abi_return
     assert str(result.abi_return).startswith("App: 345, Asset: 567, Account: ")
