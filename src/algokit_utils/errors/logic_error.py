@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, TypedDict
 from algokit_utils.models.simulate import SimulationTrace
 
 if TYPE_CHECKING:
-    from algokit_algosdk.source_map import SourceMap as AlgoSourceMap
+    import algokit_algosdk as algosdk
+
+    AlgoSourceMap = algosdk.source_map.SourceMap
 __all__ = [
     "LogicError",
     "LogicErrorData",

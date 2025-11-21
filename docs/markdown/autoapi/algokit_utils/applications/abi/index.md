@@ -49,11 +49,11 @@
 
 #### decode_error *: Exception | None*
 
-#### tx_info *: dict[str, Any]*
+#### tx_info *: ConfirmationResponse*
 
-#### method *: algokit_algosdk.abi.method.Method*
+#### method *: AlgorandABIMethod*
 
-### algokit_utils.applications.abi.parse_abi_method_result(method: algokit_algosdk.abi.method.Method, tx_id: str, txn: dict[str, Any]) → [ABIResult](#algokit_utils.applications.abi.ABIResult)
+### algokit_utils.applications.abi.parse_abi_method_result(method: AlgorandABIMethod, tx_id: str, txn: ConfirmationResponse) → [ABIResult](#algokit_utils.applications.abi.ABIResult)
 
 ### *class* algokit_utils.applications.abi.ABIReturn(result: [ABIResult](#algokit_utils.applications.abi.ABIResult))
 
@@ -69,7 +69,7 @@ The raw return value from the method call
 
 The decoded return value from the method call
 
-#### method *: algokit_algosdk.abi.method.Method | None* *= None*
+#### method *: AlgorandABIMethod | None* *= None*
 
 The ABI method definition
 
@@ -77,9 +77,9 @@ The ABI method definition
 
 The exception that occurred during decoding, if any
 
-#### tx_info *: dict[str, Any] | None* *= None*
+#### tx_info *: ConfirmationResponse | None* *= None*
 
-The transaction info for the method call from raw algosdk ABIResult
+The transaction info for the method call
 
 #### *property* is_success *: bool*
 
@@ -88,7 +88,7 @@ Returns True if the ABI call was successful (no decode error)
 * **Returns:**
   True if no decode error occurred, False otherwise
 
-#### get_arc56_value(method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | algokit_algosdk.abi.method.Method, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
+#### get_arc56_value(method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | AlgorandABIMethod, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
 
 Gets the ARC-56 formatted return value.
 
@@ -98,7 +98,7 @@ Gets the ARC-56 formatted return value.
 * **Returns:**
   The decoded return value in ARC-56 format
 
-### algokit_utils.applications.abi.get_arc56_value(abi_return: [ABIReturn](#algokit_utils.applications.abi.ABIReturn), method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | algokit_algosdk.abi.method.Method, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
+### algokit_utils.applications.abi.get_arc56_value(abi_return: [ABIReturn](#algokit_utils.applications.abi.ABIReturn), method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | AlgorandABIMethod, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
 
 Gets the ARC-56 formatted return value from an ABI return.
 

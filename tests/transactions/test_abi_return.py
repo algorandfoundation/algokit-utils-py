@@ -1,15 +1,18 @@
-from algokit_algosdk.abi import ABIType, Method
-from algokit_algosdk.abi.method import Returns
+import algokit_algosdk as algosdk
 from algokit_utils.applications.abi import ABIResult, ABIReturn, ABIValue
 
 
 def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
     """Helper function to simulate ABI method return value"""
-    abi_type = ABIType.from_string(type_str)
+    abi_type = algosdk.abi.ABIType.from_string(type_str)
     encoded = abi_type.encode(value)
     decoded = abi_type.decode(encoded)
     result = ABIResult(
-        method=Method(name="", args=[], returns=Returns(arg_type=type_str)),
+        method=algosdk.abi.Method(
+            name="",
+            args=[],
+            returns=algosdk.abi.method.Returns(arg_type=type_str),
+        ),
         raw_value=encoded,
         return_value=decoded,
         tx_id="",

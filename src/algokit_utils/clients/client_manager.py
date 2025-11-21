@@ -1,12 +1,12 @@
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, Literal, Optional, TypeVar
 from urllib import parse
 
+import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import ClientConfig as AlgodClientConfig
 from algokit_algod_client import models as algod_models
-from algokit_algosdk.source_map import SourceMap
 from algokit_indexer_client import ClientConfig as IndexerClientConfig
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client import ClientConfig as KmdClientConfig
@@ -15,6 +15,7 @@ from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.signer import TransactionSigner
+from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient
@@ -29,8 +30,8 @@ __all__ = [
     "NetworkDetail",
 ]
 
-TypedFactoryT = TypeVar("TypedFactoryT")
-TypedAppClientT = TypeVar("TypedAppClientT")
+TypedFactoryT = TypeVar("TypedFactoryT", bound=TypedAppFactoryProtocol)
+TypedAppClientT = TypeVar("TypedAppClientT", bound=TypedAppClientProtocol)
 
 
 class AlgoSdkClients:
@@ -278,8 +279,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> "AppClient":
         """Get an application client for an existing application by ID.
 
@@ -317,8 +318,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> "AppClient":
         """Get an application client for an existing application by network.
 
@@ -355,8 +356,8 @@ class ClientManager:
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: Optional["ApplicationLookup"] = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> "AppClient":
         """Get an application client by creator address and name.
 
@@ -495,18 +496,14 @@ class ClientManager:
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
-        client_cls = cast(Any, typed_client)
-        return cast(
-            TypedAppClientT,
-            client_cls.from_creator_and_name(
-                creator_address=creator_address,
-                app_name=app_name,
-                default_sender=default_sender,
-                default_signer=default_signer,
-                ignore_cache=ignore_cache,
-                app_lookup_cache=app_lookup_cache,
-                algorand=self._algorand,
-            ),
+        return typed_client.from_creator_and_name(
+            creator_address=creator_address,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            ignore_cache=ignore_cache,
+            app_lookup_cache=app_lookup_cache,
+            algorand=self._algorand,
         )
 
     def get_typed_app_client_by_id(
@@ -517,8 +514,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> TypedAppClientT:
         """Get a typed application client by ID.
 
@@ -542,18 +539,14 @@ class ClientManager:
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
-        client_cls = cast(Any, typed_client)
-        return cast(
-            TypedAppClientT,
-            client_cls(
-                app_id=app_id,
-                app_name=app_name,
-                default_sender=default_sender,
-                default_signer=default_signer,
-                approval_source_map=approval_source_map,
-                clear_source_map=clear_source_map,
-                algorand=self._algorand,
-            ),
+        return typed_client(
+            app_id=app_id,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
         )
 
     def get_typed_app_client_by_network(
@@ -563,8 +556,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> TypedAppClientT:
         """Returns a new typed client, resolves the app ID for the current network.
 
@@ -590,17 +583,13 @@ class ClientManager:
         if not self._algorand:
             raise ValueError("Attempt to get app client from a ClientManager without an Algorand client")
 
-        client_cls = cast(Any, typed_client)
-        return cast(
-            TypedAppClientT,
-            client_cls.from_network(
-                app_name=app_name,
-                default_sender=default_sender,
-                default_signer=default_signer,
-                approval_source_map=approval_source_map,
-                clear_source_map=clear_source_map,
-                algorand=self._algorand,
-            ),
+        return typed_client.from_network(
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            approval_source_map=approval_source_map,
+            clear_source_map=clear_source_map,
+            algorand=self._algorand,
         )
 
     def get_typed_app_factory(
@@ -634,17 +623,13 @@ class ClientManager:
         if not self._algorand:
             raise ValueError("Attempt to get app factory from a ClientManager without an Algorand client")
 
-        factory_cls = cast(Any, typed_factory)
-        return cast(
-            TypedFactoryT,
-            factory_cls(
-                algorand=self._algorand,
-                app_name=app_name,
-                default_sender=default_sender,
-                default_signer=default_signer,
-                version=version,
-                compilation_params=compilation_params,
-            ),
+        return typed_factory(
+            algorand=self._algorand,
+            app_name=app_name,
+            default_sender=default_sender,
+            default_signer=default_signer,
+            version=version,
+            compilation_params=compilation_params,
         )
 
     @staticmethod

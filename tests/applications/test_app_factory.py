@@ -4,7 +4,6 @@ import pytest
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
-from algokit_algosdk.logic import get_application_address
 from algokit_transact import OnApplicationComplete
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
@@ -98,7 +97,7 @@ def test_create_app(factory: AppFactory) -> None:
     )
 
     assert app_client.app_id > 0
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
     assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
     assert result.confirmation.app_id == app_client.app_id
     assert result.compiled_approval is not None
@@ -152,7 +151,7 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
     assert result.transaction.app_call
     assert result.transaction.app_call.on_complete == OnApplicationComplete.OptIn
     assert app_client.app_id > 0
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
     assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
     assert result.confirmation.app_id == app_client.app_id
 
@@ -184,7 +183,7 @@ def test_deploy_app_create(factory: AppFactory) -> None:
     assert deploy_result.create_result
     assert deploy_result.create_result.app_id > 0
     assert app_client.app_id == deploy_result.create_result.app_id
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
 
 
 def test_deploy_app_create_abi(factory: AppFactory) -> None:
@@ -204,7 +203,7 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     assert create_result.confirmation.app_id is not None
     app_index = create_result.confirmation.app_id
     assert app_client.app_id == deploy_result.app.app_id == app_index
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:

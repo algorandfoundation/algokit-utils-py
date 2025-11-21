@@ -1,7 +1,23 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 RawSchema = dict[str, Any]
+
+
+class ClientType(str, Enum):
+    ALGOD_CLIENT = "algod_client"
+    INDEXER_CLIENT = "indexer_client"
+    KMD_CLIENT = "kmd_client"
+    UNKNOWN = "unknown_client"
+
+    @staticmethod
+    def from_str(s: str) -> "ClientType":
+        s_lower = s.lower()
+        for client_type in ClientType:
+            if client_type.value == s_lower:
+                return client_type
+        return ClientType.UNKNOWN
 
 
 @dataclass(slots=True)

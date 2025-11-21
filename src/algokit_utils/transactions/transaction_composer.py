@@ -3,13 +3,13 @@ import json
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
-from typing import Any, TypedDict, cast
+from typing import Any, TypeAlias, TypedDict, cast
 
+import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
-from algokit_algosdk.abi import Method as ABIMethod
-from algokit_algosdk.signer import make_empty_transaction_signer
+from algokit_common.constants import MAX_TX_GROUP_SIZE
 from algokit_transact import decode_signed_transaction, encode_signed_transactions
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction, TransactionType
@@ -71,6 +71,8 @@ from algokit_utils.transactions.types import (
     TxnParams,
 )
 
+ABIMethod: TypeAlias = algosdk.abi.Method
+
 __all__ = [
     "MAX_TRANSACTION_GROUP_SIZE",
     "AppCallMethodCallParams",
@@ -93,6 +95,7 @@ __all__ = [
     "BuiltTransactions",
     "ErrorTransformer",
     "ErrorTransformerError",
+    "InvalidErrorTransformerValueError",
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
@@ -107,7 +110,7 @@ __all__ = [
     "calculate_extra_program_pages",
 ]
 
-MAX_TRANSACTION_GROUP_SIZE = 16
+MAX_TRANSACTION_GROUP_SIZE = MAX_TX_GROUP_SIZE
 AppMethodCallTransactionArgument = Any
 TxnParamTypes = (
     PaymentParams
@@ -135,6 +138,16 @@ class ErrorTransformerError(RuntimeError):
 
 
 ErrorTransformer = Callable[[Exception], Exception]
+
+
+class InvalidErrorTransformerValueError(RuntimeError):
+    """Raised when an error transformer returns a non-error value."""
+
+    def __init__(self, original_error: Exception, value: object) -> None:
+        super().__init__(
+            f"An error transformer returned a non-error value: {value}. "
+            f"The original error before any transformation: {original_error}"
+        )
 
 
 @dataclass(slots=True)
@@ -198,7 +211,7 @@ class _QueuedTransaction:
 @dataclass(slots=True)
 class _BuiltTxnSpec:
     txn: Transaction
-    signer: TransactionSigner
+    signer: TransactionSigner | None
     logical_max_fee: AlgoAmount | None
     method: ABIMethod | None = None
 
@@ -337,60 +350,23 @@ class TransactionComposer:
 
     def add_app_create_method_call(self, params: AppCreateMethodCallParams) -> "TransactionComposer":
         self._ensure_not_built()
-        txn_args = self._extract_transaction_args(params.args, params.signer)
-        self._queued.extend(txn_args)
         self._queued.append(_QueuedTransaction(txn=params, signer=params.signer))
         return self
 
     def add_app_update_method_call(self, params: AppUpdateMethodCallParams) -> "TransactionComposer":
         self._ensure_not_built()
-        txn_args = self._extract_transaction_args(params.args, params.signer)
-        self._queued.extend(txn_args)
         self._queued.append(_QueuedTransaction(txn=params, signer=params.signer))
         return self
 
     def add_app_delete_method_call(self, params: AppDeleteMethodCallParams) -> "TransactionComposer":
         self._ensure_not_built()
-        txn_args = self._extract_transaction_args(params.args, params.signer)
-        self._queued.extend(txn_args)
         self._queued.append(_QueuedTransaction(txn=params, signer=params.signer))
         return self
 
     def add_app_call_method_call(self, params: AppCallMethodCallParams) -> "TransactionComposer":
         self._ensure_not_built()
-        txn_args = self._extract_transaction_args(params.args, params.signer)
-        self._queued.extend(txn_args)
         self._queued.append(_QueuedTransaction(txn=params, signer=params.signer))
         return self
-
-    def _extract_transaction_args(
-        self, args: list | None, default_signer: TransactionSigner | TransactionSignerAccountProtocol | None = None
-    ) -> list[_QueuedTransaction]:
-        queued: list[_QueuedTransaction] = []
-        if not args:
-            return queued
-
-        for arg in args:
-            if isinstance(arg, Transaction):
-                queued.append(_QueuedTransaction(txn=self._sanitize_transaction(arg), signer=default_signer))
-            elif isinstance(arg, TransactionWithSigner):
-                # This is likely algosdk TransactionWithSigner if passed from outside,
-                # but we only support algokit_transact Transaction here?
-                # If it is algosdk, we need to convert it.
-                # But TransactionWithSigner in this file is defined as holding algokit_transact Transaction.
-                # If the user passes algosdk object, it won't match isinstance check if imported from here.
-                # But we imported TransactionWithSigner from here.
-                # If user passes algosdk.atomic_transaction_composer.TransactionWithSigner, we need to handle it.
-                # For now assume it is handled or user passes compatible types.
-                # If arg is TransactionWithSigner (our type), we use it.
-                queued.append(_QueuedTransaction(txn=self._sanitize_transaction(arg.txn), signer=arg.signer))
-            elif isinstance(arg, TxnParamTypes):
-                queued.append(_QueuedTransaction(txn=arg, signer=arg.signer or default_signer))
-            elif isinstance(arg, MethodCallTxnParamTypes):
-                next_signer = arg.signer or default_signer
-                queued.extend(self._extract_transaction_args(arg.args, next_signer))
-                queued.append(_QueuedTransaction(txn=arg, signer=arg.signer))
-        return queued
 
     def add_online_key_registration(self, params: OnlineKeyRegistrationParams) -> "TransactionComposer":
         self._ensure_not_built()
@@ -474,6 +450,17 @@ class TransactionComposer:
 
         try:
             signed_transactions = self.gather_signatures()
+
+            if config.debug and config.trace_all and config.project_root:
+                from algokit_utils._debugging import simulate_and_persist_response
+
+                simulate_and_persist_response(
+                    self,
+                    config.project_root,
+                    self._algod,
+                    buffer_size_mb=config.trace_buffer_size_mb,
+                )
+
             blobs = encode_signed_transactions(signed_transactions)
             self._algod.send_raw_transaction(blobs)
 
@@ -489,6 +476,19 @@ class TransactionComposer:
                 group_id=group_id,
             )
         except Exception as err:
+            if config.debug and config.project_root and not config.trace_all:
+                from algokit_utils._debugging import simulate_and_persist_response
+
+                try:
+                    simulate_and_persist_response(
+                        self,
+                        config.project_root,
+                        self._algod,
+                        buffer_size_mb=config.trace_buffer_size_mb,
+                    )
+                except Exception:
+                    config.logger.debug("Failed to simulate and persist trace for debugging", exc_info=True)
+
             interpreted = self._interpret_error(err)
             raise self._transform_error(interpreted) from err
 
@@ -501,11 +501,12 @@ class TransactionComposer:
     ) -> SendTransactionComposerResults:
         try:
             self._ensure_built()
+            persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers = self._transactions_with_signers or []
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
                 raw_options.setdefault("fix_signers", True)
-                empty_signer = cast(TransactionSigner, make_empty_transaction_signer())
+                empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
                 signed_transactions = self._sign_transactions(
                     [TransactionWithSigner(txn=entry.txn, signer=empty_signer) for entry in txns_with_signers]
                 )
@@ -531,7 +532,7 @@ class TransactionComposer:
             group = response.txn_groups[0] if response.txn_groups else None
             confirmations = [result.txn_result for result in (group.txn_results if group else [])]
             abi_returns = self._parse_abi_return_values(confirmations)
-            return SendTransactionComposerResults(
+            result = SendTransactionComposerResults(
                 tx_ids=tx_ids,
                 transactions=[entry.txn for entry in txns_with_signers],
                 confirmations=confirmations,
@@ -539,6 +540,22 @@ class TransactionComposer:
                 group_id=self._group_id(),
                 simulate_response=response,
             )
+
+            if config.debug and config.project_root and config.trace_all and persist_trace:
+                from algokit_utils._debugging import simulate_and_persist_response
+
+                try:
+                    simulate_and_persist_response(
+                        self,
+                        config.project_root,
+                        self._algod,
+                        buffer_size_mb=config.trace_buffer_size_mb,
+                        result=result,
+                    )
+                except Exception:
+                    config.logger.debug("Failed to persist simulation trace", exc_info=True)
+
+            return result
         except Exception as err:
             interpreted = self._interpret_error(err)
             raise self._transform_error(interpreted) from err
@@ -572,10 +589,13 @@ class TransactionComposer:
 
             specs = self._build_txn_from_params(entry.txn, suggested_params, is_localnet=is_localnet)
             for spec in specs:
+                resolved_signer = spec.signer or override_signer
+                if resolved_signer is None:
+                    raise ValueError("Signer is required for transaction in composer queue")
                 built_entries.append(
                     _BuiltTxnSpec(
                         txn=self._sanitize_transaction(spec.txn),
-                        signer=override_signer if override_signer else spec.signer,
+                        signer=resolved_signer,
                         logical_max_fee=spec.logical_max_fee,
                         method=spec.method,
                     )
@@ -601,7 +621,8 @@ class TransactionComposer:
 
         grouped = group_transactions(transactions)
         self._transactions_with_signers = [
-            TransactionWithSigner(txn=grouped[index], signer=entry.signer) for index, entry in enumerate(built_entries)
+            TransactionWithSigner(txn=grouped[index], signer=cast(TransactionSigner, entry.signer))
+            for index, entry in enumerate(built_entries)
         ]
         self._method_calls = {index: entry.method for index, entry in enumerate(built_entries) if entry.method}
 
@@ -635,7 +656,7 @@ class TransactionComposer:
         if len(transactions_to_simulate) > 1:
             transactions_to_simulate = group_transactions(transactions_to_simulate)
 
-        empty_signer = cast(TransactionSigner, make_empty_transaction_signer())
+        empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
         signed_transactions = self._sign_transactions(
             [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in transactions_to_simulate]
         )
@@ -985,54 +1006,89 @@ class TransactionComposer:
                 )
             ]
         elif isinstance(params, MethodCallTxnParamTypes):
+            extra_specs, flattened_params = self._extract_method_call_transactions(
+                params, suggested_params, is_localnet=is_localnet
+            )
             if isinstance(params, AppCreateMethodCallParams):
+                create_params = cast(AppCreateMethodCallParams, flattened_params)
                 built = build_app_create_method_call_transaction(
-                    params,
+                    create_params,
                     suggested_params=suggested_params,
-                    method_args=params.args,
+                    method_args=create_params.args,
                     app_manager=self._app_manager,
                     default_validity_window=self._default_validity_window,
                     default_validity_window_is_explicit=self._default_validity_window_is_explicit,
                     is_localnet=is_localnet,
                 )
-            elif isinstance(params, AppUpdateMethodCallParams):
+                return [
+                    *extra_specs,
+                    _BuiltTxnSpec(
+                        txn=built.txn,
+                        signer=self._resolve_param_signer(create_params.signer, create_params.sender),
+                        logical_max_fee=built.logical_max_fee,
+                        method=create_params.method,
+                    ),
+                ]
+            if isinstance(params, AppUpdateMethodCallParams):
+                update_params = cast(AppUpdateMethodCallParams, flattened_params)
                 built = build_app_update_method_call_transaction(
-                    params,
+                    update_params,
                     suggested_params=suggested_params,
-                    method_args=params.args,
+                    method_args=update_params.args,
                     app_manager=self._app_manager,
                     default_validity_window=self._default_validity_window,
                     default_validity_window_is_explicit=self._default_validity_window_is_explicit,
                     is_localnet=is_localnet,
                 )
-            elif isinstance(params, AppDeleteMethodCallParams):
+                return [
+                    *extra_specs,
+                    _BuiltTxnSpec(
+                        txn=built.txn,
+                        signer=self._resolve_param_signer(update_params.signer, update_params.sender),
+                        logical_max_fee=built.logical_max_fee,
+                        method=update_params.method,
+                    ),
+                ]
+            if isinstance(params, AppDeleteMethodCallParams):
+                delete_params = cast(AppDeleteMethodCallParams, flattened_params)
                 built = build_app_delete_method_call_transaction(
-                    params,
+                    delete_params,
                     suggested_params=suggested_params,
-                    method_args=params.args,
+                    method_args=delete_params.args,
                     app_manager=self._app_manager,
                     default_validity_window=self._default_validity_window,
                     default_validity_window_is_explicit=self._default_validity_window_is_explicit,
                     is_localnet=is_localnet,
                 )
-            else:
-                built = build_app_call_method_call_transaction(
-                    params,
-                    suggested_params=suggested_params,
-                    method_args=params.args,
-                    app_manager=self._app_manager,
-                    default_validity_window=self._default_validity_window,
-                    default_validity_window_is_explicit=self._default_validity_window_is_explicit,
-                    is_localnet=is_localnet,
-                )
+                return [
+                    *extra_specs,
+                    _BuiltTxnSpec(
+                        txn=built.txn,
+                        signer=self._resolve_param_signer(delete_params.signer, delete_params.sender),
+                        logical_max_fee=built.logical_max_fee,
+                        method=delete_params.method,
+                    ),
+                ]
+
+            call_params = cast(AppCallMethodCallParams, flattened_params)
+            built = build_app_call_method_call_transaction(
+                call_params,
+                suggested_params=suggested_params,
+                method_args=call_params.args,
+                app_manager=self._app_manager,
+                default_validity_window=self._default_validity_window,
+                default_validity_window_is_explicit=self._default_validity_window_is_explicit,
+                is_localnet=is_localnet,
+            )
 
             return [
+                *extra_specs,
                 _BuiltTxnSpec(
                     txn=built.txn,
-                    signer=self._resolve_param_signer(params.signer, params.sender),
+                    signer=self._resolve_param_signer(call_params.signer, call_params.sender),
                     logical_max_fee=built.logical_max_fee,
-                    method=params.method,
-                )
+                    method=call_params.method,
+                ),
             ]
 
         raise ValueError(f"Unsupported transaction params type: {type(params)}")
@@ -1042,6 +1098,88 @@ class TransactionComposer:
             return _QueuedTransaction(txn=self._sanitize_transaction(entry.txn), signer=entry.signer)
         # TxnParams are immutable (frozen dataclasses) so we can share them
         return _QueuedTransaction(txn=entry.txn, signer=entry.signer)
+
+    def _process_method_call_arg(
+        self,
+        arg: object | None,
+        current_signer: TransactionSigner | None,
+        suggested_params: algod_models.SuggestedParams,
+        *,
+        is_localnet: bool,
+    ) -> tuple[list[_BuiltTxnSpec], object | None]:
+        if arg is None:
+            return [], None
+
+        if isinstance(arg, TransactionWithSigner):
+            return [
+                _BuiltTxnSpec(
+                    txn=self._sanitize_transaction(arg.txn),
+                    signer=arg.signer,
+                    logical_max_fee=None,
+                )
+            ], None
+
+        if isinstance(arg, MethodCallTxnParamTypes):
+            nested_params = arg
+            if arg.signer is None and current_signer is not None:
+                nested_params = replace(arg, signer=current_signer)
+            return (
+                self._build_txn_from_params(
+                    nested_params,
+                    suggested_params,
+                    is_localnet=is_localnet,
+                ),
+                None,
+            )
+
+        if isinstance(arg, Transaction):
+            return [
+                _BuiltTxnSpec(
+                    txn=self._sanitize_transaction(arg),
+                    signer=current_signer,
+                    logical_max_fee=None,
+                )
+            ], None
+
+        if isinstance(arg, TxnParamTypes):
+            return (
+                self._build_txn_from_params(arg, suggested_params, is_localnet=is_localnet),
+                None,
+            )
+
+        return [], arg
+
+    def _extract_method_call_transactions(
+        self,
+        params: MethodCallTxnParamTypes,
+        suggested_params: algod_models.SuggestedParams,
+        *,
+        is_localnet: bool,
+    ) -> tuple[list[_BuiltTxnSpec], MethodCallTxnParamTypes]:
+        """Flatten transaction arguments inside ABI method calls into queued specs."""
+        if not params.args:
+            return [], params
+
+        def _to_signer(value: TransactionSigner | TransactionSignerAccountProtocol | None) -> TransactionSigner | None:
+            if isinstance(value, TransactionSignerAccountProtocol):
+                return value.signer
+            return value
+
+        current_signer = _to_signer(params.signer)
+        extra_specs: list[_BuiltTxnSpec] = []
+        processed_args: list[Any] = []
+
+        for arg in params.args:
+            specs, processed = self._process_method_call_arg(
+                arg,
+                current_signer,
+                suggested_params,
+                is_localnet=is_localnet,
+            )
+            extra_specs.extend(specs)
+            processed_args.append(processed)
+
+        return extra_specs, replace(params, args=processed_args)
 
     def _sanitize_transaction(self, txn: Transaction) -> Transaction:
         return replace(txn, group=None)
@@ -1117,12 +1255,15 @@ class TransactionComposer:
         return confirmations
 
     def _transform_error(self, err: Exception) -> Exception:
+        original_error = err
         transformed = err
         for transformer in self._error_transformers:
             try:
                 transformed = transformer(transformed)
             except Exception as transformer_error:
                 raise ErrorTransformerError("Error transformer raised an exception") from transformer_error
+            if not isinstance(transformed, Exception):
+                raise InvalidErrorTransformerValueError(original_error, transformed)
         return transformed
 
     def _parse_abi_return_values(

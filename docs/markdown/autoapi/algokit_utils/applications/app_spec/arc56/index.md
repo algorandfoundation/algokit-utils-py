@@ -466,7 +466,7 @@ The optional readonly flag
 
 The optional execution recommendations
 
-#### to_abi_method() → algokit_algosdk.abi.Method
+#### to_abi_method() → AlgosdkMethod
 
 Convert to ABI method.
 

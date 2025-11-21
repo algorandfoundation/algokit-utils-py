@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from os import access
 from typing import List, Optional, Tuple, Union
 
 from . import encoding

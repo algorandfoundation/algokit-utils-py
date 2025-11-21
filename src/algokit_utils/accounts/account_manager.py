@@ -363,7 +363,7 @@ class AccountManager:
         :param address: The address for the account
         :returns: The registered Account instance
         """
-        address = address or str(algosdk.account.address_from_private_key(private_key))  # type: ignore[no-untyped-call]
+        address = address or str(algosdk.account.address_from_private_key(private_key))
         account = SigningAccount(private_key=private_key, address=address)
         self._accounts[address or account.address] = TransactionSignerAccount(
             address=account.address,
@@ -410,7 +410,7 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        private_key = cast(str, algosdk.mnemonic.to_private_key(mnemonic))  # type: ignore[no-untyped-call]
+        private_key = cast(str, algosdk.mnemonic.to_private_key(mnemonic))
         return self._register_account(private_key, sender)
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> SigningAccount:
@@ -443,7 +443,7 @@ class AccountManager:
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
         if account_mnemonic:
-            private_key = cast(str, algosdk.mnemonic.to_private_key(account_mnemonic))  # type: ignore[no-untyped-call]
+            private_key = cast(str, algosdk.mnemonic.to_private_key(account_mnemonic))
             return self._register_account(private_key)
 
         if self._client_manager.is_localnet():
@@ -516,7 +516,7 @@ class AccountManager:
         :example:
             >>> account = account_manager.random()
         """
-        private_key, _ = algosdk.account.generate_account()  # type: ignore[no-untyped-call]
+        private_key, _ = algosdk.account.generate_account()
         return self._register_account(private_key)
 
     def localnet_dispenser(self) -> SigningAccount:

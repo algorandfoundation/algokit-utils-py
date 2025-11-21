@@ -1,8 +1,8 @@
 import base64
 from dataclasses import dataclass, replace
 
+import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
-from algokit_algosdk.transaction import SuggestedParams as AlgoSuggestedParams
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
 from algokit_transact.models.asset_freeze import AssetFreezeTransactionFields
@@ -17,6 +17,7 @@ from algokit_utils.transactions.types import CommonTxnParams
 
 LEASE_MIN_LENGTH = 1
 LEASE_MAX_LENGTH = 32
+AlgoSuggestedParams = algosdk.transaction.SuggestedParams
 SuggestedParamsLike = AlgoSuggestedParams | algod_models.SuggestedParams
 
 __all__ = [

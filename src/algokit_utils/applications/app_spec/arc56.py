@@ -4,11 +4,12 @@ from base64 import b64encode
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Literal, Optional, overload
+from typing import Any, Literal, Optional, TypeAlias, overload
 
 import algokit_algosdk as algosdk
-from algokit_algosdk.abi import Method as AlgosdkMethod
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
+
+AlgosdkMethod: TypeAlias = algosdk.abi.Method
 
 __all__ = [
     "Actions",

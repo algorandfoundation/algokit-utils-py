@@ -96,7 +96,7 @@ be resolved prior to calling some target method
 
 #### source *: DefaultArgumentType*
 
-#### data *: int | str | bytes | algokit_algosdk.abi.method.MethodDict*
+#### data *: int | str | bytes | MethodDict*
 
 ### algokit_utils.applications.app_spec.arc32.StateDict
 
@@ -128,7 +128,7 @@ See <[https://github.com/algorandfoundation/ARCs/pull/150](https://github.com/al
 
 #### clear_program *: str*
 
-#### contract *: algokit_algosdk.abi.Contract*
+#### contract *: Contract*
 
 #### hints *: dict[str, [MethodHints](#algokit_utils.applications.app_spec.arc32.MethodHints)]*
 

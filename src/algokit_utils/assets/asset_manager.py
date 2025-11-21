@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
@@ -102,11 +101,11 @@ class AssetManager:
         self._new_group = new_group
 
     def get_by_id(self, asset_id: int) -> AssetInformation:
-        """Return current asset information as a strongly typed dataclass.
+        """Returns the current asset information for the asset with the given ID.
 
-        Uses typed algod client `get_asset_by_id` and maps `asset.params.*` fields
-        into an `AssetInformation` dataclass. All values are sourced from typed model
-        attributes (e.g. `asset.params.total`, `asset.params.manager`, `asset.params.unit_name`)
+        Uses typed algod client `get_asset_by_id` and maps `asset.params.*` fields into an
+        `AssetInformation` dataclass. All values are sourced from typed model attributes
+        (e.g. `asset.params.total`, `asset.params.manager`, `asset.params.unit_name`)
         rather than dictionary keys (legacy: `asset_info["params"]["total"]`, etc.).
 
         :param asset_id: The asset identifier
@@ -140,7 +139,7 @@ class AssetManager:
         )
 
     def get_account_information(
-        self, sender: str | SigningAccount | TransactionSigner, asset_id: int
+        self, sender: str | TransactionSignerAccountProtocol, asset_id: int
     ) -> AccountAssetInformation:
         """Returns the given sender account's asset holding for a given asset.
 
@@ -162,6 +161,7 @@ class AssetManager:
         return AccountAssetInformation(
             asset_id=asset_id,
             balance=holding.amount,
+            # TODO: resolve bool val resolution in api generator
             frozen=bool(holding.is_frozen) if holding.is_frozen is not None else False,
             round=info.round_,
         )
@@ -331,12 +331,10 @@ class AssetManager:
 
     @staticmethod
     def _get_address_from_sender(
-        sender: str | SigningAccount | TransactionSigner | TransactionSignerAccountProtocol,
+        sender: str | TransactionSignerAccountProtocol,
     ) -> str:
         if isinstance(sender, str):
             return sender
-        if isinstance(sender, SigningAccount):
-            return sender.address
         if isinstance(sender, TransactionSignerAccountProtocol):
             return sender.address
         raise ValueError(f"Unsupported sender type: {type(sender)}")

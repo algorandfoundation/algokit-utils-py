@@ -564,7 +564,7 @@ class OperationBuilder:
         return self.sanitizer.pascal(raw)
 
     def _is_private_operation(self, operation_id: str) -> bool:
-        if self.client_key == "algod_client":
+        if self.client_key == ctx.ClientType.ALGOD_CLIENT:
             return operation_id in self.ALGOD_PRIVATE_OPERATIONS
         return False
 
@@ -710,7 +710,7 @@ def build_client_descriptor(
     spec: ctx.ParsedSpec, package_name: str, sanitizer: IdentifierSanitizer
 ) -> ctx.ClientDescriptor:
     package_leaf = package_name.split(".")[-1]
-    client_key = package_leaf.removeprefix("algokit_")
+    client_key = ctx.ClientType.from_str(package_leaf.removeprefix("algokit_").upper())
     class_name = sanitizer.pascal(client_key)
     registry = SchemaRegistry(spec, sanitizer)
     resolver = TypeResolver(registry)
@@ -721,9 +721,9 @@ def build_client_descriptor(
     models = [model for model in models if model.name not in LEDGER_STATE_DELTA_MODEL_NAMES]
     uses_signed_txn = model_builder.uses_signed_transaction or operation_builder.uses_signed_transaction
     defaults = {
-        "algod_client": ("http://localhost:4001", "X-Algo-API-Token"),
-        "indexer_client": ("http://localhost:8980", "X-Indexer-API-Token"),
-        "kmd_client": ("http://localhost:7833", "X-KMD-API-Token"),
+        ctx.ClientType.ALGOD_CLIENT: ("http://localhost:4001", "X-Algo-API-Token"),
+        ctx.ClientType.INDEXER_CLIENT: ("http://localhost:8980", "X-Indexer-API-Token"),
+        ctx.ClientType.KMD_CLIENT: ("http://localhost:7833", "X-KMD-API-Token"),
     }
     base_url, token_header = defaults.get(client_key, ("http://localhost", "X-Algo-API-Token"))
     return ctx.ClientDescriptor(
@@ -740,5 +740,5 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
-        is_algod_client=client_key == "algod_client",
+        is_algod_client=client_key == ctx.ClientType.ALGOD_CLIENT,
     )

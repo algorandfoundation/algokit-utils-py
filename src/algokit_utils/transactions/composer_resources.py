@@ -2,12 +2,11 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Any
 
+import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
+from algokit_common.constants import MAX_ACCOUNT_REFERENCES, MAX_OVERALL_REFERENCES
 from algokit_transact.models.app_call import AppCallTransactionFields, BoxReference
 from algokit_transact.models.transaction import Transaction, TransactionType
-
-MAX_ACCOUNT_REFERENCES = 4
-MAX_OVERALL_REFERENCES = 8
 
 
 def populate_transaction_resources(  # noqa: C901, PLR0912
@@ -128,7 +127,7 @@ def populate_group_resources(  # noqa: C901, PLR0912
             if asset_holding.asset in remaining_assets:
                 remaining_assets.remove(asset_holding.asset)
 
-    # Process accounts next because account limit is 4
+    # Process accounts next because account limit is capped (MAX_ACCOUNT_REFERENCES)
     for account in remaining_accounts:
         _populate_group_resource(transactions, GroupResourceToPopulate(GroupResourceType.Account, account))
 
@@ -174,9 +173,7 @@ def _is_app_call_below_resource_limit(txn: Transaction) -> bool:
 
 
 def _get_app_address(app_id: int) -> str:
-    from algokit_algosdk.logic import get_application_address
-
-    return get_application_address(app_id)
+    return algosdk.logic.get_application_address(app_id)
 
 
 def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915

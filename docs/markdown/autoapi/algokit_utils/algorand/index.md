@@ -11,13 +11,6 @@
 
 A client that brokers easy access to Algorand functionality.
 
-This client uses the typed algokit_algod_client.AlgodClient internally for improved
-type safety and developer experience.
-
-Backward Compatibility:
-: - Suggested params are automatically converted to algosdk format for compatibility
-  - Public APIs maintain their existing signatures where possible
-
 #### set_default_validity_window(validity_window: int) → typing_extensions.Self
 
 Sets the default validity window for transactions.

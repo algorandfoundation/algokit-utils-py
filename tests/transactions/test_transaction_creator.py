@@ -155,6 +155,21 @@ def test_create_asset_transfer_transaction(
     assert txn.asset_transfer.receiver == funded_secondary_account.address
 
 
+def test_created_transactions_have_no_group(
+    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
+) -> None:
+    txn = algorand.create_transaction.asset_transfer(
+        AssetTransferParams(
+            sender=funded_account.address,
+            asset_id=1,
+            amount=10,
+            receiver=funded_secondary_account.address,
+        )
+    )
+
+    assert txn.group is None
+
+
 def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
     txn = algorand.create_transaction.asset_opt_in(
         AssetOptInParams(

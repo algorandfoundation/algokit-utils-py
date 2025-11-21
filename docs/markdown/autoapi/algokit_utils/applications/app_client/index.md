@@ -292,10 +292,10 @@ methods for calling application methods, managing state, and handling transactio
           account="SIGNERACCOUNT",
           private_key="SIGNERPRIVATEKEY",
       ),
-      approval_source_map=SourceMap(
+      approval_source_map=algosdk.source_map.SourceMap(
           source="APPROVALSOURCE",
       ),
-      clear_source_map=SourceMap(
+      clear_source_map=algosdk.source_map.SourceMap(
           source="CLEARSOURCE",
       ),
   )
@@ -422,10 +422,10 @@ Create an AppClient instance from network information.
           account="SIGNERACCOUNT",
           private_key="SIGNERPRIVATEKEY",
       ),
-      approval_source_map=SourceMap(
+      approval_source_map=algosdk.source_map.SourceMap(
           source="APPROVALSOURCE",
       ),
-      clear_source_map=SourceMap(
+      clear_source_map=algosdk.source_map.SourceMap(
           source="CLEARSOURCE",
       ),
   )

@@ -5,7 +5,6 @@ from .base_type import ABIType
 from .bool_type import BoolType
 from .byte_type import ByteType
 from .contract import Contract, NetworkInfo
-from .interface import Interface
 from .method import Argument, Method, Returns
 from .reference import ABIReferenceType, is_abi_reference_type
 from .string_type import StringType
@@ -30,7 +29,6 @@ __all__ = [
     "ByteType",
     "check_abi_transaction_type",
     "Contract",
-    "Interface",
     "Method",
     "NetworkInfo",
     "Returns",

@@ -132,11 +132,11 @@ A manager for Algorand Standard Assets (ASAs).
 
 #### get_by_id(asset_id: int) → [AssetInformation](#algokit_utils.assets.asset_manager.AssetInformation)
 
-Return current asset information as a strongly typed dataclass.
+Returns the current asset information for the asset with the given ID.
 
-Uses typed algod client get_asset_by_id and maps asset.params.\* fields
-into an AssetInformation dataclass. All values are sourced from typed model
-attributes (e.g. asset.params.total, asset.params.manager, asset.params.unit_name)
+Uses typed algod client get_asset_by_id and maps asset.params.\* fields into an
+AssetInformation dataclass. All values are sourced from typed model attributes
+(e.g. asset.params.total, asset.params.manager, asset.params.unit_name)
 rather than dictionary keys (legacy: asset_info[“params”][“total”], etc.).
 
 * **Parameters:**
@@ -150,7 +150,7 @@ rather than dictionary keys (legacy: asset_info[“params”][“total”], etc.
   print(info.total, info.creator, info.unit_name)
   ```
 
-#### get_account_information(sender: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount) | [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner), asset_id: int) → [AccountAssetInformation](#algokit_utils.assets.asset_manager.AccountAssetInformation)
+#### get_account_information(sender: str | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol), asset_id: int) → [AccountAssetInformation](#algokit_utils.assets.asset_manager.AccountAssetInformation)
 
 Returns the given sender account’s asset holding for a given asset.
 

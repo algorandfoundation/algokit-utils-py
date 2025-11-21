@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypedDict, Union
+from typing import TYPE_CHECKING, TypeAlias, TypedDict, Union
 
 from algokit_transact import OnApplicationComplete
 from algokit_utils.models.amount import AlgoAmount
@@ -8,7 +8,9 @@ from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
 
 if TYPE_CHECKING:
-    from algokit_algosdk.abi import Method
+    import algokit_algosdk as algosdk
+
+    Method: TypeAlias = algosdk.abi.Method
 
 
 __all__ = [

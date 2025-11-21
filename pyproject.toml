@@ -59,6 +59,7 @@ build-backend = "uv_build"
 module-name = [
   "algokit_abi",
   "algokit_algod_client",
+  "algokit_algosdk",
   "algokit_common",
   "algokit_indexer_client",
   "algokit_kmd_client",
@@ -272,10 +273,10 @@ mypy_path = [
   "src",
 ]
 
-untyped_calls_exclude = ["algosdk"]
+untyped_calls_exclude = ["algokit_algosdk"]
 
 [[tool.mypy.overrides]]
-module = ["algosdk", "algosdk.*"]
+module = ["algokit_algosdk", "algokit_algosdk.*"]
 disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]

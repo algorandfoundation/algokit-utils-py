@@ -5,8 +5,7 @@ from enum import IntFlag
 from pathlib import Path
 from typing import Any, Literal, TypeAlias, TypedDict
 
-from algokit_algosdk.abi import Contract
-from algokit_algosdk.abi.method import MethodDict
+import algokit_algosdk as algosdk
 from algokit_transact.models.common import StateSchema
 
 __all__ = [
@@ -21,6 +20,9 @@ __all__ = [
     "StateDict",
     "StructArgDict",
 ]
+
+Contract: TypeAlias = algosdk.abi.Contract
+MethodDict: TypeAlias = algosdk.abi.method.MethodDict
 
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]

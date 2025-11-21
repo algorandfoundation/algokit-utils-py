@@ -2,14 +2,12 @@ import base64
 import json
 import logging
 import typing
-from collections.abc import Mapping
-from dataclasses import asdict, dataclass, field, is_dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from algokit_algosdk.encoding import checksum
-from algokit_algosdk.source_map import SourceMap
+import algokit_algosdk as algosdk
 from algokit_common.serde import to_wire
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
@@ -20,6 +18,9 @@ if typing.TYPE_CHECKING:
     from algosdk.atomic_transaction_composer import SimulateAtomicTransactionResponse  # type: ignore[import-not-found]
 
     from algokit_algod_client import AlgodClient
+else:
+    SimulateAtomicTransactionResponse = typing.Any  # type: ignore[assignment]
+    AlgodClient = typing.Any  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -106,33 +107,17 @@ class PersistSourceMapInput:
         return file_name
 
 
-def _load_or_create_sources(sources_path: Path) -> AVMDebuggerSourceMap:
-    if not sources_path.exists():
-        return AVMDebuggerSourceMap(txn_group_sources=[])
-
-    with sources_path.open() as f:
-        return AVMDebuggerSourceMap.from_dict(json.load(f))
-
-
 def _write_to_file(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
 
 
-def _dataclass_to_dict(value: object) -> dict[str, Any]:
-    if is_dataclass(value):
-        return asdict(value)  # type: ignore[arg-type]
-    if isinstance(value, Mapping):
-        return dict(value)
-    raise TypeError(f"Unsupported simulate response type: {type(value)}")
-
-
-def _compile_raw_teal(raw_teal: str, client: "AlgodClient") -> tuple[bytes, SourceMap, str]:
+def _compile_raw_teal(raw_teal: str, client: AlgodClient) -> tuple[bytes, algosdk.source_map.SourceMap, str]:
     teal_to_compile = AppManager.strip_teal_comments(raw_teal)
     compiled = client.teal_compile(teal_to_compile.encode("utf-8"), sourcemap=True)
     compiled_bytes = base64.b64decode(compiled.result)
     sourcemap_dict = to_wire(compiled.sourcemap) if compiled.sourcemap else {}
-    return compiled_bytes, SourceMap(sourcemap_dict), raw_teal
+    return compiled_bytes, algosdk.source_map.SourceMap(sourcemap_dict), raw_teal
 
 
 def _build_avm_sourcemap(
@@ -140,7 +125,7 @@ def _build_avm_sourcemap(
     app_name: str,
     file_name: str,
     output_path: Path,
-    client: "AlgodClient",
+    client: AlgodClient,
     raw_teal: str | None = None,
     compiled_teal: CompiledTeal | None = None,
     with_sources: bool = True,
@@ -149,12 +134,12 @@ def _build_avm_sourcemap(
         raise ValueError("Either raw teal or compiled teal must be provided")
 
     if isinstance(compiled_teal, CompiledTeal):
-        program_hash = base64.b64encode(checksum(compiled_teal.compiled_base64_to_bytes)).decode()
+        program_hash = base64.b64encode(algosdk.encoding.checksum(compiled_teal.compiled_base64_to_bytes)).decode()
         source_map = compiled_teal.source_map.__dict__ if compiled_teal.source_map else {}
         teal_content = compiled_teal.teal
     else:
         compiled_bytes, source_map_obj, teal_content = _compile_raw_teal(str(raw_teal), client)
-        program_hash = base64.b64encode(checksum(compiled_bytes)).decode()
+        program_hash = base64.b64encode(algosdk.encoding.checksum(compiled_bytes)).decode()
         source_map = source_map_obj.__dict__
 
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []
@@ -240,7 +225,7 @@ def _extract_simulation_trace_from_algokit(result: SendTransactionComposerResult
     return to_wire(result.simulate_response)
 
 
-def _extract_simulation_trace_from_atc(response: "SimulateAtomicTransactionResponse") -> dict[str, Any]:
+def _extract_simulation_trace_from_atc(response: SimulateAtomicTransactionResponse) -> dict[str, Any]:
     # algosdk simulate responses are already dict-like
     return dict(response.simulate_response) if hasattr(response, "simulate_response") else dict(response)
 
@@ -248,9 +233,10 @@ def _extract_simulation_trace_from_atc(response: "SimulateAtomicTransactionRespo
 def simulate_and_persist_response(
     composer: TransactionComposer | object,
     project_root: Path,
-    algod: "AlgodClient",
+    algod: AlgodClient,
     *,
     buffer_size_mb: float | None = None,
+    result: SendTransactionComposerResults | SimulateAtomicTransactionResponse | None = None,
 ) -> Path:
     """
     Run a simulation on the provided composer and persist the trace to disk.
@@ -259,15 +245,22 @@ def simulate_and_persist_response(
     :param project_root: Root directory where traces should be stored
     :param algod: Algod client to use for simulation
     :param buffer_size_mb: Optional buffer size to enforce via cleanup_old_trace_files
+    :param result: Optional existing simulation result to persist instead of re-running simulation
     :return: Path to the persisted trace file
     :raises TypeError: If the composer does not implement a compatible ``simulate`` method
     """
-    if isinstance(composer, TransactionComposer):
-        result = composer.simulate()
+    if result is None and isinstance(composer, TransactionComposer):
+        result = composer.simulate(_persist_trace=False)
         trace = _extract_simulation_trace_from_algokit(result)
-    elif hasattr(composer, "simulate"):
-        response = composer.simulate(algod)
-        trace = _extract_simulation_trace_from_atc(response)
+    elif result is None and hasattr(composer, "simulate"):
+        result = composer.simulate(algod)
+        trace = _extract_simulation_trace_from_atc(result)
+    elif result is not None:
+        trace = (
+            _extract_simulation_trace_from_algokit(result)
+            if isinstance(result, SendTransactionComposerResults)
+            else _extract_simulation_trace_from_atc(result)
+        )
     else:
         raise TypeError("Composer must support simulate()")
 
@@ -287,7 +280,7 @@ def persist_sourcemaps(
     *,
     sources: list[PersistSourceMapInput],
     project_root: Path,
-    client: "AlgodClient",
+    client: AlgodClient,
     with_sources: bool = True,
 ) -> None:
     """

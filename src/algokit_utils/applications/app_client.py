@@ -7,7 +7,6 @@ from dataclasses import asdict, dataclass, fields, replace
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 import algokit_algosdk as algosdk
-from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
@@ -1275,9 +1274,9 @@ class AppClientParams:
     """The default sender address"""
     default_signer: TransactionSigner | None = None
     """The default transaction signer"""
-    approval_source_map: SourceMap | None = None
+    approval_source_map: algosdk.source_map.SourceMap | None = None
     """The approval source map"""
-    clear_source_map: SourceMap | None = None
+    clear_source_map: algosdk.source_map.SourceMap | None = None
     """The clear source map"""
 
 
@@ -1300,10 +1299,10 @@ class AppClient:
         ...         account="SIGNERACCOUNT",
         ...         private_key="SIGNERPRIVATEKEY",
         ...     ),
-        ...     approval_source_map=SourceMap(
+        ...     approval_source_map=algosdk.source_map.SourceMap(
         ...         source="APPROVALSOURCE",
         ...     ),
-        ...     clear_source_map=SourceMap(
+        ...     clear_source_map=algosdk.source_map.SourceMap(
         ...         source="CLEARSOURCE",
         ...     ),
         ... )
@@ -1449,8 +1448,8 @@ class AppClient:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> "AppClient":
         """Create an AppClient instance from network information.
 
@@ -1474,10 +1473,10 @@ class AppClient:
             ...         account="SIGNERACCOUNT",
             ...         private_key="SIGNERPRIVATEKEY",
             ...     ),
-            ...     approval_source_map=SourceMap(
+            ...     approval_source_map=algosdk.source_map.SourceMap(
             ...         source="APPROVALSOURCE",
             ...     ),
-            ...     clear_source_map=SourceMap(
+            ...     clear_source_map=algosdk.source_map.SourceMap(
             ...         source="CLEARSOURCE",
             ...     ),
             ... )
@@ -1522,8 +1521,8 @@ class AppClient:
         algorand: AlgorandClient,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: ApplicationLookup | None = None,
     ) -> "AppClient":
@@ -1646,8 +1645,8 @@ class AppClient:
         e: Exception,
         app_spec: Arc56Contract,
         is_clear_state_program: bool = False,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
         program: bytes | None = None,
         approval_source_info: ProgramSourceInfo | None = None,
         clear_source_info: ProgramSourceInfo | None = None,
@@ -1765,8 +1764,8 @@ class AppClient:
         app_name: str | None = _MISSING,  # type: ignore[assignment]
         default_sender: str | None = _MISSING,  # type: ignore[assignment]
         default_signer: TransactionSigner | None = _MISSING,  # type: ignore[assignment]
-        approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
-        clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
+        approval_source_map: algosdk.source_map.SourceMap | None = _MISSING,  # type: ignore[assignment]
+        clear_source_map: algosdk.source_map.SourceMap | None = _MISSING,  # type: ignore[assignment]
     ) -> "AppClient":
         """Create a cloned AppClient instance with optionally overridden parameters.
 
@@ -1824,22 +1823,22 @@ class AppClient:
         if not source_maps.clear_source_map:
             raise ValueError("Clear source map is required")
 
-        if not isinstance(source_maps.approval_source_map, dict | SourceMap):
+        if not isinstance(source_maps.approval_source_map, dict | algosdk.source_map.SourceMap):
             raise ValueError(
                 "Approval source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
             )
-        if not isinstance(source_maps.clear_source_map, dict | SourceMap):
+        if not isinstance(source_maps.clear_source_map, dict | algosdk.source_map.SourceMap):
             raise ValueError(
                 "Clear source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
             )
 
         self._approval_source_map = (
-            SourceMap(source_map=source_maps.approval_source_map)
+            algosdk.source_map.SourceMap(source_map=source_maps.approval_source_map)
             if isinstance(source_maps.approval_source_map, dict)
             else source_maps.approval_source_map
         )
         self._clear_source_map = (
-            SourceMap(source_map=source_maps.clear_source_map)
+            algosdk.source_map.SourceMap(source_map=source_maps.clear_source_map)
             if isinstance(source_maps.clear_source_map, dict)
             else source_maps.clear_source_map
         )

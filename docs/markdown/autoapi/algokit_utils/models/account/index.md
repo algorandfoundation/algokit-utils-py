@@ -73,7 +73,7 @@ Provides functionality to manage and sign transactions for a multisig account.
   * **multisig_params** – The parameters for the multisig account
   * **signing_accounts** – The list of accounts that can sign
 
-#### *property* multisig *: algokit_algosdk.transaction.Multisig*
+#### *property* multisig *: TxMultisig*
 
 Get the underlying algosdk.transaction.Multisig object instance.
 
@@ -105,7 +105,7 @@ Get the address of the multisig account.
 
 Get the AlgoKit-native signer callable for this multisig account.
 
-#### sign(transaction: algokit_transact.models.transaction.Transaction) → algokit_algosdk.transaction.MultisigTransaction
+#### sign(transaction: algokit_transact.models.transaction.Transaction) → MultisigTransaction
 
 Sign the given transaction with all present signers.
 
@@ -143,6 +143,6 @@ the LogicSig’s program code.
 
 Get the AlgoKit-native signer callable for this logic sig account.
 
-#### *property* algokit_lsig *: algokit_algosdk.logicsig.LogicSigAccount*
+#### *property* algokit_lsig *: AlgosdkLogicSigAccount*
 
 Expose the AlgoKit-native representation.

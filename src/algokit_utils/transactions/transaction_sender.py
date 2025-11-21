@@ -1,4 +1,4 @@
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar, cast
 
@@ -48,21 +48,6 @@ __all__ = [
 
 
 TxnParamsT = TypeVar("TxnParamsT", bound=TxnParams)
-
-
-def _get_confirmation_value(
-    confirmation: algod_models.PendingTransactionResponse | Mapping[str, object] | None,
-    *,
-    typed_attr: str,
-    dict_key: str,
-) -> object | None:
-    """Helper to fetch confirmation values from typed or legacy dict responses."""
-
-    if confirmation is None:
-        return None
-    if isinstance(confirmation, algod_models.PendingTransactionResponse):
-        return getattr(confirmation, typed_attr, None)
-    return confirmation.get(dict_key)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -327,13 +312,7 @@ class AlgorandClientTransactionSender:
             params: TxnParamsT, send_params: SendParams | None = None
         ) -> SendAppCreateTransactionResult[ABIReturn]:
             result = self._send_app_update_call(c, pre_log, post_log)(params, send_params)
-            # Handle both dict and typed responses
-            confirmation_data: Any = result.confirmation
-            app_id_raw = (
-                confirmation_data.get("application-index")
-                if isinstance(confirmation_data, dict)
-                else getattr(confirmation_data, "app_id", None)
-            )
+            app_id_raw = result.confirmation.app_id
             if app_id_raw is None:
                 raise ValueError("Could not extract app_id from confirmation")
             app_id = int(app_id_raw)
@@ -449,18 +428,14 @@ class AlgorandClientTransactionSender:
                 f"Created asset{f' {params.asset_name}' if hasattr(params, 'asset_name') else ''}"
                 f"{f' ({params.unit_name})' if hasattr(params, 'unit_name') else ''} with "
                 f"{params.total} units and {getattr(params, 'decimals', 0)} decimals created by "
-                f"{params.sender} with ID "
-                f"{_get_confirmation_value(result.confirmation, typed_attr='asset_id', dict_key='asset-index')} "
+                f"{params.sender} with ID {result.confirmation.asset_id} "
                 f"via transaction {result.tx_ids[-1]}"
             ),
         )(params, send_params)
 
-        # Handle both dict and typed responses
-        asset_id_raw = _get_confirmation_value(result.confirmation, typed_attr="asset_id", dict_key="asset-index")
+        asset_id_raw = result.confirmation.asset_id
         if asset_id_raw is None:
             raise ValueError("Could not extract asset_id from confirmation")
-        if not isinstance(asset_id_raw, (int | str)):
-            raise ValueError(f"Unexpected asset_id type {type(asset_id_raw)}")
         return SendSingleAssetCreateTransactionResult(
             **result.__dict__,
             asset_id=int(asset_id_raw),

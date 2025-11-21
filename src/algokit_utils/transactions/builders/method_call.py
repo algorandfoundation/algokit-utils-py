@@ -1,16 +1,8 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
+from typing import TypeAlias
 
-from algokit_algosdk import abi
-from algokit_algosdk.abi import (
-    ABIReferenceType,
-    ABIType,
-    Method,
-    TupleType,
-    UintType,
-    is_abi_reference_type,
-    is_abi_transaction_type,
-)
+import algokit_algosdk as algosdk
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 from algokit_transact.models.transaction import TransactionType
@@ -31,6 +23,15 @@ from algokit_utils.transactions.types import (
     AppDeleteMethodCallParams,
     AppUpdateMethodCallParams,
 )
+
+abi = algosdk.abi
+ABIReferenceType: TypeAlias = abi.ABIReferenceType
+ABIType: TypeAlias = abi.ABIType
+Method: TypeAlias = abi.Method
+TupleType: TypeAlias = abi.TupleType
+UintType: TypeAlias = abi.UintType
+is_abi_reference_type = abi.is_abi_reference_type
+is_abi_transaction_type = abi.is_abi_transaction_type
 
 ARGS_TUPLE_PACKING_THRESHOLD = 14
 
@@ -301,10 +302,9 @@ def _encode_method_arguments(
             if is_abi_reference_type(arg_type):
                 if arg_value is None:
                     continue
-                reference_type = ABIReferenceType(arg_type)  # type: ignore[call-arg]
                 index = _calculate_reference_index(
                     arg_value,
-                    reference_type,
+                    arg_type,
                     sender,
                     app_id,
                     account_references,
@@ -336,7 +336,7 @@ def _encode_method_arguments(
 
 def _calculate_reference_index(
     value: str | int,
-    reference_type: ABIReferenceType,
+    reference_type: str,
     sender: str,
     app_id: int,
     account_references: Sequence[str],

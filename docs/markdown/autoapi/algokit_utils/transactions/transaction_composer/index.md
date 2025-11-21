@@ -10,8 +10,9 @@
 
 ## Exceptions
 
-| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)   | Raised when an error transformer throws.   |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------|
+| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)                         | Raised when an error transformer throws.                    |
+|---------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| [`InvalidErrorTransformerValueError`](#algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError) | Raised when an error transformer returns a non-error value. |
 
 ## Classes
 
@@ -36,6 +37,12 @@ Bases: `RuntimeError`
 Raised when an error transformer throws.
 
 ### algokit_utils.transactions.transaction_composer.ErrorTransformer
+
+### *exception* algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError(original_error: Exception, value: object)
+
+Bases: `RuntimeError`
+
+Raised when an error transformer returns a non-error value.
 
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposerConfig
 
@@ -69,7 +76,7 @@ Raised when an error transformer throws.
 
 #### transactions *: list[algokit_transact.models.transaction.Transaction]*
 
-#### method_calls *: dict[int, algokit_algosdk.abi.Method]*
+#### method_calls *: dict[int, ABIMethod]*
 
 #### signers *: dict[int, [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)]*
 

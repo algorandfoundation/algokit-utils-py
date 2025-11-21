@@ -36,6 +36,7 @@ This page contains auto-generated API reference documentation <sup>[1](#f1)</sup
   * [algokit_utils.protocols](algokit_utils/protocols/index.md)
     * [algokit_utils.protocols.account](algokit_utils/protocols/account/index.md)
     * [algokit_utils.protocols.signer](algokit_utils/protocols/signer/index.md)
+    * [algokit_utils.protocols.typed_clients](algokit_utils/protocols/typed_clients/index.md)
   * [algokit_utils.transactions](algokit_utils/transactions/index.md)
     * [algokit_utils.transactions.builders](algokit_utils/transactions/builders/index.md)
       * [algokit_utils.transactions.builders.app](algokit_utils/transactions/builders/app/index.md)

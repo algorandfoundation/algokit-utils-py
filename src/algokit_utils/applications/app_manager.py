@@ -1,13 +1,10 @@
 import base64
 from collections.abc import Mapping, Sequence
-from typing import Any, cast
+from typing import cast
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
-from algokit_algosdk.box_reference import BoxReference as AlgosdkBoxReference
-from algokit_algosdk.logic import get_application_address
-from algokit_algosdk.source_map import SourceMap
 from algokit_common.serde import to_wire
 from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, parse_abi_method_result
 from algokit_utils.models.application import (
@@ -23,6 +20,8 @@ __all__ = [
     "UPDATABLE_TEMPLATE_NAME",
     "AppManager",
 ]
+
+AlgosdkBoxReference = algosdk.box_reference.BoxReference
 
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
@@ -144,7 +143,7 @@ class AppManager:
             compiled=compiled.result,
             compiled_hash=compiled.hash_,
             compiled_base64_to_bytes=base64.b64decode(compiled.result),
-            source_map=SourceMap(sourcemap_dict),
+            source_map=algosdk.source_map.SourceMap(sourcemap_dict),
         )
         self._compilation_results[teal_code] = result
         return result
@@ -210,7 +209,7 @@ class AppManager:
 
         return AppInformation(
             app_id=app_id,
-            app_address=get_application_address(app_id),
+            app_address=algosdk.logic.get_application_address(app_id),
             approval_program=app_params.approval_program,
             clear_state_program=app_params.clear_state_program,
             creator=app_params.creator,
@@ -401,12 +400,12 @@ class AppManager:
 
     @staticmethod
     def get_abi_return(
-        confirmation: algod_models.PendingTransactionResponse | dict[str, Any],
+        confirmation: algod_models.PendingTransactionResponse,
         method: algosdk.abi.Method | None = None,
     ) -> ABIReturn | None:
         """Get the ABI return value from a transaction confirmation.
 
-        :param confirmation: The transaction confirmation (typed PendingTransactionResponse or dict)
+        :param confirmation: The transaction confirmation
         :param method: The ABI method
         :return: The parsed ABI return value, or None if not available
 
@@ -420,12 +419,7 @@ class AppManager:
         if not method:
             return None
 
-        # Convert typed response to dict if needed for algosdk compatibility
-        confirmation_dict: dict[str, Any] = (
-            to_wire(confirmation) if not isinstance(confirmation, dict) else confirmation
-        )
-
-        abi_result = parse_abi_method_result(method, "dummy_txn", confirmation_dict)
+        abi_result = parse_abi_method_result(method, "dummy_txn", confirmation)
 
         if not abi_result:
             return None
