@@ -24,7 +24,7 @@ A basic transaction signer account.
 
 #### address *: str*
 
-#### signer *: algosdk.atomic_transaction_composer.TransactionSigner*
+#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
 ### *class* algokit_utils.models.account.SigningAccount
 
@@ -47,19 +47,9 @@ The public key for this account.
 * **Returns:**
   The public key as bytes
 
-#### *property* signer *: algosdk.atomic_transaction_composer.AccountTransactionSigner*
+#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
-Get an AccountTransactionSigner for this account.
-
-* **Returns:**
-  A transaction signer for this account
-
-#### *static* new_account() → [SigningAccount](#algokit_utils.models.account.SigningAccount)
-
-Create a new random account.
-
-* **Returns:**
-  A new Account instance
+Get the AlgoKit-native transaction signer callable.
 
 ### *class* algokit_utils.models.account.MultisigMetadata
 
@@ -83,7 +73,7 @@ Provides functionality to manage and sign transactions for a multisig account.
   * **multisig_params** – The parameters for the multisig account
   * **signing_accounts** – The list of accounts that can sign
 
-#### *property* multisig *: algosdk.transaction.Multisig*
+#### *property* multisig *: algokit_algosdk.transaction.Multisig*
 
 Get the underlying algosdk.transaction.Multisig object instance.
 
@@ -111,14 +101,11 @@ Get the address of the multisig account.
 * **Returns:**
   The multisig account address
 
-#### *property* signer *: algosdk.atomic_transaction_composer.TransactionSigner*
+#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
-Get the transaction signer for this multisig account.
+Get the AlgoKit-native signer callable for this multisig account.
 
-* **Returns:**
-  The multisig transaction signer
-
-#### sign(transaction: algosdk.transaction.Transaction) → algosdk.transaction.MultisigTransaction
+#### sign(transaction: algokit_transact.models.transaction.Transaction) → algokit_algosdk.transaction.MultisigTransaction
 
 Sign the given transaction with all present signers.
 
@@ -133,7 +120,7 @@ Account wrapper that supports logic sig signing.
 
 Provides functionality to manage and sign transactions for a logic sig account.
 
-#### *property* lsig *: algosdk.transaction.LogicSigAccount*
+#### *property* lsig *: AlgosdkLogicSigAccount*
 
 Get the underlying algosdk.transaction.LogicSigAccount object instance.
 
@@ -152,9 +139,10 @@ the LogicSig’s program code.
 * **Returns:**
   The logic sig account address
 
-#### *property* signer *: algosdk.atomic_transaction_composer.LogicSigTransactionSigner*
+#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
-Get the transaction signer for this multisig account.
+Get the AlgoKit-native signer callable for this logic sig account.
 
-* **Returns:**
-  The multisig transaction signer
+#### *property* algokit_lsig *: algokit_algosdk.logicsig.LogicSigAccount*
+
+Expose the AlgoKit-native representation.

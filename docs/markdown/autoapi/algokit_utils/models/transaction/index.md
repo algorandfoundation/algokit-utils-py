@@ -9,12 +9,11 @@
 
 ## Classes
 
-| [`BaseArc2Note`](#algokit_utils.models.transaction.BaseArc2Note)                 | Base ARC-0002 transaction note structure                                         |
-|----------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`StringFormatArc2Note`](#algokit_utils.models.transaction.StringFormatArc2Note) | ARC-0002 note for string-based formats (m/b/u)                                   |
-| [`JsonFormatArc2Note`](#algokit_utils.models.transaction.JsonFormatArc2Note)     | ARC-0002 note for JSON format                                                    |
-| [`TransactionWrapper`](#algokit_utils.models.transaction.TransactionWrapper)     | Wrapper around algosdk.transaction.Transaction with optional property validators |
-| [`SendParams`](#algokit_utils.models.transaction.SendParams)                     | Parameters for sending a transaction                                             |
+| [`BaseArc2Note`](#algokit_utils.models.transaction.BaseArc2Note)                 | Base ARC-0002 transaction note structure       |
+|----------------------------------------------------------------------------------|------------------------------------------------|
+| [`StringFormatArc2Note`](#algokit_utils.models.transaction.StringFormatArc2Note) | ARC-0002 note for string-based formats (m/b/u) |
+| [`JsonFormatArc2Note`](#algokit_utils.models.transaction.JsonFormatArc2Note)     | ARC-0002 note for JSON format                  |
+| [`SendParams`](#algokit_utils.models.transaction.SendParams)                     | Parameters for sending a transaction           |
 
 ## Module Contents
 
@@ -51,26 +50,6 @@ ARC-0002 note for JSON format
 ### algokit_utils.models.transaction.TransactionNoteData
 
 ### algokit_utils.models.transaction.TransactionNote
-
-### *class* algokit_utils.models.transaction.TransactionWrapper(transaction: algosdk.transaction.Transaction)
-
-Wrapper around algosdk.transaction.Transaction with optional property validators
-
-#### *property* raw *: algosdk.transaction.Transaction*
-
-#### *property* payment *: algosdk.transaction.PaymentTxn*
-
-#### *property* keyreg *: algosdk.transaction.KeyregTxn*
-
-#### *property* asset_config *: algosdk.transaction.AssetConfigTxn*
-
-#### *property* asset_transfer *: algosdk.transaction.AssetTransferTxn*
-
-#### *property* asset_freeze *: algosdk.transaction.AssetFreezeTxn*
-
-#### *property* application_call *: algosdk.transaction.ApplicationCallTxn*
-
-#### *property* state_proof *: algosdk.transaction.StateProofTxn*
 
 ### *class* algokit_utils.models.transaction.SendParams
 

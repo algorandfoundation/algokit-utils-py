@@ -260,7 +260,6 @@ def simulate_and_persist_response(
     :param algod: Algod client to use for simulation
     :param buffer_size_mb: Optional buffer size to enforce via cleanup_old_trace_files
     :return: Path to the persisted trace file
-    :raises ValueError: If the composer simulation returned no trace
     :raises TypeError: If the composer does not implement a compatible ``simulate`` method
     """
     if isinstance(composer, TransactionComposer):

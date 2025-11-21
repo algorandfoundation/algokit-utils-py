@@ -60,7 +60,9 @@ def generate_test_asset(algorand: AlgorandClient, sender: Account, total: int | 
         )
     )
 
-    return int(create_result.confirmation["asset-index"])
+    if create_result.confirmation.asset_id is None:
+        raise ValueError("Asset was not created")
+    return int(create_result.confirmation.asset_id)
 ```
 
 ## Testing Application Deployments

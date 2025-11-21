@@ -11,12 +11,12 @@
 
 ## Classes
 
-| [`CallConfig`](#algokit_utils.applications.app_spec.arc32.CallConfig)                   | Describes the type of calls a method can be used for based on {py:class}\`algosdk.transaction.OnComplete\` type   |
-|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|
-| [`StructArgDict`](#algokit_utils.applications.app_spec.arc32.StructArgDict)             | dict() -> new empty dictionary                                                                                    |
-| [`DefaultArgumentDict`](#algokit_utils.applications.app_spec.arc32.DefaultArgumentDict) | DefaultArgument is a container for any arguments that may                                                         |
-| [`MethodHints`](#algokit_utils.applications.app_spec.arc32.MethodHints)                 | MethodHints provides hints to the caller about how to call the method                                             |
-| [`Arc32Contract`](#algokit_utils.applications.app_spec.arc32.Arc32Contract)             | ARC-0032 application specification                                                                                |
+| [`CallConfig`](#algokit_utils.applications.app_spec.arc32.CallConfig)                   | Describes the type of calls a method can be used for based            |
+|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| [`StructArgDict`](#algokit_utils.applications.app_spec.arc32.StructArgDict)             | dict() -> new empty dictionary                                        |
+| [`DefaultArgumentDict`](#algokit_utils.applications.app_spec.arc32.DefaultArgumentDict) | DefaultArgument is a container for any arguments that may             |
+| [`MethodHints`](#algokit_utils.applications.app_spec.arc32.MethodHints)                 | MethodHints provides hints to the caller about how to call the method |
+| [`Arc32Contract`](#algokit_utils.applications.app_spec.arc32.Arc32Contract)             | ARC-0032 application specification                                    |
 
 ## Module Contents
 
@@ -28,7 +28,8 @@ Type defining Application Specification state entries
 
 Bases: `enum.IntFlag`
 
-Describes the type of calls a method can be used for based on {py:class}\`algosdk.transaction.OnComplete\` type
+Describes the type of calls a method can be used for based
+on {py:class}\`algosdk.transaction.OnApplicationComplete\` type
 
 #### NEVER *= 0*
 
@@ -95,7 +96,7 @@ be resolved prior to calling some target method
 
 #### source *: DefaultArgumentType*
 
-#### data *: int | str | bytes | algosdk.abi.method.MethodDict*
+#### data *: int | str | bytes | algokit_algosdk.abi.method.MethodDict*
 
 ### algokit_utils.applications.app_spec.arc32.StateDict
 
@@ -127,15 +128,15 @@ See <[https://github.com/algorandfoundation/ARCs/pull/150](https://github.com/al
 
 #### clear_program *: str*
 
-#### contract *: algosdk.abi.Contract*
+#### contract *: algokit_algosdk.abi.Contract*
 
 #### hints *: dict[str, [MethodHints](#algokit_utils.applications.app_spec.arc32.MethodHints)]*
 
 #### schema *: StateDict*
 
-#### global_state_schema *: algosdk.transaction.StateSchema*
+#### global_state_schema *: algokit_transact.models.common.StateSchema*
 
-#### local_state_schema *: algosdk.transaction.StateSchema*
+#### local_state_schema *: algokit_transact.models.common.StateSchema*
 
 #### bare_call_config *: MethodConfigDict*
 

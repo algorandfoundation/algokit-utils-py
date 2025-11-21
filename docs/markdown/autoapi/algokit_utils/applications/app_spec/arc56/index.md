@@ -466,7 +466,7 @@ The optional readonly flag
 
 The optional execution recommendations
 
-#### to_abi_method() → algosdk.abi.Method
+#### to_abi_method() → algokit_algosdk.abi.Method
 
 Convert to ABI method.
 
@@ -708,7 +708,7 @@ Create Arc56Contract from dictionary.
 * **Parameters:**
   **application_spec** – Dictionary containing contract specification
 * **Returns:**
-  Arc56Contract instance
+  “Arc56Contract” instance
 
 #### *static* from_json(application_spec: str) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
 

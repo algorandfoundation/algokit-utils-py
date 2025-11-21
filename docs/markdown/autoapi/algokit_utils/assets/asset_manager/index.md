@@ -118,12 +118,12 @@ The ID of the asset opted into / out of
 
 The transaction ID of the resulting opt in / out
 
-### *class* algokit_utils.assets.asset_manager.AssetManager(algod_client: algosdk.v2client.algod.AlgodClient, new_group: collections.abc.Callable[[], [algokit_utils.transactions.transaction_composer.TransactionComposer](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.TransactionComposer)])
+### *class* algokit_utils.assets.asset_manager.AssetManager(algod_client: algokit_algod_client.AlgodClient, new_group: collections.abc.Callable[[], [algokit_utils.transactions.transaction_composer.TransactionComposer](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.TransactionComposer)])
 
 A manager for Algorand Standard Assets (ASAs).
 
 * **Parameters:**
-  * **algod_client** – An algod client
+  * **algod_client** – An AlgodClient instance
   * **new_group** – A function that creates a new TransactionComposer transaction group
 * **Example:**
   ```python
@@ -132,19 +132,25 @@ A manager for Algorand Standard Assets (ASAs).
 
 #### get_by_id(asset_id: int) → [AssetInformation](#algokit_utils.assets.asset_manager.AssetInformation)
 
-Returns the current asset information for the asset with the given ID.
+Return current asset information as a strongly typed dataclass.
+
+Uses typed algod client get_asset_by_id and maps asset.params.\* fields
+into an AssetInformation dataclass. All values are sourced from typed model
+attributes (e.g. asset.params.total, asset.params.manager, asset.params.unit_name)
+rather than dictionary keys (legacy: asset_info[“params”][“total”], etc.).
 
 * **Parameters:**
-  **asset_id** – The ID of the asset
+  **asset_id** – The asset identifier
 * **Returns:**
-  The asset information
+  AssetInformation with strongly typed fields
 * **Example:**
   ```python
   asset_manager = AssetManager(algod_client)
-  asset_info = asset_manager.get_by_id(1234567890)
+  info = asset_manager.get_by_id(1234567890)
+  print(info.total, info.creator, info.unit_name)
   ```
 
-#### get_account_information(sender: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount) | algosdk.atomic_transaction_composer.TransactionSigner, asset_id: int) → [AccountAssetInformation](#algokit_utils.assets.asset_manager.AccountAssetInformation)
+#### get_account_information(sender: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount) | [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner), asset_id: int) → [AccountAssetInformation](#algokit_utils.assets.asset_manager.AccountAssetInformation)
 
 Returns the given sender account’s asset holding for a given asset.
 
@@ -153,13 +159,15 @@ Returns the given sender account’s asset holding for a given asset.
   * **asset_id** – The ID of the asset to return a holding for
 * **Returns:**
   The account asset holding information
+* **Raises:**
+  **ValueError** – If the account has no holding for the specified asset
 * **Example:**
   ```python
   asset_manager = AssetManager(algod_client)
   account_asset_info = asset_manager.get_account_information(sender, asset_id)
   ```
 
-#### bulk_opt_in(account: str, asset_ids: list[int], signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
+#### bulk_opt_in(account: str, asset_ids: list[int], signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
 
 Opt an account in to a list of Algorand Standard Assets.
 
@@ -185,7 +193,7 @@ Opt an account in to a list of Algorand Standard Assets.
   results = asset_manager.bulk_opt_in(account, asset_ids)
   ```
 
-#### bulk_opt_out(\*, account: str, asset_ids: list[int], ensure_zero_balance: bool = True, signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
+#### bulk_opt_out(\*, account: str, asset_ids: list[int], ensure_zero_balance: bool = True, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → list[[BulkAssetOptInOutResult](#algokit_utils.assets.asset_manager.BulkAssetOptInOutResult)]
 
 Opt an account out of a list of Algorand Standard Assets.
 

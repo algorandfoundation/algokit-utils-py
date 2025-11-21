@@ -11,6 +11,13 @@
 
 A client that brokers easy access to Algorand functionality.
 
+This client uses the typed algokit_algod_client.AlgodClient internally for improved
+type safety and developer experience.
+
+Backward Compatibility:
+: - Suggested params are automatically converted to algosdk format for compatibility
+  - Public APIs maintain their existing signatures where possible
+
 #### set_default_validity_window(validity_window: int) → typing_extensions.Self
 
 Sets the default validity window for transactions.
@@ -24,7 +31,7 @@ Sets the default validity window for transactions.
   algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
   ```
 
-#### set_default_signer(signer: algosdk.atomic_transaction_composer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_default_signer(signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
 
@@ -38,7 +45,7 @@ Sets the default signer to use if no other signer is specified.
   algorand = AlgorandClient.mainnet().set_default_signer(signer)
   ```
 
-#### set_signer(sender: str, signer: algosdk.atomic_transaction_composer.TransactionSigner) → typing_extensions.Self
+#### set_signer(sender: str, signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)) → typing_extensions.Self
 
 Tracks the given account for later signing.
 
@@ -71,7 +78,7 @@ Sets the default signer to use if no other signer is specified.
   accountManager.set_signer_from_account(account)
   ```
 
-#### set_suggested_params_cache(suggested_params: algosdk.transaction.SuggestedParams, until: float | None = None) → typing_extensions.Self
+#### set_suggested_params_cache(suggested_params: algokit_algod_client.models.SuggestedParams, until: float | None = None) → typing_extensions.Self
 
 Sets a cache value to use for suggested params.
 
@@ -98,7 +105,7 @@ Sets the timeout for caching suggested params.
   algorand = AlgorandClient.mainnet().set_suggested_params_cache_timeout(10_000)
   ```
 
-#### get_suggested_params() → algosdk.transaction.SuggestedParams
+#### get_suggested_params() → algokit_algod_client.models.SuggestedParams
 
 Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
 
@@ -242,7 +249,7 @@ Returns an AlgorandClient pointing at MainNet using AlgoNode.
   algorand = AlgorandClient.mainnet()
   ```
 
-#### *static* from_clients(algod: algosdk.v2client.algod.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.client.KmdClient | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
+#### *static* from_clients(algod: algokit_algod_client.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.client.KmdClient | None = None) → [AlgorandClient](#algokit_utils.algorand.AlgorandClient)
 
 Returns an AlgorandClient pointing to the given client(s).
 

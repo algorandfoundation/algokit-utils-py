@@ -18,6 +18,6 @@ Implemented by SigningAccount, LogicSigAccount, MultiSigAccount and TransactionS
 
 The address of the account.
 
-#### *property* signer *: algosdk.atomic_transaction_composer.TransactionSigner*
+#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
-The transaction signer for the account.
+The AlgoKit-native signer callable.

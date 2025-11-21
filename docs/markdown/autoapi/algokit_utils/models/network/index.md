@@ -2,16 +2,16 @@
 
 ## Classes
 
-| [`AlgoClientNetworkConfig`](#algokit_utils.models.network.AlgoClientNetworkConfig)   | Connection details for connecting to an {py:class}\`algosdk.v2client.algod.AlgodClient\` or   |
-|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| [`AlgoClientConfigs`](#algokit_utils.models.network.AlgoClientConfigs)               |                                                                                               |
+| [`AlgoClientNetworkConfig`](#algokit_utils.models.network.AlgoClientNetworkConfig)   | Connection details for connecting to an {py:class}\`algokit_algod_client.AlgodClient\` or   |
+|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`AlgoClientConfigs`](#algokit_utils.models.network.AlgoClientConfigs)               |                                                                                             |
 
 ## Module Contents
 
 ### *class* algokit_utils.models.network.AlgoClientNetworkConfig
 
-Connection details for connecting to an {py:class}\`algosdk.v2client.algod.AlgodClient\` or
-{py:class}\`algosdk.v2client.indexer.IndexerClient\`
+Connection details for connecting to an {py:class}\`algokit_algod_client.AlgodClient\` or
+{py:class}\`algokit_indexer_client.IndexerClient\` instance.
 
 #### server *: str*
 

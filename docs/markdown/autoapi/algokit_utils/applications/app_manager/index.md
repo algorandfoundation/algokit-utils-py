@@ -21,7 +21,7 @@ The name of the TEAL template variable for deploy-time immutability control.
 
 The name of the TEAL template variable for deploy-time permanence control.
 
-### *class* algokit_utils.applications.app_manager.AppManager(algod_client: algosdk.v2client.algod.AlgodClient)
+### *class* algokit_utils.applications.app_manager.AppManager(algod_client: algokit_algod_client.AlgodClient)
 
 A manager class for interacting with Algorand applications.
 
@@ -220,7 +220,7 @@ Get and decode multiple box values using an ABI type.
   box_values = app_manager.get_box_values_from_abi_type(app_id, box_names, abi_type)
   ```
 
-#### *static* get_box_reference(box_id: algokit_utils.models.state.BoxIdentifier | [algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference)) → tuple[int, bytes]
+#### *static* get_box_reference(box_id: algokit_utils.models.state.BoxIdentifier | algokit_utils.models.state.BoxReference) → tuple[int, bytes]
 
 Get standardized box reference from various identifier types.
 
@@ -238,12 +238,12 @@ Get standardized box reference from various identifier types.
   box_reference = app_manager.get_box_reference(box_name)
   ```
 
-#### *static* get_abi_return(confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None) → [algokit_utils.applications.abi.ABIReturn](../abi/index.md#algokit_utils.applications.abi.ABIReturn) | None
+#### *static* get_abi_return(confirmation: algokit_algod_client.models.PendingTransactionResponse | dict[str, Any], method: algokit_algosdk.abi.Method | None = None) → [algokit_utils.applications.abi.ABIReturn](../abi/index.md#algokit_utils.applications.abi.ABIReturn) | None
 
 Get the ABI return value from a transaction confirmation.
 
 * **Parameters:**
-  * **confirmation** – The transaction confirmation
+  * **confirmation** – The transaction confirmation (typed PendingTransactionResponse or dict)
   * **method** – The ABI method
 * **Returns:**
   The parsed ABI return value, or None if not available
@@ -252,11 +252,11 @@ Get the ABI return value from a transaction confirmation.
   app_manager = AppManager(algod_client)
   app_id = 123
   method = "METHOD_NAME"
-  confirmation = algod_client.pending_transaction_info(tx_id)
+  confirmation = algod_client.pending_transaction_information(tx_id)
   abi_return = app_manager.get_abi_return(confirmation, method)
   ```
 
-#### *static* decode_app_state(state: list[dict[str, Any]]) → dict[str, [algokit_utils.models.application.AppState](../../models/application/index.md#algokit_utils.models.application.AppState)]
+#### *static* decode_app_state(state: collections.abc.Sequence[algokit_algod_client.models.TealKeyValue] | None) → dict[str, [algokit_utils.models.application.AppState](../../models/application/index.md#algokit_utils.models.application.AppState)]
 
 Decode application state from raw format.
 
