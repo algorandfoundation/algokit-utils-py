@@ -59,6 +59,7 @@ api-generator = [
 ]
 cicd = [
     { name = "algokit" },
+    { name = "py-algorand-sdk" },
 ]
 dev = [
     { name = "furo" },
@@ -98,7 +99,10 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 api-generator = [{ name = "oas-generator", editable = "api/oas-generator" }]
-cicd = [{ name = "algokit", specifier = ">=2.9.1" }]
+cicd = [
+    { name = "algokit", specifier = ">=2.9.1" },
+    { name = "py-algorand-sdk", specifier = ">=2.11,<3" },
+]
 dev = [
     { name = "furo", specifier = ">=2024.8.6,<2025" },
     { name = "linkify-it-py", specifier = ">=2.0.3,<3" },
@@ -1191,6 +1195,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bb/6e/9d084c929dfe9e3bfe0c6a47e31f78a25c54627d64a66e884a8bf5474f1c/prompt_toolkit-3.0.51.tar.gz", hash = "sha256:931a162e3b27fc90c86f1b48bb1fb2c528c2761475e57c9c06de13311c7b54ed", size = 428940, upload-time = "2025-04-15T09:18:47.731Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ce/4f/5249960887b1fbe561d9ff265496d170b55a735b76724f10ef19f9e40716/prompt_toolkit-3.0.51-py3-none-any.whl", hash = "sha256:52742911fde84e2d423e2f9a4cf1de7d7ac4e51958f648d9540e0fb8db077b07", size = 387810, upload-time = "2025-04-15T09:18:44.753Z" },
+]
+
+[[package]]
+name = "py-algorand-sdk"
+version = "2.11.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "msgpack" },
+    { name = "pycryptodomex" },
+    { name = "pynacl" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a9/c1/637fc8e491edddcd2702f7d73e5d6070f39d87bbaa2bf7ef9d46b1abaf81/py_algorand_sdk-2.11.1.tar.gz", hash = "sha256:ccca589b00f7939e6bfdf5a5ace261a4b26c9b4baf02b376c46fb61aa182c800", size = 92194, upload-time = "2025-10-02T14:38:39.887Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/05/4c7a05a4a8bddf58026e96ef36880a16f0d35b5b5d4e5d72f2c51dbfdda9/py_algorand_sdk-2.11.1-py3-none-any.whl", hash = "sha256:40c8db5e65420ade023c78dda1fff44f5af4666c4b12c8a0e976a6c33fb819b6", size = 116179, upload-time = "2025-10-02T14:38:38.368Z" },
 ]
 
 [[package]]
