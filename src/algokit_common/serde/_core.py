@@ -1,7 +1,8 @@
+import types
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
-from typing import TypeVar, cast, get_args, get_origin
+from typing import TypeVar, Union, cast, get_args, get_origin, get_type_hints
 
 from algokit_common import address_from_public_key, public_key_from_address
 from algokit_common.serde._primitives import (
@@ -134,15 +135,38 @@ class _SerdePlan:
 _SERDE_CACHE: dict[type[object], _SerdePlan] = {}
 
 
+def _get_dataclass(typ: type) -> type | None:
+    if get_origin(typ) in {Union, types.UnionType}:
+        typs = set(get_args(typ))
+    else:
+        typs = {typ}
+    typs = typs - {types.NoneType}
+    try:
+        (maybe_dataclass,) = typs
+    except ValueError:
+        return None
+    if is_dataclass(maybe_dataclass):
+        return cast(type, maybe_dataclass)
+    else:
+        return None
+
+
 def _compile_plan(cls: type[object]) -> _SerdePlan:
     if not is_dataclass(cls):
         raise TypeError(f"{cls!r} is not a dataclass")
     handlers: list[_FieldHandler] = []
+    cls_type_hints = get_type_hints(cls)
     for f in fields(cls):
         meta = dict(f.metadata or {})
-        kind = cast(str | None, meta.get("kind")) or "wire"
-        if kind not in ("wire", "flatten", "nested"):
-            kind = "wire"
+        field_type = cls_type_hints[f.name]
+        maybe_dataclass = _get_dataclass(field_type)
+        if maybe_dataclass and not meta:
+            kind = "nested"
+            meta = {"child_cls": maybe_dataclass, "alias": f.name, "omit_if_none": True}
+        else:
+            kind = cast(str | None, meta.get("kind")) or "wire"
+            if kind not in ("wire", "flatten", "nested"):
+                kind = "wire"
 
         if kind == "wire":
             handlers.append(
@@ -160,7 +184,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     child_cls=None,
                     nested_alias=None,
                     pass_obj=bool(meta.get("pass_obj", False)),
-                    expects_text=_expects_text_value(f.type),
+                    expects_text=_expects_text_value(field_type),
                 )
             )
         elif kind == "nested":
