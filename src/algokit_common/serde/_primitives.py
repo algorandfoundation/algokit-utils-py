@@ -54,7 +54,7 @@ def decode_int_like(value: object | None) -> int | None:
         case None:
             return None
         case bool():
-            return int(value)
+            return value
         case int():
             return int(value)
         case _:
