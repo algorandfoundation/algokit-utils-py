@@ -169,8 +169,8 @@ docs = ["docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false"
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
-polytest-generate-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#feat/update_transact' generate -t pytest"
-polytest-run-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#feat/update_transact' run -t pytest --no-parse"
+polytest-generate-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#main' generate -t pytest"
+polytest-run-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#main' run -t pytest --no-parse"
 
 [tool.poe.tasks.ruff-check]
 cmd = "ruff check src tests"
