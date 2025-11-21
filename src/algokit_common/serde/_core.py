@@ -101,8 +101,15 @@ def nested(
     child_cls: ChildType,
     *,
     present_if: Callable[[Mapping[str, object]], bool] | None = None,
+    omit_empty_seq: bool = True,
 ) -> dict[str, object]:
-    return {"kind": "nested", "alias": alias, "child_cls": child_cls, "present_if": present_if}
+    return {
+        "kind": "nested",
+        "alias": alias,
+        "child_cls": child_cls,
+        "present_if": present_if,
+        "omit_empty_seq": omit_empty_seq,
+    }
 
 
 @dataclass(slots=True)
@@ -197,7 +204,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     omit_if_none=True,
                     keep_zero=False,
                     keep_false=False,
-                    omit_empty_seq=True,
+                    omit_empty_seq=meta.get("omit_empty_seq", True),
                     required=False,
                     kind=kind,
                     child_cls=cast(type[object] | None, meta.get("child_cls")),
@@ -257,7 +264,7 @@ def _resolve_child_cls(h: _FieldHandler) -> type[object] | None:
 def _encode_nested_field(out: dict[str, object], obj: object, h: _FieldHandler) -> None:
     if (value := getattr(obj, h.name)) is None:
         return
-    if not (nested_payload := to_wire(value)):
+    if not (nested_payload := to_wire(value)) and h.omit_empty_seq:
         return
     if h.nested_alias is None:
         raise EncodeError(f"Missing nested alias for field {h.name!r}")
