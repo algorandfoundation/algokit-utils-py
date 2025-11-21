@@ -2,7 +2,7 @@ import base64
 import dataclasses
 from typing import Any, cast
 
-import algokit_algosdk as algosdk
+from algokit_algosdk import constants as algosdk_constants
 from algokit_algosdk import encoding
 from algokit_algosdk.logicsig import LogicSigAccount as AlgoKitLogicSigAccount
 from algokit_algosdk.multisig import Multisig as AlgoKitMultisig
@@ -226,7 +226,7 @@ class LogicSigAccount:
 
 def _address_from_private_key(private_key: str) -> str:
     decoded = base64.b64decode(private_key)
-    public_key = decoded[algosdk.constants.key_len_bytes :]
+    public_key = decoded[algosdk_constants.key_len_bytes :]
     encoded = encoding.encode_address(public_key)
     assert isinstance(encoded, str)
     return encoded

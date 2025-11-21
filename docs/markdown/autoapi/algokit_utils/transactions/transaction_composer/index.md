@@ -2,10 +2,11 @@
 
 ## Attributes
 
-| [`MAX_TRANSACTION_GROUP_SIZE`](#algokit_utils.transactions.transaction_composer.MAX_TRANSACTION_GROUP_SIZE)             |    |
-|-------------------------------------------------------------------------------------------------------------------------|----|
-| [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument) |    |
-| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                 |    |
+| [`MAX_TRANSACTION_GROUP_SIZE`](#algokit_utils.transactions.transaction_composer.MAX_TRANSACTION_GROUP_SIZE)                     |    |
+|---------------------------------------------------------------------------------------------------------------------------------|----|
+| [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument)         |    |
+| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                         |    |
+| [`SendAtomicTransactionComposerResults`](#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults) |    |
 
 ## Exceptions
 
@@ -85,6 +86,8 @@ Raised when an error transformer throws.
 #### group_id *: str | None* *= None*
 
 #### simulate_response *: algokit_algod_client.models.SimulateTransactionResponseModel | None* *= None*
+
+### algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
 
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposer(params: [TransactionComposerParams](#algokit_utils.transactions.transaction_composer.TransactionComposerParams))
 

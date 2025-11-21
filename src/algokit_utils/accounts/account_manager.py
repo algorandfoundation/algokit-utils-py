@@ -7,8 +7,6 @@ from typing_extensions import Self
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
-from algokit_algosdk import mnemonic
-from algokit_algosdk.mnemonic import to_private_key
 from algokit_common.serde import to_wire
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
@@ -412,7 +410,7 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        private_key = cast(str, to_private_key(mnemonic))  # type: ignore[no-untyped-call]
+        private_key = cast(str, algosdk.mnemonic.to_private_key(mnemonic))  # type: ignore[no-untyped-call]
         return self._register_account(private_key, sender)
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> SigningAccount:
@@ -445,7 +443,7 @@ class AccountManager:
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
         if account_mnemonic:
-            private_key = cast(str, mnemonic.to_private_key(account_mnemonic))  # type: ignore[no-untyped-call]
+            private_key = cast(str, algosdk.mnemonic.to_private_key(account_mnemonic))  # type: ignore[no-untyped-call]
             return self._register_account(private_key)
 
         if self._client_manager.is_localnet():

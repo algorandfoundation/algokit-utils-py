@@ -145,24 +145,22 @@ class AlgoAmount:
             return self.amount_in_micro_algo >= int(other)
         raise TypeError(f"Unsupported operand type(s) for >=: 'AlgoAmount' and '{type(other).__name__}'")
 
-    def __sub__(self, other: "AlgoAmount") -> "AlgoAmount":
-        if isinstance(other, AlgoAmount):
-            total_micro_algos = self.micro_algo - other.micro_algo
-        else:
+    def __sub__(self, other: object) -> "AlgoAmount":
+        if not isinstance(other, AlgoAmount):
             raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+        total_micro_algos = self.micro_algo - other.micro_algo
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __rsub__(self, other: int) -> "AlgoAmount":
-        if isinstance(other, (int)):
-            total_micro_algos = int(other) - self.micro_algo
-            return AlgoAmount.from_micro_algo(total_micro_algos)
-        raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
+    def __rsub__(self, other: object) -> "AlgoAmount":
+        if not isinstance(other, int):
+            raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
+        total_micro_algos = int(other) - self.micro_algo
+        return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __isub__(self, other: "AlgoAmount") -> Self:
-        if isinstance(other, AlgoAmount):
-            self.amount_in_micro_algo -= other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+    def __isub__(self, other: object) -> Self:
+        if not isinstance(other, AlgoAmount):
+            raise TypeError(f"Unsupported operand type(s) for -=: 'AlgoAmount' and '{type(other).__name__}'")
+        self.amount_in_micro_algo -= other.micro_algo
         return self
 
 

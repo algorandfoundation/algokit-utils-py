@@ -1193,7 +1193,6 @@ class _TransactionSender:
         if is_read_only_call:
             readonly_params = params
             readonly_send_params = send_params or SendParams()
-            static_fee = readonly_params.static_fee
             reported_fee = (
                 params.static_fee.micro_algo if params.static_fee else self._algorand.get_suggested_params().min_fee
             )
@@ -1205,8 +1204,7 @@ class _TransactionSender:
             # If max_fee is provided, use it as static_fee for potential benefits.
             if readonly_send_params.get("cover_app_call_inner_transaction_fees") and params.max_fee is not None:
                 readonly_params = replace(readonly_params, static_fee=params.max_fee, extra_fee=None)
-                static_fee = params.max_fee
-            elif static_fee is None:
+            elif readonly_params.static_fee is None:
                 fallback_fee = params.max_fee or AlgoAmount.from_micro_algo(MAX_SIMULATE_OPCODE_BUDGET)
                 readonly_params = replace(readonly_params, static_fee=fallback_fee, extra_fee=None)
                 reset_reported_fee = True

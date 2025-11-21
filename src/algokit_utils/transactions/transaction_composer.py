@@ -96,8 +96,8 @@ __all__ = [
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
+    "SendAtomicTransactionComposerResults",
     "SendParams",
-    "SendTransactionComposerResults",
     "SendTransactionComposerResults",
     "TransactionComposer",
     "TransactionComposerConfig",
@@ -182,6 +182,10 @@ class SendTransactionComposerResults:
     returns: list[ABIReturn]
     group_id: str | None = None
     simulate_response: algod_models.SimulateTransactionResponseModel | None = None
+
+
+# Backward compatibility alias
+SendAtomicTransactionComposerResults = SendTransactionComposerResults
 
 
 @dataclass(slots=True)

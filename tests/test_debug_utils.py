@@ -287,9 +287,7 @@ def test_simulate_response_filename_generation(
         def now(cls, tz: timezone | None = None) -> datetime:  # noqa: ARG003
             return mock_datetime
 
-    import algokit_utils._debugging as debug_mod
-
-    monkeypatch.setattr(debug_mod, "datetime", MockDateTime)
+    monkeypatch.setattr("algokit_utils._debugging.datetime", MockDateTime)
     persisted = simulate_and_persist_response(composer, cwd, client_fixture.algorand.client.algod)
 
     assert persisted.name.startswith("20230101_120000_lr")
