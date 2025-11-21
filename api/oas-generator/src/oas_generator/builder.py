@@ -466,14 +466,25 @@ class OperationBuilder:
         "GetLedgerStateDeltaForTransactionGroup",
         "GetTransactionGroupLedgerStateDeltasForRound",
     }
+    ALGOD_PRIVATE_OPERATIONS: ClassVar[set[str]] = {
+        "RawTransaction",
+        "GetApplicationBoxByName",
+        "TransactionParams",
+    }
 
     def __init__(
-        self, spec: ctx.ParsedSpec, resolver: TypeResolver, sanitizer: IdentifierSanitizer, registry: SchemaRegistry
+        self,
+        spec: ctx.ParsedSpec,
+        resolver: TypeResolver,
+        sanitizer: IdentifierSanitizer,
+        registry: SchemaRegistry,
+        client_key: str,
     ) -> None:
         self.spec = spec
         self.resolver = resolver
         self.sanitizer = sanitizer
         self.registry = registry
+        self.client_key = client_key
         self.uses_signed_transaction = False
         self.uses_msgpack = False
         self.uses_block_models = False
@@ -522,8 +533,12 @@ class OperationBuilder:
                     self.uses_literal = True
         else:
             format_single = None
+        sanitized_name = self.sanitizer.snake(operation_id)
+        is_private = self._is_private_operation(operation_id)
+        if is_private and not sanitized_name.startswith("_"):
+            sanitized_name = f"_{sanitized_name}"
         return ctx.OperationDescriptor(
-            name=self.sanitizer.snake(operation_id),
+            name=sanitized_name,
             http_method=method,
             path=path,
             summary=op.get("summary"),
@@ -540,12 +555,18 @@ class OperationBuilder:
             format_default=format_default,
             format_required=format_required,
             format_single=format_single,
+            is_private=is_private,
         )
 
     def _derive_operation_id(self, method: str, path: str) -> str:
         slug = path.strip("/").replace("/", "_").replace("{", "").replace("}", "")
         raw = f"{method}_{slug}" if slug else method
         return self.sanitizer.pascal(raw)
+
+    def _is_private_operation(self, operation_id: str) -> bool:
+        if self.client_key == "algod_client":
+            return operation_id in self.ALGOD_PRIVATE_OPERATIONS
+        return False
 
     def _build_parameters(
         self, params: list[dict[str, Any]]
@@ -693,7 +714,7 @@ def build_client_descriptor(
     class_name = sanitizer.pascal(client_key)
     registry = SchemaRegistry(spec, sanitizer)
     resolver = TypeResolver(registry)
-    operation_builder = OperationBuilder(spec, resolver, sanitizer, registry)
+    operation_builder = OperationBuilder(spec, resolver, sanitizer, registry, client_key)
     groups = operation_builder.build()
     model_builder = ModelBuilder(registry, resolver, sanitizer)
     models, enums, aliases = model_builder.build()
@@ -719,4 +740,5 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
+        is_algod_client=client_key == "algod_client",
     )
