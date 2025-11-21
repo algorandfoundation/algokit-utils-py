@@ -25,7 +25,7 @@ from typing_extensions import deprecated
 
 from algokit_utils.applications.abi import ABIReturn, ABIValue
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec.arc56 import Method as Arc56Method
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.config import config
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.models.transaction import SendParams, TransactionWrapper
@@ -2119,8 +2119,8 @@ class TransactionComposer:
             txn_params["sp"].fee = params.static_fee.micro_algo
             txn_params["sp"].flat_fee = True
 
-        if isinstance(txn_params.get("method"), Arc56Method):
-            txn_params["method"] = txn_params["method"].to_abi_method()
+        if isinstance(txn_params.get("method"), arc56.Method):
+            txn_params["method"] = algosdk.abi.Method.from_signature(txn_params["method"].signature)
 
         txn = build_txn(txn_params)
 

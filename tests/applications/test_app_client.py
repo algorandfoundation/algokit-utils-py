@@ -400,9 +400,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    response = AppManager.get_abi_return(
-        result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
-    )
+    response = AppManager.get_abi_return(result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn"))
     expected_return = f"Sent {amount.micro_algo}. test"
     assert result.abi_return == expected_return
     assert response
@@ -496,8 +494,7 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
 
     # Assuming the method returns a string matching the format below
     expected_return = AppManager.get_abi_return(
-        result.confirmations[0],
-        test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
+        result.confirmations[0], test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs")
     )
     assert result.abi_return
     assert str(result.abi_return).startswith("App: 345, Asset: 567, Account: ")
@@ -600,7 +597,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
             "name1",
             b"test_bytes",  # Updated to match Bytes type
             "byte[]",
-            [116, 101, 115, 116, 95, 98, 121, 116, 101, 115],
+            b"test_bytes",
         ),
         (
             "name2",
@@ -622,9 +619,9 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
         ),
         (
             "name5",  # Updated to use string key
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
             "byte[4]",
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
         ),
     ],
 )
@@ -665,7 +662,7 @@ def test_box_methods_with_manually_encoded_abi_args(
         ("box_str", "set_box_str", "string", "string"),
         ("box_int", "set_box_int", 123, "uint32"),
         ("box_int512", "set_box_int512", 2**256, "uint512"),
-        ("box_static", "set_box_static", [1, 2, 3, 4], "byte[4]"),
+        ("box_static", "set_box_static", bytes([1, 2, 3, 4]), "byte[4]"),
         ("", "set_struct", ("box1", 123), "(string,uint64)"),
     ],
 )
