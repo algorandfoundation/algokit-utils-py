@@ -179,7 +179,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
             handlers.append(
                 _FieldHandler(
                     name=f.name,
-                    alias=cast(str | None, meta.get("alias")),
+                    alias=cast(str | None, meta.get("alias", f.name)),
                     encode_fn=cast(Callable[..., object] | None, meta.get("encode")),
                     decode_fn=cast(Callable[[object], object] | type | None, meta.get("decode")),
                     omit_if_none=bool(meta.get("omit_if_none", True)),
