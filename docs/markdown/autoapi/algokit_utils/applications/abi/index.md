@@ -17,13 +17,11 @@
 
 ## Functions
 
-| [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)                                          | Gets the ARC-56 formatted return value from an ABI return.   |
-|---------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------|
-| [`get_abi_encoded_value`](#algokit_utils.applications.abi.get_abi_encoded_value)(→ bytes)                                             | Encodes a value according to its ABI type.                   |
-| [`get_abi_decoded_value`](#algokit_utils.applications.abi.get_abi_decoded_value)(→ ABIValue)                                          | Decodes a value according to its ABI type.                   |
-| [`get_abi_tuple_from_abi_struct`](#algokit_utils.applications.abi.get_abi_tuple_from_abi_struct)(→ list[Any])                         | Converts an ABI struct to a tuple representation.            |
-| [`get_abi_tuple_type_from_abi_struct_definition`](#algokit_utils.applications.abi.get_abi_tuple_type_from_abi_struct_definition)(...) | Creates a TupleType from a struct definition.                |
-| [`get_abi_struct_from_abi_tuple`](#algokit_utils.applications.abi.get_abi_struct_from_abi_tuple)(→ dict[str, Any])                    | Converts a decoded tuple to an ABI struct.                   |
+| [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)   | Gets the ARC-56 formatted return value from an ABI return.    |
+|------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
+| [`get_abi_encoded_value`](#algokit_utils.applications.abi.get_abi_encoded_value)(→ bytes)      | Encodes a value according to its ABI type.                    |
+| [`get_abi_decoded_value`](#algokit_utils.applications.abi.get_abi_decoded_value)(→ ABIValue)   | Decodes a value according to its ABI type.                    |
+| [`prepare_value_for_atc`](#algokit_utils.applications.abi.prepare_value_for_atc)(→ Any)        | Recursively converts any structs present in value to a tuple, |
 
 ## Module Contents
 
@@ -33,9 +31,9 @@
 
 ### *type* algokit_utils.applications.abi.Arc56ReturnValueType *= ABIValue | ABIStruct | None*
 
-### *type* algokit_utils.applications.abi.ABIType *= algosdk.abi.ABIType*
+### *type* algokit_utils.applications.abi.ABIType *= algokit_abi.ABIType*
 
-### *type* algokit_utils.applications.abi.ABIArgumentType *= algosdk.abi.ABIType | algosdk.abi.ABITransactionType | algosdk.abi.ABIReferenceType*
+### *type* algokit_utils.applications.abi.ABIArgumentType *= algokit_abi.ABIType | [arc56.TransactionType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.TransactionType) | [arc56.ReferenceType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.ReferenceType)*
 
 ### *class* algokit_utils.applications.abi.ABIReturn(result: algosdk.atomic_transaction_composer.ABIResult)
 
@@ -51,7 +49,7 @@ The raw return value from the method call
 
 The decoded return value from the method call
 
-#### method *: algosdk.abi.method.Method | None* *= None*
+#### method *: algosdk.abi.Method | None* *= None*
 
 The ABI method definition
 
@@ -70,88 +68,53 @@ Returns True if the ABI call was successful (no decode error)
 * **Returns:**
   True if no decode error occurred, False otherwise
 
-#### get_arc56_value(method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | algosdk.abi.method.Method, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
+#### get_arc56_value(method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method)) → Arc56ReturnValueType
 
 Gets the ARC-56 formatted return value.
 
 * **Parameters:**
-  * **method** – The ABI method definition
-  * **structs** – Dictionary of struct definitions
+  **method** – The ABI method definition
 * **Returns:**
   The decoded return value in ARC-56 format
 
-### algokit_utils.applications.abi.get_arc56_value(abi_return: [ABIReturn](#algokit_utils.applications.abi.ABIReturn), method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | algosdk.abi.method.Method, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → Arc56ReturnValueType
+### algokit_utils.applications.abi.get_arc56_value(abi_return: [ABIReturn](#algokit_utils.applications.abi.ABIReturn), method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method)) → Arc56ReturnValueType
 
 Gets the ARC-56 formatted return value from an ABI return.
 
 * **Parameters:**
   * **abi_return** – The ABI return value to decode
   * **method** – The ABI method definition
-  * **structs** – Dictionary of struct definitions
 * **Raises:**
   **ValueError** – If there was an error decoding the return value
 * **Returns:**
   The decoded return value in ARC-56 format
 
-### algokit_utils.applications.abi.get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → bytes
+### algokit_utils.applications.abi.get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | [algokit_utils.applications.app_spec.arc56.AVMType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.AVMType)) → bytes
 
 Encodes a value according to its ABI type.
 
 * **Parameters:**
   * **value** – The value to encode
-  * **type_str** – The ABI type string
-  * **structs** – Dictionary of struct definitions
-* **Raises:**
-  **ValueError** – If the value cannot be encoded for the given type
+  * **abi_type** – The ABI or AVM type
 * **Returns:**
   The ABI encoded bytes
 
-### algokit_utils.applications.abi.get_abi_decoded_value(value: bytes | int | str, type_str: str | ABIArgumentType, structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → ABIValue
+### algokit_utils.applications.abi.get_abi_decoded_value(value: bytes | int | str, decode_type: [algokit_utils.applications.app_spec.arc56.AVMType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.AVMType) | algokit_abi.ABIType | [algokit_utils.applications.app_spec.arc56.ReferenceType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.ReferenceType)) → ABIValue
 
 Decodes a value according to its ABI type.
 
 * **Parameters:**
   * **value** – The value to decode
-  * **type_str** – The ABI type string or type object
-  * **structs** – Dictionary of struct definitions
+  * **decode_type** – The ABI type string or type object
 * **Returns:**
   The decoded ABI value
 
-### algokit_utils.applications.abi.get_abi_tuple_from_abi_struct(struct_value: dict[str, Any], struct_fields: list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)], structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → list[Any]
+### algokit_utils.applications.abi.prepare_value_for_atc(value: Any, abi_type: algokit_abi.ABIType) → Any
 
-Converts an ABI struct to a tuple representation.
+Recursively converts any structs present in value to a tuple,
+so it can be encoded by algosdk (which does not natively support structs)
 
-* **Parameters:**
-  * **struct_value** – The struct value as a dictionary
-  * **struct_fields** – List of struct field definitions
-  * **structs** – Dictionary of struct definitions
-* **Raises:**
-  **ValueError** – If a required field is missing from the struct
-* **Returns:**
-  The struct as a tuple
-
-### algokit_utils.applications.abi.get_abi_tuple_type_from_abi_struct_definition(struct_def: list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)], structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → algosdk.abi.TupleType
-
-Creates a TupleType from a struct definition.
-
-* **Parameters:**
-  * **struct_def** – The struct field definitions
-  * **structs** – Dictionary of struct definitions
-* **Raises:**
-  **ValueError** – If a field type is invalid
-* **Returns:**
-  The TupleType representing the struct
-
-### algokit_utils.applications.abi.get_abi_struct_from_abi_tuple(decoded_tuple: Any, struct_fields: list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)], structs: dict[str, list[[algokit_utils.applications.app_spec.arc56.StructField](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.StructField)]]) → dict[str, Any]
-
-Converts a decoded tuple to an ABI struct.
-
-* **Parameters:**
-  * **decoded_tuple** – The tuple to convert
-  * **struct_fields** – List of struct field definitions
-  * **structs** – Dictionary of struct definitions
-* **Returns:**
-  The tuple as a struct dictionary
+TODO: can remove this function once algosdk is removed from transact as algokit_abi supports struct natively
 
 ### *class* algokit_utils.applications.abi.BoxABIValue
 
