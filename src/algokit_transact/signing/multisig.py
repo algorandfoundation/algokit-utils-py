@@ -12,7 +12,7 @@ from algokit_transact.signing.types import MultisigSignature, MultisigSubsignatu
 
 
 def new_multisig_signature(version: int, threshold: int, participants: Iterable[str]) -> MultisigSignature:
-    participants = tuple(participants)
+    participants = list(participants)
     if version == 0:
         raise ValueError("Version cannot be zero")
     if not participants:
@@ -20,12 +20,12 @@ def new_multisig_signature(version: int, threshold: int, participants: Iterable[
     if threshold == 0 or threshold > len(participants):
         raise ValueError("Threshold must be greater than zero and less than or equal to the number of participants")
 
-    subsignatures = tuple(MultisigSubsignature(address=address) for address in participants)
+    subsignatures = [MultisigSubsignature(address=address) for address in participants]
     return MultisigSignature(version=version, threshold=threshold, subsignatures=subsignatures)
 
 
-def participants_from_multisig_signature(multisig_signature: MultisigSignature) -> tuple[str, ...]:
-    return tuple(subsig.address for subsig in multisig_signature.subsignatures)
+def participants_from_multisig_signature(multisig_signature: MultisigSignature) -> list[str]:
+    return [subsig.address for subsig in multisig_signature.subsignatures]
 
 
 def address_from_multisig_signature(multisig_signature: MultisigSignature) -> str:
@@ -58,7 +58,7 @@ def apply_multisig_subsignature(
             updated.append(subsig)
     if not found:
         raise ValueError("Address not found in multisig signature")
-    return replace(multisig_signature, subsignatures=tuple(updated))
+    return replace(multisig_signature, subsignatures=updated)
 
 
 def merge_multisignatures(multisig_a: MultisigSignature, multisig_b: MultisigSignature) -> MultisigSignature:
@@ -79,5 +79,5 @@ def merge_multisignatures(multisig_a: MultisigSignature, multisig_b: MultisigSig
     return MultisigSignature(
         version=multisig_a.version,
         threshold=multisig_a.threshold,
-        subsignatures=tuple(merged_subsigs),
+        subsignatures=merged_subsigs,
     )

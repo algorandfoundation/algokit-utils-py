@@ -3,7 +3,9 @@
 from dataclasses import is_dataclass
 from typing import Any, Literal, TypeVar, overload
 
-{% if client_needs_datetime %}from datetime import datetime
+{% if needs_algod_helpers %}from base64 import b64encode
+from collections.abc import Sequence
+{% endif %}{% if client_needs_datetime %}from datetime import datetime
 {% endif %}
 
 import httpx
@@ -159,6 +161,61 @@ class {{ client.class_name }}:
 
     {% endfor %}
 {% endfor %}
+{% if needs_algod_helpers %}
+    def send_raw_transaction(
+        self,
+        stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
+    ) -> models.RawTransactionResponseModel:
+        """
+        Send a signed transaction or array of signed transactions to the network.
+        """
+
+        payload: bytes
+        if isinstance(stx_or_stxs, bytes | bytearray | memoryview):
+            payload = bytes(stx_or_stxs)
+        elif isinstance(stx_or_stxs, Sequence):
+            segments: list[bytes] = []
+            for value in stx_or_stxs:
+                if not isinstance(value, bytes | bytearray | memoryview):
+                    raise TypeError("All sequence elements must be bytes-like")
+                segments.append(bytes(value))
+            payload = b"".join(segments)
+        else:
+            raise TypeError("stx_or_stxs must be bytes or a sequence of bytes-like values")
+
+        return self._raw_transaction(payload)
+
+    def get_application_box_by_name(
+        self,
+        application_id: int,
+        box_name: bytes | bytearray | memoryview | str,
+    ) -> models.Box:
+        """
+        Given an application ID and box name, return the corresponding box details.
+        """
+
+        box_bytes = box_name.encode() if isinstance(box_name, str) else bytes(box_name)
+        encoded_name = "b64:" + b64encode(box_bytes).decode("ascii")
+        return self._get_application_box_by_name(application_id, name=encoded_name)
+
+    def suggested_params(self) -> models.SuggestedParams:
+        """
+        Return the common parameters required for assembling a transaction.
+        """
+
+        txn_params = self._transaction_params()
+        last_round = txn_params.last_round
+        return models.SuggestedParams(
+            consensus_version=txn_params.consensus_version,
+            fee=txn_params.fee,
+            genesis_hash=txn_params.genesis_hash,
+            genesis_id=txn_params.genesis_id,
+            min_fee=txn_params.min_fee,
+            flat_fee=False,
+            first_valid=last_round,
+            last_valid=last_round + 1000,
+        )
+{% endif %}
     def _assign_body(
         self,
         request_kwargs: dict[str, Any],

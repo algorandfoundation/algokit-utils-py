@@ -1,13 +1,8 @@
-from __future__ import annotations
-
-import base64
-
-from algosdk import encoding, transaction
-
 from algokit_algod_client import AlgodClient
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
 def test_raw_transaction_broadcast(algod_client: AlgodClient) -> None:
@@ -22,18 +17,17 @@ def test_raw_transaction_broadcast(algod_client: AlgodClient) -> None:
         receiver, dispenser, AlgoAmount.from_algo(1), min_funding_increment=AlgoAmount.from_algo(1)
     )
 
-    params = algorand.client.algod.suggested_params()
-    txn = transaction.PaymentTxn(
-        sender=sender.address,
-        sp=params,
-        receiver=receiver.address,
-        amt=500_000,
-        note=b"Test payment transaction",
+    txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=sender.address,
+            receiver=receiver.address,
+            amount=AlgoAmount.from_micro_algo(500_000),
+            note=b"Test payment transaction",
+        )
     )
 
-    signed_txn = encoding.msgpack_encode(sender.signer.sign_transactions([txn], [0])[0])
-    signed_bytes = base64.b64decode(signed_txn)
+    signed_blob = sender.signer([txn], [0])[0]
 
-    res = algod_client.raw_transaction(body=signed_bytes)
+    res = algod_client.send_raw_transaction(signed_blob)
     assert isinstance(res.tx_id, str)
     assert res.tx_id

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from algokit_indexer_client import IndexerClient

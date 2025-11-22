@@ -1,10 +1,9 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import algosdk
 import pytest
-from algosdk.transaction import OnComplete
 
+import algokit_algosdk as algosdk
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
@@ -26,6 +25,7 @@ from algokit_utils.transactions.transaction_composer import (
     OnlineKeyRegistrationParams,
     PaymentParams,
     TransactionComposer,
+    TransactionComposerParams,
 )
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
 
@@ -103,8 +103,10 @@ def hello_world_arc56_app_id(
 def transaction_sender(algorand: AlgorandClient, sender: SigningAccount) -> AlgorandClientTransactionSender:
     def new_group() -> TransactionComposer:
         return TransactionComposer(
-            algod=algorand.client.algod,
-            get_signer=lambda _: sender.signer,
+            TransactionComposerParams(
+                algod=algorand.client.algod,
+                get_signer=lambda _: sender.signer,
+            )
         )
 
     return AlgorandClientTransactionSender(
@@ -128,12 +130,13 @@ def test_payment(
     )
 
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
     txn = result.transaction.payment
     assert txn
-    assert txn.sender == sender.address
+    assert result.transaction.sender == sender.address
     assert txn.receiver == receiver.address
-    assert txn.amt == amount.micro_algo
+    assert txn.amount == amount.micro_algo
 
 
 def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
@@ -150,13 +153,14 @@ def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sende
 
     result = transaction_sender.asset_create(params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
+    assert result.transaction.sender == sender.address
     assert txn.total == total
-    assert txn.decimals == 0
-    assert txn.default_frozen is False
+    assert (txn.decimals or 0) == 0
+    assert (txn.default_frozen or False) is False
     assert txn.unit_name == "TEST"
     assert txn.asset_name == "Test Asset"
     assert txn.url == "https://example.com"
@@ -178,7 +182,8 @@ def test_asset_config(
             manager=sender.address,
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then configure it
     config_params = AssetConfigParams(
@@ -192,8 +197,8 @@ def test_asset_config(
     assert result.transaction.asset_config
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == sender.address
+    assert txn.asset_id == asset_id
     assert txn.manager == receiver.address
 
 
@@ -215,7 +220,8 @@ def test_asset_freeze(
             manager=sender.address,
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then freeze it
     freeze_params = AssetFreezeParams(
@@ -230,10 +236,10 @@ def test_asset_freeze(
     assert result.transaction.asset_freeze
     txn = result.transaction.asset_freeze
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
-    assert txn.target == sender.address
-    assert txn.new_freeze_state is True
+    assert result.transaction.sender == sender.address
+    assert txn.asset_id == asset_id
+    assert txn.freeze_target == sender.address
+    assert bool(txn.frozen) is True
 
 
 def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
@@ -250,7 +256,8 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then destroy it
     destroy_params = AssetDestroyParams(
@@ -262,8 +269,8 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
     assert len(result.tx_ids) == 1
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == sender.address
+    assert txn.asset_id == asset_id
 
 
 def test_asset_transfer(
@@ -281,7 +288,8 @@ def test_asset_transfer(
             asset_name="Transfer Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in receiver
     transaction_sender.asset_opt_in(
@@ -305,8 +313,8 @@ def test_asset_transfer(
     assert len(result.tx_ids) == 1
     txn = result.transaction.asset_transfer
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == sender.address
+    assert txn.asset_id == asset_id
     assert txn.receiver == receiver.address
     assert txn.amount == amount
 
@@ -326,7 +334,8 @@ def test_asset_opt_in(
             asset_name="Opt Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in
     opt_in_params = AssetOptInParams(
@@ -339,8 +348,8 @@ def test_asset_opt_in(
     assert len(result.tx_ids) == 1
     assert result.transaction.asset_transfer
     txn = result.transaction.asset_transfer
-    assert txn.sender == receiver.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == receiver.address
+    assert txn.asset_id == asset_id
     assert txn.amount == 0
     assert txn.receiver == receiver.address
 
@@ -360,7 +369,8 @@ def test_asset_opt_out(
             asset_name="Opt Out Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in
     transaction_sender.asset_opt_in(
@@ -382,11 +392,11 @@ def test_asset_opt_out(
 
     assert result.transaction.asset_transfer
     txn = result.transaction.asset_transfer
-    assert txn.sender == receiver.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == receiver.address
+    assert txn.asset_id == asset_id
     assert txn.amount == 0
     assert txn.receiver == receiver.address
-    assert txn.close_assets_to == sender.address
+    assert txn.close_remainder_to == sender.address
 
 
 def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
@@ -403,11 +413,11 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
     assert result.app_id > 0
     assert result.app_address
 
-    assert result.transaction.application_call
-    txn = result.transaction.application_call
-    assert txn.sender == sender.address
+    assert result.transaction.app_call
+    txn = result.transaction.app_call
+    assert result.transaction.sender == sender.address
     assert txn.approval_program == b"\x06\x81\x01"
-    assert txn.clear_program == b"\x06\x81\x01"
+    assert txn.clear_state_program == b"\x06\x81\x01"
 
 
 def test_app_call(
@@ -423,13 +433,14 @@ def test_app_call(
         AppCallParams(
             app_id=hello_world_arc56_app_id,
             sender=sender.address,
-            on_complete=OnComplete.NoOpOC,
+            on_complete=algosdk.on_complete.OnComplete.NoOpOC,
             args=[selector, encoded_arg],
         )
     )
 
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-    assert result.transaction.application_call
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
+    assert result.transaction.app_call
 
 
 def test_app_call_method_call(
@@ -483,16 +494,15 @@ def test_key_registration(transaction_sender: AlgorandClientTransactionSender, s
         vote_key="G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=",
         selection_key="LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=",
         state_proof_key=b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
-        vote_first=sp.first,
-        vote_last=sp.first + int(10e6),
+        vote_first=sp.first_valid,
+        vote_last=sp.first_valid + int(10e6),
         vote_key_dilution=100,
     )
 
     result = transaction_sender.online_key_registration(params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-
-    sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
 
     off_key_reg_params = OfflineKeyRegistrationParams(
         sender=sender.address,
@@ -501,4 +511,5 @@ def test_key_registration(transaction_sender: AlgorandClientTransactionSender, s
 
     result = transaction_sender.offline_key_registration(off_key_reg_params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0

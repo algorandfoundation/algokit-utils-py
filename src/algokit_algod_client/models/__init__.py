@@ -97,6 +97,7 @@ from ._transaction_params_response_model import TransactionParamsResponseModel
 from ._transaction_proof import TransactionProof
 from ._version_contains_the_current_algod_version import VersionContainsTheCurrentAlgodVersion
 from ._wait_for_block_response_model import WaitForBlockResponseModel
+from .suggested_params import SuggestedParams
 
 __all__ = [
     "AbortCatchupResponseModel",
@@ -180,6 +181,7 @@ __all__ = [
     "StateDelta",
     "StateProof",
     "StateProofMessage",
+    "SuggestedParams",
     "TealCompileResponseModel",
     "TealDisassembleResponseModel",
     "TealDryrunResponseModel",

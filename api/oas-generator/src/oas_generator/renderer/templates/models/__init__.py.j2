@@ -4,7 +4,8 @@
 {% endif %}{% for item in model_modules %}from .{{ item.module }} import {{ item.name }}
 {% endfor %}{% for item in enum_modules %}from .{{ item.module }} import {{ item.name }}
 {% endfor %}{% for item in alias_modules %}from .{{ item.module }} import {{ item.name }}
-{% endfor %}{% if client.include_block_models %}from ._block import (
+{% endfor %}{% if needs_suggested_params %}from .suggested_params import SuggestedParams
+{% endif %}{% if client.include_block_models %}from ._block import (
     {{ block_exports | join(',\n    ') }}
 )
 {% endif %}

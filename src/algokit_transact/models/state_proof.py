@@ -12,7 +12,7 @@ class HashFactory:
 
 @dataclass(slots=True, frozen=True)
 class MerkleArrayProof:
-    path: tuple[bytes, ...] | None = field(default=None, metadata=bytes_seq("pth"))
+    path: list[bytes] | None = field(default=None, metadata=bytes_seq("pth"))
     hash_factory: HashFactory | None = field(default=None, metadata=nested("hsh", HashFactory))
     tree_depth: int | None = field(default=None, metadata=wire("td"))
 
@@ -70,7 +70,7 @@ class StateProof:
             decode=lambda obj: _decode_reveals(obj),
         ),
     )
-    positions_to_reveal: tuple[int, ...] | None = field(default=None, metadata=int_seq("pr"))
+    positions_to_reveal: list[int] | None = field(default=None, metadata=int_seq("pr"))
 
 
 @dataclass(slots=True, frozen=True)

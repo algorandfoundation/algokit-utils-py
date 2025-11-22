@@ -1,17 +1,15 @@
 from pathlib import Path
 
-import algosdk
 import pytest
-from algosdk.atomic_transaction_composer import TransactionWithSigner
-from algosdk.transaction import OnComplete, PaymentTxn
 
+import algokit_algosdk as algosdk
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.transactions.transaction_composer import PaymentParams
+from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionWithSigner
 
 
 @pytest.fixture
@@ -211,7 +209,7 @@ class BaseResourcePackerTest:
             AppClientMethodCallParams(
                 method="addressBalance",
                 args=[algosdk.account.generate_account()[1]],
-                on_complete=OnComplete.NoOpOC,
+                on_complete=algosdk.on_complete.OnComplete.NoOpOC,
             ),
         )
 
@@ -290,9 +288,10 @@ class TestResourcePackerMixed:
         )
 
         result = txn_group.send()
+        transactions = result.transactions
 
-        v8_accounts = getattr(result.transactions[0].application_call, "accounts", None) or []
-        v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
+        v8_accounts = (transactions[0].app_call.account_references if transactions[0].app_call else None) or []
+        v9_accounts = (transactions[1].app_call.account_references if transactions[1].app_call else None) or []
         assert len(v8_accounts) + len(v9_accounts) == 1
 
     def test_app_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
@@ -328,9 +327,10 @@ class TestResourcePackerMixed:
         )
 
         result = txn_group.send()
+        transactions = result.transactions
 
-        v8_apps = getattr(result.transactions[0].application_call, "foreign_apps", None) or []
-        v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
+        v8_apps = (transactions[0].app_call.app_references if transactions[0].app_call else None) or []
+        v9_accounts = (transactions[1].app_call.account_references if transactions[1].app_call else None) or []
         assert len(v8_apps) + len(v9_accounts) == 1
 
 
@@ -357,14 +357,15 @@ class TestResourcePackerMeta:
                     method="error",
                 ),
             )
-        assert "Error resolving execution info via simulate in transaction 0" in exc_info.value.logic_error_str
+        assert "Error resolving execution info via simulate in transaction [0]" in exc_info.value.logic_error_str
 
     def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-        payment = PaymentTxn(
-            sender=funded_account.address,
-            receiver=funded_account.address,
-            amt=0,
-            sp=algorand.client.algod.suggested_params(),
+        payment = algorand.create_transaction.payment(
+            PaymentParams(
+                sender=funded_account.address,
+                receiver=funded_account.address,
+                amount=AlgoAmount.from_micro_algo(0),
+            )
         )
         payment_with_signer = TransactionWithSigner(payment, funded_account.signer)
 
@@ -388,7 +389,7 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
+        assert len((result.transaction.app_call.account_references if result.transaction.app_call else None) or []) == 0
 
     def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         auth_addr = algorand.account.random()
@@ -404,7 +405,7 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
+        assert len((result.transaction.app_call.account_references if result.transaction.app_call else None) or []) == 0
 
     def test_create_box_in_new_app(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
         self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_000)))
@@ -425,9 +426,9 @@ class TestResourcePackerMeta:
             ),
         )
 
-        box_ref = result.transaction.application_call.boxes[0] if result.transaction.application_call.boxes else None
+        box_ref = result.transaction.app_call.box_references[0] if result.transaction.app_call.box_references else None
         assert box_ref is not None
-        assert box_ref.app_index == 0  # type: ignore  # noqa: PGH003
+        assert box_ref.app_id == 0
 
 
 def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: SigningAccount) -> None:

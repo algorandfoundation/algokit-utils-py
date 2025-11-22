@@ -1,6 +1,8 @@
 # AUTO-GENERATED: oas_generator
 
 
+from base64 import b64encode
+from collections.abc import Sequence
 from dataclasses import is_dataclass
 from typing import Any, Literal, TypeVar, overload
 
@@ -432,6 +434,106 @@ class AlgodClient:
 
     # public
 
+    def _get_application_box_by_name(
+        self,
+        application_id: int,
+        name: str,
+    ) -> models.Box:
+        """
+        Get box information for a given application.
+        """
+
+        path = "/v2/applications/{application-id}/box"
+        path = path.replace("{application-id}", str(application_id))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+        if name is not None:
+            params["name"] = name
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.Box)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def _raw_transaction(
+        self,
+        body: bytes,
+    ) -> models.RawTransactionResponseModel:
+        """
+        Broadcasts a raw transaction or transaction group to the network.
+        """
+
+        path = "/v2/transactions"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/x-binary"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "POST",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.RawTransactionResponseModel)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def _transaction_params(
+        self,
+    ) -> models.TransactionParamsResponseModel:
+        """
+        Get parameters for constructing a new transaction
+        """
+
+        path = "/v2/transactions/params"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.TransactionParamsResponseModel)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
     def account_application_information(
         self,
         address: str,
@@ -607,39 +709,6 @@ class AlgodClient:
         response = self._client.request(**request_kwargs)
         if response.is_success:
             return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_application_box_by_name(
-        self,
-        application_id: int,
-        name: str,
-    ) -> models.Box:
-        """
-        Get box information for a given application.
-        """
-
-        path = "/v2/applications/{application-id}/box"
-        path = path.replace("{application-id}", str(application_id))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if name is not None:
-            params["name"] = name
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.Box)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1422,46 +1491,6 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def raw_transaction(
-        self,
-        body: bytes,
-    ) -> models.RawTransactionResponseModel:
-        """
-        Broadcasts a raw transaction or transaction group to the network.
-        """
-
-        path = "/v2/transactions"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/x-binary"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "is_binary": True,
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.RawTransactionResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def raw_transaction_async(
         self,
         body: bytes,
@@ -1765,33 +1794,6 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def transaction_params(
-        self,
-    ) -> models.TransactionParamsResponseModel:
-        """
-        Get parameters for constructing a new transaction
-        """
-
-        path = "/v2/transactions/params"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.TransactionParamsResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def unset_sync_round(
         self,
     ) -> None:
@@ -1848,6 +1850,60 @@ class AlgodClient:
             return self._decode_response(response, model=models.WaitForBlockResponseModel)
 
         raise UnexpectedStatusError(response.status_code, response.text)
+
+    def send_raw_transaction(
+        self,
+        stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
+    ) -> models.RawTransactionResponseModel:
+        """
+        Send a signed transaction or array of signed transactions to the network.
+        """
+
+        payload: bytes
+        if isinstance(stx_or_stxs, bytes | bytearray | memoryview):
+            payload = bytes(stx_or_stxs)
+        elif isinstance(stx_or_stxs, Sequence):
+            segments: list[bytes] = []
+            for value in stx_or_stxs:
+                if not isinstance(value, bytes | bytearray | memoryview):
+                    raise TypeError("All sequence elements must be bytes-like")
+                segments.append(bytes(value))
+            payload = b"".join(segments)
+        else:
+            raise TypeError("stx_or_stxs must be bytes or a sequence of bytes-like values")
+
+        return self._raw_transaction(payload)
+
+    def get_application_box_by_name(
+        self,
+        application_id: int,
+        box_name: bytes | bytearray | memoryview | str,
+    ) -> models.Box:
+        """
+        Given an application ID and box name, return the corresponding box details.
+        """
+
+        box_bytes = box_name.encode() if isinstance(box_name, str) else bytes(box_name)
+        encoded_name = "b64:" + b64encode(box_bytes).decode("ascii")
+        return self._get_application_box_by_name(application_id, name=encoded_name)
+
+    def suggested_params(self) -> models.SuggestedParams:
+        """
+        Return the common parameters required for assembling a transaction.
+        """
+
+        txn_params = self._transaction_params()
+        last_round = txn_params.last_round
+        return models.SuggestedParams(
+            consensus_version=txn_params.consensus_version,
+            fee=txn_params.fee,
+            genesis_hash=txn_params.genesis_hash,
+            genesis_id=txn_params.genesis_id,
+            min_fee=txn_params.min_fee,
+            flat_fee=False,
+            first_valid=last_round,
+            last_valid=last_round + 1000,
+        )
 
     def _assign_body(
         self,
