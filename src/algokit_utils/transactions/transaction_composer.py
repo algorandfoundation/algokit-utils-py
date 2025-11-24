@@ -427,7 +427,21 @@ class TransactionComposer:
         return BuiltTransactions(transactions=transactions, method_calls=dict(self._method_calls), signers=signers)
 
     def build_transactions(self) -> BuiltTransactions:
-        return self.build()
+        if not self._queued:
+            raise ValueError("Cannot build an empty transaction group")
+
+        suggested_params = self._get_suggested_params()
+        genesis_id = getattr(suggested_params, "genesis_id", None)
+        if genesis_id is None:
+            genesis_id = getattr(suggested_params, "gen", "")
+        is_localnet = ClientManager.genesis_id_is_localnet(genesis_id or "")
+
+        built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
+        transactions = [entry.txn for entry in built_entries]
+        signers = {
+            index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None
+        }
+        return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
     def gather_signatures(self) -> list[SignedTransaction]:
         self._ensure_built()
@@ -575,25 +589,26 @@ class TransactionComposer:
         if len(self._queued) >= MAX_TRANSACTION_GROUP_SIZE:
             raise ValueError("Transaction group size exceeds maximum limit")
 
-    def _ensure_built(self) -> None:
-        if self._transactions_with_signers is not None:
-            return
+    def _build_txn_specs(
+        self,
+        suggested_params: algod_models.SuggestedParams,
+        *,
+        is_localnet: bool,
+    ) -> tuple[list[_BuiltTxnSpec], dict[int, ABIMethod]]:
         if not self._queued:
             raise ValueError("Cannot build an empty transaction group")
 
-        suggested_params = self._get_suggested_params()
-        genesis_id = getattr(suggested_params, "genesis_id", None)
-        if genesis_id is None:
-            genesis_id = getattr(suggested_params, "gen", "")
-        is_localnet = ClientManager.genesis_id_is_localnet(genesis_id or "")
-
         built_entries: list[_BuiltTxnSpec] = []
+        method_calls: dict[int, ABIMethod] = {}
+
         for entry in self._queued:
             sender = entry.txn.sender if hasattr(entry.txn, "sender") else None
             override_signer = self._resolve_param_signer(entry.signer, sender)
             if isinstance(entry.txn, Transaction):
                 txn = self._sanitize_transaction(entry.txn)
-                built_entries.append(_BuiltTxnSpec(txn=txn, signer=override_signer, logical_max_fee=None))
+                built_entries.append(
+                    _BuiltTxnSpec(txn=txn, signer=override_signer, logical_max_fee=entry.max_fee, method=None)
+                )
                 continue
 
             specs = self._build_txn_from_params(entry.txn, suggested_params, is_localnet=is_localnet)
@@ -601,6 +616,7 @@ class TransactionComposer:
                 resolved_signer = spec.signer or override_signer
                 if resolved_signer is None:
                     raise ValueError("Signer is required for transaction in composer queue")
+                index = len(built_entries)
                 built_entries.append(
                     _BuiltTxnSpec(
                         txn=self._sanitize_transaction(spec.txn),
@@ -609,10 +625,22 @@ class TransactionComposer:
                         method=spec.method,
                     )
                 )
+                if spec.method:
+                    method_calls[index] = spec.method
 
-        if not built_entries:
-            raise ValueError("Cannot build an empty transaction group")
+        return built_entries, method_calls
 
+    def _ensure_built(self) -> None:
+        if self._transactions_with_signers is not None:
+            return
+
+        suggested_params = self._get_suggested_params()
+        genesis_id = getattr(suggested_params, "genesis_id", None)
+        if genesis_id is None:
+            genesis_id = getattr(suggested_params, "gen", "")
+        is_localnet = ClientManager.genesis_id_is_localnet(genesis_id or "")
+
+        built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
         logical_max_fees = [entry.logical_max_fee for entry in built_entries]
 
@@ -633,7 +661,7 @@ class TransactionComposer:
             TransactionWithSigner(txn=grouped[index], signer=cast(TransactionSigner, entry.signer))
             for index, entry in enumerate(built_entries)
         ]
-        self._method_calls = {index: entry.method for index, entry in enumerate(built_entries) if entry.method}
+        self._method_calls = dict(method_calls)
 
     def _analyze_group_requirements(  # noqa: C901, PLR0912
         self,
