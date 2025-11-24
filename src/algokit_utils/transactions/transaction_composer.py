@@ -259,6 +259,7 @@ class TransactionComposer:
         self._method_calls: dict[int, ABIMethod] = {}
 
     def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
+        """Create a shallow copy of this composer, optionally overriding config flags."""
         config_override = composer_config or self._config
         cloned = TransactionComposer(
             TransactionComposerParams(
@@ -421,6 +422,7 @@ class TransactionComposer:
         return self
 
     def build(self) -> BuiltTransactions:
+        """Build transactions with grouping, resource population, and fee adjustments applied."""
         self._ensure_built()
         assert self._transactions_with_signers is not None
         transactions = [entry.txn for entry in self._transactions_with_signers]
@@ -454,6 +456,7 @@ class TransactionComposer:
         return self._signed_transactions
 
     def send(self, params: SendParams | None = None) -> SendTransactionComposerResults:
+        """Compose the transaction group and send it to the network."""
         params = params or SendParams()
 
         # Update config from params if provided
@@ -526,6 +529,7 @@ class TransactionComposer:
         throw_on_failure: bool = True,
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
+        """Compose the transaction group and simulate execution without submitting to the network."""
         try:
             persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers: list[TransactionWithSigner]
@@ -1364,6 +1368,7 @@ class TransactionComposer:
         return abi_returns
 
     def set_max_fees(self, max_fees: dict[int, AlgoAmount]) -> "TransactionComposer":
+        """Override max_fee for queued transactions by index before building."""
         if self._transactions_with_signers is not None:
             raise RuntimeError("Transactions have already been built")
 
