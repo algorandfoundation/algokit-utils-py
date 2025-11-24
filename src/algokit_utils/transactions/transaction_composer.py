@@ -258,7 +258,8 @@ class TransactionComposer:
         self._signed_transactions: list[SignedTransaction] | None = None
         self._method_calls: dict[int, ABIMethod] = {}
 
-    def clone(self) -> "TransactionComposer":
+    def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
+        config_override = composer_config or self._config
         cloned = TransactionComposer(
             TransactionComposerParams(
                 algod=self._algod,
@@ -270,8 +271,8 @@ class TransactionComposer:
                 app_manager=self._app_manager,
                 error_transformers=list(self._error_transformers),
                 composer_config=TransactionComposerConfig(
-                    cover_app_call_inner_transaction_fees=self._config.cover_app_call_inner_transaction_fees,
-                    populate_app_call_resources=self._config.populate_app_call_resources,
+                    cover_app_call_inner_transaction_fees=config_override.cover_app_call_inner_transaction_fees,
+                    populate_app_call_resources=config_override.populate_app_call_resources,
                 ),
             )
         )
