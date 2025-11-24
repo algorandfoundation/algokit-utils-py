@@ -102,6 +102,8 @@ Light-weight transaction composer built on top of algokit_transact.
 
 #### clone(composer_config: [TransactionComposerConfig](#algokit_utils.transactions.transaction_composer.TransactionComposerConfig) | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
+Create a shallow copy of this composer, optionally overriding config flags.
+
 #### register_error_transformer(transformer: ErrorTransformer) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 #### add_transaction(txn: algokit_transact.models.transaction.Transaction, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
@@ -152,12 +154,25 @@ Light-weight transaction composer built on top of algokit_transact.
 
 #### build() → [BuiltTransactions](#algokit_utils.transactions.transaction_composer.BuiltTransactions)
 
+Build transactions with grouping, resource population, and fee adjustments applied.
+
 #### build_transactions() → [BuiltTransactions](#algokit_utils.transactions.transaction_composer.BuiltTransactions)
+
+Build queued transactions without resource population or grouping.
+
+Returns raw transactions, method call metadata, and any explicit signers. This does not
+populate unnamed resources or adjust fees, and it leaves grouping unchanged.
 
 #### gather_signatures() → list[algokit_transact.models.signed_transaction.SignedTransaction]
 
 #### send(params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
+Compose the transaction group and send it to the network.
+
 #### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool = True, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
+Compose the transaction group and simulate execution without submitting to the network.
+
 #### set_max_fees(max_fees: dict[int, [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)]) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
+
+Override max_fee for queued transactions by index before building.

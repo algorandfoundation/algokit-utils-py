@@ -40,11 +40,12 @@ You can also call `str(amount)` or use an `AlgoAmount` directly in string interp
 
 ### Additional Features
 
-The `AlgoAmount` class supports arithmetic operations:
+The `AlgoAmount` class supports arithmetic and comparisons:
 
-- Addition: `amount1 + amount2`
-- Subtraction: `amount1 - amount2`
-- Comparison operations: `<`, `<=`, `>`, `>=`, `==`, `!=`
+- Addition/subtraction with other `AlgoAmount` values or integers (either side), including in-place (`+=`, `-=`).
+- Multiplication and division by integers (true and floor division); dividing by zero raises `ZeroDivisionError`.
+- Comparison operations with other `AlgoAmount` values or integers: `<`, `<=`, `>`, `>=`, `==`, `!=`.
+- Using `int(amount)` yields microAlgos; `str(amount)` formats as µALGO.
 
 Example:
 
@@ -52,4 +53,6 @@ Example:
 amount1 = AlgoAmount(algo=1)
 amount2 = AlgoAmount(micro_algo=500_000)
 total = amount1 + amount2  # Results in 1.5 Algo
+scaled = total * 2         # Results in 3 Algo
+remaining = 5_000_000 - total  # Works with ints (microAlgos)
 ```
