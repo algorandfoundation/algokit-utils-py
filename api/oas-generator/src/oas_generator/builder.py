@@ -710,7 +710,7 @@ def build_client_descriptor(
     spec: ctx.ParsedSpec, package_name: str, sanitizer: IdentifierSanitizer
 ) -> ctx.ClientDescriptor:
     package_leaf = package_name.split(".")[-1]
-    client_key = ctx.ClientType.from_str(package_leaf.removeprefix("algokit_").upper())
+    client_key = ctx.ClientType(package_leaf.removeprefix("algokit_"))
     class_name = sanitizer.pascal(client_key)
     registry = SchemaRegistry(spec, sanitizer)
     resolver = TypeResolver(registry)
