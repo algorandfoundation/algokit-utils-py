@@ -1,17 +1,15 @@
-from __future__ import annotations
-
 import base64
 import json
 from base64 import b64encode
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from enum import Enum
-from typing import Any, Literal, overload
+from typing import Any, Literal, Optional, TypeAlias, overload
 
-import algosdk
-from algosdk.abi import Method as AlgosdkMethod
-
+import algokit_algosdk as algosdk
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
+
+AlgosdkMethod: TypeAlias = algosdk.abi.Method
 
 __all__ = [
     "Actions",
@@ -62,11 +60,11 @@ class StructField:
 
     name: str
     """The name of the struct field"""
-    type: list[StructField] | str
+    type: list["StructField"] | str
     """The type of the struct field, either a string or list of StructFields"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> StructField:
+    def from_dict(data: dict[str, Any]) -> "StructField":
         if isinstance(data["type"], list):
             data["type"] = [StructField.from_dict(item) for item in data["type"]]
         return StructField(**data)
@@ -101,7 +99,7 @@ class BareActions:
     """The list of allowed create actions"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> BareActions:
+    def from_dict(data: dict[str, Any]) -> "BareActions":
         return BareActions(**data)
 
 
@@ -115,7 +113,7 @@ class ByteCode:
     """The base64 encoded clear program bytecode"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> ByteCode:
+    def from_dict(data: dict[str, Any]) -> "ByteCode":
         return ByteCode(**data)
 
 
@@ -140,7 +138,7 @@ class CompilerVersion:
     """The patch version number"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> CompilerVersion:
+    def from_dict(data: dict[str, Any]) -> "CompilerVersion":
         return CompilerVersion(**data)
 
 
@@ -148,13 +146,13 @@ class CompilerVersion:
 class CompilerInfo:
     """Information about the compiler used."""
 
-    compiler: Compiler
+    compiler: "Compiler"
     """The type of compiler used"""
-    compiler_version: CompilerVersion
+    compiler_version: "CompilerVersion"
     """Version information for the compiler"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> CompilerInfo:
+    def from_dict(data: dict[str, Any]) -> "CompilerInfo":
         data["compiler_version"] = CompilerVersion.from_dict(data["compiler_version"])
         return CompilerInfo(**data)
 
@@ -167,7 +165,7 @@ class Network:
     """The application ID on the network"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Network:
+    def from_dict(data: dict[str, Any]) -> "Network":
         return Network(**data)
 
 
@@ -181,7 +179,7 @@ class ScratchVariables:
     """The type of the scratch variable"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> ScratchVariables:
+    def from_dict(data: dict[str, Any]) -> "ScratchVariables":
         return ScratchVariables(**data)
 
 
@@ -195,7 +193,7 @@ class Source:
     """The base64 encoded clear program source"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Source:
+    def from_dict(data: dict[str, Any]) -> "Source":
         return Source(**data)
 
     def get_decoded_approval(self) -> str:
@@ -226,7 +224,7 @@ class Global:
     """The number of integers in global state"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Global:
+    def from_dict(data: dict[str, Any]) -> "Global":
         return Global(**data)
 
 
@@ -240,7 +238,7 @@ class Local:
     """The number of integers in local state"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Local:
+    def from_dict(data: dict[str, Any]) -> "Local":
         return Local(**data)
 
 
@@ -248,13 +246,13 @@ class Local:
 class Schema:
     """Application state schema."""
 
-    global_state: Global  # actual schema field is "global" since it's a reserved word
+    global_state: "Global"  # actual schema field is "global" since it's a reserved word
     """The global state schema"""
-    local_state: Local  # actual schema field is "local" for consistency with renamed "global"
+    local_state: "Local"  # actual schema field is "local" for consistency with renamed "global"
     """The local state schema"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Schema:
+    def from_dict(data: dict[str, Any]) -> "Schema":
         global_state = Global.from_dict(data["global"])
         local_state = Local.from_dict(data["local"])
         return Schema(global_state=global_state, local_state=local_state)
@@ -270,7 +268,7 @@ class TemplateVariables:
     """The optional value of the template variable"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> TemplateVariables:
+    def from_dict(data: dict[str, Any]) -> "TemplateVariables":
         return TemplateVariables(**data)
 
 
@@ -288,7 +286,7 @@ class EventArg:
     """The optional struct type name"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> EventArg:
+    def from_dict(data: dict[str, Any]) -> "EventArg":
         return EventArg(**data)
 
 
@@ -304,7 +302,7 @@ class Event:
     """The optional description of the event"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Event:
+    def from_dict(data: dict[str, Any]) -> "Event":
         data["args"] = [EventArg.from_dict(item) for item in data["args"]]
         return Event(**data)
 
@@ -319,7 +317,7 @@ class Actions:
     """The optional list of allowed create actions"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Actions:
+    def from_dict(data: dict[str, Any]) -> "Actions":
         return Actions(**data)
 
 
@@ -335,7 +333,7 @@ class DefaultValue:
     """The optional type of the default value"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> DefaultValue:
+    def from_dict(data: dict[str, Any]) -> "DefaultValue":
         return DefaultValue(**data)
 
 
@@ -355,7 +353,7 @@ class MethodArg:
     """The optional struct type name"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> MethodArg:
+    def from_dict(data: dict[str, Any]) -> "MethodArg":
         if data.get("default_value"):
             data["default_value"] = DefaultValue.from_dict(data["default_value"])
         return MethodArg(**data)
@@ -375,7 +373,7 @@ class Boxes:
     """The optional application ID"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Boxes:
+    def from_dict(data: dict[str, Any]) -> "Boxes":
         return Boxes(**data)
 
 
@@ -389,13 +387,13 @@ class Recommendations:
     """The optional list of applications"""
     assets: list[int] | None = None
     """The optional list of assets"""
-    boxes: Boxes | None = None
+    boxes: Optional["Boxes"] = None
     """The optional box storage requirements"""
     inner_transaction_count: int | None = None
     """The optional inner transaction count"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Recommendations:
+    def from_dict(data: dict[str, Any]) -> "Recommendations":
         if data.get("boxes"):
             data["boxes"] = Boxes.from_dict(data["boxes"])
         return Recommendations(**data)
@@ -413,7 +411,7 @@ class Returns:
     """The optional struct type name"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Returns:
+    def from_dict(data: dict[str, Any]) -> "Returns":
         return Returns(**data)
 
 
@@ -421,13 +419,13 @@ class Returns:
 class Method:
     """Method information."""
 
-    actions: Actions
+    actions: "Actions"
     """The allowed actions"""
     args: list[MethodArg]
     """The method arguments"""
     name: str
     """The method name"""
-    returns: Returns
+    returns: "Returns"
     """The return information"""
     desc: str | None = None
     """The optional description"""
@@ -435,7 +433,7 @@ class Method:
     """The optional list of events"""
     readonly: bool | None = None
     """The optional readonly flag"""
-    recommendations: Recommendations | None = None
+    recommendations: Optional["Recommendations"] = None
     """The optional execution recommendations"""
 
     _abi_method: AlgosdkMethod | None = None
@@ -454,7 +452,7 @@ class Method:
         return self._abi_method
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Method:
+    def from_dict(data: dict[str, Any]) -> "Method":
         data["actions"] = Actions.from_dict(data["actions"])
         data["args"] = [MethodArg.from_dict(item) for item in data["args"]]
         data["returns"] = Returns.from_dict(data["returns"])
@@ -486,7 +484,7 @@ class SourceInfo:
     """The optional TEAL version"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> SourceInfo:
+    def from_dict(data: dict[str, Any]) -> "SourceInfo":
         return SourceInfo(**data)
 
 
@@ -504,7 +502,7 @@ class StorageKey:
     """The optional description"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> StorageKey:
+    def from_dict(data: dict[str, Any]) -> "StorageKey":
         return StorageKey(**data)
 
 
@@ -522,7 +520,7 @@ class StorageMap:
     """The optional key prefix"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> StorageMap:
+    def from_dict(data: dict[str, Any]) -> "StorageMap":
         return StorageMap(**data)
 
 
@@ -538,7 +536,7 @@ class Keys:
     """The local state storage keys"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Keys:
+    def from_dict(data: dict[str, Any]) -> "Keys":
         box = {key: StorageKey.from_dict(value) for key, value in data["box"].items()}
         global_state = {key: StorageKey.from_dict(value) for key, value in data["global"].items()}
         local_state = {key: StorageKey.from_dict(value) for key, value in data["local"].items()}
@@ -557,7 +555,7 @@ class Maps:
     """The local state storage maps"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> Maps:
+    def from_dict(data: dict[str, Any]) -> "Maps":
         box = {key: StorageMap.from_dict(value) for key, value in data["box"].items()}
         global_state = {key: StorageMap.from_dict(value) for key, value in data["global"].items()}
         local_state = {key: StorageMap.from_dict(value) for key, value in data["local"].items()}
@@ -568,15 +566,15 @@ class Maps:
 class State:
     """Application state information."""
 
-    keys: Keys
+    keys: "Keys"
     """The storage keys"""
-    maps: Maps
+    maps: "Maps"
     """The storage maps"""
-    schema: Schema
+    schema: "Schema"
     """The state schema"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> State:
+    def from_dict(data: dict[str, Any]) -> "State":
         data["keys"] = Keys.from_dict(data["keys"])
         data["maps"] = Maps.from_dict(data["maps"])
         data["schema"] = Schema.from_dict(data["schema"])
@@ -587,13 +585,13 @@ class State:
 class ProgramSourceInfo:
     """Program source information."""
 
-    pc_offset_method: PcOffsetMethod
+    pc_offset_method: "PcOffsetMethod"
     """The PC offset method"""
     source_info: list[SourceInfo]
     """The list of source info entries"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> ProgramSourceInfo:
+    def from_dict(data: dict[str, Any]) -> "ProgramSourceInfo":
         data["source_info"] = [SourceInfo.from_dict(item) for item in data["source_info"]]
         return ProgramSourceInfo(**data)
 
@@ -602,13 +600,13 @@ class ProgramSourceInfo:
 class SourceInfoModel:
     """Source information for approval and clear programs."""
 
-    approval: ProgramSourceInfo
+    approval: "ProgramSourceInfo"
     """The approval program source info"""
-    clear: ProgramSourceInfo
+    clear: "ProgramSourceInfo"
     """The clear program source info"""
 
     @staticmethod
-    def from_dict(data: dict[str, Any]) -> SourceInfoModel:
+    def from_dict(data: dict[str, Any]) -> "SourceInfoModel":
         data["approval"] = ProgramSourceInfo.from_dict(data["approval"])
         data["clear"] = ProgramSourceInfo.from_dict(data["clear"])
         return SourceInfoModel(**data)
@@ -661,7 +659,7 @@ class _Arc32ToArc56Converter:
     def __init__(self, arc32_application_spec: str):
         self.arc32 = json.loads(arc32_application_spec)
 
-    def convert(self) -> Arc56Contract:
+    def convert(self) -> "Arc56Contract":
         source_data = self.arc32.get("source")
         return Arc56Contract(
             name=self.arc32["contract"]["name"],
@@ -689,7 +687,7 @@ class _Arc32ToArc56Converter:
             for name, field in schema.items()
         }
 
-    def _convert_state(self, arc32: dict) -> State:
+    def _convert_state(self, arc32: dict) -> "State":
         """Convert ARC32 state and schema to ARC56 state specification."""
         state_data = arc32.get("state", {})
         return State(
@@ -761,7 +759,7 @@ class _Arc32ToArc56Converter:
     @overload
     def _convert_actions(self, config: dict | None, action_type: Literal[_ActionType.CREATE]) -> list[CreateEnum]: ...
 
-    def _convert_actions(self, config: dict | None, action_type: _ActionType) -> Sequence[CallEnum | CreateEnum]:
+    def _convert_actions(self, config: dict | None, action_type: "_ActionType") -> Sequence[CallEnum | CreateEnum]:
         """Extract supported actions from call config."""
         if not config:
             return []
@@ -784,7 +782,7 @@ class _Arc32ToArc56Converter:
 
         return actions
 
-    def _convert_method_actions(self, hint: dict | None) -> Actions:
+    def _convert_method_actions(self, hint: dict | None) -> "Actions":
         """Convert method call config to ARC56 actions."""
         config = hint.get("call_config", {}) if hint else {}
         return Actions(
@@ -864,13 +862,13 @@ class Arc56Contract:
     """The list of contract methods"""
     name: str
     """The contract name"""
-    state: State
+    state: "State"
     """The contract state information"""
     structs: dict[str, list[StructField]]
     """The contract struct definitions"""
-    byte_code: ByteCode | None = None
+    byte_code: Optional["ByteCode"] = None
     """The optional bytecode for approval and clear programs"""
-    compiler_info: CompilerInfo | None = None
+    compiler_info: Optional["CompilerInfo"] = None
     """The optional compiler information"""
     desc: str | None = None
     """The optional contract description"""
@@ -880,19 +878,19 @@ class Arc56Contract:
     """The optional network deployment information"""
     scratch_variables: dict[str, ScratchVariables] | None = None
     """The optional scratch variable information"""
-    source: Source | None = None
+    source: Optional["Source"] = None
     """The optional source code"""
-    source_info: SourceInfoModel | None = None
+    source_info: Optional["SourceInfoModel"] = None
     """The optional source code information"""
     template_variables: dict[str, TemplateVariables] | None = None
     """The optional template variable information"""
 
     @staticmethod
-    def from_dict(application_spec: dict) -> Arc56Contract:
+    def from_dict(application_spec: dict) -> "Arc56Contract":
         """Create Arc56Contract from dictionary.
 
         :param application_spec: Dictionary containing contract specification
-        :return: Arc56Contract instance
+        :return: "Arc56Contract" instance
         """
         data = _dict_keys_to_snake_case(application_spec)
         data["bare_actions"] = BareActions.from_dict(data["bare_actions"])
@@ -924,11 +922,11 @@ class Arc56Contract:
         return Arc56Contract(**data)
 
     @staticmethod
-    def from_json(application_spec: str) -> Arc56Contract:
+    def from_json(application_spec: str) -> "Arc56Contract":
         return Arc56Contract.from_dict(json.loads(application_spec))
 
     @staticmethod
-    def from_arc32(arc32_application_spec: str | Arc32Contract) -> Arc56Contract:
+    def from_arc32(arc32_application_spec: str | Arc32Contract) -> "Arc56Contract":
         return _Arc32ToArc56Converter(
             arc32_application_spec.to_json()
             if isinstance(arc32_application_spec, Arc32Contract)
@@ -960,7 +958,7 @@ class Arc56Contract:
     def dictify(self) -> dict:
         return asdict(self, dict_factory=_arc56_dict_factory())
 
-    def get_arc56_method(self, method_name_or_signature: str) -> Method:
+    def get_arc56_method(self, method_name_or_signature: str) -> "Method":
         if "(" not in method_name_or_signature:
             # Filter by method name
             methods = [m for m in self.methods if m.name == method_name_or_signature]

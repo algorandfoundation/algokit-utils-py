@@ -34,7 +34,7 @@ There are two methods that can be used for this, `set_signer_from_account`, whic
 ```python
 algorand.account
   .set_signer_from_account(TransactionSignerAccount(your_address, your_signer))
-  .set_signer_from_account(SigningAccount.new_account())
+  .set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
   .set_signer_from_account(
     LogicSigAccount(algosdk.transaction.LogicSigAccount(program, args))
   )

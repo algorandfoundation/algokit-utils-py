@@ -1,12 +1,10 @@
-import base64
-
 import pytest
-from algosdk import encoding, transaction
 
 from algokit_algod_client import AlgodClient
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
 @pytest.fixture
@@ -38,24 +36,22 @@ def test_pending_transaction_broadcast(
     algod_client: AlgodClient, algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount
 ) -> None:
     """Test broadcasting a transaction and retrieving pending transaction information."""
-    # Get transaction parameters from AlgorandClient's algod
-    params = algorand.client.algod.suggested_params()
 
-    # Build payment transaction using algosdk
-    txn = transaction.PaymentTxn(
-        sender=sender.address,
-        sp=params,
-        receiver=receiver.address,
-        amt=500_000,  # 0.5 ALGO
-        note=b"Test payment transaction",
+    # Build payment transaction using Algokit
+    txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=sender.address,
+            receiver=receiver.address,
+            amount=AlgoAmount.from_micro_algo(500_000),
+            note=b"Test payment transaction",
+        )
     )
 
     # Sign the transaction
-    signed_txn = encoding.msgpack_encode(sender.signer.sign_transactions([txn], [0])[0])
-    signed_txn = base64.b64decode(signed_txn)
+    signed_blob = sender.signer([txn], [0])[0]
 
     # Send the signed transaction using the raw algod_client
-    response = algod_client.raw_transaction(signed_txn)
+    response = algod_client.send_raw_transaction(signed_blob)
     # Get pending transaction information
     pending_txn = algod_client.pending_transaction_information(txid=response.tx_id)
 

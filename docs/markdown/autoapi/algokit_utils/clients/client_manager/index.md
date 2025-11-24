@@ -9,14 +9,14 @@
 
 ## Module Contents
 
-### *class* algokit_utils.clients.client_manager.AlgoSdkClients(algod: algosdk.v2client.algod.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.KmdClient | None = None)
+### *class* algokit_utils.clients.client_manager.AlgoSdkClients(algod: algokit_algod_client.AlgodClient, indexer: algokit_indexer_client.IndexerClient | None = None, kmd: algokit_kmd_client.KmdClient | None = None)
 
 Container for Algorand SDK client instances.
 
 Holds references to Algod, Indexer and KMD clients.
 
 * **Parameters:**
-  * **algod** – Algod client instance
+  * **algod** – Algod client instance (protocol-compatible typed client)
   * **indexer** – Optional Indexer client instance
   * **kmd** – Optional KMD client instance
 
@@ -60,7 +60,7 @@ Provides access to Algod, Indexer and KMD clients and helper methods for working
 
 * **Parameters:**
   * **clients_or_configs** – Either client instances or client configurations
-  * **algorand_client** – AlgorandClient instance
+  * **algorand_client** – “AlgorandClient” instance
 * **Example:**
   ```python
   # Algod only
@@ -74,9 +74,9 @@ Provides access to Algod, Indexer and KMD clients and helper methods for working
       ClientManager.get_indexer_config_from_environment())
   ```
 
-#### *property* algod *: algosdk.v2client.algod.AlgodClient*
+#### *property* algod *: algokit_algod_client.AlgodClient*
 
-Returns an algosdk Algod API client.
+Returns the typed Algod API client instance.
 
 * **Returns:**
   Algod client instance
@@ -139,6 +139,20 @@ Check if connected to MainNet.
 * **Returns:**
   True if connected to MainNet
 
+#### close() → None
+
+Close the underlying HTTP client connections.
+
+This method should be called when the ClientManager is no longer needed
+to properly clean up resources.
+
+* **Example:**
+  ```python
+  client_manager = ClientManager(algod_client)
+  # ... use client_manager ...
+  client_manager.close()
+  ```
+
 #### get_testnet_dispenser(auth_token: str | None = None, request_timeout: int | None = None) → [algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient](../dispenser_api_client/index.md#algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient)
 
 Get a TestNet dispenser API client.
@@ -149,7 +163,7 @@ Get a TestNet dispenser API client.
 * **Returns:**
   TestNet dispenser client instance
 
-#### get_app_factory(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → [algokit_utils.applications.app_factory.AppFactory](../../applications/app_factory/index.md#algokit_utils.applications.app_factory.AppFactory)
+#### get_app_factory(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → [algokit_utils.applications.app_factory.AppFactory](../../applications/app_factory/index.md#algokit_utils.applications.app_factory.AppFactory)
 
 Get an application factory for deploying smart contracts.
 
@@ -165,7 +179,7 @@ Get an application factory for deploying smart contracts.
 * **Returns:**
   Application factory instance
 
-#### get_app_client_by_id(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_id(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client for an existing application by ID.
 
@@ -182,7 +196,7 @@ Get an application client for an existing application by ID.
 * **Returns:**
   Application client instance
 
-#### get_app_client_by_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client for an existing application by network.
 
@@ -198,7 +212,7 @@ Get an application client for an existing application by network.
 * **Returns:**
   Application client instance
 
-#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Get an application client by creator address and name.
 
@@ -215,16 +229,16 @@ Get an application client by creator address and name.
 * **Returns:**
   Application client instance
 
-#### *static* get_algod_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algosdk.v2client.algod.AlgodClient
+#### *static* get_algod_client(config: [algokit_utils.models.network.AlgoClientNetworkConfig](../../models/network/index.md#algokit_utils.models.network.AlgoClientNetworkConfig)) → algokit_algod_client.AlgodClient
 
-Get an Algod client from config or environment.
+Get a typed Algod client from config.
 
 * **Parameters:**
-  **config** – Optional client configuration
+  **config** – Client configuration
 * **Returns:**
-  Algod client instance
+  Typed Algod client instance
 
-#### *static* get_algod_client_from_environment() → algosdk.v2client.algod.AlgodClient
+#### *static* get_algod_client_from_environment() → algokit_algod_client.AlgodClient
 
 Get an Algod client from environment variables.
 
@@ -276,7 +290,7 @@ Check if a genesis ID indicates a local network.
   ClientManager.genesis_id_is_localnet("devnet-v1")
   ```
 
-#### get_typed_app_client_by_creator_and_name(typed_client: type[TypedAppClientT], \*, creator_address: str, app_name: str, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None) → TypedAppClientT
+#### get_typed_app_client_by_creator_and_name(typed_client: type[TypedAppClientT], \*, creator_address: str, app_name: str, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None) → TypedAppClientT
 
 Get a typed application client by creator address and name.
 
@@ -302,7 +316,7 @@ Get a typed application client by creator address and name.
   )
   ```
 
-#### get_typed_app_client_by_id(typed_client: type[TypedAppClientT], \*, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → TypedAppClientT
+#### get_typed_app_client_by_id(typed_client: type[TypedAppClientT], \*, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → TypedAppClientT
 
 Get a typed application client by ID.
 
@@ -327,7 +341,7 @@ Get a typed application client by ID.
   )
   ```
 
-#### get_typed_app_client_by_network(typed_client: type[TypedAppClientT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → TypedAppClientT
+#### get_typed_app_client_by_network(typed_client: type[TypedAppClientT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → TypedAppClientT
 
 Returns a new typed client, resolves the app ID for the current network.
 
@@ -354,7 +368,7 @@ If no IDs are in the app spec or the network isn’t recognised, an error is thr
   )
   ```
 
-#### get_typed_app_factory(typed_factory: type[TypedFactoryT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → TypedFactoryT
+#### get_typed_app_factory(typed_factory: type[TypedFactoryT], \*, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, version: str | None = None, compilation_params: [algokit_utils.applications.app_client.AppClientCompilationParams](../../applications/app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationParams) | None = None) → TypedFactoryT
 
 Get a typed application factory.
 

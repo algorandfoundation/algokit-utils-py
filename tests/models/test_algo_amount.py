@@ -35,17 +35,29 @@ def test_arithmetic_operations() -> None:
 
     # Addition
     assert (a + b).micro_algo == 8_000_000
+    assert (a + 1_000_000).micro_algo == 6_000_000
+    assert (1_000_000 + a).micro_algo == 6_000_000
     a += b
     assert a.micro_algo == 8_000_000
 
     # Subtraction
     assert (a - b).micro_algo == 5_000_000
+    assert (a - 1_000_000).micro_algo == 7_000_000
+    assert (10_000_000 - a).micro_algo == 2_000_000
     a -= b
     assert a.micro_algo == 5_000_000
 
     # Right operations
     assert (AlgoAmount.from_micro_algo(1000) + a).micro_algo == 5_001_000
     assert (AlgoAmount.from_algo(10) - a).micro_algo == 5_000_000
+
+    # Multiplication
+    assert (AlgoAmount.from_micro_algo(2_000_000) * 3).micro_algo == 6_000_000
+    assert (3 * AlgoAmount.from_micro_algo(2_000_000)).micro_algo == 6_000_000
+
+    # Division
+    assert (AlgoAmount.from_micro_algo(9_000_000) / 3).micro_algo == 3_000_000
+    assert (9 // AlgoAmount.from_micro_algo(3)).quantize(Decimal("1")) == Decimal("3")
 
 
 def test_comparison_operators() -> None:
@@ -88,11 +100,19 @@ def test_string_representation() -> None:
 
 def test_type_safety() -> None:
     with pytest.raises(TypeError, match="Unsupported operand type"):
-        # int is not AlgoAmount
-        AlgoAmount.from_algo(5) + 1000  # type: ignore  # noqa: PGH003
+        AlgoAmount.from_algo(5) - "invalid"  # type: ignore  # noqa: PGH003
 
     with pytest.raises(TypeError, match="Unsupported operand type"):
-        AlgoAmount.from_algo(5) - "invalid"  # type: ignore  # noqa: PGH003
+        AlgoAmount.from_algo(5) * "invalid"  # type: ignore  # noqa: PGH003
+
+    with pytest.raises(TypeError, match="Unsupported operand type"):
+        AlgoAmount.from_algo(5) / "invalid"  # type: ignore  # noqa: PGH003
+
+    with pytest.raises(ZeroDivisionError):
+        AlgoAmount.from_micro_algo(1_000) / 0
+
+    with pytest.raises(ZeroDivisionError):
+        1 // AlgoAmount.from_micro_algo(0)
 
 
 def test_helper_functions() -> None:

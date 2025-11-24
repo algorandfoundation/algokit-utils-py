@@ -5,14 +5,14 @@
 | [`TealTemplateParams`](#algokit_utils.models.state.TealTemplateParams)   |    |
 |--------------------------------------------------------------------------|----|
 | [`BoxIdentifier`](#algokit_utils.models.state.BoxIdentifier)             |    |
+| [`BoxReference`](#algokit_utils.models.state.BoxReference)               |    |
 
 ## Classes
 
-| [`BoxName`](#algokit_utils.models.state.BoxName)           | The name of the box                                                   |
-|------------------------------------------------------------|-----------------------------------------------------------------------|
-| [`BoxValue`](#algokit_utils.models.state.BoxValue)         | The value of the box                                                  |
-| [`DataTypeFlag`](#algokit_utils.models.state.DataTypeFlag) | Enum where members are also (and must be) ints                        |
-| [`BoxReference`](#algokit_utils.models.state.BoxReference) | Represents a box reference with a foreign app index and the box name. |
+| [`BoxName`](#algokit_utils.models.state.BoxName)           | The name of the box                            |
+|------------------------------------------------------------|------------------------------------------------|
+| [`BoxValue`](#algokit_utils.models.state.BoxValue)         | The value of the box                           |
+| [`DataTypeFlag`](#algokit_utils.models.state.DataTypeFlag) | Enum where members are also (and must be) ints |
 
 ## Module Contents
 
@@ -57,14 +57,6 @@ Enum where members are also (and must be) ints
 
 ### *type* algokit_utils.models.state.TealTemplateParams *= Mapping[str, str | int | bytes] | dict[str, str | int | bytes]*
 
-### *type* algokit_utils.models.state.BoxIdentifier *= str | bytes | AccountTransactionSigner*
+### *type* algokit_utils.models.state.BoxIdentifier *= str | bytes | [TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)*
 
-### *class* algokit_utils.models.state.BoxReference(app_id: int, name: bytes | str)
-
-Bases: `algosdk.box_reference.BoxReference`
-
-Represents a box reference with a foreign app index and the box name.
-
-Args:
-: app_index (int): index of the application in the foreign app array
-  name (bytes): key for the box in bytes
+### algokit_utils.models.state.BoxReference

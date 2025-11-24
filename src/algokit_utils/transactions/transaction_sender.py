@@ -1,17 +1,18 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
-import algosdk
-import algosdk.atomic_transaction_composer
-from algosdk.transaction import Transaction
 from typing_extensions import Self
 
+import algokit_algosdk as algosdk
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import models as algod_models
+from algokit_transact import Transaction
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
-from algokit_utils.models.transaction import SendParams, TransactionWrapper
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -31,7 +32,7 @@ from algokit_utils.transactions.transaction_composer import (
     OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
-    SendAtomicTransactionComposerResults,
+    SendTransactionComposerResults,
     TransactionComposer,
     TxnParams,
 )
@@ -56,13 +57,13 @@ class SendSingleTransactionResult:
     Represents the result of sending a single transaction.
     """
 
-    transaction: TransactionWrapper  # Last transaction
+    transaction: Transaction  # Last transaction
     """The last transaction"""
 
-    confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
+    confirmation: algod_models.PendingTransactionResponse  # Last confirmation
     """The last confirmation"""
 
-    # Fields from SendAtomicTransactionComposerResults
+    # Fields from SendTransactionComposerResults
     group_id: str
     """The group ID"""
 
@@ -71,10 +72,10 @@ class SendSingleTransactionResult:
 
     tx_ids: list[str]  # Full array of transaction IDs
     """The full array of transaction IDs"""
-    transactions: list[TransactionWrapper]
+    transactions: list[Transaction]
     """The full array of transactions"""
 
-    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    confirmations: list[algod_models.PendingTransactionResponse]
     """The full array of confirmations"""
 
     returns: list[ABIReturn] | None = None
@@ -82,38 +83,48 @@ class SendSingleTransactionResult:
 
     @classmethod
     def from_composer_result(
-        cls, result: SendAtomicTransactionComposerResults, *, is_abi: bool = False, index: int = -1
+        cls, result: SendTransactionComposerResults, *, is_abi: bool = False, index: int = -1
     ) -> Self:
+        wrapped_transactions = result.transactions
+
         # Get base parameters
         base_params = {
-            "transaction": result.transactions[index],
+            "transaction": wrapped_transactions[index],
             "confirmation": result.confirmations[index],
-            "group_id": result.group_id,
+            "group_id": result.group_id or "",
             "tx_id": result.tx_ids[index],
             "tx_ids": result.tx_ids,
-            "transactions": [result.transactions[index]],
+            "transactions": [wrapped_transactions[index]],
             "confirmations": result.confirmations,
             "returns": result.returns,
         }
 
         # For asset creation, extract asset_id from confirmation
         if cls is SendSingleAssetCreateTransactionResult:
-            base_params["asset_id"] = result.confirmations[index]["asset-index"]  # type: ignore[call-overload]
+            confirmation = result.confirmations[index]
+            asset_id = confirmation.asset_id
+            if asset_id is None:
+                raise ValueError("Could not extract asset_id from confirmation")
+            base_params["asset_id"] = int(asset_id)
         # For app creation, extract app_id and calculate app_address
         elif cls is SendAppCreateTransactionResult:
-            app_id = result.confirmations[index]["application-index"]  # type: ignore[call-overload]
+            confirmation = result.confirmations[index]
+            app_id_raw = confirmation.app_id
+            if app_id_raw is None:
+                raise ValueError("Could not extract app_id from confirmation")
+            app_id = int(app_id_raw)
             base_params.update(
                 {
                     "app_id": app_id,
                     "app_address": algosdk.logic.get_application_address(app_id),
-                    "abi_return": result.returns[index] if result.returns and is_abi else None,  # type: ignore[dict-item]
+                    "abi_return": result.returns[index] if result.returns and is_abi else None,
                 }
             )
         # For regular app transactions, just add abi_return
         elif cls is SendAppTransactionResult:
-            base_params["abi_return"] = result.returns[index] if result.returns and is_abi else None  # type: ignore[assignment]
+            base_params["abi_return"] = result.returns[index] if result.returns and is_abi else None
 
-        return cls(**base_params)  # type: ignore[arg-type]
+        return cls(**cast(dict[str, Any], base_params))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -181,7 +192,7 @@ class AlgorandClientTransactionSender:
         new_group: Callable[[], TransactionComposer],
         asset_manager: AssetManager,
         app_manager: AppManager,
-        algod_client: algosdk.v2client.algod.AlgodClient,
+        algod_client: AlgodClient,
     ) -> None:
         self._new_group = new_group
         self._asset_manager = asset_manager
@@ -212,21 +223,24 @@ class AlgorandClientTransactionSender:
             c(composer)(params)
 
             if pre_log:
-                transaction = composer.build().transactions[-1].txn
-                config.logger.debug(pre_log(params, transaction))
+                built = composer.build()
+                last_txn = built.transactions[-1]
+                config.logger.debug(pre_log(params, last_txn))
 
             raw_result = composer.send(
                 send_params,
             )
-            raw_result_dict = raw_result.__dict__.copy()
-            raw_result_dict["transactions"] = raw_result.transactions
-            del raw_result_dict["simulate_response"]
-
+            transactions = raw_result.transactions
+            confirmations = list(raw_result.confirmations)
             result = SendSingleTransactionResult(
-                **raw_result_dict,
-                confirmation=raw_result.confirmations[-1],
-                transaction=raw_result_dict["transactions"][-1],
+                transaction=transactions[-1],
+                confirmation=confirmations[-1],
+                group_id=raw_result.group_id or "",
                 tx_id=raw_result.tx_ids[-1],
+                tx_ids=raw_result.tx_ids,
+                transactions=transactions,
+                confirmations=confirmations,
+                returns=raw_result.returns,
             )
 
             if post_log:
@@ -298,7 +312,10 @@ class AlgorandClientTransactionSender:
             params: TxnParamsT, send_params: SendParams | None = None
         ) -> SendAppCreateTransactionResult[ABIReturn]:
             result = self._send_app_update_call(c, pre_log, post_log)(params, send_params)
-            app_id = int(result.confirmation["application-index"])  # type: ignore[call-overload]
+            app_id_raw = result.confirmation.app_id
+            if app_id_raw is None:
+                raise ValueError("Could not extract app_id from confirmation")
+            app_id = int(app_id_raw)
 
             return SendAppCreateTransactionResult[ABIReturn](
                 **result.__dict__,
@@ -350,8 +367,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_payment,
             pre_log=lambda params, transaction: (
-                f"Sending {params.amount} from {params.sender} to {params.receiver} "
-                f"via transaction {transaction.get_txid()}"
+                f"Sending {params.amount} from {params.sender} to {params.receiver} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -363,6 +379,7 @@ class AlgorandClientTransactionSender:
         :param params: Asset creation parameters
         :param send_params: Send parameters
         :return: Result containing the new asset ID
+        :raises ValueError: If the confirmation payload does not include an asset_id
 
         :example:
             >>> result = algorand.send.asset_create(AssetCreateParams(
@@ -411,14 +428,17 @@ class AlgorandClientTransactionSender:
                 f"Created asset{f' {params.asset_name}' if hasattr(params, 'asset_name') else ''}"
                 f"{f' ({params.unit_name})' if hasattr(params, 'unit_name') else ''} with "
                 f"{params.total} units and {getattr(params, 'decimals', 0)} decimals created by "
-                f"{params.sender} with ID {result.confirmation['asset-index']} via transaction "  # type: ignore[call-overload]
-                f"{result.tx_ids[-1]}"
+                f"{params.sender} with ID {result.confirmation.asset_id} "
+                f"via transaction {result.tx_ids[-1]}"
             ),
         )(params, send_params)
 
+        asset_id_raw = result.confirmation.asset_id
+        if asset_id_raw is None:
+            raise ValueError("Could not extract asset_id from confirmation")
         return SendSingleAssetCreateTransactionResult(
             **result.__dict__,
-            asset_id=int(result.confirmation["asset-index"]),  # type: ignore[call-overload]
+            asset_id=int(asset_id_raw),
         )
 
     def asset_config(
@@ -460,7 +480,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_config,
             pre_log=lambda params, transaction: (
-                f"Configuring asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Configuring asset with ID {params.asset_id} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -509,7 +529,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_freeze,
             pre_log=lambda params, transaction: (
-                f"Freezing asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Freezing asset with ID {params.asset_id} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -554,7 +574,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_destroy,
             pre_log=lambda params, transaction: (
-                f"Destroying asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Destroying asset with ID {params.asset_id} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -607,7 +627,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_transfer,
             pre_log=lambda params, transaction: (
                 f"Transferring {params.amount} units of asset with ID {params.asset_id} from "
-                f"{params.sender} to {params.receiver} via transaction {transaction.get_txid()}"
+                f"{params.sender} to {params.receiver} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -652,7 +672,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_opt_in,
             pre_log=lambda params, transaction: (
-                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -730,7 +750,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_opt_out,
             pre_log=lambda params, transaction: (
                 f"Opting {params.sender} out of asset with ID {params.asset_id} to creator "
-                f"{creator} via transaction {transaction.get_txid()}"
+                f"{creator} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -767,7 +787,7 @@ class AlgorandClientTransactionSender:
             >>> #    "local_byte_slices": 4
             >>> #  },
             >>> #  extra_program_pages: 1,
-            >>> #  on_complete: algosdk.transaction.OnComplete.OptInOC,
+            >>> #  on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
             >>> #  args: [b'some_bytes']
             >>> #  account_references: ["ACCOUNT_1"]
             >>> #  app_references: [123, 1234]
@@ -815,7 +835,7 @@ class AlgorandClientTransactionSender:
             >>>  sender="CREATORADDRESS",
             >>>  approval_program="TEALCODE",
             >>>  clear_state_program="TEALCODE",
-            >>>  on_complete=OnComplete.UpdateApplicationOC,
+            >>>  on_complete=OnApplicationComplete.UpdateApplication,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -860,7 +880,7 @@ class AlgorandClientTransactionSender:
             >>> # Advanced example
             >>> algorand.send.app_delete(AppDeleteParams(
             >>>  sender="CREATORADDRESS",
-            >>>  on_complete=OnComplete.DeleteApplicationOC,
+            >>>  on_complete=OnApplicationComplete.DeleteApplication,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -905,7 +925,7 @@ class AlgorandClientTransactionSender:
             >>> # Advanced example
             >>> algorand.send.app_call(AppCallParams(
             >>>  sender="CREATORADDRESS",
-            >>>  on_complete=OnComplete.OptInOC,
+            >>>  on_complete=OnApplicationComplete.OptInOC,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -977,7 +997,7 @@ class AlgorandClientTransactionSender:
             >>>    "local_byte_slices": 4
             >>>  },
             >>>  extra_program_pages: 1,
-            >>>  on_complete: algosdk.transaction.OnComplete.OptInOC,
+            >>>  on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
             >>>  args: [new Uint8Array(1, 2, 3, 4)],
             >>>  account_references: ["ACCOUNT_1"],
             >>>  app_references: [123, 1234],
@@ -1179,7 +1199,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_online_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering online key for {params.sender} via transaction {transaction.get_txid()}"
+                f"Registering online key for {params.sender} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)
 
@@ -1213,6 +1233,6 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_offline_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering offline key for {params.sender} via transaction {transaction.get_txid()}"
+                f"Registering offline key for {params.sender} via transaction {transaction.tx_id}"
             ),
         )(params, send_params)

@@ -1,6 +1,6 @@
 from typing import Protocol, runtime_checkable
 
-from algosdk.atomic_transaction_composer import TransactionSigner
+from algokit_utils.protocols.signer import TransactionSigner
 
 __all__ = ["TransactionSignerAccountProtocol"]
 
@@ -18,5 +18,5 @@ class TransactionSignerAccountProtocol(Protocol):
 
     @property
     def signer(self) -> TransactionSigner:
-        """The transaction signer for the account."""
+        """The AlgoKit-native signer callable."""
         ...

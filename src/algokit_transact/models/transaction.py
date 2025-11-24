@@ -63,3 +63,10 @@ class Transaction:
     state_proof: StateProofTransactionFields | None = field(
         default=None, metadata=flatten(StateProofTransactionFields, present_if=lambda p: p.get("type") == "stpf")
     )
+
+    @property
+    def tx_id(self) -> str:
+        """Return the transaction ID."""
+        from algokit_transact.ops.ids import get_transaction_id
+
+        return get_transaction_id(self)

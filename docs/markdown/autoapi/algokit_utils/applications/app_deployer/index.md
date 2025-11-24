@@ -99,15 +99,15 @@ Optional on schema break action
 
 Optional on update action
 
-#### create_params *: [algokit_utils.transactions.transaction_composer.AppCreateParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateParams) | [algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams)*
+#### create_params *: algokit_utils.transactions.transaction_composer.AppCreateParams | algokit_utils.transactions.transaction_composer.AppCreateMethodCallParams*
 
 The creation parameters
 
-#### update_params *: [algokit_utils.transactions.transaction_composer.AppUpdateParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppUpdateParams) | [algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams)*
+#### update_params *: algokit_utils.transactions.transaction_composer.AppUpdateParams | algokit_utils.transactions.transaction_composer.AppUpdateMethodCallParams*
 
 The update parameters
 
-#### delete_params *: [algokit_utils.transactions.transaction_composer.AppDeleteParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppDeleteParams) | [algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams)*
+#### delete_params *: algokit_utils.transactions.transaction_composer.AppDeleteParams | algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams*
 
 The deletion parameters
 

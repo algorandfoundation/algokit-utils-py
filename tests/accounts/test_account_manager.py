@@ -1,6 +1,6 @@
-import algosdk
 import pytest
 
+import algokit_algosdk as algosdk
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
