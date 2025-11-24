@@ -63,7 +63,7 @@ def from_private_key(key):
     return _from_key(key[: constants.key_len_bytes])
 
 
-def to_private_key(mnemonic):
+def to_private_key(mnemonic) -> str:
     """
     Return the private key for the mnemonic.
 

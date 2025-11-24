@@ -1,7 +1,7 @@
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 
 from typing_extensions import Self
 
@@ -410,7 +410,7 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        private_key = cast(str, algosdk.mnemonic.to_private_key(mnemonic))
+        private_key = algosdk.mnemonic.to_private_key(mnemonic)
         return self._register_account(private_key, sender)
 
     def from_environment(self, name: str, fund_with: AlgoAmount | None = None) -> SigningAccount:
@@ -443,7 +443,7 @@ class AccountManager:
         account_mnemonic = os.getenv(f"{name.upper()}_MNEMONIC")
 
         if account_mnemonic:
-            private_key = cast(str, algosdk.mnemonic.to_private_key(account_mnemonic))
+            private_key = algosdk.mnemonic.to_private_key(account_mnemonic)
             return self._register_account(private_key)
 
         if self._client_manager.is_localnet():
