@@ -1,4 +1,5 @@
 from decimal import Decimal
+from functools import total_ordering
 from typing import overload
 
 from typing_extensions import Self
@@ -8,6 +9,7 @@ import algokit_algosdk as algosdk
 __all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transaction_fees"]
 
 
+@total_ordering
 class AlgoAmount:
     """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
 
@@ -80,6 +82,13 @@ class AlgoAmount:
         """
         return AlgoAmount(micro_algo=amount)
 
+    def _coerce_micro_algos(self, other: object, op: str, *, allow_int: bool = False) -> int:
+        if isinstance(other, AlgoAmount):
+            return other.micro_algo
+        if allow_int and isinstance(other, int):
+            return int(other)
+        raise TypeError(f"Unsupported operand type(s) for {op}: 'AlgoAmount' and '{type(other).__name__}'")
+
     def __str__(self) -> str:
         return f"{self.micro_algo:,} µALGO"
 
@@ -87,80 +96,36 @@ class AlgoAmount:
         return self.micro_algo
 
     def __add__(self, other: "AlgoAmount") -> "AlgoAmount":
-        if isinstance(other, AlgoAmount):
-            total_micro_algos = self.micro_algo + other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for +: 'AlgoAmount' and '{type(other).__name__}'")
+        total_micro_algos = self.micro_algo + self._coerce_micro_algos(other, "+")
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
     def __radd__(self, other: "AlgoAmount") -> "AlgoAmount":
         return self.__add__(other)
 
     def __iadd__(self, other: "AlgoAmount") -> Self:
-        if isinstance(other, AlgoAmount):
-            self.amount_in_micro_algo += other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for +: 'AlgoAmount' and '{type(other).__name__}'")
+        self.amount_in_micro_algo += self._coerce_micro_algos(other, "+")
         return self
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo == other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo == int(other)
-        raise TypeError(f"Unsupported operand type(s) for ==: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __ne__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo != other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo != int(other)
-        raise TypeError(f"Unsupported operand type(s) for !=: 'AlgoAmount' and '{type(other).__name__}'")
+        try:
+            return self.amount_in_micro_algo == self._coerce_micro_algos(other, "==", allow_int=True)
+        except TypeError:
+            return False
 
     def __lt__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo < other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo < int(other)
-        raise TypeError(f"Unsupported operand type(s) for <: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __le__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo <= other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo <= int(other)
-        raise TypeError(f"Unsupported operand type(s) for <=: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __gt__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo > other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo > int(other)
-        raise TypeError(f"Unsupported operand type(s) for >: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __ge__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo >= other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo >= int(other)
-        raise TypeError(f"Unsupported operand type(s) for >=: 'AlgoAmount' and '{type(other).__name__}'")
+        other_micro_algos = self._coerce_micro_algos(other, "<", allow_int=True)
+        return self.amount_in_micro_algo < other_micro_algos
 
     def __sub__(self, other: object) -> "AlgoAmount":
-        if not isinstance(other, AlgoAmount):
-            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
-        total_micro_algos = self.micro_algo - other.micro_algo
+        total_micro_algos = self.micro_algo - self._coerce_micro_algos(other, "-")
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
     def __rsub__(self, other: object) -> "AlgoAmount":
-        if not isinstance(other, int):
-            raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
-        total_micro_algos = int(other) - self.micro_algo
+        total_micro_algos = self._coerce_micro_algos(other, "-", allow_int=True) - self.micro_algo
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
     def __isub__(self, other: object) -> Self:
-        if not isinstance(other, AlgoAmount):
-            raise TypeError(f"Unsupported operand type(s) for -=: 'AlgoAmount' and '{type(other).__name__}'")
-        self.amount_in_micro_algo -= other.micro_algo
+        self.amount_in_micro_algo -= self._coerce_micro_algos(other, "-")
         return self
 
 
