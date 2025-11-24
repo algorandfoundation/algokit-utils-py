@@ -100,7 +100,7 @@ Raised when an error transformer returns a non-error value.
 
 Light-weight transaction composer built on top of algokit_transact.
 
-#### clone() → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
+#### clone(composer_config: [TransactionComposerConfig](#algokit_utils.transactions.transaction_composer.TransactionComposerConfig) | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 #### register_error_transformer(transformer: ErrorTransformer) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
@@ -159,3 +159,5 @@ Light-weight transaction composer built on top of algokit_transact.
 #### send(params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
 #### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool = True, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
+
+#### set_max_fees(max_fees: dict[int, [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)]) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)

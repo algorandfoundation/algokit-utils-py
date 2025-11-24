@@ -439,9 +439,7 @@ class TransactionComposer:
 
         built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
-        signers = {
-            index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None
-        }
+        signers = {index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None}
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
     def gather_signatures(self) -> list[SignedTransaction]:
