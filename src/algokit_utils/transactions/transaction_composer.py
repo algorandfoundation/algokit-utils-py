@@ -428,6 +428,11 @@ class TransactionComposer:
         return BuiltTransactions(transactions=transactions, method_calls=dict(self._method_calls), signers=signers)
 
     def build_transactions(self) -> BuiltTransactions:
+        """Build queued transactions without resource population or grouping.
+
+        Returns raw transactions, method call metadata, and any explicit signers. This does not
+        populate unnamed resources or adjust fees, and it leaves grouping unchanged.
+        """
         if not self._queued:
             raise ValueError("Cannot build an empty transaction group")
 
