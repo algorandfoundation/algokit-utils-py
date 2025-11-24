@@ -523,24 +523,41 @@ class TransactionComposer:
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
         try:
-            self._ensure_built()
             persist_trace = bool(raw_options.pop("_persist_trace", True))
-            txns_with_signers = self._transactions_with_signers or []
+            txns_with_signers: list[TransactionWithSigner]
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
                 raw_options.setdefault("fix_signers", True)
-                empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
-                signed_transactions = self._sign_transactions(
-                    [TransactionWithSigner(txn=entry.txn, signer=empty_signer) for entry in txns_with_signers]
-                )
-            else:
-                signed_transactions = self.gather_signatures()
-            raw_options.setdefault("allow_unnamed_resources", True)
             if "allow_more_logs" in raw_options:
                 raw_options["allow_more_logging"] = raw_options.pop("allow_more_logs")
-            raw_options.setdefault("allow_more_logging", True)
             if "simulation_round" in raw_options:
                 raw_options["round_"] = raw_options.pop("simulation_round")
+
+            txns_with_signers, _ = self._build_transactions_for_simulation()
+            if self._transactions_with_signers is not None:
+                raw_options.setdefault("allow_unnamed_resources", True)
+
+            if config.debug:
+                raw_options.setdefault("allow_more_logging", True)
+                raw_options.setdefault(
+                    "exec_trace_config",
+                    algod_models.SimulateTraceConfig(
+                        enable=True,
+                        scratch_change=True,
+                        stack_change=True,
+                        state_change=True,
+                    ),
+                )
+
+            empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+            signing_entries = [
+                TransactionWithSigner(
+                    txn=entry.txn,
+                    signer=empty_signer if skip_signatures else entry.signer,
+                )
+                for entry in txns_with_signers
+            ]
+            signed_transactions = self._sign_transactions(signing_entries)
 
             request = algod_models.SimulateRequest(
                 txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
@@ -560,7 +577,11 @@ class TransactionComposer:
                 transactions=[entry.txn for entry in txns_with_signers],
                 confirmations=confirmations,
                 returns=abi_returns,
-                group_id=self._group_id(),
+                group_id=(
+                    base64.b64encode(txns_with_signers[0].txn.group).decode()
+                    if txns_with_signers and txns_with_signers[0].txn.group
+                    else None
+                ),
                 simulate_response=response,
             )
 
@@ -662,6 +683,27 @@ class TransactionComposer:
             for index, entry in enumerate(built_entries)
         ]
         self._method_calls = dict(method_calls)
+
+    def _build_transactions_for_simulation(self) -> tuple[list[TransactionWithSigner], dict[int, ABIMethod]]:
+        if self._transactions_with_signers is None:
+            suggested_params = self._get_suggested_params()
+            genesis_id = getattr(suggested_params, "genesis_id", None)
+            if genesis_id is None:
+                genesis_id = getattr(suggested_params, "gen", "")
+            is_localnet = ClientManager.genesis_id_is_localnet(genesis_id or "")
+
+            built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
+            transactions = [entry.txn for entry in built_entries]
+            if len(transactions) > 1:
+                transactions = group_transactions(transactions)
+            txns_with_signers = [
+                TransactionWithSigner(txn=transactions[index], signer=cast(TransactionSigner, entry.signer))
+                for index, entry in enumerate(built_entries)
+            ]
+            self._method_calls = dict(method_calls)
+            return txns_with_signers, method_calls
+
+        return self._transactions_with_signers, dict(self._method_calls)
 
     def _analyze_group_requirements(  # noqa: C901, PLR0912
         self,
