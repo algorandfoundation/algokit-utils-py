@@ -18,6 +18,7 @@ from algokit_transact.ops.group import group_transactions
 from algokit_transact.ops.ids import get_transaction_id
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount
@@ -71,7 +72,7 @@ from algokit_utils.transactions.types import (
     TxnParams,
 )
 
-ABIMethod: TypeAlias = algosdk.abi.Method
+ABIMethod: TypeAlias = arc56.Method
 
 __all__ = [
     "MAX_TRANSACTION_GROUP_SIZE",

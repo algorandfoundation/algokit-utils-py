@@ -10,6 +10,7 @@ from algokit_algod_client import models as algod_models
 from algokit_transact import Transaction
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
 from algokit_utils.models.transaction import SendParams
@@ -325,7 +326,7 @@ class AlgorandClientTransactionSender:
 
         return send_app_create_call
 
-    def _get_method_call_for_log(self, method: algosdk.abi.Method, args: list[Any]) -> str:
+    def _get_method_call_for_log(self, method: arc56.Method, args: list[Any]) -> str:
         """Helper function to format method call logs similar to TypeScript version"""
         args_str = str([str(a) if not isinstance(a, bytes | bytearray) else a.hex() for a in args])
         return f"{method.name}({args_str})"

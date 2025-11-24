@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-import algokit_algosdk as algosdk
 from algokit_utils._debugging import (
     PersistSourceMapInput,
     cleanup_old_trace_files,
@@ -17,6 +16,7 @@ from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_client import AppClient
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -199,7 +199,7 @@ def test_simulate_and_persist_response_via_app_call(
     composer = client_fixture.algorand.new_group()
     composer.add_app_call_method_call(
         AppCallMethodCallParams(
-            method=algosdk.abi.Method.from_signature("hello(string)string"),
+            method=arc56.Method.from_signature("hello(string)string"),
             args=["test"],
             sender=funded_account.address,
             app_id=client_fixture.app_id,
@@ -273,7 +273,7 @@ def test_simulate_response_filename_generation(
     for i in range(transactions.get("appl", 0)):
         composer.add_app_call_method_call(
             AppCallMethodCallParams(
-                method=algosdk.abi.Method.from_signature("hello(string)string"),
+                method=arc56.Method.from_signature("hello(string)string"),
                 args=[f"test{i + 1}"],
                 sender=funded_account.address,
                 app_id=client_fixture.app_id,

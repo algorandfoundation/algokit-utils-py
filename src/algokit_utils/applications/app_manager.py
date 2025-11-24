@@ -7,6 +7,7 @@ from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
 from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, parse_abi_method_result
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.application import (
     AppInformation,
     AppState,
@@ -399,7 +400,7 @@ class AppManager:
     @staticmethod
     def get_abi_return(
         confirmation: algod_models.PendingTransactionResponse,
-        method: algosdk.abi.Method | None = None,
+        method: arc56.Method | None = None,
     ) -> ABIReturn | None:
         """Get the ABI return value from a transaction confirmation.
 

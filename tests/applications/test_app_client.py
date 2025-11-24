@@ -19,6 +19,7 @@ from algokit_utils.applications.app_client import (
 )
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
@@ -300,7 +301,7 @@ def test_group_simulate_matches_send(
     app_call1_params = AppCallMethodCallParams(
         sender=funded_account.address,
         app_id=test_app_client.app_id,
-        method=algosdk.abi.Method.from_signature("set_global(uint64,uint64,string,byte[4])void"),
+        method=arc56.Method.from_signature("set_global(uint64,uint64,string,byte[4])void"),
         args=[1, 2, "asdf", bytes([1, 2, 3, 4])],
     )
     payment_params = PaymentParams(
@@ -309,7 +310,7 @@ def test_group_simulate_matches_send(
     app_call2_params = AppCallMethodCallParams(
         sender=funded_account.address,
         app_id=test_app_client.app_id,
-        method=algosdk.abi.Method.from_signature("call_abi(string)string"),
+        method=arc56.Method.from_signature("call_abi(string)string"),
         args=["test"],
     )
 

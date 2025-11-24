@@ -8,9 +8,9 @@ from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
 
 if TYPE_CHECKING:
-    import algokit_algosdk as algosdk
+    from algokit_utils.applications.app_spec import arc56
 
-    Method: TypeAlias = algosdk.abi.Method
+    Method: TypeAlias = arc56.Method
 
 
 __all__ = [

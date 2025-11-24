@@ -8,6 +8,7 @@ import pytest
 
 import algokit_algosdk as algosdk
 from algokit_utils.algorand import AlgorandClient
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.account import MultisigMetadata, SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -187,7 +188,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Sign
         AppCallMethodCallParams(
             sender=funded_account.address,
             app_id=app_id,
-            method=algosdk.abi.Method.from_signature("hello(string)string"),
+            method=arc56.Method.from_signature("hello(string)string"),
             args=["world"],
         )
     )

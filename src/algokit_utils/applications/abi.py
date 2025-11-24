@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import TypeAlias, cast
 
 import algokit_abi
-import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
 from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.state import BoxName
@@ -20,7 +19,7 @@ Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
 ABIType: TypeAlias = algokit_abi.ABIType
 ABIArgumentType: TypeAlias = algokit_abi.ABIType | arc56.TransactionType | arc56.ReferenceType
-AlgorandABIMethod: TypeAlias = algosdk.abi.Method
+Arc56Method: TypeAlias = arc56.Method
 ConfirmationResponse: TypeAlias = algod_models.PendingTransactionResponse
 
 ABI_RETURN_HASH = b"\x15\x1f\x7c\x75"
@@ -33,17 +32,17 @@ class ABIResult:
     raw_value: bytes
     return_value: ABIValue | None
     decode_error: Exception | None
-    tx_info: ConfirmationResponse
-    method: AlgorandABIMethod
+    tx_info: ConfirmationResponse | None
+    method: Arc56Method
 
 
-def parse_abi_method_result(method: AlgorandABIMethod, tx_id: str, txn: ConfirmationResponse) -> ABIResult:
+def parse_abi_method_result(method: Arc56Method, tx_id: str, txn: ConfirmationResponse) -> ABIResult:
     raw_value = b""
     return_value: ABIValue | None = None
     decode_error: Exception | None = None
 
     try:
-        if method.returns.type == algosdk.abi.Returns.VOID:
+        if method.returns.type == arc56.Void:
             return ABIResult(
                 tx_id=tx_id,
                 raw_value=raw_value,
@@ -68,7 +67,7 @@ def parse_abi_method_result(method: AlgorandABIMethod, tx_id: str, txn: Confirma
             raise ValueError("App call transaction did not log a return value")
 
         raw_value = result_bytes[ABI_RETURN_PREFIX_LENGTH:]
-        method_return_type = cast(algosdk.abi.ABIType, method.returns.type)
+        method_return_type = cast(algokit_abi.ABIType, method.returns.type)
         return_value = method_return_type.decode(raw_value)
     except Exception as err:
         decode_error = err
@@ -111,7 +110,7 @@ class ABIReturn:
     """The raw return value from the method call"""
     value: ABIValue | None = None
     """The decoded return value from the method call"""
-    method: AlgorandABIMethod | None = None
+    method: Arc56Method | None = None
     """The ABI method definition"""
     decode_error: Exception | None = None
     """The exception that occurred during decoding, if any"""

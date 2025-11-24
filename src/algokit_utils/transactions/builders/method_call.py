@@ -1,13 +1,13 @@
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import TypeAlias
+from typing import Any, TypeAlias, cast
 
-import algokit_algosdk as algosdk
 import algokit_abi
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 from algokit_transact.models.transaction import TransactionType
 from algokit_utils.applications.app_manager import AppManager
+from algokit_utils.applications.app_spec import arc56
 from algokit_utils.transactions.builders.app import _compile_program, _convert_box_references
 from algokit_utils.transactions.builders.common import (
     BuiltTransaction,
@@ -25,16 +25,16 @@ from algokit_utils.transactions.types import (
     AppUpdateMethodCallParams,
 )
 
-abi = algosdk.abi
-ABIReferenceType: TypeAlias = abi.ABIReferenceType
+abi = algokit_abi
+ABIReferenceType: TypeAlias = arc56.ReferenceType
 ABIType: TypeAlias = abi.ABIType
-Method: TypeAlias = abi.Method
+Method: TypeAlias = arc56.Method
 TupleType: TypeAlias = abi.TupleType
 UintType: TypeAlias = abi.UintType
-is_abi_reference_type = abi.is_abi_reference_type
-is_abi_transaction_type = abi.is_abi_transaction_type
 
 ARGS_TUPLE_PACKING_THRESHOLD = 14
+_REFERENCE_TYPE_VALUES = {ref.value for ref in arc56.ReferenceType}
+_TRANSACTION_TYPE_VALUES = {txn.value for txn in arc56.TransactionType}
 
 __all__ = [
     "build_app_call_method_call_transaction",
@@ -259,17 +259,18 @@ def _populate_method_args_into_reference_arrays(
     for idx, arg in enumerate(method.args):
         arg_value = method_args[idx] if idx < len(method_args) else None
         arg_type = arg.type
-        if isinstance(arg_type, str) and is_abi_reference_type(arg_type):
+        if _is_reference_type(arg_type):
             if arg_value is None:
                 continue
-            if arg_type == ABIReferenceType.ACCOUNT and isinstance(arg_value, str):
+            ref_type = _reference_type_value(cast(str | ABIReferenceType, arg_type))
+            if ref_type == arc56.ReferenceType.ACCOUNT.value and isinstance(arg_value, str):
                 if arg_value != sender and arg_value not in accounts:
                     accounts.append(arg_value)
-            elif arg_type == ABIReferenceType.ASSET and isinstance(arg_value, int):
+            elif ref_type == arc56.ReferenceType.ASSET.value and isinstance(arg_value, int):
                 if arg_value not in assets:
                     assets.append(arg_value)
             elif (
-                arg_type == ABIReferenceType.APPLICATION
+                ref_type == arc56.ReferenceType.APPLICATION.value
                 and isinstance(arg_value, int)
                 and arg_value != app_id
                 and arg_value not in apps
@@ -297,25 +298,25 @@ def _encode_method_arguments(
     for idx, arg in enumerate(method.args):
         arg_value = method_args[idx] if idx < len(method_args) else None
         arg_type = arg.type
+        if _is_transaction_type(arg_type):
+            continue
+        if _is_reference_type(arg_type):
+            if arg_value is None:
+                continue
+            index = _calculate_reference_index(
+                arg_value,
+                cast(str | ABIReferenceType, arg_type),
+                sender,
+                app_id,
+                account_references,
+                app_references,
+                asset_references,
+            )
+            abi_types.append(UintType(8))
+            abi_values.append(index)
+            continue
+
         if isinstance(arg_type, str):
-            if is_abi_transaction_type(arg_type):
-                continue
-            if is_abi_reference_type(arg_type):
-                if arg_value is None:
-                    continue
-                index = _calculate_reference_index(
-                    arg_value,
-                    arg_type,
-                    sender,
-                    app_id,
-                    account_references,
-                    app_references,
-                    asset_references,
-                )
-                abi_types.append(UintType(8))
-                abi_values.append(index)
-                continue
-            # Non-reference strings should be converted into ABI types
             abi_type = abi.ABIType.from_string(arg_type)
         else:
             abi_type = arg_type
@@ -335,22 +336,28 @@ def _encode_method_arguments(
     return encoded_args
 
 
+def _reference_type_value(reference_type: str | ABIReferenceType) -> str:
+    if isinstance(reference_type, ABIReferenceType):
+        return reference_type.value
+    return str(reference_type)
+
+
 def _calculate_reference_index(
     value: str | int,
-    reference_type: str,
+    reference_type: str | ABIReferenceType,
     sender: str,
     app_id: int,
     account_references: Sequence[str],
     app_references: Sequence[int],
     asset_references: Sequence[int],
 ) -> int:
-    match reference_type:
-        case ABIReferenceType.ACCOUNT:
-            return _calculate_account_reference_index(value, sender, account_references)
-        case ABIReferenceType.ASSET:
-            return _calculate_asset_reference_index(value, asset_references)
-        case ABIReferenceType.APPLICATION:
-            return _calculate_application_reference_index(value, app_id, app_references)
+    ref_type_value = _reference_type_value(reference_type)
+    if ref_type_value == arc56.ReferenceType.ACCOUNT.value:
+        return _calculate_account_reference_index(value, sender, account_references)
+    if ref_type_value == arc56.ReferenceType.ASSET.value:
+        return _calculate_asset_reference_index(value, asset_references)
+    if ref_type_value == arc56.ReferenceType.APPLICATION.value:
+        return _calculate_application_reference_index(value, app_id, app_references)
     msg = f"Unsupported ABI reference type: {reference_type}"
     raise ValueError(msg)
 
@@ -383,6 +390,18 @@ def _calculate_application_reference_index(value: str | int, app_id: int, app_re
     return app_references.index(value) + 1
 
 
+def _is_reference_type(arg_type: object) -> bool:
+    if isinstance(arg_type, ABIReferenceType):
+        return True
+    return isinstance(arg_type, str) and arg_type in _REFERENCE_TYPE_VALUES
+
+
+def _is_transaction_type(arg_type: object) -> bool:
+    if isinstance(arg_type, arc56.TransactionType):
+        return True
+    return isinstance(arg_type, str) and arg_type in _TRANSACTION_TYPE_VALUES
+
+
 def _encode_args_individually(abi_types: Sequence[ABIType], abi_values: Sequence) -> list[bytes]:
     return [
         abi_type.encode(_prepare_value_for_encoding(abi_type, abi_values[idx]))
@@ -400,7 +419,8 @@ def _encode_args_with_tuple_packing(abi_types: Sequence[ABIType], abi_values: Se
     remaining_values = abi_values[ARGS_TUPLE_PACKING_THRESHOLD:]
     if remaining_types:
         tuple_type = TupleType(list(remaining_types))
-        encoded.append(tuple_type.encode(_prepare_value_for_encoding(tuple_type, list(remaining_values))))
+        prepared_values = _prepare_value_for_encoding(tuple_type, list(remaining_values))
+        encoded.append(tuple_type.encode(cast(Sequence[Any], prepared_values)))
     return encoded
 
 
@@ -410,7 +430,7 @@ def _to_tuple(values: Sequence | None) -> list | None:
     return list(values) if values else None
 
 
-def _prepare_value_for_encoding(abi_type: ABIType, value: object) -> object:
+def _prepare_value_for_encoding(abi_type: ABIType, value: Any) -> Any:  # noqa: ANN401
     """Ensure ABI values are shaped correctly for encoding, especially structs."""
 
     if isinstance(abi_type, algokit_abi.StructType):

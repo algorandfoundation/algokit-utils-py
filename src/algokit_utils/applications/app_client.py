@@ -2075,7 +2075,7 @@ class AppClient:
             default_value = method_arg.default_value
             arg_type = method_arg.type
             arg_name = method_arg.name or f"arg{i + 1}"
-            if algosdk.abi.is_abi_transaction_type(arg_type):
+            if isinstance(arg_type, arc56.TransactionType):
                 result.append(None)
             elif default_value:
                 assert isinstance(arg_type, arc56.ReferenceType | algokit_abi.ABIType)
