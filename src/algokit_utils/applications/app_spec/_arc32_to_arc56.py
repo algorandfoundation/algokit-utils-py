@@ -177,8 +177,8 @@ class _Arc32ToArc56Converter:
                 struct_name = None
                 if struct := method_structs.get(name):
                     struct_type = _convert_struct(struct)
-                    struct_name = struct_type.name
-                    structs[struct_type.name] = struct_type
+                    struct_name = struct_type.display_name
+                    structs[struct_name] = struct_type
                     arg_type: abi.ABIType | arc56.ReferenceType | arc56.TransactionType = struct_type
                 elif alias := _ARG_ALIASES.get(arg["type"]):
                     arg_type = alias
@@ -199,8 +199,8 @@ class _Arc32ToArc56Converter:
             struct_name = None
             if struct := method_structs.get("output"):
                 struct_type = _convert_struct(struct)
-                struct_name = struct_type.name
-                structs[struct_type.name] = struct_type
+                struct_name = struct_type.display_name
+                structs[struct_name] = struct_type
                 return_type: abi.ABIType | arc56.VoidType = struct_type
             elif returns["type"] == arc56.Void:
                 return_type = arc56.Void

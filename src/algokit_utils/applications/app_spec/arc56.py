@@ -186,7 +186,7 @@ class Argument:
 
     def __str__(self) -> str:
         if isinstance(self.type, abi.ABIType):
-            return self.type.abi_name
+            return self.type.name
         else:
             return self.type
 
@@ -207,7 +207,7 @@ class Returns:
 
     def __str__(self) -> str:
         if isinstance(self.type, abi.ABIType):
-            return self.type.abi_name
+            return self.type.name
         else:
             return self.type
 

@@ -19,13 +19,12 @@ _MAX_UINTN = 512
 
 class ABIType(abc.ABC):
     @property
-    def name(self) -> str:
-        return self.abi_name
+    def display_name(self) -> str:
+        return self.name
 
     @property
     @abc.abstractmethod
-    def abi_name(self) -> str:
-        return self.name
+    def name(self) -> str: ...
 
     @abc.abstractmethod
     def encode(self, value: typing.Any) -> bytes: ...  # noqa: ANN401
@@ -71,21 +70,21 @@ class ABIType(abc.ABC):
             # structs can only equal structs
             return False
         if isinstance(other, ABIType):
-            return self.abi_name == other.abi_name
+            return self.name == other.name
         else:
             return False
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return hash(self.display_name)
 
     def __str__(self) -> str:
-        return self.name
+        return self.display_name
 
 
 @typing.final
 class BoolType(ABIType):
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return "bool"
 
     def byte_len(self) -> int:
@@ -125,7 +124,7 @@ class UintType(ABIType):
             raise ValueError(f"bit_size must be between 8 and {_MAX_UINTN} and divisible by 8")
 
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return f"uint{self.bit_size}"
 
     def byte_len(self) -> int:
@@ -138,7 +137,7 @@ class UintType(ABIType):
 
     def decode(self, value: BytesLike) -> int:
         if len(value) != self.byte_len():
-            raise ValueError(f"incorrect number of bytes to decode {self.name}: {_error_str(value)}")
+            raise ValueError(f"incorrect number of bytes to decode {self.display_name}: {_error_str(value)}")
         return int.from_bytes(value, byteorder="big", signed=False)
 
 
@@ -163,7 +162,7 @@ class UfixedType(ABIType):
             raise ValueError(f"precision must be between 0 and {_MAX_PRECISION}")
 
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return f"ufixed{self.bit_size}x{self.precision}"
 
     def byte_len(self) -> int:
@@ -200,7 +199,7 @@ class ByteType(ABIType):
     _uint_type: UintType = dataclasses.field(default=UintType(bit_size=8), init=False)
 
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return "byte"
 
     def byte_len(self) -> int:
@@ -226,12 +225,12 @@ class DynamicArrayType(ABIType):
     element: ABIType
 
     @property
-    def name(self) -> str:
-        return f"{self.element.name}[]"
+    def display_name(self) -> str:
+        return f"{self.element.display_name}[]"
 
     @property
-    def abi_name(self) -> str:
-        return f"{self.element.abi_name}[]"
+    def name(self) -> str:
+        return f"{self.element.name}[]"
 
     def byte_len(self) -> None:
         return None
@@ -279,12 +278,12 @@ class StaticArrayType(ABIType):
     size: int
 
     @property
-    def name(self) -> str:
-        return f"{self.element.name}[{self.size}]"
+    def display_name(self) -> str:
+        return f"{self.element.display_name}[{self.size}]"
 
     @property
-    def abi_name(self) -> str:
-        return f"{self.element.abi_name}[{self.size}]"
+    def name(self) -> str:
+        return f"{self.element.name}[{self.size}]"
 
     @cached_property
     def _tuple_type(self) -> "TupleType":
@@ -310,12 +309,12 @@ class TupleType(ABIType):
     elements: Sequence[ABIType]
 
     @cached_property
-    def name(self) -> str:
-        return f"({','.join(v.name for v in self.elements)})"
+    def display_name(self) -> str:
+        return f"({','.join(v.display_name for v in self.elements)})"
 
     @cached_property
-    def abi_name(self) -> str:
-        return f"({','.join(v.abi_name for v in self.elements)})"
+    def name(self) -> str:
+        return f"({','.join(v.name for v in self.elements)})"
 
     def byte_len(self) -> int | None:
         return self._byte_len
@@ -473,12 +472,12 @@ class StructType(ABIType):
     decode_type: type = dataclasses.field(default=dict)
 
     @property
-    def name(self) -> str:
+    def display_name(self) -> str:
         return self.struct_name
 
     @cached_property
-    def abi_name(self) -> str:
-        return self._tuple_type.abi_name
+    def name(self) -> str:
+        return self._tuple_type.name
 
     @cached_property
     def _tuple_type(self) -> TupleType:
@@ -497,13 +496,13 @@ class StructType(ABIType):
         return self.decode_type(**fields)
 
     def __hash__(self) -> int:
-        return hash((self.name, self.abi_name))
+        return hash(self.display_name)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, StructType):
             return False
         return (
-            self.name == other.name
+            self.display_name == other.display_name
             and self.fields.keys() == other.fields.keys()
             and self._tuple_type == other._tuple_type
         )
@@ -515,7 +514,7 @@ class StringType(ABIType):
     _array_type: DynamicArrayType = dataclasses.field(default=DynamicArrayType(element=ByteType()), init=False)
 
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return "string"
 
     def byte_len(self) -> None:
@@ -538,7 +537,7 @@ class AddressType(ABIType):
     _array_type: StaticArrayType = dataclasses.field(default=StaticArrayType(element=ByteType(), size=32), init=False)
 
     @property
-    def abi_name(self) -> str:
+    def name(self) -> str:
         return "address"
 
     def byte_len(self) -> int | None:

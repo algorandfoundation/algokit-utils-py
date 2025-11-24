@@ -52,7 +52,7 @@ def mapping(alias: str, typ: type[_T]) -> _Metadata:
 def abi_type(alias: str) -> _Metadata:
     def encode(value: object) -> str:
         if isinstance(value, abi.ABIType):
-            return value.abi_name
+            return value.name
         else:
             return str(value)
 
@@ -70,7 +70,7 @@ def abi_type(alias: str) -> _Metadata:
 def storage(alias: str) -> _Metadata:
     def encode(value: object) -> str:
         if isinstance(value, abi.ABIType):
-            return value.abi_name
+            return value.name
         else:
             return str(value)
 
@@ -118,17 +118,17 @@ class _StructDecoder:
             return self.result[name]
         except KeyError:
             pass
-        self.result[name] = struct = self._map_struct(name, fields)
+        self.result[name] = struct = self._decode_struct(name, fields)
         return struct
 
-    def _map_struct(self, name: str, fields: Sequence[_StructField]) -> abi.StructType:
+    def _decode_struct(self, name: str, fields: Sequence[_StructField]) -> abi.StructType:
         abi_fields = dict[str, abi.ABIType]()
         for field_ in fields:
             field_name = field_["name"]
             field_type = field_["type"]
             if isinstance(field_type, Sequence) and not isinstance(field_type, str):  # anonymous inner struct
                 inner_struct_name = f"{name}_{field_name}"
-                field_abi_type: abi.ABIType = self._map_struct(inner_struct_name, field_type)
+                field_abi_type: abi.ABIType = self._decode_struct(inner_struct_name, field_type)
             elif (field_struct_json := self._struct_json.get(field_type)) is not None:  # named struct
                 field_abi_type = self._get_or_add(field_type, field_struct_json)
             else:
@@ -148,14 +148,14 @@ def _encode_struct(structs: dict[str, abi.StructType], struct: abi.StructType) -
     return fields
 
 
-def _encode_struct_field(structs: dict[str, abi.StructType], field: abi.ABIType) -> str | list:
-    if isinstance(field, abi.StructType):
-        if field.name in structs:
-            return field.name
+def _encode_struct_field(structs: dict[str, abi.StructType], field_type: abi.ABIType) -> str | list:
+    if isinstance(field_type, abi.StructType):
+        if field_type.display_name in structs:
+            return field_type.display_name
         else:
-            return _encode_struct(structs, field)
+            return _encode_struct(structs, field_type)
     else:
-        return field.abi_name
+        return field_type.name
 
 
 struct_metadata = wire("structs", encode=_encode_structs, decode=_StructDecoder.decode)
