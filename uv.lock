@@ -48,7 +48,7 @@ dependencies = [
     { name = "httpx" },
     { name = "msgpack" },
     { name = "msgpack-types" },
-    { name = "py-algorand-sdk" },
+    { name = "pycryptodomex" },
     { name = "pynacl" },
     { name = "typing-extensions" },
 ]
@@ -59,6 +59,7 @@ api-generator = [
 ]
 cicd = [
     { name = "algokit" },
+    { name = "py-algorand-sdk" },
 ]
 dev = [
     { name = "furo" },
@@ -91,14 +92,17 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.23.1,<=0.28.1" },
     { name = "msgpack", specifier = ">=1.0.0,<2" },
     { name = "msgpack-types", specifier = ">=0.2.0,<=0.5.0" },
-    { name = "py-algorand-sdk", specifier = ">=2.11.0,<3" },
+    { name = "pycryptodomex", specifier = ">=3.19,<4" },
     { name = "pynacl", specifier = ">=1.4.0,<2" },
     { name = "typing-extensions", specifier = ">=4.6.0" },
 ]
 
 [package.metadata.requires-dev]
 api-generator = [{ name = "oas-generator", editable = "api/oas-generator" }]
-cicd = [{ name = "algokit", specifier = ">=2.9.1" }]
+cicd = [
+    { name = "algokit", specifier = ">=2.9.1" },
+    { name = "py-algorand-sdk", specifier = ">=2.11,<3" },
+]
 dev = [
     { name = "furo", specifier = ">=2024.8.6,<2025" },
     { name = "linkify-it-py", specifier = ">=2.0.3,<3" },

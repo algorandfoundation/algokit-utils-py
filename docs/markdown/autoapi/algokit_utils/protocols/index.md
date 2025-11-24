@@ -3,4 +3,5 @@
 ## Submodules
 
 * [algokit_utils.protocols.account](account/index.md)
+* [algokit_utils.protocols.signer](signer/index.md)
 * [algokit_utils.protocols.typed_clients](typed_clients/index.md)

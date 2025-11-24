@@ -1,14 +1,15 @@
-from __future__ import annotations
-
 from decimal import Decimal
+from functools import total_ordering
 from typing import overload
 
-import algosdk
 from typing_extensions import Self
+
+import algokit_algosdk as algosdk
 
 __all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transaction_fees"]
 
 
+@total_ordering
 class AlgoAmount:
     """Wrapper class to ensure safe, explicit conversion between µAlgo, Algo and numbers.
 
@@ -55,10 +56,10 @@ class AlgoAmount:
 
         :returns: The amount in Algo.
         """
-        return algosdk.util.microalgos_to_algos(self.amount_in_micro_algo)  # type: ignore[no-any-return]
+        return Decimal(self.amount_in_micro_algo) / Decimal(algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
 
     @staticmethod
-    def from_algo(amount: int | Decimal) -> AlgoAmount:
+    def from_algo(amount: int | Decimal) -> "AlgoAmount":
         """Create an AlgoAmount object representing the given number of Algo.
 
         :param amount: The amount in Algo.
@@ -70,7 +71,7 @@ class AlgoAmount:
         return AlgoAmount(algo=amount)
 
     @staticmethod
-    def from_micro_algo(amount: int) -> AlgoAmount:
+    def from_micro_algo(amount: int) -> "AlgoAmount":
         """Create an AlgoAmount object representing the given number of µAlgo.
 
         :param amount: The amount in µAlgo.
@@ -81,94 +82,91 @@ class AlgoAmount:
         """
         return AlgoAmount(micro_algo=amount)
 
+    def _coerce_micro_algos(self, other: object, op: str, *, allow_int: bool = False) -> int:
+        if isinstance(other, AlgoAmount):
+            return other.micro_algo
+        if allow_int and isinstance(other, int):
+            return int(other)
+        raise TypeError(f"Unsupported operand type(s) for {op}: 'AlgoAmount' and '{type(other).__name__}'")
+
+    def _coerce_int_scalar(self, other: object, op: str) -> int:
+        if isinstance(other, int):
+            return int(other)
+        raise TypeError(f"Unsupported operand type(s) for {op}: 'AlgoAmount' and '{type(other).__name__}'")
+
     def __str__(self) -> str:
         return f"{self.micro_algo:,} µALGO"
 
     def __int__(self) -> int:
         return self.micro_algo
 
-    def __add__(self, other: AlgoAmount) -> AlgoAmount:
-        if isinstance(other, AlgoAmount):
-            total_micro_algos = self.micro_algo + other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for +: 'AlgoAmount' and '{type(other).__name__}'")
+    def __add__(self, other: object) -> "AlgoAmount":
+        total_micro_algos = self.micro_algo + self._coerce_micro_algos(other, "+", allow_int=True)
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __radd__(self, other: AlgoAmount) -> AlgoAmount:
+    def __radd__(self, other: object) -> "AlgoAmount":
         return self.__add__(other)
 
-    def __iadd__(self, other: AlgoAmount) -> Self:
-        if isinstance(other, AlgoAmount):
-            self.amount_in_micro_algo += other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for +: 'AlgoAmount' and '{type(other).__name__}'")
+    def __iadd__(self, other: object) -> Self:
+        self.amount_in_micro_algo += self._coerce_micro_algos(other, "+", allow_int=True)
         return self
 
     def __eq__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo == other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo == int(other)
-        raise TypeError(f"Unsupported operand type(s) for ==: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __ne__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo != other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo != int(other)
-        raise TypeError(f"Unsupported operand type(s) for !=: 'AlgoAmount' and '{type(other).__name__}'")
+        try:
+            return self.amount_in_micro_algo == self._coerce_micro_algos(other, "==", allow_int=True)
+        except TypeError:
+            return False
 
     def __lt__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo < other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo < int(other)
-        raise TypeError(f"Unsupported operand type(s) for <: 'AlgoAmount' and '{type(other).__name__}'")
+        other_micro_algos = self._coerce_micro_algos(other, "<", allow_int=True)
+        return self.amount_in_micro_algo < other_micro_algos
 
-    def __le__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo <= other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo <= int(other)
-        raise TypeError(f"Unsupported operand type(s) for <=: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __gt__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo > other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo > int(other)
-        raise TypeError(f"Unsupported operand type(s) for >: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __ge__(self, other: object) -> bool:
-        if isinstance(other, AlgoAmount):
-            return self.amount_in_micro_algo >= other.amount_in_micro_algo
-        elif isinstance(other, int):
-            return self.amount_in_micro_algo >= int(other)
-        raise TypeError(f"Unsupported operand type(s) for >=: 'AlgoAmount' and '{type(other).__name__}'")
-
-    def __sub__(self, other: AlgoAmount) -> AlgoAmount:
-        if isinstance(other, AlgoAmount):
-            total_micro_algos = self.micro_algo - other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+    def __sub__(self, other: object) -> "AlgoAmount":
+        total_micro_algos = self.micro_algo - self._coerce_micro_algos(other, "-", allow_int=True)
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __rsub__(self, other: int) -> AlgoAmount:
-        if isinstance(other, (int)):
-            total_micro_algos = int(other) - self.micro_algo
-            return AlgoAmount.from_micro_algo(total_micro_algos)
-        raise TypeError(f"Unsupported operand type(s) for -: '{type(other).__name__}' and 'AlgoAmount'")
+    def __rsub__(self, other: object) -> "AlgoAmount":
+        total_micro_algos = self._coerce_micro_algos(other, "-", allow_int=True) - self.micro_algo
+        return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __isub__(self, other: AlgoAmount) -> Self:
-        if isinstance(other, AlgoAmount):
-            self.amount_in_micro_algo -= other.micro_algo
-        else:
-            raise TypeError(f"Unsupported operand type(s) for -: 'AlgoAmount' and '{type(other).__name__}'")
+    def __isub__(self, other: object) -> Self:
+        self.amount_in_micro_algo -= self._coerce_micro_algos(other, "-", allow_int=True)
         return self
+
+    def __mul__(self, other: object) -> "AlgoAmount":
+        factor = self._coerce_int_scalar(other, "*")
+        return AlgoAmount.from_micro_algo(self.micro_algo * factor)
+
+    def __rmul__(self, other: object) -> "AlgoAmount":
+        return self.__mul__(other)
+
+    def __truediv__(self, other: object) -> "AlgoAmount":
+        divisor = self._coerce_int_scalar(other, "/")
+        if divisor == 0:
+            raise ZeroDivisionError("division by zero")
+        return AlgoAmount.from_micro_algo(self.micro_algo // divisor)
+
+    def __rtruediv__(self, other: object) -> Decimal:
+        numerator = self._coerce_int_scalar(other, "/")
+        if self.micro_algo == 0:
+            raise ZeroDivisionError("division by zero")
+        return Decimal(numerator) / Decimal(self.micro_algo)
+
+    def __floordiv__(self, other: object) -> "AlgoAmount":
+        divisor = self._coerce_int_scalar(other, "//")
+        if divisor == 0:
+            raise ZeroDivisionError("division by zero")
+        return AlgoAmount.from_micro_algo(self.micro_algo // divisor)
+
+    def __rfloordiv__(self, other: object) -> Decimal:
+        numerator = self._coerce_int_scalar(other, "//")
+        if self.micro_algo == 0:
+            raise ZeroDivisionError("division by zero")
+        return Decimal(numerator // self.micro_algo)
 
 
 # Helper functions
-def algo(algo: int) -> AlgoAmount:
+def algo(algo: int) -> "AlgoAmount":
     """Create an AlgoAmount object representing the given number of Algo.
 
     :param algo: The number of Algo to create an AlgoAmount object for.
@@ -177,7 +175,7 @@ def algo(algo: int) -> AlgoAmount:
     return AlgoAmount.from_algo(algo)
 
 
-def micro_algo(micro_algo: int) -> AlgoAmount:
+def micro_algo(micro_algo: int) -> "AlgoAmount":
     """Create an AlgoAmount object representing the given number of µAlgo.
 
     :param micro_algo: The number of µAlgo to create an AlgoAmount object for.
@@ -189,7 +187,7 @@ def micro_algo(micro_algo: int) -> AlgoAmount:
 ALGORAND_MIN_TX_FEE = micro_algo(1_000)
 
 
-def transaction_fees(number_of_transactions: int) -> AlgoAmount:
+def transaction_fees(number_of_transactions: int) -> "AlgoAmount":
     """Calculate the total transaction fees for a given number of transactions.
 
     :param number_of_transactions: The number of transactions to calculate the fees for.

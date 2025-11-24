@@ -1,5 +1,4 @@
 import pytest
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
 
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
@@ -55,7 +54,8 @@ def test_get_by_id(algorand: AlgorandClient, sender: SigningAccount) -> None:
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = create_result.confirmation.asset_id
 
     # Then get its info
     asset_info = algorand.asset.get_by_id(asset_id)
@@ -85,7 +85,8 @@ def test_get_account_information_with_address(algorand: AlgorandClient, sender: 
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = create_result.confirmation.asset_id
 
     # Then get account info
     account_info = algorand.asset.get_account_information(sender.address, asset_id)
@@ -110,7 +111,8 @@ def test_get_account_information_with_account(algorand: AlgorandClient, sender: 
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = create_result.confirmation.asset_id
 
     # Then get account info
     account_info = algorand.asset.get_account_information(sender, asset_id)
@@ -135,11 +137,11 @@ def test_get_account_information_with_transaction_signer(algorand: AlgorandClien
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    asset_id = create_result.confirmation.asset_id
+    assert asset_id
 
     # Then get account info using transaction signer
-    signer = AccountTransactionSigner(sender.private_key)
-    account_info = algorand.asset.get_account_information(signer, asset_id)
+    account_info = algorand.asset.get_account_information(sender, asset_id)
 
     assert isinstance(account_info, AccountAssetInformation)
     assert account_info.asset_id == asset_id
@@ -149,7 +151,7 @@ def test_get_account_information_with_transaction_signer(algorand: AlgorandClien
 
 def test_bulk_opt_in_with_address(algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount) -> None:
     # First create some assets
-    asset_ids = []
+    asset_ids: list[int] = []
     for i in range(3):
         create_result = algorand.send.asset_create(
             AssetCreateParams(
@@ -163,8 +165,8 @@ def test_bulk_opt_in_with_address(algorand: AlgorandClient, sender: SigningAccou
                 signer=sender.signer,
             )
         )
-        asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
-        asset_ids.append(asset_id)
+        assert create_result.confirmation.asset_id is not None
+        asset_ids.append(create_result.confirmation.asset_id)
 
     # Fund receiver
     algorand.send.payment(
@@ -200,7 +202,8 @@ def test_bulk_opt_out_not_opted_in_fails(
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = create_result.confirmation.asset_id
 
     # Fund receiver but don't opt-in
     algorand.send.payment(

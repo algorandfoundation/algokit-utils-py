@@ -97,7 +97,7 @@ List of app IDs to reference
 
 List of asset IDs to reference
 
-#### box_references *: list[[algokit_utils.models.state.BoxReference](../../models/state/index.md#algokit_utils.models.state.BoxReference) | algokit_utils.models.state.BoxIdentifier] | None* *= None*
+#### box_references *: list[algokit_utils.models.state.BoxReference | algokit_utils.models.state.BoxIdentifier] | None* *= None*
 
 List of box references to include
 
@@ -125,7 +125,7 @@ Address to rekey account to
 
 Sender address override
 
-#### signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
+#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None* *= None*
 
 Custom transaction signer
 
@@ -145,7 +145,7 @@ First valid round number
 
 Last valid round number
 
-#### on_complete *: algosdk.transaction.OnComplete | None* *= None*
+#### on_complete *: algokit_transact.models.common.OnApplicationComplete | None* *= None*
 
 Optional on complete action
 
@@ -157,7 +157,7 @@ Schema for application creation.
 
 Optional number of extra program pages
 
-#### schema *: [algokit_utils.transactions.transaction_composer.AppCreateSchema](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.AppCreateSchema) | None* *= None*
+#### schema *: algokit_utils.transactions.transaction_composer.AppCreateSchema | None* *= None*
 
 Optional application creation schema
 
@@ -259,15 +259,15 @@ The application name
 
 The default sender address
 
-#### default_signer *: algosdk.atomic_transaction_composer.TransactionSigner | None* *= None*
+#### default_signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None* *= None*
 
 The default transaction signer
 
-#### approval_source_map *: algosdk.source_map.SourceMap | None* *= None*
+#### approval_source_map *: algokit_algosdk.source_map.SourceMap | None* *= None*
 
 The approval source map
 
-#### clear_source_map *: algosdk.source_map.SourceMap | None* *= None*
+#### clear_source_map *: algokit_algosdk.source_map.SourceMap | None* *= None*
 
 The clear source map
 
@@ -292,10 +292,10 @@ methods for calling application methods, managing state, and handling transactio
           account="SIGNERACCOUNT",
           private_key="SIGNERPRIVATEKEY",
       ),
-      approval_source_map=SourceMap(
+      approval_source_map=algosdk.source_map.SourceMap(
           source="APPROVALSOURCE",
       ),
-      clear_source_map=SourceMap(
+      clear_source_map=algosdk.source_map.SourceMap(
           source="CLEARSOURCE",
       ),
   )
@@ -395,7 +395,7 @@ Normalize an application specification to ARC-56 format.
   spec = AppClient.normalise_app_spec(app_spec_json)
   ```
 
-#### *static* from_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../app_spec/arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract) | str, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), app_name: str | None = None, default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None) → [AppClient](#algokit_utils.applications.app_client.AppClient)
+#### *static* from_network(app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../app_spec/arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract) | str, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [AppClient](#algokit_utils.applications.app_client.AppClient)
 
 Create an AppClient instance from network information.
 
@@ -422,16 +422,16 @@ Create an AppClient instance from network information.
           account="SIGNERACCOUNT",
           private_key="SIGNERPRIVATEKEY",
       ),
-      approval_source_map=SourceMap(
+      approval_source_map=algosdk.source_map.SourceMap(
           source="APPROVALSOURCE",
       ),
-      clear_source_map=SourceMap(
+      clear_source_map=algosdk.source_map.SourceMap(
           source="CLEARSOURCE",
       ),
   )
   ```
 
-#### *static* from_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../app_spec/arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract) | str, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), default_sender: str | None = None, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = None, approval_source_map: algosdk.source_map.SourceMap | None = None, clear_source_map: algosdk.source_map.SourceMap | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None) → [AppClient](#algokit_utils.applications.app_client.AppClient)
+#### *static* from_creator_and_name(creator_address: str, app_name: str, app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../app_spec/arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract) | str, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None) → [AppClient](#algokit_utils.applications.app_client.AppClient)
 
 Create an AppClient instance from creator address and application name.
 
@@ -482,7 +482,7 @@ Compile the application’s TEAL code.
 * **Returns:**
   The compilation result
 
-#### clone(app_name: str | None = \_MISSING, default_sender: str | None = \_MISSING, default_signer: algosdk.atomic_transaction_composer.TransactionSigner | None = \_MISSING, approval_source_map: algosdk.source_map.SourceMap | None = \_MISSING, clear_source_map: algosdk.source_map.SourceMap | None = \_MISSING) → [AppClient](#algokit_utils.applications.app_client.AppClient)
+#### clone(app_name: str | None = \_MISSING, default_sender: str | None = \_MISSING, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = \_MISSING, approval_source_map: algokit_algosdk.source_map.SourceMap | None = \_MISSING, clear_source_map: algokit_algosdk.source_map.SourceMap | None = \_MISSING) → [AppClient](#algokit_utils.applications.app_client.AppClient)
 
 Create a cloned AppClient instance with optionally overridden parameters.
 

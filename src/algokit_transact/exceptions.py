@@ -14,4 +14,4 @@ class TransactionValidationError(AlgokitTransactError):
 
     def __init__(self, message: str, *, issues: "Sequence[ValidationIssue] | None" = None) -> None:
         super().__init__(message)
-        self.issues: tuple[ValidationIssue, ...] = tuple(issues or ())
+        self.issues: list[ValidationIssue] = list(issues or [])

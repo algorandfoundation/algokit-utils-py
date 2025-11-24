@@ -2,10 +2,8 @@ import contextlib
 import enum
 import os
 from dataclasses import dataclass
-from typing import overload
 
 import httpx
-from typing_extensions import deprecated
 
 from algokit_utils.config import config
 
@@ -140,13 +138,6 @@ class TestNetDispenserApiClient:
             error_message = "Error processing dispenser API request"
             config.logger.debug(f"{error_message}: {err}", exc_info=True)
             raise err
-
-    @overload
-    def fund(self, address: str, amount: int) -> DispenserFundResponse: ...
-
-    @overload
-    @deprecated("Asset ID parameter is deprecated. Can now use `fund(address, amount)` instead.")
-    def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse: ...
 
     def fund(self, address: str, amount: int, asset_id: int | None = None) -> DispenserFundResponse:  # noqa: ARG002
         """

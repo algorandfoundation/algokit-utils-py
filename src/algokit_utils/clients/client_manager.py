@@ -1,21 +1,20 @@
-from __future__ import annotations
-
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, TypeVar
+from typing import TYPE_CHECKING, Literal, Optional, TypeVar
 from urllib import parse
 
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.source_map import SourceMap
-from algosdk.transaction import SuggestedParams
-from algosdk.v2client.algod import AlgodClient
-
+import algokit_algosdk as algosdk
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import ClientConfig as AlgodClientConfig
+from algokit_algod_client import models as algod_models
 from algokit_indexer_client import ClientConfig as IndexerClientConfig
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client import ClientConfig as KmdClientConfig
 from algokit_kmd_client import KmdClient
+from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
 
 if TYPE_CHECKING:
@@ -40,7 +39,7 @@ class AlgoSdkClients:
 
     Holds references to Algod, Indexer and KMD clients.
 
-    :param algod: Algod client instance
+    :param algod: Algod client instance (protocol-compatible typed client)
     :param indexer: Optional Indexer client instance
     :param kmd: Optional KMD client instance
     """
@@ -92,7 +91,7 @@ class ClientManager:
     Provides access to Algod, Indexer and KMD clients and helper methods for working with them.
 
     :param clients_or_configs: Either client instances or client configurations
-    :param algorand_client: AlgorandClient instance
+    :param algorand_client: "AlgorandClient" instance
 
     :example:
         >>> # Algod only
@@ -106,7 +105,7 @@ class ClientManager:
         ...     ClientManager.get_indexer_config_from_environment())
     """
 
-    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: AlgorandClient):
+    def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: "AlgorandClient"):
         if isinstance(clients_or_configs, AlgoSdkClients):
             _clients = clients_or_configs
         elif isinstance(clients_or_configs, AlgoClientConfigs):
@@ -123,11 +122,11 @@ class ClientManager:
         self._indexer = _clients.indexer
         self._kmd = _clients.kmd
         self._algorand = algorand_client
-        self._suggested_params: SuggestedParams | None = None
+        self._suggested_params: algod_models.SuggestedParams | None = None
 
     @property
     def algod(self) -> AlgodClient:
-        """Returns an algosdk Algod API client.
+        """Returns the typed Algod API client instance.
 
         :return: Algod client instance
         """
@@ -172,15 +171,19 @@ class ClientManager:
             >>> client_manager = ClientManager(algod_client)
             >>> network_detail = client_manager.network()
         """
+        import base64
+
         if self._suggested_params is None:
             self._suggested_params = self._algod.suggested_params()
         sp = self._suggested_params
         return NetworkDetail(
-            is_testnet=sp.gen in ["testnet-v1.0", "testnet-v1", "testnet"],
-            is_mainnet=sp.gen in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
-            is_localnet=ClientManager.genesis_id_is_localnet(str(sp.gen)),
-            genesis_id=str(sp.gen),
-            genesis_hash=sp.gh,
+            is_testnet=sp.genesis_id in ["testnet-v1.0", "testnet-v1", "testnet"],
+            is_mainnet=sp.genesis_id in ["mainnet-v1.0", "mainnet-v1", "mainnet"],
+            is_localnet=ClientManager.genesis_id_is_localnet(str(sp.genesis_id)),
+            genesis_id=str(sp.genesis_id),
+            genesis_hash=base64.b64encode(sp.genesis_hash).decode("utf-8")
+            if isinstance(sp.genesis_hash, bytes)
+            else sp.genesis_hash,
         )
 
     def is_localnet(self) -> bool:
@@ -204,6 +207,20 @@ class ClientManager:
         """
         return self.network().is_mainnet
 
+    def close(self) -> None:
+        """Close the underlying HTTP client connections.
+
+        This method should be called when the ClientManager is no longer needed
+        to properly clean up resources.
+
+        :example:
+            >>> client_manager = ClientManager(algod_client)
+            >>> # ... use client_manager ...
+            >>> client_manager.close()
+        """
+        if isinstance(self._algod, AlgodClient):
+            self._algod.close()
+
     def get_testnet_dispenser(
         self, auth_token: str | None = None, request_timeout: int | None = None
     ) -> TestNetDispenserApiClient:
@@ -225,8 +242,8 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         version: str | None = None,
-        compilation_params: AppClientCompilationParams | None = None,
-    ) -> AppFactory:
+        compilation_params: Optional["AppClientCompilationParams"] = None,
+    ) -> "AppFactory":
         """Get an application factory for deploying smart contracts.
 
         :param app_spec: Application specification
@@ -262,9 +279,9 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
-    ) -> AppClient:
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
+    ) -> "AppClient":
         """Get an application client for an existing application by ID.
 
         :param app_spec: Application specification
@@ -301,9 +318,9 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
-    ) -> AppClient:
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
+    ) -> "AppClient":
         """Get an application client for an existing application by network.
 
         :param app_spec: Application specification
@@ -338,10 +355,10 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: ApplicationLookup | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
-    ) -> AppClient:
+        app_lookup_cache: Optional["ApplicationLookup"] = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
+    ) -> "AppClient":
         """Get an application client by creator address and name.
 
         :param creator_address: Creator address
@@ -372,17 +389,16 @@ class ClientManager:
 
     @staticmethod
     def get_algod_client(config: AlgoClientNetworkConfig) -> AlgodClient:
-        """Get an Algod client from config or environment.
+        """Get a typed Algod client from config.
 
-        :param config: Optional client configuration
-        :return: Algod client instance
+        :param config: Client configuration
+        :return: Typed Algod client instance
         """
-        headers = {"X-Algo-API-Token": config.token or ""}
-        return AlgodClient(
-            algod_token=config.token or "",
-            algod_address=config.full_url(),
-            headers=headers,
+        client_config = AlgodClientConfig(
+            base_url=config.full_url(),
+            token=config.token or None,
         )
+        return AlgodClient(client_config)
 
     @staticmethod
     def get_algod_client_from_environment() -> AlgodClient:
@@ -455,7 +471,7 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
-        app_lookup_cache: ApplicationLookup | None = None,
+        app_lookup_cache: Optional["ApplicationLookup"] = None,
     ) -> TypedAppClientT:
         """Get a typed application client by creator address and name.
 
@@ -498,8 +514,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> TypedAppClientT:
         """Get a typed application client by ID.
 
@@ -540,8 +556,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> TypedAppClientT:
         """Returns a new typed client, resolves the app ID for the current network.
 
@@ -584,7 +600,7 @@ class ClientManager:
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         version: str | None = None,
-        compilation_params: AppClientCompilationParams | None = None,
+        compilation_params: Optional["AppClientCompilationParams"] = None,
     ) -> TypedFactoryT:
         """Get a typed application factory.
 

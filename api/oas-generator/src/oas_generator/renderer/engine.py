@@ -69,6 +69,8 @@ class TemplateRenderer:
             )
         if client.include_block_models:
             files[models_dir / "_block.py"] = self._render_template("models/block.py.j2", context)
+        if client.is_algod_client:
+            files[models_dir / "suggested_params.py"] = self._render_template("models/suggested_params.py.j2", context)
         files[target / "py.typed"] = ""
         return files
 
@@ -86,6 +88,8 @@ class TemplateRenderer:
             for name in self.BLOCK_MODEL_EXPORTS:
                 if name not in model_exports:
                     model_exports.append(name)
+        if client.is_algod_client and "SuggestedParams" not in model_exports:
+            model_exports.append("SuggestedParams")
         metadata_usage = self._collect_metadata_usage(client)
         model_modules = [{"module": model.module_name, "name": model.name} for model in client.models]
         enum_modules = [{"module": enum.module_name, "name": enum.name} for enum in client.enums]
@@ -107,6 +111,8 @@ class TemplateRenderer:
             "client_needs_datetime": self._client_requires_datetime(client),
             "block_exports": self.BLOCK_MODEL_EXPORTS,
             "needs_literal": needs_literal,
+            "needs_suggested_params": client.is_algod_client,
+            "needs_algod_helpers": client.is_algod_client,
         }
 
     def _collect_metadata_usage(self, client: ctx.ClientDescriptor) -> dict[str, bool]:

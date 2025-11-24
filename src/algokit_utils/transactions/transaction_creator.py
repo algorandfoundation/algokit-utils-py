@@ -1,8 +1,8 @@
 from collections.abc import Callable
+from dataclasses import replace
 from typing import TypeVar
 
-from algosdk.transaction import Transaction
-
+from algokit_transact import Transaction
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -55,7 +55,7 @@ class AlgorandClientTransactionCreator:
     ) -> Callable[[TxnParam], Transaction]:
         def create_transaction(params: TxnParam) -> Transaction:
             composer = self._new_group()
-            result = c(composer)(params).build_transactions()
+            result = _with_group_ids_cleared(c(composer)(params).build_transactions())
             return result.transactions[-1]
 
         return create_transaction
@@ -65,7 +65,7 @@ class AlgorandClientTransactionCreator:
     ) -> Callable[[TxnParam], BuiltTransactions]:
         def create_transactions(params: TxnParam) -> BuiltTransactions:
             composer = self._new_group()
-            return c(composer)(params).build_transactions()
+            return _with_group_ids_cleared(c(composer)(params).build_transactions())
 
         return create_transactions
 
@@ -336,7 +336,7 @@ class AlgorandClientTransactionCreator:
                     approval_program="TEAL_APPROVAL_CODE",
                     clear_state_program="TEAL_CLEAR_CODE",
                     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
-                    on_complete=OnComplete.NoOpOC,
+                    on_complete=OnApplicationComplete.NoOp,
                     args=[b'arg1', b'arg2'],
                     account_references=["ACCOUNT1"],
                     app_references=[789],
@@ -380,7 +380,7 @@ class AlgorandClientTransactionCreator:
                     app_references=[789],
                     asset_references=[123],
                     box_references=[],
-                    on_complete=OnComplete.UpdateApplicationOC,
+                    on_complete=OnApplicationComplete.UpdateApplication,
                     lease="lease",
                     note=b"note",
                     rekey_to="REKEYTOADDRESS",
@@ -413,7 +413,7 @@ class AlgorandClientTransactionCreator:
                     app_references=[789],
                     asset_references=[123],
                     box_references=[],
-                    on_complete=OnComplete.DeleteApplicationOC,
+                    on_complete=OnApplicationComplete.DeleteApplication,
                     lease="lease",
                     note=b"note",
                     rekey_to="REKEYTOADDRESS",
@@ -435,7 +435,7 @@ class AlgorandClientTransactionCreator:
             >>> creator = AlgorandClientTransactionCreator(lambda: TransactionComposer())
             >>> params = AppCallParams(
             ...     sender="SENDER_ADDRESS",
-            ...     on_complete=OnComplete.NoOpOC,
+            ...     on_complete=OnApplicationComplete.NoOp,
             ...     app_id=789,
             ...     approval_program="TEAL_APPROVAL_CODE",
             ...     clear_state_program="TEAL_CLEAR_CODE",
@@ -458,7 +458,7 @@ class AlgorandClientTransactionCreator:
             >>> #Advanced example
             >>> creator.app_call(AppCallParams(
                     sender="SENDER_ADDRESS",
-                    on_complete=OnComplete.NoOpOC,
+                    on_complete=OnApplicationComplete.NoOp,
                     app_id=789,
                     approval_program="TEAL_APPROVAL_CODE",
                     clear_state_program="TEAL_CLEAR_CODE",
@@ -505,7 +505,7 @@ class AlgorandClientTransactionCreator:
                     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
                     approval_program="TEAL_APPROVAL_CODE",
                     clear_state_program="TEAL_CLEAR_CODE",
-                    on_complete=OnComplete.NoOpOC,
+                    on_complete=OnApplicationComplete.NoOp,
                     extra_program_pages=0,
                     lease="lease",
                     note=b"note",
@@ -543,7 +543,7 @@ class AlgorandClientTransactionCreator:
                     schema={'global_ints': 1, 'global_byte_slices': 1, 'local_ints': 1, 'local_byte_slices': 1},
                     approval_program="TEAL_NEW_APPROVAL_CODE",
                     clear_state_program="TEAL_NEW_CLEAR_CODE",
-                    on_complete=OnComplete.UpdateApplicationOC,
+                    on_complete=OnApplicationComplete.UpdateApplication,
                     lease="lease",
                     note=b"note",
                     rekey_to="REKEYTOADDRESS",
@@ -686,3 +686,14 @@ class AlgorandClientTransactionCreator:
             ))
         """
         return self._transaction(lambda c: c.add_offline_key_registration)
+
+
+def _with_group_ids_cleared(built: BuiltTransactions) -> BuiltTransactions:
+    """Return a copy of BuiltTransactions with group IDs cleared so callers can regroup or reuse transactions."""
+
+    stripped_transactions = [replace(txn, group=None) if txn.group is not None else txn for txn in built.transactions]
+    return BuiltTransactions(
+        transactions=stripped_transactions,
+        method_calls=built.method_calls,
+        signers=built.signers,
+    )

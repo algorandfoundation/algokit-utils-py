@@ -4,8 +4,8 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Literal
 
-from algosdk.logic import get_application_address
-
+import algokit_algosdk as algosdk
+from algokit_algod_client import models as algod_models
 from algokit_indexer_client import IndexerClient
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
@@ -411,15 +411,11 @@ class AppDeployer:
 
         app_metadata = ApplicationMetaData(
             reference=ApplicationReference(
-                app_id=create_result.app_id, app_address=get_application_address(create_result.app_id)
+                app_id=create_result.app_id, app_address=algosdk.logic.get_application_address(create_result.app_id)
             ),
             deploy_metadata=deployment.metadata,
-            created_round=create_result.confirmation.get("confirmed-round", 0)
-            if isinstance(create_result.confirmation, dict)
-            else 0,
-            updated_round=create_result.confirmation.get("confirmed-round", 0)
-            if isinstance(create_result.confirmation, dict)
-            else 0,
+            created_round=_get_confirmed_round(create_result.confirmation),
+            updated_round=_get_confirmed_round(create_result.confirmation),
             deleted=False,
         )
 
@@ -497,12 +493,16 @@ class AppDeployer:
             result, is_abi=has_abi_delete, index=-1
         )
 
-        app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
+        app_id_raw = result.confirmations[0].app_id
+        if app_id_raw is None:
+            raise ValueError("Could not determine app_id from transaction confirmation")
+        assert app_id_raw is not None
+        app_id = int(app_id_raw)
         app_metadata = ApplicationMetaData(
-            reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
+            reference=ApplicationReference(app_id=app_id, app_address=algosdk.logic.get_application_address(app_id)),
             deploy_metadata=deployment.metadata,
-            created_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
-            updated_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
+            created_round=_get_confirmed_round(result.confirmations[0]),
+            updated_round=_get_confirmed_round(result.confirmations[0]),
             deleted=False,
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
@@ -560,7 +560,7 @@ class AppDeployer:
             reference=ApplicationReference(app_id=existing_app.app_id, app_address=existing_app.app_address),
             deploy_metadata=deployment.metadata,
             created_round=existing_app.created_round,
-            updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
+            updated_round=_get_confirmed_round(result.confirmation),
             deleted=False,
         )
 
@@ -740,7 +740,9 @@ class AppDeployer:
 
                 if metadata.get("name") and creation_txn.confirmed_round:
                     app_lookup[metadata["name"]] = ApplicationMetaData(
-                        reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
+                        reference=ApplicationReference(
+                            app_id=app_id, app_address=algosdk.logic.get_application_address(app_id)
+                        ),
                         deploy_metadata=AppDeploymentMetaData(
                             name=metadata["name"],
                             version=metadata.get("version", "1.0"),
@@ -760,3 +762,11 @@ class AppDeployer:
         lookup = ApplicationLookup(creator=creator_address, apps=app_lookup)
         self._app_lookups[creator_address] = lookup
         return lookup
+
+
+def _get_confirmed_round(confirmation: algod_models.PendingTransactionResponse | None) -> int:
+    """Extract the confirmed round from a typed response model."""
+
+    if confirmation is None:
+        return 0
+    return confirmation.confirmed_round or 0

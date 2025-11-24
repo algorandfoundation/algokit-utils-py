@@ -56,14 +56,7 @@ def response_decode_arguments(descriptor: object, indent: int = 0) -> str:
         parts.append(f"model=models.{model}")
     if list_model:
         parts.append(f"list_model=models.{list_model}")
-    if (
-        not model
-        and not list_model
-        and not is_binary
-        and not raw_msgpack
-        and type_hint
-        and type_hint != "object"
-    ):
+    if not model and not list_model and not is_binary and not raw_msgpack and type_hint and type_hint != "object":
         parts.append(f"type_={type_hint}")
     if not parts:
         return ""

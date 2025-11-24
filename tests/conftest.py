@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 from dotenv import load_dotenv
 
-from algokit_utils import AppClient, SigningAccount
+from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import Arc32Contract
 from algokit_utils.applications.app_manager import (
@@ -110,14 +110,6 @@ def get_unique_name() -> str:
     return name
 
 
-def is_opted_in(client_fixture: AppClient) -> bool:
-    _, sender = client_fixture.resolve_signer_sender()
-    account_info = client_fixture.algod_client.account_info(sender)
-    assert isinstance(account_info, dict)
-    apps_local_state = account_info["apps-local-state"]
-    return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
-
-
 def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total: int | None) -> int:
     if total is None:
         total = math.floor(random.random() * 100) + 20
@@ -141,4 +133,5 @@ def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total:
         )
     )
 
-    return int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    return int(create_result.confirmation.asset_id)

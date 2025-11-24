@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from base64 import b64decode
 
 import pytest
@@ -24,10 +22,10 @@ def test_search_applications_finds_recent_app(
     funded_account: SigningAccount,
     indexer_client: IndexerClient,
 ) -> None:
-    approval_compile = algorand_localnet.client.algod.compile("#pragma version 8\nint 1")
-    clear_compile = algorand_localnet.client.algod.compile("#pragma version 8\nint 1")
-    approval_prog = b64decode(approval_compile["result"])
-    clear_prog = b64decode(clear_compile["result"])
+    approval_compile = algorand_localnet.client.algod.teal_compile(b"#pragma version 8\nint 1", sourcemap=False)
+    clear_compile = algorand_localnet.client.algod.teal_compile(b"#pragma version 8\nint 1", sourcemap=False)
+    approval_prog = b64decode(approval_compile.result)
+    clear_prog = b64decode(clear_compile.result)
 
     create_result = algorand_localnet.send.app_create(
         AppCreateParams(
