@@ -1360,6 +1360,27 @@ class TransactionComposer:
                 abi_returns.append(abi_return)
         return abi_returns
 
+    def set_max_fees(self, max_fees: dict[int, AlgoAmount]) -> "TransactionComposer":
+        if self._transactions_with_signers is not None:
+            raise RuntimeError("Transactions have already been built")
+
+        for index in max_fees:
+            if index < 0 or index >= len(self._queued):
+                raise ValueError(
+                    f"Index {index} is out of range. The composer only contains {len(self._queued)} transactions"
+                )
+
+        for index, max_fee in max_fees.items():
+            entry = self._queued[index]
+            if isinstance(entry.txn, Transaction):
+                self._queued[index] = replace(entry, max_fee=max_fee)
+            elif hasattr(entry.txn, "max_fee"):
+                self._queued[index] = replace(entry, txn=replace(entry.txn, max_fee=max_fee))
+            else:
+                raise ValueError(f"Transaction at index {index} does not support max_fee overrides")
+
+        return self
+
     def _interpret_error(self, err: Exception) -> Exception:
         if isinstance(err, UnexpectedStatusError):
             payload_message = self._extract_algod_error_message(err.payload)
