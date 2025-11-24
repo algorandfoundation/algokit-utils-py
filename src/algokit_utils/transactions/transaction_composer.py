@@ -403,9 +403,18 @@ class TransactionComposer:
 
     def add_transaction_composer(self, composer: "TransactionComposer") -> "TransactionComposer":
         self._ensure_not_built()
+        current_size = len(self._queued)
+        composer_size = len(composer._queued)  # noqa: SLF001
+        new_size = current_size + composer_size
+        if new_size > MAX_TRANSACTION_GROUP_SIZE:
+            raise ValueError(
+                "Adding transactions from composer would exceed the maximum group size. "
+                f"Current: {current_size}, Adding: {composer_size}, "
+                f"Maximum: {MAX_TRANSACTION_GROUP_SIZE}"
+            )
+        offset = current_size
         for entry in composer._queued:  # noqa: SLF001
             self._queued.append(self._clone_entry(entry))
-        offset = len(self._queued)
         for index, method in composer._method_calls.items():  # noqa: SLF001
             self._method_calls[index + offset] = method
         return self
