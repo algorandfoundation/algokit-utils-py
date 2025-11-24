@@ -89,21 +89,26 @@ class AlgoAmount:
             return int(other)
         raise TypeError(f"Unsupported operand type(s) for {op}: 'AlgoAmount' and '{type(other).__name__}'")
 
+    def _coerce_int_scalar(self, other: object, op: str) -> int:
+        if isinstance(other, int):
+            return int(other)
+        raise TypeError(f"Unsupported operand type(s) for {op}: 'AlgoAmount' and '{type(other).__name__}'")
+
     def __str__(self) -> str:
         return f"{self.micro_algo:,} µALGO"
 
     def __int__(self) -> int:
         return self.micro_algo
 
-    def __add__(self, other: "AlgoAmount") -> "AlgoAmount":
-        total_micro_algos = self.micro_algo + self._coerce_micro_algos(other, "+")
+    def __add__(self, other: object) -> "AlgoAmount":
+        total_micro_algos = self.micro_algo + self._coerce_micro_algos(other, "+", allow_int=True)
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
-    def __radd__(self, other: "AlgoAmount") -> "AlgoAmount":
+    def __radd__(self, other: object) -> "AlgoAmount":
         return self.__add__(other)
 
-    def __iadd__(self, other: "AlgoAmount") -> Self:
-        self.amount_in_micro_algo += self._coerce_micro_algos(other, "+")
+    def __iadd__(self, other: object) -> Self:
+        self.amount_in_micro_algo += self._coerce_micro_algos(other, "+", allow_int=True)
         return self
 
     def __eq__(self, other: object) -> bool:
@@ -117,7 +122,7 @@ class AlgoAmount:
         return self.amount_in_micro_algo < other_micro_algos
 
     def __sub__(self, other: object) -> "AlgoAmount":
-        total_micro_algos = self.micro_algo - self._coerce_micro_algos(other, "-")
+        total_micro_algos = self.micro_algo - self._coerce_micro_algos(other, "-", allow_int=True)
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
     def __rsub__(self, other: object) -> "AlgoAmount":
@@ -125,8 +130,39 @@ class AlgoAmount:
         return AlgoAmount.from_micro_algo(total_micro_algos)
 
     def __isub__(self, other: object) -> Self:
-        self.amount_in_micro_algo -= self._coerce_micro_algos(other, "-")
+        self.amount_in_micro_algo -= self._coerce_micro_algos(other, "-", allow_int=True)
         return self
+
+    def __mul__(self, other: object) -> "AlgoAmount":
+        factor = self._coerce_int_scalar(other, "*")
+        return AlgoAmount.from_micro_algo(self.micro_algo * factor)
+
+    def __rmul__(self, other: object) -> "AlgoAmount":
+        return self.__mul__(other)
+
+    def __truediv__(self, other: object) -> "AlgoAmount":
+        divisor = self._coerce_int_scalar(other, "/")
+        if divisor == 0:
+            raise ZeroDivisionError("division by zero")
+        return AlgoAmount.from_micro_algo(self.micro_algo // divisor)
+
+    def __rtruediv__(self, other: object) -> Decimal:
+        numerator = self._coerce_int_scalar(other, "/")
+        if self.micro_algo == 0:
+            raise ZeroDivisionError("division by zero")
+        return Decimal(numerator) / Decimal(self.micro_algo)
+
+    def __floordiv__(self, other: object) -> "AlgoAmount":
+        divisor = self._coerce_int_scalar(other, "//")
+        if divisor == 0:
+            raise ZeroDivisionError("division by zero")
+        return AlgoAmount.from_micro_algo(self.micro_algo // divisor)
+
+    def __rfloordiv__(self, other: object) -> Decimal:
+        numerator = self._coerce_int_scalar(other, "//")
+        if self.micro_algo == 0:
+            raise ZeroDivisionError("division by zero")
+        return Decimal(numerator // self.micro_algo)
 
 
 # Helper functions
