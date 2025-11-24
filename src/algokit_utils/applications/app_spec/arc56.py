@@ -333,6 +333,16 @@ class Method:
     def __str__(self) -> str:
         return self.signature
 
+    def get_selector(self) -> bytes:
+        """Compatibility helper matching algosdk ABI Method API."""
+
+        return self.selector
+
+    def get_signature(self) -> str:
+        """Compatibility helper matching algosdk ABI Method API."""
+
+        return self.signature
+
     @staticmethod
     def from_signature(s: str) -> "Method":
         name, args_str, returns_str = _parse_method_string(s)

@@ -4,12 +4,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from typing import Any, Generic, TypeVar
 
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.source_map import SourceMap
-from algosdk.transaction import OnComplete, Transaction
 from typing_extensions import Self
 
 import algokit_abi
+import algokit_algosdk as algosdk
+from algokit_transact import OnApplicationComplete
+from algokit_transact.models.transaction import Transaction
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import (
     ABIReturn,
@@ -40,10 +40,9 @@ from algokit_utils.applications.app_deployer import (
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.applications.app_spec import arc56
-from algokit_utils.models.application import (
-    AppSourceMaps,
-)
+from algokit_utils.models.application import AppSourceMaps
 from algokit_utils.models.transaction import SendParams
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -169,7 +168,9 @@ class AppFactoryDeployResult:
             if not response_data:
                 return None
 
-            response_data_dict = asdict(response_data)
+            response_data_dict = {
+                field.name: getattr(response_data, field.name) for field in dataclasses.fields(type(response_data))
+            }
             abi_return = response_data.abi_return
             if abi_return and abi_return.method:
                 response_data_dict["abi_return"] = abi_return.get_arc56_value(params.method)
@@ -247,7 +248,7 @@ class _BareParamsBuilder:
                 },
                 "sender": self._factory._get_sender(base_params.sender),
                 "signer": self._factory._get_signer(base_params.sender, base_params.signer),
-                "on_complete": base_params.on_complete or OnComplete.NoOpOC,
+                "on_complete": base_params.on_complete or OnApplicationComplete.NoOp,
             }
         )
 
@@ -269,7 +270,7 @@ class _BareParamsBuilder:
                 "approval_program": "",
                 "clear_state_program": "",
                 "sender": self._factory._get_sender(params.sender if params else None),
-                "on_complete": OnComplete.UpdateApplicationOC,
+                "on_complete": OnApplicationComplete.UpdateApplication,
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
@@ -295,7 +296,7 @@ class _BareParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "on_complete": OnComplete.DeleteApplicationOC,
+                "on_complete": OnApplicationComplete.DeleteApplication,
             }
         )
 
@@ -354,7 +355,7 @@ class _MethodParamsBuilder:
                 ),
                 "method": self._factory._app_spec.get_arc56_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": params.on_complete or OnComplete.NoOpOC,
+                "on_complete": params.on_complete or OnApplicationComplete.NoOp,
             }
         )
 
@@ -381,7 +382,7 @@ class _MethodParamsBuilder:
                 ),
                 "method": self._factory._app_spec.get_arc56_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": OnComplete.UpdateApplicationOC,
+                "on_complete": OnApplicationComplete.UpdateApplication,
             }
         )
 
@@ -406,7 +407,7 @@ class _MethodParamsBuilder:
                 ),
                 "method": self._factory.app_spec.get_arc56_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": OnComplete.DeleteApplicationOC,
+                "on_complete": OnApplicationComplete.DeleteApplication,
             }
         )
 
@@ -635,8 +636,8 @@ class AppFactory:
         self._version = params.version or "1.0"
         self._default_sender = params.default_sender
         self._default_signer = params.default_signer
-        self._approval_source_map: SourceMap | None = None
-        self._clear_source_map: SourceMap | None = None
+        self._approval_source_map: algosdk.source_map.SourceMap | None = None
+        self._clear_source_map: algosdk.source_map.SourceMap | None = None
         self._params_accessor = _MethodParamsBuilder(self)
         self._send_accessor = _TransactionSender(self)
         self._create_transaction_accessor = _TransactionCreator(self)
@@ -882,8 +883,8 @@ class AppFactory:
         app_name: str | None = None,
         default_sender: str | None = None,  # Address can be string or bytes
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> AppClient:
         """Returns a new `AppClient` client for an app instance of the given ID.
 
@@ -919,8 +920,8 @@ class AppFactory:
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: ApplicationLookup | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: algosdk.source_map.SourceMap | None = None,
+        clear_source_map: algosdk.source_map.SourceMap | None = None,
     ) -> AppClient:
         """Returns a new `AppClient` client, resolving the app by creator address and name
         using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note).

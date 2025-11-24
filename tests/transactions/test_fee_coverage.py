@@ -101,7 +101,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_throws_when_max_fee_too_small(self) -> None:
@@ -156,7 +156,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_handling_when_all_inners_covered(self) -> None:
@@ -175,7 +175,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_handling_when_some_inners_covered(self) -> None:
@@ -194,7 +194,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_when_some_inners_have_surplus(self) -> None:
@@ -212,7 +212,7 @@ class TestCoverAppCallInnerFees:
                 "cover_app_call_inner_transaction_fees": True,
             },
         )
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_handling_multiple_app_calls_in_group_with_inners_with_varying_fees(self) -> None:
@@ -241,9 +241,10 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == txn_1_expected_fee
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == txn_1_expected_fee
         self._assert_min_fee(self.app_client1, txn_1_params, txn_1_expected_fee)
-        assert result.transactions[1].raw.fee == txn_2_expected_fee
+        assert wrapped_transactions[1].fee == txn_2_expected_fee
         self._assert_min_fee(self.app_client1, txn_2_params, txn_2_expected_fee)
 
     def test_does_not_alter_static_fee_with_surplus(self) -> None:
@@ -262,7 +263,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
 
     def test_alters_fee_with_large_inner_surplus_pooling(self) -> None:
         """Test fee handling with large inner fee surplus pooling to lower siblings"""
@@ -280,7 +281,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_partial_inner_surplus_pooling(self) -> None:
@@ -299,7 +300,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_large_inner_surplus_no_pooling(self) -> None:
@@ -318,7 +319,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_multiple_inner_surplus_poolings_to_lower_siblings(self) -> None:
@@ -336,7 +337,7 @@ class TestCoverAppCallInnerFees:
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: SigningAccount) -> None:
@@ -366,10 +367,11 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == expected_fee
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == expected_fee
         # We could technically reduce the below to 0, however it adds more complexity
         # and is probably unlikely to be a common use case
-        assert result.transactions[1].raw.fee == 1000
+        assert wrapped_transactions[1].fee == 1000
 
     def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: SigningAccount) -> None:
         """Test that surplus fees are allocated to the most fee constrained transaction first"""
@@ -404,13 +406,14 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == 1500
-        assert result.transactions[1].raw.fee == 7500
-        assert result.transactions[2].raw.fee == 0
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == 1500
+        assert wrapped_transactions[1].fee == 7500
+        assert wrapped_transactions[2].fee == 0
         assert result.group_id != ""
-        for txn in result.transactions:
-            assert txn.raw.group is not None
-            assert base64.b64encode(txn.raw.group).decode("utf-8") == result.group_id
+        for txn in wrapped_transactions:
+            assert txn.group is not None
+            assert base64.b64encode(txn.group).decode("utf-8") == result.group_id
 
     def test_handles_nested_abi_method_calls(self, funded_account: SigningAccount) -> None:
         """Test fee handling with nested ABI method calls"""
@@ -453,9 +456,9 @@ class TestCoverAppCallInnerFees:
         result = nested_client.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
         assert len(result.transactions) == 3
-        assert result.transactions[0].raw.fee == 1500
-        assert result.transactions[1].raw.fee == 3500
-        assert result.transactions[2].raw.fee == expected_fee
+        assert result.transactions[0].fee == 1500
+        assert result.transactions[1].fee == 3500
+        assert result.transactions[2].fee == expected_fee
 
         self._assert_min_fee(
             nested_client,
@@ -619,8 +622,8 @@ class TestCoverAppCallInnerFees:
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
-        assert result.transaction.raw.fee == expected_fee
-        assert len(result.confirmation.get("inner-txns", [])) == 9  # type: ignore[union-attr]
+        assert result.transaction.fee == expected_fee
+        assert len(result.confirmation.inner_txns or []) == 9
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     @pytest.mark.parametrize("cover_inner_fees", [True, False])
@@ -637,8 +640,8 @@ class TestCoverAppCallInnerFees:
         )
 
         # No op-up inner transactions needed regardless of fee coverage setting
-        assert len(result.confirmation.get("inner-txns", [])) == 0  # type: ignore[union-attr]
-        assert result.transaction.raw.fee == 1_000
+        assert len(result.confirmation.inner_txns or []) == 0
+        assert result.transaction.fee == 1_000
         assert len(result.tx_ids) == 1
 
     def test_readonly_alters_fee_handling_inner_transactions(self) -> None:
@@ -666,8 +669,8 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
-        assert len(result.confirmation.get("inner-txns", [])) == 4  # type: ignore[union-attr]
+        assert result.transaction.fee == expected_fee
+        assert len(result.confirmation.inner_txns or []) == 4
         assert len(result.tx_ids) == 1
 
     def test_readonly_throws_when_max_fee_too_small(self) -> None:

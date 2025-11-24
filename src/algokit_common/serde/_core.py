@@ -342,6 +342,12 @@ def _wire_aliases_for(cls: type[object]) -> frozenset[str]:
     plan = _plan_for(cls)
     aliases = {h.alias for h in plan.fields if h.kind == "wire" and h.alias}
     aliases.update(h.nested_alias for h in plan.fields if h.kind == "nested" and h.nested_alias)
+    # For flattened fields, recursively collect wire aliases from child classes
+    for h in plan.fields:
+        if h.kind == "flatten":
+            child_cls = _resolve_child_cls(h)
+            if child_cls is not None:
+                aliases.update(_wire_aliases_for(child_cls))
     return frozenset(aliases)
 
 

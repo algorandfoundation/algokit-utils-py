@@ -22,34 +22,10 @@ class TemplateRenderer:
         "BlockAppEvalDelta",
         "BlockStateProofTrackingData",
         "BlockStateProofTracking",
+        "ParticipationUpdates",
         "SignedTxnInBlock",
         "Block",
         "GetBlock",
-    ]
-    LEDGER_STATE_DELTA_EXPORTS: ClassVar[list[str]] = [
-        "LedgerTealValue",
-        "LedgerStateSchema",
-        "LedgerAppParams",
-        "LedgerAppLocalState",
-        "LedgerAppLocalStateDelta",
-        "LedgerAppParamsDelta",
-        "LedgerAppResourceRecord",
-        "LedgerAssetHolding",
-        "LedgerAssetHoldingDelta",
-        "LedgerAssetParams",
-        "LedgerAssetParamsDelta",
-        "LedgerAssetResourceRecord",
-        "LedgerVotingData",
-        "LedgerAccountBaseData",
-        "LedgerAccountData",
-        "LedgerBalanceRecord",
-        "LedgerAccountDeltas",
-        "LedgerKvValueDelta",
-        "LedgerIncludedTransactions",
-        "LedgerModifiedCreatable",
-        "LedgerAlgoCount",
-        "LedgerAccountTotals",
-        "LedgerStateDelta",
     ]
 
     def __init__(self, template_dir: Path | None = None) -> None:
@@ -81,8 +57,6 @@ class TemplateRenderer:
         files[models_dir / "__init__.py"] = self._render_template("models/__init__.py.j2", context)
         files[models_dir / "_serde_helpers.py"] = self._render_template("models/_serde_helpers.py.j2", context)
         for model in context["client"].models:
-            if context["client"].include_ledger_state_delta_models and model.name == "LedgerStateDelta":
-                continue
             model_context = {**context, "model": model}
             files[models_dir / f"{model.module_name}.py"] = self._render_template("models/model.py.j2", model_context)
         for enum in context["client"].enums:
@@ -95,10 +69,8 @@ class TemplateRenderer:
             )
         if client.include_block_models:
             files[models_dir / "_block.py"] = self._render_template("models/block.py.j2", context)
-        if client.include_ledger_state_delta_models:
-            files[models_dir / "_ledger_state_delta.py"] = self._render_template(
-                "models/ledger_state_delta.py.j2", context
-            )
+        if client.is_algod_client:
+            files[models_dir / "suggested_params.py"] = self._render_template("models/suggested_params.py.j2", context)
         files[target / "py.typed"] = ""
         return files
 
@@ -116,10 +88,8 @@ class TemplateRenderer:
             for name in self.BLOCK_MODEL_EXPORTS:
                 if name not in model_exports:
                     model_exports.append(name)
-        if client.include_ledger_state_delta_models:
-            for name in self.LEDGER_STATE_DELTA_EXPORTS:
-                if name not in model_exports:
-                    model_exports.append(name)
+        if client.is_algod_client and "SuggestedParams" not in model_exports:
+            model_exports.append("SuggestedParams")
         metadata_usage = self._collect_metadata_usage(client)
         model_modules = [{"module": model.module_name, "name": model.name} for model in client.models]
         enum_modules = [{"module": enum.module_name, "name": enum.name} for enum in client.enums]
@@ -140,8 +110,9 @@ class TemplateRenderer:
             "needs_datetime": any(model.requires_datetime for model in client.models),
             "client_needs_datetime": self._client_requires_datetime(client),
             "block_exports": self.BLOCK_MODEL_EXPORTS,
-            "ledger_state_delta_exports": self.LEDGER_STATE_DELTA_EXPORTS,
             "needs_literal": needs_literal,
+            "needs_suggested_params": client.is_algod_client,
+            "needs_algod_helpers": client.is_algod_client,
         }
 
     def _collect_metadata_usage(self, client: ctx.ClientDescriptor) -> dict[str, bool]:

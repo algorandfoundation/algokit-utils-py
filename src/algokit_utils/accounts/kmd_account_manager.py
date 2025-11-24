@@ -1,8 +1,9 @@
 from base64 import b64encode
 from collections.abc import Callable
-from typing import Any, cast
+from typing import Any
 
 from algokit_common.constants import KMD_DEFAULT_WALLET_DRIVER
+from algokit_common.serde import to_wire
 from algokit_kmd_client.client import KmdClient
 from algokit_kmd_client.models._create_wallet_request import CreateWalletRequest
 from algokit_kmd_client.models._export_key_request import ExportKeyRequest
@@ -13,7 +14,11 @@ from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionComposer
+from algokit_utils.transactions.transaction_composer import (
+    PaymentParams,
+    TransactionComposer,
+    TransactionComposerParams,
+)
 
 __all__ = ["KmdAccount", "KmdAccountManager"]
 
@@ -93,8 +98,8 @@ class KmdAccountManager:
         matched_address = None
         if predicate:
             for address in addresses:
-                account_info = self._client_manager.algod.account_info(address)
-                if predicate(cast(dict[str, Any], account_info)):
+                account_info = self._client_manager.algod.account_information(address)
+                if predicate(to_wire(account_info)):
                     matched_address = address
                     break
         else:
@@ -148,9 +153,11 @@ class KmdAccountManager:
 
         dispenser = self.get_localnet_dispenser_account()
         TransactionComposer(
-            algod=self._client_manager.algod,
-            get_signer=lambda _: dispenser.signer,
-            get_suggested_params=self._client_manager.algod.suggested_params,
+            TransactionComposerParams(
+                algod=self._client_manager.algod,
+                get_signer=lambda _: dispenser.signer,
+                get_suggested_params=self._client_manager.algod.suggested_params,
+            )
         ).add_payment(
             PaymentParams(
                 sender=dispenser.address,

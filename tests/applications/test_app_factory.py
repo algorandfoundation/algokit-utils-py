@@ -1,10 +1,10 @@
 from pathlib import Path
 
-import algosdk
 import pytest
-from algosdk.logic import get_application_address
-from algosdk.transaction import OnComplete
 
+import algokit_algosdk as algosdk
+from algokit_algod_client import models as algod_models
+from algokit_transact import OnApplicationComplete
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -97,9 +97,9 @@ def test_create_app(factory: AppFactory) -> None:
     )
 
     assert app_client.app_id > 0
-    assert app_client.app_address == get_application_address(app_client.app_id)
-    assert isinstance(result.confirmation, dict)
-    assert result.confirmation.get("application-index", 0) == app_client.app_id
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
+    assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
+    assert result.confirmation.app_id == app_client.app_id
     assert result.compiled_approval is not None
     assert result.compiled_clear is not None
 
@@ -137,7 +137,7 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
 def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
     app_client, result = factory.send.bare.create(
         params=AppFactoryCreateParams(
-            on_complete=OnComplete.OptInOC,
+            on_complete=OnApplicationComplete.OptIn,
         ),
         compilation_params={
             "updatable": True,
@@ -148,12 +148,12 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
         },
     )
 
-    assert result.transaction.application_call
-    assert result.transaction.application_call.on_complete == OnComplete.OptInOC
+    assert result.transaction.app_call
+    assert result.transaction.app_call.on_complete == OnApplicationComplete.OptIn
     assert app_client.app_id > 0
-    assert app_client.app_address == get_application_address(app_client.app_id)
-    assert isinstance(result.confirmation, dict)
-    assert result.confirmation.get("application-index", 0) == app_client.app_id
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
+    assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
+    assert result.confirmation.app_id == app_client.app_id
 
 
 def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
@@ -183,7 +183,7 @@ def test_deploy_app_create(factory: AppFactory) -> None:
     assert deploy_result.create_result
     assert deploy_result.create_result.app_id > 0
     assert app_client.app_id == deploy_result.create_result.app_id
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
 
 
 def test_deploy_app_create_abi(factory: AppFactory) -> None:
@@ -200,9 +200,10 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     create_result = deploy_result.create_result
     assert create_result is not None
     assert deploy_result.app.app_id > 0
-    app_index = create_result.confirmation["application-index"]  # type: ignore[call-overload]
+    assert create_result.confirmation.app_id is not None
+    app_index = create_result.confirmation.app_id
     assert app_client.app_id == deploy_result.app.app_id == app_index
-    assert app_client.app_address == get_application_address(app_client.app_id)
+    assert app_client.app_address == algosdk.logic.get_application_address(app_client.app_id)
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:
@@ -236,7 +237,8 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.app.updated_round != update_deploy_result.app.updated_round
     assert create_deploy_result.app.created_round == update_deploy_result.app.created_round
     assert update_deploy_result.update_result.confirmation
-    confirmed_round = update_deploy_result.update_result.confirmation["confirmed-round"]  # type: ignore[call-overload]
+    assert update_deploy_result.update_result.confirmation.confirmed_round is not None
+    confirmed_round = update_deploy_result.update_result.confirmation.confirmed_round
     assert update_deploy_result.app.updated_round == confirmed_round
 
 
@@ -301,11 +303,12 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert update_deploy_result.update_result.confirmation is not None
     assert update_deploy_result.app.created_round == create_deploy_result.app.created_round
     assert update_deploy_result.app.updated_round != update_deploy_result.app.created_round
+    assert update_deploy_result.update_result.confirmation.confirmed_round is not None
+    assert update_deploy_result.app.updated_round == update_deploy_result.update_result.confirmation.confirmed_round
+    assert update_deploy_result.update_result.transaction.app_call
     assert (
-        update_deploy_result.app.updated_round == update_deploy_result.update_result.confirmation["confirmed-round"]  # type: ignore[call-overload]
+        update_deploy_result.update_result.transaction.app_call.on_complete == OnApplicationComplete.UpdateApplication
     )
-    assert update_deploy_result.update_result.transaction.application_call
-    assert update_deploy_result.update_result.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
     assert update_deploy_result.update_result.abi_return == "args_io"
 
 
@@ -342,10 +345,10 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
         len(replace_deploy_result.create_result.transactions) + len(replace_deploy_result.delete_result.transactions)
         == 2
     )
-    assert replace_deploy_result.delete_result.transaction.application_call
-    assert replace_deploy_result.delete_result.transaction.application_call.index == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.app_call
+    assert replace_deploy_result.delete_result.transaction.app_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
+        replace_deploy_result.delete_result.transaction.app_call.on_complete == OnApplicationComplete.DeleteApplication
     )
 
 
@@ -384,10 +387,10 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
         len(replace_deploy_result.create_result.transactions) + len(replace_deploy_result.delete_result.transactions)
         == 2
     )
-    assert replace_deploy_result.delete_result.transaction.application_call
-    assert replace_deploy_result.delete_result.transaction.application_call.index == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.app_call
+    assert replace_deploy_result.delete_result.transaction.app_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
+        replace_deploy_result.delete_result.transaction.app_call.on_complete == OnApplicationComplete.DeleteApplication
     )
     assert replace_deploy_result.create_result.abi_return == "arg_io"
     assert replace_deploy_result.delete_result.abi_return == "arg2_io"

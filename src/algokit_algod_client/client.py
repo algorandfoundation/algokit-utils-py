@@ -1,6 +1,8 @@
 # AUTO-GENERATED: oas_generator
 
 
+from base64 import b64encode
+from collections.abc import Sequence
 from dataclasses import is_dataclass
 from typing import Any, Literal, TypeVar, overload
 
@@ -17,6 +19,14 @@ from .types import Headers
 ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
 PrimitiveT = TypeVar("PrimitiveT")
+
+# Prefixed markers used when converting unhashable msgpack map keys into hashable tuples
+_UNHASHABLE_PREFIXES: dict[str, str] = {
+    "dict": "__dict_key__",
+    "list": "__list_key__",
+    "set": "__set_key__",
+    "generic": "__unhashable__",
+}
 
 
 class AlgodClient:
@@ -424,6 +434,106 @@ class AlgodClient:
 
     # public
 
+    def _get_application_box_by_name(
+        self,
+        application_id: int,
+        name: str,
+    ) -> models.Box:
+        """
+        Get box information for a given application.
+        """
+
+        path = "/v2/applications/{application-id}/box"
+        path = path.replace("{application-id}", str(application_id))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+        if name is not None:
+            params["name"] = name
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.Box)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def _raw_transaction(
+        self,
+        body: bytes,
+    ) -> models.RawTransactionResponseModel:
+        """
+        Broadcasts a raw transaction or transaction group to the network.
+        """
+
+        path = "/v2/transactions"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/x-binary"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "POST",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "is_binary": True,
+                },
+                body_media_types,
+            )
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.RawTransactionResponseModel)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def _transaction_params(
+        self,
+    ) -> models.TransactionParamsResponseModel:
+        """
+        Get parameters for constructing a new transaction
+        """
+
+        path = "/v2/transactions/params"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._client.request(**request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.TransactionParamsResponseModel)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
     def account_application_information(
         self,
         address: str,
@@ -599,39 +709,6 @@ class AlgodClient:
         response = self._client.request(**request_kwargs)
         if response.is_success:
             return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_application_box_by_name(
-        self,
-        application_id: int,
-        name: str,
-    ) -> models.Box:
-        """
-        Get box information for a given application.
-        """
-
-        path = "/v2/applications/{application-id}/box"
-        path = path.replace("{application-id}", str(application_id))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if name is not None:
-            params["name"] = name
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.Box)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -914,7 +991,7 @@ class AlgodClient:
     def get_ledger_state_delta(
         self,
         round_: int,
-    ) -> models.LedgerStateDelta:
+    ) -> bytes:
         """
         Get a LedgerStateDelta object for a given round
         """
@@ -941,14 +1018,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LedgerStateDelta)
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta_for_transaction_group(
         self,
         id_: str,
-    ) -> models.LedgerStateDelta:
+    ) -> bytes:
         """
         Get a LedgerStateDelta object for a given transaction group
         """
@@ -975,7 +1052,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LedgerStateDelta)
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1223,7 +1300,7 @@ class AlgodClient:
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
         round_: int,
-    ) -> models.GetTransactionGroupLedgerStateDeltasForRoundResponseModel:
+    ) -> bytes:
         """
         Get LedgerStateDelta objects for all transaction groups in a given round
         """
@@ -1250,9 +1327,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(
-                response, model=models.GetTransactionGroupLedgerStateDeltasForRoundResponseModel
-            )
+            return self._decode_response(response, raw_msgpack=True)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1416,46 +1491,6 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def raw_transaction(
-        self,
-        body: bytes,
-    ) -> models.RawTransactionResponseModel:
-        """
-        Broadcasts a raw transaction or transaction group to the network.
-        """
-
-        path = "/v2/transactions"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/x-binary"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "is_binary": True,
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.RawTransactionResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def raw_transaction_async(
         self,
         body: bytes,
@@ -1596,7 +1631,6 @@ class AlgodClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "SimulateRequest",
                 },
                 body_media_types,
@@ -1749,7 +1783,6 @@ class AlgodClient:
                 request_kwargs,
                 body,
                 {
-                    "is_binary": False,
                     "model": "DryrunRequest",
                 },
                 body_media_types,
@@ -1758,33 +1791,6 @@ class AlgodClient:
         response = self._client.request(**request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.TealDryrunResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def transaction_params(
-        self,
-    ) -> models.TransactionParamsResponseModel:
-        """
-        Get parameters for constructing a new transaction
-        """
-
-        path = "/v2/transactions/params"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.TransactionParamsResponseModel)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1845,6 +1851,60 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
+    def send_raw_transaction(
+        self,
+        stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
+    ) -> models.RawTransactionResponseModel:
+        """
+        Send a signed transaction or array of signed transactions to the network.
+        """
+
+        payload: bytes
+        if isinstance(stx_or_stxs, bytes | bytearray | memoryview):
+            payload = bytes(stx_or_stxs)
+        elif isinstance(stx_or_stxs, Sequence):
+            segments: list[bytes] = []
+            for value in stx_or_stxs:
+                if not isinstance(value, bytes | bytearray | memoryview):
+                    raise TypeError("All sequence elements must be bytes-like")
+                segments.append(bytes(value))
+            payload = b"".join(segments)
+        else:
+            raise TypeError("stx_or_stxs must be bytes or a sequence of bytes-like values")
+
+        return self._raw_transaction(payload)
+
+    def get_application_box_by_name(
+        self,
+        application_id: int,
+        box_name: bytes | bytearray | memoryview | str,
+    ) -> models.Box:
+        """
+        Given an application ID and box name, return the corresponding box details.
+        """
+
+        box_bytes = box_name.encode() if isinstance(box_name, str) else bytes(box_name)
+        encoded_name = "b64:" + b64encode(box_bytes).decode("ascii")
+        return self._get_application_box_by_name(application_id, name=encoded_name)
+
+    def suggested_params(self) -> models.SuggestedParams:
+        """
+        Return the common parameters required for assembling a transaction.
+        """
+
+        txn_params = self._transaction_params()
+        last_round = txn_params.last_round
+        return models.SuggestedParams(
+            consensus_version=txn_params.consensus_version,
+            fee=txn_params.fee,
+            genesis_hash=txn_params.genesis_hash,
+            genesis_id=txn_params.genesis_id,
+            min_fee=txn_params.min_fee,
+            flat_fee=False,
+            first_valid=last_round,
+            last_valid=last_round + 1000,
+        )
+
     def _assign_body(
         self,
         request_kwargs: dict[str, Any],
@@ -1887,6 +1947,7 @@ class AlgodClient:
         *,
         model: type[ModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> ModelT: ...
 
     @overload
@@ -1896,6 +1957,7 @@ class AlgodClient:
         *,
         list_model: type[ListModelT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> list[ListModelT]: ...
 
     @overload
@@ -1905,6 +1967,7 @@ class AlgodClient:
         *,
         type_: type[PrimitiveT],
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> PrimitiveT: ...
 
     @overload
@@ -1913,6 +1976,15 @@ class AlgodClient:
         response: httpx.Response,
         *,
         is_binary: Literal[True],
+        raw_msgpack: bool = False,
+    ) -> bytes: ...
+
+    @overload
+    def _decode_response(
+        self,
+        response: httpx.Response,
+        *,
+        raw_msgpack: Literal[True],
     ) -> bytes: ...
 
     @overload
@@ -1922,6 +1994,7 @@ class AlgodClient:
         *,
         type_: None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object: ...
 
     def _decode_response(
@@ -1932,12 +2005,28 @@ class AlgodClient:
         list_model: type[Any] | None = None,
         type_: type[Any] | None = None,
         is_binary: bool = False,
+        raw_msgpack: bool = False,
     ) -> object:
-        if is_binary:
+        if is_binary or raw_msgpack:
             return response.content
         content_type = response.headers.get("content-type", "application/json")
         if "msgpack" in content_type:
-            data = msgpack.unpackb(response.content, raw=True, strict_map_key=False)
+            # Handle msgpack unpacking with support for unhashable keys
+            # Use Unpacker for more control over the unpacking process
+            unpacker = msgpack.Unpacker(
+                raw=True,
+                strict_map_key=False,
+                object_pairs_hook=self._msgpack_pairs_hook,
+            )
+            unpacker.feed(response.content)
+            try:
+                data = unpacker.unpack()
+            except TypeError:
+                # If unpacking fails due to unhashable keys, try without the hook
+                # and handle in normalization
+                unpacker = msgpack.Unpacker(raw=True, strict_map_key=False)
+                unpacker.feed(response.content)
+                data = unpacker.unpack()
             data = self._normalize_msgpack(data)
         elif content_type.startswith("application/json"):
             data = response.json()
@@ -1952,11 +2041,36 @@ class AlgodClient:
         return data
 
     def _normalize_msgpack(self, value: object) -> object:
+        # Handle pairs returned from msgpack_pairs_hook when keys are unhashable
+        _pair_length = 2
+        if isinstance(value, list) and value and isinstance(value[0], tuple | list) and len(value[0]) == _pair_length:
+            # Convert to dict with normalized keys
+            pairs_dict: dict[object, object] = {}
+            for pair in value:
+                if isinstance(pair, tuple | list) and len(pair) == _pair_length:
+                    k, v = pair
+                    # For unhashable keys (like dict keys), use a tuple representation
+                    try:
+                        normalized_key = self._coerce_msgpack_key(k)
+                        pairs_dict[normalized_key] = self._normalize_msgpack(v)
+                    except TypeError:
+                        # Key is unhashable - use tuple representation
+                        normalized_key = ("__unhashable__", id(k), str(k))
+                        pairs_dict[normalized_key] = self._normalize_msgpack(v)
+            return pairs_dict
         if isinstance(value, dict):
-            normalized: dict[object, object] = {}
-            for key, item in value.items():
-                normalized[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
-            return normalized
+            # Safely normalize maps: coerce string/bytes keys, but tolerate complex/unhashable keys
+            try:
+                normalized_dict: dict[object, object] = {}
+                for key, item in value.items():
+                    normalized_dict[self._coerce_msgpack_key(key)] = self._normalize_msgpack(item)
+                return normalized_dict
+            except TypeError:
+                # Some maps can decode to object/dict keys; keep original keys and
+                # only normalize values to avoid "unhashable type: 'dict'" errors.
+                for k, item in list(value.items()):
+                    value[k] = self._normalize_msgpack(item)
+                return value
         if isinstance(value, list):
             return [self._normalize_msgpack(item) for item in value]
         return value
@@ -1968,3 +2082,36 @@ class AlgodClient:
             except UnicodeDecodeError:
                 return key
         return key
+
+    def _msgpack_pairs_hook(self, pairs: list[tuple[object, object]] | list[list[object]]) -> dict[object, object]:
+        # Convert pairs to dict, handling unhashable keys by converting them to hashable tuples
+        out: dict[object, object] = {}
+        _hashable_type_tuple = (str, int, float, bool, type(None), bytes)
+
+        for k, v in pairs:
+            if isinstance(k, dict | list | set):
+                # Convert unhashable key to hashable tuple
+                hashable_key: tuple[str, object]
+                if isinstance(k, dict):
+                    try:
+                        hashable_key = (_UNHASHABLE_PREFIXES["dict"], tuple(sorted(k.items())))
+                    except TypeError:
+                        hashable_key = (_UNHASHABLE_PREFIXES["dict"], str(k))
+                elif isinstance(k, list):
+                    prefix = _UNHASHABLE_PREFIXES["list"]
+                    hashable_key = (prefix, tuple(k) if all(isinstance(x, _hashable_type_tuple) for x in k) else str(k))
+                else:  # set
+                    prefix = _UNHASHABLE_PREFIXES["set"]
+                    if all(isinstance(x, _hashable_type_tuple) for x in k):
+                        hashable_key = (prefix, tuple(sorted(k)))
+                    else:
+                        hashable_key = (prefix, str(k))
+                out[hashable_key] = v
+            else:
+                # Key should be hashable, use as-is
+                try:
+                    out[k] = v
+                except TypeError:
+                    # Unexpected unhashable type, convert to tuple
+                    out[(_UNHASHABLE_PREFIXES["generic"], str(type(k).__name__), str(k))] = v
+        return out

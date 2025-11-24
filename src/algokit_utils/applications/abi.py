@@ -1,18 +1,16 @@
 from __future__ import annotations
 
+import base64
 import typing
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeAlias
-
-import algosdk.abi
-from algosdk.atomic_transaction_composer import ABIResult
+from typing import TypeAlias, cast
 
 import algokit_abi
+import algokit_algosdk as algosdk
+from algokit_algod_client import models as algod_models
 from algokit_utils.applications.app_spec import arc56
-
-if TYPE_CHECKING:
-    from algokit_utils.models.state import BoxName
+from algokit_utils.models.state import BoxName
 
 ABIValue: TypeAlias = (
     bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"]
@@ -22,9 +20,72 @@ Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
 ABIType: TypeAlias = algokit_abi.ABIType
 ABIArgumentType: TypeAlias = algokit_abi.ABIType | arc56.TransactionType | arc56.ReferenceType
+AlgorandABIMethod: TypeAlias = algosdk.abi.Method
+ConfirmationResponse: TypeAlias = algod_models.PendingTransactionResponse
+
+ABI_RETURN_HASH = b"\x15\x1f\x7c\x75"
+ABI_RETURN_PREFIX_LENGTH = len(ABI_RETURN_HASH)
+
+
+@dataclass(slots=True)
+class ABIResult:
+    tx_id: str
+    raw_value: bytes
+    return_value: ABIValue | None
+    decode_error: Exception | None
+    tx_info: ConfirmationResponse
+    method: AlgorandABIMethod
+
+
+def parse_abi_method_result(method: AlgorandABIMethod, tx_id: str, txn: ConfirmationResponse) -> ABIResult:
+    raw_value = b""
+    return_value: ABIValue | None = None
+    decode_error: Exception | None = None
+
+    try:
+        if method.returns.type == algosdk.abi.Returns.VOID:
+            return ABIResult(
+                tx_id=tx_id,
+                raw_value=raw_value,
+                return_value=return_value,
+                decode_error=decode_error,
+                tx_info=txn,
+                method=method,
+            )
+
+        logs = txn.logs or []
+        if not logs:
+            raise ValueError("App call transaction did not log a return value")
+
+        last_log = logs[-1]
+        if last_log is None:
+            raise ValueError("App call transaction did not log a return value")
+
+        result_bytes = (
+            bytes(last_log) if isinstance(last_log, bytes | bytearray | memoryview) else base64.b64decode(last_log)
+        )
+        if len(result_bytes) < ABI_RETURN_PREFIX_LENGTH or result_bytes[:ABI_RETURN_PREFIX_LENGTH] != ABI_RETURN_HASH:
+            raise ValueError("App call transaction did not log a return value")
+
+        raw_value = result_bytes[ABI_RETURN_PREFIX_LENGTH:]
+        method_return_type = cast(algosdk.abi.ABIType, method.returns.type)
+        return_value = method_return_type.decode(raw_value)
+    except Exception as err:
+        decode_error = err
+
+    return ABIResult(
+        tx_id=tx_id,
+        raw_value=raw_value,
+        return_value=return_value,
+        decode_error=decode_error,
+        tx_info=txn,
+        method=method,
+    )
+
 
 __all__ = [
     "ABIArgumentType",
+    "ABIResult",
     "ABIReturn",
     "ABIStruct",
     "ABIType",
@@ -34,6 +95,7 @@ __all__ = [
     "get_abi_decoded_value",
     "get_abi_encoded_value",
     "get_arc56_value",
+    "parse_abi_method_result",
     "prepare_value_for_atc",
 ]
 
@@ -49,13 +111,12 @@ class ABIReturn:
     """The raw return value from the method call"""
     value: ABIValue | None = None
     """The decoded return value from the method call"""
-    # TODO: replace with arc56 method
-    method: algosdk.abi.Method | None = None
+    method: AlgorandABIMethod | None = None
     """The ABI method definition"""
     decode_error: Exception | None = None
     """The exception that occurred during decoding, if any"""
-    tx_info: dict[str, Any] | None = None
-    """The transaction info for the method call from raw algosdk `ABIResult`"""
+    tx_info: ConfirmationResponse | None = None
+    """The transaction info for the method call"""
 
     def __init__(self, result: ABIResult) -> None:
         self.decode_error = result.decode_error
@@ -159,16 +220,15 @@ def prepare_value_for_atc(value: typing.Any, abi_type: algokit_abi.ABIType) -> t
             for key, field_type in abi_type.fields.items():
                 if key not in value:
                     raise ValueError(f"Missing value for field '{key}'")
-                value = prepare_value_for_atc(value[key], field_type)
-                result.append(value)
+                field_value = prepare_value_for_atc(value[key], field_type)
+                result.append(field_value)
             return result
         return [prepare_value_for_atc(v, t) for v, t in zip(value, abi_type.fields.values(), strict=True)]
-    elif isinstance(abi_type, algokit_abi.TupleType):
+    if isinstance(abi_type, algokit_abi.TupleType):
         return [prepare_value_for_atc(v, t) for v, t in zip(value, abi_type.elements, strict=True)]
-    elif isinstance(abi_type, algokit_abi.StaticArrayType | algokit_abi.DynamicArrayType):
+    if isinstance(abi_type, algokit_abi.StaticArrayType | algokit_abi.DynamicArrayType):
         return [prepare_value_for_atc(v, abi_type.element) for v in value]
-    else:
-        return value
+    return value
 
 
 @dataclass(kw_only=True, frozen=True)

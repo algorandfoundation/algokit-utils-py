@@ -1,7 +1,14 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 RawSchema = dict[str, Any]
+
+
+class ClientType(str, Enum):
+    ALGOD_CLIENT = "algod_client"
+    INDEXER_CLIENT = "indexer_client"
+    KMD_CLIENT = "kmd_client"
 
 
 @dataclass(slots=True)
@@ -98,6 +105,7 @@ class ResponseDescriptor:
     media_types: list[str]
     description: str | None
     is_binary: bool = False
+    is_raw_msgpack: bool = False
     model: str | None = None
     list_model: str | None = None
     enum: str | None = None
@@ -123,6 +131,7 @@ class OperationDescriptor:
     format_default: str | None = None
     format_required: bool = False
     format_single: str | None = None
+    is_private: bool = False
 
 
 @dataclass(slots=True)
@@ -146,4 +155,4 @@ class ClientDescriptor:
     uses_signed_transaction: bool = False
     uses_msgpack: bool = False
     include_block_models: bool = False
-    include_ledger_state_delta_models: bool = False
+    is_algod_client: bool = False

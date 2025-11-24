@@ -9,17 +9,18 @@ requires-python = "~=3.10.0"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-  "py-algorand-sdk>=2.11.0,<3",
   "httpx>=0.23.1,<=0.28.1",
   "msgpack>=1.0.0,<2",
   "msgpack-types>=0.2.0,<=0.5.0",
   "pynacl>=1.4.0,<2",
+  "pycryptodomex>=3.19,<4",
   "typing-extensions>=4.6.0",
 ]
 
 [dependency-groups]
 cicd = [
     "algokit>=2.9.1",
+    "py-algorand-sdk>=2.11,<3",
 ]
 dev = [
   "pytest>=8,<9",
@@ -58,6 +59,7 @@ build-backend = "uv_build"
 module-name = [
   "algokit_abi",
   "algokit_algod_client",
+  "algokit_algosdk",
   "algokit_common",
   "algokit_indexer_client",
   "algokit_kmd_client",
@@ -141,6 +143,7 @@ extend-exclude = [
   ".mypy_cache",
   ".ruff_cache",
   "tests/artifacts",
+  "src/algokit_algosdk",
 ]
 # Assume Python 3.10.
 target-version = "py310"
@@ -255,7 +258,7 @@ norecursedirs = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts"]
+exclude = ["dist", "tests/artifacts", "src/algokit_algosdk"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -271,10 +274,10 @@ mypy_path = [
   "src",
 ]
 
-untyped_calls_exclude = ["algosdk"]
+untyped_calls_exclude = ["algokit_algosdk"]
 
 [[tool.mypy.overrides]]
-module = ["algosdk", "algosdk.*"]
+module = ["algokit_algosdk", "algokit_algosdk.*"]
 disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]

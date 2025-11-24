@@ -100,7 +100,7 @@ def _encode_box_references(
     if not raw_refs:
         return None
 
-    app_refs = tuple(app_call.app_references or ())
+    app_refs = app_call.app_references or []
     encoded: list[dict[str, object]] = []
     for raw in raw_refs:
         ref = _normalize_box_reference(app_call, raw)
@@ -109,7 +109,7 @@ def _encode_box_references(
     return encoded
 
 
-def _decode_box_references(value: object) -> tuple[_WireBoxReference, ...] | None:
+def _decode_box_references(value: object) -> list[_WireBoxReference] | None:
     if value is None:
         return None
     if isinstance(value, list):
@@ -121,7 +121,7 @@ def _decode_box_references(value: object) -> tuple[_WireBoxReference, ...] | Non
             name_payload = item.get("n", b"")
             name = _coerce_bytes(name_payload) or b""
             entries.append(_WireBoxReference(index=index, name=name))
-        return tuple(entries) if entries else None
+        return list(entries) if entries else None
     return None
 
 
@@ -144,7 +144,7 @@ def _encode_access_references(
     return builder.entries or None
 
 
-def _decode_access_references(value: object) -> tuple[ResourceReference, ...] | None:  # noqa: C901, PLR0912, PLR0915
+def _decode_access_references(value: object) -> list[ResourceReference] | None:  # noqa: C901, PLR0912, PLR0915
     if value is None:
         return None
     if not isinstance(value, list):
@@ -248,7 +248,7 @@ def _decode_access_references(value: object) -> tuple[ResourceReference, ...] | 
                 app_id = app_entry.app_id
             result.append(ResourceReference(box=BoxReference(app_id=app_id, name=name)))
 
-    return tuple(result) if result else None
+    return list(result) if result else None
 
 
 @dataclass(slots=True, frozen=True)
@@ -261,12 +261,12 @@ class AppCallTransactionFields:
     clear_state_program: bytes | None = field(default=None, metadata=wire("apsu"))
     global_state_schema: StateSchema | None = field(default=None, metadata=nested("apgs", StateSchema))
     local_state_schema: StateSchema | None = field(default=None, metadata=nested("apls", StateSchema))
-    args: tuple[bytes, ...] | None = field(default=None, metadata=bytes_seq("apaa"))
-    account_references: tuple[str, ...] | None = field(default=None, metadata=addr_seq("apat"))
-    app_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apfa"))
-    asset_references: tuple[int, ...] | None = field(default=None, metadata=int_seq("apas"))
+    args: list[bytes] | None = field(default=None, metadata=bytes_seq("apaa"))
+    account_references: list[str] | None = field(default=None, metadata=addr_seq("apat"))
+    app_references: list[int] | None = field(default=None, metadata=int_seq("apfa"))
+    asset_references: list[int] | None = field(default=None, metadata=int_seq("apas"))
     extra_program_pages: int | None = field(default=None, metadata=wire("apep"))
-    box_references: tuple[BoxReference, ...] | None = field(
+    box_references: list[BoxReference] | None = field(
         default=None,
         metadata=wire(
             "apbx",
@@ -275,7 +275,7 @@ class AppCallTransactionFields:
             pass_obj=True,
         ),
     )
-    access: tuple[ResourceReference, ...] | None = field(
+    access: list[ResourceReference] | None = field(
         default=None,
         metadata=wire(
             "al",
@@ -287,31 +287,29 @@ class AppCallTransactionFields:
 
     def __post_init__(self) -> None:
         if self.box_references:
-            normalized_boxes = tuple(
+            normalized_boxes = [
                 _normalize_box_reference(self, item) for item in _coerce_box_sequence(self.box_references)
-            )
+            ]
             object.__setattr__(self, "box_references", normalized_boxes or None)
         if self.access:
-            normalized_access = tuple(
-                _normalize_resource_reference(item) for item in _coerce_resource_sequence(self.access)
-            )
+            normalized_access = [_normalize_resource_reference(item) for item in _coerce_resource_sequence(self.access)]
             object.__setattr__(self, "access", normalized_access or None)
 
 
 def _coerce_box_sequence(
     boxes: Iterable[BoxReference | _WireBoxReference],
-) -> tuple[BoxReference | _WireBoxReference, ...]:
-    if isinstance(boxes, tuple):
+) -> list[BoxReference | _WireBoxReference]:
+    if isinstance(boxes, list):
         return boxes
-    return tuple(boxes)
+    return list(boxes)
 
 
 def _coerce_resource_sequence(
     resources: Iterable[ResourceReference],
-) -> tuple[ResourceReference, ...]:
-    if isinstance(resources, tuple):
+) -> list[ResourceReference]:
+    if isinstance(resources, list):
         return resources
-    return tuple(resources)
+    return list(resources)
 
 
 def _normalize_box_reference(
@@ -335,7 +333,7 @@ def _normalize_resource_reference(ref: ResourceReference) -> ResourceReference:
 def _map_box_index_to_app_id(index: int, app_call: AppCallTransactionFields) -> int:
     if index == 0:
         return app_call.app_id
-    app_refs = tuple(app_call.app_references or ())
+    app_refs = app_call.app_references or []
     pos = index - 1
     if pos < 0 or pos >= len(app_refs):
         raise DecodeError("Box reference index is out of bounds for application references")
@@ -345,7 +343,7 @@ def _map_box_index_to_app_id(index: int, app_call: AppCallTransactionFields) -> 
 def _map_box_app_id_to_index(
     app_id: int,
     app_call: AppCallTransactionFields,
-    app_refs: tuple[int, ...],
+    app_refs: list[int],
 ) -> int:
     if app_id in (0, app_call.app_id):
         return 0

@@ -1,13 +1,14 @@
 import base64
 import json
 import random
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-import algosdk
 import pytest
-from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
+import algokit_algosdk as algosdk
+from algokit_transact.models.transaction import Transaction
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
@@ -24,7 +25,13 @@ from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.models.state import BoxReference
-from algokit_utils.transactions.transaction_composer import AppCallMethodCallParams, AppCreateParams, PaymentParams
+from algokit_utils.protocols.signer import TransactionSigner
+from algokit_utils.transactions.transaction_composer import (
+    AppCallMethodCallParams,
+    AppCreateParams,
+    PaymentParams,
+    TransactionWithSigner,
+)
 
 
 @pytest.fixture
@@ -61,8 +68,10 @@ def hello_world_arc32_app_id(
 ) -> int:
     global_schema = hello_world_arc32_app_spec.state.schema.global_state
     local_schema = hello_world_arc32_app_spec.state.schema.local_state
-    approval = hello_world_arc32_app_spec.source.get_decoded_approval()
-    clear = hello_world_arc32_app_spec.source.get_decoded_clear()
+    source = hello_world_arc32_app_spec.source
+    assert source is not None, "App spec is missing source content"
+    approval = source.get_decoded_approval()
+    clear = source.get_decoded_clear()
     assert approval is not None, "Approval program must be defined in the app spec"
     assert clear is not None, "Clear state program must be defined in the app spec"
     response = algorand.send.app_create(
@@ -361,8 +370,8 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert isinstance(call.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
+    assert call.transactions[0].app_call
+    assert call.transactions[0].app_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
     # Test with string box reference
     call2 = test_app_client.create_transaction.call(
@@ -373,8 +382,8 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert isinstance(call2.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call2.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
+    assert call2.transactions[0].app_call
+    assert call2.transactions[0].app_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
 
 def test_construct_transaction_with_abi_encoding_including_transaction(
@@ -420,15 +429,13 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
         )
     )
 
-    called_indexes = []
+    called_indexes: list[int] = []
     original_signer = algorand.account.get_signer(funded_account.address)
 
     class IndexCapturingSigner(TransactionSigner):
-        def sign_transactions(
-            self, txn_group: list[algosdk.transaction.Transaction], indexes: list[int]
-        ) -> list[algosdk.transaction.GenericSignedTransaction]:
+        def __call__(self, txn_group: Sequence[Transaction], indexes: Sequence[int]) -> Sequence[bytes]:
             called_indexes.extend(indexes)
-            return original_signer.sign_transactions(txn_group, indexes)
+            return original_signer(txn_group, indexes)
 
     test_app_client.send.call(
         AppClientMethodCallParams(

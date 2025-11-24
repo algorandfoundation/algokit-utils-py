@@ -5,9 +5,8 @@ from enum import IntFlag
 from pathlib import Path
 from typing import Any, Literal, TypeAlias, TypedDict
 
-from algosdk.abi import Contract
-from algosdk.abi.method import MethodDict
-from algosdk.transaction import StateSchema
+import algokit_algosdk as algosdk
+from algokit_transact.models.common import StateSchema
 
 __all__ = [
     "AppSpecStateDict",
@@ -22,13 +21,17 @@ __all__ = [
     "StructArgDict",
 ]
 
+Contract: TypeAlias = algosdk.abi.Contract
+MethodDict: TypeAlias = algosdk.abi.method.MethodDict
+
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 """Type defining Application Specification state entries"""
 
 
 class CallConfig(IntFlag):
-    """Describes the type of calls a method can be used for based on {py:class}`algosdk.transaction.OnComplete` type"""
+    """Describes the type of calls a method can be used for based
+    on {py:class}`algosdk.transaction.OnApplicationComplete` type"""
 
     NEVER = 0
     """Never handle the specified on completion type"""

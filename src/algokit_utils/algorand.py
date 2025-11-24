@@ -2,10 +2,9 @@ import copy
 import time
 
 import typing_extensions
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.transaction import SuggestedParams
-from algosdk.v2client.algod import AlgodClient
 
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import models as algod_models
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client.client import KmdClient
 from algokit_utils.accounts.account_manager import AccountManager
@@ -15,9 +14,11 @@ from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     ErrorTransformer,
     TransactionComposer,
+    TransactionComposerParams,
 )
 from algokit_utils.transactions.transaction_creator import AlgorandClientTransactionCreator
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
@@ -48,7 +49,7 @@ class AlgorandClient:
             new_group=lambda: self.new_group(),
         )
 
-        self._cached_suggested_params: SuggestedParams | None = None
+        self._cached_suggested_params: algod_models.SuggestedParams | None = None
         self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
         self._default_validity_window: int | None = None
@@ -113,7 +114,7 @@ class AlgorandClient:
         return self
 
     def set_suggested_params_cache(
-        self, suggested_params: SuggestedParams, until: float | None = None
+        self, suggested_params: algod_models.SuggestedParams, until: float | None = None
     ) -> typing_extensions.Self:
         """
         Sets a cache value to use for suggested params.
@@ -140,7 +141,7 @@ class AlgorandClient:
         self._cached_suggested_params_timeout = timeout
         return self
 
-    def get_suggested_params(self) -> SuggestedParams:
+    def get_suggested_params(self) -> algod_models.SuggestedParams:
         """
         Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
 
@@ -186,11 +187,14 @@ class AlgorandClient:
         """
 
         return TransactionComposer(
-            algod=self.client.algod,
-            get_signer=lambda addr: self.account.get_signer(addr),
-            get_suggested_params=self.get_suggested_params,
-            default_validity_window=self._default_validity_window,
-            error_transformers=list(self._error_transformers),
+            TransactionComposerParams(
+                algod=self.client.algod,
+                get_signer=lambda addr: self.account.get_signer(addr),
+                get_suggested_params=self.get_suggested_params,
+                default_validity_window=self._default_validity_window,
+                app_manager=self._app_manager,
+                error_transformers=list(self._error_transformers),
+            )
         )
 
     @property
