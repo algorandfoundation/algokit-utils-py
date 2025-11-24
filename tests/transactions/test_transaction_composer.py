@@ -399,3 +399,67 @@ def test_error_transformers_chaining(algorand: AlgorandClient, funded_account: S
 
     with pytest.raises(Exception, match="ASSET MISSING!"):
         composer.simulate()
+
+
+def test_error_transformers_applied_on_send(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def transformer(error: Exception) -> Exception:
+        if "missing from" in str(error):
+            return Exception("ASSET MISSING ON SEND")
+        return error
+
+    composer = algorand.new_group()
+    composer.register_error_transformer(transformer)
+    composer.add_asset_transfer(
+        AssetTransferParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=1,
+            asset_id=9999999,
+        )
+    )
+
+    with pytest.raises(Exception, match="ASSET MISSING ON SEND"):
+        composer.send({"max_rounds_to_wait": 0})
+
+
+def test_simulate_does_not_throw_when_disabled(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    composer = algorand.new_group()
+    composer.add_asset_transfer(
+        AssetTransferParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=1,
+            asset_id=9999999,
+        )
+    )
+
+    result = composer.simulate(throw_on_failure=False)
+    assert result.simulate_response is not None
+
+
+def test_clone_keeps_groups_independent(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    payment_txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=funded_account.address,
+            receiver=funded_account.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+
+    composer1 = algorand.new_group()
+    composer1.add_transaction(payment_txn)
+    composer1.add_payment(
+        PaymentParams(sender=funded_account.address, receiver=funded_account.address, amount=AlgoAmount.from_algo(1))
+    )
+
+    composer2 = composer1.clone()
+    composer2.add_payment(
+        PaymentParams(sender=funded_account.address, receiver=funded_account.address, amount=AlgoAmount.from_algo(2))
+    )
+
+    group1 = composer1.build().transactions[0].group
+    group2 = composer2.build().transactions[0].group
+
+    assert group1 is not None
+    assert group2 is not None
+    assert group1 != group2
