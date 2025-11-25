@@ -215,9 +215,11 @@ class Returns:
 class Actions:
     """Method actions information."""
 
-    call: Sequence[CallEnum] = field(metadata=serde.sequence("call", CallEnum, omit_empty_seq=False))
+    call: Sequence[CallEnum] = field(default=(), metadata=serde.sequence("call", CallEnum, omit_empty_seq=False))
     """The optional list of allowed call actions"""
-    create: Sequence[CreateEnum] = field(metadata=serde.sequence("create", CreateEnum, omit_empty_seq=False))
+    create: Sequence[CreateEnum] = field(
+        default=(), metadata=serde.sequence("create", CreateEnum, omit_empty_seq=False)
+    )
     """The optional list of allowed create actions"""
 
 
@@ -289,7 +291,7 @@ class Method:
         desc (string, optional): optional description of the method
     """
 
-    actions: Actions
+    actions: Actions = field(default_factory=Actions)
     """The allowed actions"""
     args: Sequence[Argument] = field(metadata=serde.nested_sequence("args", Argument))
     """The method arguments"""
@@ -475,9 +477,9 @@ class Source:
 class Global:
     """Global state schema."""
 
-    bytes: int = field(metadata=wire("bytes", keep_zero=True))
+    bytes: int = field(default=0, metadata=wire("bytes", keep_zero=True))
     """The number of byte slices in global state"""
-    ints: int = field(metadata=wire("ints", keep_zero=True))
+    ints: int = field(default=0, metadata=wire("ints", keep_zero=True))
     """The number of integers in global state"""
 
 
@@ -485,9 +487,9 @@ class Global:
 class Local:
     """Local state schema."""
 
-    bytes: int = field(metadata=wire("bytes", keep_zero=True))
+    bytes: int = field(default=0, metadata=wire("bytes", keep_zero=True))
     """The number of byte slices in local state"""
-    ints: int = field(metadata=wire("ints", keep_zero=True))
+    ints: int = field(default=0, metadata=wire("ints", keep_zero=True))
     """The number of integers in local state"""
 
 
@@ -495,9 +497,9 @@ class Local:
 class Schema:
     """Application state schema."""
 
-    global_state: Global = field(metadata=nested("global", Global))
+    global_state: Global = field(default_factory=Global, metadata=nested("global", Global))
     """The global state schema"""
-    local_state: Local = field(metadata=nested("local", Local))
+    local_state: Local = field(default_factory=Local, metadata=nested("local", Local))
     """The local state schema"""
 
 
@@ -570,11 +572,11 @@ class StorageMap:
 class Keys:
     """Storage keys for different storage types."""
 
-    box: dict[str, StorageKey] = field(metadata=serde.mapping("box", StorageKey))
+    box: dict[str, StorageKey] = field(default_factory=dict, metadata=serde.mapping("box", StorageKey))
     """The box storage keys"""
-    global_state: dict[str, StorageKey] = field(metadata=serde.mapping("global", StorageKey))
+    global_state: dict[str, StorageKey] = field(default_factory=dict, metadata=serde.mapping("global", StorageKey))
     """The global state storage keys"""
-    local_state: dict[str, StorageKey] = field(metadata=serde.mapping("local", StorageKey))
+    local_state: dict[str, StorageKey] = field(default_factory=dict, metadata=serde.mapping("local", StorageKey))
     """The local state storage keys"""
 
 
@@ -582,11 +584,11 @@ class Keys:
 class Maps:
     """Storage maps for different storage types."""
 
-    box: dict[str, StorageMap] = field(metadata=serde.mapping("box", StorageMap))
+    box: dict[str, StorageMap] = field(default_factory=dict, metadata=serde.mapping("box", StorageMap))
     """The box storage maps"""
-    global_state: dict[str, StorageMap] = field(metadata=serde.mapping("global", StorageMap))
+    global_state: dict[str, StorageMap] = field(default_factory=dict, metadata=serde.mapping("global", StorageMap))
     """The global state storage maps"""
-    local_state: dict[str, StorageMap] = field(metadata=serde.mapping("local", StorageMap))
+    local_state: dict[str, StorageMap] = field(default_factory=dict, metadata=serde.mapping("local", StorageMap))
     """The local state storage maps"""
 
 
@@ -594,11 +596,11 @@ class Maps:
 class State:
     """Application state information."""
 
-    keys: Keys
+    keys: Keys = field(default_factory=Keys)
     """The storage keys"""
-    maps: Maps
+    maps: Maps = field(default_factory=Maps)
     """The storage maps"""
-    schema: Schema
+    schema: Schema = field(default_factory=Schema)
     """The state schema"""
 
 
@@ -625,24 +627,24 @@ class SourceInfoModel:
 _HasStructField = Argument | Returns | EventArg
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Arc56Contract:
     """ARC-0056 application specification.
 
     See https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md
     """
 
-    arcs: list[int] = field(metadata=serde.sequence("arcs", int, omit_empty_seq=False))
+    arcs: list[int] = field(default_factory=list, metadata=serde.sequence("arcs", int, omit_empty_seq=False))
     """The list of supported ARC version numbers"""
-    bare_actions: Actions = field(metadata=nested("bareActions", Actions))
+    bare_actions: Actions = field(default_factory=Actions, metadata=nested("bareActions", Actions))
     """The bare call and create actions"""
     methods: list[Method] = field(metadata=serde.nested_sequence("methods", Method))
     """The list of contract methods"""
     name: str
     """The contract name"""
-    state: State
+    state: State = field(default_factory=State)
     """The contract state information"""
-    structs: dict[str, abi.StructType] = field(metadata=serde.struct_metadata)
+    structs: dict[str, abi.StructType] = field(default_factory=dict, metadata=serde.struct_metadata)
     """The contract struct definitions"""
     byte_code: ByteCode | None = field(default=None, metadata=nested("byteCode", ByteCode))
     """The optional bytecode for approval and clear programs"""
