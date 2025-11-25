@@ -27,6 +27,7 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 - decoding `ufixed` types now returns a `decimal.Decimal` instead of an `int`
 - encoding `ufixed` types now accepts a `decimal.Decimal` or an `int`
 - tuple types decode to `tuple` instead of `list`
+- Should we move all ABI-related abstractions into `algokit_abi` and keep aliases in utils for any previously user-facing types? This would match the Rust approach and fully leverage owning `algokit_abi` now that we're decoupled from algosdk.
 
 ### ABI return naming
 
