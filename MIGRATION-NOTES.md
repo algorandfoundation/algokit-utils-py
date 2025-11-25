@@ -27,6 +27,7 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 - decoding `ufixed` types now returns a `decimal.Decimal` instead of an `int`
 - encoding `ufixed` types now accepts a `decimal.Decimal` or an `int`
 - tuple types decode to `tuple` instead of `list`
+- Clarify on whether we are ok with dropping arc32 contracts from type unions in app spec params in app factory and app client
 
 ### ABI return naming
 

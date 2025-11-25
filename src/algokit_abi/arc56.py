@@ -7,10 +7,14 @@ from dataclasses import dataclass, field
 from functools import cached_property
 
 from Cryptodome.Hash import SHA512
+from typing_extensions import deprecated
 
 from algokit_abi import _abi_type as abi
 from algokit_abi import _arc56_serde as serde
 from algokit_common import from_wire, nested, to_wire, wire
+
+if typing.TYPE_CHECKING:
+    from algokit_abi import arc32
 
 __all__ = [
     "ENUM_ALIASES",
@@ -684,6 +688,13 @@ class Arc56Contract:
     @staticmethod
     def from_json(application_spec: str) -> "Arc56Contract":
         return Arc56Contract.from_dict(json.loads(application_spec))
+
+    @staticmethod
+    @deprecated("Arc32 contracts are being deprecated; prefer converting to Arc56 instead.")
+    def from_arc32(arc32_application_spec: typing.Union[str, "arc32.Arc32Contract"]) -> "Arc56Contract":
+        from algokit_abi import arc32_to_arc56
+
+        return arc32_to_arc56(arc32_application_spec)
 
     def to_json(self, indent: int | None = None) -> str:
         return json.dumps(self.dictify(), indent=indent)
