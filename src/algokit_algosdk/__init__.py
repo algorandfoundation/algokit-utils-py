@@ -6,7 +6,6 @@ The contents of this package are cherry-picked from
 """
 
 from . import (
-    abi,
     account,
     box_reference,
     constants,
@@ -28,7 +27,6 @@ from .signer import (
 )
 
 __all__ = [
-    "abi",
     "account",
     "box_reference",
     "constants",

@@ -7,7 +7,6 @@ from typing import Any, Literal, TypeAlias, TypedDict
 
 from typing_extensions import deprecated
 
-import algokit_algosdk as algosdk
 from algokit_transact.models.common import StateSchema
 
 __all__ = [
@@ -23,9 +22,7 @@ __all__ = [
     "StructArgDict",
 ]
 
-Contract: TypeAlias = algosdk.abi.Contract
-MethodDict: TypeAlias = algosdk.abi.method.MethodDict
-
+from algokit_utils.applications.app_spec import arc56
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 """Type defining Application Specification state entries"""
@@ -67,7 +64,7 @@ class DefaultArgumentDict(TypedDict):
     """
 
     source: DefaultArgumentType
-    data: int | str | bytes | MethodDict
+    data: int | str | bytes | dict
 
 
 StateDict = TypedDict(  # need to use function-form of TypedDict here since "global" is a reserved keyword
@@ -152,7 +149,7 @@ class Arc32Contract:
 
     approval_program: str
     clear_program: str
-    contract: Contract
+    contract: arc56.Arc56Contract  # only contains ARC-4 subset of ARC-56
     hints: dict[str, MethodHints]
     schema: StateDict
     global_state_schema: StateSchema
@@ -187,7 +184,7 @@ class Arc32Contract:
             schema=json_spec["schema"],
             global_state_schema=_decode_state_schema(json_spec["state"]["global"]),
             local_state_schema=_decode_state_schema(json_spec["state"]["local"]),
-            contract=Contract.undictify(json_spec["contract"]),
+            contract=arc56.Arc56Contract.from_dict(json_spec["contract"]),
             hints={k: MethodHints.undictify(v) for k, v in json_spec["hints"].items()},
             bare_call_config=_decode_method_config(json_spec.get("bare_call_config", {})),
         )
