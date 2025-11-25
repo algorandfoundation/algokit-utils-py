@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from algokit_abi import arc56
 from algokit_utils._debugging import (
     PersistSourceMapInput,
     cleanup_old_trace_files,
@@ -16,7 +17,6 @@ from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_client import AppClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (

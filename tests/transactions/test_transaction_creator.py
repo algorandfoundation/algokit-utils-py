@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from algokit_abi import arc56
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (

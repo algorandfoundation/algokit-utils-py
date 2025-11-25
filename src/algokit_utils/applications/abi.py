@@ -10,8 +10,8 @@ from typing import TypeAlias, cast
 from typing_extensions import deprecated
 
 import algokit_abi
+from algokit_abi import arc56
 from algokit_algod_client import models as algod_models
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.state import BoxName
 
 ABIValue: TypeAlias = (

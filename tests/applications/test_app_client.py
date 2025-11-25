@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc32, arc32_to_arc56, arc56
 from algokit_transact.models.transaction import Transaction
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
@@ -19,10 +20,6 @@ from algokit_utils.applications.app_client import (
 )
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec import arc56
-from algokit_utils.applications.app_spec._arc32_to_arc56 import arc32_to_arc56
-from algokit_utils.applications.app_spec.arc32 import Arc32Contract
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
@@ -59,14 +56,14 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def hello_world_arc32_app_spec() -> Arc56Contract:
+def hello_world_arc32_app_spec() -> arc56.Arc56Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
     return arc32_to_arc56(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc32_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc32_app_spec: arc56.Arc56Contract
 ) -> int:
     global_schema = hello_world_arc32_app_spec.state.schema.global_state
     local_schema = hello_world_arc32_app_spec.state.schema.local_state
@@ -99,14 +96,14 @@ def raw_testing_app_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def testing_app_arc32_app_spec() -> Arc32Contract:
+def testing_app_arc32_app_spec() -> arc32.Arc32Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "app_spec.arc32.json"
-    return Arc32Contract.from_json(raw_json_spec.read_text())
+    return arc32.Arc32Contract.from_json(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def testing_app_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_arc32_app_spec: Arc32Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_arc32_app_spec: arc32.Arc32Contract
 ) -> int:
     global_schema = testing_app_arc32_app_spec.global_state_schema
     local_schema = testing_app_arc32_app_spec.local_state_schema
@@ -138,7 +135,7 @@ def testing_app_arc32_app_id(
 def test_app_client(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    testing_app_arc32_app_spec: Arc32Contract,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
     return AppClient(
@@ -156,7 +153,7 @@ def test_app_client(
 def test_app_client_with_sourcemaps(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    testing_app_arc32_app_spec: Arc32Contract,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
     sourcemaps = json.loads(
@@ -176,14 +173,14 @@ def test_app_client_with_sourcemaps(
 
 
 @pytest.fixture
-def testing_app_puya_arc32_app_spec() -> Arc32Contract:
+def testing_app_puya_arc32_app_spec() -> arc32.Arc32Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "app_spec.arc32.json"
-    return Arc32Contract.from_json(raw_json_spec.read_text())
+    return arc32.Arc32Contract.from_json(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def testing_app_puya_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: Arc32Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: arc32.Arc32Contract
 ) -> int:
     global_schema = testing_app_puya_arc32_app_spec.global_state_schema
     local_schema = testing_app_puya_arc32_app_spec.local_state_schema
@@ -208,7 +205,7 @@ def testing_app_puya_arc32_app_id(
 def test_app_client_puya(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    testing_app_puya_arc32_app_spec: Arc32Contract,
+    testing_app_puya_arc32_app_spec: arc32.Arc32Contract,
     testing_app_puya_arc32_app_id: int,
 ) -> AppClient:
     return AppClient(
@@ -225,7 +222,7 @@ def test_app_client_puya(
 def test_clone_overriding_default_sender_and_inheriting_app_name(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    hello_world_arc32_app_spec: Arc56Contract,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
@@ -251,7 +248,7 @@ def test_clone_overriding_default_sender_and_inheriting_app_name(
 def test_clone_overriding_app_name(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    hello_world_arc32_app_spec: Arc56Contract,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
@@ -277,7 +274,7 @@ def test_clone_overriding_app_name(
 def test_clone_inheriting_app_name_based_on_default_handling(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
-    hello_world_arc32_app_spec: Arc56Contract,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
@@ -339,22 +336,22 @@ def test_group_simulate_matches_send(
 
 def test_normalise_app_spec(
     raw_hello_world_arc32_app_spec: str,
-    hello_world_arc32_app_spec: Arc56Contract,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
 ) -> None:
     normalized_app_spec_from_arc32 = AppClient.normalise_app_spec(hello_world_arc32_app_spec)
-    assert isinstance(normalized_app_spec_from_arc32, Arc56Contract)
+    assert isinstance(normalized_app_spec_from_arc32, arc56.Arc56Contract)
 
     normalize_app_spec_from_raw_arc32 = AppClient.normalise_app_spec(raw_hello_world_arc32_app_spec)
-    assert isinstance(normalize_app_spec_from_raw_arc32, Arc56Contract)
+    assert isinstance(normalize_app_spec_from_raw_arc32, arc56.Arc56Contract)
 
 
 def test_resolve_from_network(
     algorand: AlgorandClient,
     hello_world_arc32_app_id: int,
-    hello_world_arc32_app_spec: Arc56Contract,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
 ) -> None:
     arc56_app_spec = hello_world_arc32_app_spec
-    arc56_app_spec.networks = {"localnet": Network(app_id=hello_world_arc32_app_id)}
+    arc56_app_spec.networks = {"localnet": arc56.Network(app_id=hello_world_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -723,10 +720,10 @@ def test_abi_with_default_arg_method(
     algorand: AlgorandClient,
     funded_account: SigningAccount,
     testing_app_arc32_app_id: int,
-    testing_app_arc32_app_spec: Arc32Contract,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
 ) -> None:
     arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": Network(app_id=testing_app_arc32_app_id)}
+    arc56_app_spec.networks = {"localnet": arc56.Network(app_id=testing_app_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -770,13 +767,13 @@ def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> Non
 
 
 @pytest.fixture
-def nested_struct_app_spec() -> Arc56Contract:
+def nested_struct_app_spec() -> arc56.Arc56Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "nested_struct" / "nested_struct.arc56.json"
-    return Arc56Contract.from_json(raw_json_spec.read_text())
+    return arc56.Arc56Contract.from_json(raw_json_spec.read_text())
 
 
 def test_nested_structs_described_by_structure(
-    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: arc56.Arc56Contract
 ) -> None:
     """Test nested struct when described by structure."""
     factory = algorand.client.get_app_factory(app_spec=nested_struct_app_spec, default_sender=funded_account.address)
@@ -804,7 +801,7 @@ def test_app_client_error_transformer_logic_error_enhancement(test_app_client_wi
 
 
 def test_nested_structs_referenced_by_name(
-    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: arc56.Arc56Contract
 ) -> None:
     """Test nested struct when referenced by name."""
     edited_spec_dict = nested_struct_app_spec.dictify()
@@ -822,7 +819,7 @@ def test_nested_structs_referenced_by_name(
             }
         ],
     }
-    edited_spec = Arc56Contract.from_json(json.dumps(edited_spec_dict))
+    edited_spec = arc56.Arc56Contract.from_json(json.dumps(edited_spec_dict))
     factory = algorand.client.get_app_factory(app_spec=edited_spec, default_sender=funded_account.address)
     app_client, _ = factory.send.create(AppFactoryCreateMethodCallParams(method="createApplication", args=[]))
     app_client.send.call(AppClientMethodCallParams(method="setValue", args=[1, "hello"]))

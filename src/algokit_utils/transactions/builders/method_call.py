@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Any, TypeAlias, cast
 
 import algokit_abi
+from algokit_abi import arc56
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 from algokit_transact.models.transaction import TransactionType
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.transactions.builders.app import _compile_program, _convert_box_references
 from algokit_utils.transactions.builders.common import (
     BuiltTransaction,

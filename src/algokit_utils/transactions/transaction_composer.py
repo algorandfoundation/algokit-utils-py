@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
@@ -18,7 +19,6 @@ from algokit_transact.ops.group import group_transactions
 from algokit_transact.ops.ids import get_transaction_id
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount

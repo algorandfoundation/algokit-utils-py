@@ -8,6 +8,7 @@ from typing_extensions import Self
 
 import algokit_abi
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
 from algokit_utils.algorand import AlgorandClient
@@ -39,7 +40,6 @@ from algokit_utils.applications.app_deployer import (
     OperationPerformed,
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.application import AppSourceMaps
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.signer import TransactionSigner

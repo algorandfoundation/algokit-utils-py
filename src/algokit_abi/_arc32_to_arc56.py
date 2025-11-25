@@ -8,8 +8,8 @@ from enum import Enum
 from typing import Any, Literal, overload
 
 import algokit_abi as abi
+from algokit_abi import arc32, arc56
 from algokit_common import from_wire
-from algokit_utils.applications.app_spec import arc32, arc56
 
 
 class _ActionType(str, Enum):

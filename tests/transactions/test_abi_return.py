@@ -1,6 +1,6 @@
 import algokit_abi
+from algokit_abi import arc56
 from algokit_utils.applications.abi import ABIReturn, ABIValue
-from algokit_utils.applications.app_spec import arc56
 
 
 def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:

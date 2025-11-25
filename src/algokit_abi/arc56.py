@@ -8,9 +8,9 @@ from functools import cached_property
 
 from Cryptodome.Hash import SHA512
 
-import algokit_abi as abi
+from algokit_abi import _abi_type as abi
+from algokit_abi import _arc56_serde as serde
 from algokit_common import from_wire, nested, to_wire, wire
-from algokit_utils.applications.app_spec import _arc56_serde as serde
 
 __all__ = [
     "ENUM_ALIASES",

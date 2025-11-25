@@ -3,11 +3,11 @@ from collections.abc import Mapping, Sequence
 from typing import cast
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
 from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.application import (
     AppInformation,
     AppState,

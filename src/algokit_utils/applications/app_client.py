@@ -10,6 +10,7 @@ from typing_extensions import assert_never
 
 import algokit_abi
 import algokit_algosdk as algosdk
+from algokit_abi import arc32, arc56
 from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
@@ -25,8 +26,6 @@ from algokit_utils.applications.abi import (
     get_abi_encoded_value,
     prepare_value_for_atc,
 )
-from algokit_utils.applications.app_spec import arc56
-from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
 from algokit_utils.models.amount import AlgoAmount
@@ -1253,7 +1252,7 @@ class _TransactionSender:
 class AppClientParams:
     """Full parameters for creating an app client"""
 
-    app_spec: arc56.Arc56Contract | Arc32Contract | str
+    app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str
     """The application specification"""
     algorand: AlgorandClient
     """The Algorand client"""
@@ -1405,7 +1404,7 @@ class AppClient:
         return self._create_transaction_accessor
 
     @staticmethod
-    def normalise_app_spec(app_spec: arc56.Arc56Contract | Arc32Contract | str) -> arc56.Arc56Contract:
+    def normalise_app_spec(app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str) -> arc56.Arc56Contract:
         """Normalize an application specification to ARC-56 format.
 
         :param app_spec: The application specification to normalize. Can be raw arc32 or arc56 json,
@@ -1418,15 +1417,15 @@ class AppClient:
         """
         if isinstance(app_spec, str):
             spec_dict = json.loads(app_spec)
-            spec = Arc32Contract.from_json(app_spec) if "hints" in spec_dict else spec_dict
+            spec = arc32.Arc32Contract.from_json(app_spec) if "hints" in spec_dict else spec_dict
         else:
             spec = app_spec
 
         match spec:
             case arc56.Arc56Contract():
                 return spec
-            case Arc32Contract():
-                from algokit_utils.applications.app_spec._arc32_to_arc56 import arc32_to_arc56
+            case arc32.Arc32Contract():
+                from algokit_abi import arc32_to_arc56
 
                 return arc32_to_arc56(spec.to_json())
             case dict():
@@ -1436,7 +1435,7 @@ class AppClient:
 
     @staticmethod
     def from_network(
-        app_spec: arc56.Arc56Contract | Arc32Contract | str,
+        app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str,
         algorand: AlgorandClient,
         app_name: str | None = None,
         default_sender: str | None = None,
@@ -1510,7 +1509,7 @@ class AppClient:
     def from_creator_and_name(
         creator_address: str,
         app_name: str,
-        app_spec: arc56.Arc56Contract | Arc32Contract | str,
+        app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str,
         algorand: AlgorandClient,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,

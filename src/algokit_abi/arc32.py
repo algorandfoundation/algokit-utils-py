@@ -22,7 +22,7 @@ __all__ = [
     "StructArgDict",
 ]
 
-from algokit_utils.applications.app_spec import arc56
+from algokit_abi import arc56
 
 AppSpecStateDict: TypeAlias = dict[str, dict[str, dict]]
 """Type defining Application Specification state entries"""

@@ -5,12 +5,12 @@ from typing import Any, Generic, TypeVar, cast
 from typing_extensions import Self
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_transact import Transaction
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec import arc56
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
 from algokit_utils.models.transaction import SendParams
