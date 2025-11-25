@@ -81,7 +81,8 @@ class ABIReturn:
         return self._tx_info
 
     def get_arc56_value(self, method: arc56.Method, structs: dict[str, object] | None = None) -> Arc56ReturnValueType:
-        """Gets the ARC-56 formatted return value."""
+        """Deprecated: use `value` directly."""
+        _warn_deprecated("ABIReturn.get_arc56_value is deprecated; use `ABIReturn.value` instead.")
         return get_arc56_value(self, method, structs)
 
 
@@ -196,28 +197,17 @@ def parse_abi_method_result(method: Arc56Method, tx_id: str, txn: ConfirmationRe
     return ABIResult.from_abireturn(abi_return, tx_id)
 
 
+@deprecated("get_arc56_value is deprecated; use ABIReturn.value instead.")
 def get_arc56_value(
     abi_return: ABIReturn, method: arc56.Method, structs: dict[str, object] | None = None
 ) -> Arc56ReturnValueType:
-    """Gets the ARC-56 formatted return value from an ABI return.
-
-    :param abi_return: The ABI return value to decode
-    :param method: The ABI method definition
-    :param structs: Unused; accepted for compatibility with generated clients
-    :raises ValueError: If there was an error decoding the return value
-    :return: The decoded return value in ARC-56 format
-    """
+    """Deprecated: use `ABIReturn.value` instead."""
+    _warn_deprecated("get_arc56_value is deprecated; use ABIReturn.value instead.")
+    _ = method  # Accepted for compatibility with generated clients
     _ = structs  # Accepted for compatibility with generated clients
-    return_type = method.returns.type if method.returns else arc56.Void
-    if return_type == arc56.Void:
-        return None
     if abi_return.decode_error:
         raise ValueError(abi_return.decode_error)
-    if abi_return.value is not None:
-        return abi_return.value
-    if not isinstance(return_type, algokit_abi.ABIType):
-        raise ValueError("Invalid ABI return type")
-    return return_type.decode(abi_return.raw_value)  # type: ignore[no-any-return]
+    return abi_return.value
 
 
 __all__ = [

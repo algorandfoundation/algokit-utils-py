@@ -21,7 +21,7 @@
 | [`extract_abi_return_from_logs`](#algokit_utils.applications.abi.extract_abi_return_from_logs)(→ ABIReturn)   | Decode ABI return value from a transaction confirmation log.   |
 |---------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
 | [`parse_abi_method_result`](#algokit_utils.applications.abi.parse_abi_method_result)(→ ABIResult)             | Deprecated: use extract_abi_return_from_logs instead.          |
-| [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)                  | Gets the ARC-56 formatted return value from an ABI return.     |
+| [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)                  | Deprecated: use ABIReturn.value instead.                       |
 | [`get_abi_encoded_value`](#algokit_utils.applications.abi.get_abi_encoded_value)(→ bytes)                     | Encodes a value according to its ABI type.                     |
 | [`get_abi_decoded_value`](#algokit_utils.applications.abi.get_abi_decoded_value)(→ ABIValue)                  | Decodes a value according to its ABI type.                     |
 | [`prepare_value_for_atc`](#algokit_utils.applications.abi.prepare_value_for_atc)(→ Any)                       | Recursively converts any structs present in value to a tuple,  |
@@ -63,7 +63,7 @@ Deprecated: transaction info now lives on the send result.
 
 #### get_arc56_value(method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method), structs: dict[str, object] | None = None) → Arc56ReturnValueType
 
-Gets the ARC-56 formatted return value.
+Deprecated: use value directly.
 
 ### *class* algokit_utils.applications.abi.ABIResult(\*, tx_id: str | None = None, raw_value: bytes = b'', value: ABIValue | None = None, decode_error: Exception | None = None, tx_info: ConfirmationResponse | None = None, method: Arc56Method | None = None)
 
@@ -85,16 +85,7 @@ Deprecated: use extract_abi_return_from_logs instead.
 
 ### algokit_utils.applications.abi.get_arc56_value(abi_return: [ABIReturn](#algokit_utils.applications.abi.ABIReturn), method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method), structs: dict[str, object] | None = None) → Arc56ReturnValueType
 
-Gets the ARC-56 formatted return value from an ABI return.
-
-* **Parameters:**
-  * **abi_return** – The ABI return value to decode
-  * **method** – The ABI method definition
-  * **structs** – Unused; accepted for compatibility with generated clients
-* **Raises:**
-  **ValueError** – If there was an error decoding the return value
-* **Returns:**
-  The decoded return value in ARC-56 format
+Deprecated: use ABIReturn.value instead.
 
 ### algokit_utils.applications.abi.get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | [algokit_utils.applications.app_spec.arc56.AVMType](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.AVMType)) → bytes
 

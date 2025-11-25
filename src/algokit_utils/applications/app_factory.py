@@ -165,6 +165,7 @@ class AppFactoryDeployResult:
             | None,
             params: Any,  # noqa: ANN401
         ) -> Any | None:  # noqa: ANN401
+            _ = params  # kept for compatibility
             if not response_data:
                 return None
 
@@ -173,7 +174,9 @@ class AppFactoryDeployResult:
             }
             abi_return = response_data.abi_return
             if abi_return and abi_return.method:
-                response_data_dict["abi_return"] = abi_return.get_arc56_value(params.method)
+                if abi_return.decode_error:
+                    raise ValueError(abi_return.decode_error)
+                response_data_dict["abi_return"] = abi_return.value
 
             match response_data:
                 case SendAppCreateTransactionResult():
@@ -1072,20 +1075,27 @@ class AppFactory:
         ],
         method: arc56.Method,
     ) -> AppFactoryCreateMethodCallResult[Arc56ReturnValueType]:
+        _ = method  # kept for compatibility
         """
         Parse the method call return value and convert the ABI return.
 
         :param result: A callable that returns the transaction result.
         :param method: The ABI method associated with the call.
         :return: An AppFactoryCreateMethodCallResult with the parsed ABI return.
+        :raises ValueError: If ABI return decoding failed.
         """
         result_value = result()
+        abi_return_value: Arc56ReturnValueType
+        if isinstance(result_value.abi_return, ABIReturn):
+            if result_value.abi_return.decode_error:
+                raise ValueError(result_value.abi_return.decode_error)
+            abi_return_value = result_value.abi_return.value
+        else:
+            abi_return_value = None
         return AppFactoryCreateMethodCallResult[Arc56ReturnValueType](
             **{
                 **result_value.__dict__,
-                "abi_return": result_value.abi_return.get_arc56_value(method)
-                if isinstance(result_value.abi_return, ABIReturn)
-                else None,
+                "abi_return": abi_return_value,
             }
         )
 

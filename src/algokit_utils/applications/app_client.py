@@ -2178,13 +2178,20 @@ class AppClient:
         result: Callable[[], SendAppUpdateTransactionResult[ABIReturn] | SendAppTransactionResult[ABIReturn]],
         method: arc56.Method,
     ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType] | SendAppTransactionResult[Arc56ReturnValueType]:
+        _ = method  # kept for compatibility
         result_value = result()
-        abi_return = (
-            result_value.abi_return.get_arc56_value(method) if isinstance(result_value.abi_return, ABIReturn) else None
-        )
+        abi_return_value: Arc56ReturnValueType
+        if isinstance(result_value.abi_return, ABIReturn):
+            if result_value.abi_return.decode_error:
+                raise ValueError(result_value.abi_return.decode_error)
+            abi_return_value = result_value.abi_return.value
+        else:
+            abi_return_value = None
 
         if isinstance(result_value, SendAppUpdateTransactionResult):
             return SendAppUpdateTransactionResult[Arc56ReturnValueType](
-                **{**result_value.__dict__, "abi_return": abi_return}
+                **{**result_value.__dict__, "abi_return": abi_return_value}
             )
-        return SendAppTransactionResult[Arc56ReturnValueType](**{**result_value.__dict__, "abi_return": abi_return})
+        return SendAppTransactionResult[Arc56ReturnValueType](
+            **{**result_value.__dict__, "abi_return": abi_return_value}
+        )
