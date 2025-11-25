@@ -446,8 +446,7 @@ def _prepare_value_for_encoding(abi_type: ABIType, value: Any) -> Any:  # noqa: 
         }
     if isinstance(abi_type, algokit_abi.TupleType):
         return [
-            _prepare_value_for_encoding(element_type, value[idx])
-            for idx, element_type in enumerate(abi_type.elements)
+            _prepare_value_for_encoding(element_type, value[idx]) for idx, element_type in enumerate(abi_type.elements)
         ]
     if isinstance(abi_type, algokit_abi.StaticArrayType | algokit_abi.DynamicArrayType):
         return [_prepare_value_for_encoding(abi_type.element, v) for v in value]

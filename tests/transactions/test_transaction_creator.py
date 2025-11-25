@@ -242,7 +242,7 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
         AppCallMethodCallParams(
             sender=funded_account.address,
             app_id=app_id,
-                method=arc56.Method.from_signature("hello(string)string"),
+            method=arc56.Method.from_signature("hello(string)string"),
             args=["world"],
         )
     )
