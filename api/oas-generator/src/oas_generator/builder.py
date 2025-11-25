@@ -36,6 +36,7 @@ class TypeInfo:
 LEDGER_STATE_DELTA_MODEL_NAMES: set[str] = {
     "LedgerStateDelta",
     "LedgerStateDeltaForTransactionGroup",
+    "GetTransactionGroupLedgerStateDeltasForRound",
     "GetTransactionGroupLedgerStateDeltasForRoundResponseModel",
 }
 
@@ -488,6 +489,7 @@ class OperationBuilder:
         self.uses_signed_transaction = False
         self.uses_msgpack = False
         self.uses_block_models = False
+        self.uses_ledger_state_delta = False
         self.uses_literal = False
 
     def build(self) -> list[ctx.OperationGroup]:
@@ -661,11 +663,17 @@ class OperationBuilder:
                 media_types = ["application/msgpack"]
             if "application/msgpack" in media_types:
                 self.uses_msgpack = True
+            self.uses_ledger_state_delta = True
+            model_name = (
+                "GetTransactionGroupLedgerStateDeltasForRound"
+                if operation_id == "GetTransactionGroupLedgerStateDeltasForRound"
+                else "LedgerStateDelta"
+            )
             return ctx.ResponseDescriptor(
-                type_hint="bytes",
+                type_hint=model_name,
                 media_types=media_types,
                 description=payload.get("description"),
-                is_raw_msgpack=True,
+                model=model_name,
             )
         if operation_id == "GetBlock" and schema is not None:
             self.uses_block_models = True
@@ -740,5 +748,6 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
+        include_ledger_state_delta=operation_builder.uses_ledger_state_delta,
         is_algod_client=client_key == ctx.ClientType.ALGOD_CLIENT,
     )

@@ -21,14 +21,14 @@ def test_block_endpoint(base_url: str, block_rounds: list[int]) -> None:
     for block_round in block_rounds:
         resp = algod_client.get_block(round_=block_round, header_only=False)
 
-        assert resp.block.state_proof_tracking is not None
-        assert resp.block.transactions is not None
-        assert len(resp.block.transactions) > 0
+        assert resp.block.header.state_proof_tracking is not None
+        assert resp.block.payset is not None
+        assert len(resp.block.payset) > 0
 
-        participation_updates = resp.block.participation_updates
+        participation_updates = resp.block.header.participation_updates
         if participation_updates is not None:
             assert isinstance(participation_updates, ParticipationUpdates)
             if participation_updates.expired_participation_accounts is not None:
-                assert isinstance(participation_updates.expired_participation_accounts, list)
+                assert isinstance(participation_updates.expired_participation_accounts, tuple)
             if participation_updates.absent_participation_accounts is not None:
-                assert isinstance(participation_updates.absent_participation_accounts, list)
+                assert isinstance(participation_updates.absent_participation_accounts, tuple)

@@ -1,6 +1,7 @@
 import pytest
 
 from algokit_algod_client import AlgodClient, ClientConfig
+from algokit_algod_client.models import LedgerStateDelta
 
 
 @pytest.mark.parametrize(
@@ -20,5 +21,6 @@ def test_ledger_state_delta_endpoint(base_url: str, block_rounds: list[int]) -> 
     for block_round in block_rounds:
         raw_delta = algod_client.get_ledger_state_delta(round_=block_round)
 
-        assert isinstance(raw_delta, bytes)
-        assert raw_delta, "ledger state delta response should not be empty"
+        assert isinstance(raw_delta, LedgerStateDelta)
+        assert raw_delta.accounts is not None
+        assert raw_delta.block.header.transactions_root is not None

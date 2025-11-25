@@ -320,7 +320,6 @@ def _parse_reveals(payload: object) -> dict[int, Reveal] | None:
                 item.get("participant") if isinstance(item.get("participant"), Mapping) else None
             ),
             sigslot=_parse_sigslot(item.get("sigslot") if isinstance(item.get("sigslot"), Mapping) else None),
-            position=position,
         )
     return reveals or None
 

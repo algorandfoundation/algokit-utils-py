@@ -991,7 +991,7 @@ class AlgodClient:
     def get_ledger_state_delta(
         self,
         round_: int,
-    ) -> bytes:
+    ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given round
         """
@@ -1018,14 +1018,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.LedgerStateDelta)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta_for_transaction_group(
         self,
         id_: str,
-    ) -> bytes:
+    ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given transaction group
         """
@@ -1052,7 +1052,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.LedgerStateDelta)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1300,7 +1300,7 @@ class AlgodClient:
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
         round_: int,
-    ) -> bytes:
+    ) -> models.GetTransactionGroupLedgerStateDeltasForRound:
         """
         Get LedgerStateDelta objects for all transaction groups in a given round
         """
@@ -1327,7 +1327,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.GetTransactionGroupLedgerStateDeltasForRound)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

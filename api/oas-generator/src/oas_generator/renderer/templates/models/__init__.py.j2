@@ -8,6 +8,9 @@
 {% endif %}{% if client.include_block_models %}from ._block import (
     {{ block_exports | join(',\n    ') }}
 )
+{% endif %}{% if needs_ledger_state_delta %}from ._ledger_state_delta import (
+    {{ ledger_exports | join(',\n    ') }}
+)
 {% endif %}
 
 __all__ = [

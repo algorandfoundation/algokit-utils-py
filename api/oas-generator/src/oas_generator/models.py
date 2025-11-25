@@ -156,3 +156,4 @@ class ClientDescriptor:
     uses_msgpack: bool = False
     include_block_models: bool = False
     is_algod_client: bool = False
+    include_ledger_state_delta: bool = False
