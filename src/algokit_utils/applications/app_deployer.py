@@ -709,6 +709,8 @@ class AppDeployer:
         # TODO: See if empty iterable responses can be changed to empty lists instead of None
         created_apps = self._indexer.search_for_applications(creator=creator_address).applications or []
 
+        encoded_note_prefix = base64.b64encode(APP_DEPLOY_NOTE_DAPP.encode()).decode()
+
         for app in created_apps:
             app_id = app.id_
 
@@ -718,7 +720,7 @@ class AppDeployer:
                 min_round=app.created_at_round,
                 address=creator_address,
                 address_role="sender",
-                note_prefix=APP_DEPLOY_NOTE_DAPP,
+                note_prefix=encoded_note_prefix,
                 limit=1,
             ).transactions
 
