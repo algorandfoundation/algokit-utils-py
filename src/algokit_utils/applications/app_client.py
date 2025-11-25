@@ -1426,7 +1426,9 @@ class AppClient:
             case arc56.Arc56Contract():
                 return spec
             case Arc32Contract():
-                return arc56.Arc56Contract.from_arc32(spec.to_json())
+                from algokit_utils.applications.app_spec._arc32_to_arc56 import arc32_to_arc56
+
+                return arc32_to_arc56(spec.to_json())
             case dict():
                 return arc56.Arc56Contract.from_dict(spec)
             case _:
@@ -1815,13 +1817,9 @@ class AppClient:
             raise ValueError("Clear source map is required")
 
         if not isinstance(source_maps.approval_source_map, dict | SourceMap):
-            raise ValueError(
-                "Approval source map supplied is of invalid type. Must be a raw dict or `SourceMap`"
-            )
+            raise ValueError("Approval source map supplied is of invalid type. Must be a raw dict or `SourceMap`")
         if not isinstance(source_maps.clear_source_map, dict | SourceMap):
-            raise ValueError(
-                "Clear source map supplied is of invalid type. Must be a raw dict or `SourceMap`"
-            )
+            raise ValueError("Clear source map supplied is of invalid type. Must be a raw dict or `SourceMap`")
 
         self._approval_source_map = (
             SourceMap(source_map=source_maps.approval_source_map)

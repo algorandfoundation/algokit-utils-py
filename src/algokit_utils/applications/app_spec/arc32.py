@@ -5,6 +5,8 @@ from enum import IntFlag
 from pathlib import Path
 from typing import Any, Literal, TypeAlias, TypedDict
 
+from typing_extensions import deprecated
+
 import algokit_algosdk as algosdk
 from algokit_transact.models.common import StateSchema
 
@@ -141,6 +143,7 @@ def _decode_state_schema(data: dict[str, int]) -> StateSchema:
     )
 
 
+@deprecated("Arc32Contract is deprecated and will be removed in a future release; migrate to Arc56Contract.")
 @dataclasses.dataclass(kw_only=True)
 class Arc32Contract:
     """ARC-0032 application specification

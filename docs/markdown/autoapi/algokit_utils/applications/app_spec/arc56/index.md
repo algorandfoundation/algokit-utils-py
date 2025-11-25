@@ -355,6 +355,14 @@ SHA-512/256 hash of the method signature.
 Returns:
 : bytes: first four bytes of the method signature hash
 
+#### get_selector() → bytes
+
+Compatibility helper matching algosdk ABI Method API.
+
+#### get_signature() → str
+
+Compatibility helper matching algosdk ABI Method API.
+
 #### *static* from_signature(s: str) → [Method](#algokit_utils.applications.app_spec.arc56.Method)
 
 ### *class* algokit_utils.applications.app_spec.arc56.Compiler
@@ -715,8 +723,6 @@ Create Arc56Contract from dictionary.
   Arc56Contract instance
 
 #### *static* from_json(application_spec: str) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
-
-#### *static* from_arc32(arc32_application_spec: str | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract)) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
 
 #### to_json(indent: int | None = None) → str
 

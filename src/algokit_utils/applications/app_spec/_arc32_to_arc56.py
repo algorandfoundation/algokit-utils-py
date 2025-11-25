@@ -5,12 +5,21 @@ import json
 from base64 import b64encode
 from collections.abc import Mapping, Sequence
 from enum import Enum
-from typing import Any, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 import algokit_abi as abi
 from algokit_common import from_wire
-from algokit_utils import AVMType
 from algokit_utils.applications.app_spec import arc56
+
+if TYPE_CHECKING:
+    from algokit_utils.applications.app_spec.arc32 import Arc32Contract
+
+
+def _avm_type() -> type[arc56.AVMType]:
+    # Lazy import to avoid circular dependency on algokit_utils __init__
+    from algokit_utils.applications.app_spec.arc56 import AVMType
+
+    return AVMType
 
 
 class _ActionType(str, Enum):
@@ -22,6 +31,22 @@ _ARG_ALIASES: Mapping[str, arc56.ReferenceType | arc56.TransactionType] = {
     **{r.value: r for r in arc56.ReferenceType},
     **{t.value: t for t in arc56.TransactionType},
 }
+
+
+__all__ = ["arc32_to_arc56"]
+
+
+def arc32_to_arc56(arc32_application_spec: str | Arc32Contract) -> arc56.Arc56Contract:
+    """Convert an ARC-32 application specification to ARC-56."""
+
+    from algokit_utils.applications.app_spec.arc32 import Arc32Contract as Arc32ContractRuntime
+
+    arc32_json = (
+        arc32_application_spec.to_json()
+        if isinstance(arc32_application_spec, Arc32ContractRuntime)
+        else arc32_application_spec
+    )
+    return _Arc32ToArc56Converter(arc32_json).convert()
 
 
 class _Arc32ToArc56Converter:
@@ -47,11 +72,12 @@ class _Arc32ToArc56Converter:
 
     def _convert_storage_keys(self, schema: dict) -> dict[str, arc56.StorageKey]:
         """Convert ARC32 schema declared fields to ARC56 storage keys."""
+        avm_type = _avm_type()
         return {
             name: arc56.StorageKey(
                 key=b64encode(field["key"].encode()).decode(),
-                _key_type=AVMType.STRING,
-                _value_type=AVMType.UINT64 if field["type"] == "uint64" else AVMType.BYTES,
+                _key_type=avm_type.STRING,
+                _value_type=avm_type.UINT64 if field["type"] == "uint64" else avm_type.BYTES,
                 desc=field.get("descr"),
             )
             for name, field in schema.items()

@@ -11,7 +11,6 @@ from Cryptodome.Hash import SHA512
 import algokit_abi as abi
 from algokit_common import from_wire, nested, to_wire, wire
 from algokit_utils.applications.app_spec import _arc56_serde as serde
-from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 
 __all__ = [
     "ENUM_ALIASES",
@@ -683,16 +682,6 @@ class Arc56Contract:
     @staticmethod
     def from_json(application_spec: str) -> "Arc56Contract":
         return Arc56Contract.from_dict(json.loads(application_spec))
-
-    @staticmethod
-    def from_arc32(arc32_application_spec: str | Arc32Contract) -> "Arc56Contract":
-        from algokit_utils.applications.app_spec._arc32_to_arc56 import _Arc32ToArc56Converter
-
-        return _Arc32ToArc56Converter(
-            arc32_application_spec.to_json()
-            if isinstance(arc32_application_spec, Arc32Contract)
-            else arc32_application_spec
-        ).convert()
 
     def to_json(self, indent: int | None = None) -> str:
         return json.dumps(self.dictify(), indent=indent)

@@ -20,6 +20,7 @@ from algokit_utils.applications.app_client import (
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec import arc56
+from algokit_utils.applications.app_spec._arc32_to_arc56 import arc32_to_arc56
 from algokit_utils.applications.app_spec.arc32 import Arc32Contract
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
@@ -60,7 +61,7 @@ def raw_hello_world_arc32_app_spec() -> str:
 @pytest.fixture
 def hello_world_arc32_app_spec() -> Arc56Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
-    return Arc56Contract.from_arc32(raw_json_spec.read_text())
+    return arc32_to_arc56(raw_json_spec.read_text())
 
 
 @pytest.fixture
@@ -724,7 +725,7 @@ def test_abi_with_default_arg_method(
     testing_app_arc32_app_id: int,
     testing_app_arc32_app_spec: Arc32Contract,
 ) -> None:
-    arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
+    arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
     arc56_app_spec.networks = {"localnet": Network(app_id=testing_app_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,

@@ -140,11 +140,11 @@ Key changes:
 
 `ApplicationSpecification` abstraction is largely identical to v2, however it’s been renamed to `Arc32Contract` to better reflect the fact that it’s a contract specification for a specific ARC and addition of `Arc56Contract` supporting the latest recommended conventions. Hence the main actionable change is to update your import to `from algokit_utils import Arc32Contract` and rename `ApplicationSpecification` to `Arc32Contract`.
 
-You can instantiate an `Arc56Contract` instance from an `Arc32Contract` instance using the `Arc56Contract.from_arc32` method. For instance:
+You can instantiate an `Arc56Contract` instance from an `Arc32Contract` instance using the `arc32_to_arc56` helper. For instance:
 
 ```python
 testing_app_arc32_app_spec = Arc32Contract.from_json(app_spec_json)
-arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
+arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
 ```
 
 > Despite auto conversion of ARC-32 to ARC-56, we recommend recompiling your contract to a fully compliant ARC-56 specification given that auto conversion would skip populating information that can’t be parsed from raw ARC-32.

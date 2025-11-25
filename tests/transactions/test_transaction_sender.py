@@ -9,6 +9,7 @@ from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.app_spec import arc56
+from algokit_utils.applications.app_spec._arc32_to_arc56 import arc32_to_arc56
 from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.models.amount import AlgoAmount
@@ -71,7 +72,7 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 @pytest.fixture
 def hello_world_arc56_app_spec(raw_hello_world_arc32_app_spec: str) -> Arc56Contract:
-    return Arc56Contract.from_arc32(raw_hello_world_arc32_app_spec)
+    return arc32_to_arc56(raw_hello_world_arc32_app_spec)
 
 
 @pytest.fixture
