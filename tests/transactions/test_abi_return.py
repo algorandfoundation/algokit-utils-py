@@ -1,5 +1,5 @@
 import algokit_abi
-from algokit_utils.applications.abi import ABIResult, ABIReturn, ABIValue
+from algokit_utils.applications.abi import ABIReturn, ABIValue
 from algokit_utils.applications.app_spec import arc56
 
 
@@ -8,21 +8,13 @@ def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
     abi_type = algokit_abi.ABIType.from_string(type_str)
     encoded = abi_type.encode(value)
     decoded = abi_type.decode(encoded)
-    result = ABIResult(
-        method=arc56.Method(
-            name="",
-            args=(),
-            returns=arc56.Returns(type=abi_type),
-            actions=arc56.Actions(call=(), create=()),
-        ),
-        raw_value=encoded,
-        return_value=decoded,
-        tx_id="",
-        tx_info=None,
-        decode_error=None,
+    method = arc56.Method(
+        name="",
+        args=(),
+        returns=arc56.Returns(type=abi_type),
+        actions=arc56.Actions(call=(), create=()),
     )
-
-    return ABIReturn(result)
+    return ABIReturn(method=method, raw_value=encoded, value=decoded, decode_error=None)
 
 
 class TestABIReturn:

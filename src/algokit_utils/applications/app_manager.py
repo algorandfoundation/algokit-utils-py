@@ -6,7 +6,7 @@ import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
-from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, parse_abi_method_result
+from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
 from algokit_utils.applications.app_spec import arc56
 from algokit_utils.models.application import (
     AppInformation,
@@ -418,12 +418,7 @@ class AppManager:
         if not method:
             return None
 
-        abi_result = parse_abi_method_result(method, "dummy_txn", confirmation)
-
-        if not abi_result:
-            return None
-
-        return ABIReturn(abi_result)
+        return extract_abi_return_from_logs(confirmation, method)
 
     @staticmethod
     def decode_app_state(state: Sequence[algod_models.TealKeyValue] | None) -> dict[str, AppState]:

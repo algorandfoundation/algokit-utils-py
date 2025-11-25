@@ -238,7 +238,7 @@ Get standardized box reference from various identifier types.
   box_reference = app_manager.get_box_reference(box_name)
   ```
 
-#### *static* get_abi_return(confirmation: algokit_algod_client.models.PendingTransactionResponse, method: algokit_algosdk.abi.Method | None = None) → [algokit_utils.applications.abi.ABIReturn](../abi/index.md#algokit_utils.applications.abi.ABIReturn) | None
+#### *static* get_abi_return(confirmation: algokit_algod_client.models.PendingTransactionResponse, method: [algokit_utils.applications.app_spec.arc56.Method](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method) | None = None) → [algokit_utils.applications.abi.ABIReturn](../abi/index.md#algokit_utils.applications.abi.ABIReturn) | None
 
 Get the ABI return value from a transaction confirmation.
 
