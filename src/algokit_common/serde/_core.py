@@ -383,7 +383,8 @@ def _decode_nested_field(kwargs: dict[str, object], h: _FieldHandler, payload: M
     if isinstance(raw_nested := payload.get(h.nested_alias), Mapping):
         kwargs[h.name] = from_wire(child_cls, raw_nested)
         return
-    kwargs[h.name] = None
+    if not h.omit_if_none:
+        kwargs[h.name] = None
 
 
 def _decode_flatten_field(kwargs: dict[str, object], h: _FieldHandler, payload: Mapping[str, object]) -> None:
