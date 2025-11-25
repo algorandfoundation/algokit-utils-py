@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 import algokit_algosdk as algosdk
+from algokit_transact import OnApplicationComplete
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
@@ -209,7 +210,7 @@ class BaseResourcePackerTest:
             AppClientMethodCallParams(
                 method="addressBalance",
                 args=[algosdk.account.generate_account()[1]],
-                on_complete=algosdk.on_complete.OnComplete.NoOpOC,
+                on_complete=OnApplicationComplete.NoOp,
             ),
         )
 

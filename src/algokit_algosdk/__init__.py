@@ -14,7 +14,6 @@ from . import (
     logicsig,
     mnemonic,
     multisig,
-    on_complete,
     source_map,
     transaction,
 )
@@ -35,7 +34,6 @@ __all__ = [
     "logicsig",
     "mnemonic",
     "multisig",
-    "on_complete",
     "source_map",
     "transaction",
     "TransactionSigner",

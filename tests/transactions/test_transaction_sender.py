@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import algokit_abi
-from algokit_algosdk.on_complete import OnComplete
+from algokit_transact import OnApplicationComplete
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
@@ -436,7 +436,7 @@ def test_app_call(
         AppCallParams(
             app_id=hello_world_arc56_app_id,
             sender=sender.address,
-            on_complete=OnComplete.NoOpOC,
+            on_complete=OnApplicationComplete.NoOp,
             args=[selector, encoded_arg],
         )
     )
