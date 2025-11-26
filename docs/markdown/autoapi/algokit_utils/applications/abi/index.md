@@ -24,13 +24,12 @@
 | [`get_arc56_value`](#algokit_utils.applications.abi.get_arc56_value)(→ Arc56ReturnValueType)                  | Deprecated: use ABIReturn.value instead.                       |
 | [`get_abi_encoded_value`](#algokit_utils.applications.abi.get_abi_encoded_value)(→ bytes)                     | Encodes a value according to its ABI type.                     |
 | [`get_abi_decoded_value`](#algokit_utils.applications.abi.get_abi_decoded_value)(→ ABIValue)                  | Decodes a value according to its ABI type.                     |
-| [`prepare_value_for_atc`](#algokit_utils.applications.abi.prepare_value_for_atc)(→ Any)                       | Recursively converts any structs present in value to a tuple,  |
 
 ## Module Contents
 
-### *type* algokit_utils.applications.abi.ABIValue *= bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue']*
+### *type* algokit_utils.applications.abi.ABIValue *= bool | int | str | bytes | bytearray | list['ABIValue'] | tuple['ABIValue'] | dict[str, 'ABIValue'] | object*
 
-### *type* algokit_utils.applications.abi.ABIStruct *= dict[str, list[dict[str, 'ABIValue']]]*
+### *type* algokit_utils.applications.abi.ABIStruct *= dict[str, list[dict[str, 'ABIValue']]] | object*
 
 ### *type* algokit_utils.applications.abi.Arc56ReturnValueType *= ABIValue | ABIStruct | None*
 
@@ -106,13 +105,6 @@ Decodes a value according to its ABI type.
   * **decode_type** – The ABI type string or type object
 * **Returns:**
   The decoded ABI value
-
-### algokit_utils.applications.abi.prepare_value_for_atc(value: Any, abi_type: algokit_abi.ABIType) → Any
-
-Recursively converts any structs present in value to a tuple,
-so it can be encoded by algosdk (which does not natively support structs)
-
-TODO: can remove this function once algosdk is removed from transact as algokit_abi supports struct natively
 
 ### *class* algokit_utils.applications.abi.BoxABIValue
 
