@@ -289,11 +289,11 @@ def _encode_method_arguments(
     app_references: Sequence[int],
     asset_references: Sequence[int],
 ) -> list[bytes]:
-    encoded_args: list[bytes] = []
+    encoded_args = list[bytes]()
     encoded_args.append(method.get_selector())
 
-    abi_types: list[ABIType] = []
-    abi_values: list = []
+    abi_types = list[ABIType]()
+    abi_values = []
 
     for idx, arg in enumerate(method.args):
         arg_value = method_args[idx] if idx < len(method_args) else None
