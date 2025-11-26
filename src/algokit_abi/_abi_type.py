@@ -486,8 +486,13 @@ class StructType(ABIType):
     def byte_len(self) -> int | None:
         return self._tuple_type.byte_len()
 
-    def encode(self, value: typing.Any) -> bytes:  # noqa: ANN401
-        field_values = tuple(_get_field(value, field_name) for field_name in self.fields)
+    def encode(self, value: dict[str, typing.Any] | tuple | object) -> bytes:
+        if isinstance(value, dict):  # structs as a dictionary mapped by field name
+            field_values = tuple(value[field_name] for field_name in self.fields)
+        elif isinstance(value, tuple):  # structs that have already been converted to a tuple
+            field_values = value
+        else:  # objects with struct field names
+            field_values = tuple(getattr(value, field_name) for field_name in self.fields)
         return self._tuple_type.encode(field_values)
 
     def decode(self, value: BytesLike) -> typing.Any:  # noqa: ANN401
@@ -627,13 +632,6 @@ def _bits_to_byte(bits: int) -> int:
 
 def _round_bits_to_nearest_byte(bits: int) -> int:
     return _bits_to_byte(bits) * 8
-
-
-def _get_field(obj: typing.Any, field_name: str) -> typing.Any:  # noqa: ANN401
-    try:
-        return getattr(obj, field_name)
-    except AttributeError:
-        return obj[field_name]
 
 
 def _error_str(value: object) -> str:

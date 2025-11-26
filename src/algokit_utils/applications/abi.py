@@ -15,9 +15,9 @@ from algokit_algod_client import models as algod_models
 from algokit_utils.models.state import BoxName
 
 ABIValue: TypeAlias = (
-    bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"]
+    bool | int | str | bytes | bytearray | list["ABIValue"] | tuple["ABIValue"] | dict[str, "ABIValue"] | object
 )
-ABIStruct: TypeAlias = dict[str, list[dict[str, "ABIValue"]]]
+ABIStruct: TypeAlias = dict[str, list[dict[str, "ABIValue"]]] | object
 Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
 ABIType: TypeAlias = algokit_abi.ABIType
