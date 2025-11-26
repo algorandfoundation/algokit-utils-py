@@ -24,7 +24,6 @@ from algokit_utils.applications.abi import (
     BoxABIValue,
     get_abi_decoded_value,
     get_abi_encoded_value,
-    prepare_value_for_atc,
 )
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
@@ -2064,8 +2063,6 @@ class AppClient:
             arg_value = args[i] if args and i < len(args) else None
 
             if arg_value is not None:
-                if isinstance(method_arg.type, algokit_abi.ABIType):
-                    arg_value = prepare_value_for_atc(arg_value, method_arg.type)
                 result.append(arg_value)
                 continue
 
@@ -2109,7 +2106,7 @@ class AppClient:
                 if call_result.abi_return is None:
                     raise ValueError("Default value method call did not return a value")
                 assert isinstance(default_method.returns.type, algokit_abi.ABIType)
-                return prepare_value_for_atc(call_result.abi_return, default_method.returns.type)  # type: ignore[no-any-return]
+                return call_result.abi_return
 
             case "local" | "global" | "box":
                 key = base64.b64decode(default_value.data)

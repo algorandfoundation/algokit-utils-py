@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import base64
-import typing
 import warnings
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TypeAlias, cast
 
@@ -224,7 +223,6 @@ __all__ = [
     "get_abi_encoded_value",
     "get_arc56_value",
     "parse_abi_method_result",
-    "prepare_value_for_atc",
 ]
 
 
@@ -271,30 +269,6 @@ def get_abi_decoded_value(
         return value.decode("utf-8")
     assert isinstance(decode_type, algokit_abi.ABIType), "unexpected ABIType"
     return decode_type.decode(value)  # type: ignore[no-any-return]
-
-
-def prepare_value_for_atc(value: typing.Any, abi_type: algokit_abi.ABIType) -> typing.Any:  # noqa: ANN401
-    """
-    Recursively converts any structs present in value to a tuple,
-    so it can be encoded by algosdk (which does not natively support structs)
-
-    TODO: can remove this function once algosdk is removed from transact as algokit_abi supports struct natively
-    """
-    if isinstance(abi_type, algokit_abi.StructType):
-        if isinstance(value, Mapping):
-            result = []
-            for key, field_type in abi_type.fields.items():
-                if key not in value:
-                    raise ValueError(f"Missing value for field '{key}'")
-                field_value = prepare_value_for_atc(value[key], field_type)
-                result.append(field_value)
-            return result
-        return [prepare_value_for_atc(v, t) for v, t in zip(value, abi_type.fields.values(), strict=True)]
-    if isinstance(abi_type, algokit_abi.TupleType):
-        return [prepare_value_for_atc(v, t) for v, t in zip(value, abi_type.elements, strict=True)]
-    if isinstance(abi_type, algokit_abi.StaticArrayType | algokit_abi.DynamicArrayType):
-        return [prepare_value_for_atc(v, abi_type.element) for v in value]
-    return value
 
 
 @dataclass(kw_only=True, frozen=True)

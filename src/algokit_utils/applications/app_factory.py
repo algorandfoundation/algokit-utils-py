@@ -6,7 +6,6 @@ from typing import Any, Generic, TypeVar
 
 from typing_extensions import Self
 
-import algokit_abi
 import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
@@ -16,7 +15,6 @@ from algokit_utils.applications.abi import (
     ABIReturn,
     Arc56ReturnValueType,
     get_abi_decoded_value,
-    prepare_value_for_atc,
 )
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -1116,8 +1114,6 @@ class AppFactory:
             if user_args and i < len(user_args):
                 arg_value = user_args[i]
 
-                if isinstance(param.type, algokit_abi.ABIType):
-                    arg_value = prepare_value_for_atc(arg_value, param.type)
                 results.append(arg_value)
                 continue
 
