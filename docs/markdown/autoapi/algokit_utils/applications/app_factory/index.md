@@ -19,7 +19,7 @@
 
 #### algorand *: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient)*
 
-#### app_spec *: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract) | str*
+#### app_spec *: algokit_abi.arc56.Arc56Contract | str*
 
 #### app_name *: str | None* *= None*
 
@@ -113,7 +113,7 @@ The update result
 
 The delete result
 
-#### *classmethod* from_deploy_result(response: [algokit_utils.applications.app_deployer.AppDeployResult](../app_deployer/index.md#algokit_utils.applications.app_deployer.AppDeployResult), deploy_params: [algokit_utils.applications.app_deployer.AppDeployParams](../app_deployer/index.md#algokit_utils.applications.app_deployer.AppDeployParams), app_spec: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract), app_compilation_data: [algokit_utils.applications.app_client.AppClientCompilationResult](../app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationResult) | None = None) → typing_extensions.Self
+#### *classmethod* from_deploy_result(response: [algokit_utils.applications.app_deployer.AppDeployResult](../app_deployer/index.md#algokit_utils.applications.app_deployer.AppDeployResult), deploy_params: [algokit_utils.applications.app_deployer.AppDeployParams](../app_deployer/index.md#algokit_utils.applications.app_deployer.AppDeployParams), app_spec: algokit_abi.arc56.Arc56Contract, app_compilation_data: [algokit_utils.applications.app_client.AppClientCompilationResult](../app_client/index.md#algokit_utils.applications.app_client.AppClientCompilationResult) | None = None) → typing_extensions.Self
 
 Construct an AppFactoryDeployResult from a deployment result.
 
@@ -146,7 +146,7 @@ to interact with those (or other) app instances.
 
 The name of the app
 
-#### *property* app_spec *: [algokit_utils.applications.app_spec.arc56.Arc56Contract](../app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Arc56Contract)*
+#### *property* app_spec *: algokit_abi.arc56.Arc56Contract*
 
 The app spec
 

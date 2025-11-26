@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
@@ -71,7 +72,7 @@ from algokit_utils.transactions.types import (
     TxnParams,
 )
 
-ABIMethod: TypeAlias = algosdk.abi.Method
+ABIMethod: TypeAlias = arc56.Method
 
 __all__ = [
     "MAX_TRANSACTION_GROUP_SIZE",

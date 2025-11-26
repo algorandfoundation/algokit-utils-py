@@ -1,17 +1,12 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, TypeAlias, TypedDict, Union
+from typing import TypedDict, Union
 
+from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
-
-if TYPE_CHECKING:
-    import algokit_algosdk as algosdk
-
-    Method: TypeAlias = algosdk.abi.Method
-
 
 __all__ = [
     "AppCallMethodCallParams",
@@ -193,7 +188,7 @@ class AppDeleteParams(CommonTxnParams):
 @dataclass(kw_only=True, frozen=True)
 class _BaseAppMethodCall(CommonTxnParams):
     app_id: int | None = None
-    method: "Method"
+    method: arc56.Method
     args: list | None = None
     account_references: list[str] | None = None
     app_references: list[int] | None = None
@@ -207,7 +202,7 @@ class _BaseAppMethodCall(CommonTxnParams):
 @dataclass(kw_only=True, frozen=True)
 class AppMethodCallParams(CommonTxnParams):
     app_id: int
-    method: "Method"
+    method: arc56.Method
     args: list[bytes] | None = None
     on_complete: OnApplicationComplete | None = None
     account_references: list[str] | None = None

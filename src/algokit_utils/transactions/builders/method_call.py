@@ -1,8 +1,10 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TypeAlias
 
-import algokit_algosdk as algosdk
+from typing_extensions import assert_never, assert_type
+
+import algokit_abi as abi
+from algokit_abi import arc56
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 from algokit_transact.models.transaction import TransactionType
@@ -23,15 +25,6 @@ from algokit_utils.transactions.types import (
     AppDeleteMethodCallParams,
     AppUpdateMethodCallParams,
 )
-
-abi = algosdk.abi
-ABIReferenceType: TypeAlias = abi.ABIReferenceType
-ABIType: TypeAlias = abi.ABIType
-Method: TypeAlias = abi.Method
-TupleType: TypeAlias = abi.TupleType
-UintType: TypeAlias = abi.UintType
-is_abi_reference_type = abi.is_abi_reference_type
-is_abi_transaction_type = abi.is_abi_transaction_type
 
 ARGS_TUPLE_PACKING_THRESHOLD = 14
 
@@ -73,9 +66,9 @@ def build_app_call_method_call_transaction(
         app_id=params.app_id,
         on_complete=params.on_complete or OnApplicationComplete.NoOp,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -150,9 +143,9 @@ def build_app_create_method_call_transaction(
         local_state_schema=local_schema,
         extra_program_pages=extra_pages,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -193,9 +186,9 @@ def build_app_update_method_call_transaction(
         approval_program=approval_program,
         clear_state_program=clear_state_program,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -212,7 +205,7 @@ class _MethodCallCommon:
 
 def _build_method_call_common(
     app_id: int,
-    method: Method,
+    method: arc56.Method,
     method_args: Sequence | None,
     header: TransactionHeader,
     account_references: Sequence[str] | None,
@@ -245,7 +238,7 @@ def _build_method_call_common(
 def _populate_method_args_into_reference_arrays(
     sender: str,
     app_id: int,
-    method: Method,
+    method: arc56.Method,
     method_args: Sequence,
     account_references: Sequence[str] | None,
     app_references: Sequence[int] | None,
@@ -255,31 +248,32 @@ def _populate_method_args_into_reference_arrays(
     apps = list(app_references or [])
     assets = list(asset_references or [])
 
-    for idx, arg in enumerate(method.args):
-        arg_value = method_args[idx] if idx < len(method_args) else None
+    for arg_value, arg in zip(method_args, method.args, strict=False):
+        if arg_value is None:
+            continue
         arg_type = arg.type
-        if isinstance(arg_type, str) and is_abi_reference_type(arg_type):
-            if arg_value is None:
-                continue
-            if arg_type == ABIReferenceType.ACCOUNT and isinstance(arg_value, str):
-                if arg_value != sender and arg_value not in accounts:
-                    accounts.append(arg_value)
-            elif arg_type == ABIReferenceType.ASSET and isinstance(arg_value, int):
-                if arg_value not in assets:
-                    assets.append(arg_value)
-            elif (
-                arg_type == ABIReferenceType.APPLICATION
-                and isinstance(arg_value, int)
-                and arg_value != app_id
-                and arg_value not in apps
-            ):
-                apps.append(arg_value)
+        if (
+            arg_type == arc56.ReferenceType.ACCOUNT
+            and isinstance(arg_value, str)
+            and arg_value != sender
+            and arg_value not in accounts
+        ):
+            accounts.append(arg_value)
+        elif arg_type == arc56.ReferenceType.ASSET and isinstance(arg_value, int) and arg_value not in assets:
+            assets.append(arg_value)
+        elif (
+            arg_type == arc56.ReferenceType.APPLICATION
+            and isinstance(arg_value, int)
+            and arg_value != app_id
+            and arg_value not in apps
+        ):
+            apps.append(arg_value)
         # Non-reference args do not change reference arrays
     return accounts, apps, assets
 
 
 def _encode_method_arguments(
-    method: Method,
+    method: arc56.Method,
     method_args: Sequence,
     sender: str,
     app_id: int,
@@ -287,71 +281,60 @@ def _encode_method_arguments(
     app_references: Sequence[int],
     asset_references: Sequence[int],
 ) -> list[bytes]:
-    encoded_args: list[bytes] = []
-    encoded_args.append(method.get_selector())
+    encoded_args = list[bytes]()
+    encoded_args.append(method.selector)
 
-    abi_types: list[ABIType] = []
-    abi_values: list = []
+    abi_types = list[abi.ABIType]()
+    abi_values = []
 
-    for idx, arg in enumerate(method.args):
-        arg_value = method_args[idx] if idx < len(method_args) else None
-        arg_type = arg.type
-        if isinstance(arg_type, str):
-            if is_abi_transaction_type(arg_type):
-                continue
-            if is_abi_reference_type(arg_type):
-                if arg_value is None:
-                    continue
-                index = _calculate_reference_index(
-                    arg_value,
-                    arg_type,
-                    sender,
-                    app_id,
-                    account_references,
-                    app_references,
-                    asset_references,
-                )
-                abi_types.append(UintType(8))
-                abi_values.append(index)
-                continue
-            # Non-reference strings should be converted into ABI types
-            abi_type = abi.ABIType.from_string(arg_type)
-        else:
-            abi_type = arg_type
-
+    for arg, arg_value in zip(method.args, method_args, strict=False):
         if arg_value is None:
             continue
+        arg_type = arg.type
+        if isinstance(arg_type, arc56.TransactionType):
+            continue
+        if isinstance(arg_type, abi.ABIType):
+            abi_type = arg_type
+            abi_value = arg_value
+        else:
+            assert_type(arg_type, arc56.ReferenceType)
+            index = _calculate_reference_index(
+                arg_value,
+                arg_type,
+                sender,
+                app_id,
+                account_references,
+                app_references,
+                asset_references,
+            )
+            abi_type = abi.UintType(8)
+            abi_value = index
         abi_types.append(abi_type)
-        abi_values.append(arg_value)
+        abi_values.append(abi_value)
 
     if len(abi_types) != len(abi_values):
         raise ValueError("Mismatch between ABI argument types and values")
 
-    if len(abi_types) > ARGS_TUPLE_PACKING_THRESHOLD:
-        encoded_args.extend(_encode_args_with_tuple_packing(abi_types, abi_values))
-    else:
-        encoded_args.extend(_encode_args_individually(abi_types, abi_values))
+    encoded_args.extend(_encode_args_with_tuple_packing(abi_types, abi_values))
     return encoded_args
 
 
 def _calculate_reference_index(
     value: str | int,
-    reference_type: str,
+    reference_type: arc56.ReferenceType,
     sender: str,
     app_id: int,
     account_references: Sequence[str],
     app_references: Sequence[int],
     asset_references: Sequence[int],
 ) -> int:
-    match reference_type:
-        case ABIReferenceType.ACCOUNT:
-            return _calculate_account_reference_index(value, sender, account_references)
-        case ABIReferenceType.ASSET:
-            return _calculate_asset_reference_index(value, asset_references)
-        case ABIReferenceType.APPLICATION:
-            return _calculate_application_reference_index(value, app_id, app_references)
-    msg = f"Unsupported ABI reference type: {reference_type}"
-    raise ValueError(msg)
+    if reference_type == arc56.ReferenceType.ACCOUNT:
+        return _calculate_account_reference_index(value, sender, account_references)
+    if reference_type == arc56.ReferenceType.ASSET:
+        return _calculate_asset_reference_index(value, asset_references)
+    if reference_type == arc56.ReferenceType.APPLICATION:
+        return _calculate_application_reference_index(value, app_id, app_references)
+    assert_never(reference_type)
 
 
 def _calculate_account_reference_index(value: str | int, sender: str, account_references: Sequence[str]) -> int:
@@ -382,25 +365,17 @@ def _calculate_application_reference_index(value: str | int, app_id: int, app_re
     return app_references.index(value) + 1
 
 
-def _encode_args_individually(abi_types: Sequence[ABIType], abi_values: Sequence) -> list[bytes]:
-    return [abi_type.encode(abi_values[idx]) for idx, abi_type in enumerate(abi_types)]
+def _encode_args_with_tuple_packing(abi_types: Sequence[abi.ABIType], abi_values: Sequence) -> list[bytes]:
+    type_value_pairs = list(zip(abi_types, abi_values, strict=True))
+    unpacked_pairs = type_value_pairs[:ARGS_TUPLE_PACKING_THRESHOLD]
+    packed_pairs = type_value_pairs[ARGS_TUPLE_PACKING_THRESHOLD:]
+    encoded = [abi_type.encode(abi_value) for abi_type, abi_value in unpacked_pairs]
 
-
-def _encode_args_with_tuple_packing(abi_types: Sequence[ABIType], abi_values: Sequence) -> list[bytes]:
-    encoded: list[bytes] = []
-    first_types = abi_types[:ARGS_TUPLE_PACKING_THRESHOLD]
-    first_values = abi_values[:ARGS_TUPLE_PACKING_THRESHOLD]
-    encoded.extend(_encode_args_individually(first_types, first_values))
-
-    remaining_types = abi_types[ARGS_TUPLE_PACKING_THRESHOLD:]
-    remaining_values = abi_values[ARGS_TUPLE_PACKING_THRESHOLD:]
-    if remaining_types:
-        tuple_type = TupleType(list(remaining_types))
-        encoded.append(tuple_type.encode(list(remaining_values)))
+    if packed_pairs:
+        tuple_type = abi.TupleType([t[0] for t in packed_pairs])
+        encoded.append(tuple_type.encode([t[1] for t in packed_pairs]))
     return encoded
 
 
-def _to_tuple(values: Sequence | None) -> list | None:
-    if values is None:
-        return None
+def _to_maybe_list(values: Sequence | None) -> list | None:
     return list(values) if values else None

@@ -3,11 +3,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import algokit_algosdk as algosdk
+import algokit_abi
+from algokit_abi import arc32_to_arc56, arc56
+from algokit_transact import OnApplicationComplete
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -68,13 +69,13 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def hello_world_arc56_app_spec(raw_hello_world_arc32_app_spec: str) -> Arc56Contract:
-    return Arc56Contract.from_arc32(raw_hello_world_arc32_app_spec)
+def hello_world_arc56_app_spec(raw_hello_world_arc32_app_spec: str) -> arc56.Arc56Contract:
+    return arc32_to_arc56(raw_hello_world_arc32_app_spec)
 
 
 @pytest.fixture
 def hello_world_arc56_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc56_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc56_app_spec: arc56.Arc56Contract
 ) -> int:
     global_schema = hello_world_arc56_app_spec.state.schema.global_state
     local_schema = hello_world_arc56_app_spec.state.schema.local_state
@@ -425,15 +426,15 @@ def test_app_call(
     transaction_sender: AlgorandClientTransactionSender,
     sender: SigningAccount,
 ) -> None:
-    method = algosdk.abi.Method.from_signature("hello(string)string")
+    method = arc56.Method.from_signature("hello(string)string")
     selector = method.get_selector()
-    encoded_arg = algosdk.abi.ABIType.from_string("string").encode("test")
+    encoded_arg = algokit_abi.ABIType.from_string("string").encode("test")
 
     result = transaction_sender.app_call(
         AppCallParams(
             app_id=hello_world_arc56_app_id,
             sender=sender.address,
-            on_complete=algosdk.on_complete.OnComplete.NoOpOC,
+            on_complete=OnApplicationComplete.NoOp,
             args=[selector, encoded_arg],
         )
     )
@@ -448,7 +449,7 @@ def test_app_call_method_call(
     transaction_sender: AlgorandClientTransactionSender,
     sender: SigningAccount,
 ) -> None:
-    method = algosdk.abi.Method.from_signature("hello(string)string")
+    method = arc56.Method.from_signature("hello(string)string")
 
     result = transaction_sender.app_call_method_call(
         AppCallMethodCallParams(

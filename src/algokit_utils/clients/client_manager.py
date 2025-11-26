@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Literal, Optional, TypeVar
 from urllib import parse
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import ClientConfig as AlgodClientConfig
 from algokit_algod_client import models as algod_models
@@ -11,7 +12,6 @@ from algokit_indexer_client import ClientConfig as IndexerClientConfig
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client import ClientConfig as KmdClientConfig
 from algokit_kmd_client import KmdClient
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.signer import TransactionSigner
@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from algokit_utils.applications.app_client import AppClient, AppClientCompilationParams
     from algokit_utils.applications.app_deployer import ApplicationLookup
     from algokit_utils.applications.app_factory import AppFactory
-    from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 
 __all__ = [
     "AlgoSdkClients",
@@ -237,7 +236,7 @@ class ClientManager:
 
     def get_app_factory(
         self,
-        app_spec: Arc56Contract | str,
+        app_spec: arc56.Arc56Contract | str,
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
@@ -274,7 +273,7 @@ class ClientManager:
 
     def get_app_client_by_id(
         self,
-        app_spec: (Arc56Contract | str),
+        app_spec: arc56.Arc56Contract | str,
         app_id: int,
         app_name: str | None = None,
         default_sender: str | None = None,
@@ -314,7 +313,7 @@ class ClientManager:
 
     def get_app_client_by_network(
         self,
-        app_spec: (Arc56Contract | str),
+        app_spec: (arc56.Arc56Contract | str),
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
@@ -351,7 +350,7 @@ class ClientManager:
         self,
         creator_address: str,
         app_name: str,
-        app_spec: Arc56Contract | str,
+        app_spec: arc56.Arc56Contract | str,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,

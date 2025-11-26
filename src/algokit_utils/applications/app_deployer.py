@@ -1,8 +1,8 @@
 import base64
 import dataclasses
 import json
-from dataclasses import asdict, dataclass
-from typing import Literal
+from dataclasses import asdict, dataclass, fields
+from typing import Literal, TypeVar
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
@@ -388,23 +388,21 @@ class AppDeployer:
 
         if isinstance(deployment.create_params, AppCreateMethodCallParams):
             create_result = self._transaction_sender.app_create_method_call(
-                AppCreateMethodCallParams(
-                    **{
-                        **asdict(deployment.create_params),
-                        "approval_program": approval_program,
-                        "clear_state_program": clear_program,
-                    }
+                extend(
+                    AppCreateMethodCallParams,
+                    deployment.create_params,
+                    approval_program=approval_program,
+                    clear_state_program=clear_program,
                 ),
                 send_params=deployment.send_params,
             )
         else:
             create_result = self._transaction_sender.app_create(
-                AppCreateParams(
-                    **{
-                        **asdict(deployment.create_params),
-                        "approval_program": approval_program,
-                        "clear_state_program": clear_program,
-                    }
+                extend(
+                    AppCreateParams,
+                    deployment.create_params,
+                    approval_program=approval_program,
+                    clear_state_program=clear_program,
                 ),
                 send_params=deployment.send_params,
             )
@@ -711,6 +709,8 @@ class AppDeployer:
         # TODO: See if empty iterable responses can be changed to empty lists instead of None
         created_apps = self._indexer.search_for_applications(creator=creator_address).applications or []
 
+        encoded_note_prefix = base64.b64encode(APP_DEPLOY_NOTE_DAPP.encode()).decode()
+
         for app in created_apps:
             app_id = app.id_
 
@@ -720,7 +720,7 @@ class AppDeployer:
                 min_round=app.created_at_round,
                 address=creator_address,
                 address_role="sender",
-                note_prefix=APP_DEPLOY_NOTE_DAPP,
+                note_prefix=encoded_note_prefix,
                 limit=1,
             ).transactions
 
@@ -762,6 +762,24 @@ class AppDeployer:
         lookup = ApplicationLookup(creator=creator_address, apps=app_lookup)
         self._app_lookups[creator_address] = lookup
         return lookup
+
+
+_T = TypeVar("_T")
+
+
+def extend(new_type: type[_T], base_instance: object, **changes: object) -> _T:
+    assert dataclasses.is_dataclass(new_type), "expected dataclass type"
+    base_type = type(base_instance)
+    assert dataclasses.is_dataclass(base_type), "expected dataclass instance"
+    old_type_fields = {f.name: f for f in fields(base_type)}
+    new_type_fields = fields(new_type)
+    for a in new_type_fields:
+        if not a.init:
+            continue
+        if a.name not in changes and a.name in old_type_fields:
+            changes[a.name] = getattr(base_instance, a.name)
+
+    return new_type(**changes)
 
 
 def _get_confirmed_round(confirmation: algod_models.PendingTransactionResponse | None) -> int:
