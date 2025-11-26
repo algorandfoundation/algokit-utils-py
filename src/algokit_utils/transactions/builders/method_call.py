@@ -74,9 +74,9 @@ def build_app_call_method_call_transaction(
         app_id=params.app_id,
         on_complete=params.on_complete or OnApplicationComplete.NoOp,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -151,9 +151,9 @@ def build_app_create_method_call_transaction(
         local_state_schema=local_schema,
         extra_program_pages=extra_pages,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -194,9 +194,9 @@ def build_app_update_method_call_transaction(
         approval_program=approval_program,
         clear_state_program=clear_state_program,
         args=common.args,
-        account_references=_to_tuple(common.account_references),
-        app_references=_to_tuple(common.app_references),
-        asset_references=_to_tuple(common.asset_references),
+        account_references=_to_maybe_list(common.account_references),
+        app_references=_to_maybe_list(common.app_references),
+        asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
     txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
@@ -424,9 +424,7 @@ def _encode_args_with_tuple_packing(abi_types: Sequence[ABIType], abi_values: Se
     return encoded
 
 
-def _to_tuple(values: Sequence | None) -> list | None:
-    if values is None:
-        return None
+def _to_maybe_list(values: Sequence | None) -> list | None:
     return list(values) if values else None
 
 
