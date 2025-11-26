@@ -3,10 +3,11 @@ from collections.abc import Mapping, Sequence
 from typing import cast
 
 import algokit_algosdk as algosdk
+from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
-from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, parse_abi_method_result
+from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
 from algokit_utils.models.application import (
     AppInformation,
     AppState,
@@ -342,9 +343,7 @@ class AppManager:
 
         value = self.get_box_value(app_id, box_name)
         try:
-            parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
-            decoded_value = abi_type.decode(value)
-            return tuple(decoded_value) if parse_to_tuple else decoded_value
+            return abi_type.decode(value)  # type: ignore[no-any-return]
         except Exception as e:
             raise ValueError(f"Failed to decode box value {value.decode('utf-8')} with ABI type {abi_type}") from e
 
@@ -401,7 +400,7 @@ class AppManager:
     @staticmethod
     def get_abi_return(
         confirmation: algod_models.PendingTransactionResponse,
-        method: algosdk.abi.Method | None = None,
+        method: arc56.Method | None = None,
     ) -> ABIReturn | None:
         """Get the ABI return value from a transaction confirmation.
 
@@ -419,12 +418,7 @@ class AppManager:
         if not method:
             return None
 
-        abi_result = parse_abi_method_result(method, "dummy_txn", confirmation)
-
-        if not abi_result:
-            return None
-
-        return ABIReturn(abi_result)
+        return extract_abi_return_from_logs(confirmation, method)
 
     @staticmethod
     def decode_app_state(state: Sequence[algod_models.TealKeyValue] | None) -> dict[str, AppState]:

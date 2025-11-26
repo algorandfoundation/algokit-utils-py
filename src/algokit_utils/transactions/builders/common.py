@@ -1,7 +1,7 @@
 import base64
 from dataclasses import dataclass, replace
+from typing import Protocol, runtime_checkable
 
-import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
@@ -17,7 +17,20 @@ from algokit_utils.transactions.types import CommonTxnParams
 
 LEASE_MIN_LENGTH = 1
 LEASE_MAX_LENGTH = 32
-AlgoSuggestedParams = algosdk.transaction.SuggestedParams
+
+
+@runtime_checkable
+class AlgoSuggestedParams(Protocol):
+    fee: int
+    first: int
+    last: int
+    gen: str
+    gh: str
+    flat_fee: bool
+    consensus_version: str
+    min_fee: int
+
+
 SuggestedParamsLike = AlgoSuggestedParams | algod_models.SuggestedParams
 
 __all__ = [

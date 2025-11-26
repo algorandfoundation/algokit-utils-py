@@ -10,7 +10,7 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 
 ### Algod OAS
 
-is_frozen field on models in algod is a boolean in the spec but actual returning value is an integer, serde must be updated to handle casting to bool.
+- is_frozen field on models in algod is a boolean in the spec but actual returning value is an integer, serde must be updated to handle casting to bool.
 
 ### KMD
 
@@ -19,6 +19,20 @@ is_frozen field on models in algod is a boolean in the spec but actual returning
 ### Type annotations
 
 - Type hints and documentation now refer to the generated `algokit_algod_client.AlgodClient` (instead of `algosdk.v2client.algod.AlgodClient`). Update any downstream annotations or typing imports accordingly when migrating to v4.
+
+## ABI
+
+- decoding `byte`, `byte[]` and `byte[n]` now results in a python `bytes` type instead of `list[int]`
+- encoding `byte` now accepts `bytes` or `int` types
+- decoding `ufixed` types now returns a `decimal.Decimal` instead of an `int`
+- encoding `ufixed` types now accepts a `decimal.Decimal` or an `int`
+- tuple types decode to `tuple` instead of `list`
+- Clarify on whether we are ok with dropping arc32 contracts from type unions in app spec params in app factory and app client
+
+### ABI return naming
+
+- Decide on naming for `ABIReturn` fields (e.g. `value` vs `return_value`, `raw_value` vs `raw_return_value`).
+- Current branch aligns with the Rust approach where SDK and ABI variants of `ABIReturn` are merged into one abstraction; do we keep the same approach in the TS equivalent?
 
 ## AlgoSDK primitives
 

@@ -295,7 +295,7 @@ Bases: [`CommonTxnParams`](#algokit_utils.transactions.types.CommonTxnParams)
 
 #### app_id *: int*
 
-#### method *: [Method](../../applications/app_spec/arc56/index.md#algokit_utils.applications.app_spec.arc56.Method)*
+#### method *: algokit_abi.arc56.Method*
 
 #### args *: list[bytes] | None* *= None*
 

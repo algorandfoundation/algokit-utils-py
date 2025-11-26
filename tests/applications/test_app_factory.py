@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 import algokit_algosdk as algosdk
+from algokit_abi.arc56 import Arc56Contract
 from algokit_algod_client import models as algod_models
 from algokit_transact import OnApplicationComplete
 from algokit_utils.algorand import AlgorandClient
@@ -19,7 +20,6 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateMethodCallParams,
     AppFactoryCreateParams,
 )
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.errors import LogicError
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo

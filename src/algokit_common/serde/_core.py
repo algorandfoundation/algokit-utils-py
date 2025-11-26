@@ -1,7 +1,8 @@
+import types
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
-from typing import TypeVar, cast, get_args, get_origin
+from typing import TypeVar, Union, cast, get_args, get_origin, get_type_hints
 
 from algokit_common import address_from_public_key, public_key_from_address
 from algokit_common.serde._primitives import (
@@ -100,8 +101,15 @@ def nested(
     child_cls: ChildType,
     *,
     present_if: Callable[[Mapping[str, object]], bool] | None = None,
+    omit_empty_seq: bool = True,
 ) -> dict[str, object]:
-    return {"kind": "nested", "alias": alias, "child_cls": child_cls, "present_if": present_if}
+    return {
+        "kind": "nested",
+        "alias": alias,
+        "child_cls": child_cls,
+        "present_if": present_if,
+        "omit_empty_seq": omit_empty_seq,
+    }
 
 
 @dataclass(slots=True)
@@ -134,21 +142,44 @@ class _SerdePlan:
 _SERDE_CACHE: dict[type[object], _SerdePlan] = {}
 
 
+def _get_dataclass(typ: type) -> type | None:
+    if get_origin(typ) in {Union, types.UnionType}:
+        typs = set(get_args(typ))
+    else:
+        typs = {typ}
+    typs = typs - {types.NoneType}
+    try:
+        (maybe_dataclass,) = typs
+    except ValueError:
+        return None
+    if is_dataclass(maybe_dataclass):
+        return cast(type, maybe_dataclass)
+    else:
+        return None
+
+
 def _compile_plan(cls: type[object]) -> _SerdePlan:
     if not is_dataclass(cls):
         raise TypeError(f"{cls!r} is not a dataclass")
     handlers: list[_FieldHandler] = []
+    cls_type_hints = get_type_hints(cls)
     for f in fields(cls):
         meta = dict(f.metadata or {})
-        kind = cast(str | None, meta.get("kind")) or "wire"
-        if kind not in ("wire", "flatten", "nested"):
-            kind = "wire"
+        field_type = cls_type_hints[f.name]
+        maybe_dataclass = _get_dataclass(field_type)
+        if maybe_dataclass and not meta:
+            kind = "nested"
+            meta = {"child_cls": maybe_dataclass, "alias": f.name, "omit_if_none": True}
+        else:
+            kind = cast(str | None, meta.get("kind")) or "wire"
+            if kind not in ("wire", "flatten", "nested"):
+                kind = "wire"
 
         if kind == "wire":
             handlers.append(
                 _FieldHandler(
                     name=f.name,
-                    alias=cast(str | None, meta.get("alias")),
+                    alias=cast(str | None, meta.get("alias", f.name)),
                     encode_fn=cast(Callable[..., object] | None, meta.get("encode")),
                     decode_fn=cast(Callable[[object], object] | type | None, meta.get("decode")),
                     omit_if_none=bool(meta.get("omit_if_none", True)),
@@ -160,7 +191,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     child_cls=None,
                     nested_alias=None,
                     pass_obj=bool(meta.get("pass_obj", False)),
-                    expects_text=_expects_text_value(f.type),
+                    expects_text=_expects_text_value(field_type),
                 )
             )
         elif kind == "nested":
@@ -173,7 +204,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     omit_if_none=True,
                     keep_zero=False,
                     keep_false=False,
-                    omit_empty_seq=True,
+                    omit_empty_seq=meta.get("omit_empty_seq", True),
                     required=False,
                     kind=kind,
                     child_cls=cast(type[object] | None, meta.get("child_cls")),
@@ -233,7 +264,7 @@ def _resolve_child_cls(h: _FieldHandler) -> type[object] | None:
 def _encode_nested_field(out: dict[str, object], obj: object, h: _FieldHandler) -> None:
     if (value := getattr(obj, h.name)) is None:
         return
-    if not (nested_payload := to_wire(value)):
+    if not (nested_payload := to_wire(value)) and h.omit_empty_seq:
         return
     if h.nested_alias is None:
         raise EncodeError(f"Missing nested alias for field {h.name!r}")
@@ -352,7 +383,8 @@ def _decode_nested_field(kwargs: dict[str, object], h: _FieldHandler, payload: M
     if isinstance(raw_nested := payload.get(h.nested_alias), Mapping):
         kwargs[h.name] = from_wire(child_cls, raw_nested)
         return
-    kwargs[h.name] = None
+    if not h.omit_if_none:
+        kwargs[h.name] = None
 
 
 def _decode_flatten_field(kwargs: dict[str, object], h: _FieldHandler, payload: Mapping[str, object]) -> None:

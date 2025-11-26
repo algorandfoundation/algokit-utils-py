@@ -1,14 +1,31 @@
 # algokit_utils.applications.app_spec.arc56
 
+## Attributes
+
+| [`VoidType`](#algokit_utils.applications.app_spec.arc56.VoidType)         |    |
+|---------------------------------------------------------------------------|----|
+| [`Void`](#algokit_utils.applications.app_spec.arc56.Void)                 |    |
+| [`ENUM_ALIASES`](#algokit_utils.applications.app_spec.arc56.ENUM_ALIASES) |    |
+
 ## Classes
 
-| [`StructField`](#algokit_utils.applications.app_spec.arc56.StructField)             | Represents a field in a struct type.                                   |
+| [`AVMType`](#algokit_utils.applications.app_spec.arc56.AVMType)                     | Enum representing native AVM types                                     |
 |-------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 | [`CallEnum`](#algokit_utils.applications.app_spec.arc56.CallEnum)                   | Enum representing different call types for application transactions.   |
 | [`CreateEnum`](#algokit_utils.applications.app_spec.arc56.CreateEnum)               | Enum representing different create types for application transactions. |
-| [`BareActions`](#algokit_utils.applications.app_spec.arc56.BareActions)             | Represents bare call and create actions for an application.            |
-| [`ByteCode`](#algokit_utils.applications.app_spec.arc56.ByteCode)                   | Represents the approval and clear program bytecode.                    |
+| [`ReferenceType`](#algokit_utils.applications.app_spec.arc56.ReferenceType)         | str(object='') -> str                                                  |
+| [`TransactionType`](#algokit_utils.applications.app_spec.arc56.TransactionType)     | str(object='') -> str                                                  |
+| [`DefaultValue`](#algokit_utils.applications.app_spec.arc56.DefaultValue)           | Default value information for method arguments.                        |
+| [`Argument`](#algokit_utils.applications.app_spec.arc56.Argument)                   | Represents an argument for an ABI method                               |
+| [`Returns`](#algokit_utils.applications.app_spec.arc56.Returns)                     | Represents a return type for an ABI method                             |
+| [`Actions`](#algokit_utils.applications.app_spec.arc56.Actions)                     | Method actions information.                                            |
+| [`EventArg`](#algokit_utils.applications.app_spec.arc56.EventArg)                   | Event argument information.                                            |
+| [`Event`](#algokit_utils.applications.app_spec.arc56.Event)                         | Event information.                                                     |
+| [`Boxes`](#algokit_utils.applications.app_spec.arc56.Boxes)                         | Box storage requirements.                                              |
+| [`Recommendations`](#algokit_utils.applications.app_spec.arc56.Recommendations)     | Method execution recommendations.                                      |
+| [`Method`](#algokit_utils.applications.app_spec.arc56.Method)                       | Represents an ABI method description.                                  |
 | [`Compiler`](#algokit_utils.applications.app_spec.arc56.Compiler)                   | Enum representing different compiler types.                            |
+| [`ByteCode`](#algokit_utils.applications.app_spec.arc56.ByteCode)                   | Represents the approval and clear program bytecode.                    |
 | [`CompilerVersion`](#algokit_utils.applications.app_spec.arc56.CompilerVersion)     | Represents compiler version information.                               |
 | [`CompilerInfo`](#algokit_utils.applications.app_spec.arc56.CompilerInfo)           | Information about the compiler used.                                   |
 | [`Network`](#algokit_utils.applications.app_spec.arc56.Network)                     | Network-specific application information.                              |
@@ -18,15 +35,6 @@
 | [`Local`](#algokit_utils.applications.app_spec.arc56.Local)                         | Local state schema.                                                    |
 | [`Schema`](#algokit_utils.applications.app_spec.arc56.Schema)                       | Application state schema.                                              |
 | [`TemplateVariables`](#algokit_utils.applications.app_spec.arc56.TemplateVariables) | Template variable information.                                         |
-| [`EventArg`](#algokit_utils.applications.app_spec.arc56.EventArg)                   | Event argument information.                                            |
-| [`Event`](#algokit_utils.applications.app_spec.arc56.Event)                         | Event information.                                                     |
-| [`Actions`](#algokit_utils.applications.app_spec.arc56.Actions)                     | Method actions information.                                            |
-| [`DefaultValue`](#algokit_utils.applications.app_spec.arc56.DefaultValue)           | Default value information for method arguments.                        |
-| [`MethodArg`](#algokit_utils.applications.app_spec.arc56.MethodArg)                 | Method argument information.                                           |
-| [`Boxes`](#algokit_utils.applications.app_spec.arc56.Boxes)                         | Box storage requirements.                                              |
-| [`Recommendations`](#algokit_utils.applications.app_spec.arc56.Recommendations)     | Method execution recommendations.                                      |
-| [`Returns`](#algokit_utils.applications.app_spec.arc56.Returns)                     | Method return information.                                             |
-| [`Method`](#algokit_utils.applications.app_spec.arc56.Method)                       | Method information.                                                    |
 | [`PcOffsetMethod`](#algokit_utils.applications.app_spec.arc56.PcOffsetMethod)       | PC offset method types.                                                |
 | [`SourceInfo`](#algokit_utils.applications.app_spec.arc56.SourceInfo)               | Source code location information.                                      |
 | [`StorageKey`](#algokit_utils.applications.app_spec.arc56.StorageKey)               | Storage key information.                                               |
@@ -40,19 +48,17 @@
 
 ## Module Contents
 
-### *class* algokit_utils.applications.app_spec.arc56.StructField
+### *class* algokit_utils.applications.app_spec.arc56.AVMType
 
-Represents a field in a struct type.
+Bases: `str`, `enum.Enum`
 
-#### name *: str*
+Enum representing native AVM types
 
-The name of the struct field
+#### BYTES *= 'AVMBytes'*
 
-#### type *: list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)] | str*
+#### STRING *= 'AVMString'*
 
-The type of the struct field, either a string or list of StructFields
-
-#### *static* from_dict(data: dict[str, Any]) → [StructField](#algokit_utils.applications.app_spec.arc56.StructField)
+#### UINT64 *= 'AVMUint64'*
 
 ### *class* algokit_utils.applications.app_spec.arc56.CallEnum
 
@@ -84,33 +90,280 @@ Enum representing different create types for application transactions.
 
 #### OPT_IN *= 'OptIn'*
 
-### *class* algokit_utils.applications.app_spec.arc56.BareActions
+### *class* algokit_utils.applications.app_spec.arc56.ReferenceType
 
-Represents bare call and create actions for an application.
+Bases: `str`, `enum.Enum`
 
-#### call *: list[[CallEnum](#algokit_utils.applications.app_spec.arc56.CallEnum)]*
+str(object=’’) -> str
+str(bytes_or_buffer[, encoding[, errors]]) -> str
 
-The list of allowed call actions
+Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object._\_str_\_() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.
 
-#### create *: list[[CreateEnum](#algokit_utils.applications.app_spec.arc56.CreateEnum)]*
+#### ASSET *= 'asset'*
 
-The list of allowed create actions
+#### ACCOUNT *= 'account'*
 
-#### *static* from_dict(data: dict[str, Any]) → [BareActions](#algokit_utils.applications.app_spec.arc56.BareActions)
+#### APPLICATION *= 'application'*
 
-### *class* algokit_utils.applications.app_spec.arc56.ByteCode
+### *class* algokit_utils.applications.app_spec.arc56.TransactionType
 
-Represents the approval and clear program bytecode.
+Bases: `str`, `enum.Enum`
 
-#### approval *: str*
+str(object=’’) -> str
+str(bytes_or_buffer[, encoding[, errors]]) -> str
 
-The base64 encoded approval program bytecode
+Create a new string object from the given object. If encoding or
+errors is specified, then the object must expose a data buffer
+that will be decoded using the given encoding and error handler.
+Otherwise, returns the result of object._\_str_\_() (if defined)
+or repr(object).
+encoding defaults to sys.getdefaultencoding().
+errors defaults to ‘strict’.
 
-#### clear *: str*
+#### ANY *= 'txn'*
 
-The base64 encoded clear program bytecode
+Any transaction
 
-#### *static* from_dict(data: dict[str, Any]) → [ByteCode](#algokit_utils.applications.app_spec.arc56.ByteCode)
+#### PAY *= 'pay'*
+
+Payment transaction
+
+#### KEYREG *= 'keyreg'*
+
+Key registration transaction
+
+#### ACFG *= 'acfg'*
+
+Asset configuration transaction
+
+#### AXFER *= 'axfer'*
+
+Asset transfer transaction
+
+#### AFRZ *= 'afrz'*
+
+Asset freeze transaction
+
+#### APPL *= 'appl'*
+
+App call transaction, allows creating, deleting, and interacting with an application
+
+### algokit_utils.applications.app_spec.arc56.VoidType
+
+### algokit_utils.applications.app_spec.arc56.Void *: VoidType* *= 'void'*
+
+### algokit_utils.applications.app_spec.arc56.ENUM_ALIASES *: collections.abc.Mapping[str, [ReferenceType](#algokit_utils.applications.app_spec.arc56.ReferenceType) | [TransactionType](#algokit_utils.applications.app_spec.arc56.TransactionType) | VoidType | [AVMType](#algokit_utils.applications.app_spec.arc56.AVMType)]*
+
+### *class* algokit_utils.applications.app_spec.arc56.DefaultValue
+
+Default value information for method arguments.
+
+#### data *: str*
+
+The default value data
+
+#### source *: Literal['box', 'global', 'local', 'literal', 'method']*
+
+The source of the default value
+
+#### type *: [AVMType](#algokit_utils.applications.app_spec.arc56.AVMType) | algokit_abi.ABIType | None* *= None*
+
+The optional type of the default value
+
+### *class* algokit_utils.applications.app_spec.arc56.Argument
+
+Represents an argument for an ABI method
+
+Args:
+: \_type (ABIType | ReferenceType | TransactionType | str): ABI type, reference type or transaction type
+  name (string, optional): name of this argument
+  desc (string, optional): description of this argument
+
+#### type *: algokit_abi.ABIType | [ReferenceType](#algokit_utils.applications.app_spec.arc56.ReferenceType) | [TransactionType](#algokit_utils.applications.app_spec.arc56.TransactionType)*
+
+#### default_value *: [DefaultValue](#algokit_utils.applications.app_spec.arc56.DefaultValue) | None* *= None*
+
+#### desc *: str | None* *= None*
+
+#### name *: str | None* *= None*
+
+#### struct *: str | None* *= None*
+
+### *class* algokit_utils.applications.app_spec.arc56.Returns
+
+Represents a return type for an ABI method
+
+Args:
+: \_type (ABIType | VoidType | str): ABI type of this return argument
+  desc (string, optional): description of this return argument
+
+#### type *: algokit_abi.ABIType | VoidType*
+
+#### desc *: str | None* *= None*
+
+#### struct *: str | None* *= None*
+
+### *class* algokit_utils.applications.app_spec.arc56.Actions
+
+Method actions information.
+
+#### call *: collections.abc.Sequence[[CallEnum](#algokit_utils.applications.app_spec.arc56.CallEnum)]*
+
+The optional list of allowed call actions
+
+#### create *: collections.abc.Sequence[[CreateEnum](#algokit_utils.applications.app_spec.arc56.CreateEnum)]*
+
+The optional list of allowed create actions
+
+### *class* algokit_utils.applications.app_spec.arc56.EventArg
+
+Event argument information.
+
+#### type *: algokit_abi.ABIType*
+
+The type of the event argument
+
+#### name *: str | None* *= None*
+
+The optional name of the argument
+
+#### desc *: str | None* *= None*
+
+The optional description of the argument
+
+#### struct *: str | None* *= None*
+
+The struct name, references a struct defined on the contract
+
+### *class* algokit_utils.applications.app_spec.arc56.Event
+
+Event information.
+
+#### args *: collections.abc.Sequence[[EventArg](#algokit_utils.applications.app_spec.arc56.EventArg)]*
+
+The list of event arguments
+
+#### name *: str*
+
+The name of the event
+
+#### desc *: str | None* *= None*
+
+The optional description of the event
+
+### *class* algokit_utils.applications.app_spec.arc56.Boxes
+
+Box storage requirements.
+
+#### key *: str*
+
+The box key
+
+#### read_bytes *: int*
+
+The number of bytes to read
+
+#### write_bytes *: int*
+
+The number of bytes to write
+
+#### app *: int | None* *= None*
+
+The optional application ID
+
+### *class* algokit_utils.applications.app_spec.arc56.Recommendations
+
+Method execution recommendations.
+
+#### accounts *: list[str]* *= []*
+
+The optional list of accounts
+
+#### apps *: list[int]* *= []*
+
+The optional list of applications
+
+#### assets *: list[int]* *= []*
+
+The optional list of assets
+
+#### boxes *: [Boxes](#algokit_utils.applications.app_spec.arc56.Boxes) | None* *= None*
+
+The optional box storage requirements
+
+#### inner_transaction_count *: int | None* *= None*
+
+The optional inner transaction count
+
+### *class* algokit_utils.applications.app_spec.arc56.Method
+
+Represents an ABI method description.
+
+Args:
+: name (string): name of the method
+  args (tuple): tuplet of Argument objects with type, name, and optional description
+  returns (Returns): a Returns object with a type and optional description
+  desc (string, optional): optional description of the method
+
+#### actions *: [Actions](#algokit_utils.applications.app_spec.arc56.Actions)*
+
+The allowed actions
+
+#### args *: collections.abc.Sequence[[Argument](#algokit_utils.applications.app_spec.arc56.Argument)]*
+
+The method arguments
+
+#### name *: str*
+
+The method name
+
+#### returns *: [Returns](#algokit_utils.applications.app_spec.arc56.Returns)*
+
+The return information
+
+#### desc *: str | None* *= None*
+
+The optional description
+
+#### events *: collections.abc.Sequence[[Event](#algokit_utils.applications.app_spec.arc56.Event)]* *= ()*
+
+The events the method can raise
+
+#### readonly *: bool | None* *= None*
+
+The flag indicating if method is readonly, None if unknown
+
+#### recommendations *: [Recommendations](#algokit_utils.applications.app_spec.arc56.Recommendations) | None* *= None*
+
+The execution recommendations
+
+#### get_txn_calls() → int
+
+#### *property* signature *: str*
+
+#### *property* selector *: bytes*
+
+Returns the ABI method signature, which is the first four bytes of the
+SHA-512/256 hash of the method signature.
+
+Returns:
+: bytes: first four bytes of the method signature hash
+
+#### get_selector() → bytes
+
+Compatibility helper matching algosdk ABI Method API.
+
+#### get_signature() → str
+
+Compatibility helper matching algosdk ABI Method API.
+
+#### *static* from_signature(s: str) → [Method](#algokit_utils.applications.app_spec.arc56.Method)
 
 ### *class* algokit_utils.applications.app_spec.arc56.Compiler
 
@@ -121,6 +374,18 @@ Enum representing different compiler types.
 #### ALGOD *= 'algod'*
 
 #### PUYA *= 'puya'*
+
+### *class* algokit_utils.applications.app_spec.arc56.ByteCode
+
+Represents the approval and clear program bytecode.
+
+#### approval *: bytes*
+
+The approval program bytecode
+
+#### clear *: bytes*
+
+The clear program bytecode
 
 ### *class* algokit_utils.applications.app_spec.arc56.CompilerVersion
 
@@ -142,8 +407,6 @@ The minor version number
 
 The patch version number
 
-#### *static* from_dict(data: dict[str, Any]) → [CompilerVersion](#algokit_utils.applications.app_spec.arc56.CompilerVersion)
-
 ### *class* algokit_utils.applications.app_spec.arc56.CompilerInfo
 
 Information about the compiler used.
@@ -156,8 +419,6 @@ The type of compiler used
 
 Version information for the compiler
 
-#### *static* from_dict(data: dict[str, Any]) → [CompilerInfo](#algokit_utils.applications.app_spec.arc56.CompilerInfo)
-
 ### *class* algokit_utils.applications.app_spec.arc56.Network
 
 Network-specific application information.
@@ -165,8 +426,6 @@ Network-specific application information.
 #### app_id *: int*
 
 The application ID on the network
-
-#### *static* from_dict(data: dict[str, Any]) → [Network](#algokit_utils.applications.app_spec.arc56.Network)
 
 ### *class* algokit_utils.applications.app_spec.arc56.ScratchVariables
 
@@ -176,11 +435,9 @@ Information about scratch space variables.
 
 The scratch slot number
 
-#### type *: str*
+#### type
 
 The type of the scratch variable
-
-#### *static* from_dict(data: dict[str, Any]) → [ScratchVariables](#algokit_utils.applications.app_spec.arc56.ScratchVariables)
 
 ### *class* algokit_utils.applications.app_spec.arc56.Source
 
@@ -193,8 +450,6 @@ The base64 encoded approval program source
 #### clear *: str*
 
 The base64 encoded clear program source
-
-#### *static* from_dict(data: dict[str, Any]) → [Source](#algokit_utils.applications.app_spec.arc56.Source)
 
 #### get_decoded_approval() → str
 
@@ -222,8 +477,6 @@ The number of byte slices in global state
 
 The number of integers in global state
 
-#### *static* from_dict(data: dict[str, Any]) → [Global](#algokit_utils.applications.app_spec.arc56.Global)
-
 ### *class* algokit_utils.applications.app_spec.arc56.Local
 
 Local state schema.
@@ -235,8 +488,6 @@ The number of byte slices in local state
 #### ints *: int*
 
 The number of integers in local state
-
-#### *static* from_dict(data: dict[str, Any]) → [Local](#algokit_utils.applications.app_spec.arc56.Local)
 
 ### *class* algokit_utils.applications.app_spec.arc56.Schema
 
@@ -250,232 +501,17 @@ The global state schema
 
 The local state schema
 
-#### *static* from_dict(data: dict[str, Any]) → [Schema](#algokit_utils.applications.app_spec.arc56.Schema)
-
 ### *class* algokit_utils.applications.app_spec.arc56.TemplateVariables
 
 Template variable information.
 
-#### type *: str*
+#### type
 
 The type of the template variable
 
 #### value *: str | None* *= None*
 
 The optional value of the template variable
-
-#### *static* from_dict(data: dict[str, Any]) → [TemplateVariables](#algokit_utils.applications.app_spec.arc56.TemplateVariables)
-
-### *class* algokit_utils.applications.app_spec.arc56.EventArg
-
-Event argument information.
-
-#### type *: str*
-
-The type of the event argument
-
-#### desc *: str | None* *= None*
-
-The optional description of the argument
-
-#### name *: str | None* *= None*
-
-The optional name of the argument
-
-#### struct *: str | None* *= None*
-
-The optional struct type name
-
-#### *static* from_dict(data: dict[str, Any]) → [EventArg](#algokit_utils.applications.app_spec.arc56.EventArg)
-
-### *class* algokit_utils.applications.app_spec.arc56.Event
-
-Event information.
-
-#### args *: list[[EventArg](#algokit_utils.applications.app_spec.arc56.EventArg)]*
-
-The list of event arguments
-
-#### name *: str*
-
-The name of the event
-
-#### desc *: str | None* *= None*
-
-The optional description of the event
-
-#### *static* from_dict(data: dict[str, Any]) → [Event](#algokit_utils.applications.app_spec.arc56.Event)
-
-### *class* algokit_utils.applications.app_spec.arc56.Actions
-
-Method actions information.
-
-#### call *: list[[CallEnum](#algokit_utils.applications.app_spec.arc56.CallEnum)] | None* *= None*
-
-The optional list of allowed call actions
-
-#### create *: list[[CreateEnum](#algokit_utils.applications.app_spec.arc56.CreateEnum)] | None* *= None*
-
-The optional list of allowed create actions
-
-#### *static* from_dict(data: dict[str, Any]) → [Actions](#algokit_utils.applications.app_spec.arc56.Actions)
-
-### *class* algokit_utils.applications.app_spec.arc56.DefaultValue
-
-Default value information for method arguments.
-
-#### data *: str*
-
-The default value data
-
-#### source *: Literal['box', 'global', 'local', 'literal', 'method']*
-
-The source of the default value
-
-#### type *: str | None* *= None*
-
-The optional type of the default value
-
-#### *static* from_dict(data: dict[str, Any]) → [DefaultValue](#algokit_utils.applications.app_spec.arc56.DefaultValue)
-
-### *class* algokit_utils.applications.app_spec.arc56.MethodArg
-
-Method argument information.
-
-#### type *: str*
-
-The type of the argument
-
-#### default_value *: [DefaultValue](#algokit_utils.applications.app_spec.arc56.DefaultValue) | None* *= None*
-
-The optional default value
-
-#### desc *: str | None* *= None*
-
-The optional description
-
-#### name *: str | None* *= None*
-
-The optional name
-
-#### struct *: str | None* *= None*
-
-The optional struct type name
-
-#### *static* from_dict(data: dict[str, Any]) → [MethodArg](#algokit_utils.applications.app_spec.arc56.MethodArg)
-
-### *class* algokit_utils.applications.app_spec.arc56.Boxes
-
-Box storage requirements.
-
-#### key *: str*
-
-The box key
-
-#### read_bytes *: int*
-
-The number of bytes to read
-
-#### write_bytes *: int*
-
-The number of bytes to write
-
-#### app *: int | None* *= None*
-
-The optional application ID
-
-#### *static* from_dict(data: dict[str, Any]) → [Boxes](#algokit_utils.applications.app_spec.arc56.Boxes)
-
-### *class* algokit_utils.applications.app_spec.arc56.Recommendations
-
-Method execution recommendations.
-
-#### accounts *: list[str] | None* *= None*
-
-The optional list of accounts
-
-#### apps *: list[int] | None* *= None*
-
-The optional list of applications
-
-#### assets *: list[int] | None* *= None*
-
-The optional list of assets
-
-#### boxes *: [Boxes](#algokit_utils.applications.app_spec.arc56.Boxes) | None* *= None*
-
-The optional box storage requirements
-
-#### inner_transaction_count *: int | None* *= None*
-
-The optional inner transaction count
-
-#### *static* from_dict(data: dict[str, Any]) → [Recommendations](#algokit_utils.applications.app_spec.arc56.Recommendations)
-
-### *class* algokit_utils.applications.app_spec.arc56.Returns
-
-Method return information.
-
-#### type *: str*
-
-The type of the return value
-
-#### desc *: str | None* *= None*
-
-The optional description
-
-#### struct *: str | None* *= None*
-
-The optional struct type name
-
-#### *static* from_dict(data: dict[str, Any]) → [Returns](#algokit_utils.applications.app_spec.arc56.Returns)
-
-### *class* algokit_utils.applications.app_spec.arc56.Method
-
-Method information.
-
-#### actions *: [Actions](#algokit_utils.applications.app_spec.arc56.Actions)*
-
-The allowed actions
-
-#### args *: list[[MethodArg](#algokit_utils.applications.app_spec.arc56.MethodArg)]*
-
-The method arguments
-
-#### name *: str*
-
-The method name
-
-#### returns *: [Returns](#algokit_utils.applications.app_spec.arc56.Returns)*
-
-The return information
-
-#### desc *: str | None* *= None*
-
-The optional description
-
-#### events *: list[[Event](#algokit_utils.applications.app_spec.arc56.Event)] | None* *= None*
-
-The optional list of events
-
-#### readonly *: bool | None* *= None*
-
-The optional readonly flag
-
-#### recommendations *: [Recommendations](#algokit_utils.applications.app_spec.arc56.Recommendations) | None* *= None*
-
-The optional execution recommendations
-
-#### to_abi_method() → AlgosdkMethod
-
-Convert to ABI method.
-
-* **Raises:**
-  **ValueError** – If underlying ABI method is not initialized
-* **Returns:**
-  ABI method
-
-#### *static* from_dict(data: dict[str, Any]) → [Method](#algokit_utils.applications.app_spec.arc56.Method)
 
 ### *class* algokit_utils.applications.app_spec.arc56.PcOffsetMethod
 
@@ -507,8 +543,6 @@ The optional source code
 
 The optional TEAL version
 
-#### *static* from_dict(data: dict[str, Any]) → [SourceInfo](#algokit_utils.applications.app_spec.arc56.SourceInfo)
-
 ### *class* algokit_utils.applications.app_spec.arc56.StorageKey
 
 Storage key information.
@@ -517,31 +551,17 @@ Storage key information.
 
 The storage key
 
-#### key_type *: str*
-
-The type of the key
-
-#### value_type *: str*
-
-The type of the value
-
 #### desc *: str | None* *= None*
 
 The optional description
 
-#### *static* from_dict(data: dict[str, Any]) → [StorageKey](#algokit_utils.applications.app_spec.arc56.StorageKey)
+#### key_type
+
+#### value_type
 
 ### *class* algokit_utils.applications.app_spec.arc56.StorageMap
 
 Storage map information.
-
-#### key_type *: str*
-
-The type of the map keys
-
-#### value_type *: str*
-
-The type of the map values
 
 #### desc *: str | None* *= None*
 
@@ -551,7 +571,9 @@ The optional description
 
 The optional key prefix
 
-#### *static* from_dict(data: dict[str, Any]) → [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)
+#### key_type
+
+#### value_type
 
 ### *class* algokit_utils.applications.app_spec.arc56.Keys
 
@@ -569,8 +591,6 @@ The global state storage keys
 
 The local state storage keys
 
-#### *static* from_dict(data: dict[str, Any]) → [Keys](#algokit_utils.applications.app_spec.arc56.Keys)
-
 ### *class* algokit_utils.applications.app_spec.arc56.Maps
 
 Storage maps for different storage types.
@@ -586,8 +606,6 @@ The global state storage maps
 #### local_state *: dict[str, [StorageMap](#algokit_utils.applications.app_spec.arc56.StorageMap)]*
 
 The local state storage maps
-
-#### *static* from_dict(data: dict[str, Any]) → [Maps](#algokit_utils.applications.app_spec.arc56.Maps)
 
 ### *class* algokit_utils.applications.app_spec.arc56.State
 
@@ -605,8 +623,6 @@ The storage maps
 
 The state schema
 
-#### *static* from_dict(data: dict[str, Any]) → [State](#algokit_utils.applications.app_spec.arc56.State)
-
 ### *class* algokit_utils.applications.app_spec.arc56.ProgramSourceInfo
 
 Program source information.
@@ -618,8 +634,6 @@ The PC offset method
 #### source_info *: list[[SourceInfo](#algokit_utils.applications.app_spec.arc56.SourceInfo)]*
 
 The list of source info entries
-
-#### *static* from_dict(data: dict[str, Any]) → [ProgramSourceInfo](#algokit_utils.applications.app_spec.arc56.ProgramSourceInfo)
 
 ### *class* algokit_utils.applications.app_spec.arc56.SourceInfoModel
 
@@ -633,8 +647,6 @@ The approval program source info
 
 The clear program source info
 
-#### *static* from_dict(data: dict[str, Any]) → [SourceInfoModel](#algokit_utils.applications.app_spec.arc56.SourceInfoModel)
-
 ### *class* algokit_utils.applications.app_spec.arc56.Arc56Contract
 
 ARC-0056 application specification.
@@ -645,7 +657,7 @@ See [https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0056.md](http
 
 The list of supported ARC version numbers
 
-#### bare_actions *: [BareActions](#algokit_utils.applications.app_spec.arc56.BareActions)*
+#### bare_actions *: [Actions](#algokit_utils.applications.app_spec.arc56.Actions)*
 
 The bare call and create actions
 
@@ -661,7 +673,7 @@ The contract name
 
 The contract state information
 
-#### structs *: dict[str, list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)]]*
+#### structs *: dict[str, algokit_abi.StructType]*
 
 The contract struct definitions
 
@@ -701,20 +713,16 @@ The optional source code information
 
 The optional template variable information
 
-#### *static* from_dict(application_spec: dict) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
+#### *classmethod* from_dict(application_spec: dict) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
 
 Create Arc56Contract from dictionary.
 
 * **Parameters:**
   **application_spec** – Dictionary containing contract specification
 * **Returns:**
-  “Arc56Contract” instance
+  Arc56Contract instance
 
 #### *static* from_json(application_spec: str) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
-
-#### *static* from_arc32(arc32_application_spec: str | [algokit_utils.applications.app_spec.arc32.Arc32Contract](../arc32/index.md#algokit_utils.applications.app_spec.arc32.Arc32Contract)) → [Arc56Contract](#algokit_utils.applications.app_spec.arc56.Arc56Contract)
-
-#### *static* get_abi_struct_from_abi_tuple(decoded_tuple: Any, struct_fields: list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)], structs: dict[str, list[[StructField](#algokit_utils.applications.app_spec.arc56.StructField)]]) → dict[str, Any]
 
 #### to_json(indent: int | None = None) → str
 

@@ -14,8 +14,6 @@ This page contains auto-generated API reference documentation <sup>[1](#f1)</sup
     * [algokit_utils.applications.app_factory](algokit_utils/applications/app_factory/index.md)
     * [algokit_utils.applications.app_manager](algokit_utils/applications/app_manager/index.md)
     * [algokit_utils.applications.app_spec](algokit_utils/applications/app_spec/index.md)
-      * [algokit_utils.applications.app_spec.arc32](algokit_utils/applications/app_spec/arc32/index.md)
-      * [algokit_utils.applications.app_spec.arc56](algokit_utils/applications/app_spec/arc56/index.md)
     * [algokit_utils.applications.enums](algokit_utils/applications/enums/index.md)
   * [algokit_utils.assets](algokit_utils/assets/index.md)
     * [algokit_utils.assets.asset_manager](algokit_utils/assets/asset_manager/index.md)

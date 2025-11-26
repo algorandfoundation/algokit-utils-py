@@ -6,7 +6,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, fields, replace
 from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
+from typing_extensions import assert_never
+
+import algokit_abi
 import algokit_algosdk as algosdk
+from algokit_abi import arc32, arc56
+from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
@@ -19,17 +24,6 @@ from algokit_utils.applications.abi import (
     BoxABIValue,
     get_abi_decoded_value,
     get_abi_encoded_value,
-    get_abi_tuple_from_abi_struct,
-)
-from algokit_utils.applications.app_spec.arc32 import Arc32Contract
-from algokit_utils.applications.app_spec.arc56 import (
-    Arc56Contract,
-    Method,
-    PcOffsetMethod,
-    ProgramSourceInfo,
-    SourceInfo,
-    StorageKey,
-    StorageMap,
 )
 from algokit_utils.config import config
 from algokit_utils.errors.logic_error import LogicError, parse_logic_error
@@ -412,7 +406,7 @@ class _StateAccessor:
             """
             metadata = self._app_spec.state.keys.box[name]
             value = self._algorand.app.get_box_value(self._app_id, base64.b64decode(metadata.key))
-            return get_abi_decoded_value(value, metadata.value_type, self._app_spec.structs)
+            return get_abi_decoded_value(value, metadata.value_type)
 
         def get_map_value(map_name: str, key: bytes | Any) -> Any:  # noqa: ANN401
             """Get a value from a box map.
@@ -426,10 +420,10 @@ class _StateAccessor:
             """
             metadata = self._app_spec.state.maps.box[map_name]
             prefix = base64.b64decode(metadata.prefix or "")
-            encoded_key = get_abi_encoded_value(key, metadata.key_type, self._app_spec.structs)
+            encoded_key = get_abi_encoded_value(key, metadata.key_type)
             full_key = base64.b64encode(prefix + encoded_key).decode("utf-8")
             value = self._algorand.app.get_box_value(self._app_id, base64.b64decode(full_key))
-            return get_abi_decoded_value(value, metadata.value_type, self._app_spec.structs)
+            return get_abi_decoded_value(value, metadata.value_type)
 
         def get_map(map_name: str) -> dict[str, ABIValue]:
             """Get all key-value pairs from a box map.
@@ -450,11 +444,10 @@ class _StateAccessor:
                     continue
 
                 try:
-                    key = get_abi_decoded_value(box.name_raw[len(prefix) :], metadata.key_type, self._app_spec.structs)
+                    key = get_abi_decoded_value(box.name_raw[len(prefix) :], metadata.key_type)
                     value = get_abi_decoded_value(
                         self._algorand.app.get_box_value(self._app_id, box.name_raw),
                         metadata.value_type,
-                        self._app_spec.structs,
                     )
                     result[str(key)] = value
                 except Exception as e:
@@ -472,8 +465,8 @@ class _StateAccessor:
     def _get_state_methods(  # noqa: C901
         self,
         state_getter: Callable[[], dict[str, AppState]],
-        key_getter: Callable[[], dict[str, StorageKey]],
-        map_getter: Callable[[], dict[str, StorageMap]],
+        key_getter: Callable[[], dict[str, arc56.StorageKey]],
+        map_getter: Callable[[], dict[str, arc56.StorageMap]],
     ) -> _AppClientStateMethods:
         def get_all() -> dict[str, Any]:
             state = state_getter()
@@ -486,7 +479,7 @@ class _StateAccessor:
             value = next((s for s in state.values() if s.key_base64 == key_info.key), None)
 
             if value and value.value_raw:
-                return get_abi_decoded_value(value.value_raw, key_info.value_type, self._app_spec.structs)
+                return get_abi_decoded_value(value.value_raw, key_info.value_type)
 
             return value.value if value else None
 
@@ -495,11 +488,11 @@ class _StateAccessor:
             metadata = map_getter()[map_name]
 
             prefix = base64.b64decode(metadata.prefix or "")
-            encoded_key = get_abi_encoded_value(key, metadata.key_type, self._app_spec.structs)
+            encoded_key = get_abi_encoded_value(key, metadata.key_type)
             full_key = base64.b64encode(prefix + encoded_key).decode("utf-8")
             value = next((s for s in state.values() if s.key_base64 == full_key), None)
             if value and value.value_raw:
-                return get_abi_decoded_value(value.value_raw, metadata.value_type, self._app_spec.structs)
+                return get_abi_decoded_value(value.value_raw, metadata.value_type)
             return value.value if value else None
 
         def get_map(map_name: str) -> dict[str, ABIValue]:
@@ -515,17 +508,15 @@ class _StateAccessor:
             for key_encoded, value in prefixed_state.items():
                 key_bytes = key_encoded[len(prefix) :]
                 try:
-                    decoded_key = get_abi_decoded_value(key_bytes, metadata.key_type, self._app_spec.structs)
+                    decoded_key = get_abi_decoded_value(key_bytes, metadata.key_type)
                 except Exception as e:
                     raise ValueError(f"Failed to decode key {key_encoded}") from e
 
                 try:
                     if value and value.value_raw:
-                        decoded_value = get_abi_decoded_value(
-                            value.value_raw, metadata.value_type, self._app_spec.structs
-                        )
+                        decoded_value = get_abi_decoded_value(value.value_raw, metadata.value_type)
                     else:
-                        decoded_value = get_abi_decoded_value(value.value, metadata.value_type, self._app_spec.structs)
+                        decoded_value = get_abi_decoded_value(value.value, metadata.value_type)
                 except Exception as e:
                     raise ValueError(f"Failed to decode value {value}") from e
 
@@ -762,7 +753,7 @@ class _MethodParamsBuilder:
         input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
         if params.get("method"):
-            input_params["method"] = self._app_spec.get_arc56_method(params["method"]).to_abi_method()
+            input_params["method"] = self._app_spec.get_arc56_method(params["method"])
             input_params["args"] = self._client._get_abi_args_with_default_values(
                 method_name_or_signature=params["method"],
                 args=params.get("args"),
@@ -1245,9 +1236,7 @@ class _TransactionSender:
                 confirmations=simulate_response.confirmations,
                 group_id=simulate_response.group_id or "",
                 returns=simulate_response.returns,
-                abi_return=simulate_response.returns[-1].get_arc56_value(
-                    self._app_spec.get_arc56_method(params.method), self._app_spec.structs
-                ),
+                abi_return=simulate_response.returns[-1].value,
             )
 
         return self._client._handle_call_errors(
@@ -1262,7 +1251,7 @@ class _TransactionSender:
 class AppClientParams:
     """Full parameters for creating an app client"""
 
-    app_spec: Arc56Contract | Arc32Contract | str
+    app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str
     """The application specification"""
     algorand: AlgorandClient
     """The Algorand client"""
@@ -1274,9 +1263,9 @@ class AppClientParams:
     """The default sender address"""
     default_signer: TransactionSigner | None = None
     """The default transaction signer"""
-    approval_source_map: algosdk.source_map.SourceMap | None = None
+    approval_source_map: SourceMap | None = None
     """The approval source map"""
-    clear_source_map: algosdk.source_map.SourceMap | None = None
+    clear_source_map: SourceMap | None = None
     """The clear source map"""
 
 
@@ -1299,10 +1288,10 @@ class AppClient:
         ...         account="SIGNERACCOUNT",
         ...         private_key="SIGNERPRIVATEKEY",
         ...     ),
-        ...     approval_source_map=algosdk.source_map.SourceMap(
+        ...     approval_source_map=SourceMap(
         ...         source="APPROVALSOURCE",
         ...     ),
-        ...     clear_source_map=algosdk.source_map.SourceMap(
+        ...     clear_source_map=SourceMap(
         ...         source="CLEARSOURCE",
         ...     ),
         ... )
@@ -1361,7 +1350,7 @@ class AppClient:
         return self._app_name
 
     @property
-    def app_spec(self) -> Arc56Contract:
+    def app_spec(self) -> arc56.Arc56Contract:
         """Get the application specification.
 
         :return: The ARC-56 contract specification for this application
@@ -1414,7 +1403,7 @@ class AppClient:
         return self._create_transaction_accessor
 
     @staticmethod
-    def normalise_app_spec(app_spec: Arc56Contract | Arc32Contract | str) -> Arc56Contract:
+    def normalise_app_spec(app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str) -> arc56.Arc56Contract:
         """Normalize an application specification to ARC-56 format.
 
         :param app_spec: The application specification to normalize. Can be raw arc32 or arc56 json,
@@ -1427,29 +1416,31 @@ class AppClient:
         """
         if isinstance(app_spec, str):
             spec_dict = json.loads(app_spec)
-            spec = Arc32Contract.from_json(app_spec) if "hints" in spec_dict else spec_dict
+            spec = arc32.Arc32Contract.from_json(app_spec) if "hints" in spec_dict else spec_dict
         else:
             spec = app_spec
 
         match spec:
-            case Arc56Contract():
+            case arc56.Arc56Contract():
                 return spec
-            case Arc32Contract():
-                return Arc56Contract.from_arc32(spec.to_json())
+            case arc32.Arc32Contract():
+                from algokit_abi import arc32_to_arc56
+
+                return arc32_to_arc56(spec.to_json())
             case dict():
-                return Arc56Contract.from_dict(spec)
+                return arc56.Arc56Contract.from_dict(spec)
             case _:
                 raise ValueError("Invalid app spec format")
 
     @staticmethod
     def from_network(
-        app_spec: Arc56Contract | Arc32Contract | str,
+        app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str,
         algorand: AlgorandClient,
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
     ) -> "AppClient":
         """Create an AppClient instance from network information.
 
@@ -1473,10 +1464,10 @@ class AppClient:
             ...         account="SIGNERACCOUNT",
             ...         private_key="SIGNERPRIVATEKEY",
             ...     ),
-            ...     approval_source_map=algosdk.source_map.SourceMap(
+            ...     approval_source_map=SourceMap(
             ...         source="APPROVALSOURCE",
             ...     ),
-            ...     clear_source_map=algosdk.source_map.SourceMap(
+            ...     clear_source_map=SourceMap(
             ...         source="CLEARSOURCE",
             ...     ),
             ... )
@@ -1517,12 +1508,12 @@ class AppClient:
     def from_creator_and_name(
         creator_address: str,
         app_name: str,
-        app_spec: Arc56Contract | Arc32Contract | str,
+        app_spec: arc56.Arc56Contract | arc32.Arc32Contract | str,
         algorand: AlgorandClient,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: ApplicationLookup | None = None,
     ) -> "AppClient":
@@ -1572,7 +1563,7 @@ class AppClient:
 
     @staticmethod
     def compile(
-        app_spec: Arc56Contract,
+        app_spec: arc56.Arc56Contract,
         app_manager: AppManager,
         compilation_params: AppClientCompilationParams | None = None,
     ) -> AppClientCompilationResult:
@@ -1643,13 +1634,13 @@ class AppClient:
     def _expose_logic_error_static(  # noqa: C901
         *,
         e: Exception,
-        app_spec: Arc56Contract,
+        app_spec: arc56.Arc56Contract,
         is_clear_state_program: bool = False,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: SourceMap | None = None,
+        clear_source_map: SourceMap | None = None,
         program: bytes | None = None,
-        approval_source_info: ProgramSourceInfo | None = None,
-        clear_source_info: ProgramSourceInfo | None = None,
+        approval_source_info: arc56.ProgramSourceInfo | None = None,
+        clear_source_info: arc56.ProgramSourceInfo | None = None,
     ) -> LogicError | Exception:
         source_map = clear_source_map if is_clear_state_program else approval_source_map
 
@@ -1666,7 +1657,7 @@ class AppClient:
         cblocks_offset = 0
 
         # If the program uses cblocks offset, then we need to adjust the PC accordingly
-        if program_source_info and program_source_info.pc_offset_method == PcOffsetMethod.CBLOCKS:
+        if program_source_info and program_source_info.pc_offset_method == arc56.PcOffsetMethod.CBLOCKS:
             if not program:
                 raise Exception("Program bytes are required to calculate the ARC56 cblocks PC offset")
 
@@ -1677,7 +1668,7 @@ class AppClient:
         source_info = None
         if program_source_info and program_source_info.source_info:
             source_info = next(
-                (s for s in program_source_info.source_info if isinstance(s, SourceInfo) and arc56_pc in s.pc),
+                (s for s in program_source_info.source_info if isinstance(s, arc56.SourceInfo) and arc56_pc in s.pc),
                 None,
             )
         error_message = source_info.error_message if source_info else None
@@ -1764,8 +1755,8 @@ class AppClient:
         app_name: str | None = _MISSING,  # type: ignore[assignment]
         default_sender: str | None = _MISSING,  # type: ignore[assignment]
         default_signer: TransactionSigner | None = _MISSING,  # type: ignore[assignment]
-        approval_source_map: algosdk.source_map.SourceMap | None = _MISSING,  # type: ignore[assignment]
-        clear_source_map: algosdk.source_map.SourceMap | None = _MISSING,  # type: ignore[assignment]
+        approval_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
+        clear_source_map: SourceMap | None = _MISSING,  # type: ignore[assignment]
     ) -> "AppClient":
         """Create a cloned AppClient instance with optionally overridden parameters.
 
@@ -1823,22 +1814,18 @@ class AppClient:
         if not source_maps.clear_source_map:
             raise ValueError("Clear source map is required")
 
-        if not isinstance(source_maps.approval_source_map, dict | algosdk.source_map.SourceMap):
-            raise ValueError(
-                "Approval source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
-            )
-        if not isinstance(source_maps.clear_source_map, dict | algosdk.source_map.SourceMap):
-            raise ValueError(
-                "Clear source map supplied is of invalid type. Must be a raw dict or `algosdk.source_map.SourceMap`"
-            )
+        if not isinstance(source_maps.approval_source_map, dict | SourceMap):
+            raise ValueError("Approval source map supplied is of invalid type. Must be a raw dict or `SourceMap`")
+        if not isinstance(source_maps.clear_source_map, dict | SourceMap):
+            raise ValueError("Clear source map supplied is of invalid type. Must be a raw dict or `SourceMap`")
 
         self._approval_source_map = (
-            algosdk.source_map.SourceMap(source_map=source_maps.approval_source_map)
+            SourceMap(source_map=source_maps.approval_source_map)
             if isinstance(source_maps.approval_source_map, dict)
             else source_maps.approval_source_map
         )
         self._clear_source_map = (
-            algosdk.source_map.SourceMap(source_map=source_maps.clear_source_map)
+            SourceMap(source_map=source_maps.clear_source_map)
             if isinstance(source_maps.clear_source_map, dict)
             else source_maps.clear_source_map
         )
@@ -2057,7 +2044,7 @@ class AppClient:
             "on_complete": on_complete,
         }
 
-    def _get_abi_args_with_default_values(  # noqa: C901, PLR0912
+    def _get_abi_args_with_default_values(
         self,
         *,
         method_name_or_signature: str,
@@ -2065,7 +2052,7 @@ class AppClient:
         sender: str,
     ) -> list[Any]:
         method = self._app_spec.get_arc56_method(method_name_or_signature)
-        result: list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] = []
+        result = list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None]()
 
         if args and len(method.args) < len(args):
             raise ValueError(
@@ -2076,81 +2063,95 @@ class AppClient:
             arg_value = args[i] if args and i < len(args) else None
 
             if arg_value is not None:
-                if method_arg.struct and isinstance(arg_value, dict):
-                    arg_value = get_abi_tuple_from_abi_struct(
-                        arg_value, self._app_spec.structs[method_arg.struct], self._app_spec.structs
-                    )
                 result.append(arg_value)
                 continue
 
             default_value = method_arg.default_value
-            if default_value:
-                match default_value.source:
-                    case "literal":
-                        value_raw = base64.b64decode(default_value.data)
-                        value_type = default_value.type or method_arg.type
-                        result.append(get_abi_decoded_value(value_raw, value_type, self._app_spec.structs))
-
-                    case "method":
-                        default_method = self._app_spec.get_arc56_method(default_value.data)
-                        empty_args = [None] * len(default_method.args)
-                        call_result = self.send.call(
-                            AppClientMethodCallParams(
-                                method=default_value.data,
-                                args=empty_args,
-                                sender=sender,
-                            )
-                        )
-
-                        if not call_result.abi_return:
-                            raise ValueError("Default value method call did not return a value")
-
-                        if isinstance(call_result.abi_return, dict):
-                            result.append(
-                                get_abi_tuple_from_abi_struct(
-                                    call_result.abi_return,
-                                    self._app_spec.structs[str(default_method.returns.struct)],
-                                    self._app_spec.structs,
-                                )
-                            )
-                        elif call_result.abi_return:
-                            result.append(call_result.abi_return)
-
-                    case "local" | "global":
-                        state = (
-                            self.get_global_state()
-                            if default_value.source == "global"
-                            else self.get_local_state(sender)
-                        )
-                        value = next((s for s in state.values() if s.key_base64 == default_value.data), None)
-                        if not value:
-                            raise ValueError(
-                                f"Key '{default_value.data}' not found in {default_value.source} "
-                                f"storage for argument {method_arg.name or f'arg{i + 1}'}"
-                            )
-
-                        if value.value_raw:
-                            value_type = default_value.type or method_arg.type
-                            result.append(get_abi_decoded_value(value.value_raw, value_type, self._app_spec.structs))
-                        else:
-                            result.append(value.value)
-
-                    case "box":
-                        box_name = base64.b64decode(default_value.data)
-                        box_value = self._algorand.app.get_box_value(self._app_id, box_name)
-                        value_type = default_value.type or method_arg.type
-                        result.append(get_abi_decoded_value(box_value, value_type, self._app_spec.structs))
-
-            elif not algosdk.abi.is_abi_transaction_type(method_arg.type):
-                raise ValueError(
-                    f"No value provided for required argument "
-                    f"{method_arg.name or f'arg{i + 1}'} in call to method {method.name}"
-                )
-            elif arg_value is None and default_value is None:
-                # At this point only allow explicit None values if no default value was identified
+            arg_type = method_arg.type
+            arg_name = method_arg.name or f"arg{i + 1}"
+            if isinstance(arg_type, arc56.TransactionType):
                 result.append(None)
+            elif default_value:
+                assert isinstance(arg_type, arc56.ReferenceType | algokit_abi.ABIType)
+                result.append(self._get_abi_arg_default_value(arg_name, arg_type, default_value, sender))
+            else:
+                raise ValueError(f"No value provided for required argument {arg_name} in call to method {method.name}")
 
         return result
+
+    def _get_abi_arg_default_value(
+        self,
+        arg_name: str,
+        arg_type: algokit_abi.ABIType | arc56.ReferenceType,
+        default_value: arc56.DefaultValue,
+        sender: str,
+    ) -> ABIValue:
+        match default_value.source:
+            case "literal":
+                value_raw = base64.b64decode(default_value.data)
+                value_type = default_value.type or arg_type
+                return get_abi_decoded_value(value_raw, value_type)
+
+            case "method":
+                default_method = self._app_spec.get_arc56_method(default_value.data)
+                empty_args = [None] * len(default_method.args)
+                call_result = self.send.call(
+                    AppClientMethodCallParams(
+                        method=default_value.data,
+                        args=empty_args,
+                        sender=sender,
+                    )
+                )
+
+                if call_result.abi_return is None:
+                    raise ValueError("Default value method call did not return a value")
+                assert isinstance(default_method.returns.type, algokit_abi.ABIType)
+                return call_result.abi_return
+
+            case "local" | "global" | "box":
+                key = base64.b64decode(default_value.data)
+                try:
+                    value, storage_key = self._get_storage_value(default_value.source, key, sender)
+                except KeyError:
+                    raise ValueError(
+                        f"Key '{default_value.data}' not found in {default_value.source} "
+                        f"storage for argument {arg_name}"
+                    ) from None
+
+                decoded_value: ABIValue
+                if isinstance(value, bytes):
+                    # special case to convert raw AVM bytes to a native string type suitable for encoding
+                    if storage_key.value_type == arc56.AVMType.BYTES and isinstance(arg_type, algokit_abi.StringType):
+                        decoded_value = value.decode("utf-8")
+                    else:
+                        decoded_value = get_abi_decoded_value(value, storage_key.value_type)
+                else:
+                    decoded_value = value
+                return decoded_value
+            case _:
+                assert_never(default_value.source)
+
+    def _get_storage_value(
+        self, source: Literal["local", "global", "box"], key: bytes, sender: str
+    ) -> tuple[bytes | int | str, arc56.StorageKey]:
+        state_keys = self.app_spec.state.keys
+        if source == "global":
+            state = {s.key_raw: s for s in self.get_global_state().values()}[key]
+            value = state.value_raw if state.value_raw is not None else state.value
+            storage_keys = state_keys.global_state
+        elif source == "local":
+            state = {s.key_raw: s for s in self.get_local_state(sender).values()}[key]
+            value = state.value_raw if state.value_raw is not None else state.value
+            storage_keys = state_keys.local_state
+        elif source == "box":
+            value = self.get_box_value(key)
+            storage_keys = state_keys.box
+        else:
+            assert_never(source)
+
+        key_base64 = base64.b64encode(key).decode("ascii")
+        storage_key = {sk.key: sk for sk in storage_keys.values()}[key_base64]
+        return value, storage_key
 
     def _get_abi_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
@@ -2171,17 +2172,22 @@ class AppClient:
     def _process_method_call_return(
         self,
         result: Callable[[], SendAppUpdateTransactionResult[ABIReturn] | SendAppTransactionResult[ABIReturn]],
-        method: Method,
+        method: arc56.Method,
     ) -> SendAppUpdateTransactionResult[Arc56ReturnValueType] | SendAppTransactionResult[Arc56ReturnValueType]:
+        _ = method  # kept for compatibility
         result_value = result()
-        abi_return = (
-            result_value.abi_return.get_arc56_value(method, self._app_spec.structs)
-            if isinstance(result_value.abi_return, ABIReturn)
-            else None
-        )
+        abi_return_value: Arc56ReturnValueType
+        if isinstance(result_value.abi_return, ABIReturn):
+            if result_value.abi_return.decode_error:
+                raise ValueError(result_value.abi_return.decode_error)
+            abi_return_value = result_value.abi_return.value
+        else:
+            abi_return_value = None
 
         if isinstance(result_value, SendAppUpdateTransactionResult):
             return SendAppUpdateTransactionResult[Arc56ReturnValueType](
-                **{**result_value.__dict__, "abi_return": abi_return}
+                **{**result_value.__dict__, "abi_return": abi_return_value}
             )
-        return SendAppTransactionResult[Arc56ReturnValueType](**{**result_value.__dict__, "abi_return": abi_return})
+        return SendAppTransactionResult[Arc56ReturnValueType](
+            **{**result_value.__dict__, "abi_return": abi_return_value}
+        )

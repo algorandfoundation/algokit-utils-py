@@ -255,8 +255,7 @@
                     "type": "uint64",
                     "defaultValue": {
                         "data": "aW50MQ==",
-                        "source": "global",
-                        "type": "uint64"
+                        "source": "global"
                     },
                     "name": "arg_with_default"
                 }
@@ -280,8 +279,7 @@
                     "type": "string",
                     "defaultValue": {
                         "data": "bG9jYWxfYnl0ZXMx",
-                        "source": "local",
-                        "type": "AVMString"
+                        "source": "local"
                     },
                     "name": "arg_with_default"
                 }
