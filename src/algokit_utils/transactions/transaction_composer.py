@@ -180,6 +180,7 @@ class _BuilderKwargs(TypedDict):
 class TransactionWithSigner:
     txn: Transaction
     signer: TransactionSigner
+    method: ABIMethod | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -259,7 +260,6 @@ class TransactionComposer:
         self._transactions_with_signers: list[TransactionWithSigner] | None = None
         self._signed_transactions: list[SignedTransaction] | None = None
         self._raw_built_transactions: list[Transaction] | None = None
-        self._method_calls: dict[int, ABIMethod] = {}
 
     def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
         """Create a shallow copy of this composer, optionally overriding config flags."""
@@ -282,7 +282,6 @@ class TransactionComposer:
         )
         cloned._queued = [self._clone_entry(entry) for entry in self._queued]
         cloned._raw_built_transactions = list(self._raw_built_transactions) if self._raw_built_transactions else None
-        cloned._method_calls = dict(self._method_calls)
         return cloned
 
     def register_error_transformer(self, transformer: ErrorTransformer) -> "TransactionComposer":
@@ -419,11 +418,8 @@ class TransactionComposer:
                 f"Current: {current_size}, Adding: {composer_size}, "
                 f"Maximum: {MAX_TRANSACTION_GROUP_SIZE}"
             )
-        offset = current_size
         for entry in composer._queued:  # noqa: SLF001
             self._queued.append(self._clone_entry(entry))
-        for index, method in composer._method_calls.items():  # noqa: SLF001
-            self._method_calls[index + offset] = method
         return self
 
     def build(self) -> BuiltTransactions:
@@ -432,7 +428,10 @@ class TransactionComposer:
         assert self._transactions_with_signers is not None
         transactions = [entry.txn for entry in self._transactions_with_signers]
         signers = {index: entry.signer for index, entry in enumerate(self._transactions_with_signers)}
-        return BuiltTransactions(transactions=transactions, method_calls=dict(self._method_calls), signers=signers)
+        method_calls = {
+            index: entry.method for index, entry in enumerate(self._transactions_with_signers) if entry.method
+        }
+        return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
     def build_transactions(self) -> BuiltTransactions:
         """Build queued transactions without resource population or grouping.
@@ -563,7 +562,7 @@ class TransactionComposer:
             if "simulation_round" in raw_options:
                 raw_options["round_"] = raw_options.pop("simulation_round")
 
-            txns_with_signers, _ = self._build_transactions_for_simulation()
+            txns_with_signers = self._build_transactions_for_simulation()
             if self._transactions_with_signers is not None:
                 raw_options.setdefault("allow_unnamed_resources", True)
 
@@ -601,7 +600,8 @@ class TransactionComposer:
             tx_ids = [get_transaction_id(entry.txn) for entry in txns_with_signers]
             group = response.txn_groups[0] if response.txn_groups else None
             confirmations = [result.txn_result for result in (group.txn_results if group else [])]
-            abi_returns = self._parse_abi_return_values(confirmations)
+            method_calls = {index: entry.method for index, entry in enumerate(txns_with_signers) if entry.method}
+            abi_returns = self._parse_abi_return_values(confirmations, method_calls)
             result = SendTransactionComposerResults(
                 tx_ids=tx_ids,
                 transactions=[entry.txn for entry in txns_with_signers],
@@ -710,12 +710,15 @@ class TransactionComposer:
 
         grouped = group_transactions(transactions)
         self._transactions_with_signers = [
-            TransactionWithSigner(txn=grouped[index], signer=cast(TransactionSigner, entry.signer))
+            TransactionWithSigner(
+                txn=grouped[index],
+                signer=cast(TransactionSigner, entry.signer),
+                method=method_calls.get(index),
+            )
             for index, entry in enumerate(built_entries)
         ]
-        self._method_calls = dict(method_calls)
 
-    def _build_transactions_for_simulation(self) -> tuple[list[TransactionWithSigner], dict[int, ABIMethod]]:
+    def _build_transactions_for_simulation(self) -> list[TransactionWithSigner]:
         if self._transactions_with_signers is None:
             suggested_params = self._get_suggested_params()
             genesis_id = getattr(suggested_params, "genesis_id", None)
@@ -727,14 +730,16 @@ class TransactionComposer:
             transactions = [entry.txn for entry in built_entries]
             if len(transactions) > 1:
                 transactions = group_transactions(transactions)
-            txns_with_signers = [
-                TransactionWithSigner(txn=transactions[index], signer=cast(TransactionSigner, entry.signer))
+            return [
+                TransactionWithSigner(
+                    txn=transactions[index],
+                    signer=cast(TransactionSigner, entry.signer),
+                    method=method_calls.get(index),
+                )
                 for index, entry in enumerate(built_entries)
             ]
-            self._method_calls = dict(method_calls)
-            return txns_with_signers, method_calls
 
-        return self._transactions_with_signers, dict(self._method_calls)
+        return self._transactions_with_signers
 
     def _analyze_group_requirements(  # noqa: C901, PLR0912
         self,
@@ -1371,10 +1376,16 @@ class TransactionComposer:
     def _parse_abi_return_values(
         self,
         confirmations: Sequence[algod_models.PendingTransactionResponse],
+        method_calls: dict[int, ABIMethod] | None = None,
     ) -> list[ABIReturn]:
         abi_returns: list[ABIReturn] = []
+        method_calls = method_calls or {
+            index: entry.method
+            for index, entry in enumerate(self._transactions_with_signers or [])
+            if entry.method
+        }
         for index, confirmation in enumerate(confirmations):
-            method = self._method_calls.get(index)
+            method = method_calls.get(index)
             if not method:
                 continue
             abi_return = self._app_manager.get_abi_return(confirmation, method)
