@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import re
 from collections.abc import Callable, Sequence
 from contextlib import suppress
@@ -453,19 +454,17 @@ class TransactionComposer:
         params = params or SendParams()
 
         # Update config from params if provided
+        cover_flag = params.get("cover_app_call_inner_transaction_fees")
+        populate_flag = params.get("populate_app_call_resources")
+        effective_cover = bool(cover_flag) if cover_flag is not None else False
+        effective_populate = bool(populate_flag) if populate_flag is not None else True
         if (
-            params.get("cover_app_call_inner_transaction_fees") is not None
-            or params.get("populate_app_call_resources") is not None
+            effective_cover != self._config.cover_app_call_inner_transaction_fees
+            or effective_populate != self._config.populate_app_call_resources
         ):
-            cover_flag = params.get("cover_app_call_inner_transaction_fees")
-            populate_flag = params.get("populate_app_call_resources")
             self._config = TransactionComposerConfig(
-                cover_app_call_inner_transaction_fees=(
-                    bool(cover_flag) if cover_flag is not None else self._config.cover_app_call_inner_transaction_fees
-                ),
-                populate_app_call_resources=(
-                    bool(populate_flag) if populate_flag is not None else self._config.populate_app_call_resources
-                ),
+                cover_app_call_inner_transaction_fees=effective_cover,
+                populate_app_call_resources=effective_populate,
             )
             # Reset built state to force rebuild with new config
             self._transactions_with_signers = None
@@ -490,6 +489,29 @@ class TransactionComposer:
 
             tx_ids = [get_transaction_id(entry.txn) for entry in self._transactions_with_signers or []]
             group_id = self._group_id()
+            if config.logger.isEnabledFor(logging.INFO) and tx_ids:
+                if len(tx_ids) > 1:
+                    config.logger.info(
+                        "Sending group of %s transactions (%s)",
+                        len(tx_ids),
+                        group_id or "no-group",
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
+                    config.logger.debug(
+                        "Transaction IDs (%s): %s",
+                        group_id or "no-group",
+                        tx_ids,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
+                else:
+                    txn = (self._transactions_with_signers or [])[0].txn
+                    config.logger.info(
+                        "Sent transaction ID %s %s from %s",
+                        tx_ids[0],
+                        txn.transaction_type,
+                        txn.sender,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
             confirmations = self._wait_for_confirmations(tx_ids, params)
             abi_returns = self._parse_abi_return_values(confirmations)
             return SendTransactionComposerResults(
@@ -553,8 +575,6 @@ class TransactionComposer:
                 raw_options["round_"] = raw_options.pop("simulation_round")
 
             txns_with_signers = self._build_transactions_for_simulation()
-            if self._transactions_with_signers is not None:
-                raw_options.setdefault("allow_unnamed_resources", True)
 
             if config.debug:
                 raw_options.setdefault("allow_more_logging", True)
@@ -1370,9 +1390,7 @@ class TransactionComposer:
     ) -> list[ABIReturn]:
         abi_returns: list[ABIReturn] = []
         method_calls = method_calls or {
-            index: entry.method
-            for index, entry in enumerate(self._transactions_with_signers or [])
-            if entry.method
+            index: entry.method for index, entry in enumerate(self._transactions_with_signers or []) if entry.method
         }
         for index, confirmation in enumerate(confirmations):
             method = method_calls.get(index)

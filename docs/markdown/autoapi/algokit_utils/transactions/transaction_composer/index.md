@@ -72,6 +72,8 @@ Raised when an error transformer returns a non-error value.
 
 #### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
+#### method *: ABIMethod | None* *= None*
+
 ### *class* algokit_utils.transactions.transaction_composer.BuiltTransactions
 
 #### transactions *: list[algokit_transact.models.transaction.Transaction]*
@@ -169,7 +171,7 @@ populate unnamed resources or adjust fees, and it leaves grouping unchanged.
 
 Compose the transaction group and send it to the network.
 
-#### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool = True, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
+#### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool | None = None, result_on_failure: bool = False, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
 Compose the transaction group and simulate execution without submitting to the network.
 
