@@ -492,7 +492,7 @@ class TransactionComposer:
             if config.logger.isEnabledFor(logging.INFO) and tx_ids:
                 if len(tx_ids) > 1:
                     config.logger.info(
-                        "Sending group of %s transactions (%s)",
+                        "Sent group of %s transactions (%s)",
                         len(tx_ids),
                         group_id or "no-group",
                         extra={"suppress_log": params.get("suppress_log")},
