@@ -1,6 +1,5 @@
 import pytest
 
-from algokit_algod_client import AlgodClient
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
@@ -32,10 +31,13 @@ def receiver(algorand: AlgorandClient) -> SigningAccount:
     return account
 
 
+@pytest.mark.localnet
 def test_pending_transaction_broadcast(
-    algod_client: AlgodClient, algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount
+    algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount
 ) -> None:
     """Test broadcasting a transaction and retrieving pending transaction information."""
+    # Get the algod_client from the AlgorandClient so we use the same client consistently
+    algod_client = algorand.client.algod
 
     # Build payment transaction using Algokit
     txn = algorand.create_transaction.payment(

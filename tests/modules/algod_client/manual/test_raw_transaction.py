@@ -1,12 +1,18 @@
-from algokit_algod_client import AlgodClient
+import pytest
+
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
 
-def test_raw_transaction_broadcast(algod_client: AlgodClient) -> None:
+@pytest.mark.localnet
+def test_raw_transaction_broadcast() -> None:
+    """Test broadcasting a raw transaction using the localnet algod client directly."""
     algorand = AlgorandClient.default_localnet()
+    # Get the algod_client from the AlgorandClient so we use the same client consistently
+    algod_client = algorand.client.algod
+
     sender: SigningAccount = algorand.account.random()
     receiver: SigningAccount = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()

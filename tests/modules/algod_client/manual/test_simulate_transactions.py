@@ -1,15 +1,20 @@
-from algokit_algod_client import (
-    AlgodClient,
-)
+import pytest
+
 from algokit_algod_client.models import (
     SimulateRequest,
     SimulateRequestTransactionGroup,
     SimulateTraceConfig,
 )
 from algokit_transact import PaymentTransactionFields, SignedTransaction, Transaction, TransactionType
+from algokit_utils.algorand import AlgorandClient
 
 
-def test_simulate_transactions(algod_client: AlgodClient) -> None:
+@pytest.mark.localnet
+def test_simulate_transactions() -> None:
+    """Test simulating transactions using the localnet algod client directly."""
+    algorand = AlgorandClient.default_localnet()
+    algod_client = algorand.client.algod
+
     # Build two simple unsigned transactions using algokit-transact helpers
     sender = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
     recv = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
