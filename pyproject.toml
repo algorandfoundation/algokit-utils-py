@@ -46,6 +46,7 @@ dev = [
   "myst-parser>=4.0.0,<5",
   "sphinx-autoapi>=3.4.0,<4",
   "sphinx-markdown-builder>=0.6.8,<0.7",
+  "testcontainers>=4.0.0,<5",
 ]
 api-generator = [
   "oas-generator",
@@ -172,8 +173,19 @@ docs = ["docs-md-only"]
 docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false"
 docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
-polytest-generate-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#main' generate -t pytest"
-polytest-run-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/joe-p/algokit-polytest#main' run -t pytest --no-parse"
+# Polytest tasks for test generation and validation
+# Uses --git flag to pull config from central polytest repo without storing jsonc files locally
+# Test execution is done globally via pytest, polytest is only used for scaffolding and validation
+polytest-generate-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' generate -t pytest"
+polytest-validate-transact = "polytest --config test_configs/transact.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
+polytest-generate-algod = "polytest --config test_configs/algod_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' generate -t pytest"
+polytest-validate-algod = "polytest --config test_configs/algod_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
+polytest-generate-indexer = "polytest --config test_configs/indexer_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' generate -t pytest"
+polytest-validate-indexer = "polytest --config test_configs/indexer_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
+polytest-generate-kmd = "polytest --config test_configs/kmd_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' generate -t pytest"
+polytest-validate-kmd = "polytest --config test_configs/kmd_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
+polytest-generate-all = ["polytest-generate-transact", "polytest-generate-algod", "polytest-generate-indexer", "polytest-generate-kmd"]
+polytest-validate-all = ["polytest-validate-transact", "polytest-validate-algod", "polytest-validate-indexer", "polytest-validate-kmd"]
 
 [tool.poe.tasks.ruff-check]
 cmd = "ruff check src tests"
@@ -245,6 +257,7 @@ markers = [
     "group_transaction_tests",
     "group_transaction_group_tests",
     "group_generic_transaction_tests",
+    "group_common_tests",
 ]
 addopts = "-n auto"
 norecursedirs = [
