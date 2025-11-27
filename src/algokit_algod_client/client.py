@@ -557,10 +557,9 @@ class AlgodClient:
 
         selected_format = response_format
 
-        if selected_format is not None:
-            params["format"] = selected_format
-            if selected_format == "msgpack":
-                accept_value = "application/msgpack"
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -594,8 +593,6 @@ class AlgodClient:
         headers: Headers = self._config.resolve_headers()
 
         accept_value: str | None = None
-
-        params["format"] = "json"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -668,8 +665,6 @@ class AlgodClient:
             params["exclude"] = exclude
 
         accept_value: str | None = None
-
-        params["format"] = "json"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -827,7 +822,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1005,7 +999,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1039,7 +1032,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1104,7 +1096,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1142,7 +1133,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1314,7 +1304,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1357,10 +1346,9 @@ class AlgodClient:
 
         selected_format = response_format
 
-        if selected_format is not None:
-            params["format"] = selected_format
-            if selected_format == "msgpack":
-                accept_value = "application/msgpack"
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -1474,7 +1462,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1612,7 +1599,6 @@ class AlgodClient:
         body_media_types = ["application/msgpack"]
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         if "application/msgpack" in body_media_types:
