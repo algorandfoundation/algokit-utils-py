@@ -4,6 +4,7 @@ import pytest
 
 # Polytest Group: Common Tests
 
+
 @pytest.mark.skip(reason="Test not implemented")
 @pytest.mark.group_common_tests
 def test_basic_request_and_response_validation():

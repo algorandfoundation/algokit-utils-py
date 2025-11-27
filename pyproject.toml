@@ -161,6 +161,8 @@ suppress-none-returning = true
 "src/algokit_utils/applications/app_factory.py" = ["SLF001"]
 "tests/clients/test_algorand_client.py" = ["ERA001"]
 "tests/**/*" = ["PLR2004"]
+# Ignore lint rules for polytest auto-generated test stubs
+"tests/modules/**/*" = ["E501", "W292", "I001"]
 "src/algokit_transact/__init__.py" = ["RUF022"]
 "src/algokit_utils/__init__.py" = [
   "I001",

@@ -1,6 +1,6 @@
 import pytest
 
-from algokit_indexer_client import IndexerClient
+from algokit_indexer_client import ClientConfig, IndexerClient
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -16,11 +16,26 @@ def funded_account(algorand_localnet: AlgorandClient) -> SigningAccount:
     return account
 
 
+@pytest.fixture
+def localnet_indexer_client() -> IndexerClient:
+    """Create an indexer client connected to localnet."""
+    config = ClientConfig(
+        base_url="http://localhost:8980",
+        token="a" * 64,
+    )
+    return IndexerClient(config)
+
+
+@pytest.mark.localnet
 def test_search_transactions_finds_recent_payment(
     algorand_localnet: AlgorandClient,
     funded_account: SigningAccount,
-    indexer_client: IndexerClient,
+    localnet_indexer_client: IndexerClient,
 ) -> None:
+    """Test searching for transactions using localnet indexer.
+
+    NOTE: This test requires localnet to be running with indexer.
+    """
     receiver = algorand_localnet.account.random()
     algorand_localnet.account.ensure_funded(
         receiver,
@@ -41,9 +56,9 @@ def test_search_transactions_finds_recent_payment(
     tx_id = send_result.tx_id
     assert tx_id
 
-    wait_for_indexer(indexer_client, tx_id)
+    wait_for_indexer(localnet_indexer_client, tx_id)
 
-    lookup = indexer_client.lookup_transaction(tx_id)
+    lookup = localnet_indexer_client.lookup_transaction(tx_id)
     assert lookup.transaction
     transaction = lookup.transaction
     assert transaction.tx_type == "pay"
@@ -52,6 +67,6 @@ def test_search_transactions_finds_recent_payment(
     assert transaction.payment_transaction.receiver == receiver.address
     assert transaction.payment_transaction.amount == 1_000_000
 
-    search = indexer_client.search_for_transactions(txid=tx_id)
+    search = localnet_indexer_client.search_for_transactions(txid=tx_id)
     assert search.transactions
     assert search.transactions[0].id_ == tx_id
