@@ -548,8 +548,7 @@ class TransactionComposer:
                         extra={"suppress_log": params.get("suppress_log")},
                     )
 
-            error_with_context = self._attach_error_context(err, sent_transactions, simulate_response)
-            interpreted = self._interpret_error(error_with_context)
+            interpreted = self._interpret_error(err)
             interpreted = self._attach_error_context(interpreted, sent_transactions, simulate_response)
             raise self._transform_error(interpreted) from err
 
@@ -557,7 +556,6 @@ class TransactionComposer:
         self,
         *,
         skip_signatures: bool = False,
-        throw_on_failure: bool | None = None,
         result_on_failure: bool = False,
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
@@ -566,7 +564,6 @@ class TransactionComposer:
         Args:
             skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
                 This will set `allow_empty_signatures` and `fix_signers` when sending the request to algod.
-            throw_on_failure: Whether to raise on simulation failure. If None, defaults to not `result_on_failure`.
             result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
                 Defaults to False (throws on failure).
             **raw_options: Additional options to pass to the simulate request.
@@ -578,8 +575,8 @@ class TransactionComposer:
             persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers: list[TransactionWithSigner]
             if "throw_on_failure" in raw_options:
-                throw_on_failure = bool(raw_options.pop("throw_on_failure"))
-            effective_throw_on_failure = throw_on_failure if throw_on_failure is not None else not result_on_failure
+                raw_options.pop("throw_on_failure")
+            effective_throw_on_failure = not result_on_failure
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
                 raw_options.setdefault("fix_signers", True)

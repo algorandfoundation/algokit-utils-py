@@ -171,7 +171,7 @@ populate unnamed resources or adjust fees, and it leaves grouping unchanged.
 
 Compose the transaction group and send it to the network.
 
-#### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool | None = None, result_on_failure: bool = False, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
+#### simulate(\*, skip_signatures: bool = False, result_on_failure: bool = False, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
 Compose the transaction group and simulate execution without submitting to the network.
 
@@ -179,10 +179,8 @@ Args:
 : skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
   : This will set allow_empty_signatures and fix_signers when sending the request to algod.
   <br/>
-  throw_on_failure: Whether to raise on simulation failure. If None, defaults to not result_on_failure.
   result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
-  <br/>
-  > Defaults to False (throws on failure).
+  : Defaults to False (throws on failure).
   <br/>
   ```
   **
