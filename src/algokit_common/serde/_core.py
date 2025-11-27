@@ -1,3 +1,5 @@
+import builtins
+import sys
 import types
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, fields, is_dataclass
@@ -165,7 +167,13 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
     if not is_dataclass(cls):
         raise TypeError(f"{cls!r} is not a dataclass")
     handlers: list[_FieldHandler] = []
-    cls_type_hints = get_type_hints(cls)
+    # Use explicit globalns with builtins and empty localns to avoid issues with
+    # dataclass fields that shadow builtin names (e.g. 'bytes', 'type').
+    # When slots=True, the class namespace contains member descriptors that can
+    # interfere with type hint evaluation.
+    module = sys.modules.get(cls.__module__, None)
+    globalns = {**vars(builtins), **(vars(module) if module else {})}
+    cls_type_hints = get_type_hints(cls, globalns=globalns, localns={})
     for f in fields(cls):
         meta = dict(f.metadata or {})
         field_type = cls_type_hints[f.name]
