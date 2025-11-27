@@ -3,7 +3,6 @@ import json
 import logging
 import re
 from collections.abc import Callable, Sequence
-from contextlib import suppress
 from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
@@ -24,6 +23,7 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.simulate import SimulationTrace
 from algokit_utils.models.transaction import Arc2TransactionNote, SendParams
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
@@ -107,6 +107,7 @@ __all__ = [
     "SendTransactionComposerResults",
     "TransactionComposer",
     "TransactionComposerConfig",
+    "TransactionComposerError",
     "TransactionComposerParams",
     "TransactionWithSigner",
     "TxnParams",
@@ -151,6 +152,28 @@ class InvalidErrorTransformerValueError(RuntimeError):
             f"An error transformer returned a non-error value: {value}. "
             f"The original error before any transformation: {original_error}"
         )
+
+
+class TransactionComposerError(RuntimeError):
+    """Error raised when transaction composer fails to send transactions.
+
+    Contains detailed debugging information including simulation traces and sent transactions.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        cause: Exception | None = None,
+        traces: list[SimulationTrace] | None = None,
+        sent_transactions: list[Transaction] | None = None,
+        simulate_response: algod_models.SimulateTransactionResponseModel | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.__cause__ = cause
+        self.traces = traces
+        self.sent_transactions = sent_transactions
+        self.simulate_response = simulate_response
 
 
 @dataclass(slots=True)
@@ -471,19 +494,21 @@ class TransactionComposer:
             self._signed_transactions = None
             self._raw_built_transactions = None
 
+        # Build and sign transactions - let validation errors bubble up as-is
+        signed_transactions = self.gather_signatures()
+
+        if config.debug and config.trace_all and config.project_root:
+            try:
+                self.simulate(result_on_failure=True)
+            except Exception:
+                config.logger.debug(
+                    "Failed to simulate and persist trace for debugging",
+                    exc_info=True,
+                    extra={"suppress_log": params.get("suppress_log")},
+                )
+
+        # Send transactions and handle network errors
         try:
-            signed_transactions = self.gather_signatures()
-
-            if config.debug and config.trace_all and config.project_root:
-                try:
-                    self.simulate(result_on_failure=True)
-                except Exception:
-                    config.logger.debug(
-                        "Failed to simulate and persist trace for debugging",
-                        exc_info=True,
-                        extra={"suppress_log": params.get("suppress_log")},
-                    )
-
             blobs = encode_signed_transactions(signed_transactions)
             self._algod.send_raw_transaction(blobs)
 
@@ -523,10 +548,11 @@ class TransactionComposer:
             )
         except Exception as err:
             sent_transactions = self._resolve_error_transactions()
-            simulate_response = None
+            simulate_response: algod_models.SimulateTransactionResponseModel | None = None
+            traces: list[SimulationTrace] = []
 
             if config.debug and sent_transactions:
-                simulate_response = self._simulate_error_context(
+                simulate_response, traces = self._simulate_error_context(
                     sent_transactions,
                     suppress_log=params.get("suppress_log"),
                 )
@@ -549,8 +575,8 @@ class TransactionComposer:
                     )
 
             interpreted = self._interpret_error(err)
-            interpreted = self._attach_error_context(interpreted, sent_transactions, simulate_response)
-            raise self._transform_error(interpreted) from err
+            composer_error = self._create_composer_error(interpreted, sent_transactions, simulate_response, traces)
+            raise self._transform_error(composer_error) from err
 
     def simulate(
         self,
@@ -1425,7 +1451,12 @@ class TransactionComposer:
         sent_transactions: Sequence[Transaction],
         *,
         suppress_log: bool | None,
-    ) -> algod_models.SimulateTransactionResponseModel | None:
+    ) -> tuple[algod_models.SimulateTransactionResponseModel | None, list[SimulationTrace]]:
+        """Simulate transactions to get error context including traces.
+
+        Returns:
+            A tuple of (simulate_response, traces).
+        """
         try:
             empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
             signed_transactions = self._sign_transactions(
@@ -1443,35 +1474,47 @@ class TransactionComposer:
                     state_change=True,
                 ),
             )
-            return self._algod.simulate_transaction(request)
+            response = self._algod.simulate_transaction(request)
+
+            # Extract traces from the response (aligned with TS implementation)
+            traces: list[SimulationTrace] = []
+            if response.txn_groups and response.txn_groups[0].failed_at:
+                failure_message = response.txn_groups[0].failure_message
+                for txn_result in response.txn_groups[0].txn_results:
+                    traces.append(
+                        SimulationTrace(
+                            trace=txn_result.exec_trace,
+                            app_budget_consumed=txn_result.app_budget_consumed,
+                            logic_sig_budget_consumed=txn_result.logic_sig_budget_consumed,
+                            logs=txn_result.txn_result.logs if txn_result.txn_result else None,
+                            failure_message=failure_message,
+                        )
+                    )
+
+            return response, traces
         except Exception:
             config.logger.debug(
                 "Failed to simulate transaction group after send error",
                 exc_info=True,
                 extra={"suppress_log": suppress_log},
             )
-            return None
+            return None, []
 
-    def _attach_error_context(
+    def _create_composer_error(
         self,
         err: Exception,
         sent_transactions: Sequence[Transaction] | None,
         simulate_response: algod_models.SimulateTransactionResponseModel | None,
-    ) -> Exception:
-        if sent_transactions is not None:
-            with suppress(Exception):
-                err.sent_transactions = sent_transactions  # type: ignore[attr-defined]
-
-        if simulate_response is not None:
-            with suppress(Exception):
-                err.simulate_response = simulate_response  # type: ignore[attr-defined]
-
-            with suppress(Exception):
-                txn_groups = getattr(simulate_response, "txn_groups", None)
-                if txn_groups and getattr(txn_groups[0], "txn_results", None):
-                    err.traces = txn_groups[0].txn_results  # type: ignore[attr-defined]
-
-        return err
+        traces: list[SimulationTrace],
+    ) -> TransactionComposerError:
+        """Create a TransactionComposerError with full context."""
+        return TransactionComposerError(
+            str(err),
+            cause=err,
+            traces=traces if traces else None,
+            sent_transactions=list(sent_transactions) if sent_transactions else None,
+            simulate_response=simulate_response,
+        )
 
     def set_max_fees(self, max_fees: dict[int, AlgoAmount]) -> "TransactionComposer":
         """Override max_fee for queued transactions by index before building."""

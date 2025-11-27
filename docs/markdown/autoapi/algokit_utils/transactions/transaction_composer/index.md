@@ -10,9 +10,10 @@
 
 ## Exceptions
 
-| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)                         | Raised when an error transformer throws.                    |
-|---------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`InvalidErrorTransformerValueError`](#algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError) | Raised when an error transformer returns a non-error value. |
+| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)                         | Raised when an error transformer throws.                           |
+|---------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`InvalidErrorTransformerValueError`](#algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError) | Raised when an error transformer returns a non-error value.        |
+| [`TransactionComposerError`](#algokit_utils.transactions.transaction_composer.TransactionComposerError)                   | Error raised when transaction composer fails to send transactions. |
 
 ## Classes
 
@@ -43,6 +44,20 @@ Raised when an error transformer throws.
 Bases: `RuntimeError`
 
 Raised when an error transformer returns a non-error value.
+
+### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateTransactionResponseModel | None = None)
+
+Bases: `RuntimeError`
+
+Error raised when transaction composer fails to send transactions.
+
+Contains detailed debugging information including simulation traces and sent transactions.
+
+#### traces *= None*
+
+#### sent_transactions *= None*
+
+#### simulate_response *= None*
 
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposerConfig
 
