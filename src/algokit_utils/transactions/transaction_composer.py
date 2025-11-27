@@ -231,18 +231,6 @@ class _GroupAnalysis:
     unnamed_resources_accessed: algod_models.SimulateUnnamedResourcesAccessed | None
 
 
-class BuildComposerTransactionsError(ValueError):
-    def __init__(
-        self,
-        message: str,
-        sent_transactions: list[Transaction] | None = None,
-        simulate_response: algod_models.SimulateTransactionResponseModel | None = None,
-    ) -> None:
-        super().__init__(message)
-        self.sent_transactions = sent_transactions
-        self.simulate_response = simulate_response
-
-
 class TransactionComposer:
     """Light-weight transaction composer built on top of algokit_transact."""
 
