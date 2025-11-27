@@ -547,13 +547,15 @@ class TransactionComposer:
         self,
         *,
         skip_signatures: bool = False,
-        throw_on_failure: bool = True,
+        throw_on_failure: bool | None = None,
+        result_on_failure: bool = False,
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
         """Compose the transaction group and simulate execution without submitting to the network."""
         try:
             persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers: list[TransactionWithSigner]
+            effective_throw_on_failure = throw_on_failure if throw_on_failure is not None else not result_on_failure
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
                 raw_options.setdefault("fix_signers", True)
@@ -594,7 +596,7 @@ class TransactionComposer:
             )
             response = self._algod.simulate_transaction(request)
 
-            if response.txn_groups and response.txn_groups[0].failure_message and throw_on_failure:
+            if response.txn_groups and response.txn_groups[0].failure_message and effective_throw_on_failure:
                 raise RuntimeError(response.txn_groups[0].failure_message)
 
             tx_ids = [get_transaction_id(entry.txn) for entry in txns_with_signers]
