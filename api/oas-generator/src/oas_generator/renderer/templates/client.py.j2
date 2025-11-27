@@ -113,17 +113,16 @@ class {{ client.class_name }}:
         if selected_format is None:
             selected_format = "{{ operation.format_default }}"
         {% endif %}
-        if selected_format is not None:
-            params["format"] = selected_format
-            if selected_format == "msgpack":
-                accept_value = "application/msgpack"
-                {% if request %}
-                if "application/msgpack" in body_media_types:
-                    body_media_types = ["application/msgpack"]
-                {% endif %}
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
+            {% if request %}
+            if "application/msgpack" in body_media_types:
+                body_media_types = ["application/msgpack"]
+            {% endif %}
         {% elif operation.format_single %}
-        params["format"] = "{{ operation.format_single }}"
         {% if operation.format_single == "msgpack" %}
+        params["format"] = "msgpack"
         accept_value = "application/msgpack"
         {% if request %}
         if "application/msgpack" in body_media_types:
