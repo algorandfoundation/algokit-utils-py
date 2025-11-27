@@ -93,8 +93,12 @@ class LedgerAppParams:
 
     approval_program: bytes = field(metadata=wire("approv", required=True))
     clear_state_program: bytes = field(metadata=wire("clearp", required=True))
-    local_state_schema: LedgerStateSchema = field(metadata=nested("lsch", lambda: LedgerStateSchema))
-    global_state_schema: LedgerStateSchema = field(metadata=nested("gsch", lambda: LedgerStateSchema))
+    local_state_schema: LedgerStateSchema | None = field(
+        default=None, metadata=nested("lsch", lambda: LedgerStateSchema)
+    )
+    global_state_schema: LedgerStateSchema | None = field(
+        default=None, metadata=nested("gsch", lambda: LedgerStateSchema)
+    )
     extra_program_pages: int | None = field(default=None, metadata=wire("epp"))
     version: int | None = field(default=None, metadata=wire("v"))
     size_sponsor: str | None = field(default=None, metadata=addr("ss"))
