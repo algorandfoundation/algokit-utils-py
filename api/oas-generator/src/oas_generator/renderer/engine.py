@@ -23,11 +23,11 @@ class TemplateRenderer:
         "BlockAppEvalDelta",
         "BlockStateProofTrackingData",
         "BlockStateProofTracking",
-    "ParticipationUpdates",
-    "SignedTxnInBlock",
-    "BlockHeader",
-    "Block",
-    "GetBlock",
+        "ParticipationUpdates",
+        "SignedTxnInBlock",
+        "BlockHeader",
+        "Block",
+        "GetBlock",
     ]
     LEDGER_STATE_DELTA_EXPORTS: ClassVar[list[str]] = [
         "LedgerTealValue",
@@ -97,7 +97,7 @@ class TemplateRenderer:
             alias_context = {**context, "alias": alias}
             files[models_dir / f"{alias.module_name}.py"] = self._render_template(
                 "models/type_alias.py.j2", alias_context
-        )
+            )
         if client.include_block_models:
             files[models_dir / "_block.py"] = self._render_template("models/block.py.j2", context)
         if client.include_ledger_state_delta:
