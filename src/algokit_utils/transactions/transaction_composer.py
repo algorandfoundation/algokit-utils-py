@@ -2,6 +2,7 @@ import base64
 import json
 import re
 from collections.abc import Callable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
@@ -257,6 +258,7 @@ class TransactionComposer:
         self._queued: list[_QueuedTransaction] = []
         self._transactions_with_signers: list[TransactionWithSigner] | None = None
         self._signed_transactions: list[SignedTransaction] | None = None
+        self._raw_built_transactions: list[Transaction] | None = None
         self._method_calls: dict[int, ABIMethod] = {}
 
     def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
@@ -279,6 +281,7 @@ class TransactionComposer:
             )
         )
         cloned._queued = [self._clone_entry(entry) for entry in self._queued]
+        cloned._raw_built_transactions = list(self._raw_built_transactions) if self._raw_built_transactions else None
         cloned._method_calls = dict(self._method_calls)
         return cloned
 
@@ -387,6 +390,7 @@ class TransactionComposer:
     def rebuild(self) -> BuiltTransactions:
         self._transactions_with_signers = None
         self._signed_transactions = None
+        self._raw_built_transactions = None
         return self.build()
 
     @staticmethod
@@ -447,6 +451,7 @@ class TransactionComposer:
 
         built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
+        self._raw_built_transactions = list(transactions)
         signers = {index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None}
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
@@ -478,19 +483,20 @@ class TransactionComposer:
             # Reset built state to force rebuild with new config
             self._transactions_with_signers = None
             self._signed_transactions = None
+            self._raw_built_transactions = None
 
         try:
             signed_transactions = self.gather_signatures()
 
             if config.debug and config.trace_all and config.project_root:
-                from algokit_utils._debugging import simulate_and_persist_response
-
-                simulate_and_persist_response(
-                    self,
-                    config.project_root,
-                    self._algod,
-                    buffer_size_mb=config.trace_buffer_size_mb,
-                )
+                try:
+                    self.simulate(throw_on_failure=False)
+                except Exception:
+                    config.logger.debug(
+                        "Failed to simulate and persist trace for debugging",
+                        exc_info=True,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
 
             blobs = encode_signed_transactions(signed_transactions)
             self._algod.send_raw_transaction(blobs)
@@ -507,7 +513,16 @@ class TransactionComposer:
                 group_id=group_id,
             )
         except Exception as err:
-            if config.debug and config.project_root and not config.trace_all:
+            sent_transactions = self._resolve_error_transactions()
+            simulate_response = None
+
+            if config.debug and sent_transactions:
+                simulate_response = self._simulate_error_context(
+                    sent_transactions,
+                    suppress_log=params.get("suppress_log"),
+                )
+
+            if config.debug and config.project_root and not config.trace_all and simulate_response is None:
                 from algokit_utils._debugging import simulate_and_persist_response
 
                 try:
@@ -518,9 +533,15 @@ class TransactionComposer:
                         buffer_size_mb=config.trace_buffer_size_mb,
                     )
                 except Exception:
-                    config.logger.debug("Failed to simulate and persist trace for debugging", exc_info=True)
+                    config.logger.debug(
+                        "Failed to simulate and persist trace for debugging",
+                        exc_info=True,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
 
-            interpreted = self._interpret_error(err)
+            error_with_context = self._attach_error_context(err, sent_transactions, simulate_response)
+            interpreted = self._interpret_error(error_with_context)
+            interpreted = self._attach_error_context(interpreted, sent_transactions, simulate_response)
             raise self._transform_error(interpreted) from err
 
     def simulate(
@@ -672,6 +693,7 @@ class TransactionComposer:
 
         built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
+        self._raw_built_transactions = list(transactions)
         logical_max_fees = [entry.logical_max_fee for entry in built_entries]
 
         needs_analysis = (
@@ -1367,6 +1389,67 @@ class TransactionComposer:
             if abi_return is not None:
                 abi_returns.append(abi_return)
         return abi_returns
+
+    def _resolve_error_transactions(self) -> list[Transaction] | None:
+        if self._transactions_with_signers is not None:
+            return [entry.txn for entry in self._transactions_with_signers]
+        if self._raw_built_transactions:
+            transactions = list(self._raw_built_transactions)
+            return group_transactions(transactions) if len(transactions) > 1 else transactions
+        return None
+
+    def _simulate_error_context(
+        self,
+        sent_transactions: Sequence[Transaction],
+        *,
+        suppress_log: bool | None,
+    ) -> algod_models.SimulateTransactionResponseModel | None:
+        try:
+            empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+            signed_transactions = self._sign_transactions(
+                [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in sent_transactions]
+            )
+            request = algod_models.SimulateRequest(
+                txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
+                allow_empty_signatures=True,
+                fix_signers=True,
+                allow_more_logging=True,
+                exec_trace_config=algod_models.SimulateTraceConfig(
+                    enable=True,
+                    scratch_change=True,
+                    stack_change=True,
+                    state_change=True,
+                ),
+            )
+            return self._algod.simulate_transaction(request)
+        except Exception:
+            config.logger.debug(
+                "Failed to simulate transaction group after send error",
+                exc_info=True,
+                extra={"suppress_log": suppress_log},
+            )
+            return None
+
+    def _attach_error_context(
+        self,
+        err: Exception,
+        sent_transactions: Sequence[Transaction] | None,
+        simulate_response: algod_models.SimulateTransactionResponseModel | None,
+    ) -> Exception:
+        if sent_transactions is not None:
+            with suppress(Exception):
+                err.sent_transactions = sent_transactions  # type: ignore[attr-defined]
+
+        if simulate_response is not None:
+            with suppress(Exception):
+                err.simulate_response = simulate_response  # type: ignore[attr-defined]
+
+            with suppress(Exception):
+                txn_groups = getattr(simulate_response, "txn_groups", None)
+                if txn_groups and getattr(txn_groups[0], "txn_results", None):
+                    err.traces = txn_groups[0].txn_results  # type: ignore[attr-defined]
+
+        return err
 
     def set_max_fees(self, max_fees: dict[int, AlgoAmount]) -> "TransactionComposer":
         """Override max_fee for queued transactions by index before building."""
