@@ -15,9 +15,11 @@ class LightBlockHeaderProof:
     """
 
     index: int = field(
+        default=0,
         metadata=wire("index"),
     )
     proof: bytes = field(
+        default=b"",
         metadata=wire(
             "proof",
             encode=encode_bytes_base64,
@@ -25,5 +27,6 @@ class LightBlockHeaderProof:
         ),
     )
     treedepth: int = field(
+        default=0,
         metadata=wire("treedepth"),
     )

@@ -12,9 +12,11 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class LookupApplicationLogsByIdresponseModel:
     application_id: int = field(
+        default=0,
         metadata=wire("application-id"),
     )
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )
     log_data: list[ApplicationLogData] | None = field(

@@ -14,14 +14,18 @@ class DryrunSource:
     """
 
     app_id: int = field(
+        default=0,
         metadata=wire("app-index"),
     )
     field_name: str = field(
+        default="",
         metadata=wire("field-name"),
     )
     source: str = field(
+        default="",
         metadata=wire("source"),
     )
     txn_index: int = field(
+        default=0,
         metadata=wire("txn-index"),
     )

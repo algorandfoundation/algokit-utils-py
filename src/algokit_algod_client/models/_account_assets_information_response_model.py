@@ -12,6 +12,7 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class AccountAssetsInformationResponseModel:
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     asset_holdings: list[AccountAssetHolding] | None = field(

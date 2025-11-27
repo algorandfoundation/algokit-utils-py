@@ -13,11 +13,14 @@ class GetSupplyResponseModel:
     """
 
     current_round: int = field(
+        default=0,
         metadata=wire("current_round"),
     )
     online_money: int = field(
+        default=0,
         metadata=wire("online-money"),
     )
     total_money: int = field(
+        default=0,
         metadata=wire("total-money"),
     )

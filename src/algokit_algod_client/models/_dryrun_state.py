@@ -16,12 +16,15 @@ class DryrunState:
     """
 
     line: int = field(
+        default=0,
         metadata=wire("line"),
     )
     pc: int = field(
+        default=0,
         metadata=wire("pc"),
     )
     stack: list[TealValue] = field(
+        default_factory=list,
         metadata=wire(
             "stack",
             encode=encode_model_sequence,

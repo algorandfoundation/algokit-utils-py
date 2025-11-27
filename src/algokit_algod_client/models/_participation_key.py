@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import nested, wire
 
 from ._account_participation import AccountParticipation
@@ -14,14 +15,16 @@ class ParticipationKey:
     Represents a participation key used by the node.
     """
 
+    key: AccountParticipation = field(
+        metadata=nested("key", lambda: AccountParticipation, required=True),
+    )
     address: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
     id_: str = field(
+        default="",
         metadata=wire("id"),
-    )
-    key: AccountParticipation = field(
-        metadata=nested("key", lambda: AccountParticipation),
     )
     effective_first_valid: int | None = field(
         default=None,

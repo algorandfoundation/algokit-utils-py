@@ -19,6 +19,7 @@ class DryrunTxnResult:
     """
 
     disassembly: list[str] = field(
+        default_factory=list,
         metadata=wire("disassembly"),
     )
     app_call_messages: list[str] | None = field(

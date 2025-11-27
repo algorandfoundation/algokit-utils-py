@@ -9,5 +9,6 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class AddParticipationKeyResponseModel:
     part_id: str = field(
+        default="",
         metadata=wire("partId"),
     )

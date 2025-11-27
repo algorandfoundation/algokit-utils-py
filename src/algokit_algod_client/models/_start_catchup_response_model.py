@@ -13,5 +13,6 @@ class StartCatchupResponseModel:
     """
 
     catchup_message: str = field(
+        default="",
         metadata=wire("catchup-message"),
     )

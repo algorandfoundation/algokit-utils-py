@@ -11,6 +11,7 @@ from ._application import Application
 @dataclass(slots=True)
 class LookupApplicationByIdresponseModel:
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )
     application: Application | None = field(

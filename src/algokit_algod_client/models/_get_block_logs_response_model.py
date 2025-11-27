@@ -12,6 +12,7 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class GetBlockLogsResponseModel:
     logs: list[AppCallLogs] = field(
+        default_factory=list,
         metadata=wire(
             "logs",
             encode=encode_model_sequence,

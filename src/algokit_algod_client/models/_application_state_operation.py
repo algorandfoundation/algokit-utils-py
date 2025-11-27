@@ -16,9 +16,11 @@ class ApplicationStateOperation:
     """
 
     app_state_type: str = field(
+        default="",
         metadata=wire("app-state-type"),
     )
     key: bytes = field(
+        default=b"",
         metadata=wire(
             "key",
             encode=encode_bytes_base64,
@@ -26,6 +28,7 @@ class ApplicationStateOperation:
         ),
     )
     operation: str = field(
+        default="",
         metadata=wire("operation"),
     )
     account: str | None = field(

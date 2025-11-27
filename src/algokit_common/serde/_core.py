@@ -102,6 +102,7 @@ def nested(
     *,
     present_if: Callable[[Mapping[str, object]], bool] | None = None,
     omit_empty_seq: bool = True,
+    required: bool = False,
 ) -> dict[str, object]:
     return {
         "kind": "nested",
@@ -109,6 +110,7 @@ def nested(
         "child_cls": child_cls,
         "present_if": present_if,
         "omit_empty_seq": omit_empty_seq,
+        "required": required,
     }
 
 
@@ -129,6 +131,7 @@ class _FieldHandler:
     present_if: Callable[[Mapping[str, object]], bool] | None = None
     pass_obj: bool = False
     expects_text: bool = False
+    nested_required: bool = False  # For nested fields: whether they are required
 
 
 class _SerdePlan:
@@ -210,6 +213,7 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
                     child_cls=cast(type[object] | None, meta.get("child_cls")),
                     nested_alias=cast(str | None, meta.get("alias")),
                     present_if=cast(Callable[[Mapping[str, object]], bool] | None, meta.get("present_if")),
+                    nested_required=bool(meta.get("required", False)),
                 )
             )
         else:  # flatten
@@ -238,6 +242,52 @@ def _compile_plan(cls: type[object]) -> _SerdePlan:
 
 def _plan_for(cls: type[object]) -> _SerdePlan:
     return _SERDE_CACHE.get(cls) or _compile_plan(cls)
+
+
+# Cache for default instances to avoid repeated construction
+_DEFAULT_INSTANCE_CACHE: dict[type[object], object] = {}
+
+
+def _construct_default_instance(cls: type[object]) -> object:
+    """Construct a default instance of a dataclass with all required fields set to defaults.
+
+    This mirrors TypeScript's ObjectModelCodec.defaultValue() behavior:
+    - Required primitive fields get type-appropriate defaults (0, "", False, b"", etc.)
+    - Required nested object fields get recursively constructed default instances
+    - Optional fields are not set (they use their dataclass defaults, typically None)
+
+    The result is cached for performance.
+    """
+    if cls in _DEFAULT_INSTANCE_CACHE:
+        return _DEFAULT_INSTANCE_CACHE[cls]
+
+    if not is_dataclass(cls):
+        raise TypeError(f"{cls!r} is not a dataclass")
+
+    plan = _plan_for(cls)
+    kwargs: dict[str, object] = {}
+
+    for h in plan.fields:
+        if h.kind == "wire":
+            # For wire fields, check if it has a default in the dataclass
+            # If not, we need to provide a default value for required primitives
+            # The dataclass defaults should already handle this via generator
+            pass
+        elif h.kind == "nested" and h.nested_required:
+            # Required nested fields need default instances
+            child_cls = _resolve_child_cls(h)
+            if child_cls is not None:
+                kwargs[h.name] = _construct_default_instance(child_cls)
+        # flatten and optional nested fields are not populated
+
+    # Create instance - dataclass defaults will fill in primitive defaults
+    try:
+        instance = cls(**kwargs)
+    except TypeError as exc:
+        raise DecodeError(f"Failed to construct default instance of {cls.__name__}: {exc}") from exc
+
+    _DEFAULT_INSTANCE_CACHE[cls] = instance
+    return instance
 
 
 def _encode_scalar(value: object, *, keep_zero: bool, keep_false: bool) -> object | None:
@@ -382,6 +432,11 @@ def _decode_nested_field(kwargs: dict[str, object], h: _FieldHandler, payload: M
         return
     if isinstance(raw_nested := payload.get(h.nested_alias), Mapping):
         kwargs[h.name] = from_wire(child_cls, raw_nested)
+        return
+    # Field is missing or not a Mapping - check if it's required
+    if h.nested_required:
+        # Required nested fields get a default instance (mirrors TS ObjectModelCodec.defaultValue())
+        kwargs[h.name] = _construct_default_instance(child_cls)
         return
     if not h.omit_if_none:
         kwargs[h.name] = None

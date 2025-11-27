@@ -13,20 +13,26 @@ class BlockRewards:
     """
 
     fee_sink: str = field(
+        default="",
         metadata=wire("fee-sink"),
     )
     rewards_calculation_round: int = field(
+        default=0,
         metadata=wire("rewards-calculation-round"),
     )
     rewards_level: int = field(
+        default=0,
         metadata=wire("rewards-level"),
     )
     rewards_pool: str = field(
+        default="",
         metadata=wire("rewards-pool"),
     )
     rewards_rate: int = field(
+        default=0,
         metadata=wire("rewards-rate"),
     )
     rewards_residue: int = field(
+        default=0,
         metadata=wire("rewards-residue"),
     )

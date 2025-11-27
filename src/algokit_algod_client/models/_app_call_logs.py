@@ -16,9 +16,11 @@ class AppCallLogs:
     """
 
     app_id: int = field(
+        default=0,
         metadata=wire("application-index"),
     )
     logs: list[bytes] = field(
+        default_factory=list,
         metadata=wire(
             "logs",
             encode=encode_bytes_sequence,
@@ -26,5 +28,6 @@ class AppCallLogs:
         ),
     )
     tx_id: str = field(
+        default="",
         metadata=wire("txId"),
     )

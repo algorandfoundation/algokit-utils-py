@@ -15,9 +15,11 @@ from ._simulation_eval_overrides import SimulationEvalOverrides
 @dataclass(slots=True)
 class SimulateTransactionResponseModel:
     last_round: int = field(
+        default=0,
         metadata=wire("last-round"),
     )
     txn_groups: list[SimulateTransactionGroupResult] = field(
+        default_factory=list,
         metadata=wire(
             "txn-groups",
             encode=encode_model_sequence,
@@ -25,6 +27,7 @@ class SimulateTransactionResponseModel:
         ),
     )
     version: int = field(
+        default=0,
         metadata=wire("version"),
     )
     eval_overrides: SimulationEvalOverrides | None = field(

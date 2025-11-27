@@ -13,14 +13,18 @@ class SourceMap:
     """
 
     mappings: str = field(
+        default="",
         metadata=wire("mappings"),
     )
     names: list[str] = field(
+        default_factory=list,
         metadata=wire("names"),
     )
     sources: list[str] = field(
+        default_factory=list,
         metadata=wire("sources"),
     )
     version: int = field(
+        default=0,
         metadata=wire("version"),
     )

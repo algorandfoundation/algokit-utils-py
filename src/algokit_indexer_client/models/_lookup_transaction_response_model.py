@@ -10,9 +10,10 @@ from ._transaction import Transaction
 
 @dataclass(slots=True)
 class LookupTransactionResponseModel:
-    current_round: int = field(
-        metadata=wire("current-round"),
-    )
     transaction: Transaction = field(
-        metadata=nested("transaction", lambda: Transaction),
+        metadata=nested("transaction", lambda: Transaction, required=True),
+    )
+    current_round: int = field(
+        default=0,
+        metadata=wire("current-round"),
     )

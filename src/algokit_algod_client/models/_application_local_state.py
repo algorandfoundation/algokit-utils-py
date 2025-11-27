@@ -16,11 +16,12 @@ class ApplicationLocalState:
     Stores local state associated with an application.
     """
 
-    id_: int = field(
-        metadata=wire("id"),
-    )
     schema: ApplicationStateSchema = field(
-        metadata=nested("schema", lambda: ApplicationStateSchema),
+        metadata=nested("schema", lambda: ApplicationStateSchema, required=True),
+    )
+    id_: int = field(
+        default=0,
+        metadata=wire("id"),
     )
     key_value: list[TealKeyValue] | None = field(
         default=None,

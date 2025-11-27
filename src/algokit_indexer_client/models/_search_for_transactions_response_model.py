@@ -12,9 +12,11 @@ from ._transaction import Transaction
 @dataclass(slots=True)
 class SearchForTransactionsResponseModel:
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )
     transactions: list[Transaction] = field(
+        default_factory=list,
         metadata=wire(
             "transactions",
             encode=encode_model_sequence,

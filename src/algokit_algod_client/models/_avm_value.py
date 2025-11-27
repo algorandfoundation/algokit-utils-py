@@ -13,6 +13,7 @@ class AvmValue:
     """
 
     type_: int = field(
+        default=0,
         metadata=wire("type"),
     )
     bytes_: str | None = field(

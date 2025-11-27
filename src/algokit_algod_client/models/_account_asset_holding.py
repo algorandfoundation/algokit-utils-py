@@ -17,7 +17,7 @@ class AccountAssetHolding:
     """
 
     asset_holding: AssetHolding = field(
-        metadata=nested("asset-holding", lambda: AssetHolding),
+        metadata=nested("asset-holding", lambda: AssetHolding, required=True),
     )
     asset_params: AssetParams | None = field(
         default=None,

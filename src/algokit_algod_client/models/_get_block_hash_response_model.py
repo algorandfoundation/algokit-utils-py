@@ -9,5 +9,6 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class GetBlockHashResponseModel:
     block_hash: str = field(
+        default="",
         metadata=wire("blockHash"),
     )

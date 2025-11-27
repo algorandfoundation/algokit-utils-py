@@ -12,6 +12,7 @@ from ._asset_params import AssetParams
 @dataclass(slots=True)
 class AccountAssetInformationResponseModel:
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     asset_holding: AssetHolding | None = field(

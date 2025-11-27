@@ -9,5 +9,6 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class TealDisassembleResponseModel:
     result: str = field(
+        default="",
         metadata=wire("result"),
     )

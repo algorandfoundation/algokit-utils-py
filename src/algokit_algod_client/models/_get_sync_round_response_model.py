@@ -9,5 +9,6 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class GetSyncRoundResponseModel:
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )

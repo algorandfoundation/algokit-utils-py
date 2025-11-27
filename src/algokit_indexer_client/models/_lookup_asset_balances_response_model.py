@@ -12,6 +12,7 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class LookupAssetBalancesResponseModel:
     balances: list[MiniAssetHolding] = field(
+        default_factory=list,
         metadata=wire(
             "balances",
             encode=encode_model_sequence,
@@ -19,6 +20,7 @@ class LookupAssetBalancesResponseModel:
         ),
     )
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )
     next_token: str | None = field(

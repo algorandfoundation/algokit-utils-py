@@ -15,6 +15,7 @@ class ApplicationLogData:
     """
 
     logs: list[bytes] = field(
+        default_factory=list,
         metadata=wire(
             "logs",
             encode=encode_bytes_sequence,
@@ -22,5 +23,6 @@ class ApplicationLogData:
         ),
     )
     txid: str = field(
+        default="",
         metadata=wire("txid"),
     )

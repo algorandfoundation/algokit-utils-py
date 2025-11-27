@@ -15,8 +15,9 @@ class ScratchChange:
     """
 
     new_value: AvmValue = field(
-        metadata=nested("new-value", lambda: AvmValue),
+        metadata=nested("new-value", lambda: AvmValue, required=True),
     )
     slot: int = field(
+        default=0,
         metadata=wire("slot"),
     )

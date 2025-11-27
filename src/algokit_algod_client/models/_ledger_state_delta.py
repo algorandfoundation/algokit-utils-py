@@ -352,7 +352,7 @@ class LedgerStateDelta:
             decode=mapping_decoder(lambda: LedgerIncludedTransactions, key_decoder=decode_bytes_map_key),
         ),
     )
-    tx_leases: bytes | None = field(default=None, metadata=wire("Txleases"))
+    # NOTE: tx_leases field is intentionally omitted - msgpack maps with object keys are not supported
     creatables: dict[int, LedgerModifiedCreatable] | None = field(
         default=None,
         metadata=wire(

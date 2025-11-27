@@ -15,6 +15,7 @@ class StateProofMessage:
     """
 
     block_headers_commitment: bytes = field(
+        default=b"",
         metadata=wire(
             "BlockHeadersCommitment",
             encode=encode_bytes_base64,
@@ -22,15 +23,19 @@ class StateProofMessage:
         ),
     )
     first_attested_round: int = field(
+        default=0,
         metadata=wire("FirstAttestedRound"),
     )
     last_attested_round: int = field(
+        default=0,
         metadata=wire("LastAttestedRound"),
     )
     ln_proven_weight: int = field(
+        default=0,
         metadata=wire("LnProvenWeight"),
     )
     voters_commitment: bytes = field(
+        default=b"",
         metadata=wire(
             "VotersCommitment",
             encode=encode_bytes_base64,

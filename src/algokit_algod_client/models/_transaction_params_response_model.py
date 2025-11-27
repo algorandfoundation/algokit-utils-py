@@ -16,12 +16,15 @@ class TransactionParamsResponseModel:
     """
 
     consensus_version: str = field(
+        default="",
         metadata=wire("consensus-version"),
     )
     fee: int = field(
+        default=0,
         metadata=wire("fee"),
     )
     genesis_hash: bytes = field(
+        default=b"",
         metadata=wire(
             "genesis-hash",
             encode=encode_bytes_base64,
@@ -29,11 +32,14 @@ class TransactionParamsResponseModel:
         ),
     )
     genesis_id: str = field(
+        default="",
         metadata=wire("genesis-id"),
     )
     last_round: int = field(
+        default=0,
         metadata=wire("last-round"),
     )
     min_fee: int = field(
+        default=0,
         metadata=wire("min-fee"),
     )

@@ -16,6 +16,7 @@ class GetPendingTransactionsResponseModel:
     """
 
     top_transactions: list[SignedTransaction] = field(
+        default_factory=list,
         metadata=wire(
             "top-transactions",
             encode=encode_model_sequence,
@@ -23,5 +24,6 @@ class GetPendingTransactionsResponseModel:
         ),
     )
     total_transactions: int = field(
+        default=0,
         metadata=wire("total-transactions"),
     )

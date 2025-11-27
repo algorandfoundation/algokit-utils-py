@@ -20,12 +20,15 @@ class AssetParams:
     """
 
     creator: str = field(
+        default="",
         metadata=wire("creator"),
     )
     decimals: int = field(
+        default=0,
         metadata=wire("decimals"),
     )
     total: int = field(
+        default=0,
         metadata=wire("total"),
     )
     clawback: str | None = field(

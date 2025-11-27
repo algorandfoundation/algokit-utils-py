@@ -15,6 +15,7 @@ class Box:
     """
 
     name: bytes = field(
+        default=b"",
         metadata=wire(
             "name",
             encode=encode_bytes_base64,
@@ -22,9 +23,11 @@ class Box:
         ),
     )
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     value: bytes = field(
+        default=b"",
         metadata=wire(
             "value",
             encode=encode_bytes_base64,

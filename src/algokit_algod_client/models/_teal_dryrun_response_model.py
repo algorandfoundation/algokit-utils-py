@@ -12,12 +12,15 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class TealDryrunResponseModel:
     error: str = field(
+        default="",
         metadata=wire("error"),
     )
     protocol_version: str = field(
+        default="",
         metadata=wire("protocol-version"),
     )
     txns: list[DryrunTxnResult] = field(
+        default_factory=list,
         metadata=wire(
             "txns",
             encode=encode_model_sequence,

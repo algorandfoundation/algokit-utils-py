@@ -9,5 +9,6 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class GetBlockTimeStampOffsetResponseModel:
     offset: int = field(
+        default=0,
         metadata=wire("offset"),
     )

@@ -12,6 +12,7 @@ from ._application_params import ApplicationParams
 @dataclass(slots=True)
 class AccountApplicationInformationResponseModel:
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     app_local_state: ApplicationLocalState | None = field(

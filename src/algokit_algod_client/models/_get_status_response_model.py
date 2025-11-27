@@ -13,27 +13,35 @@ class GetStatusResponseModel:
     """
 
     catchup_time: int = field(
+        default=0,
         metadata=wire("catchup-time"),
     )
     last_round: int = field(
+        default=0,
         metadata=wire("last-round"),
     )
     last_version: str = field(
+        default="",
         metadata=wire("last-version"),
     )
     next_version: str = field(
+        default="",
         metadata=wire("next-version"),
     )
     next_version_round: int = field(
+        default=0,
         metadata=wire("next-version-round"),
     )
     next_version_supported: bool = field(
+        default=False,
         metadata=wire("next-version-supported"),
     )
     stopped_at_unsupported_round: bool = field(
+        default=False,
         metadata=wire("stopped-at-unsupported-round"),
     )
     time_since_last_round: int = field(
+        default=0,
         metadata=wire("time-since-last-round"),
     )
     catchpoint: str | None = field(

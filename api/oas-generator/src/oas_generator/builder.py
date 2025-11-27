@@ -202,6 +202,69 @@ class ModelBuilder:
         self.sanitizer = sanitizer
         self.uses_signed_transaction = False
 
+    def _compute_default_value(self, type_info: TypeInfo, prop_schema: ctx.RawSchema) -> str | None:
+        """Compute default value for a required field based on its type.
+
+        This mirrors the TypeScript codec approach where each codec has a defaultValue():
+        - string → ""
+        - int → 0
+        - bool → False
+        - bytes → b""
+        - list → [] (uses default_factory)
+        - address (x-algorand-format: Address) → ZERO_ADDRESS
+        - nested models → None (will use default_factory)
+
+        Returns:
+            A string representation of the default value, or None if default_factory should be used.
+        """
+        # Check for address format (algorand addresses get ZERO_ADDRESS)
+        algorand_format = prop_schema.get("x-algorand-format")
+        if algorand_format == "Address":
+            return "ZERO_ADDRESS"
+
+        # Handle primitive types based on annotation
+        annotation = type_info.annotation
+
+        # Strip Optional wrapper if present (shouldn't be for required fields, but be safe)
+        base_type = annotation.replace(" | None", "").strip()
+
+        if base_type == "str":
+            return '""'
+        if base_type == "int":
+            return "0"
+        if base_type == "float":
+            return "0.0"
+        if base_type == "bool":
+            return "False"
+        if base_type == "bytes":
+            return 'b""'
+
+        # Lists need default_factory - return None to signal this
+        if type_info.is_list or base_type.startswith("list["):
+            return None  # Will use default_factory=list
+
+        # Nested models - return None (they'll remain without default)
+        if type_info.model:
+            return None
+
+        # Enums - return None (no sensible default)
+        if type_info.enum:
+            return None
+
+        # datetime - return None
+        if type_info.needs_datetime:
+            return None
+
+        # dict types - return None (will use default_factory)
+        if base_type.startswith("dict[") or base_type == "dict[str, object]":
+            return None
+
+        # object type - no sensible default
+        if base_type == "object":
+            return None
+
+        return None
+
     def build(self) -> tuple[list[ctx.ModelDescriptor], list[ctx.EnumDescriptor], list[ctx.TypeAliasDescriptor]]:
         models: list[ctx.ModelDescriptor] = []
         enums: list[ctx.EnumDescriptor] = []
@@ -258,14 +321,35 @@ class ModelBuilder:
             if prop_name not in required and "| None" not in annotation:
                 annotation = f"{annotation} | None"
             annotation = self._apply_forward_reference_annotation(annotation, entry, type_info)
+
+            # Compute default value and factory
+            default_value: str | None = None
+            default_factory: str | None = None
+
+            if prop_name in required:
+                # Required fields get type-appropriate defaults to handle canonical msgpack encoding
+                computed_default = self._compute_default_value(type_info, prop_schema)
+                if computed_default is not None:
+                    default_value = computed_default
+                    # Add ZERO_ADDRESS import if needed
+                    if computed_default == "ZERO_ADDRESS":
+                        imports.add("from algokit_common.constants import ZERO_ADDRESS")
+                elif type_info.is_list:
+                    # Lists use default_factory=list
+                    default_factory = "list"
+            else:
+                # Optional fields default to None
+                default_value = "None"
+
             field = ctx.ModelField(
                 name=self.sanitizer.snake(python_name_hint),
                 wire_name=wire_name,
                 type_hint=annotation,
                 required=prop_name in required,
                 description=prop_schema.get("description"),
-                metadata=self._build_metadata(wire_name, type_info),
-                default_value=None if prop_name in required else "None",
+                metadata=self._build_metadata(wire_name, type_info, required=prop_name in required),
+                default_value=default_value,
+                default_factory=default_factory,
             )
             imports.update(type_info.imports)
             if type_info.model and type_info.model != entry.python_name:
@@ -309,7 +393,18 @@ class ModelBuilder:
                 imports.add("from typing import Any")
             fields.append(field)
 
-        fields.sort(key=lambda f: (not f.required, f.name))
+        # Sort fields: required without defaults first, then required with defaults, then optional
+        # This ensures dataclass field ordering rules are satisfied (non-default before default)
+        def field_sort_key(f: ctx.ModelField) -> tuple[int, str]:
+            has_default = f.default_value is not None or f.default_factory is not None
+            if f.required and not has_default:
+                return (0, f.name)  # Required without default: first
+            elif f.required and has_default:
+                return (1, f.name)  # Required with default: second
+            else:
+                return (2, f.name)  # Optional (always has default): third
+
+        fields.sort(key=field_sort_key)
         return ctx.ModelDescriptor(
             name=entry.python_name,
             module_name=entry.module_name,
@@ -384,9 +479,12 @@ class ModelBuilder:
             description=entry.description,
         )
 
-    def _build_metadata(self, wire_name: str, type_info: TypeInfo) -> str:
+    def _build_metadata(self, wire_name: str, type_info: TypeInfo, *, required: bool = False) -> str:
         alias = wire_name.replace('"', '\\"')
         if type_info.model and not type_info.is_list:
+            # Pass required flag for nested fields to enable default instance construction
+            if required:
+                return f'nested("{alias}", lambda: {type_info.model}, required=True)'
             return f'nested("{alias}", lambda: {type_info.model})'
         if type_info.enum and not type_info.is_list:
             return f'enum_value("{alias}", {type_info.enum})'

@@ -15,13 +15,14 @@ class EvalDeltaKeyValue:
     Key-value pairs for StateDelta.
     """
 
+    value: EvalDelta = field(
+        metadata=nested("value", lambda: EvalDelta, required=True),
+    )
     key: bytes = field(
+        default=b"",
         metadata=wire(
             "key",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
-    )
-    value: EvalDelta = field(
-        metadata=nested("value", lambda: EvalDelta),
     )

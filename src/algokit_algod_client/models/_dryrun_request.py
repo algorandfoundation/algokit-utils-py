@@ -20,6 +20,7 @@ class DryrunRequest:
     """
 
     accounts: list[Account] = field(
+        default_factory=list,
         metadata=wire(
             "accounts",
             encode=encode_model_sequence,
@@ -27,6 +28,7 @@ class DryrunRequest:
         ),
     )
     apps: list[Application] = field(
+        default_factory=list,
         metadata=wire(
             "apps",
             encode=encode_model_sequence,
@@ -34,15 +36,19 @@ class DryrunRequest:
         ),
     )
     latest_timestamp: int = field(
+        default=0,
         metadata=wire("latest-timestamp"),
     )
     protocol_version: str = field(
+        default="",
         metadata=wire("protocol-version"),
     )
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     sources: list[DryrunSource] = field(
+        default_factory=list,
         metadata=wire(
             "sources",
             encode=encode_model_sequence,
@@ -50,6 +56,7 @@ class DryrunRequest:
         ),
     )
     txns: list[SignedTransaction] = field(
+        default_factory=list,
         metadata=wire(
             "txns",
             encode=encode_model_sequence,

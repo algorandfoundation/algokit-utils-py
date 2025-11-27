@@ -11,8 +11,9 @@ from ._account import Account
 @dataclass(slots=True)
 class LookupAccountByIdresponseModel:
     account: Account = field(
-        metadata=nested("account", lambda: Account),
+        metadata=nested("account", lambda: Account, required=True),
     )
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )

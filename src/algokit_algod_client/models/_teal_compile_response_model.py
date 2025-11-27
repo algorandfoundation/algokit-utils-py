@@ -11,9 +11,11 @@ from ._source_map import SourceMap
 @dataclass(slots=True)
 class TealCompileResponseModel:
     hash_: str = field(
+        default="",
         metadata=wire("hash"),
     )
     result: str = field(
+        default="",
         metadata=wire("result"),
     )
     sourcemap: SourceMap | None = field(

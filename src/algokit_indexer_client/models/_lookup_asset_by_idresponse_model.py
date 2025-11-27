@@ -11,8 +11,9 @@ from ._asset import Asset
 @dataclass(slots=True)
 class LookupAssetByIdresponseModel:
     asset: Asset = field(
-        metadata=nested("asset", lambda: Asset),
+        metadata=nested("asset", lambda: Asset, required=True),
     )
     current_round: int = field(
+        default=0,
         metadata=wire("current-round"),
     )

@@ -19,6 +19,7 @@ class TransactionSignatureLogicsig:
     """
 
     logic: bytes = field(
+        default=b"",
         metadata=wire(
             "logic",
             encode=encode_bytes_base64,
