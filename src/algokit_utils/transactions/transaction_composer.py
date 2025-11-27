@@ -790,21 +790,13 @@ class TransactionComposer:
 
         if group_response.failure_message:
             if config.cover_app_call_inner_transaction_fees and "fee too small" in group_response.failure_message:
-                raise BuildComposerTransactionsError(
-                    (
-                        "Fees were too small to resolve execution info via simulate. "
-                        "You may need to increase an app call transaction maxFee."
-                    ),
-                    transactions_to_simulate,
-                    response,
+                raise ValueError(
+                    "Fees were too small to resolve execution info via simulate. "
+                    "You may need to increase an app call transaction maxFee."
                 )
-            raise BuildComposerTransactionsError(
-                (
-                    "Error resolving execution info via simulate in transaction "
-                    f"{group_response.failed_at or []}: {group_response.failure_message}"
-                ),
-                transactions_to_simulate,
-                response,
+            raise ValueError(
+                "Error resolving execution info via simulate in transaction "
+                f"{group_response.failed_at or []}: {group_response.failure_message}"
             )
 
         txn_analysis_results: list[_TransactionAnalysis] = []
