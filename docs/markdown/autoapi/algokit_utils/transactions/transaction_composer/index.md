@@ -175,6 +175,24 @@ Compose the transaction group and send it to the network.
 
 Compose the transaction group and simulate execution without submitting to the network.
 
+Args:
+: skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
+  : This will set allow_empty_signatures and fix_signers when sending the request to algod.
+  <br/>
+  throw_on_failure: Whether to raise on simulation failure. If None, defaults to not result_on_failure.
+  result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
+  <br/>
+  > Defaults to False (throws on failure).
+  <br/>
+  ```
+  **
+  ```
+  <br/>
+  raw_options: Additional options to pass to the simulate request.
+
+Returns:
+: SendTransactionComposerResults containing simulation results.
+
 #### set_max_fees(max_fees: dict[int, [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)]) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 Override max_fee for queued transactions by index before building.

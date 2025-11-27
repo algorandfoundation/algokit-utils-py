@@ -476,7 +476,7 @@ class TransactionComposer:
 
             if config.debug and config.trace_all and config.project_root:
                 try:
-                    self.simulate(throw_on_failure=False)
+                    self.simulate(result_on_failure=True)
                 except Exception:
                     config.logger.debug(
                         "Failed to simulate and persist trace for debugging",
@@ -561,10 +561,24 @@ class TransactionComposer:
         result_on_failure: bool = False,
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
-        """Compose the transaction group and simulate execution without submitting to the network."""
+        """Compose the transaction group and simulate execution without submitting to the network.
+
+        Args:
+            skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
+                This will set `allow_empty_signatures` and `fix_signers` when sending the request to algod.
+            throw_on_failure: Whether to raise on simulation failure. If None, defaults to not `result_on_failure`.
+            result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
+                Defaults to False (throws on failure).
+            **raw_options: Additional options to pass to the simulate request.
+
+        Returns:
+            SendTransactionComposerResults containing simulation results.
+        """
         try:
             persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers: list[TransactionWithSigner]
+            if "throw_on_failure" in raw_options:
+                throw_on_failure = bool(raw_options.pop("throw_on_failure"))
             effective_throw_on_failure = throw_on_failure if throw_on_failure is not None else not result_on_failure
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
