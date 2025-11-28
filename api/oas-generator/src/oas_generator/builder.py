@@ -585,6 +585,8 @@ class OperationBuilder:
         "GetApplicationBoxByName",
         "TransactionParams",
     }
+    SKIP_TAGS: ClassVar[set[str]] = {"private", "experimental"}
+    SKIP_OPERATIONS: ClassVar[set[str]] = {"Metrics", "SwaggerJSON", "GetBlockLogs"}
 
     def __init__(
         self,
@@ -604,6 +606,7 @@ class OperationBuilder:
         self.uses_block_models = False
         self.uses_ledger_state_delta = False
         self.uses_literal = False
+        self.used_schema_refs: set[str] = set()
 
     def build(self) -> list[ctx.OperationGroup]:
         grouped: dict[str, list[ctx.OperationDescriptor]] = defaultdict(list)
@@ -611,6 +614,13 @@ class OperationBuilder:
             for method, operation in path_item.items():
                 if method.lower() not in {"get", "post", "put", "delete", "patch"}:
                     continue
+                op_id = operation.get("operationId", "")
+                tags = operation.get("tags") or ["default"]
+                # Check if operation should be skipped before building
+                if self._should_skip_operation(op_id, tags):
+                    continue
+                # Collect schema refs from kept operations
+                self._collect_schema_refs(operation, self.used_schema_refs)
                 descriptor = self._build_operation(path, method.upper(), operation)
                 grouped[descriptor.tag].append(descriptor)
         result: list[ctx.OperationGroup] = []
@@ -621,7 +631,8 @@ class OperationBuilder:
 
     def _build_operation(self, path: str, method: str, op: dict[str, Any]) -> ctx.OperationDescriptor:
         operation_id = op.get("operationId") or self._derive_operation_id(method, path)
-        tag = (op.get("tags") or ["default"])[0]
+        tags = op.get("tags") or ["default"]
+        tag = tags[0]
         parameters, format_info = self._build_parameters(op.get("parameters", []))
         request_body = self._build_request_body(op.get("requestBody"), operation_id)
         response = self._build_response(op.get("responses", {}), operation_id)
@@ -682,6 +693,37 @@ class OperationBuilder:
         if self.client_key == ctx.ClientType.ALGOD_CLIENT:
             return operation_id in self.ALGOD_PRIVATE_OPERATIONS
         return False
+
+    def _should_skip_operation(self, operation_id: str, tags: list[str]) -> bool:
+        """Check if an operation should be skipped from generation.
+
+        Operations are skipped if:
+        - They have any tags that match SKIP_TAGS ('private', 'experimental')
+        - Their operation_id matches any in SKIP_OPERATIONS ('Metrics', 'SwaggerJSON', 'GetBlockLogs')
+        """
+        if operation_id in self.SKIP_OPERATIONS:
+            return True
+        if any(tag in self.SKIP_TAGS for tag in tags):
+            return True
+        return False
+
+    def _collect_schema_refs(self, obj: Any, refs: set[str]) -> None:
+        """Recursively collect all schema $ref names from an object."""
+        if isinstance(obj, dict):
+            if "$ref" in obj:
+                ref = obj["$ref"]
+                if ref.startswith("#/components/schemas/"):
+                    schema_name = ref.split("/")[-1]
+                    if schema_name not in refs:
+                        refs.add(schema_name)
+                        # Also collect refs from the schema itself (for nested refs)
+                        schema = self.spec.schemas.get(schema_name, {})
+                        self._collect_schema_refs(schema, refs)
+            for v in obj.values():
+                self._collect_schema_refs(v, refs)
+        elif isinstance(obj, list):
+            for item in obj:
+                self._collect_schema_refs(item, refs)
 
     def _build_parameters(
         self, params: list[dict[str, Any]]
@@ -840,6 +882,38 @@ def build_client_descriptor(
     model_builder = ModelBuilder(registry, resolver, sanitizer)
     models, enums, aliases = model_builder.build()
     models = [model for model in models if model.name not in LEDGER_STATE_DELTA_MODEL_NAMES]
+
+    # Filter out schemas only used by skipped operations
+    used_schema_refs = operation_builder.used_schema_refs
+    if used_schema_refs:
+        # Build set of used python names from used schema refs
+        used_python_names: set[str] = set()
+        for schema_name in used_schema_refs:
+            entry = registry.entries.get(schema_name)
+            if entry:
+                used_python_names.add(entry.python_name)
+
+        # Filter models, enums, and aliases to only include used schemas
+        # Keep synthetic schemas (inline) as they are generated from used operations
+        models = [
+            m
+            for m in models
+            if m.name in used_python_names
+            or registry.entries_by_python_name.get(m.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+        enums = [
+            e
+            for e in enums
+            if e.name in used_python_names
+            or registry.entries_by_python_name.get(e.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+        aliases = [
+            a
+            for a in aliases
+            if a.name in used_python_names
+            or registry.entries_by_python_name.get(a.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+
     uses_signed_txn = model_builder.uses_signed_transaction or operation_builder.uses_signed_transaction
     defaults = {
         ctx.ClientType.ALGOD_CLIENT: ("http://localhost:4001", "X-Algo-API-Token"),

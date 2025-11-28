@@ -10,7 +10,6 @@ from ._deletemultisig_response import DeletemultisigResponse
 from ._digest_represents_a32_byte_value_holding_the256_bit_hash_digest import (
     DigestRepresentsA32ByteValueHoldingThe256BitHashDigest,
 )
-from ._ed25519_private_key import Ed25519PrivateKey
 from ._ed25519_public_key import Ed25519PublicKey
 from ._export_key_request import ExportKeyRequest
 from ._export_master_key_request import ExportMasterKeyRequest
@@ -44,7 +43,6 @@ from ._postwallet_release_response import PostwalletReleaseResponse
 from ._postwallet_rename_response import PostwalletRenameResponse
 from ._postwallet_renew_response import PostwalletRenewResponse
 from ._postwallet_response import PostwalletResponse
-from ._private_key import PrivateKey
 from ._public_key import PublicKey
 from ._release_wallet_handle_token_request import ReleaseWalletHandleTokenRequest
 from ._rename_wallet_request import RenameWalletRequest
@@ -69,7 +67,6 @@ __all__ = [
     "DeletekeyResponse",
     "DeletemultisigResponse",
     "DigestRepresentsA32ByteValueHoldingThe256BitHashDigest",
-    "Ed25519PrivateKey",
     "Ed25519PublicKey",
     "ExportKeyRequest",
     "ExportMasterKeyRequest",
@@ -103,7 +100,6 @@ __all__ = [
     "PostwalletRenameResponse",
     "PostwalletRenewResponse",
     "PostwalletResponse",
-    "PrivateKey",
     "PublicKey",
     "ReleaseWalletHandleTokenRequest",
     "RenameWalletRequest",

@@ -35,7 +35,6 @@ from ._error_response import ErrorResponse
 from ._eval_delta import EvalDelta
 from ._eval_delta_key_value import EvalDeltaKeyValue
 from ._hash_factory import HashFactory
-from ._hashtype import Hashtype
 from ._hb_proof_fields import HbProofFields
 from ._health_check import HealthCheck
 from ._holding_ref import HoldingRef
@@ -109,7 +108,6 @@ __all__ = [
     "EvalDelta",
     "EvalDeltaKeyValue",
     "HashFactory",
-    "Hashtype",
     "HbProofFields",
     "HealthCheck",
     "HoldingRef",
