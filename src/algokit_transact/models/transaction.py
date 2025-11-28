@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Mapping
 
 from algokit_common.constants import ZERO_ADDRESS
 from algokit_transact.codec.serde import addr, enum_value, flatten, nested, wire
@@ -27,6 +28,16 @@ class TransactionType(Enum):
     Unknown = "unknown"
 
 
+def _get_tx_type(payload: Mapping[str, object]) -> str | None:
+    """Helper to extract transaction type from payload, normalizing bytes to str."""
+    type_val = payload.get("type")
+    if type_val is None:
+        return None
+    if isinstance(type_val, bytes | bytearray | memoryview):
+        return bytes(type_val).decode("utf-8")
+    return str(type_val)
+
+
 @dataclass(slots=True, frozen=True)
 class Transaction:
     transaction_type: TransactionType = field(
@@ -45,28 +56,29 @@ class Transaction:
     group: bytes | None = field(default=None, metadata=wire("grp"))
 
     payment: PaymentTransactionFields | None = field(
-        default=None, metadata=flatten(PaymentTransactionFields, present_if=lambda p: p.get("type") == "pay")
+        default=None, metadata=flatten(PaymentTransactionFields, present_if=lambda p: _get_tx_type(p) == "pay")
     )
     asset_transfer: AssetTransferTransactionFields | None = field(
-        default=None, metadata=flatten(AssetTransferTransactionFields, present_if=lambda p: p.get("type") == "axfer")
+        default=None, metadata=flatten(AssetTransferTransactionFields, present_if=lambda p: _get_tx_type(p) == "axfer")
     )
     asset_config: AssetConfigTransactionFields | None = field(
-        default=None, metadata=flatten(AssetConfigTransactionFields, present_if=lambda p: p.get("type") == "acfg")
+        default=None, metadata=flatten(AssetConfigTransactionFields, present_if=lambda p: _get_tx_type(p) == "acfg")
     )
     app_call: AppCallTransactionFields | None = field(
-        default=None, metadata=flatten(AppCallTransactionFields, present_if=lambda p: p.get("type") == "appl")
+        default=None, metadata=flatten(AppCallTransactionFields, present_if=lambda p: _get_tx_type(p) == "appl")
     )
     key_registration: KeyRegistrationTransactionFields | None = field(
-        default=None, metadata=flatten(KeyRegistrationTransactionFields, present_if=lambda p: p.get("type") == "keyreg")
+        default=None,
+        metadata=flatten(KeyRegistrationTransactionFields, present_if=lambda p: _get_tx_type(p) == "keyreg"),
     )
     asset_freeze: AssetFreezeTransactionFields | None = field(
-        default=None, metadata=flatten(AssetFreezeTransactionFields, present_if=lambda p: p.get("type") == "afrz")
+        default=None, metadata=flatten(AssetFreezeTransactionFields, present_if=lambda p: _get_tx_type(p) == "afrz")
     )
     heartbeat: HeartbeatTransactionFields | None = field(
         default=None, metadata=nested("hb", HeartbeatTransactionFields)
     )
     state_proof: StateProofTransactionFields | None = field(
-        default=None, metadata=flatten(StateProofTransactionFields, present_if=lambda p: p.get("type") == "stpf")
+        default=None, metadata=flatten(StateProofTransactionFields, present_if=lambda p: _get_tx_type(p) == "stpf")
     )
 
     @property

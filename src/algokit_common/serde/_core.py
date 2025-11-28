@@ -552,6 +552,9 @@ def enum_value(alias: str, enum_type: type[E], *, fallback: E | None = None) -> 
     """
 
     def _decode(value: object) -> E:
+        # Normalize bytes to str (msgpack may return string values as bytes)
+        if isinstance(value, bytes | bytearray | memoryview):
+            value = bytes(value).decode("utf-8")
         try:
             return enum_type(value)
         except ValueError:
