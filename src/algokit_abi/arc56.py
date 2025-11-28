@@ -2,8 +2,8 @@ import base64
 import enum
 import json
 import typing
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field, replace
 from functools import cached_property
 
 from Cryptodome.Hash import SHA512
@@ -147,15 +147,18 @@ ENUM_ALIASES: Mapping[str, ReferenceType | TransactionType | VoidType | AVMType]
 class _StorageTypePropertyDescriptor:
     def __set_name__(self, owner: type, name: str) -> None:
         self._backing_field = f"_{name}"
+        self._resolved_field = f"_{name}_resolved"
 
     def __get__(self, instance: object, owner: type) -> abi.ABIType | AVMType:
-        value = getattr(instance, self._backing_field)
-        if not isinstance(value, abi.ABIType | AVMType):
-            raise ValueError("struct type not available yet")
-        return value
+        try:
+            value = getattr(instance, self._resolved_field)
+        except AttributeError:
+            raise AttributeError("resolved types not available until contract is initialized") from None
+        return typing.cast(abi.ABIType | AVMType, value)
 
     def __set__(self, instance: object, value: abi.ABIType | AVMType) -> None:
-        setattr(instance, self._backing_field, value)
+        assert isinstance(value, abi.ABIType | AVMType), "expected ABIType or AVMType"
+        setattr(instance, self._resolved_field, value)
 
 
 @dataclass(frozen=True)
@@ -676,18 +679,50 @@ class Arc56Contract:
     def __post_init__(self) -> None:
         self._update_contract_structs()
 
+    def apply_decode_types(self, resolve_struct_type: Callable[[abi.StructType], type]) -> "Arc56Contract":
+        """
+        Returns a new contract specification where each StructType's decode_type
+        is updated with the result of resolve_struct_type, useful for supplying custom types used in
+        struct decoding
+
+        :param resolve_struct_type: Callback that can be used to supply custom types for any Struct types
+        :return: Arc56Contract instance
+        """
+        return replace(
+            self,
+            structs={
+                struct_name: _apply_struct_types(struct_type, resolve_struct_type)
+                for struct_name, struct_type in self.structs.items()
+            },
+        )
+
     @classmethod
-    def from_dict(cls, application_spec: dict) -> "Arc56Contract":
+    def from_dict(
+        cls, application_spec: dict, resolve_struct_type: Callable[[abi.StructType], type] | None = None
+    ) -> "Arc56Contract":
         """Create Arc56Contract from dictionary.
 
         :param application_spec: Dictionary containing contract specification
+        :param resolve_struct_type: Optional callback that can be used to supply custom types for any Struct types
         :return: Arc56Contract instance
         """
-        return from_wire(cls, application_spec)
+        contract = from_wire(cls, application_spec)
+        if resolve_struct_type is not None:
+            contract = contract.apply_decode_types(resolve_struct_type)
+        return contract
 
     @staticmethod
-    def from_json(application_spec: str) -> "Arc56Contract":
-        return Arc56Contract.from_dict(json.loads(application_spec))
+    def from_json(
+        application_spec: str, resolve_struct_type: Callable[[abi.StructType], type] | None = None
+    ) -> "Arc56Contract":
+        """
+        Creates an instance from an ARC-56 application spec
+
+        :param application_spec: Dictionary containing contract specification
+        :param resolve_struct_type: Optional callback that can be used to supply custom types for any Struct types
+        :return: Arc56Contract instance
+        """
+        return Arc56Contract.from_dict(json.loads(application_spec), resolve_struct_type)
 
     @staticmethod
     @deprecated("Arc32 contracts are being deprecated; prefer converting to Arc56 instead.")
@@ -760,4 +795,27 @@ class Arc56Contract:
         for name in names:
             backing_type = getattr(storage, f"_{name}")
             if type(backing_type) is str:  # only match str exactly, so enums are not used
-                setattr(storage, name, self.structs[backing_type])
+                resolved_type = self.structs[backing_type]
+            else:
+                resolved_type = backing_type
+            setattr(storage, name, resolved_type)
+
+
+_TABIType = typing.TypeVar("_TABIType", bound=abi.ABIType)
+
+
+def _apply_struct_types(abi_type: _TABIType, resolve_type: Callable[[abi.StructType], type]) -> _TABIType:
+    if isinstance(abi_type, abi.StructType):
+        return replace(
+            abi_type,
+            decode_type=resolve_type(abi_type),
+            fields={
+                field_name: _apply_struct_types(field_type, resolve_type)
+                for field_name, field_type in abi_type.fields.items()
+            },
+        )
+    elif isinstance(abi_type, abi.StaticArrayType | abi.DynamicArrayType):
+        return replace(abi_type, element=_apply_struct_types(abi_type.element, resolve_type))
+    elif isinstance(abi_type, abi.TupleType):
+        return replace(abi_type, elements=tuple(_apply_struct_types(e, resolve_type) for e in abi_type.elements))
+    return abi_type
