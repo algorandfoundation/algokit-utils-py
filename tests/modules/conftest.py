@@ -4,11 +4,13 @@ import socket
 import subprocess
 import time
 from collections.abc import Generator
-from dataclasses import dataclass
+from dataclasses import dataclass, fields, is_dataclass
 from pathlib import Path
 
 import pytest
 from filelock import FileLock
+from syrupy.assertion import SnapshotAssertion
+from syrupy.extensions.json import JSONSnapshotExtension
 
 from algokit_algod_client import AlgodClient, ClientConfig
 from algokit_indexer_client import ClientConfig as IndexerClientConfig
@@ -388,3 +390,39 @@ TEST_ADDRESS = "25M5BT2DMMED3V6CWDEYKSNEFGPXX4QBIINCOICLXXRU3UGTSGRMF3MTOE"
 TEST_APP_ID = 718348254
 TEST_ASSET_ID = 705457144
 TEST_ROUND = 24099447
+
+
+def _dataclass_to_dict(obj: object) -> object:
+    """Recursively convert a dataclass to a dict for JSON serialization.
+
+    Handles nested dataclasses, lists, dicts, bytes, and primitive types.
+    """
+    if obj is None:
+        return None
+    if is_dataclass(obj) and not isinstance(obj, type):
+        result = {}
+        for f in fields(obj):
+            value = getattr(obj, f.name)
+            result[f.name] = _dataclass_to_dict(value)
+        return result
+    if isinstance(obj, bytes | bytearray | memoryview):
+        return list(bytes(obj))
+    if isinstance(obj, list | tuple):
+        return [_dataclass_to_dict(item) for item in obj]
+    if isinstance(obj, dict):
+        return {k: _dataclass_to_dict(v) for k, v in obj.items()}
+    return obj
+
+
+@pytest.fixture
+def snapshot_json(snapshot: SnapshotAssertion) -> SnapshotAssertion:
+    """Snapshot fixture configured for JSON output, suitable for API response testing."""
+    return snapshot.with_defaults(extension_class=JSONSnapshotExtension)
+
+
+class DataclassSnapshotSerializer:
+    """Custom serializer that converts dataclass models to JSON-serializable dicts."""
+
+    @staticmethod
+    def serialize(data: object) -> object:
+        return _dataclass_to_dict(data)
