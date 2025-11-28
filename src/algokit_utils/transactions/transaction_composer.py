@@ -1,6 +1,5 @@
 import base64
 import json
-import logging
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
@@ -479,7 +478,7 @@ class TransactionComposer:
         # Update config from params if provided
         cover_flag = params.get("cover_app_call_inner_transaction_fees")
         populate_flag = params.get("populate_app_call_resources")
-        effective_cover = bool(cover_flag) if cover_flag is not None else False
+        effective_cover = bool(cover_flag)
         effective_populate = bool(populate_flag) if populate_flag is not None else True
         if (
             effective_cover != self._config.cover_app_call_inner_transaction_fees
@@ -514,7 +513,7 @@ class TransactionComposer:
 
             tx_ids = [get_transaction_id(entry.txn) for entry in self._transactions_with_signers or []]
             group_id = self._group_id()
-            if config.logger.isEnabledFor(logging.INFO) and tx_ids:
+            if not params.get("suppress_log") and tx_ids:
                 if len(tx_ids) > 1:
                     config.logger.info(
                         "Sent group of %s transactions (%s)",
