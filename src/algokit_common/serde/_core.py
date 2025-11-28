@@ -457,9 +457,14 @@ def _decode_flatten_field(kwargs: dict[str, object], h: _FieldHandler, payload: 
         return
     alias_set = _wire_aliases_for(child_cls)
     has_any = any(_has_path(payload, k) for k in alias_set)
-    if not has_any and h.present_if is not None:
-        has_any = h.present_if(payload)
-    if not has_any:
+    # If present_if is provided, it takes precedence over the wire alias check.
+    # This is important for transaction types where the same wire keys (e.g., 'amt', 'rcv')
+    # could be present but the type field indicates a different transaction type.
+    if h.present_if is not None:
+        if not h.present_if(payload):
+            kwargs[h.name] = None
+            return
+    elif not has_any:
         kwargs[h.name] = None
         return
     sub: dict[str, object] = {}
@@ -531,9 +536,30 @@ def addr(alias: str, *, omit_if_none: bool = True) -> dict[str, object]:
     )
 
 
-def enum_value(alias: str, enum_type: type[Enum]) -> dict[str, object]:
-    """Typed helper for Enum fields that serialize via their .value."""
-    return wire(alias, encode=lambda e: e.value if isinstance(e, enum_type) else e, decode=enum_type)
+E = TypeVar("E", bound=Enum)
+
+
+def enum_value(alias: str, enum_type: type[E], *, fallback: E | None = None) -> dict[str, object]:
+    """Typed helper for Enum fields that serialize via their .value.
+
+    Args:
+        alias: The wire format key name
+        enum_type: The Enum class to encode/decode
+        fallback: Optional fallback value to use when decoding an unknown value.
+                  If not provided, decoding unknown values will raise DecodeError.
+                  This is useful for forward-compatibility when new enum values may
+                  be added in the future (e.g., new transaction types).
+    """
+
+    def _decode(value: object) -> E:
+        try:
+            return enum_type(value)
+        except ValueError:
+            if fallback is not None:
+                return fallback
+            raise
+
+    return wire(alias, encode=lambda e: e.value if isinstance(e, enum_type) else e, decode=_decode)
 
 
 def bytes_seq(alias: str, *, omit_if_none: bool = True) -> dict[str, object]:

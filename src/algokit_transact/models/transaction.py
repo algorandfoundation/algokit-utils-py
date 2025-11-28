@@ -22,11 +22,16 @@ class TransactionType(Enum):
     AppCall = "appl"
     StateProof = "stpf"
     Heartbeat = "hb"
+    # Unknown transaction type - used when decoding transactions with unrecognized type values.
+    # This should not be used when creating new transactions.
+    Unknown = "unknown"
 
 
 @dataclass(slots=True, frozen=True)
 class Transaction:
-    transaction_type: TransactionType = field(metadata=enum_value("type", TransactionType))
+    transaction_type: TransactionType = field(
+        metadata=enum_value("type", TransactionType, fallback=TransactionType.Unknown)
+    )
     sender: str = field(default=ZERO_ADDRESS, metadata=addr("snd"))
     first_valid: int = field(default=0, metadata=wire("fv"))
     last_valid: int = field(default=0, metadata=wire("lv"))
