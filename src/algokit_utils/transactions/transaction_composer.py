@@ -195,7 +195,7 @@ class SendTransactionComposerResults:
     confirmations: list[algod_models.PendingTransactionResponse]
     returns: list[ABIReturn]
     group_id: str | None = None
-    simulate_response: algod_models.SimulateTransactionResponseModel | None = None
+    simulate_response: algod_models.SimulateResponse | None = None
 
 
 # Backward compatibility alias
@@ -234,7 +234,7 @@ class BuildComposerTransactionsError(ValueError):
         self,
         message: str,
         sent_transactions: list[Transaction] | None = None,
-        simulate_response: algod_models.SimulateTransactionResponseModel | None = None,
+        simulate_response: algod_models.SimulateResponse | None = None,
     ) -> None:
         super().__init__(message)
         self.sent_transactions = sent_transactions

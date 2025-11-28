@@ -41,6 +41,17 @@ LEDGER_STATE_DELTA_MODEL_NAMES: set[str] = {
 }
 
 
+def _get_import_module(python_name: str, default_module: str) -> str:
+    """Get the correct module name for importing a model.
+
+    Models in LEDGER_STATE_DELTA_MODEL_NAMES are defined in the custom
+    _ledger_state_delta template, not in individual module files.
+    """
+    if python_name in LEDGER_STATE_DELTA_MODEL_NAMES:
+        return "_ledger_state_delta"
+    return default_module
+
+
 class SchemaRegistry:
     def __init__(self, spec: ctx.ParsedSpec, sanitizer: IdentifierSanitizer) -> None:
         self.spec = spec
@@ -354,12 +365,16 @@ class ModelBuilder:
             imports.update(type_info.imports)
             if type_info.model and type_info.model != entry.python_name:
                 dep_entry = self.registry.entries_by_python_name.get(type_info.model)
-                if dep_entry and dep_entry.module_name != entry.module_name:
-                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+                if dep_entry:
+                    dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
+                    if dep_module != entry.module_name:
+                        imports.add(f"from .{dep_module} import {dep_entry.python_name}")
             if type_info.list_inner_model:
                 dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_model)
-                if dep_entry and dep_entry.module_name != entry.module_name:
-                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+                if dep_entry:
+                    dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
+                    if dep_module != entry.module_name:
+                        imports.add(f"from .{dep_module} import {dep_entry.python_name}")
                 if type_info.list_inner_model == "SignedTransaction":
                     imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
             if type_info.enum:

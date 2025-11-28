@@ -562,7 +562,7 @@ class KmdClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def list_multisg(
+    def list_multisig(
         self,
         body: models.ListMultisigRequest,
     ) -> models.PostmultisigListResponse:

@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import wire
 
 from ._eval_delta_key_value import EvalDeltaKeyValue
@@ -16,7 +17,7 @@ class AccountStateDelta:
     """
 
     address: str = field(
-        default="",
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
     delta: list[EvalDeltaKeyValue] = field(

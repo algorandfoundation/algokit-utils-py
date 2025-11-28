@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import nested, wire
 
 from ._account_participation import AccountParticipation
@@ -24,7 +25,7 @@ class Account:
     """
 
     address: str = field(
-        default="",
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
     amount: int = field(

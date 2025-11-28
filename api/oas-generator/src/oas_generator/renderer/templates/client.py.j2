@@ -164,7 +164,7 @@ class {{ client.class_name }}:
     def send_raw_transaction(
         self,
         stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
-    ) -> models.RawTransactionResponseModel:
+    ) -> models.PostTransactionsResponse:
         """
         Send a signed transaction or array of signed transactions to the network.
         """

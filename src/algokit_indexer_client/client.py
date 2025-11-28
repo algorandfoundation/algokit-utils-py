@@ -79,7 +79,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountAppLocalStatesResponseModel:
+    ) -> models.ApplicationLocalStatesResponse:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -113,7 +113,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountAppLocalStatesResponseModel)
+            return self._decode_response(response, model=models.ApplicationLocalStatesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -125,7 +125,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountAssetsResponseModel:
+    ) -> models.AssetHoldingsResponse:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -159,7 +159,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetHoldingsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -170,7 +170,7 @@ class IndexerClient:
         round_: int | None = None,
         include_all: bool | None = None,
         exclude: list[str] | None = None,
-    ) -> models.LookupAccountByIdresponseModel:
+    ) -> models.AccountResponse:
         """
         Lookup account information.
         """
@@ -201,7 +201,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountByIdresponseModel)
+            return self._decode_response(response, model=models.AccountResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -213,7 +213,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountCreatedApplicationsResponseModel:
+    ) -> models.ApplicationsResponse:
         """
         Lookup an account's created application parameters, optionally for a specific ID.
         """
@@ -247,7 +247,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountCreatedApplicationsResponseModel)
+            return self._decode_response(response, model=models.ApplicationsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -259,7 +259,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountCreatedAssetsResponseModel:
+    ) -> models.AssetsResponse:
         """
         Lookup an account's created asset parameters, optionally for a specific ID.
         """
@@ -293,7 +293,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountCreatedAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -316,7 +316,7 @@ class IndexerClient:
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
         rekey_to: bool | None = None,
-    ) -> models.LookupAccountTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Lookup account transactions. Transactions are returned newest to oldest.
         """
@@ -383,7 +383,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -425,7 +425,7 @@ class IndexerClient:
         application_id: int,
         *,
         include_all: bool | None = None,
-    ) -> models.LookupApplicationByIdresponseModel:
+    ) -> models.ApplicationResponse:
         """
         Lookup application.
         """
@@ -450,7 +450,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupApplicationByIdresponseModel)
+            return self._decode_response(response, model=models.ApplicationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -464,7 +464,7 @@ class IndexerClient:
         min_round: int | None = None,
         max_round: int | None = None,
         sender_address: str | None = None,
-    ) -> models.LookupApplicationLogsByIdresponseModel:
+    ) -> models.ApplicationLogsResponse:
         """
         Lookup application logs.
         """
@@ -504,7 +504,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupApplicationLogsByIdresponseModel)
+            return self._decode_response(response, model=models.ApplicationLogsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -517,7 +517,7 @@ class IndexerClient:
         next_: str | None = None,
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
-    ) -> models.LookupAssetBalancesResponseModel:
+    ) -> models.AssetBalancesResponse:
         """
         Lookup the list of accounts who hold this asset
         """
@@ -554,7 +554,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetBalancesResponseModel)
+            return self._decode_response(response, model=models.AssetBalancesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -563,7 +563,7 @@ class IndexerClient:
         asset_id: int,
         *,
         include_all: bool | None = None,
-    ) -> models.LookupAssetByIdresponseModel:
+    ) -> models.AssetResponse:
         """
         Lookup asset information.
         """
@@ -588,7 +588,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetByIdresponseModel)
+            return self._decode_response(response, model=models.AssetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -613,7 +613,7 @@ class IndexerClient:
         address_role: str | None = None,
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
-    ) -> models.LookupAssetTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Lookup transactions for an asset. Transactions are returned oldest to newest.
         """
@@ -686,7 +686,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -727,7 +727,7 @@ class IndexerClient:
     def lookup_transaction(
         self,
         txid: str,
-    ) -> models.LookupTransactionResponseModel:
+    ) -> models.TransactionResponse:
         """
         Lookup a single transaction.
         """
@@ -750,7 +750,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupTransactionResponseModel)
+            return self._decode_response(response, model=models.TransactionResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -770,7 +770,7 @@ class IndexerClient:
         round_: int | None = None,
         application_id: int | None = None,
         online_only: bool | None = None,
-    ) -> models.SearchForAccountsResponseModel:
+    ) -> models.AccountsResponse:
         """
         Search for accounts.
         """
@@ -823,7 +823,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForAccountsResponseModel)
+            return self._decode_response(response, model=models.AccountsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -833,7 +833,7 @@ class IndexerClient:
         *,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.SearchForApplicationBoxesResponseModel:
+    ) -> models.BoxesResponse:
         """
         Get box names for a given application.
         """
@@ -861,7 +861,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForApplicationBoxesResponseModel)
+            return self._decode_response(response, model=models.BoxesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -873,7 +873,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.SearchForApplicationsResponseModel:
+    ) -> models.ApplicationsResponse:
         """
         Search for applications
         """
@@ -908,7 +908,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForApplicationsResponseModel)
+            return self._decode_response(response, model=models.ApplicationsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -922,7 +922,7 @@ class IndexerClient:
         name: str | None = None,
         unit: str | None = None,
         asset_id: int | None = None,
-    ) -> models.SearchForAssetsResponseModel:
+    ) -> models.AssetsResponse:
         """
         Search for assets.
         """
@@ -963,7 +963,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -979,7 +979,7 @@ class IndexerClient:
         proposers: list[str] | None = None,
         expired: list[str] | None = None,
         absent: list[str] | None = None,
-    ) -> models.SearchForBlockHeadersResponseModel:
+    ) -> models.BlockHeadersResponse:
         """
         Search for block headers. Block headers are returned in ascending round order.
         Transactions are not included in the output.
@@ -1027,7 +1027,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForBlockHeadersResponseModel)
+            return self._decode_response(response, model=models.BlockHeadersResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1054,7 +1054,7 @@ class IndexerClient:
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
         application_id: int | None = None,
-    ) -> models.SearchForTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Search for transactions. Transactions are returned oldest to newest unless the address
         parameter is used, in which case results are returned newest to oldest.
@@ -1135,7 +1135,7 @@ class IndexerClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

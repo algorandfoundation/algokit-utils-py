@@ -46,7 +46,7 @@ class AlgodClient:
     def abort_catchup(
         self,
         catchpoint: str,
-    ) -> models.AbortCatchupResponseModel:
+    ) -> models.CatchpointAbortResponse:
         """
         Aborts a catchpoint catchup.
         """
@@ -69,14 +69,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AbortCatchupResponseModel)
+            return self._decode_response(response, model=models.CatchpointAbortResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def add_participation_key(
         self,
         body: bytes,
-    ) -> models.AddParticipationKeyResponseModel:
+    ) -> models.PostParticipationResponse:
         """
         Add a participation key to the node
         """
@@ -109,7 +109,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AddParticipationKeyResponseModel)
+            return self._decode_response(response, model=models.PostParticipationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -403,7 +403,7 @@ class AlgodClient:
         catchpoint: str,
         *,
         min_: int | None = None,
-    ) -> models.StartCatchupResponseModel:
+    ) -> models.CatchpointStartResponse:
         """
         Starts a catchpoint catchup.
         """
@@ -428,7 +428,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.StartCatchupResponseModel)
+            return self._decode_response(response, model=models.CatchpointStartResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -470,7 +470,7 @@ class AlgodClient:
     def _raw_transaction(
         self,
         body: bytes,
-    ) -> models.RawTransactionResponseModel:
+    ) -> models.PostTransactionsResponse:
         """
         Broadcasts a raw transaction or transaction group to the network.
         """
@@ -503,13 +503,13 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.RawTransactionResponseModel)
+            return self._decode_response(response, model=models.PostTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def _transaction_params(
         self,
-    ) -> models.TransactionParamsResponseModel:
+    ) -> models.TransactionParametersResponse:
         """
         Get parameters for constructing a new transaction
         """
@@ -530,7 +530,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TransactionParamsResponseModel)
+            return self._decode_response(response, model=models.TransactionParametersResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -540,7 +540,7 @@ class AlgodClient:
         application_id: int,
         *,
         response_format: Literal["json", "msgpack"] | None = None,
-    ) -> models.AccountApplicationInformationResponseModel:
+    ) -> models.AccountApplicationResponse:
         """
         Get account information about a given app.
         """
@@ -571,7 +571,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AccountApplicationInformationResponseModel)
+            return self._decode_response(response, model=models.AccountApplicationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -579,7 +579,7 @@ class AlgodClient:
         self,
         address: str,
         asset_id: int,
-    ) -> models.AccountAssetInformationResponseModel:
+    ) -> models.AccountAssetResponse:
         """
         Get account information about a given asset.
         """
@@ -604,7 +604,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AccountAssetInformationResponseModel)
+            return self._decode_response(response, model=models.AccountAssetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -614,7 +614,7 @@ class AlgodClient:
         *,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.AccountAssetsInformationResponseModel:
+    ) -> models.AccountAssetsInformationResponse:
         """
         Get a list of assets held by an account, inclusive of asset params.
         """
@@ -642,7 +642,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AccountAssetsInformationResponseModel)
+            return self._decode_response(response, model=models.AccountAssetsInformationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -712,7 +712,7 @@ class AlgodClient:
         application_id: int,
         *,
         max_: int | None = None,
-    ) -> models.GetApplicationBoxesResponseModel:
+    ) -> models.BoxesResponse:
         """
         Get all box names for a given application.
         """
@@ -737,7 +737,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetApplicationBoxesResponseModel)
+            return self._decode_response(response, model=models.BoxesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -841,7 +841,7 @@ class AlgodClient:
     def get_block_hash(
         self,
         round_: int,
-    ) -> models.GetBlockHashResponseModel:
+    ) -> models.BlockHashResponse:
         """
         Get the block hash for the block on the given round.
         """
@@ -864,14 +864,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockHashResponseModel)
+            return self._decode_response(response, model=models.BlockHashResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_logs(
         self,
         round_: int,
-    ) -> models.GetBlockLogsResponseModel:
+    ) -> models.BlockLogsResponse:
         """
         Get all of the logs from outer and inner app calls in the given round
         """
@@ -894,13 +894,13 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockLogsResponseModel)
+            return self._decode_response(response, model=models.BlockLogsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_time_stamp_offset(
         self,
-    ) -> models.GetBlockTimeStampOffsetResponseModel:
+    ) -> models.GetBlockTimeStampOffsetResponse:
         """
         Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
         """
@@ -921,14 +921,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTimeStampOffsetResponseModel)
+            return self._decode_response(response, model=models.GetBlockTimeStampOffsetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_tx_ids(
         self,
         round_: int,
-    ) -> models.GetBlockTxIdsResponseModel:
+    ) -> models.BlockTxidsResponse:
         """
         Get the top level transaction IDs for the block on the given round.
         """
@@ -951,7 +951,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTxIdsResponseModel)
+            return self._decode_response(response, model=models.BlockTxidsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1082,7 +1082,7 @@ class AlgodClient:
         self,
         *,
         max_: int | None = None,
-    ) -> models.GetPendingTransactionsResponseModel:
+    ) -> models.PendingTransactionsResponse:
         """
         Get a list of unconfirmed transactions currently in the transaction pool.
         """
@@ -1108,7 +1108,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetPendingTransactionsResponseModel)
+            return self._decode_response(response, model=models.PendingTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1117,7 +1117,7 @@ class AlgodClient:
         address: str,
         *,
         max_: int | None = None,
-    ) -> models.GetPendingTransactionsByAddressResponseModel:
+    ) -> models.PendingTransactionsResponse:
         """
         Get a list of unconfirmed transactions currently in the transaction pool by address.
         """
@@ -1145,7 +1145,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetPendingTransactionsByAddressResponseModel)
+            return self._decode_response(response, model=models.PendingTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1208,7 +1208,7 @@ class AlgodClient:
 
     def get_status(
         self,
-    ) -> models.GetStatusResponseModel:
+    ) -> models.NodeStatusResponse:
         """
         Gets the current node status.
         """
@@ -1229,13 +1229,13 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetStatusResponseModel)
+            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_supply(
         self,
-    ) -> models.GetSupplyResponseModel:
+    ) -> models.SupplyResponse:
         """
         Get the current supply reported by the ledger.
         """
@@ -1256,13 +1256,13 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetSupplyResponseModel)
+            return self._decode_response(response, model=models.SupplyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_sync_round(
         self,
-    ) -> models.GetSyncRoundResponseModel:
+    ) -> models.GetSyncRoundResponse:
         """
         Returns the minimum sync round the ledger is keeping in cache.
         """
@@ -1283,7 +1283,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetSyncRoundResponseModel)
+            return self._decode_response(response, model=models.GetSyncRoundResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1584,7 +1584,7 @@ class AlgodClient:
     def simulate_transaction(
         self,
         body: models.SimulateRequest,
-    ) -> models.SimulateTransactionResponseModel:
+    ) -> models.SimulateResponse:
         """
         Simulates a raw transaction or transaction group as it would be evaluated on the
         network. The simulation will use blockchain state from the latest committed round.
@@ -1624,7 +1624,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SimulateTransactionResponseModel)
+            return self._decode_response(response, model=models.SimulateResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1660,7 +1660,7 @@ class AlgodClient:
         body: bytes,
         *,
         sourcemap: bool | None = None,
-    ) -> models.TealCompileResponseModel:
+    ) -> models.CompileResponse:
         """
         Compile TEAL source code to binary, produce its hash
         """
@@ -1695,14 +1695,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TealCompileResponseModel)
+            return self._decode_response(response, model=models.CompileResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def teal_disassemble(
         self,
         body: bytes,
-    ) -> models.TealDisassembleResponseModel:
+    ) -> models.DisassembleResponse:
         """
         Disassemble program bytes into the TEAL source code.
         """
@@ -1735,7 +1735,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TealDisassembleResponseModel)
+            return self._decode_response(response, model=models.DisassembleResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1743,7 +1743,7 @@ class AlgodClient:
         self,
         *,
         body: models.DryrunRequest | None = None,
-    ) -> models.TealDryrunResponseModel:
+    ) -> models.DryrunResponse:
         """
         Provide debugging information for a transaction (or group).
         """
@@ -1776,7 +1776,7 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TealDryrunResponseModel)
+            return self._decode_response(response, model=models.DryrunResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1810,7 +1810,7 @@ class AlgodClient:
     def wait_for_block(
         self,
         round_: int,
-    ) -> models.WaitForBlockResponseModel:
+    ) -> models.NodeStatusResponse:
         """
         Gets the node status after waiting for a round after the given round.
         """
@@ -1833,14 +1833,14 @@ class AlgodClient:
 
         response = self._client.request(**request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.WaitForBlockResponseModel)
+            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def send_raw_transaction(
         self,
         stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
-    ) -> models.RawTransactionResponseModel:
+    ) -> models.PostTransactionsResponse:
         """
         Send a signed transaction or array of signed transactions to the network.
         """
