@@ -1,6 +1,6 @@
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Mapping
 
 from algokit_common.constants import ZERO_ADDRESS
 from algokit_transact.codec.serde import addr, enum_value, flatten, nested, wire

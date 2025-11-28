@@ -92,7 +92,7 @@ Raised when an error transformer returns a non-error value.
 
 #### group_id *: str | None* *= None*
 
-#### simulate_response *: algokit_algod_client.models.SimulateTransactionResponseModel | None* *= None*
+#### simulate_response *: algokit_algod_client.models.SimulateResponse | None* *= None*
 
 ### algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
 
