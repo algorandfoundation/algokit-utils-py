@@ -12,8 +12,9 @@
 
 ## Functions
 
-| [`parse_logic_error`](#algokit_utils.errors.logic_error.parse_logic_error)(→ LogicErrorData | None)   |    |
-|-------------------------------------------------------------------------------------------------------|----|
+| [`parse_logic_error`](#algokit_utils.errors.logic_error.parse_logic_error)(→ LogicErrorData | None)                       |                                                                               |
+|---------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`create_simulate_traces_for_logic_error`](#algokit_utils.errors.logic_error.create_simulate_traces_for_logic_error)(...) | Extract simulation traces from a simulate response for logic error debugging. |
 
 ## Module Contents
 
@@ -74,3 +75,13 @@ Common base class for all non-exit exceptions.
 #### line_no
 
 #### trace(lines: int = 5) → str
+
+### algokit_utils.errors.logic_error.create_simulate_traces_for_logic_error(simulate: object) → list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)]
+
+Extract simulation traces from a simulate response for logic error debugging.
+
+Args:
+: simulate: An object with simulate_response and failed_at attributes.
+
+Returns:
+: A list of SimulationTrace objects extracted from the simulation response.

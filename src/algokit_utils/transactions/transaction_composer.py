@@ -22,6 +22,7 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.models.simulate import SimulationTrace
 from algokit_utils.models.transaction import Arc2TransactionNote, SendParams
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
@@ -105,6 +106,7 @@ __all__ = [
     "SendTransactionComposerResults",
     "TransactionComposer",
     "TransactionComposerConfig",
+    "TransactionComposerError",
     "TransactionComposerParams",
     "TransactionWithSigner",
     "TxnParams",
@@ -151,6 +153,28 @@ class InvalidErrorTransformerValueError(RuntimeError):
         )
 
 
+class TransactionComposerError(RuntimeError):
+    """Error raised when transaction composer fails to send transactions.
+
+    Contains detailed debugging information including simulation traces and sent transactions.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        cause: Exception | None = None,
+        traces: list[SimulationTrace] | None = None,
+        sent_transactions: list[Transaction] | None = None,
+        simulate_response: algod_models.SimulateTransactionResponseModel | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.__cause__ = cause
+        self.traces = traces
+        self.sent_transactions = sent_transactions
+        self.simulate_response = simulate_response
+
+
 @dataclass(slots=True)
 class TransactionComposerConfig:
     cover_app_call_inner_transaction_fees: bool = False
@@ -179,6 +203,7 @@ class _BuilderKwargs(TypedDict):
 class TransactionWithSigner:
     txn: Transaction
     signer: TransactionSigner
+    method: ABIMethod | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -229,18 +254,6 @@ class _GroupAnalysis:
     unnamed_resources_accessed: algod_models.SimulateUnnamedResourcesAccessed | None
 
 
-class BuildComposerTransactionsError(ValueError):
-    def __init__(
-        self,
-        message: str,
-        sent_transactions: list[Transaction] | None = None,
-        simulate_response: algod_models.SimulateTransactionResponseModel | None = None,
-    ) -> None:
-        super().__init__(message)
-        self.sent_transactions = sent_transactions
-        self.simulate_response = simulate_response
-
-
 class TransactionComposer:
     """Light-weight transaction composer built on top of algokit_transact."""
 
@@ -257,7 +270,7 @@ class TransactionComposer:
         self._queued: list[_QueuedTransaction] = []
         self._transactions_with_signers: list[TransactionWithSigner] | None = None
         self._signed_transactions: list[SignedTransaction] | None = None
-        self._method_calls: dict[int, ABIMethod] = {}
+        self._raw_built_transactions: list[Transaction] | None = None
 
     def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
         """Create a shallow copy of this composer, optionally overriding config flags."""
@@ -279,7 +292,7 @@ class TransactionComposer:
             )
         )
         cloned._queued = [self._clone_entry(entry) for entry in self._queued]
-        cloned._method_calls = dict(self._method_calls)
+        cloned._raw_built_transactions = list(self._raw_built_transactions) if self._raw_built_transactions else None
         return cloned
 
     def register_error_transformer(self, transformer: ErrorTransformer) -> "TransactionComposer":
@@ -387,6 +400,7 @@ class TransactionComposer:
     def rebuild(self) -> BuiltTransactions:
         self._transactions_with_signers = None
         self._signed_transactions = None
+        self._raw_built_transactions = None
         return self.build()
 
     @staticmethod
@@ -415,11 +429,8 @@ class TransactionComposer:
                 f"Current: {current_size}, Adding: {composer_size}, "
                 f"Maximum: {MAX_TRANSACTION_GROUP_SIZE}"
             )
-        offset = current_size
         for entry in composer._queued:  # noqa: SLF001
             self._queued.append(self._clone_entry(entry))
-        for index, method in composer._method_calls.items():  # noqa: SLF001
-            self._method_calls[index + offset] = method
         return self
 
     def build(self) -> BuiltTransactions:
@@ -428,7 +439,10 @@ class TransactionComposer:
         assert self._transactions_with_signers is not None
         transactions = [entry.txn for entry in self._transactions_with_signers]
         signers = {index: entry.signer for index, entry in enumerate(self._transactions_with_signers)}
-        return BuiltTransactions(transactions=transactions, method_calls=dict(self._method_calls), signers=signers)
+        method_calls = {
+            index: entry.method for index, entry in enumerate(self._transactions_with_signers) if entry.method
+        }
+        return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
     def build_transactions(self) -> BuiltTransactions:
         """Build queued transactions without resource population or grouping.
@@ -447,6 +461,7 @@ class TransactionComposer:
 
         built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
+        self._raw_built_transactions = list(transactions)
         signers = {index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None}
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
@@ -461,42 +476,66 @@ class TransactionComposer:
         params = params or SendParams()
 
         # Update config from params if provided
+        cover_flag = params.get("cover_app_call_inner_transaction_fees")
+        populate_flag = params.get("populate_app_call_resources")
+        effective_cover = bool(cover_flag)
+        effective_populate = bool(populate_flag) if populate_flag is not None else True
         if (
-            params.get("cover_app_call_inner_transaction_fees") is not None
-            or params.get("populate_app_call_resources") is not None
+            effective_cover != self._config.cover_app_call_inner_transaction_fees
+            or effective_populate != self._config.populate_app_call_resources
         ):
-            cover_flag = params.get("cover_app_call_inner_transaction_fees")
-            populate_flag = params.get("populate_app_call_resources")
             self._config = TransactionComposerConfig(
-                cover_app_call_inner_transaction_fees=(
-                    bool(cover_flag) if cover_flag is not None else self._config.cover_app_call_inner_transaction_fees
-                ),
-                populate_app_call_resources=(
-                    bool(populate_flag) if populate_flag is not None else self._config.populate_app_call_resources
-                ),
+                cover_app_call_inner_transaction_fees=effective_cover,
+                populate_app_call_resources=effective_populate,
             )
             # Reset built state to force rebuild with new config
             self._transactions_with_signers = None
             self._signed_transactions = None
+            self._raw_built_transactions = None
 
-        try:
-            signed_transactions = self.gather_signatures()
+        # Build and sign transactions - let validation errors bubble up as-is
+        signed_transactions = self.gather_signatures()
 
-            if config.debug and config.trace_all and config.project_root:
-                from algokit_utils._debugging import simulate_and_persist_response
-
-                simulate_and_persist_response(
-                    self,
-                    config.project_root,
-                    self._algod,
-                    buffer_size_mb=config.trace_buffer_size_mb,
+        if config.debug and config.trace_all and config.project_root:
+            try:
+                self.simulate(result_on_failure=True)
+            except Exception:
+                config.logger.debug(
+                    "Failed to simulate and persist trace for debugging",
+                    exc_info=True,
+                    extra={"suppress_log": params.get("suppress_log")},
                 )
 
+        # Send transactions and handle network errors
+        try:
             blobs = encode_signed_transactions(signed_transactions)
             self._algod.send_raw_transaction(blobs)
 
             tx_ids = [get_transaction_id(entry.txn) for entry in self._transactions_with_signers or []]
             group_id = self._group_id()
+            if not params.get("suppress_log") and tx_ids:
+                if len(tx_ids) > 1:
+                    config.logger.info(
+                        "Sent group of %s transactions (%s)",
+                        len(tx_ids),
+                        group_id or "no-group",
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
+                    config.logger.debug(
+                        "Transaction IDs (%s): %s",
+                        group_id or "no-group",
+                        tx_ids,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
+                else:
+                    txn = (self._transactions_with_signers or [])[0].txn
+                    config.logger.info(
+                        "Sent transaction ID %s %s from %s",
+                        tx_ids[0],
+                        txn.transaction_type,
+                        txn.sender,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
             confirmations = self._wait_for_confirmations(tx_ids, params)
             abi_returns = self._parse_abi_return_values(confirmations)
             return SendTransactionComposerResults(
@@ -507,7 +546,17 @@ class TransactionComposer:
                 group_id=group_id,
             )
         except Exception as err:
-            if config.debug and config.project_root and not config.trace_all:
+            sent_transactions = self._resolve_error_transactions()
+            simulate_response: algod_models.SimulateTransactionResponseModel | None = None
+            traces: list[SimulationTrace] = []
+
+            if config.debug and sent_transactions:
+                simulate_response, traces = self._simulate_error_context(
+                    sent_transactions,
+                    suppress_log=params.get("suppress_log"),
+                )
+
+            if config.debug and config.project_root and not config.trace_all and simulate_response is None:
                 from algokit_utils._debugging import simulate_and_persist_response
 
                 try:
@@ -518,22 +567,41 @@ class TransactionComposer:
                         buffer_size_mb=config.trace_buffer_size_mb,
                     )
                 except Exception:
-                    config.logger.debug("Failed to simulate and persist trace for debugging", exc_info=True)
+                    config.logger.debug(
+                        "Failed to simulate and persist trace for debugging",
+                        exc_info=True,
+                        extra={"suppress_log": params.get("suppress_log")},
+                    )
 
             interpreted = self._interpret_error(err)
-            raise self._transform_error(interpreted) from err
+            composer_error = self._create_composer_error(interpreted, sent_transactions, simulate_response, traces)
+            raise self._transform_error(composer_error) from err
 
     def simulate(
         self,
         *,
         skip_signatures: bool = False,
-        throw_on_failure: bool = True,
+        result_on_failure: bool = False,
         **raw_options: Any,
     ) -> SendTransactionComposerResults:
-        """Compose the transaction group and simulate execution without submitting to the network."""
+        """Compose the transaction group and simulate execution without submitting to the network.
+
+        Args:
+            skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
+                This will set `allow_empty_signatures` and `fix_signers` when sending the request to algod.
+            result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
+                Defaults to False (throws on failure).
+            **raw_options: Additional options to pass to the simulate request.
+
+        Returns:
+            SendTransactionComposerResults containing simulation results.
+        """
         try:
             persist_trace = bool(raw_options.pop("_persist_trace", True))
             txns_with_signers: list[TransactionWithSigner]
+            if "throw_on_failure" in raw_options:
+                raw_options.pop("throw_on_failure")
+            effective_throw_on_failure = not result_on_failure
             if skip_signatures:
                 raw_options.setdefault("allow_empty_signatures", True)
                 raw_options.setdefault("fix_signers", True)
@@ -542,9 +610,7 @@ class TransactionComposer:
             if "simulation_round" in raw_options:
                 raw_options["round_"] = raw_options.pop("simulation_round")
 
-            txns_with_signers, _ = self._build_transactions_for_simulation()
-            if self._transactions_with_signers is not None:
-                raw_options.setdefault("allow_unnamed_resources", True)
+            txns_with_signers = self._build_transactions_for_simulation()
 
             if config.debug:
                 raw_options.setdefault("allow_more_logging", True)
@@ -574,13 +640,14 @@ class TransactionComposer:
             )
             response = self._algod.simulate_transaction(request)
 
-            if response.txn_groups and response.txn_groups[0].failure_message and throw_on_failure:
+            if response.txn_groups and response.txn_groups[0].failure_message and effective_throw_on_failure:
                 raise RuntimeError(response.txn_groups[0].failure_message)
 
             tx_ids = [get_transaction_id(entry.txn) for entry in txns_with_signers]
             group = response.txn_groups[0] if response.txn_groups else None
             confirmations = [result.txn_result for result in (group.txn_results if group else [])]
-            abi_returns = self._parse_abi_return_values(confirmations)
+            method_calls = {index: entry.method for index, entry in enumerate(txns_with_signers) if entry.method}
+            abi_returns = self._parse_abi_return_values(confirmations, method_calls)
             result = SendTransactionComposerResults(
                 tx_ids=tx_ids,
                 transactions=[entry.txn for entry in txns_with_signers],
@@ -672,6 +739,7 @@ class TransactionComposer:
 
         built_entries, method_calls = self._build_txn_specs(suggested_params, is_localnet=is_localnet)
         transactions = [entry.txn for entry in built_entries]
+        self._raw_built_transactions = list(transactions)
         logical_max_fees = [entry.logical_max_fee for entry in built_entries]
 
         needs_analysis = (
@@ -688,12 +756,15 @@ class TransactionComposer:
 
         grouped = group_transactions(transactions)
         self._transactions_with_signers = [
-            TransactionWithSigner(txn=grouped[index], signer=cast(TransactionSigner, entry.signer))
+            TransactionWithSigner(
+                txn=grouped[index],
+                signer=cast(TransactionSigner, entry.signer),
+                method=method_calls.get(index),
+            )
             for index, entry in enumerate(built_entries)
         ]
-        self._method_calls = dict(method_calls)
 
-    def _build_transactions_for_simulation(self) -> tuple[list[TransactionWithSigner], dict[int, ABIMethod]]:
+    def _build_transactions_for_simulation(self) -> list[TransactionWithSigner]:
         if self._transactions_with_signers is None:
             suggested_params = self._get_suggested_params()
             genesis_id = getattr(suggested_params, "genesis_id", None)
@@ -705,14 +776,16 @@ class TransactionComposer:
             transactions = [entry.txn for entry in built_entries]
             if len(transactions) > 1:
                 transactions = group_transactions(transactions)
-            txns_with_signers = [
-                TransactionWithSigner(txn=transactions[index], signer=cast(TransactionSigner, entry.signer))
+            return [
+                TransactionWithSigner(
+                    txn=transactions[index],
+                    signer=cast(TransactionSigner, entry.signer),
+                    method=method_calls.get(index),
+                )
                 for index, entry in enumerate(built_entries)
             ]
-            self._method_calls = dict(method_calls)
-            return txns_with_signers, method_calls
 
-        return self._transactions_with_signers, dict(self._method_calls)
+        return self._transactions_with_signers
 
     def _analyze_group_requirements(  # noqa: C901, PLR0912
         self,
@@ -768,21 +841,13 @@ class TransactionComposer:
 
         if group_response.failure_message:
             if config.cover_app_call_inner_transaction_fees and "fee too small" in group_response.failure_message:
-                raise BuildComposerTransactionsError(
-                    (
-                        "Fees were too small to resolve execution info via simulate. "
-                        "You may need to increase an app call transaction maxFee."
-                    ),
-                    transactions_to_simulate,
-                    response,
+                raise ValueError(
+                    "Fees were too small to resolve execution info via simulate. "
+                    "You may need to increase an app call transaction maxFee."
                 )
-            raise BuildComposerTransactionsError(
-                (
-                    "Error resolving execution info via simulate in transaction "
-                    f"{group_response.failed_at or []}: {group_response.failure_message}"
-                ),
-                transactions_to_simulate,
-                response,
+            raise ValueError(
+                "Error resolving execution info via simulate in transaction "
+                f"{group_response.failed_at or []}: {group_response.failure_message}"
             )
 
         txn_analysis_results: list[_TransactionAnalysis] = []
@@ -1357,16 +1422,98 @@ class TransactionComposer:
     def _parse_abi_return_values(
         self,
         confirmations: Sequence[algod_models.PendingTransactionResponse],
+        method_calls: dict[int, ABIMethod] | None = None,
     ) -> list[ABIReturn]:
         abi_returns: list[ABIReturn] = []
+        method_calls = method_calls or {
+            index: entry.method for index, entry in enumerate(self._transactions_with_signers or []) if entry.method
+        }
         for index, confirmation in enumerate(confirmations):
-            method = self._method_calls.get(index)
+            method = method_calls.get(index)
             if not method:
                 continue
             abi_return = self._app_manager.get_abi_return(confirmation, method)
             if abi_return is not None:
                 abi_returns.append(abi_return)
         return abi_returns
+
+    def _resolve_error_transactions(self) -> list[Transaction] | None:
+        if self._transactions_with_signers is not None:
+            return [entry.txn for entry in self._transactions_with_signers]
+        if self._raw_built_transactions:
+            transactions = list(self._raw_built_transactions)
+            return group_transactions(transactions) if len(transactions) > 1 else transactions
+        return None
+
+    def _simulate_error_context(
+        self,
+        sent_transactions: Sequence[Transaction],
+        *,
+        suppress_log: bool | None,
+    ) -> tuple[algod_models.SimulateTransactionResponseModel | None, list[SimulationTrace]]:
+        """Simulate transactions to get error context including traces.
+
+        Returns:
+            A tuple of (simulate_response, traces).
+        """
+        try:
+            empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+            signed_transactions = self._sign_transactions(
+                [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in sent_transactions]
+            )
+            request = algod_models.SimulateRequest(
+                txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
+                allow_empty_signatures=True,
+                fix_signers=True,
+                allow_more_logging=True,
+                exec_trace_config=algod_models.SimulateTraceConfig(
+                    enable=True,
+                    scratch_change=True,
+                    stack_change=True,
+                    state_change=True,
+                ),
+            )
+            response = self._algod.simulate_transaction(request)
+
+            # Extract traces from the response (aligned with TS implementation)
+            traces: list[SimulationTrace] = []
+            if response.txn_groups and response.txn_groups[0].failed_at:
+                failure_message = response.txn_groups[0].failure_message
+                for txn_result in response.txn_groups[0].txn_results:
+                    traces.append(
+                        SimulationTrace(
+                            trace=txn_result.exec_trace,
+                            app_budget_consumed=txn_result.app_budget_consumed,
+                            logic_sig_budget_consumed=txn_result.logic_sig_budget_consumed,
+                            logs=txn_result.txn_result.logs if txn_result.txn_result else None,
+                            failure_message=failure_message,
+                        )
+                    )
+
+            return response, traces
+        except Exception:
+            config.logger.debug(
+                "Failed to simulate transaction group after send error",
+                exc_info=True,
+                extra={"suppress_log": suppress_log},
+            )
+            return None, []
+
+    def _create_composer_error(
+        self,
+        err: Exception,
+        sent_transactions: Sequence[Transaction] | None,
+        simulate_response: algod_models.SimulateTransactionResponseModel | None,
+        traces: list[SimulationTrace],
+    ) -> TransactionComposerError:
+        """Create a TransactionComposerError with full context."""
+        return TransactionComposerError(
+            str(err),
+            cause=err,
+            traces=traces if traces else None,
+            sent_transactions=list(sent_transactions) if sent_transactions else None,
+            simulate_response=simulate_response,
+        )
 
     def set_max_fees(self, max_fees: dict[int, AlgoAmount]) -> "TransactionComposer":
         """Override max_fee for queued transactions by index before building."""

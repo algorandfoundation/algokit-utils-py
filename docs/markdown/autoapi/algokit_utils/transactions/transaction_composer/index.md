@@ -10,9 +10,10 @@
 
 ## Exceptions
 
-| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)                         | Raised when an error transformer throws.                    |
-|---------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`InvalidErrorTransformerValueError`](#algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError) | Raised when an error transformer returns a non-error value. |
+| [`ErrorTransformerError`](#algokit_utils.transactions.transaction_composer.ErrorTransformerError)                         | Raised when an error transformer throws.                           |
+|---------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`InvalidErrorTransformerValueError`](#algokit_utils.transactions.transaction_composer.InvalidErrorTransformerValueError) | Raised when an error transformer returns a non-error value.        |
+| [`TransactionComposerError`](#algokit_utils.transactions.transaction_composer.TransactionComposerError)                   | Error raised when transaction composer fails to send transactions. |
 
 ## Classes
 
@@ -44,6 +45,20 @@ Bases: `RuntimeError`
 
 Raised when an error transformer returns a non-error value.
 
+### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateTransactionResponseModel | None = None)
+
+Bases: `RuntimeError`
+
+Error raised when transaction composer fails to send transactions.
+
+Contains detailed debugging information including simulation traces and sent transactions.
+
+#### traces *= None*
+
+#### sent_transactions *= None*
+
+#### simulate_response *= None*
+
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposerConfig
 
 #### cover_app_call_inner_transaction_fees *: bool* *= False*
@@ -71,6 +86,8 @@ Raised when an error transformer returns a non-error value.
 #### txn *: algokit_transact.models.transaction.Transaction*
 
 #### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+
+#### method *: ABIMethod | None* *= None*
 
 ### *class* algokit_utils.transactions.transaction_composer.BuiltTransactions
 
@@ -169,9 +186,25 @@ populate unnamed resources or adjust fees, and it leaves grouping unchanged.
 
 Compose the transaction group and send it to the network.
 
-#### simulate(\*, skip_signatures: bool = False, throw_on_failure: bool = True, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
+#### simulate(\*, skip_signatures: bool = False, result_on_failure: bool = False, \*\*raw_options: Any) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
 Compose the transaction group and simulate execution without submitting to the network.
+
+Args:
+: skip_signatures: Whether to skip signatures for all built transactions and use an empty signer instead.
+  : This will set allow_empty_signatures and fix_signers when sending the request to algod.
+  <br/>
+  result_on_failure: Whether to return the result on simulation failure instead of throwing an error.
+  : Defaults to False (throws on failure).
+  <br/>
+  ```
+  **
+  ```
+  <br/>
+  raw_options: Additional options to pass to the simulate request.
+
+Returns:
+: SendTransactionComposerResults containing simulation results.
 
 #### set_max_fees(max_fees: dict[int, [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount)]) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
