@@ -1218,6 +1218,7 @@
           },
           "wallet_driver_name": {
             "type": "string",
+            "default": "sqlite",
             "x-go-name": "WalletDriverName"
           },
           "wallet_name": {

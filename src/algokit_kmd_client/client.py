@@ -1,6 +1,6 @@
 # AUTO-GENERATED: oas_generator
 
-
+import time
 from dataclasses import is_dataclass
 from typing import Any, Literal, TypeVar, overload
 
@@ -13,6 +13,25 @@ from . import models
 from .config import ClientConfig
 from .exceptions import UnexpectedStatusError
 from .types import Headers
+
+# HTTP status codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_STATUS_CODES: frozenset[int] = frozenset({408, 413, 429, 500, 502, 503, 504})
+# Network error codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_ERROR_CODES: frozenset[str] = frozenset(
+    {
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EADDRINUSE",
+        "ECONNREFUSED",
+        "EPIPE",
+        "ENOTFOUND",
+        "ENETUNREACH",
+        "EAI_AGAIN",
+        "EPROTO",
+    }
+)
+_MAX_BACKOFF_MS: float = 10_000.0
+_DEFAULT_MAX_TRIES: int = 5
 
 ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
@@ -30,6 +49,8 @@ _UNHASHABLE_PREFIXES: dict[str, str] = {
 class KmdClient:
     def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
         self._config = config or ClientConfig()
+        # Track whether a custom HTTP client was provided to avoid retry conflicts
+        self._uses_custom_client = http_client is not None
         self._client = http_client or httpx.Client(
             base_url=self._config.base_url,
             timeout=self._config.timeout,
@@ -38,6 +59,91 @@ class KmdClient:
 
     def close(self) -> None:
         self._client.close()
+
+    def _calculate_max_tries(self) -> int:
+        """Calculate maximum number of tries from config.max_retries."""
+        max_retries = self._config.max_retries
+        if not isinstance(max_retries, int) or max_retries < 0:
+            return _DEFAULT_MAX_TRIES
+        return max_retries + 1
+
+    def _should_retry(self, error: Exception | None, status_code: int | None, attempt: int, max_tries: int) -> bool:
+        """Determine if a request should be retried based on error/status and attempt count."""
+        if attempt >= max_tries:
+            return False
+
+        # Check HTTP status code
+        if status_code is not None and status_code in _RETRY_STATUS_CODES:
+            return True
+
+        # Check network error codes (aligned with algokit-utils-ts)
+        if error is not None:
+            error_code = self._extract_error_code(error)
+            if error_code and error_code in _RETRY_ERROR_CODES:
+                return True
+
+        return False
+
+    def _extract_error_code(self, error: BaseException) -> str | None:
+        """Extract error code from exception, checking common attributes."""
+        # Check for 'code' attribute (common in OS/network errors)
+        if hasattr(error, "code") and isinstance(error.code, str):
+            return error.code
+        # Check for errno attribute
+        if hasattr(error, "errno") and error.errno is not None:
+            import errno as errno_module
+
+            try:
+                return errno_module.errorcode.get(error.errno)
+            except (TypeError, AttributeError):
+                pass
+        # Check __cause__ for wrapped errors
+        if error.__cause__ is not None:
+            return self._extract_error_code(error.__cause__)
+        return None
+
+    def _request_with_retry(self, request_kwargs: dict[str, Any]) -> httpx.Response:
+        """Execute request with exponential backoff retry for transient failures.
+
+        When a custom HTTP client is provided, retries are disabled to avoid
+        conflicts with any retry mechanism the custom client may implement.
+        """
+        # Disable retries when using a custom HTTP client to avoid conflicts
+        # with the client's own retry mechanism
+        if self._uses_custom_client:
+            return self._client.request(**request_kwargs)
+
+        max_tries = self._calculate_max_tries()
+        attempt = 1
+        last_error: Exception | None = None
+
+        while attempt <= max_tries:
+            status_code: int | None = None
+            try:
+                response = self._client.request(**request_kwargs)
+                status_code = response.status_code
+                if not self._should_retry(None, status_code, attempt, max_tries):
+                    return response
+            except httpx.TransportError as exc:
+                last_error = exc
+                if not self._should_retry(exc, None, attempt, max_tries):
+                    raise
+
+            # Exponential backoff aligned with algokit-utils-ts:
+            # attempt 1: 0ms, attempt 2: 2000ms, attempt 3: 4000ms, etc.
+            # Formula: 1000 * 2^(attempt-1) ms, capped at _MAX_BACKOFF_MS
+            if attempt == 1:
+                backoff_ms = 0.0
+            else:
+                backoff_ms = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+            if backoff_ms > 0:
+                time.sleep(backoff_ms / 1000.0)
+            attempt += 1
+
+        # Should not reach here, but satisfy type checker
+        if last_error:
+            raise last_error
+        raise RuntimeError(f"Request failed after {max_tries} attempt(s)")
 
     # default
 
@@ -75,7 +181,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletResponse)
 
@@ -115,7 +221,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.DeletekeyResponse)
 
@@ -155,7 +261,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.DeletemultisigResponse)
 
@@ -195,7 +301,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostkeyExportResponse)
 
@@ -235,7 +341,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmasterKeyExportResponse)
 
@@ -275,7 +381,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmultisigExportResponse)
 
@@ -315,7 +421,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostkeyResponse)
 
@@ -356,7 +462,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.VersionsResponse)
 
@@ -396,7 +502,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletInfoResponse)
 
@@ -436,7 +542,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostkeyImportResponse)
 
@@ -476,7 +582,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmultisigImportResponse)
 
@@ -516,7 +622,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletInitResponse)
 
@@ -556,7 +662,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostkeyListResponse)
 
@@ -596,7 +702,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmultisigListResponse)
 
@@ -637,7 +743,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.GetwalletsResponse)
 
@@ -677,7 +783,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletReleaseResponse)
 
@@ -717,7 +823,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletRenameResponse)
 
@@ -757,7 +863,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostwalletRenewResponse)
 
@@ -797,7 +903,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmultisigProgramSignResponse)
 
@@ -837,7 +943,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostmultisigTransactionSignResponse)
 
@@ -877,7 +983,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PostprogramSignResponse)
 
@@ -917,7 +1023,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PosttransactionSignResponse)
 
@@ -944,7 +1050,7 @@ class KmdClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, type_=str)
 

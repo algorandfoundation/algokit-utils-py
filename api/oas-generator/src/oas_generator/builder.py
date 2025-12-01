@@ -337,6 +337,9 @@ class ModelBuilder:
             default_value: str | None = None
             default_factory: str | None = None
 
+            # Check for schema-level default value
+            schema_default = prop_schema.get("default")
+
             if prop_name in required:
                 # Required fields get type-appropriate defaults to handle canonical msgpack encoding
                 computed_default = self._compute_default_value(type_info, prop_schema)
@@ -349,8 +352,19 @@ class ModelBuilder:
                     # Lists use default_factory=list
                     default_factory = "list"
             else:
-                # Optional fields default to None
-                default_value = "None"
+                # Optional fields: use schema default if provided, otherwise None
+                if schema_default is not None:
+                    # Format the default value based on type
+                    if isinstance(schema_default, str):
+                        default_value = f'"{schema_default}"'
+                    elif isinstance(schema_default, bool):
+                        default_value = str(schema_default)
+                    elif isinstance(schema_default, int | float):
+                        default_value = str(schema_default)
+                    else:
+                        default_value = "None"
+                else:
+                    default_value = "None"
 
             field = ctx.ModelField(
                 name=self.sanitizer.snake(python_name_hint),

@@ -11,7 +11,6 @@ from algokit_kmd_client.models import (
     ReleaseWalletHandleTokenRequest,
 )
 
-WALLET_DRIVER = "sqlite"
 WALLET_PASSWORD = "testpass"
 
 
@@ -35,7 +34,6 @@ def created_wallet(localnet_kmd_client: KmdClient) -> tuple[str, str]:
     response = localnet_kmd_client.create_wallet(
         CreateWalletRequest(
             wallet_name=wallet_name,
-            wallet_driver_name=WALLET_DRIVER,
             wallet_password=WALLET_PASSWORD,
         )
     )

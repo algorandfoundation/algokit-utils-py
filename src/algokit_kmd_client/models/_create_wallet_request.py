@@ -17,7 +17,7 @@ class CreateWalletRequest:
         metadata=wire("master_derivation_key"),
     )
     wallet_driver_name: str | None = field(
-        default=None,
+        default="sqlite",
         metadata=wire("wallet_driver_name"),
     )
     wallet_name: str | None = field(
