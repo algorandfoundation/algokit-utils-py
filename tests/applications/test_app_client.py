@@ -827,3 +827,45 @@ def test_nested_structs_referenced_by_name(
     result = app_client.send.call(AppClientMethodCallParams(method="getValue", args=[1]))
 
     assert result.abi_return == {"x": {"a": "hello"}}
+
+
+def test_logic_error_includes_simulation_traces(
+    test_app_client_with_sourcemaps: AppClient,
+) -> None:
+    """Test that LogicError includes simulation traces when errors occur during send phase.
+
+    When debug=True and a transaction fails during send, the composer performs a
+    post-failure re-simulation to capture execution traces and attach them to the error.
+    This enables better debugging by showing the exact execution state at failure.
+    """
+    from algokit_utils.config import config
+    from algokit_utils.transactions.transaction_composer import SendParams
+
+    # Enable debug mode for send-phase trace capture
+    original_debug = config.debug
+    try:
+        config.configure(debug=True)
+
+        with pytest.raises(LogicError) as exc_info:
+            test_app_client_with_sourcemaps.send.call(
+                AppClientMethodCallParams(method="error"),
+                send_params=SendParams(populate_app_call_resources=False),
+            )
+
+        error = exc_info.value
+        # Verify the error contains simulation traces
+        assert error.traces is not None, "LogicError should include simulation traces"
+        assert len(error.traces) > 0, "LogicError should have at least one simulation trace"
+
+        # Verify the trace structure
+        trace = error.traces[0]
+        assert hasattr(trace, "trace"), "SimulationTrace should have a trace attribute"
+        assert hasattr(trace, "app_budget_consumed"), "SimulationTrace should have app_budget_consumed"
+        assert hasattr(trace, "failure_message"), "SimulationTrace should have failure_message"
+
+        # The failure_message should contain the error details
+        assert trace.failure_message is not None, "Failure message should be set for failed transactions"
+        assert "assert failed" in trace.failure_message.lower(), "Failure message should indicate assertion failure"
+    finally:
+        # Restore original debug setting
+        config.configure(debug=original_debug)

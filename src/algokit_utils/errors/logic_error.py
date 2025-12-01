@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 __all__ = [
     "LogicError",
     "LogicErrorData",
+    "create_simulate_traces_for_logic_error",
     "parse_logic_error",
 ]
 
@@ -100,6 +101,14 @@ error please provide an approval SourceMap. Either by:
 
 
 def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationTrace]:
+    """Extract simulation traces from a simulate response for logic error debugging.
+
+    Args:
+        simulate: An object with simulate_response and failed_at attributes.
+
+    Returns:
+        A list of SimulationTrace objects extracted from the simulation response.
+    """
     traces: list[SimulationTrace] = []
     simulate_response = getattr(simulate, "simulate_response", None)
     failed_at = getattr(simulate, "failed_at", None)
@@ -114,21 +123,28 @@ def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationT
     for txn_group in txn_groups:
         if not isinstance(txn_group, Mapping):
             continue
-        app_budget_added = txn_group.get("app-budget-added")
-        app_budget_consumed = txn_group.get("app-budget-consumed")
         failure_message = txn_group.get("failure-message")
         txn_results = txn_group.get("txn-results", [])
-        txn_result = txn_results[0] if isinstance(txn_results, Sequence) and txn_results else {}
-        exec_trace_mapping = txn_result.get("exec-trace", {}) if isinstance(txn_result, Mapping) else {}
-        exec_trace: dict[str, object] = {}
-        if isinstance(exec_trace_mapping, Mapping):
-            exec_trace = {str(key): value for key, value in exec_trace_mapping.items()}
-        traces.append(
-            SimulationTrace(
-                app_budget_added=app_budget_added,
-                app_budget_consumed=app_budget_consumed,
-                failure_message=failure_message,
-                exec_trace=exec_trace,
+
+        if not isinstance(txn_results, Sequence):
+            continue
+
+        for txn_result in txn_results:
+            if not isinstance(txn_result, Mapping):
+                continue
+            exec_trace = txn_result.get("exec-trace")
+            app_budget_consumed = txn_result.get("app-budget-consumed")
+            logic_sig_budget_consumed = txn_result.get("logic-sig-budget-consumed")
+            txn_result_inner = txn_result.get("txn-result", {})
+            logs_raw = txn_result_inner.get("logs", []) if isinstance(txn_result_inner, Mapping) else []
+            logs = [base64.b64decode(log) if isinstance(log, str) else log for log in logs_raw] if logs_raw else None
+            traces.append(
+                SimulationTrace(
+                    trace=exec_trace,
+                    app_budget_consumed=app_budget_consumed,
+                    logic_sig_budget_consumed=logic_sig_budget_consumed,
+                    logs=logs,
+                    failure_message=failure_message,
+                )
             )
-        )
     return traces

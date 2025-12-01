@@ -1696,6 +1696,8 @@ class AppClient:
                 custom_get_line_for_pc = get_line_for_pc
 
             if program_source:
+                # Preserve traces from TransactionComposerError if available
+                traces = getattr(e, "traces", None)
                 e = LogicError(
                     logic_error_str=str(e),
                     program=program_source,
@@ -1705,7 +1707,7 @@ class AppClient:
                     pc=error_details["pc"],
                     logic_error=e,
                     get_line_for_pc=custom_get_line_for_pc,
-                    traces=None,
+                    traces=traces,
                 )
         if error_message:
             import re
