@@ -434,7 +434,7 @@ def test_simulate_does_not_throw_when_disabled(algorand: AlgorandClient, funded_
         )
     )
 
-    result = composer.simulate(throw_on_failure=False)
+    result = composer.simulate(result_on_failure=True)
     assert result.simulate_response is not None
 
 
