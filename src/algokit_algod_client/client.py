@@ -1132,7 +1132,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def simulate_transaction(
+    def simulate_transactions(
         self,
         body: models.SimulateRequest,
     ) -> models.SimulateResponse:
@@ -1176,6 +1176,36 @@ class AlgodClient:
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.SimulateResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def status_after_block(
+        self,
+        round_: int,
+    ) -> models.NodeStatusResponse:
+        """
+        Gets the node status after waiting for a round after the given round.
+        """
+
+        path = "/v2/status/wait-for-block-after/{round}"
+        path = path.replace("{round}", str(round_))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1328,36 +1358,6 @@ class AlgodClient:
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def wait_for_block(
-        self,
-        round_: int,
-    ) -> models.NodeStatusResponse:
-        """
-        Gets the node status after waiting for a round after the given round.
-        """
-
-        path = "/v2/status/wait-for-block-after/{round}"
-        path = path.replace("{round}", str(round_))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

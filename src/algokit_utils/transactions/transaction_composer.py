@@ -638,7 +638,7 @@ class TransactionComposer:
                 txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
                 **raw_options,
             )
-            response = self._algod.simulate_transaction(request)
+            response = self._algod.simulate_transactions(request)
 
             if response.txn_groups and response.txn_groups[0].failure_message and effective_throw_on_failure:
                 raise RuntimeError(response.txn_groups[0].failure_message)
@@ -836,7 +836,7 @@ class TransactionComposer:
             ),
         )
 
-        response = self._algod.simulate_transaction(simulate_request)
+        response = self._algod.simulate_transactions(simulate_request)
         group_response = response.txn_groups[0]
 
         if group_response.failure_message:
@@ -1473,7 +1473,7 @@ class TransactionComposer:
                     state_change=True,
                 ),
             )
-            response = self._algod.simulate_transaction(request)
+            response = self._algod.simulate_transactions(request)
 
             # Extract traces from the response (aligned with TS implementation)
             traces: list[SimulationTrace] = []
@@ -1586,6 +1586,6 @@ def _wait_for_confirmation(
         if confirmed_round is not None and confirmed_round > 0:
             return pending
         current_round += 1
-        algod.wait_for_block(current_round)
+        algod.status_after_block(current_round)
         remaining -= 1
     raise TimeoutError(f"Transaction {tx_id} not confirmed after {max_rounds} rounds")

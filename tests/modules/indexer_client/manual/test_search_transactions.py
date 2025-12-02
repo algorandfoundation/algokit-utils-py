@@ -58,7 +58,7 @@ def test_search_transactions_finds_recent_payment(
 
     wait_for_indexer(localnet_indexer_client, tx_id)
 
-    lookup = localnet_indexer_client.lookup_transaction(tx_id)
+    lookup = localnet_indexer_client.lookup_transaction_by_id(tx_id)
     assert lookup.transaction
     transaction = lookup.transaction
     assert transaction.tx_type == "pay"

@@ -22,7 +22,7 @@ class ApplicationLogData:
             decode=decode_bytes_sequence,
         ),
     )
-    txid: str = field(
+    tx_id: str = field(
         default="",
         metadata=wire("txid"),
     )

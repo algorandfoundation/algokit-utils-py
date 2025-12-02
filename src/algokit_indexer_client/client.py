@@ -830,7 +830,7 @@ class IndexerClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def lookup_transaction(
+    def lookup_transaction_by_id(
         self,
         txid: str,
     ) -> models.TransactionResponse:

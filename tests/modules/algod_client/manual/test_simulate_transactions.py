@@ -45,7 +45,7 @@ def test_simulate_transactions() -> None:
         fix_signers=True,
     )
 
-    resp = algod_client.simulate_transaction(
+    resp = algod_client.simulate_transactions(
         body=req,
     )
     assert len(resp.txn_groups) == 1
