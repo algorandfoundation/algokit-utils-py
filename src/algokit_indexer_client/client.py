@@ -1,5 +1,5 @@
 # AUTO-GENERATED: oas_generator
-
+import random
 import time
 from dataclasses import is_dataclass
 from datetime import datetime
@@ -130,13 +130,12 @@ class IndexerClient:
                 if not self._should_retry(exc, None, attempt, max_tries):
                     raise
 
-            # Exponential backoff aligned with algokit-utils-ts:
-            # attempt 1: 0ms, attempt 2: 2000ms, attempt 3: 4000ms, etc.
-            # Formula: 1000 * 2^(attempt-1) ms, capped at _MAX_BACKOFF_MS
             if attempt == 1:
                 backoff_ms = 0.0
             else:
-                backoff_ms = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+                base_backoff = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+                jitter = 0.5 + random.random()  # Random value between 0.5 and 1.5
+                backoff_ms = base_backoff * jitter
             if backoff_ms > 0:
                 time.sleep(backoff_ms / 1000.0)
             attempt += 1

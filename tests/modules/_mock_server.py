@@ -11,7 +11,10 @@ import atexit
 import os
 import socket
 import subprocess
+import tempfile
 import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -79,6 +82,30 @@ def _wait_for_port(port: int, timeout: float = 30.0) -> bool:
     return False
 
 
+def _wait_for_health(port: int, timeout: float = 30.0) -> bool:
+    """Wait for the mock server to respond to HTTP requests.
+
+    The mock server uses Fastify with a catch-all route, so any request
+    should work. We use the /health path by convention, but any path would
+    respond (possibly with a 404/500 from HAR replay, which still indicates readiness).
+    """
+    start = time.time()
+    url = f"http://127.0.0.1:{port}/health"
+    while time.time() - start < timeout:
+        try:
+            req = urllib.request.Request(url, method="GET")
+            with urllib.request.urlopen(req, timeout=2) as response:
+                # Any response (even error) means server is ready
+                _ = response.read()
+                return True
+        except urllib.error.HTTPError:
+            # HTTP error responses (4xx, 5xx) still indicate server is ready
+            return True
+        except (urllib.error.URLError, TimeoutError, OSError):
+            time.sleep(0.2)
+    return False
+
+
 def _get_container_id(name: str) -> str | None:
     """Get container ID if running."""
     result = subprocess.run(
@@ -117,7 +144,8 @@ def start_mock_server(client_type: str) -> MockServer:
     # Use file lock for xdist coordination
     from filelock import FileLock
 
-    with FileLock(f"/tmp/{container_name}.lock"):
+    lock_path = Path(tempfile.gettempdir()) / f"{container_name}.lock"
+    with FileLock(str(lock_path)):
         # Reuse existing container
         if existing_id := _get_container_id(container_name):
             if not _wait_for_port(host_port):
@@ -162,6 +190,10 @@ def start_mock_server(client_type: str) -> MockServer:
             _started_containers.discard(container_name)
             raise TimeoutError(f"{client_type} mock server failed to start")
 
-        time.sleep(2)  # Wait for HAR loading
+        # Wait for server to be fully ready (HAR loading complete)
+        if not _wait_for_health(host_port, timeout=30.0):
+            subprocess.run(["docker", "rm", "-f", container_id], capture_output=True, check=False)
+            _started_containers.discard(container_name)
+            raise TimeoutError(f"{client_type} mock server health check failed")
 
         return MockServer(container_id, container_name, client_type, host_port, is_owner=True)
