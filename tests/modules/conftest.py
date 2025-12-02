@@ -44,8 +44,7 @@ CONTAINER_NAME_PREFIX = "algokit_utils_py_mock"
 
 def _get_mock_server_image() -> str:
     """Get the mock server Docker image name."""
-    # TODO: Update to algorandfoundation/polytest-mock-server:latest once published to DockerHub
-    return os.environ.get("POLYTEST_MOCK_SERVER_IMAGE", "polytest-mock-server:local")
+    return os.environ.get("POLYTEST_MOCK_SERVER_IMAGE", "ghcr.io/aorumbayev/polytest-mock-server:latest")
 
 
 def _get_recordings_path() -> Path:
