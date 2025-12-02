@@ -1,6 +1,48 @@
 import json
+import tempfile
+import urllib.request
 from pathlib import Path
 from typing import Any
+
+# Default remote spec source
+OAS_REPO_URL = "https://raw.githubusercontent.com/algorandfoundation/algokit-oas-generator"
+DEFAULT_BRANCH = "main"
+
+
+def resolve_spec(spec: str) -> Path:
+    """Resolve a spec reference to a local path, downloading if needed.
+
+    Supports:
+        - Local paths: "api/specs/algod.oas3.json"
+        - Remote URLs: "https://example.com/spec.json"
+        - Shorthand: "oas://algod" or "oas://algod@branch"
+    """
+    # Shorthand: oas://algod or oas://algod@branch
+    if spec.startswith("oas://"):
+        name = spec[6:]
+        branch = DEFAULT_BRANCH
+        if "@" in name:
+            name, branch = name.split("@", 1)
+        url = f"{OAS_REPO_URL}/{branch}/specs/{name}.oas3.json"
+        return _download_to_temp(url)
+
+    # Remote URL
+    if spec.startswith(("http://", "https://")):
+        return _download_to_temp(spec)
+
+    # Local path
+    return Path(spec)
+
+
+def _download_to_temp(url: str) -> Path:
+    """Download URL to a temporary file and return the path."""
+    tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False)  # noqa: SIM115
+    try:
+        urllib.request.urlretrieve(url, tmp.name)  # noqa: S310
+    except urllib.error.URLError as e:
+        msg = f"Failed to download spec from {url}: {e}"
+        raise RuntimeError(msg) from e
+    return Path(tmp.name)
 
 
 class SpecLoader:

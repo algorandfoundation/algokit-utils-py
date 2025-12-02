@@ -229,10 +229,11 @@ ref = """test \
 
 [tool.poe.tasks.generate-client]
 sequence = [
-  { cmd = "uv run --group api-generator oas-generator --spec api/specs/${SPEC}.oas3.json --out src --package algokit_${SPEC}_client" },
+  { cmd = "uv run --group api-generator oas-generator --spec oas://${SPEC}@${OAS_BRANCH} --out src --package algokit_${SPEC}_client" },
   { cmd = "ruff check --fix src/algokit_${SPEC}_client" },
   { cmd = "ruff format src/algokit_${SPEC}_client" },
 ]
+env.OAS_BRANCH = "feat/kmd-wallet-driver-default"
 
 [tool.poe.tasks.generate-algod-client]
 ref = "generate-client"
