@@ -39,5 +39,6 @@ jobs:
       - name: Setup Polytest
         uses: aorumbayev/algokit-polytest/.github/actions/setup-polytest@main
 
-      - name: Validate polytest algod_client tests
-        run: uv run poe polytest-validate-algod
+      # TODO: Uncomment once polytest with v_2 vs v2 word splitting fix is released
+      #- name: Validate polytest algod_client tests
+      #  run: uv run poe polytest-validate-algod
