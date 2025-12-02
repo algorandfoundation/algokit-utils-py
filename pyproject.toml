@@ -267,6 +267,7 @@ markers = [
   "group_transaction_group_tests",
   "group_generic_transaction_tests",
   "group_common_tests",
+  "localnet",
 ]
 addopts = "-n auto"
 norecursedirs = [

@@ -51,7 +51,7 @@ def test_key_management_flow(localnet_kmd_client: KmdClient, created_wallet: tup
     """
     wallet_id, _ = created_wallet
 
-    init_response = localnet_kmd_client.init_wallet_handle_token(
+    init_response = localnet_kmd_client.init_wallet_handle(
         InitWalletHandleTokenRequest(wallet_id=wallet_id, wallet_password=WALLET_PASSWORD)
     )
     wallet_handle_token = init_response.wallet_handle_token
@@ -61,9 +61,7 @@ def test_key_management_flow(localnet_kmd_client: KmdClient, created_wallet: tup
         list_before = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
         before_addresses = list_before.addresses or []
 
-        localnet_kmd_client.generate_key(
-            GenerateKeyRequest(wallet_handle_token=wallet_handle_token, display_mnemonic=False)
-        )
+        localnet_kmd_client.generate_key(GenerateKeyRequest(wallet_handle_token=wallet_handle_token))
 
         list_after = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
         after_addresses = list_after.addresses or []
