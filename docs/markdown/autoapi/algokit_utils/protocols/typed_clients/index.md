@@ -23,7 +23,9 @@ class Proto(Protocol):
 ```
 
 Such classes are primarily used with static type checkers that recognize
-structural subtyping (static duck-typing), for example:
+structural subtyping (static duck-typing).
+
+For example:
 
 ```default
 class C:
@@ -42,7 +44,7 @@ only the presence of given attributes, ignoring their type signatures.
 Protocol classes can be generic, they are defined as:
 
 ```default
-class GenProto(Protocol[T]):
+class GenProto[T](Protocol):
     def meth(self) -> T:
         ...
 ```
@@ -66,7 +68,9 @@ class Proto(Protocol):
 ```
 
 Such classes are primarily used with static type checkers that recognize
-structural subtyping (static duck-typing), for example:
+structural subtyping (static duck-typing).
+
+For example:
 
 ```default
 class C:
@@ -85,7 +89,7 @@ only the presence of given attributes, ignoring their type signatures.
 Protocol classes can be generic, they are defined as:
 
 ```default
-class GenProto(Protocol[T]):
+class GenProto[T](Protocol):
     def meth(self) -> T:
         ...
 ```
