@@ -5,7 +5,7 @@ description = "Utilities for Algorand development for use by AlgoKit"
 authors = [
   { name = "Algorand Foundation", email = "contact@algorand.foundation" },
 ]
-requires-python = "~=3.10.0"
+requires-python = ">=3.10,<4"
 readme = "README.md"
 license = "MIT"
 dependencies = [
