@@ -9,18 +9,18 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class RenameWalletRequest:
     """
-    APIV1POSTWalletRenameRequest is the request for `POST /v1/wallet/rename`
+    The request for `POST /v1/wallet/rename`
     """
 
-    wallet_id: str | None = field(
-        default=None,
+    wallet_id: str = field(
+        default="",
         metadata=wire("wallet_id"),
     )
-    wallet_name: str | None = field(
-        default=None,
+    wallet_name: str = field(
+        default="",
         metadata=wire("wallet_name"),
     )
-    wallet_password: str | None = field(
-        default=None,
+    wallet_password: str = field(
+        default="",
         metadata=wire("wallet_password"),
     )

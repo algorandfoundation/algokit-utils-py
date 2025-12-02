@@ -7,13 +7,12 @@ from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
-class VersionsResponse:
+class ListKeysResponse:
     """
-    VersionsResponse is the response to `GET /versions`
-    friendly:VersionsResponse
+    ListKeysResponse is the response to `POST /v1/key/list`
     """
 
-    versions: list[str] = field(
+    addresses: list[str] = field(
         default_factory=list,
-        metadata=wire("versions"),
+        metadata=wire("addresses"),
     )

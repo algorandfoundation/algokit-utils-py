@@ -18,10 +18,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-cicd = [
-    "algokit>=2.9.1",
-    "py-algorand-sdk>=2.11,<3",
-]
+cicd = ["algokit>=2.9.1", "py-algorand-sdk>=2.11,<3"]
 dev = [
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.11.8",
@@ -49,9 +46,7 @@ dev = [
   "filelock>=3.12.0,<4",
   "syrupy>=5.0.0,<6",
 ]
-api-generator = [
-  "oas-generator",
-]
+api-generator = ["oas-generator"]
 
 [build-system]
 requires = ["uv_build>=0.9.5,<0.10.0"]
@@ -187,8 +182,18 @@ polytest-generate-indexer = "polytest --config test_configs/indexer_client.jsonc
 polytest-validate-indexer = "polytest --config test_configs/indexer_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
 polytest-generate-kmd = "polytest --config test_configs/kmd_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' generate -t pytest"
 polytest-validate-kmd = "polytest --config test_configs/kmd_client.jsonc --git 'https://github.com/algorandfoundation/algokit-polytest#main' validate -t pytest"
-polytest-generate-all = ["polytest-generate-transact", "polytest-generate-algod", "polytest-generate-indexer", "polytest-generate-kmd"]
-polytest-validate-all = ["polytest-validate-transact", "polytest-validate-algod", "polytest-validate-indexer", "polytest-validate-kmd"]
+polytest-generate-all = [
+  "polytest-generate-transact",
+  "polytest-generate-algod",
+  "polytest-generate-indexer",
+  "polytest-generate-kmd",
+]
+polytest-validate-all = [
+  "polytest-validate-transact",
+  "polytest-validate-algod",
+  "polytest-validate-indexer",
+  "polytest-validate-kmd",
+]
 
 [tool.poe.tasks.ruff-check]
 cmd = "ruff check src tests"
@@ -229,11 +234,11 @@ ref = """test \
 
 [tool.poe.tasks.generate-client]
 sequence = [
-  { cmd = "uv run --group api-generator oas-generator --spec oas://${SPEC}@${OAS_BRANCH} --out src --package algokit_${SPEC}_client" },
+  { cmd = "uv run --group api-generator oas-generator --spec https://raw.githubusercontent.com/algorandfoundation/algokit-oas-generator/${OAS_BRANCH}/specs/${SPEC}.oas3.json --out src --package algokit_${SPEC}_client" },
   { cmd = "ruff check --fix src/algokit_${SPEC}_client" },
   { cmd = "ruff format src/algokit_${SPEC}_client" },
 ]
-env.OAS_BRANCH = "feat/kmd-wallet-driver-default"
+env.OAS_BRANCH = "fix/more-tweaks"
 
 [tool.poe.tasks.generate-algod-client]
 ref = "generate-client"
@@ -258,10 +263,10 @@ sequence = [
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = [
-    "group_transaction_tests",
-    "group_transaction_group_tests",
-    "group_generic_transaction_tests",
-    "group_common_tests",
+  "group_transaction_tests",
+  "group_transaction_group_tests",
+  "group_generic_transaction_tests",
+  "group_common_tests",
 ]
 addopts = "-n auto"
 norecursedirs = [
@@ -289,9 +294,7 @@ disallow_untyped_decorators = true
 disallow_any_generics = false
 implicit_reexport = false
 show_error_codes = true
-mypy_path = [
-  "src",
-]
+mypy_path = ["src"]
 
 untyped_calls_exclude = ["algokit_algosdk"]
 

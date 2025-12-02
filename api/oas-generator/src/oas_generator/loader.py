@@ -1,12 +1,9 @@
 import json
 import tempfile
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any
-
-# Default remote spec source
-OAS_REPO_URL = "https://raw.githubusercontent.com/algorandfoundation/algokit-oas-generator"
-DEFAULT_BRANCH = "main"
 
 
 def resolve_spec(spec: str) -> Path:
@@ -15,17 +12,7 @@ def resolve_spec(spec: str) -> Path:
     Supports:
         - Local paths: "api/specs/algod.oas3.json"
         - Remote URLs: "https://example.com/spec.json"
-        - Shorthand: "oas://algod" or "oas://algod@branch"
     """
-    # Shorthand: oas://algod or oas://algod@branch
-    if spec.startswith("oas://"):
-        name = spec[6:]
-        branch = DEFAULT_BRANCH
-        if "@" in name:
-            name, branch = name.split("@", 1)
-        url = f"{OAS_REPO_URL}/{branch}/specs/{name}.oas3.json"
-        return _download_to_temp(url)
-
     # Remote URL
     if spec.startswith(("http://", "https://")):
         return _download_to_temp(spec)

@@ -7,9 +7,9 @@ from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
-class RenewWalletHandleTokenRequest:
+class InitWalletHandleTokenResponse:
     """
-    The request for `POST /v1/wallet/renew`
+    InitWalletHandleTokenResponse is the response to `POST /v1/wallet/init`
     """
 
     wallet_handle_token: str = field(

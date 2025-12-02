@@ -8,20 +8,12 @@ from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
-class DeleteKeyRequest:
+class GenerateKeyResponse:
     """
-    The request for `DELETE /v1/key`
+    GenerateKeyResponse is the response to `POST /v1/key`
     """
 
     address: str = field(
         default=ZERO_ADDRESS,
         metadata=wire("address"),
-    )
-    wallet_handle_token: str = field(
-        default="",
-        metadata=wire("wallet_handle_token"),
-    )
-    wallet_password: str | None = field(
-        default=None,
-        metadata=wire("wallet_password"),
     )

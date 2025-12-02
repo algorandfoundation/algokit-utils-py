@@ -16,7 +16,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--spec",
         required=True,
-        help="Path, URL, or shorthand (oas://algod, oas://algod@branch) to the OpenAPI spec",
+        help="Path or URL to the OpenAPI spec",
     )
     parser.add_argument(
         "--out",

@@ -9,20 +9,16 @@ from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
-class ImportKeyRequest:
+class SignProgramResponse:
     """
-    The request for `POST /v1/key/import`
+    SignProgramResponse is the response to `POST /v1/data/sign`
     """
 
-    private_key: bytes = field(
+    sig: bytes = field(
         default=b"",
         metadata=wire(
-            "private_key",
+            "sig",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
-    )
-    wallet_handle_token: str = field(
-        default="",
-        metadata=wire("wallet_handle_token"),
     )

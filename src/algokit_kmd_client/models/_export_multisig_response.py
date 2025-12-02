@@ -7,9 +7,9 @@ from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
-class ImportMultisigRequest:
+class ExportMultisigResponse:
     """
-    The request for `POST /v1/multisig/import`
+    ExportMultisigResponse is the response to `POST /v1/multisig/export`
     """
 
     multisig_version: int = field(
@@ -23,8 +23,4 @@ class ImportMultisigRequest:
     threshold: int = field(
         default=0,
         metadata=wire("threshold"),
-    )
-    wallet_handle_token: str = field(
-        default="",
-        metadata=wire("wallet_handle_token"),
     )

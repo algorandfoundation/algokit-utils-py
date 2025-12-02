@@ -10,22 +10,13 @@ from ._wallet import Wallet
 
 
 @dataclass(slots=True)
-class GetwalletsResponse:
+class ListWalletsResponse:
     """
-    APIV1GETWalletsResponse is the response to `GET /v1/wallets`
-    friendly:ListWalletsResponse
+    ListWalletsResponse is the response to `GET /v1/wallets`
     """
 
-    error: bool | None = field(
-        default=None,
-        metadata=wire("error"),
-    )
-    message: str | None = field(
-        default=None,
-        metadata=wire("message"),
-    )
-    wallets: list[Wallet] | None = field(
-        default=None,
+    wallets: list[Wallet] = field(
+        default_factory=list,
         metadata=wire(
             "wallets",
             encode=encode_model_sequence,

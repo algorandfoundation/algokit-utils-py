@@ -10,34 +10,34 @@ from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
-class SignMultisigRequest:
+class SignMultisigTxnRequest:
     """
-    APIV1POSTMultisigTransactionSignRequest is the request for `POST /v1/multisig/sign`
+    The request for `POST /v1/multisig/sign`
     """
 
-    partial_multisig: MultisigSig | None = field(
-        default=None,
-        metadata=nested("partial_multisig", lambda: MultisigSig),
-    )
-    public_key: list[int] | None = field(
-        default=None,
+    public_key: list[int] = field(
+        default_factory=list,
         metadata=wire("public_key"),
     )
-    signer: list[int] | None = field(
-        default=None,
-        metadata=wire("signer"),
-    )
-    transaction: bytes | None = field(
-        default=None,
+    transaction: bytes = field(
+        default=b"",
         metadata=wire(
             "transaction",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
+    )
+    partial_multisig: MultisigSig | None = field(
+        default=None,
+        metadata=nested("partial_multisig", lambda: MultisigSig),
+    )
+    signer: list[int] | None = field(
+        default=None,
+        metadata=wire("signer"),
     )
     wallet_password: str | None = field(
         default=None,

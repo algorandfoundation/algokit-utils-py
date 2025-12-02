@@ -9,26 +9,26 @@ from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 
 
 @dataclass(slots=True)
-class SignTransactionRequest:
+class SignTxnRequest:
     """
-    APIV1POSTTransactionSignRequest is the request for `POST /v1/transaction/sign`
+    The request for `POST /v1/transaction/sign`
     """
 
-    public_key: list[int] | None = field(
-        default=None,
-        metadata=wire("public_key"),
-    )
-    transaction: bytes | None = field(
-        default=None,
+    transaction: bytes = field(
+        default=b"",
         metadata=wire(
             "transaction",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
+    )
+    public_key: list[int] | None = field(
+        default=None,
+        metadata=wire("public_key"),
     )
     wallet_password: str | None = field(
         default=None,
