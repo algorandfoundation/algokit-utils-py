@@ -89,9 +89,7 @@ class KmdAccountManager:
             return None
 
         wallet_id = wallet.id_
-        wallet_handle = kmd_client.init_wallet_handle_token(
-            InitWalletHandleTokenRequest(wallet_id, "")
-        ).wallet_handle_token
+        wallet_handle = kmd_client.init_wallet_handle(InitWalletHandleTokenRequest(wallet_id, "")).wallet_handle_token
         addresses = kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle)).addresses or []
 
         matched_address = None
@@ -135,9 +133,7 @@ class KmdAccountManager:
         if not wallet:
             raise Exception(f"Error creating KMD wallet with name {name}")
         wallet_id = wallet.id_
-        wallet_handle = kmd_client.init_wallet_handle_token(
-            InitWalletHandleTokenRequest(wallet_id, "")
-        ).wallet_handle_token
+        wallet_handle = kmd_client.init_wallet_handle(InitWalletHandleTokenRequest(wallet_id, "")).wallet_handle_token
         kmd_client.generate_key(GenerateKeyRequest(wallet_handle_token=wallet_handle))
 
         account = self.get_wallet_account(name)
