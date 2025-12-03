@@ -69,7 +69,18 @@ class KmdAccountManager:
         :param sender: Optional sender address to use this signer for (aka a rekeyed account)
         :return: The signing account or None if no matching wallet or account was found
         """
+        return self._find_wallet_account(
+            wallet_name,
+            predicate,
+            sender,
+        )
 
+    def _find_wallet_account(
+        self,
+        wallet_name: str,
+        predicate_or_address: Callable[[dict[str, Any]], bool] | str | None = None,
+        sender: str | None = None,
+    ) -> KmdAccount | None:
         kmd_client = self.kmd()
         wallets = kmd_client.list_wallets()
         wallet = next((w for w in wallets if w["name"] == wallet_name), None)
@@ -78,17 +89,21 @@ class KmdAccountManager:
 
         wallet_id = wallet["id"]
         wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
-        addresses = kmd_client.list_keys(wallet_handle)
 
         matched_address = None
-        if predicate:
-            for address in addresses:
-                account_info = self._client_manager.algod.account_info(address)
-                if predicate(cast(dict[str, Any], account_info)):
-                    matched_address = address
-                    break
+        if predicate_or_address and isinstance(predicate_or_address, str):
+            matched_address = predicate_or_address
         else:
-            matched_address = next(iter(addresses), None)
+            addresses = kmd_client.list_keys(wallet_handle)
+            if len(addresses) > 0:
+                if predicate_or_address and callable(predicate_or_address):
+                    for address in addresses:
+                        account_info = self._client_manager.algod.account_info(address)
+                        if predicate_or_address(cast(dict[str, Any], account_info)):
+                            matched_address = address
+                            break
+                else:
+                    matched_address = addresses[0]
 
         if not matched_address:
             return None
@@ -149,11 +164,15 @@ class KmdAccountManager:
         if not self._client_manager.is_localnet():
             raise Exception("Can't get LocalNet dispenser account from non LocalNet network")
 
-        dispenser = self.get_wallet_account(
-            "unencrypted-default-wallet",
-            lambda a: a["status"] != "Offline" and a["amount"] > 1_000_000_000,  # noqa: PLR2004
-        )
-        if not dispenser:
-            raise Exception("Error retrieving LocalNet dispenser account; couldn't find the default account in KMD")
+        genesis_response = cast(dict[str, Any], self._client_manager.algod.genesis())
+        dispenser_addresses = [cast(str, a["addr"]) for a in genesis_response["alloc"] if a.get("comment") == "Wallet1"]
 
-        return dispenser
+        if len(dispenser_addresses) > 0:
+            dispenser = self._find_wallet_account(
+                "unencrypted-default-wallet",
+                dispenser_addresses[0],
+            )
+            if dispenser:
+                return dispenser
+
+        raise Exception("Error retrieving LocalNet dispenser account; couldn't find the default account in KMD")
