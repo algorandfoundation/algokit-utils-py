@@ -7,12 +7,20 @@ Mock server fixtures are in individual module conftest files:
 """
 
 from dataclasses import fields, is_dataclass
+from pathlib import Path
 
-import pytest
-from syrupy.assertion import SnapshotAssertion
-from syrupy.extensions.json import JSONSnapshotExtension
+# Load .env file from project root for local development
+# Supports MOCK_ALGOD_URL, MOCK_INDEXER_URL, MOCK_KMD_URL
+# Must happen before other imports that may use these env vars
+from dotenv import load_dotenv
 
-from algokit_utils.algorand import AlgorandClient
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+import pytest  # noqa: E402
+from syrupy.assertion import SnapshotAssertion  # noqa: E402
+from syrupy.extensions.json import JSONSnapshotExtension  # noqa: E402
+
+from algokit_utils.algorand import AlgorandClient  # noqa: E402
 
 # Test data constants matching TS mock server recordings
 TEST_ADDRESS = "25M5BT2DMMED3V6CWDEYKSNEFGPXX4QBIINCOICLXXRU3UGTSGRMF3MTOE"

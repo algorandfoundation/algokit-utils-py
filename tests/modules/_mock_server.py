@@ -3,6 +3,14 @@
 This module provides Docker-based mock servers that replay pre-recorded HAR files
 for deterministic API testing. Only used by algod_client, indexer_client, and
 kmd_client test modules.
+
+Environment Variables:
+    MOCK_ALGOD_URL: External algod mock server URL (e.g., http://localhost:18000)
+    MOCK_INDEXER_URL: External indexer mock server URL (e.g., http://localhost:18002)
+    MOCK_KMD_URL: External KMD mock server URL (e.g., http://localhost:18001)
+
+    When set, tests will use the external server instead of spinning up Docker.
+    The server must be running and pass a health check.
 """
 
 from __future__ import annotations
@@ -14,6 +22,7 @@ import subprocess
 import tempfile
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +32,13 @@ MOCK_PORTS = {
     "algod": {"host": 18000, "container": 8000},
     "indexer": {"host": 18002, "container": 8002},
     "kmd": {"host": 18001, "container": 8001},
+}
+
+# Environment variable names for external server URLs
+EXTERNAL_URL_ENV_VARS = {
+    "algod": "MOCK_ALGOD_URL",
+    "indexer": "MOCK_INDEXER_URL",
+    "kmd": "MOCK_KMD_URL",
 }
 
 DEFAULT_TOKEN = "a" * 64
@@ -127,8 +143,39 @@ def _get_recordings_path() -> Path:
     return Path(__file__).parent.parent / "references" / "algokit-polytest" / "resources" / "mock-server" / "recordings"
 
 
+def _get_external_server_url(client_type: str) -> str | None:
+    """Get external server URL from environment if configured."""
+    env_var = EXTERNAL_URL_ENV_VARS.get(client_type)
+    return os.environ.get(env_var) if env_var else None
+
+
+def _check_external_server(url: str, timeout: float = 5.0) -> tuple[bool, int]:
+    """Check if external server is healthy. Returns (is_healthy, port)."""
+    parsed = urllib.parse.urlparse(url)
+    port = parsed.port or 80
+    health_url = f"{url.rstrip('/')}/health"
+
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            req = urllib.request.Request(health_url, method="GET")
+            with urllib.request.urlopen(req, timeout=2):
+                return True, port
+        except urllib.error.HTTPError:
+            # HTTP error responses still indicate server is ready
+            return True, port
+        except (urllib.error.URLError, TimeoutError, OSError):
+            time.sleep(0.2)
+    return False, port
+
+
 def start_mock_server(client_type: str) -> MockServer:
-    """Start or reuse a mock server for the given client type.
+    """Start or connect to a mock server for the given client type.
+
+    Priority:
+        1. External server via MOCK_ALGOD_URL / MOCK_INDEXER_URL / MOCK_KMD_URL
+        2. Existing Docker container
+        3. New Docker container
 
     Thread-safe across pytest-xdist workers via file locking.
     """
@@ -136,6 +183,17 @@ def start_mock_server(client_type: str) -> MockServer:
 
     if os.environ.get("PYTEST_XDIST_WORKER"):
         _is_xdist_worker = True
+
+    # Check for external server URL
+    if external_url := _get_external_server_url(client_type):
+        is_healthy, port = _check_external_server(external_url)
+        if is_healthy:
+            return MockServer("external", "external", client_type, port, is_owner=False)
+        env_var = EXTERNAL_URL_ENV_VARS[client_type]
+        raise RuntimeError(
+            f"{env_var}={external_url} is set but server health check failed. "
+            f"Ensure the mock server is running at {external_url}"
+        )
 
     ports = MOCK_PORTS[client_type]
     host_port, container_port = ports["host"], ports["container"]
