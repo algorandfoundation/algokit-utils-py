@@ -1,0 +1,15 @@
+{
+  "wallets": [
+    {
+      "driver_name": "sqlite",
+      "driver_version": 1,
+      "id_": "0bd36782f30300ed34c0e12a4476736c",
+      "mnemonic_ux": false,
+      "name": "unencrypted-default-wallet",
+      "supported_txs": [
+        "pay",
+        "keyreg"
+      ]
+    }
+  ]
+}
