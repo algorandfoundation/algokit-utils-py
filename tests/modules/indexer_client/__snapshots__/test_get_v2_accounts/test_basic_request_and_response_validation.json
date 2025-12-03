@@ -1,0 +1,38 @@
+{
+  "accounts": [
+    {
+      "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+      "amount": 416118344628,
+      "amount_without_pending_rewards": 416118344628,
+      "apps_local_state": null,
+      "apps_total_extra_pages": null,
+      "apps_total_schema": null,
+      "assets": null,
+      "auth_addr": null,
+      "closed_at_round": null,
+      "created_apps": null,
+      "created_assets": null,
+      "created_at_round": 3331015,
+      "deleted": false,
+      "incentive_eligible": null,
+      "last_heartbeat": null,
+      "last_proposed": null,
+      "min_balance": 100000,
+      "participation": null,
+      "pending_rewards": 0,
+      "reward_base": 27521,
+      "rewards": 74126551,
+      "round_": 57774717,
+      "sig_type": null,
+      "status": "Offline",
+      "total_apps_opted_in": 0,
+      "total_assets_opted_in": 0,
+      "total_box_bytes": 0,
+      "total_boxes": 0,
+      "total_created_apps": 0,
+      "total_created_assets": 0
+    }
+  ],
+  "current_round": 57774717,
+  "next_token": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+}
