@@ -46,107 +46,134 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 
 ## Polytest Integration
 
-This section tracks the generated API endpoint tests from Polytest. Tests are categorized by implementation status.
+Tracks polytest-generated API endpoint test coverage and **parity with `algokit-utils-ts`**.
 
-### Algod Client Endpoints
+> Both Python and TypeScript use the same OAS spec (`fix/more-tweaks` from `algorandfoundation/algokit-oas-generator`) and skip the same endpoints (`private`, `experimental`, `Metrics`, `SwaggerJSON`, `GetBlockLogs`). The TS polytest config includes 13 extra endpoints that don't exist in either generated client.
 
-#### ✅ Implemented (21 endpoints)
+### Coverage Summary (Python vs TypeScript)
 
-| Endpoint | Test File | Notes |
-|----------|-----------|-------|
-| `GET /genesis` | `test_get_genesis.py` | |
-| `GET /health` | `test_get_health.py` | |
-| `GET /ready` | `test_get_ready.py` | |
-| `GET /versions` | `test_get_versions.py` | |
-| `GET /v2/accounts/{address}` | `test_get_v2_accounts_address.py` | |
-| `GET /v2/accounts/{address}/applications/{application-id}` | `test_get_v2_accounts_address_applications_application_id.py` | |
-| `GET /v2/accounts/{address}/assets/{asset-id}` | `test_get_v2_accounts_address_assets_asset_id.py` | |
-| `GET /v2/accounts/{address}/transactions/pending` | `test_get_v2_accounts_address_transactions_pending.py` | |
-| `GET /v2/applications/{application-id}` | `test_get_v2_applications_application_id.py` | |
-| `GET /v2/assets/{asset-id}` | `test_get_v2_assets_asset_id.py` | |
-| `GET /v2/blocks/{round}` | `test_get_v2_blocks_round.py` | |
-| `GET /v2/blocks/{round}/hash` | `test_get_v2_blocks_round_hash.py` | |
-| `GET /v2/blocks/{round}/lightheader/proof` | `test_get_v2_blocks_round_lightheader_proof.py` | |
-| `GET /v2/blocks/{round}/txids` | `test_get_v2_blocks_round_txids.py` | |
-| `GET /v2/deltas/{round}` | `test_get_v2_deltas_round.py` | |
-| `GET /v2/ledger/supply` | `test_get_v2_ledger_supply.py` | |
-| `GET /v2/ledger/sync` | `test_get_v2_ledger_sync.py` | |
-| `GET /v2/status` | `test_get_v2_status.py` | |
-| `GET /v2/status/wait-for-block-after/{round}` | `test_get_v2_status_wait_for_block_after_round.py` | |
-| `GET /v2/transactions/params` | `test_get_v2_transactions_params.py` | |
-| `GET /v2/transactions/pending` | `test_get_v2_transactions_pending.py` | |
+| Client | Py Stubs | Py Impl | TS Stubs | TS Impl | Notes |
+|--------|----------|---------|----------|---------|-------|
+| Algod | 42 | 21 (50%) | 55 | 17 (31%) | TS has 13 orphan stubs for skipped endpoints |
+| Indexer | 21 | 21 (100%) | 0 | 0 | TS has no indexer polytest config |
+| KMD | 23 | 1 (4%) | 0 | 0 | TS has no KMD polytest config |
 
-#### ⏳ Stub (Not Implemented) (21 endpoints)
+### Algod Endpoint Coverage
 
-| Endpoint | Test File | Notes |
-|----------|-----------|-------|
-| `DELETE /v2/catchup/{catchpoint}` | `test_delete_v2_catchup_catchpoint.py` | Admin endpoint |
-| `DELETE /v2/ledger/sync` | `test_delete_v2_ledger_sync.py` | Admin endpoint |
-| `GET /v2/applications/{application-id}/box` | `test_get_v2_applications_application_id_box.py` | |
-| `GET /v2/applications/{application-id}/boxes` | `test_get_v2_applications_application_id_boxes.py` | |
-| `GET /v2/blocks/{round}/transactions/{txid}/proof` | `test_get_v2_blocks_round_transactions_txid_proof.py` | |
-| `GET /v2/deltas/{round}/txn/group` | `test_get_v2_deltas_round_txn_group.py` | |
-| `GET /v2/deltas/txn/group/{id}` | `test_get_v2_deltas_txn_group_id.py` | |
-| `GET /v2/devmode/blocks/offset` | `test_get_v2_devmode_blocks_offset.py` | Dev mode only |
-| `GET /v2/experimental` | `test_get_v2_experimental.py` | |
-| `GET /v2/stateproofs/{round}` | `test_get_v2_stateproofs_round.py` | |
-| `GET /v2/transactions/pending/{txid}` | `test_get_v2_transactions_pending_txid.py` | |
-| `POST /v2/catchup/{catchpoint}` | `test_post_v2_catchup_catchpoint.py` | Admin endpoint |
-| `POST /v2/devmode/blocks/offset/{offset}` | `test_post_v2_devmode_blocks_offset_offset.py` | Dev mode only |
-| `POST /v2/ledger/sync/{round}` | `test_post_v2_ledger_sync_round.py` | Admin endpoint |
-| `POST /v2/shutdown` | `test_post_v2_shutdown.py` | Admin endpoint |
-| `POST /v2/teal/compile` | `test_post_v2_teal_compile.py` | |
-| `POST /v2/teal/disassemble` | `test_post_v2_teal_disassemble.py` | |
-| `POST /v2/teal/dryrun` | `test_post_v2_teal_dryrun.py` | |
-| `POST /v2/transactions` | `test_post_v2_transactions.py` | |
-| `POST /v2/transactions/async` | `test_post_v2_transactions_async.py` | |
-| `POST /v2/transactions/simulate` | `test_post_v2_transactions_simulate.py` | |
+| Endpoint | Py | TS | Notes |
+|----------|:--:|:--:|-------|
+| `GET genesis` | ✅ | ✅ | |
+| `GET health` | ✅ | ✅ | |
+| `GET ready` | ✅ | ✅ | |
+| `GET versions` | ✅ | ✅ | |
+| `GET v2/accounts/{address}` | ✅ | ✅ | |
+| `GET v2/accounts/{address}/applications/{app-id}` | ✅ | ✅ | |
+| `GET v2/accounts/{address}/assets/{asset-id}` | ✅ | ✅ | |
+| `GET v2/accounts/{address}/transactions/pending` | ✅ | ⬜ | |
+| `GET v2/applications/{app-id}` | ✅ | ✅ | |
+| `GET v2/applications/{app-id}/box` | ⬜ | ⬜ | |
+| `GET v2/applications/{app-id}/boxes` | ⬜ | ⬜ | |
+| `GET v2/assets/{asset-id}` | ✅ | ✅ | |
+| `GET v2/blocks/{round}` | ✅ | ⬜ | |
+| `GET v2/blocks/{round}/hash` | ✅ | ✅ | |
+| `GET v2/blocks/{round}/lightheader/proof` | ✅ | ✅ | |
+| `GET v2/blocks/{round}/transactions/{txid}/proof` | ⬜ | ⬜ | |
+| `GET v2/blocks/{round}/txids` | ✅ | ✅ | |
+| `GET v2/deltas/{round}` | ✅ | ⬜ | |
+| `GET v2/deltas/{round}/txn/group` | ⬜ | ⬜ | |
+| `GET v2/deltas/txn/group/{id}` | ⬜ | ⬜ | |
+| `GET v2/devmode/blocks/offset` | ⬜ | ⬜ | Dev mode |
+| `GET v2/experimental` | ⬜ | ⬜ | |
+| `GET v2/ledger/supply` | ✅ | ✅ | |
+| `GET v2/ledger/sync` | ✅ | ✅ | |
+| `GET v2/stateproofs/{round}` | ⬜ | ⬜ | |
+| `GET v2/status` | ✅ | ✅ | |
+| `GET v2/status/wait-for-block-after/{round}` | ✅ | ✅ | |
+| `GET v2/transactions/params` | ✅ | ✅ | |
+| `GET v2/transactions/pending` | ✅ | ⬜ | |
+| `GET v2/transactions/pending/{txid}` | ⬜ | ⬜ | |
+| `DELETE v2/catchup/{catchpoint}` | ⬜ | ⬜ | Admin |
+| `DELETE v2/ledger/sync` | ⬜ | ⬜ | Admin |
+| `POST v2/catchup/{catchpoint}` | ⬜ | ⬜ | Admin |
+| `POST v2/devmode/blocks/offset/{offset}` | ⬜ | ⬜ | Dev mode |
+| `POST v2/ledger/sync/{round}` | ⬜ | ⬜ | Admin |
+| `POST v2/shutdown` | ⬜ | ⬜ | Admin |
+| `POST v2/teal/compile` | ⬜ | ⬜ | |
+| `POST v2/teal/disassemble` | ⬜ | ⬜ | |
+| `POST v2/teal/dryrun` | ⬜ | ⬜ | |
+| `POST v2/transactions` | ⬜ | ⬜ | |
+| `POST v2/transactions/async` | ⬜ | ⬜ | |
+| `POST v2/transactions/simulate` | ⬜ | ⬜ | |
 
-#### 🔧 Manual Tests (6 tests)
+**TS-only stubs (no client method):** `GET debug/settings/*`, `GET metrics`, `GET swagger.json`, `GET v2/accounts/{addr}/assets`, `GET v2/blocks/{round}/logs`, `*v2/participation/*`
 
-These tests are hand-written to cover complex scenarios not easily generated:
+### Indexer Endpoint Coverage (Python only)
 
-| Test File | Description |
-|-----------|-------------|
-| `manual/test_block.py` | Block endpoint against mainnet/testnet with state proof tracking |
-| `manual/test_ledger_state_delta.py` | Ledger state delta endpoint against mainnet/testnet |
-| `manual/test_pending_transaction_information.py` | Pending transaction info flow on localnet |
-| `manual/test_raw_transaction.py` | Raw transaction broadcast on localnet |
-| `manual/test_simulate_transactions.py` | Transaction simulation with trace config |
-| `manual/test_suggested_params.py` | Suggested params and error handling |
+| Endpoint | Py |
+|----------|:--:|
+| `GET health` | ✅ |
+| `GET v2/accounts` | ✅ |
+| `GET v2/accounts/{id}` | ✅ |
+| `GET v2/accounts/{id}/apps-local-state` | ✅ |
+| `GET v2/accounts/{id}/assets` | ✅ |
+| `GET v2/accounts/{id}/created-applications` | ✅ |
+| `GET v2/accounts/{id}/created-assets` | ✅ |
+| `GET v2/accounts/{id}/transactions` | ✅ |
+| `GET v2/applications` | ✅ |
+| `GET v2/applications/{id}` | ✅ |
+| `GET v2/applications/{id}/box` | ✅ |
+| `GET v2/applications/{id}/boxes` | ✅ |
+| `GET v2/applications/{id}/logs` | ✅ |
+| `GET v2/assets` | ✅ |
+| `GET v2/assets/{id}` | ✅ |
+| `GET v2/assets/{id}/balances` | ✅ |
+| `GET v2/assets/{id}/transactions` | ✅ |
+| `GET v2/block-headers` | ✅ |
+| `GET v2/blocks/{round}` | ✅ |
+| `GET v2/transactions` | ✅ |
+| `GET v2/transactions/{txid}` | ✅ |
 
-### Indexer Client Endpoints
+### KMD Endpoint Coverage (Python only)
 
-#### 🔧 Manual Tests (2 tests)
+| Endpoint | Py |
+|----------|:--:|
+| `GET v1/wallets` | ✅ |
+| `GET versions` | ⬜ |
+| `GET swagger.json` | ⬜ |
+| `DELETE v1/key` | ⬜ |
+| `DELETE v1/multisig` | ⬜ |
+| `POST v1/key` | ⬜ |
+| `POST v1/key/export` | ⬜ |
+| `POST v1/key/import` | ⬜ |
+| `POST v1/key/list` | ⬜ |
+| `POST v1/master-key/export` | ⬜ |
+| `POST v1/multisig/*` (5 endpoints) | ⬜ |
+| `POST v1/program/sign` | ⬜ |
+| `POST v1/transaction/sign` | ⬜ |
+| `POST v1/wallet` | ⬜ |
+| `POST v1/wallet/info` | ⬜ |
+| `POST v1/wallet/init` | ⬜ |
+| `POST v1/wallet/release` | ⬜ |
+| `POST v1/wallet/rename` | ⬜ |
+| `POST v1/wallet/renew` | ⬜ |
 
-| Test File | Description |
-|-----------|-------------|
-| `manual/test_search_applications.py` | Search for applications and app creation flow |
-| `manual/test_search_transactions.py` | Search and lookup transactions |
+### Manual Tests
 
-### KMD Client Endpoints
-
-#### 🔧 Manual Tests (2 tests)
-
-| Test File | Description |
-|-----------|-------------|
-| `manual/test_wallet_lifecycle.py` | Wallet creation and listing |
-| `manual/test_key_management.py` | Key generation and wallet handle management |
+| Client | Test | Description |
+|--------|------|-------------|
+| Algod | `manual/test_block.py` | Block endpoint against mainnet/testnet |
+| Algod | `manual/test_ledger_state_delta.py` | Ledger state delta |
+| Algod | `manual/test_pending_transaction_information.py` | Pending tx info on localnet |
+| Algod | `manual/test_raw_transaction.py` | Raw tx broadcast on localnet |
+| Algod | `manual/test_simulate_transactions.py` | Tx simulation with trace config |
+| Algod | `manual/test_suggested_params.py` | Suggested params and error handling |
+| Indexer | `manual/test_search_applications.py` | Search applications |
+| Indexer | `manual/test_search_transactions.py` | Search/lookup transactions |
+| KMD | `manual/test_wallet_lifecycle.py` | Wallet creation and listing |
+| KMD | `manual/test_key_management.py` | Key generation and wallet handles |
 
 ### Test Infrastructure
 
-The Polytest-generated tests use a mock server infrastructure:
-
-- **Mock Server**: Docker container running `algorandfoundation/algod-mock:latest`
-- **Parallel Execution**: Uses `filelock` for xdist worker coordination
-- **Container Management**: Named containers with fixed ports (18000, 18001, 18002)
-- **Test Configuration**: Located in `tests/modules/conftest.py`
-
-### Summary
-
-| Client | Implemented | Stub | Manual | Total |
-|--------|-------------|------|--------|-------|
-| Algod | 21 | 21 | 6 | 48 |
-| Indexer | 0 | 0 | 2 | 2 |
-| KMD | 0 | 0 | 2 | 2 |
-| **Total** | **21** | **21** | **10** | **52** |
+- **Mock Server**: `ghcr.io/aorumbayev/polytest-mock-server:latest` (ports 18000-18002)
+- **Parallel Execution**: `filelock` for xdist worker coordination
+- **Config**: `tests/modules/conftest.py`
