@@ -8,9 +8,8 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 from typing_extensions import assert_never
 
-import algokit_abi
 import algokit_algosdk as algosdk
-from algokit_abi import arc32, arc56
+from algokit_abi import abi, arc32, arc56
 from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
@@ -2074,7 +2073,7 @@ class AppClient:
             if isinstance(arg_type, arc56.TransactionType):
                 result.append(None)
             elif default_value:
-                assert isinstance(arg_type, arc56.ReferenceType | algokit_abi.ABIType)
+                assert isinstance(arg_type, arc56.ReferenceType | abi.ABIType)
                 result.append(self._get_abi_arg_default_value(arg_name, arg_type, default_value, sender))
             else:
                 raise ValueError(f"No value provided for required argument {arg_name} in call to method {method.name}")
@@ -2084,7 +2083,7 @@ class AppClient:
     def _get_abi_arg_default_value(
         self,
         arg_name: str,
-        arg_type: algokit_abi.ABIType | arc56.ReferenceType,
+        arg_type: abi.ABIType | arc56.ReferenceType,
         default_value: arc56.DefaultValue,
         sender: str,
     ) -> ABIValue:
@@ -2107,7 +2106,7 @@ class AppClient:
 
                 if call_result.abi_return is None:
                     raise ValueError("Default value method call did not return a value")
-                assert isinstance(default_method.returns.type, algokit_abi.ABIType)
+                assert isinstance(default_method.returns.type, abi.ABIType)
                 return call_result.abi_return
 
             case "local" | "global" | "box":
@@ -2123,7 +2122,7 @@ class AppClient:
                 decoded_value: ABIValue
                 if isinstance(value, bytes):
                     # special case to convert raw AVM bytes to a native string type suitable for encoding
-                    if storage_key.value_type == arc56.AVMType.BYTES and isinstance(arg_type, algokit_abi.StringType):
+                    if storage_key.value_type == arc56.AVMType.BYTES and isinstance(arg_type, abi.StringType):
                         decoded_value = value.decode("utf-8")
                     else:
                         decoded_value = get_abi_decoded_value(value, storage_key.value_type)

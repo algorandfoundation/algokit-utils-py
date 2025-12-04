@@ -3,7 +3,7 @@ import decimal
 
 import pytest
 
-import algokit_abi
+from algokit_abi import abi
 from algokit_common.constants import ZERO_ADDRESS
 
 _32K = 32 * 1024
@@ -22,13 +22,13 @@ _MAX_U64 = 2**64 - 1
     ],
 )
 def test_byte_len(abi_type_str: str, expected_len: int) -> None:
-    abi_type = algokit_abi.ABIType.from_string(abi_type_str)
+    abi_type = abi.ABIType.from_string(abi_type_str)
     assert abi_type.byte_len() == expected_len
 
 
 @pytest.mark.parametrize("bit_size", [i * 8 for i in range(1, 65)])
 def test_uint_bit_sizes(bit_size: int) -> None:
-    abi_type = algokit_abi.UintType(bit_size)
+    abi_type = abi.UintType(bit_size)
     assert abi_type.bit_size == bit_size
 
 
@@ -64,7 +64,7 @@ def test_uint_bit_sizes(bit_size: int) -> None:
     ],
 )
 def test_uint(bit_size: int, value: int, expected_hex: str) -> None:
-    abi_type = algokit_abi.UintType(bit_size=bit_size)
+    abi_type = abi.UintType(bit_size=bit_size)
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -88,7 +88,7 @@ def test_uint(bit_size: int, value: int, expected_hex: str) -> None:
 )
 def test_uint_invalid_size(bit_size: int) -> None:
     with pytest.raises(ValueError, match="bit_size must be between 8 and 512"):
-        algokit_abi.UintType(bit_size=bit_size)
+        abi.UintType(bit_size=bit_size)
 
 
 @pytest.mark.parametrize(
@@ -100,7 +100,7 @@ def test_uint_invalid_size(bit_size: int) -> None:
     ],
 )
 def test_uint_value_too_big(bit_size: int) -> None:
-    abi_type = algokit_abi.UintType(bit_size=bit_size)
+    abi_type = abi.UintType(bit_size=bit_size)
     with pytest.raises(OverflowError):
         abi_type.encode(2**bit_size)
 
@@ -114,14 +114,14 @@ def test_uint_value_too_big(bit_size: int) -> None:
     ],
 )
 def test_uint_value_negative(bit_size: int) -> None:
-    abi_type = algokit_abi.UintType(bit_size=bit_size)
+    abi_type = abi.UintType(bit_size=bit_size)
     with pytest.raises(OverflowError):
         abi_type.encode(-1)
 
 
 @pytest.mark.parametrize("value", ["not an int", 1.23, decimal.Decimal("0.00"), b"\x00" * 8])
 def test_uint_invalid_value_type(value: object) -> None:
-    abi_type: algokit_abi.ABIType = algokit_abi.UintType(bit_size=64)
+    abi_type: abi.ABIType = abi.UintType(bit_size=64)
     with pytest.raises(TypeError):
         abi_type.encode(value)
 
@@ -149,7 +149,7 @@ def test_uint_invalid_value_type(value: object) -> None:
 )
 def test_ufixed_decimal(bit_size: int, precision: int, value_str: str, expected_hex: str) -> None:
     value = decimal.Decimal(value_str)
-    abi_type = algokit_abi.UfixedType(bit_size=bit_size, precision=precision)
+    abi_type = abi.UfixedType(bit_size=bit_size, precision=precision)
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -165,7 +165,7 @@ def test_ufixed_decimal(bit_size: int, precision: int, value_str: str, expected_
     ],
 )
 def test_ufixed_int(bit_size: int, precision: int, value: int, expected_hex: str) -> None:
-    abi_type = algokit_abi.UfixedType(bit_size=bit_size, precision=precision)
+    abi_type = abi.UfixedType(bit_size=bit_size, precision=precision)
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -189,7 +189,7 @@ def test_ufixed_int(bit_size: int, precision: int, value: int, expected_hex: str
 )
 def test_ufixed_invalid_size(bit_size: int) -> None:
     with pytest.raises(ValueError, match="bit_size must be between 8 and 512"):
-        algokit_abi.UfixedType(bit_size=bit_size, precision=1)
+        abi.UfixedType(bit_size=bit_size, precision=1)
 
 
 @pytest.mark.parametrize(
@@ -202,12 +202,12 @@ def test_ufixed_invalid_size(bit_size: int) -> None:
 )
 def test_ufixed_invalid_precision(precision: int) -> None:
     with pytest.raises(ValueError, match="precision must be between 0 and 160"):
-        algokit_abi.UfixedType(bit_size=512, precision=precision)
+        abi.UfixedType(bit_size=512, precision=precision)
 
 
 @pytest.mark.parametrize("value", ["not a decimal", 1.23, b"\x00" * 8])
 def test_ufixed_invalid_value_type(value: object) -> None:
-    abi_type: algokit_abi.ABIType = algokit_abi.UfixedType(64, 1)
+    abi_type: abi.ABIType = abi.UfixedType(64, 1)
     with pytest.raises(TypeError):
         abi_type.encode(value)
 
@@ -217,7 +217,7 @@ def test_ufixed_invalid_value_type(value: object) -> None:
     [8, 64, 512],
 )
 def test_ufixed_value_too_big(bit_size: int) -> None:
-    abi_type = algokit_abi.UfixedType(bit_size, 1)
+    abi_type = abi.UfixedType(bit_size, 1)
     with pytest.raises(OverflowError):
         abi_type.encode(2**bit_size)
 
@@ -227,13 +227,13 @@ def test_ufixed_value_too_big(bit_size: int) -> None:
     [8, 64, 512],
 )
 def test_ufixed_value_negative(bit_size: int) -> None:
-    abi_type = algokit_abi.UfixedType(bit_size, 1)
+    abi_type = abi.UfixedType(bit_size, 1)
     with pytest.raises(OverflowError):
         abi_type.encode(-1)
 
 
 def test_ufixed_value_too_precise() -> None:
-    abi_type = algokit_abi.UfixedType(8, 1)
+    abi_type = abi.UfixedType(8, 1)
     with pytest.raises(ValueError, match="precision exceeds 1"):
         abi_type.encode(decimal.Decimal("1.001"))
 
@@ -249,7 +249,7 @@ def test_ufixed_value_too_precise() -> None:
     ],
 )
 def test_byte_int(value: int, expected_hex: str) -> None:
-    abi_type = algokit_abi.ByteType()
+    abi_type = abi.ByteType()
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -269,7 +269,7 @@ def test_byte_int(value: int, expected_hex: str) -> None:
     ],
 )
 def test_byte_byte(expected_hex: str) -> None:
-    abi_type = algokit_abi.ByteType()
+    abi_type = abi.ByteType()
     expected = bytes.fromhex(expected_hex)
     encoded = abi_type.encode(expected)
     assert encoded == expected, f"expected 0x{expected_hex} encoded as {abi_type} to be 0x{expected_hex}"
@@ -285,7 +285,7 @@ def test_byte_byte(expected_hex: str) -> None:
     ],
 )
 def test_bool(*, value: bool, expected_hex: str) -> None:
-    abi_type = algokit_abi.BoolType()
+    abi_type = abi.BoolType()
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -302,7 +302,7 @@ _ADDRESS_BYTES = bytes.fromhex("63B47F669CFC37E327C6A9E8A31024821ADFE6D500996CC0
     [(_ADDRESS, _ADDRESS_BYTES), (_ADDRESS_BYTES, _ADDRESS_BYTES), (ZERO_ADDRESS, b"\x00" * 32)],
 )
 def test_address(value: str | bytes, expected: bytes) -> None:
-    abi_type = algokit_abi.AddressType()
+    abi_type = abi.AddressType()
     encoded = abi_type.encode(value)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected.hex()}"
 
@@ -319,7 +319,7 @@ def test_address(value: str | bytes, expected: bytes) -> None:
     ],
 )
 def test_string(value: str, expected: bytes) -> None:
-    abi_type = algokit_abi.StringType()
+    abi_type = abi.StringType()
     encoded = abi_type.encode(value)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be {expected!r}"
     decoded = abi_type.decode(encoded)
@@ -339,7 +339,7 @@ def test_string(value: str, expected: bytes) -> None:
     ],
 )
 def test_bool_static_array(value: list[bool], expected_hex: str) -> None:
-    abi_type = algokit_abi.StaticArrayType(element=algokit_abi.BoolType(), size=len(value))
+    abi_type = abi.StaticArrayType(element=abi.BoolType(), size=len(value))
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -356,7 +356,7 @@ def test_bool_static_array(value: list[bool], expected_hex: str) -> None:
     ],
 )
 def test_uint64_static_array(value: list[int], expected_hex: str) -> None:
-    abi_type = algokit_abi.StaticArrayType(element=algokit_abi.UintType(64), size=len(value))
+    abi_type = abi.StaticArrayType(element=abi.UintType(64), size=len(value))
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -367,15 +367,15 @@ def test_uint64_static_array(value: list[int], expected_hex: str) -> None:
 @pytest.mark.parametrize(
     "element",
     [
-        algokit_abi.UintType(64),
-        algokit_abi.UfixedType(64, 2),
-        algokit_abi.ByteType(),
-        algokit_abi.BoolType(),
-        algokit_abi.AddressType(),
+        abi.UintType(64),
+        abi.UfixedType(64, 2),
+        abi.ByteType(),
+        abi.BoolType(),
+        abi.AddressType(),
     ],
 )
-def test_empty_array(element: algokit_abi.ABIType) -> None:
-    abi_type = algokit_abi.DynamicArrayType(element)
+def test_empty_array(element: abi.ABIType) -> None:
+    abi_type = abi.DynamicArrayType(element)
     encoded = abi_type.encode([])
     assert encoded == b"\x00\x00", f"expected empty array of {element} to be 0x0000"
     decoded = abi_type.decode(encoded)
@@ -393,7 +393,7 @@ def test_empty_array(element: algokit_abi.ABIType) -> None:
     ],
 )
 def test_bool_dynamic_array(value: list[bool], expected_hex: str) -> None:
-    abi_type = algokit_abi.DynamicArrayType(algokit_abi.BoolType())
+    abi_type = abi.DynamicArrayType(abi.BoolType())
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected bool array to be 0x{expected_hex}"
@@ -410,7 +410,7 @@ def test_bool_dynamic_array(value: list[bool], expected_hex: str) -> None:
     ],
 )
 def test_uint64_dynamic_array(value: list[int], expected_hex: str) -> None:
-    abi_type = algokit_abi.DynamicArrayType(element=algokit_abi.UintType(64))
+    abi_type = abi.DynamicArrayType(element=abi.UintType(64))
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -439,7 +439,7 @@ def test_uint64_dynamic_array(value: list[int], expected_hex: str) -> None:
     ],
 )
 def test_tuples(abi_type_name: str, value: tuple, expected_hex: str) -> None:
-    abi_type = algokit_abi.ABIType.from_string(abi_type_name)
+    abi_type = abi.ABIType.from_string(abi_type_name)
     encoded = abi_type.encode(value)
     expected = bytes.fromhex(expected_hex)
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
@@ -447,16 +447,14 @@ def test_tuples(abi_type_name: str, value: tuple, expected_hex: str) -> None:
     assert decoded == value, f"expected decoded value {decoded} to equal original value {value}"
 
 
-def _abi_meta(abi_type_or_name: str | algokit_abi.ABIType) -> dict[str, object]:
-    abi_type = (
-        algokit_abi.ABIType.from_string(abi_type_or_name) if isinstance(abi_type_or_name, str) else abi_type_or_name
-    )
+def _abi_meta(abi_type_or_name: str | abi.ABIType) -> dict[str, object]:
+    abi_type = abi.ABIType.from_string(abi_type_or_name) if isinstance(abi_type_or_name, str) else abi_type_or_name
     return {"abi": abi_type}
 
 
-def _dataclass_to_abi_type(typ: type) -> algokit_abi.ABIType:
+def _dataclass_to_abi_type(typ: type) -> abi.ABIType:
     fields = {f.name: _get_abi_type(f) for f in dataclasses.fields(typ)}
-    return algokit_abi.StructType(struct_name=typ.__name__, fields=fields, decode_type=typ)
+    return abi.StructType(struct_name=typ.__name__, fields=fields, decode_type=typ)
 
 
 _TYPE_TO_DEFAULT_ABI = {
@@ -467,7 +465,7 @@ _TYPE_TO_DEFAULT_ABI = {
 }
 
 
-def _get_abi_type(field: dataclasses.Field) -> algokit_abi.ABIType:
+def _get_abi_type(field: dataclasses.Field) -> abi.ABIType:
     if abi_type := field.metadata.get("abi"):
         return abi_type
     elif dataclasses.is_dataclass(field.type):
@@ -477,7 +475,7 @@ def _get_abi_type(field: dataclasses.Field) -> algokit_abi.ABIType:
 
     if abi_name is None:
         raise TypeError("could not determine abi type, use _abi_metadata")
-    return algokit_abi.ABIType.from_string(abi_name)
+    return abi.ABIType.from_string(abi_name)
 
 
 @dataclasses.dataclass
@@ -499,14 +497,12 @@ _BAZ_ABI_TYPE = _dataclass_to_abi_type(Baz)
 @dataclasses.dataclass
 class Bar:
     a: bytes = dataclasses.field(metadata=_abi_meta("byte"))
-    b: list[Baz] = dataclasses.field(metadata=_abi_meta(algokit_abi.StaticArrayType(_dataclass_to_abi_type(Baz), 3)))
+    b: list[Baz] = dataclasses.field(metadata=_abi_meta(abi.StaticArrayType(_dataclass_to_abi_type(Baz), 3)))
 
 
 @dataclasses.dataclass
 class Large:
-    many_bar: list[Bar] = dataclasses.field(
-        metadata=_abi_meta(algokit_abi.DynamicArrayType(_dataclass_to_abi_type(Bar)))
-    )
+    many_bar: list[Bar] = dataclasses.field(metadata=_abi_meta(abi.DynamicArrayType(_dataclass_to_abi_type(Bar))))
     large_bytes: bytes = dataclasses.field(metadata=_abi_meta("byte[1024]"))
 
 
@@ -543,14 +539,14 @@ def test_struct(value: object, expected_hex: str) -> None:
 
 
 def test_struct_equality() -> None:
-    fields = {"foo": algokit_abi.ByteType(), "bar": algokit_abi.BoolType()}
-    struct = algokit_abi.StructType(struct_name="A", fields=fields)
+    fields = {"foo": abi.ByteType(), "bar": abi.BoolType()}
+    struct = abi.StructType(struct_name="A", fields=fields)
 
-    same_name_and_field = algokit_abi.StructType(struct_name="A", fields=fields)
+    same_name_and_field = abi.StructType(struct_name="A", fields=fields)
     assert struct == same_name_and_field, "structs with the same name and fields should be equal"
 
-    same_fields_different_name = algokit_abi.StructType(struct_name="B", fields=fields)
+    same_fields_different_name = abi.StructType(struct_name="B", fields=fields)
     assert struct != same_fields_different_name, "structs with different name and same fields should not be equal"
 
-    same_name_different_fields = algokit_abi.StructType(struct_name="A", fields={"foo": algokit_abi.ByteType()})
+    same_name_different_fields = abi.StructType(struct_name="A", fields={"foo": abi.ByteType()})
     assert struct != same_name_different_fields, "structs with same name and different fields should not be equal"
