@@ -1028,6 +1028,8 @@ class KmdClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
+    # skip
+
     def swagger_handler(
         self,
     ) -> str:
