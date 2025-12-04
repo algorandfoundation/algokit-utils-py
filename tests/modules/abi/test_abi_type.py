@@ -550,3 +550,36 @@ def test_struct_equality() -> None:
 
     same_name_different_fields = abi.StructType(struct_name="A", fields={"foo": abi.ByteType()})
     assert struct != same_name_different_fields, "structs with same name and different fields should not be equal"
+
+
+@pytest.mark.parametrize(
+    "abi_type_str",
+    [
+        "byte[",
+        "(byte",
+        "bad",
+        "(byte))",
+        "uintbad",
+        "ufixedbad",
+        "ufixedbadx2",
+        "ufixed2xbad",
+        "uint64[bad]",
+        "ufixedbadx2x3",
+        "ufixed2x3x4",
+        "ufixedbad2x3[]",
+        "(uint64,bad)",
+    ],
+)
+def test_from_string_errors(abi_type_str: str) -> None:
+    with pytest.raises(ValueError, match="unknown abi type"):
+        abi.ABIType.from_string(abi_type_str)
+
+
+def test_missing_tup_element() -> None:
+    with pytest.raises(ValueError, match="commas must follow a tuple element"):
+        abi.ABIType.from_string("(byte,,byte)")
+
+
+def test_trailing_comma() -> None:
+    with pytest.raises(ValueError, match="cannot have leading or trailing commas"):
+        abi.ABIType.from_string("(byte,)")
