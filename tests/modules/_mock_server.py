@@ -4,6 +4,14 @@ This module provides Docker-based mock servers that replay pre-recorded HAR file
 for deterministic API testing. Only used by algod_client, indexer_client, and
 kmd_client test modules.
 
+The mock server uses the ghcr.io/aorumbayev/polytest-mock-server Docker image which
+has HAR recordings bundled inside.
+
+Modes of operation:
+    1. Auto-start Docker container on a fixed port
+    2. Attach to existing container if already running
+    3. Use external URL if MOCK_ALGOD_URL / MOCK_INDEXER_URL / MOCK_KMD_URL is set
+
 Environment Variables:
     MOCK_ALGOD_URL: External algod mock server URL (e.g., http://localhost:18000)
     MOCK_INDEXER_URL: External indexer mock server URL (e.g., http://localhost:18002)
@@ -26,6 +34,9 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+
+# Docker image with bundled HAR recordings
+MOCK_SERVER_IMAGE = "ghcr.io/aorumbayev/polytest-mock-server:latest"
 
 # Port configuration
 MOCK_PORTS = {
@@ -133,16 +144,6 @@ def _get_container_id(name: str) -> str | None:
     return result.stdout.strip() or None
 
 
-def _get_image() -> str:
-    return os.environ.get("POLYTEST_MOCK_SERVER_IMAGE", "ghcr.io/aorumbayev/polytest-mock-server:latest")
-
-
-def _get_recordings_path() -> Path:
-    if custom := os.environ.get("POLYTEST_RECORDINGS_PATH"):
-        return Path(custom)
-    return Path(__file__).parent.parent / "references" / "algokit-polytest" / "resources" / "mock-server" / "recordings"
-
-
 def _get_external_server_url(client_type: str) -> str | None:
     """Get external server URL from environment if configured."""
     env_var = EXTERNAL_URL_ENV_VARS.get(client_type)
@@ -213,7 +214,7 @@ def start_mock_server(client_type: str) -> MockServer:
         # Remove any stopped container
         subprocess.run(["docker", "rm", "-f", container_name], capture_output=True, check=False)
 
-        # Build command
+        # Build command - image has recordings bundled inside
         cmd = [
             "docker",
             "run",
@@ -224,16 +225,9 @@ def start_mock_server(client_type: str) -> MockServer:
             f"{host_port}:{container_port}",
             "-e",
             f"{client_type.upper()}_PORT={container_port}",
-            "-e",
-            f"LOG_LEVEL={os.environ.get('MOCK_SERVER_LOG_LEVEL', 'warn')}",
+            MOCK_SERVER_IMAGE,
+            client_type,
         ]
-
-        recordings = _get_recordings_path()
-        image = _get_image()
-        if recordings.exists():
-            cmd.extend(["-v", f"{recordings}:/recordings:ro", image, client_type, "/recordings"])
-        else:
-            cmd.extend([image, client_type])
 
         # Start container
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
