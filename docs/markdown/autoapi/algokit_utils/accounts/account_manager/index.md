@@ -395,7 +395,7 @@ Tracks and returns an account that represents a logic signature.
   account = account.logicsig(program, [new Uint8Array(3, ...)])
   ```
 
-#### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), signing_accounts: list[[algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)]) → [algokit_utils.models.account.MultiSigAccount](../../models/account/index.md#algokit_utils.models.account.MultiSigAccount)
+#### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)]) → [algokit_utils.models.account.MultiSigAccount](../../models/account/index.md#algokit_utils.models.account.MultiSigAccount)
 
 Tracks and returns an account that supports partial or full multisig signing.
 

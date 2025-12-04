@@ -1,5 +1,5 @@
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -22,7 +22,7 @@ from algokit_utils.models.account import (
 )
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.protocols.account import SignerAccountProtocol, TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
@@ -383,7 +383,9 @@ class AccountManager:
         self._accounts[logic_sig.address] = logic_sig
         return logic_sig
 
-    def _register_multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
+    def _register_multisig(
+        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
+    ) -> MultiSigAccount:
         """
         Helper method to create and register a multisig account.
 
@@ -489,7 +491,9 @@ class AccountManager:
         """
         return self._register_logicsig(program, args)
 
-    def multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
+    def multisig(
+        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
+    ) -> MultiSigAccount:
         """
         Tracks and returns an account that supports partial or full multisig signing.
 
