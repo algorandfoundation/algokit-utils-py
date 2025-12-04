@@ -19,9 +19,18 @@ _MAX_U64 = 2**64 - 1
         ("bool[2]", 1),
         ("bool[8]", 1),
         ("bool[9]", 2),
+        ("uint8", 1),
+        ("uint64", 8),
+        ("uint512", 64),
+        ("uint64[]", None),
+        ("ufixed64x2", 8),
+        ("byte", 1),
+        ("byte[7]", 7),
+        ("address", 32),
+        ("(uint64,bool,byte)", 10),
     ],
 )
-def test_byte_len(abi_type_str: str, expected_len: int) -> None:
+def test_byte_len(abi_type_str: str, expected_len: int | None) -> None:
     abi_type = abi.ABIType.from_string(abi_type_str)
     assert abi_type.byte_len() == expected_len
 
