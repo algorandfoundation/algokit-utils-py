@@ -1,5 +1,6 @@
 import dataclasses
 import decimal
+import re
 
 import pytest
 
@@ -425,6 +426,77 @@ def test_uint64_dynamic_array(value: list[int], expected_hex: str) -> None:
     assert encoded == expected, f"expected {value} encoded as {abi_type} to be 0x{expected_hex}"
     decoded = abi_type.decode(encoded)
     assert decoded == value, f"expected decoded value {decoded} to equal original value {value}"
+
+
+def test_array_encode_length_too_big() -> None:
+    abi_type = abi.ABIType.from_string("uint8[]")
+    with pytest.raises(ValueError, match="array length exceeds 65535"):
+        abi_type.encode([0] * (2**16))
+
+
+def test_array_encode_too_many_bytes() -> None:
+    abi_type = abi.ABIType.from_string("(byte[],byte[])")
+    large_bytes = b"\x00" * (2**16 - 1)
+    with pytest.raises(ValueError, match="encoded bytes length exceeds 65535"):
+        abi_type.encode((large_bytes, large_bytes))
+
+
+@pytest.mark.parametrize(
+    "abi_element_type",
+    [
+        "byte",
+        "uint8",
+        "uint64",
+        "()",
+        "(uint64,address)",
+        "byte[]",
+    ],
+)
+def test_array_decode_too_many_bytes(abi_element_type: str) -> None:
+    abi_type = abi.ABIType.from_string(f"{abi_element_type}[]")
+    large_bytes = b"\x00" * 10
+    with pytest.raises(ValueError, match=re.escape(f"expected 0 bytes for {abi_element_type}[0]")):
+        abi_type.decode(large_bytes)
+
+
+@pytest.mark.parametrize(
+    "abi_element_type",
+    [
+        "byte",
+        "uint8",
+        "uint64",
+    ],
+)
+def test_decode_too_many_bytes(abi_element_type: str) -> None:
+    abi_type = abi.ABIType.from_string(abi_element_type)
+    valid_bytes = abi_type.encode(0)
+    invalid_bytes = valid_bytes + b"\x00"
+    with pytest.raises(ValueError, match=re.escape(f"expected {abi_type.byte_len()} bytes")):
+        abi_type.decode(invalid_bytes)
+
+
+def test_decode_tuple_too_many_bytes() -> None:
+    abi_type = abi.ABIType.from_string("(uint64,address)")
+    valid_bytes = abi_type.encode((0, b"\x00" * 32))
+    invalid_bytes = valid_bytes + b"\x00"
+    with pytest.raises(ValueError, match=re.escape(f"expected {abi_type.byte_len()} bytes")):
+        abi_type.decode(invalid_bytes)
+
+
+def test_tuple_decode_wrong_offset() -> None:
+    abi_type = abi.ABIType.from_string("(byte,byte[])")
+    large_bytes = b"\x00\x00\x04\x00\x00\x00"
+    with pytest.raises(ValueError, match="expected tail offset of 3"):
+        abi_type.decode(large_bytes)
+
+
+def test_tuple_decode_wrong_offset2() -> None:
+    abi_type = abi.ABIType.from_string("(byte[],byte[])")
+    large_bytes = b"\x00\x04\x00\x08\x00\x01\x00\x00\x00\x00"
+    # note: the wrong offset causes a decode failure of the second array before
+    # the offset can be checked
+    with pytest.raises(ValueError, match=re.escape("expected 1 bytes for byte[1]")):
+        abi_type.decode(large_bytes)
 
 
 @pytest.mark.parametrize(
