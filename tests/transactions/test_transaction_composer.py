@@ -13,7 +13,6 @@ from algosdk.transaction import (
     PaymentTxn,
 )
 
-from algokit_utils._legacy_v2.account import get_account
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import MultisigMetadata, SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -27,7 +26,6 @@ from algokit_utils.transactions.transaction_composer import (
     SendAtomicTransactionComposerResults,
     TransactionComposer,
 )
-from legacy_v2_tests.conftest import get_unique_name
 
 if TYPE_CHECKING:
     from algokit_utils.models.transaction import Arc2TransactionNote
@@ -59,8 +57,14 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
 
 @pytest.fixture
 def funded_secondary_account(algorand: AlgorandClient) -> SigningAccount:
-    secondary_name = get_unique_name()
-    return get_account(algorand.client.algod, secondary_name)
+    private_key, _ = algosdk.account.generate_account()
+    address = str(algosdk.account.address_from_private_key(private_key))
+    dispenser = algorand.account.localnet_dispenser()
+    new_account = SigningAccount(private_key=private_key, address=address)
+    algorand.account.ensure_funded(
+        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
+    )
+    return new_account
 
 
 def test_add_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
