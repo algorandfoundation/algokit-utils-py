@@ -54,15 +54,21 @@ class ABIType(abc.ABC):
         if value.endswith("]"):
             array_start = value.rindex("[")
             size_str = value[array_start + 1 : -1]
-            size = int(size_str)
-            element = cls.from_string(value[:array_start])
-            return StaticArrayType(element, size)
-        if value.startswith("ufixed"):
+            try:
+                size = int(size_str)
+            except ValueError:
+                pass  # fall through to error
+            else:
+                element = cls.from_string(value[:array_start])
+                return StaticArrayType(element, size)
+        elif value.startswith("ufixed"):
             n_m_str = value.removeprefix("ufixed")
-            n_str, m_str = n_m_str.split("x")
-            n = int(n_str)
-            m = int(m_str)
-            return UfixedType(n, m)
+            try:
+                n, m = map(int, n_m_str.split("x"))
+            except ValueError:
+                pass  # fall through to error
+            else:
+                return UfixedType(n, m)
         raise ValueError(f"unknown abi type: {value}")
 
     def __eq__(self, other: object) -> bool:
@@ -586,7 +592,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
         return
 
     if s.startswith(",") or s.endswith(","):
-        raise ValueError(f"cannot have leading or trailing commas in {s}")
+        raise ValueError(f"cannot have leading or trailing commas in ({s})")
 
     depth = 0
     current_element = ""
@@ -598,7 +604,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
         elif char == "," and depth == 0:
             # yield only top level tuple elements, nested elements will be recursively parsed
             if not current_element:
-                raise ValueError(f"commas must follow a tuple element: {s}")
+                raise ValueError(f"commas must follow a tuple element: ({s})")
             yield current_element
             current_element = ""
             continue
@@ -606,7 +612,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
     if current_element:
         yield current_element
     if depth != 0:
-        raise ValueError(f"parenthesis mismatch: {s}")
+        raise ValueError(f"parenthesis mismatch: ({s})")
 
 
 def _set_bit(value: int, bit_index: int) -> int:
