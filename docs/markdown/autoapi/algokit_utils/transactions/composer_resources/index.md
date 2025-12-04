@@ -2,9 +2,9 @@
 
 ## Classes
 
-| [`GroupResourceType`](#algokit_utils.transactions.composer_resources.GroupResourceType)             | Create a collection of name/value pairs.   |
-|-----------------------------------------------------------------------------------------------------|--------------------------------------------|
-| [`GroupResourceToPopulate`](#algokit_utils.transactions.composer_resources.GroupResourceToPopulate) |                                            |
+| [`GroupResourceType`](#algokit_utils.transactions.composer_resources.GroupResourceType)             | Generic enumeration.   |
+|-----------------------------------------------------------------------------------------------------|------------------------|
+| [`GroupResourceToPopulate`](#algokit_utils.transactions.composer_resources.GroupResourceToPopulate) |                        |
 
 ## Functions
 
@@ -18,53 +18,13 @@
 
 Populate transaction-level resources for app call transactions
 
-### *class* algokit_utils.transactions.composer_resources.GroupResourceType(\*args, \*\*kwds)
+### *class* algokit_utils.transactions.composer_resources.GroupResourceType
 
 Bases: `enum.Enum`
 
-Create a collection of name/value pairs.
+Generic enumeration.
 
-Example enumeration:
-
-```python
-class Color(Enum):
-    RED = 1
-    BLUE = 2
-    GREEN = 3
-```
-
-Access them by:
-
-- attribute access:
-  ```python
-  Color.RED
-  <Color.RED: 1>
-  ```
-- value lookup:
-  ```python
-  Color(1)
-  <Color.RED: 1>
-  ```
-- name lookup:
-  ```python
-  Color['RED']
-  <Color.RED: 1>
-  ```
-
-Enumerations can be iterated over, and know how many members they have:
-
-```python
-len(Color)
-3
-```
-
-```python
-list(Color)
-[<Color.RED: 1>, <Color.BLUE: 2>, <Color.GREEN: 3>]
-```
-
-Methods can be added to enumerations, and members can have their own
-attributes – see the documentation for details.
+Derive from this class to define new enumerations.
 
 #### Account *= 'Account'*
 

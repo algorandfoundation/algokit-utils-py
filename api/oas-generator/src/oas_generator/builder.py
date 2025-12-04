@@ -599,8 +599,7 @@ class OperationBuilder:
         "GetApplicationBoxByName",
         "TransactionParams",
     }
-    SKIP_TAGS: ClassVar[set[str]] = {"private", "experimental"}
-    SKIP_OPERATIONS: ClassVar[set[str]] = {"Metrics", "SwaggerJSON", "GetBlockLogs"}
+    SKIP_TAGS: ClassVar[set[str]] = {"private", "experimental", "skip"}
 
     def __init__(
         self,
@@ -711,15 +710,10 @@ class OperationBuilder:
     def _should_skip_operation(self, operation_id: str, tags: list[str]) -> bool:
         """Check if an operation should be skipped from generation.
 
-        Operations are skipped if:
-        - They have any tags that match SKIP_TAGS ('private', 'experimental')
-        - Their operation_id matches any in SKIP_OPERATIONS ('Metrics', 'SwaggerJSON', 'GetBlockLogs')
+        Operations are skipped if they have any tags that match SKIP_TAGS
+        ('private', 'experimental', 'skip').
         """
-        if operation_id in self.SKIP_OPERATIONS:
-            return True
-        if any(tag in self.SKIP_TAGS for tag in tags):
-            return True
-        return False
+        return any(tag in self.SKIP_TAGS for tag in tags)
 
     def _collect_schema_refs(self, obj: Any, refs: set[str]) -> None:
         """Recursively collect all schema $ref names from an object."""

@@ -1028,35 +1028,6 @@ class KmdClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    # skip
-
-    def swagger_handler(
-        self,
-    ) -> str:
-        """
-        Gets the current swagger spec.
-        """
-
-        path = "/swagger.json"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, type_=str)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def _assign_body(
         self,
         request_kwargs: dict[str, Any],

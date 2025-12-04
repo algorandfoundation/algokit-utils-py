@@ -1292,47 +1292,6 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def teal_dryrun(
-        self,
-        *,
-        body: models.DryrunRequest | None = None,
-    ) -> models.DryrunResponse:
-        """
-        Provide debugging information for a transaction (or group).
-        """
-
-        path = "/v2/teal/dryrun"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/json", "application/msgpack"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "model": "DryrunRequest",
-                },
-                body_media_types,
-            )
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.DryrunResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def unset_sync_round(
         self,
     ) -> None:
