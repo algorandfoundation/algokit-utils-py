@@ -62,13 +62,21 @@ Signs arbitrary bytes with the account’s private key.
 
 Get a LogicSig program signer for this account.
 
-Signs programs with “Program” domain prefix for LogicSig delegation.
+Signs programs with appropriate domain prefix:
+- Single-sig: “Program” + program
+- Multisig: “MsigProgram” + msig_address + program
 
 #### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
 
 Get a program data signer for this account.
 
 Signs data with “ProgData” domain prefix for delegated LogicSig transactions.
+
+#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*
+
+Get an MX-prefixed bytes signer for this account.
+
+Signs arbitrary bytes with “MX” domain prefix.
 
 ### *class* algokit_utils.models.account.MultisigMetadata
 

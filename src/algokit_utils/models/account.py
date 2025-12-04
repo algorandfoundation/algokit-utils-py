@@ -14,7 +14,13 @@ from algokit_transact.signing.multisig import (
 )
 from algokit_transact.signing.types import MultisigSignature
 from algokit_utils.protocols.account import SignerAccountProtocol
-from algokit_utils.protocols.signer import BytesSigner, LsigSigner, ProgramDataSigner, TransactionSigner
+from algokit_utils.protocols.signer import (
+    BytesSigner,
+    LsigSigner,
+    MxBytesSigner,
+    ProgramDataSigner,
+    TransactionSigner,
+)
 
 AlgosdkLogicSigAccount = algosdk.logicsig.LogicSigAccount
 
@@ -59,6 +65,7 @@ class SigningAccount:
     _bytes_signer: BytesSigner | None = dataclasses.field(default=None, init=False, repr=False)
     _lsig_signer: LsigSigner | None = dataclasses.field(default=None, init=False, repr=False)
     _program_data_signer: ProgramDataSigner | None = dataclasses.field(default=None, init=False, repr=False)
+    _mx_bytes_signer: MxBytesSigner | None = dataclasses.field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.address:
@@ -106,15 +113,20 @@ class SigningAccount:
     def lsig_signer(self) -> LsigSigner:
         """Get a LogicSig program signer for this account.
 
-        Signs programs with "Program" domain prefix for LogicSig delegation.
+        Signs programs with appropriate domain prefix:
+        - Single-sig: "Program" + program
+        - Multisig: "MsigProgram" + msig_address + program
         """
         if not self._lsig_signer:
-            from algokit_common.constants import PROGRAM_DOMAIN_SEPARATOR
+            from algokit_common.constants import MULTISIG_PROGRAM_DOMAIN_SEPARATOR, PROGRAM_DOMAIN_SEPARATOR
 
             bytes_signer = self.bytes_signer
 
-            def _sign_lsig(program: bytes) -> bytes:
-                return bytes_signer(PROGRAM_DOMAIN_SEPARATOR.encode() + program)
+            def _sign_lsig(program: bytes, msig_address: bytes | None = None) -> bytes:
+                if msig_address:
+                    return bytes_signer(MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_address + program)
+                else:
+                    return bytes_signer(PROGRAM_DOMAIN_SEPARATOR.encode() + program)
 
             self._lsig_signer = _sign_lsig
         return self._lsig_signer
@@ -135,6 +147,23 @@ class SigningAccount:
 
             self._program_data_signer = _sign_program_data
         return self._program_data_signer
+
+    @property
+    def mx_bytes_signer(self) -> MxBytesSigner:
+        """Get an MX-prefixed bytes signer for this account.
+
+        Signs arbitrary bytes with "MX" domain prefix.
+        """
+        if not self._mx_bytes_signer:
+            from algokit_common.constants import MX_BYTES_DOMAIN_SEPARATOR
+
+            bytes_signer = self.bytes_signer
+
+            def _sign_mx_bytes(data: bytes) -> bytes:
+                return bytes_signer(MX_BYTES_DOMAIN_SEPARATOR.encode() + data)
+
+            self._mx_bytes_signer = _sign_mx_bytes
+        return self._mx_bytes_signer
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -426,15 +455,20 @@ class LogicSigAccount:
             multisig_params.addresses,
         )
 
+        # Get the multisig address public key for domain separation
+        msig_address = address_from_multisig_signature(msig)
+        msig_public_key = algosdk.encoding.decode_address(msig_address)
+        assert isinstance(msig_public_key, bytes)
+
         # Build address -> lsig_signer mapping
         address_to_signer: dict[str, LsigSigner] = {}
         for account in signing_accounts:
             address_to_signer[account.address] = account.lsig_signer
 
-        # Sign with each available signer
+        # Sign with each available signer, passing msig_public_key for domain separation
         for subsig in msig.subsignatures:
             if subsig.address in address_to_signer:
-                signature = address_to_signer[subsig.address](self._program)
+                signature = address_to_signer[subsig.address](self._program, msig_public_key)
                 msig = apply_multisig_subsignature(msig, subsig.address, signature)
 
         self._multisig_signature = msig

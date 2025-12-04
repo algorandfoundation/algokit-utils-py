@@ -11,6 +11,8 @@ from nacl.signing import SigningKey
 from algokit_common.constants import (
     EMPTY_SIGNATURE,
     LOGIC_DATA_DOMAIN_SEPARATOR,
+    MX_BYTES_DOMAIN_SEPARATOR,
+    MULTISIG_PROGRAM_DOMAIN_SEPARATOR,
     PROGRAM_DOMAIN_SEPARATOR,
     TRANSACTION_DOMAIN_SEPARATOR,
 )
@@ -25,8 +27,9 @@ from algokit_transact.signing.types import MultisigSignature, MultisigSubsignatu
 
 TransactionSigner = Callable[[Sequence[Transaction], Sequence[int]], list[bytes]]
 BytesSigner = Callable[[bytes], bytes]
-LsigSigner = Callable[[bytes], bytes]
+LsigSigner = Callable[[bytes, bytes | None], bytes]
 ProgramDataSigner = Callable[[bytes], bytes]
+MxBytesSigner = Callable[[bytes], bytes]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -45,9 +48,10 @@ class SignerAccount:
         address: The Algorand address for this account
         public_key: The 32-byte ed25519 public key
         signer: Transaction signer for signing transaction groups
-        lsig_signer: Signer for LogicSig program delegation
+        lsig_signer: Signer for LogicSig program delegation (single-sig and multisig)
         program_data_signer: Signer for LogicSig data (during tx signing)
         bytes_signer: Raw bytes signer (no domain prefix)
+        mx_bytes_signer: Signer for arbitrary bytes with MX domain prefix
     """
 
     address: str
@@ -56,6 +60,7 @@ class SignerAccount:
     lsig_signer: LsigSigner
     program_data_signer: ProgramDataSigner
     bytes_signer: BytesSigner
+    mx_bytes_signer: MxBytesSigner
 
 
 def make_signer_account(public_key: bytes, raw_signer: BytesSigner) -> SignerAccount:
@@ -122,14 +127,22 @@ def make_signer_account(public_key: bytes, raw_signer: BytesSigner) -> SignerAcc
             blobs.append(encode_signed_transaction(signed))
         return blobs
 
-    def lsig_signer(program: bytes) -> bytes:
-        """Sign a LogicSig program with Program domain prefix."""
-        payload = PROGRAM_DOMAIN_SEPARATOR.encode() + program
+    def lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
+        """Sign a LogicSig program with appropriate domain prefix."""
+        if msig_address:
+            payload = MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_address + program
+        else:
+            payload = PROGRAM_DOMAIN_SEPARATOR.encode() + program
         return raw_signer(payload)
 
     def program_data_signer(data: bytes) -> bytes:
         """Sign LogicSig data with ProgData domain prefix."""
         payload = LOGIC_DATA_DOMAIN_SEPARATOR.encode() + data
+        return raw_signer(payload)
+
+    def mx_bytes_signer(data: bytes) -> bytes:
+        """Sign arbitrary bytes with MX domain prefix."""
+        payload = MX_BYTES_DOMAIN_SEPARATOR.encode() + data
         return raw_signer(payload)
 
     return SignerAccount(
@@ -139,6 +152,7 @@ def make_signer_account(public_key: bytes, raw_signer: BytesSigner) -> SignerAcc
         lsig_signer=lsig_signer,
         program_data_signer=program_data_signer,
         bytes_signer=raw_signer,
+        mx_bytes_signer=mx_bytes_signer,
     )
 
 

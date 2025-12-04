@@ -3,6 +3,7 @@ from typing import Protocol, runtime_checkable
 from algokit_utils.protocols.signer import (
     BytesSigner,
     LsigSigner,
+    MxBytesSigner,
     ProgramDataSigner,
     TransactionSigner,
 )
@@ -67,8 +68,10 @@ class SignerAccountProtocol(Protocol):
         """
         Signer for LogicSig programs.
 
-        Signs the program prefixed with "Program" domain separator.
-        Used for single-sig LogicSig delegation.
+        Signs programs with appropriate domain prefix based on whether
+        msig_address is provided:
+        - None: "Program" + program (single-sig delegation)
+        - bytes: "MsigProgram" + msig_address + program (multisig delegation)
         """
         ...
 
@@ -89,5 +92,15 @@ class SignerAccountProtocol(Protocol):
 
         Signs arbitrary bytes without domain prefix.
         This is the lowest-level signer interface.
+        """
+        ...
+
+    @property
+    def mx_bytes_signer(self) -> MxBytesSigner:
+        """
+        Signer for arbitrary bytes with MX domain prefix.
+
+        Signs bytes prefixed with "MX" domain separator.
+        Used for signing arbitrary messages.
         """
         ...

@@ -6,6 +6,7 @@ from algokit_transact.models.transaction import Transaction
 __all__ = [
     "BytesSigner",
     "LsigSigner",
+    "MxBytesSigner",
     "ProgramDataSigner",
     "TransactionSigner",
 ]
@@ -62,17 +63,45 @@ class ProgramDataSigner(Protocol):
 @runtime_checkable
 class LsigSigner(Protocol):
     """
-    Protocol for signing LogicSig programs.
+    Protocol for signing LogicSig programs for delegation.
 
-    Signs the program itself prefixed with the "Program" domain separator.
-    Used when delegating a LogicSig to an account (single-sig delegation).
+    Signs programs with appropriate domain prefix:
+    - Single-sig delegation: "Program" + program
+    - Multisig delegation: "MsigProgram" + msig_address + program
+
+    The msig_address parameter determines which mode is used.
 
     Example:
-        def my_lsig_signer(program: bytes) -> bytes:
-            # Sign: b"Program" + program
+        def my_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
+            if msig_address:
+                # Sign: b"MsigProgram" + msig_address + program
+                return signature_bytes
+            else:
+                # Sign: b"Program" + program
+                return signature_bytes
+    """
+
+    def __call__(self, program: bytes, msig_address: bytes | None = None) -> bytes:
+        """Sign the given LogicSig program and return the signature."""
+        ...
+
+
+@runtime_checkable
+class MxBytesSigner(Protocol):
+    """
+    Protocol for signing arbitrary bytes with "MX" domain prefix.
+
+    Signs bytes prefixed with "MX" domain separator, following Algorand's
+    domain-separated signing convention for arbitrary data.
+    This is used for signing arbitrary messages that aren't transactions,
+    programs, or program data.
+
+    Example:
+        def my_mx_bytes_signer(data: bytes) -> bytes:
+            # Sign: b"MX" + data
             return signature_bytes
     """
 
-    def __call__(self, program: bytes) -> bytes:
-        """Sign the given LogicSig program and return the signature."""
+    def __call__(self, data: bytes) -> bytes:
+        """Sign the given bytes with MX prefix and return the signature."""
         ...

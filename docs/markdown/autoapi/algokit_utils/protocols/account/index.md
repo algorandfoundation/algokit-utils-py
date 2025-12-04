@@ -59,8 +59,10 @@ The AlgoKit-native transaction signer callable.
 
 Signer for LogicSig programs.
 
-Signs the program prefixed with “Program” domain separator.
-Used for single-sig LogicSig delegation.
+Signs programs with appropriate domain prefix based on whether
+msig_address is provided:
+- None: “Program” + program (single-sig delegation)
+- bytes: “MsigProgram” + msig_address + program (multisig delegation)
 
 #### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
 
@@ -75,3 +77,10 @@ Raw bytes signer.
 
 Signs arbitrary bytes without domain prefix.
 This is the lowest-level signer interface.
+
+#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*
+
+Signer for arbitrary bytes with MX domain prefix.
+
+Signs bytes prefixed with “MX” domain separator.
+Used for signing arbitrary messages.
