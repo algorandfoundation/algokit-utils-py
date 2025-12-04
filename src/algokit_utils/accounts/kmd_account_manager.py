@@ -91,12 +91,12 @@ class KmdAccountManager:
         wallet_handle = kmd_client.init_wallet_handle(wallet_id, "")
 
         matched_address = None
-        if predicate_or_address and isinstance(predicate_or_address, str):
+        if isinstance(predicate_or_address, str):
             matched_address = predicate_or_address
         else:
             addresses = kmd_client.list_keys(wallet_handle)
-            if len(addresses) > 0:
-                if predicate_or_address and callable(predicate_or_address):
+            if addresses:
+                if callable(predicate_or_address):
                     for address in addresses:
                         account_info = self._client_manager.algod.account_info(address)
                         if predicate_or_address(cast(dict[str, Any], account_info)):
@@ -167,7 +167,7 @@ class KmdAccountManager:
         genesis_response = cast(dict[str, Any], self._client_manager.algod.genesis())
         dispenser_addresses = [cast(str, a["addr"]) for a in genesis_response["alloc"] if a.get("comment") == "Wallet1"]
 
-        if len(dispenser_addresses) > 0:
+        if dispenser_addresses:
             dispenser = self._find_wallet_account(
                 "unencrypted-default-wallet",
                 dispenser_addresses[0],
