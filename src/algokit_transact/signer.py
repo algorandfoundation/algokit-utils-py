@@ -67,7 +67,7 @@ class HasAddress(Protocol):
     """Protocol for objects with an address."""
 
     @property
-    def addr(self) -> str: ...
+    def address(self) -> str: ...
 
 
 @runtime_checkable
@@ -109,7 +109,7 @@ SendingAddress = str | HasTransactionSigner
 class AddressWithSigners:
     """Container for an address with all signing capabilities."""
 
-    addr: str
+    address: str
     signer: TransactionSigner
     lsig_signer: LsigSigner
     program_data_signer: ProgramDataSigner
@@ -154,7 +154,7 @@ def generate_address_with_signers(
         return raw_ed25519_signer(payload)
 
     return AddressWithSigners(
-        addr=addr,
+        address=addr,
         signer=transaction_signer,
         lsig_signer=lsig_signer,
         program_data_signer=program_data_signer,
@@ -202,6 +202,19 @@ def make_basic_account_transaction_signer(private_key: str) -> TransactionSigner
     Returns:
         A TransactionSigner function that can sign transactions.
     """
+    return make_address_with_signers(private_key).signer
+
+
+def make_address_with_signers(private_key: str) -> AddressWithSigners:
+    """Create an address with signers from a base64-encoded private key.
+
+    Args:
+        private_key: Base64-encoded 64-byte private key (first 32 bytes are seed,
+                     last 32 bytes are public key).
+
+    Returns:
+        An AddressWithSigners instance
+    """
     # Decode the base64 private key (64 bytes: 32-byte seed + 32-byte public key)
     key_bytes = base64.b64decode(private_key)
     seed = key_bytes[:32]
@@ -214,4 +227,4 @@ def make_basic_account_transaction_signer(private_key: str) -> TransactionSigner
         signed = signing_key.sign(data)
         return signed.signature
 
-    return generate_address_with_signers(public_key, raw_signer).signer
+    return generate_address_with_signers(public_key, raw_signer)

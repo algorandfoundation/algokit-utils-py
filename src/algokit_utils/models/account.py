@@ -1,12 +1,16 @@
 import base64
 import dataclasses
 from collections.abc import Sequence
-from typing import cast
+from functools import cached_property
 
 from typing_extensions import deprecated
 
 import algokit_algosdk as algosdk
-from algokit_transact import encode_signed_transaction, encode_transaction
+from algokit_transact import (
+    AddressWithSigners,
+    encode_signed_transaction,
+    encode_transaction,
+)
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction as AlgokitTransaction
 from algokit_transact.signer import (
@@ -63,11 +67,6 @@ class SigningAccount:
     """Base64 encoded private key"""
     address: str = dataclasses.field(default="")
     """Address for this account"""
-    _signer: TransactionSigner | None = dataclasses.field(default=None, init=False, repr=False)
-    _bytes_signer: BytesSigner | None = dataclasses.field(default=None, init=False, repr=False)
-    _lsig_signer: LsigSigner | None = dataclasses.field(default=None, init=False, repr=False)
-    _program_data_signer: ProgramDataSigner | None = dataclasses.field(default=None, init=False, repr=False)
-    _mx_bytes_signer: MxBytesSigner | None = dataclasses.field(default=None, init=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.address:
@@ -80,74 +79,34 @@ class SigningAccount:
         assert isinstance(public_key, bytes)
         return public_key
 
+    @cached_property
+    def _address_with_signers(self) -> AddressWithSigners:
+        return make_address_with_signers(self.private_key)
+
     @property
     def signer(self) -> TransactionSigner:
         """Transaction signer callable."""
-        if not self._signer:
-            self._signer = cast(
-                TransactionSigner,
-                make_basic_account_transaction_signer(self.private_key),
-            )
-        return self._signer
+        return self._address_with_signers.signer
 
     @property
     def bytes_signer(self) -> BytesSigner:
         """Raw bytes signer."""
-        if not self._bytes_signer:
-            from nacl.signing import SigningKey
-
-            key_bytes = base64.b64decode(self.private_key)
-            signing_key = SigningKey(key_bytes[:32])
-
-            def _sign_bytes(data: bytes) -> bytes:
-                return signing_key.sign(data).signature
-
-            self._bytes_signer = _sign_bytes
-        return self._bytes_signer
+        return self._address_with_signers.bytes_signer
 
     @property
     def lsig_signer(self) -> LsigSigner:
         """LogicSig program signer."""
-        if not self._lsig_signer:
-            from algokit_common.constants import MULTISIG_PROGRAM_DOMAIN_SEPARATOR, PROGRAM_DOMAIN_SEPARATOR
-
-            bytes_signer = self.bytes_signer
-
-            def _sign_lsig(program: bytes, msig_address: bytes | None = None) -> bytes:
-                if msig_address:
-                    return bytes_signer(MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_address + program)
-                return bytes_signer(PROGRAM_DOMAIN_SEPARATOR.encode() + program)
-
-            self._lsig_signer = _sign_lsig
-        return self._lsig_signer
+        return self._address_with_signers.lsig_signer
 
     @property
     def program_data_signer(self) -> ProgramDataSigner:
         """Program data signer (ProgData prefix)."""
-        if not self._program_data_signer:
-            from algokit_common.constants import LOGIC_DATA_DOMAIN_SEPARATOR
-
-            bytes_signer = self.bytes_signer
-
-            def _sign_program_data(data: bytes) -> bytes:
-                return bytes_signer(LOGIC_DATA_DOMAIN_SEPARATOR.encode() + data)
-
-            self._program_data_signer = _sign_program_data
-        return self._program_data_signer
+        return self._address_with_signers.program_data_signer
 
     @property
     def mx_bytes_signer(self) -> MxBytesSigner:
         """MX-prefixed bytes signer."""
-        if not self._mx_bytes_signer:
-            from algokit_common.constants import MX_BYTES_DOMAIN_SEPARATOR
-
-            bytes_signer = self.bytes_signer
-
-            def _sign_mx_bytes(data: bytes) -> bytes:
-                return bytes_signer(MX_BYTES_DOMAIN_SEPARATOR.encode() + data)
-
-            self._mx_bytes_signer = _sign_mx_bytes
-        return self._mx_bytes_signer
+        return self._address_with_signers.mx_bytes_signer
 
 
 @dataclasses.dataclass(kw_only=True)
