@@ -19,7 +19,7 @@ Implemented by SigningAccount, LogicSigAccount, MultiSigAccount and TransactionS
 
 The address of the account.
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 The AlgoKit-native signer callable.
 
@@ -33,12 +33,12 @@ Account providing multiple signer interfaces for secretless signing.
 
 #### *property* public_key *: bytes*
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
-#### *property* lsig_signer *: [algokit_utils.protocols.signer.LsigSigner](../signer/index.md#algokit_utils.protocols.signer.LsigSigner)*
+#### *property* lsig_signer *: algokit_transact.signer.LsigSigner*
 
-#### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
+#### *property* program_data_signer *: algokit_transact.signer.ProgramDataSigner*
 
-#### *property* bytes_signer *: [algokit_utils.protocols.signer.BytesSigner](../signer/index.md#algokit_utils.protocols.signer.BytesSigner)*
+#### *property* bytes_signer *: algokit_transact.signer.BytesSigner*
 
-#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*
+#### *property* mx_bytes_signer *: algokit_transact.signer.MxBytesSigner*

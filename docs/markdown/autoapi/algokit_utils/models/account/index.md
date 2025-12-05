@@ -27,7 +27,7 @@ Deprecated since version Use: [`TransactionSignerAccountProtocol`](../../protoco
 
 #### address *: str*
 
-#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### signer *: algokit_transact.signer.TransactionSigner*
 
 ### *class* algokit_utils.models.account.SigningAccount
 
@@ -45,23 +45,23 @@ Address for this account
 
 The public key for this account.
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 Transaction signer callable.
 
-#### *property* bytes_signer *: [algokit_utils.protocols.signer.BytesSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.BytesSigner)*
+#### *property* bytes_signer *: algokit_transact.signer.BytesSigner*
 
 Raw bytes signer.
 
-#### *property* lsig_signer *: [algokit_utils.protocols.signer.LsigSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.LsigSigner)*
+#### *property* lsig_signer *: algokit_transact.signer.LsigSigner*
 
 LogicSig program signer.
 
-#### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
+#### *property* program_data_signer *: algokit_transact.signer.ProgramDataSigner*
 
 Program data signer (ProgData prefix).
 
-#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*
+#### *property* mx_bytes_signer *: algokit_transact.signer.MxBytesSigner*
 
 MX-prefixed bytes signer.
 
@@ -91,7 +91,7 @@ The list of signing accounts.
 
 The multisig account address.
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 Transaction signer callable.
 
@@ -115,7 +115,7 @@ Whether this LogicSig is delegated to an account.
 
 The LogicSig account address (delegated address or escrow address).
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 Transaction signer callable.
 

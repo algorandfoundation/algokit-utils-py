@@ -37,7 +37,7 @@
 
 #### sender *: str*
 
-#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol) | None* *= None*
+#### signer *: algokit_transact.signer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol) | None* *= None*
 
 #### rekey_to *: str | None* *= None*
 

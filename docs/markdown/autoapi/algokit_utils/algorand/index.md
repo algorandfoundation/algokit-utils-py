@@ -24,7 +24,7 @@ Sets the default validity window for transactions.
   algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
   ```
 
-#### set_default_signer(signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_default_signer(signer: algokit_transact.signer.TransactionSigner | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
 
@@ -38,7 +38,7 @@ Sets the default signer to use if no other signer is specified.
   algorand = AlgorandClient.mainnet().set_default_signer(signer)
   ```
 
-#### set_signer(sender: str, signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)) → typing_extensions.Self
+#### set_signer(sender: str, signer: algokit_transact.signer.TransactionSigner) → typing_extensions.Self
 
 Tracks the given account for later signing.
 
