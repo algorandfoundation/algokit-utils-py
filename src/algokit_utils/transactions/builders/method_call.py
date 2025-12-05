@@ -3,8 +3,7 @@ from dataclasses import dataclass
 
 from typing_extensions import assert_never, assert_type
 
-import algokit_abi as abi
-from algokit_abi import arc56
+from algokit_abi import abi, arc56
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 from algokit_transact.models.transaction import TransactionType
