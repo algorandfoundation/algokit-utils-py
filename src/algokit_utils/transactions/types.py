@@ -3,10 +3,10 @@ from typing import TypedDict, Union
 
 from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.state import BoxIdentifier, BoxReference
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 
 __all__ = [
     "AppCallMethodCallParams",

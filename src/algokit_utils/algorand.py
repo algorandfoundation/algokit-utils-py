@@ -7,6 +7,7 @@ from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client.client import KmdClient
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
@@ -14,7 +15,6 @@ from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     ErrorTransformer,
     TransactionComposer,

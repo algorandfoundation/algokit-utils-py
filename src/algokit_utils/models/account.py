@@ -9,7 +9,14 @@ import algokit_algosdk as algosdk
 from algokit_transact import encode_signed_transaction, encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction as AlgokitTransaction
-from algokit_transact.signer import make_basic_account_transaction_signer
+from algokit_transact.signer import (
+    BytesSigner,
+    LsigSigner,
+    MxBytesSigner,
+    ProgramDataSigner,
+    TransactionSigner,
+    make_address_with_signers,
+)
 from algokit_transact.signing.multisig import (
     address_from_multisig_signature,
     apply_multisig_subsignature,
@@ -17,13 +24,6 @@ from algokit_transact.signing.multisig import (
 )
 from algokit_transact.signing.types import MultisigSignature
 from algokit_utils.protocols.account import SignerAccountProtocol
-from algokit_utils.protocols.signer import (
-    BytesSigner,
-    LsigSigner,
-    MxBytesSigner,
-    ProgramDataSigner,
-    TransactionSigner,
-)
 
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",

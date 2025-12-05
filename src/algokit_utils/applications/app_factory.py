@@ -10,6 +10,7 @@ import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import (
     ABIReturn,
@@ -40,7 +41,6 @@ from algokit_utils.applications.app_deployer import (
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
 from algokit_utils.models.application import AppSourceMaps
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,

@@ -8,6 +8,7 @@ from typing_extensions import Self
 import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.accounts.kmd_account_manager import KmdAccountManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
@@ -22,7 +23,6 @@ from algokit_utils.models.account import (
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.account import SignerAccountProtocol, TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendTransactionComposerResults,

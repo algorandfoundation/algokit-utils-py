@@ -1,7 +1,7 @@
 """Transaction and data signing types and utilities."""
 
 import base64
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
@@ -20,12 +20,46 @@ from algokit_transact.codec.transaction import encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
 
-# Type aliases for signing functions
-BytesSigner = Callable[[bytes], bytes]
-TransactionSigner = Callable[[Sequence[Transaction], Sequence[int]], list[bytes]]
-LsigSigner = Callable[[bytes, bytes | None], bytes]
-ProgramDataSigner = Callable[[bytes, bytes], bytes]
-MxBytesSigner = Callable[[bytes], bytes]
+
+@runtime_checkable
+class BytesSigner(Protocol):
+    """Raw bytes signer (ed25519 signature over input)."""
+
+    def __call__(self, data: bytes) -> bytes: ...
+
+
+@runtime_checkable
+class TransactionSigner(Protocol):
+    """Signature for AlgoKit-native transaction signers."""
+
+    def __call__(self, txn_group: Sequence[Transaction], indexes_to_sign: Sequence[int]) -> Sequence[bytes]:
+        """Sign the transactions at the specified indexes within the provided group."""
+        ...
+
+
+@runtime_checkable
+class ProgramDataSigner(Protocol):
+    """Signs data with "ProgData" domain prefix for delegated LogicSig transactions."""
+
+    def __call__(self, data: bytes, lsig_address: bytes) -> bytes: ...
+
+
+@runtime_checkable
+class LsigSigner(Protocol):
+    """Signs LogicSig programs for delegation.
+
+    Without msig_address: signs "Program" + program
+    With msig_address: signs "MsigProgram" + msig_address + program
+    """
+
+    def __call__(self, program: bytes, msig_address: bytes | None = None) -> bytes: ...
+
+
+@runtime_checkable
+class MxBytesSigner(Protocol):
+    """Signs arbitrary bytes with "MX" domain prefix."""
+
+    def __call__(self, data: bytes) -> bytes: ...
 
 
 @runtime_checkable
@@ -111,8 +145,8 @@ def generate_address_with_signers(
             payload = PROGRAM_DOMAIN_SEPARATOR.encode() + program
         return raw_ed25519_signer(payload)
 
-    def program_data_signer(data: bytes, program_address: bytes) -> bytes:
-        payload = LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
+    def program_data_signer(data: bytes, lsig_address: bytes) -> bytes:
+        payload = LOGIC_DATA_DOMAIN_SEPARATOR.encode() + lsig_address + data
         return raw_ed25519_signer(payload)
 
     def mx_bytes_signer(data: bytes) -> bytes:
@@ -176,8 +210,8 @@ def make_basic_account_transaction_signer(private_key: str) -> TransactionSigner
     # Create signing key from seed
     signing_key = nacl.signing.SigningKey(seed)
 
-    def raw_signer(bytes_to_sign: bytes) -> bytes:
-        signed = signing_key.sign(bytes_to_sign)
+    def raw_signer(data: bytes) -> bytes:
+        signed = signing_key.sign(data)
         return signed.signature
 
     return generate_address_with_signers(public_key, raw_signer).signer

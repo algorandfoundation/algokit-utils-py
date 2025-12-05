@@ -1,6 +1,6 @@
 from typing import Protocol, runtime_checkable
 
-from algokit_utils.protocols.signer import (
+from algokit_transact.signer import (
     BytesSigner,
     LsigSigner,
     MxBytesSigner,

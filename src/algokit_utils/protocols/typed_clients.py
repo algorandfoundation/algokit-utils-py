@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 from typing_extensions import Self
 
 import algokit_algosdk as algosdk
-from algokit_utils.protocols.signer import TransactionSigner
+from algokit_transact.signer import TransactionSigner
 
 if TYPE_CHECKING:
     from algokit_utils.algorand import AlgorandClient

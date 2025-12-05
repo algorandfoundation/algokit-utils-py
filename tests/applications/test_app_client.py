@@ -10,6 +10,7 @@ import pytest
 import algokit_algosdk as algosdk
 from algokit_abi import arc32, arc32_to_arc56, arc56
 from algokit_transact.models.transaction import Transaction
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
@@ -24,7 +25,6 @@ from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.models.state import BoxReference
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCreateParams,

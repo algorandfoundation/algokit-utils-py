@@ -12,9 +12,9 @@ from algokit_indexer_client import ClientConfig as IndexerClientConfig
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client import ClientConfig as KmdClientConfig
 from algokit_kmd_client import KmdClient
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.clients.dispenser_api_client import TestNetDispenserApiClient
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.protocols.typed_clients import TypedAppClientProtocol, TypedAppFactoryProtocol
 
 if TYPE_CHECKING:

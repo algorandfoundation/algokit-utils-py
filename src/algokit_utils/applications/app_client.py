@@ -55,11 +55,11 @@ from algokit_utils.transactions.transaction_sender import (
 )
 
 if TYPE_CHECKING:
+    from algokit_transact.signer import TransactionSigner
     from algokit_utils.algorand import AlgorandClient
     from algokit_utils.applications.app_deployer import ApplicationLookup
     from algokit_utils.applications.app_manager import AppManager
     from algokit_utils.models.state import BoxIdentifier, BoxReference, TealTemplateParams
-    from algokit_utils.protocols.signer import TransactionSigner
 else:
     AlgorandClient = ApplicationLookup = AppManager = TransactionSigner = Any  # type: ignore[assignment]
     BoxIdentifier = BoxReference = TealTemplateParams = Any  # type: ignore[assignment]

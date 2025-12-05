@@ -3,10 +3,10 @@ from dataclasses import dataclass
 
 import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
+from algokit_transact.signer import TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
     AssetOptOutParams,
