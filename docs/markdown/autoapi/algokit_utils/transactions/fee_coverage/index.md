@@ -2,20 +2,18 @@
 
 ## Classes
 
-| [`FeeDeltaType`](#algokit_utils.transactions.fee_coverage.FeeDeltaType)   | Generic enumeration.                                                                       |
+| [`FeeDeltaType`](#algokit_utils.transactions.fee_coverage.FeeDeltaType)   | Describes the type of fee delta                                                            |
 |---------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
 | [`FeeDelta`](#algokit_utils.transactions.fee_coverage.FeeDelta)           | Represents a difference between required and provided fee amounts.                         |
 | [`FeePriority`](#algokit_utils.transactions.fee_coverage.FeePriority)     | Priority wrapper used when deciding which transactions need additional fees applied first. |
 
 ## Module Contents
 
-### *class* algokit_utils.transactions.fee_coverage.FeeDeltaType
+### *class* algokit_utils.transactions.fee_coverage.FeeDeltaType(\*args, \*\*kwds)
 
 Bases: `enum.Enum`
 
-Generic enumeration.
-
-Derive from this class to define new enumerations.
+Describes the type of fee delta
 
 #### DEFICIT
 

@@ -2,9 +2,9 @@
 
 ## Classes
 
-| [`GroupResourceType`](#algokit_utils.transactions.composer_resources.GroupResourceType)             | Generic enumeration.   |
-|-----------------------------------------------------------------------------------------------------|------------------------|
-| [`GroupResourceToPopulate`](#algokit_utils.transactions.composer_resources.GroupResourceToPopulate) |                        |
+| [`GroupResourceType`](#algokit_utils.transactions.composer_resources.GroupResourceType)             | Describes different group resources   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------|
+| [`GroupResourceToPopulate`](#algokit_utils.transactions.composer_resources.GroupResourceToPopulate) |                                       |
 
 ## Functions
 
@@ -18,13 +18,11 @@
 
 Populate transaction-level resources for app call transactions
 
-### *class* algokit_utils.transactions.composer_resources.GroupResourceType
+### *class* algokit_utils.transactions.composer_resources.GroupResourceType(\*args, \*\*kwds)
 
 Bases: `enum.Enum`
 
-Generic enumeration.
-
-Derive from this class to define new enumerations.
+Describes different group resources
 
 #### Account *= 'Account'*
 
