@@ -22,6 +22,9 @@
 
 A basic transaction signer account.
 
+#### Deprecated
+Deprecated since version Use: [`TransactionSignerAccountProtocol`](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol) instead.
+
 #### address *: str*
 
 #### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
@@ -123,11 +126,3 @@ Delegate this LogicSig to a single account. Returns self for chaining.
 #### delegate_multisig(multisig_params: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)]) → [LogicSigAccount](#algokit_utils.models.account.LogicSigAccount)
 
 Delegate this LogicSig to a multisig account. Returns self for chaining.
-
-#### *property* lsig *: AlgosdkLogicSigAccount*
-
-Get algosdk LogicSigAccount (creates new instance each time).
-
-#### *property* algokit_lsig *: AlgosdkLogicSigAccount*
-
-Deprecated: Use lsig property instead.

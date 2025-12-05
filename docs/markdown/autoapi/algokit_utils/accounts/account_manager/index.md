@@ -451,7 +451,7 @@ If environment variables are not present, returns the default LocalNet dispenser
   account = account_manager.dispenser_from_environment()
   ```
 
-#### rekeyed(\*, sender: str, account: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → [algokit_utils.models.account.TransactionSignerAccount](../../models/account/index.md#algokit_utils.models.account.TransactionSignerAccount) | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### rekeyed(\*, sender: str, account: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)
 
 Tracks and returns an Algorand account that is a rekeyed version of the given account to a new sender.
 

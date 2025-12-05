@@ -3,6 +3,8 @@ import dataclasses
 from collections.abc import Sequence
 from typing import cast
 
+from typing_extensions import deprecated
+
 import algokit_algosdk as algosdk
 from algokit_transact import encode_signed_transaction, encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
@@ -23,8 +25,6 @@ from algokit_utils.protocols.signer import (
     TransactionSigner,
 )
 
-AlgosdkLogicSigAccount = algosdk.logicsig.LogicSigAccount
-
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
     "LogicSigAccount",
@@ -38,9 +38,14 @@ __all__ = [
 DISPENSER_ACCOUNT_NAME = "DISPENSER"
 
 
+@deprecated("TransactionSignerAccount is deprecated; use TransactionSignerAccountProtocol instead.")
 @dataclasses.dataclass(kw_only=True)
 class TransactionSignerAccount:
-    """A basic transaction signer account."""
+    """A basic transaction signer account.
+
+    .. deprecated::
+        Use :class:`~algokit_utils.protocols.account.TransactionSignerAccountProtocol` instead.
+    """
 
     address: str
     signer: TransactionSigner
@@ -357,19 +362,6 @@ class LogicSigAccount:
         self._signature = None
         self._signer = None
         return self
-
-    @property
-    def lsig(self) -> AlgosdkLogicSigAccount:
-        """Get algosdk LogicSigAccount (creates new instance each time)."""
-        lsig_account = AlgosdkLogicSigAccount(self._program, self._args)
-        if self._signature is not None:
-            lsig_account.lsig.sig = base64.b64encode(self._signature).decode()
-        return lsig_account
-
-    @property
-    def algokit_lsig(self) -> AlgosdkLogicSigAccount:
-        """Deprecated: Use lsig property instead."""
-        return self.lsig
 
 
 def _address_from_private_key(private_key: str) -> str:
