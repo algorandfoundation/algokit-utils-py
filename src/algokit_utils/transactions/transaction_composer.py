@@ -5,13 +5,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
 from algokit_common.constants import MAX_TX_GROUP_SIZE
-from algokit_transact import decode_signed_transaction, encode_signed_transactions
+from algokit_transact import decode_signed_transaction, encode_signed_transactions, make_empty_transaction_signer
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction, TransactionType
 from algokit_transact.ops.fees import calculate_fee
@@ -624,7 +623,7 @@ class TransactionComposer:
                     ),
                 )
 
-            empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+            empty_signer = cast(TransactionSigner, make_empty_transaction_signer())
             signing_entries = [
                 TransactionWithSigner(
                     txn=entry.txn,
@@ -817,7 +816,7 @@ class TransactionComposer:
         if len(transactions_to_simulate) > 1:
             transactions_to_simulate = group_transactions(transactions_to_simulate)
 
-        empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+        empty_signer = cast(TransactionSigner, make_empty_transaction_signer())
         signed_transactions = self._sign_transactions(
             [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in transactions_to_simulate]
         )
@@ -1457,7 +1456,7 @@ class TransactionComposer:
             A tuple of (simulate_response, traces).
         """
         try:
-            empty_signer = cast(TransactionSigner, algosdk.signer.make_empty_transaction_signer())
+            empty_signer = cast(TransactionSigner, make_empty_transaction_signer())
             signed_transactions = self._sign_transactions(
                 [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in sent_transactions]
             )

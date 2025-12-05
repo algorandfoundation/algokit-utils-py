@@ -2,8 +2,9 @@
 
 ## Classes
 
-| [`TransactionSignerAccountProtocol`](#algokit_utils.protocols.account.TransactionSignerAccountProtocol)   | An account that has a transaction signer.   |
-|-----------------------------------------------------------------------------------------------------------|---------------------------------------------|
+| [`TransactionSignerAccountProtocol`](#algokit_utils.protocols.account.TransactionSignerAccountProtocol)   | An account that has a transaction signer.                            |
+|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`SignerAccountProtocol`](#algokit_utils.protocols.account.SignerAccountProtocol)                         | Account providing multiple signer interfaces for secretless signing. |
 
 ## Module Contents
 
@@ -21,3 +22,23 @@ The address of the account.
 #### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
 
 The AlgoKit-native signer callable.
+
+### *class* algokit_utils.protocols.account.SignerAccountProtocol
+
+Bases: `Protocol`
+
+Account providing multiple signer interfaces for secretless signing.
+
+#### *property* address *: str*
+
+#### *property* public_key *: bytes*
+
+#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+
+#### *property* lsig_signer *: [algokit_utils.protocols.signer.LsigSigner](../signer/index.md#algokit_utils.protocols.signer.LsigSigner)*
+
+#### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
+
+#### *property* bytes_signer *: [algokit_utils.protocols.signer.BytesSigner](../signer/index.md#algokit_utils.protocols.signer.BytesSigner)*
+
+#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*

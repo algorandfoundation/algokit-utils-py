@@ -1,5 +1,5 @@
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -18,11 +18,10 @@ from algokit_utils.models.account import (
     MultiSigAccount,
     MultisigMetadata,
     SigningAccount,
-    TransactionSignerAccount,
 )
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.protocols.account import SignerAccountProtocol, TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
@@ -38,6 +37,14 @@ __all__ = [
     "EnsureFundedFromTestnetDispenserApiResult",
     "EnsureFundedResult",
 ]
+
+
+@dataclass
+class _AddressWithSigner:
+    """Internal class for storing address+signer pairs. Not exported."""
+
+    address: str
+    signer: TransactionSigner
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -194,7 +201,7 @@ class AccountManager:
         :example:
             >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
         """
-        self._accounts[sender] = TransactionSignerAccount(address=sender, signer=signer)
+        self._accounts[sender] = _AddressWithSigner(address=sender, signer=signer)
         return self
 
     def set_signers(self, *, another_account_manager: "AccountManager", overwrite_existing: bool = True) -> Self:
@@ -365,7 +372,7 @@ class AccountManager:
         """
         address = address or str(algosdk.account.address_from_private_key(private_key))
         account = SigningAccount(private_key=private_key, address=address)
-        self._accounts[address or account.address] = TransactionSignerAccount(
+        self._accounts[address or account.address] = _AddressWithSigner(
             address=account.address,
             signer=account.signer,
         )
@@ -383,7 +390,9 @@ class AccountManager:
         self._accounts[logic_sig.address] = logic_sig
         return logic_sig
 
-    def _register_multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
+    def _register_multisig(
+        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
+    ) -> MultiSigAccount:
         """
         Helper method to create and register a multisig account.
 
@@ -489,7 +498,9 @@ class AccountManager:
         """
         return self._register_logicsig(program, args)
 
-    def multisig(self, metadata: MultisigMetadata, signing_accounts: list[SigningAccount]) -> MultiSigAccount:
+    def multisig(
+        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
+    ) -> MultiSigAccount:
         """
         Tracks and returns an account that supports partial or full multisig signing.
 
@@ -549,9 +560,7 @@ class AccountManager:
             return self.from_environment(DISPENSER_ACCOUNT_NAME)
         return self.localnet_dispenser()
 
-    def rekeyed(
-        self, *, sender: str, account: TransactionSignerAccountProtocol
-    ) -> TransactionSignerAccount | SigningAccount:
+    def rekeyed(self, *, sender: str, account: TransactionSignerAccountProtocol) -> TransactionSignerAccountProtocol:
         """
         Tracks and returns an Algorand account that is a rekeyed version of the given account to a new sender.
 
@@ -564,10 +573,10 @@ class AccountManager:
             >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
         """
         sender_address = sender.address if isinstance(sender, SigningAccount) else sender
-        self._accounts[sender_address] = TransactionSignerAccount(address=sender_address, signer=account.signer)
+        self._accounts[sender_address] = _AddressWithSigner(address=sender_address, signer=account.signer)
         if isinstance(account, SigningAccount):
             return SigningAccount(address=sender_address, private_key=account.private_key)
-        return TransactionSignerAccount(address=sender_address, signer=account.signer)
+        return _AddressWithSigner(address=sender_address, signer=account.signer)
 
     def rekey_account(  # noqa: PLR0913
         self,
