@@ -30,77 +30,25 @@ class TransactionSignerAccountProtocol(Protocol):
 
 @runtime_checkable
 class SignerAccountProtocol(Protocol):
-    """
-    Protocol for an account that provides multiple signer interfaces.
-
-    This protocol extends the basic TransactionSignerAccountProtocol with
-    additional signing capabilities for LogicSig delegation and raw bytes signing.
-    It enables secretless signing through KMS, hardware wallets, or other
-    external signing mechanisms.
-
-    Implementations of this protocol can be used:
-    - As sub-signers in MultisigAccount
-    - To delegate LogicSig accounts
-    - For any operation requiring account-based signing
-
-    See Also:
-        - make_signer_account: Factory function to create SignerAccountProtocol from a BytesSigner
-        - SigningAccount: Standard implementation using private keys
-    """
+    """Account providing multiple signer interfaces for secretless signing."""
 
     @property
-    def address(self) -> str:
-        """The address of the account."""
-        ...
+    def address(self) -> str: ...
 
     @property
-    def public_key(self) -> bytes:
-        """The public key for this account (32 bytes)."""
-        ...
+    def public_key(self) -> bytes: ...
 
     @property
-    def signer(self) -> TransactionSigner:
-        """The AlgoKit-native transaction signer callable."""
-        ...
+    def signer(self) -> TransactionSigner: ...
 
     @property
-    def lsig_signer(self) -> LsigSigner:
-        """
-        Signer for LogicSig programs.
-
-        Signs programs with appropriate domain prefix based on whether
-        msig_address is provided:
-        - None: "Program" + program (single-sig delegation)
-        - bytes: "MsigProgram" + msig_address + program (multisig delegation)
-        """
-        ...
+    def lsig_signer(self) -> LsigSigner: ...
 
     @property
-    def program_data_signer(self) -> ProgramDataSigner:
-        """
-        Signer for program data (LogicSig data).
-
-        Signs data prefixed with "ProgData" domain separator.
-        Used during transaction signing with delegated LogicSigs.
-        """
-        ...
+    def program_data_signer(self) -> ProgramDataSigner: ...
 
     @property
-    def bytes_signer(self) -> BytesSigner:
-        """
-        Raw bytes signer.
-
-        Signs arbitrary bytes without domain prefix.
-        This is the lowest-level signer interface.
-        """
-        ...
+    def bytes_signer(self) -> BytesSigner: ...
 
     @property
-    def mx_bytes_signer(self) -> MxBytesSigner:
-        """
-        Signer for arbitrary bytes with MX domain prefix.
-
-        Signs bytes prefixed with "MX" domain separator.
-        Used for signing arbitrary messages.
-        """
-        ...
+    def mx_bytes_signer(self) -> MxBytesSigner: ...

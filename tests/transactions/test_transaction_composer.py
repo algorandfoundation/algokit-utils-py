@@ -6,8 +6,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc56
+from algokit_transact import make_empty_transaction_signer
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.account import MultisigMetadata, SigningAccount
 from algokit_utils.models.amount import AlgoAmount
@@ -219,7 +219,7 @@ def test_simulate_without_signer(algorand: AlgorandClient, funded_secondary_acco
     composer = TransactionComposer(
         TransactionComposerParams(
             algod=algorand.client.algod,
-            get_signer=lambda _: algosdk.signer.make_empty_transaction_signer(),
+            get_signer=lambda _: make_empty_transaction_signer(),
         )
     )
     composer.add_payment(
