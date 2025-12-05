@@ -3,7 +3,7 @@ import typing
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 
-from algokit_abi import _abi_type as abi
+from algokit_abi import abi
 from algokit_common import from_wire, to_wire, wire
 
 _Metadata = Mapping[str, object]
@@ -57,10 +57,10 @@ def abi_type(alias: str) -> _Metadata:
             return str(value)
 
     def decode(value: str) -> object:
-        from algokit_abi.arc56 import ENUM_ALIASES
+        from algokit_abi import arc56
 
         try:
-            return ENUM_ALIASES[value]
+            return arc56.ENUM_ALIASES[value]
         except KeyError:
             return abi.ABIType.from_string(value)
 
@@ -75,10 +75,10 @@ def storage(alias: str) -> _Metadata:
             return str(value)
 
     def decode(value: str) -> object:
-        from algokit_abi.arc56 import AVMType
+        from algokit_abi import arc56
 
         try:
-            return AVMType(value)
+            return arc56.AVMType(value)
         except ValueError:
             pass
         try:

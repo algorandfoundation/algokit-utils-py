@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import algokit_abi
-from algokit_abi import arc32_to_arc56, arc56
+from algokit_abi import abi, arc32_to_arc56, arc56
 from algokit_transact import OnApplicationComplete
 from algokit_utils import SigningAccount
 from algokit_utils.algorand import AlgorandClient
@@ -428,7 +427,7 @@ def test_app_call(
 ) -> None:
     method = arc56.Method.from_signature("hello(string)string")
     selector = method.get_selector()
-    encoded_arg = algokit_abi.ABIType.from_string("string").encode("test")
+    encoded_arg = abi.ABIType.from_string("string").encode("test")
 
     result = transaction_sender.app_call(
         AppCallParams(

@@ -33,9 +33,9 @@
 
 ### *type* algokit_utils.applications.abi.Arc56ReturnValueType *= ABIValue | ABIStruct | None*
 
-### *type* algokit_utils.applications.abi.ABIType *= algokit_abi.ABIType*
+### *type* algokit_utils.applications.abi.ABIType *= abi.ABIType*
 
-### *type* algokit_utils.applications.abi.ABIArgumentType *= algokit_abi.ABIType | arc56.TransactionType | arc56.ReferenceType*
+### *type* algokit_utils.applications.abi.ABIArgumentType *= abi.ABIType | arc56.TransactionType | arc56.ReferenceType*
 
 ### *class* algokit_utils.applications.abi.ABIReturn(\*, method: Arc56Method | None, raw_value: bytes = b'', value: ABIValue | None = None, decode_error: Exception | None = None, tx_info: ConfirmationResponse | None = None)
 
@@ -86,7 +86,7 @@ Deprecated: use extract_abi_return_from_logs instead.
 
 Deprecated: use ABIReturn.value instead.
 
-### algokit_utils.applications.abi.get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | algokit_abi.arc56.AVMType) → bytes
+### algokit_utils.applications.abi.get_abi_encoded_value(value: object, abi_type: algokit_abi.abi.ABIType | algokit_abi.arc56.AVMType) → bytes
 
 Encodes a value according to its ABI type.
 
@@ -96,7 +96,7 @@ Encodes a value according to its ABI type.
 * **Returns:**
   The ABI encoded bytes
 
-### algokit_utils.applications.abi.get_abi_decoded_value(value: bytes | int | str, decode_type: algokit_abi.arc56.AVMType | algokit_abi.ABIType | algokit_abi.arc56.ReferenceType) → ABIValue
+### algokit_utils.applications.abi.get_abi_decoded_value(value: bytes | int | str, decode_type: algokit_abi.arc56.AVMType | algokit_abi.abi.ABIType | algokit_abi.arc56.ReferenceType) → ABIValue
 
 Decodes a value according to its ABI type.
 

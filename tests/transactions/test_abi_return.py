@@ -1,11 +1,10 @@
-import algokit_abi
-from algokit_abi import arc56
+from algokit_abi import abi, arc56
 from algokit_utils.applications.abi import ABIReturn, ABIValue
 
 
 def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
     """Helper function to simulate ABI method return value"""
-    abi_type = algokit_abi.ABIType.from_string(type_str)
+    abi_type = abi.ABIType.from_string(type_str)
     encoded = abi_type.encode(value)
     decoded = abi_type.decode(encoded)
     method = arc56.Method(

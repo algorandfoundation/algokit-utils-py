@@ -8,8 +8,7 @@ from typing import TypeAlias, cast
 
 from typing_extensions import deprecated
 
-import algokit_abi
-from algokit_abi import arc56
+from algokit_abi import abi, arc56
 from algokit_algod_client import models as algod_models
 from algokit_utils.models.state import BoxName
 
@@ -19,8 +18,8 @@ ABIValue: TypeAlias = (
 ABIStruct: TypeAlias = dict[str, list[dict[str, "ABIValue"]]] | object
 Arc56ReturnValueType: TypeAlias = ABIValue | ABIStruct | None
 
-ABIType: TypeAlias = algokit_abi.ABIType
-ABIArgumentType: TypeAlias = algokit_abi.ABIType | arc56.TransactionType | arc56.ReferenceType
+ABIType: TypeAlias = abi.ABIType
+ABIArgumentType: TypeAlias = abi.ABIType | arc56.TransactionType | arc56.ReferenceType
 Arc56Method: TypeAlias = arc56.Method
 ConfirmationResponse: TypeAlias = algod_models.PendingTransactionResponse
 
@@ -168,7 +167,7 @@ def extract_abi_return_from_logs(confirmation: ConfirmationResponse, method: Arc
         )
 
     raw_value = result_bytes[ABI_RETURN_PREFIX_LENGTH:]
-    method_return_type = cast(algokit_abi.ABIType, return_type)
+    method_return_type = cast(abi.ABIType, return_type)
     try:
         decoded = method_return_type.decode(raw_value)
         return ABIReturn(
@@ -226,7 +225,7 @@ __all__ = [
 ]
 
 
-def get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | arc56.AVMType) -> bytes:
+def get_abi_encoded_value(value: object, abi_type: abi.ABIType | arc56.AVMType) -> bytes:
     """Encodes a value according to its ABI type.
 
     :param value: The value to encode
@@ -236,7 +235,7 @@ def get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | arc56.A
     if isinstance(value, (bytes | bytearray)):
         return bytes(value)
     if abi_type == arc56.AVMType.UINT64 and isinstance(value, int):
-        return algokit_abi.ABIType.from_string("uint64").encode(value)
+        return abi.ABIType.from_string("uint64").encode(value)
     if abi_type == arc56.AVMType.STRING and isinstance(value, str):
         return value.encode("utf-8")
     if abi_type == arc56.AVMType.BYTES and isinstance(value, bytes | bytearray):
@@ -247,7 +246,7 @@ def get_abi_encoded_value(value: object, abi_type: algokit_abi.ABIType | arc56.A
 
 def get_abi_decoded_value(
     value: bytes | int | str,
-    decode_type: arc56.AVMType | algokit_abi.ABIType | arc56.ReferenceType,
+    decode_type: arc56.AVMType | abi.ABIType | arc56.ReferenceType,
 ) -> ABIValue:
     """Decodes a value according to its ABI type.
 
@@ -258,16 +257,16 @@ def get_abi_decoded_value(
 
     # map reference types to their value equivalents
     if decode_type in (arc56.ReferenceType.ASSET, arc56.ReferenceType.APPLICATION):
-        decode_type = algokit_abi.UintType(64)
+        decode_type = abi.UintType(64)
     elif decode_type == arc56.ReferenceType.ACCOUNT:
-        decode_type = algokit_abi.AddressType()
+        decode_type = abi.AddressType()
     if decode_type == arc56.AVMType.UINT64:
-        decode_type = algokit_abi.UintType(64)
+        decode_type = abi.UintType(64)
     if decode_type == arc56.AVMType.BYTES or not isinstance(value, bytes):
         return value
     if decode_type == arc56.AVMType.STRING:
         return value.decode("utf-8")
-    assert isinstance(decode_type, algokit_abi.ABIType), "unexpected ABIType"
+    assert isinstance(decode_type, abi.ABIType), "unexpected ABIType"
     return decode_type.decode(value)  # type: ignore[no-any-return]
 
 

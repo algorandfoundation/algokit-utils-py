@@ -13,8 +13,9 @@ BytesLike = bytes | bytearray | memoryview
 _ABI_BOOL_TRUE_UINT = 0x80
 _ABI_BOOL_TRUE = _ABI_BOOL_TRUE_UINT.to_bytes(length=1, byteorder="big")
 _ABI_BOOL_FALSE = b"\x00"
-_U16_SIZE = 2
-_MAX_UINTN = 512
+_MAX_UINT_N = 512
+_U16_NUM_BYTES = 2
+_MAX_U16 = 2**16 - 1
 
 
 class ABIType(abc.ABC):
@@ -54,15 +55,21 @@ class ABIType(abc.ABC):
         if value.endswith("]"):
             array_start = value.rindex("[")
             size_str = value[array_start + 1 : -1]
-            size = int(size_str)
-            element = cls.from_string(value[:array_start])
-            return StaticArrayType(element, size)
-        if value.startswith("ufixed"):
+            try:
+                size = int(size_str)
+            except ValueError:
+                pass  # fall through to error
+            else:
+                element = cls.from_string(value[:array_start])
+                return StaticArrayType(element, size)
+        elif value.startswith("ufixed"):
             n_m_str = value.removeprefix("ufixed")
-            n_str, m_str = n_m_str.split("x")
-            n = int(n_str)
-            m = int(m_str)
-            return UfixedType(n, m)
+            try:
+                n, m = map(int, n_m_str.split("x"))
+            except ValueError:
+                pass  # fall through to error
+            else:
+                return UfixedType(n, m)
         raise ValueError(f"unknown abi type: {value}")
 
     def __eq__(self, other: object) -> bool:
@@ -79,6 +86,11 @@ class ABIType(abc.ABC):
 
     def __str__(self) -> str:
         return self.display_name
+
+    def _check_num_bytes(self, value: BytesLike) -> None:
+        expected_bytes_len = self.byte_len()
+        if expected_bytes_len is not None and len(value) != expected_bytes_len:
+            raise ValueError(f"expected {expected_bytes_len} bytes for {self.display_name}, got {len(value)} bytes")
 
 
 @typing.final
@@ -98,7 +110,7 @@ class BoolType(ABIType):
         elif value is False:
             return _ABI_BOOL_FALSE
         else:
-            raise ValueError(f"expected a bool: {_error_str(value)}")
+            raise ValueError(f"expected a bool, got: {_error_str(value)}")
 
     def decode(self, value: BytesLike) -> bool:
         if value == _ABI_BOOL_TRUE:
@@ -118,10 +130,10 @@ class UintType(ABIType):
         if (
             not isinstance(self.bit_size, int)
             or self.bit_size <= 0
-            or self.bit_size > _MAX_UINTN
+            or self.bit_size > _MAX_UINT_N
             or self.bit_size % 8 != 0
         ):
-            raise ValueError(f"bit_size must be between 8 and {_MAX_UINTN} and divisible by 8")
+            raise ValueError(f"bit_size must be between 8 and {_MAX_UINT_N} and divisible by 8")
 
     @property
     def name(self) -> str:
@@ -136,8 +148,7 @@ class UintType(ABIType):
         return value.to_bytes(self.byte_len(), byteorder="big", signed=False)
 
     def decode(self, value: BytesLike) -> int:
-        if len(value) != self.byte_len():
-            raise ValueError(f"incorrect number of bytes to decode {self.display_name}: {_error_str(value)}")
+        self._check_num_bytes(value)
         return int.from_bytes(value, byteorder="big", signed=False)
 
 
@@ -154,10 +165,10 @@ class UfixedType(ABIType):
         if (
             not isinstance(self.bit_size, int)
             or self.bit_size <= 0
-            or self.bit_size > _MAX_UINTN
+            or self.bit_size > _MAX_UINT_N
             or self.bit_size % 8 != 0
         ):
-            raise ValueError(f"bit_size must be between 8 and {_MAX_UINTN} and divisible by 8")
+            raise ValueError(f"bit_size must be between 8 and {_MAX_UINT_N} and divisible by 8")
         if not isinstance(self.precision, int) or self.precision <= 0 or self.precision > _MAX_PRECISION:
             raise ValueError(f"precision must be between 0 and {_MAX_PRECISION}")
 
@@ -214,10 +225,8 @@ class ByteType(ABIType):
             raise ValueError(f"expected 1 byte: {_error_str(value)}")
 
     def decode(self, value: BytesLike) -> bytes:
-        if len(value) == 1:
-            return bytes(value)
-        else:
-            raise ValueError(f"expected 1 byte: {_error_str(value)}")
+        self._check_num_bytes(value)
+        return bytes(value)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -237,17 +246,21 @@ class DynamicArrayType(ABIType):
 
     def encode(self, value: Sequence | bytes | bytearray) -> bytes:
         static_type = StaticArrayType(element=self.element, size=len(value))
-        return _int_to_u16_bytes(len(value)) + static_type.encode(value)
+        try:
+            len_bytes = _int_to_u16_bytes(len(value))
+        except OverflowError:
+            raise ValueError(f"array length exceeds {_MAX_U16}") from None
+        return len_bytes + static_type.encode(value)
 
     def decode(self, value: BytesLike) -> list | bytes:
         data = memoryview(value)
-        if data.nbytes < _U16_SIZE:
+        if data.nbytes < _U16_NUM_BYTES:
             raise ValueError(f"not enough bytes to decode {self}: {_error_str(value)}")
 
-        array_len = int.from_bytes(data[:_U16_SIZE], byteorder="big")
+        array_len = int.from_bytes(data[:_U16_NUM_BYTES], byteorder="big")
 
         static_type = StaticArrayType(element=self.element, size=array_len)
-        return static_type.decode(data[_U16_SIZE:])
+        return static_type.decode(data[_U16_NUM_BYTES:])
 
 
 @dataclasses.dataclass(frozen=True)
@@ -310,7 +323,10 @@ class TupleType(ABIType):
 
     @cached_property
     def display_name(self) -> str:
-        return f"({','.join(v.display_name for v in self.elements)})"
+        if self._homogenous_element:
+            return f"{self._homogenous_element.display_name}[{len(self.elements)}]"
+        else:
+            return f"({','.join(v.display_name for v in self.elements)})"
 
     @cached_property
     def name(self) -> str:
@@ -354,7 +370,7 @@ class TupleType(ABIType):
                 num_bits = _round_bits_to_nearest_byte(num_bits)
                 el_byte_len = element.byte_len()
                 if el_byte_len is None:
-                    el_byte_len = _U16_SIZE
+                    el_byte_len = _U16_NUM_BYTES
                 num_bits += el_byte_len * 8
             if self._homogenous_element:
                 num_bits *= len(self.elements)
@@ -390,7 +406,10 @@ class TupleType(ABIType):
                 bit_index = 0
                 el_bytes = el_type.encode(el)
                 if el_type.is_dynamic():
-                    head.extend(_int_to_u16_bytes(tail_offset))
+                    try:
+                        head.extend(_int_to_u16_bytes(tail_offset))
+                    except OverflowError:
+                        raise ValueError(f"encoded bytes length exceeds {_MAX_U16}") from None
                     tail_offset += len(el_bytes)
                     tail.extend(el_bytes)
                 else:
@@ -410,7 +429,7 @@ class TupleType(ABIType):
                 num_bits = _round_bits_to_nearest_byte(num_bits)
                 el_byte_len = element.byte_len()
                 if el_byte_len is None:
-                    el_byte_len = _U16_SIZE
+                    el_byte_len = _U16_NUM_BYTES
                 num_bits += el_byte_len * 8
         return offsets
 
@@ -420,7 +439,7 @@ class TupleType(ABIType):
             return None
         if self._homogenous_element:
             assert self._homogenous_element.is_dynamic()
-            next_head_offset = _U16_SIZE * (index + 1)
+            next_head_offset = _U16_NUM_BYTES * (index + 1)
         else:
             for idx in range(index + 1, len(self.elements)):
                 try:
@@ -431,17 +450,18 @@ class TupleType(ABIType):
                     break
             else:
                 return None
-        return _u16_bytes_to_int(value[next_head_offset : next_head_offset + _U16_SIZE])
+        return _u16_bytes_to_int(value[next_head_offset : next_head_offset + _U16_NUM_BYTES])
 
     def decode(self, value: BytesLike) -> tuple | bytes:
-        value = memoryview(value)
+        self._check_num_bytes(value)
         if _is_byte(self._homogenous_element):
-            if value.nbytes != len(self.elements):
-                raise ValueError(f"expected {len(self.elements)} bytes: {_error_str(value)}")
             return bytes(value)
+
+        value = memoryview(value)
         result = []
         head_offset = 0
         bit_index = 0
+        expected_tail_offset = self._head_num_bytes
         for el_idx, el_type in enumerate(self.elements):
             if _is_bool(el_type):
                 current_byte = value[head_offset + bit_index // 8]
@@ -453,14 +473,19 @@ class TupleType(ABIType):
                 bit_index = 0
                 el_byte_len = el_type.byte_len()
                 if el_byte_len is None:
-                    el_offset = _u16_bytes_to_int(value[head_offset : head_offset + _U16_SIZE])
-                    head_offset += _U16_SIZE
+                    el_offset = _u16_bytes_to_int(value[head_offset : head_offset + _U16_NUM_BYTES])
+                    if el_offset != expected_tail_offset:
+                        raise ValueError(f"expected tail offset of {expected_tail_offset} got: {el_offset}")
+                    head_offset += _U16_NUM_BYTES
                     next_el_offset = self._get_next_dynamic_head_offset(el_idx, value)
                     el_bytes = value[el_offset:next_el_offset]
+                    expected_tail_offset += len(el_bytes)
                     result.append(el_type.decode(el_bytes))
                 else:
                     result.append(el_type.decode(value[head_offset : head_offset + el_byte_len]))
                     head_offset += el_byte_len
+        if self.is_dynamic() and expected_tail_offset != len(value):
+            raise ValueError(f"expected {expected_tail_offset} bytes for {self.display_name}, got {len(value)} bytes")
         return tuple(result)
 
 
@@ -568,7 +593,7 @@ def _is_byte(typ: ABIType | None) -> bool:
 
 
 _COMMON_TYPES = {
-    **{f"uint{n}": UintType(n) for n in range(8, _MAX_UINTN + 1, 8)},
+    **{f"uint{n}": UintType(n) for n in range(8, _MAX_UINT_N + 1, 8)},
     "byte": ByteType(),
     "bool": BoolType(),
     "address": AddressType(),
@@ -586,7 +611,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
         return
 
     if s.startswith(",") or s.endswith(","):
-        raise ValueError(f"cannot have leading or trailing commas in {s}")
+        raise ValueError(f"cannot have leading or trailing commas in ({s})")
 
     depth = 0
     current_element = ""
@@ -598,7 +623,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
         elif char == "," and depth == 0:
             # yield only top level tuple elements, nested elements will be recursively parsed
             if not current_element:
-                raise ValueError(f"commas must follow a tuple element: {s}")
+                raise ValueError(f"commas must follow a tuple element: ({s})")
             yield current_element
             current_element = ""
             continue
@@ -606,7 +631,7 @@ def split_tuple_str(s: str) -> Iterator[str]:
     if current_element:
         yield current_element
     if depth != 0:
-        raise ValueError(f"parenthesis mismatch: {s}")
+        raise ValueError(f"parenthesis mismatch: ({s})")
 
 
 def _set_bit(value: int, bit_index: int) -> int:
@@ -618,11 +643,12 @@ def _get_bit(value: int, bit_index: int) -> bool:
 
 
 def _int_to_u16_bytes(value: int) -> bytes:
-    return value.to_bytes(length=_U16_SIZE, byteorder="big", signed=False)
+    return value.to_bytes(length=_U16_NUM_BYTES, byteorder="big", signed=False)
 
 
 def _u16_bytes_to_int(value: memoryview) -> int:
-    assert value.nbytes == _U16_SIZE, "expected uint16 bytes"
+    if value.nbytes != _U16_NUM_BYTES:
+        raise ValueError("expected uint16 bytes")
     return int.from_bytes(value, byteorder="big", signed=False)
 
 
