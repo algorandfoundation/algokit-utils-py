@@ -15,12 +15,15 @@ class TransactionProof:
     """
 
     hashtype: str = field(
+        default="",
         metadata=wire("hashtype"),
     )
     idx: int = field(
+        default=0,
         metadata=wire("idx"),
     )
     proof: bytes = field(
+        default=b"",
         metadata=wire(
             "proof",
             encode=encode_bytes_base64,
@@ -28,6 +31,7 @@ class TransactionProof:
         ),
     )
     stibhash: bytes = field(
+        default=b"",
         metadata=wire(
             "stibhash",
             encode=encode_bytes_base64,
@@ -35,5 +39,6 @@ class TransactionProof:
         ),
     )
     treedepth: int = field(
+        default=0,
         metadata=wire("treedepth"),
     )

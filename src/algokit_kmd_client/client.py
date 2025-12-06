@@ -1,6 +1,6 @@
 # AUTO-GENERATED: oas_generator
-
-
+import random
+import time
 from dataclasses import is_dataclass
 from typing import Any, Literal, TypeVar, overload
 
@@ -13,6 +13,25 @@ from . import models
 from .config import ClientConfig
 from .exceptions import UnexpectedStatusError
 from .types import Headers
+
+# HTTP status codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_STATUS_CODES: frozenset[int] = frozenset({408, 413, 429, 500, 502, 503, 504})
+# Network error codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_ERROR_CODES: frozenset[str] = frozenset(
+    {
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EADDRINUSE",
+        "ECONNREFUSED",
+        "EPIPE",
+        "ENOTFOUND",
+        "ENETUNREACH",
+        "EAI_AGAIN",
+        "EPROTO",
+    }
+)
+_MAX_BACKOFF_MS: float = 10_000.0
+_DEFAULT_MAX_TRIES: int = 5
 
 ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
@@ -30,6 +49,8 @@ _UNHASHABLE_PREFIXES: dict[str, str] = {
 class KmdClient:
     def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
         self._config = config or ClientConfig()
+        # Track whether a custom HTTP client was provided to avoid retry conflicts
+        self._uses_custom_client = http_client is not None
         self._client = http_client or httpx.Client(
             base_url=self._config.base_url,
             timeout=self._config.timeout,
@@ -39,12 +60,96 @@ class KmdClient:
     def close(self) -> None:
         self._client.close()
 
+    def _calculate_max_tries(self) -> int:
+        """Calculate maximum number of tries from config.max_retries."""
+        max_retries = self._config.max_retries
+        if not isinstance(max_retries, int) or max_retries < 0:
+            return _DEFAULT_MAX_TRIES
+        return max_retries + 1
+
+    def _should_retry(self, error: Exception | None, status_code: int | None, attempt: int, max_tries: int) -> bool:
+        """Determine if a request should be retried based on error/status and attempt count."""
+        if attempt >= max_tries:
+            return False
+
+        # Check HTTP status code
+        if status_code is not None and status_code in _RETRY_STATUS_CODES:
+            return True
+
+        # Check network error codes (aligned with algokit-utils-ts)
+        if error is not None:
+            error_code = self._extract_error_code(error)
+            if error_code and error_code in _RETRY_ERROR_CODES:
+                return True
+
+        return False
+
+    def _extract_error_code(self, error: BaseException) -> str | None:
+        """Extract error code from exception, checking common attributes."""
+        # Check for 'code' attribute (common in OS/network errors)
+        if hasattr(error, "code") and isinstance(error.code, str):
+            return error.code
+        # Check for errno attribute
+        if hasattr(error, "errno") and error.errno is not None:
+            import errno as errno_module
+
+            try:
+                return errno_module.errorcode.get(error.errno)
+            except (TypeError, AttributeError):
+                pass
+        # Check __cause__ for wrapped errors
+        if error.__cause__ is not None:
+            return self._extract_error_code(error.__cause__)
+        return None
+
+    def _request_with_retry(self, request_kwargs: dict[str, Any]) -> httpx.Response:
+        """Execute request with exponential backoff retry for transient failures.
+
+        When a custom HTTP client is provided, retries are disabled to avoid
+        conflicts with any retry mechanism the custom client may implement.
+        """
+        # Disable retries when using a custom HTTP client to avoid conflicts
+        # with the client's own retry mechanism
+        if self._uses_custom_client:
+            return self._client.request(**request_kwargs)
+
+        max_tries = self._calculate_max_tries()
+        attempt = 1
+        last_error: Exception | None = None
+
+        while attempt <= max_tries:
+            status_code: int | None = None
+            try:
+                response = self._client.request(**request_kwargs)
+                status_code = response.status_code
+                if not self._should_retry(None, status_code, attempt, max_tries):
+                    return response
+            except httpx.TransportError as exc:
+                last_error = exc
+                if not self._should_retry(exc, None, attempt, max_tries):
+                    raise
+
+            if attempt == 1:
+                backoff_ms = 0.0
+            else:
+                base_backoff = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+                jitter = 0.5 + random.random()  # Random value between 0.5 and 1.5
+                backoff_ms = base_backoff * jitter
+            if backoff_ms > 0:
+                time.sleep(backoff_ms / 1000.0)
+            attempt += 1
+
+        # Should not reach here, but satisfy type checker
+        if last_error:
+            raise last_error
+        raise RuntimeError(f"Request failed after {max_tries} attempt(s)")
+
     # default
 
     def create_wallet(
         self,
         body: models.CreateWalletRequest,
-    ) -> models.PostwalletResponse:
+    ) -> models.CreateWalletResponse:
         """
         Create a wallet
         """
@@ -75,16 +180,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletResponse)
+            return self._decode_response(response, model=models.CreateWalletResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def delete_key(
         self,
         body: models.DeleteKeyRequest,
-    ) -> models.DeletekeyResponse:
+    ) -> None:
         """
         Delete a key
         """
@@ -115,16 +220,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.DeletekeyResponse)
+            return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def delete_multisig(
         self,
         body: models.DeleteMultisigRequest,
-    ) -> models.DeletemultisigResponse:
+    ) -> None:
         """
         Delete a multisig
         """
@@ -155,16 +260,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.DeletemultisigResponse)
+            return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_key(
         self,
         body: models.ExportKeyRequest,
-    ) -> models.PostkeyExportResponse:
+    ) -> models.ExportKeyResponse:
         """
         Export a key
         """
@@ -195,16 +300,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostkeyExportResponse)
+            return self._decode_response(response, model=models.ExportKeyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_master_key(
         self,
         body: models.ExportMasterKeyRequest,
-    ) -> models.PostmasterKeyExportResponse:
+    ) -> models.ExportMasterKeyResponse:
         """
         Export the master derivation key from a wallet
         """
@@ -235,16 +340,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmasterKeyExportResponse)
+            return self._decode_response(response, model=models.ExportMasterKeyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def export_multisig(
         self,
         body: models.ExportMultisigRequest,
-    ) -> models.PostmultisigExportResponse:
+    ) -> models.ExportMultisigResponse:
         """
         Export multisig address metadata
         """
@@ -275,16 +380,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmultisigExportResponse)
+            return self._decode_response(response, model=models.ExportMultisigResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def generate_key(
         self,
         body: models.GenerateKeyRequest,
-    ) -> models.PostkeyResponse:
+    ) -> models.GenerateKeyResponse:
         """
         Generate a key
         """
@@ -315,9 +420,9 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostkeyResponse)
+            return self._decode_response(response, model=models.GenerateKeyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -356,7 +461,7 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.VersionsResponse)
 
@@ -365,7 +470,7 @@ class KmdClient:
     def get_wallet_info(
         self,
         body: models.WalletInfoRequest,
-    ) -> models.PostwalletInfoResponse:
+    ) -> models.WalletInfoResponse:
         """
         Get wallet info
         """
@@ -396,16 +501,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletInfoResponse)
+            return self._decode_response(response, model=models.WalletInfoResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def import_key(
         self,
         body: models.ImportKeyRequest,
-    ) -> models.PostkeyImportResponse:
+    ) -> models.ImportKeyResponse:
         """
         Import a key
         """
@@ -436,16 +541,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostkeyImportResponse)
+            return self._decode_response(response, model=models.ImportKeyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def import_multisig(
         self,
         body: models.ImportMultisigRequest,
-    ) -> models.PostmultisigImportResponse:
+    ) -> models.ImportMultisigResponse:
         """
         Import a multisig account
         """
@@ -476,16 +581,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmultisigImportResponse)
+            return self._decode_response(response, model=models.ImportMultisigResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def init_wallet_handle_token(
+    def init_wallet_handle(
         self,
         body: models.InitWalletHandleTokenRequest,
-    ) -> models.PostwalletInitResponse:
+    ) -> models.InitWalletHandleTokenResponse:
         """
         Initialize a wallet handle token
         """
@@ -516,16 +621,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletInitResponse)
+            return self._decode_response(response, model=models.InitWalletHandleTokenResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def list_keys_in_wallet(
         self,
         body: models.ListKeysRequest,
-    ) -> models.PostkeyListResponse:
+    ) -> models.ListKeysResponse:
         """
         List keys in wallet
         """
@@ -556,16 +661,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostkeyListResponse)
+            return self._decode_response(response, model=models.ListKeysResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def list_multisg(
+    def list_multisig(
         self,
         body: models.ListMultisigRequest,
-    ) -> models.PostmultisigListResponse:
+    ) -> models.ListMultisigResponse:
         """
         List multisig accounts
         """
@@ -596,9 +701,9 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmultisigListResponse)
+            return self._decode_response(response, model=models.ListMultisigResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -606,7 +711,7 @@ class KmdClient:
         self,
         *,
         body: models.ListWalletsRequest | None = None,
-    ) -> models.GetwalletsResponse:
+    ) -> models.ListWalletsResponse:
         """
         List wallets
         """
@@ -637,16 +742,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetwalletsResponse)
+            return self._decode_response(response, model=models.ListWalletsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def release_wallet_handle_token(
         self,
         body: models.ReleaseWalletHandleTokenRequest,
-    ) -> models.PostwalletReleaseResponse:
+    ) -> None:
         """
         Release a wallet handle token
         """
@@ -677,16 +782,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletReleaseResponse)
+            return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def rename_wallet(
         self,
         body: models.RenameWalletRequest,
-    ) -> models.PostwalletRenameResponse:
+    ) -> models.RenameWalletResponse:
         """
         Rename a wallet
         """
@@ -717,16 +822,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletRenameResponse)
+            return self._decode_response(response, model=models.RenameWalletResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def renew_wallet_handle_token(
         self,
         body: models.RenewWalletHandleTokenRequest,
-    ) -> models.PostwalletRenewResponse:
+    ) -> models.RenewWalletHandleTokenResponse:
         """
         Renew a wallet handle token
         """
@@ -757,16 +862,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostwalletRenewResponse)
+            return self._decode_response(response, model=models.RenewWalletHandleTokenResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_multisig_program(
         self,
         body: models.SignProgramMultisigRequest,
-    ) -> models.PostmultisigProgramSignResponse:
+    ) -> models.SignProgramMultisigResponse:
         """
         Sign a program for a multisig account
         """
@@ -797,16 +902,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmultisigProgramSignResponse)
+            return self._decode_response(response, model=models.SignProgramMultisigResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_multisig_transaction(
         self,
-        body: models.SignMultisigRequest,
-    ) -> models.PostmultisigTransactionSignResponse:
+        body: models.SignMultisigTxnRequest,
+    ) -> models.SignMultisigResponse:
         """
         Sign a multisig transaction
         """
@@ -832,21 +937,21 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "model": "SignMultisigRequest",
+                    "model": "SignMultisigTxnRequest",
                 },
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostmultisigTransactionSignResponse)
+            return self._decode_response(response, model=models.SignMultisigResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_program(
         self,
         body: models.SignProgramRequest,
-    ) -> models.PostprogramSignResponse:
+    ) -> models.SignProgramResponse:
         """
         Sign program
         """
@@ -877,16 +982,16 @@ class KmdClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PostprogramSignResponse)
+            return self._decode_response(response, model=models.SignProgramResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def sign_transaction(
         self,
-        body: models.SignTransactionRequest,
-    ) -> models.PosttransactionSignResponse:
+        body: models.SignTxnRequest,
+    ) -> models.SignTransactionResponse:
         """
         Sign a transaction
         """
@@ -912,41 +1017,14 @@ class KmdClient:
                 request_kwargs,
                 body,
                 {
-                    "model": "SignTransactionRequest",
+                    "model": "SignTxnRequest",
                 },
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.PosttransactionSignResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def swagger_handler(
-        self,
-    ) -> str:
-        """
-        Gets the current swagger spec.
-        """
-
-        path = "/swagger.json"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, type_=str)
+            return self._decode_response(response, model=models.SignTransactionResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

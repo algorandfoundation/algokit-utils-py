@@ -14,9 +14,10 @@ class Asset:
     Specifies both the unique identifier and the parameters for an asset
     """
 
-    id_: int = field(
-        metadata=wire("index"),
-    )
     params: AssetParams = field(
-        metadata=nested("params", lambda: AssetParams),
+        metadata=nested("params", lambda: AssetParams, required=True),
+    )
+    id_: int = field(
+        default=0,
+        metadata=wire("index"),
     )

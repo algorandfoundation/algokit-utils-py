@@ -35,3 +35,10 @@ jobs:
         run: |
           # stop the build if there are files that don't meet formatting requirements
           uv run poe lint
+
+      - name: Setup Polytest
+        uses: aorumbayev/algokit-polytest/.github/actions/setup-polytest@main
+
+      # TODO: Uncomment once polytest with v_2 vs v2 word splitting fix is released
+      #- name: Validate polytest algod_client tests
+      #  run: uv run poe polytest-validate-algod

@@ -37,6 +37,3 @@ MAX_ASSET_NAME_LENGTH = 32  # In bytes
 MAX_ASSET_UNIT_NAME_LENGTH = 8  # In bytes
 MAX_ASSET_URL_LENGTH = 96  # In bytes
 MAX_ASSET_DECIMALS = 19
-
-# Misc
-KMD_DEFAULT_WALLET_DRIVER = "sqlite"  # TODO: Remove after ensure auto generated client auto sets this by default in kmd

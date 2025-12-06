@@ -1,0 +1,41 @@
+{
+  "assets": [
+    {
+      "created_at_round": 3219067,
+      "deleted": false,
+      "destroyed_at_round": null,
+      "id_": 185,
+      "params": {
+        "clawback": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
+        "creator": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
+        "decimals": 0,
+        "default_frozen": false,
+        "freeze": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
+        "manager": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
+        "metadata_hash": null,
+        "name": "myasset",
+        "name_b64": [
+          109,
+          121,
+          97,
+          115,
+          115,
+          101,
+          116
+        ],
+        "reserve": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
+        "total": 100,
+        "unit_name": "MYA",
+        "unit_name_b64": [
+          77,
+          89,
+          65
+        ],
+        "url": null,
+        "url_b64": null
+      }
+    }
+  ],
+  "current_round": 57774717,
+  "next_token": "185"
+}

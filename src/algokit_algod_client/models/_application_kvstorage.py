@@ -16,6 +16,7 @@ class ApplicationKvstorage:
     """
 
     kvs: list[AvmKeyValue] = field(
+        default_factory=list,
         metadata=wire(
             "kvs",
             encode=encode_model_sequence,

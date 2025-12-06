@@ -1,5 +1,6 @@
 import pytest
 
+import msgpack
 from algokit_transact import (
     AppCallTransactionFields,
     Transaction,
@@ -19,6 +20,73 @@ def test_malformed_bytes() -> None:
     """Ensure a helpful error message is thrown when attempting to decode malformed bytes"""
     with pytest.raises(ValueError, match="decoded msgpack is not a dict"):
         decode_transaction(b"\x01")
+
+
+@pytest.mark.group_generic_transaction_tests
+def test_unknown_transaction_type() -> None:
+    """Ensure unknown transaction types can be decoded without errors (forward compatibility)"""
+    address_bytes = bytes(
+        [
+            230,
+            185,
+            154,
+            253,
+            65,
+            13,
+            19,
+            221,
+            14,
+            138,
+            126,
+            148,
+            184,
+            121,
+            29,
+            48,
+            92,
+            117,
+            6,
+            238,
+            183,
+            225,
+            250,
+            65,
+            14,
+            118,
+            26,
+            59,
+            98,
+            44,
+            225,
+            20,
+        ]
+    )
+
+    wire_transaction = {
+        "amt": 1000,
+        "fv": 1000,
+        "lv": 2000,
+        "rcv": address_bytes,
+        "snd": address_bytes,
+        "type": "xyz",  # An unknown transaction type
+    }
+
+    encoded = msgpack.packb(wire_transaction)
+    decoded = decode_transaction(encoded)
+
+    assert decoded.transaction_type == TransactionType.Unknown
+    assert decoded.first_valid == 1000
+    assert decoded.last_valid == 2000
+    assert decoded.sender == "424ZV7KBBUJ52DUKP2KLQ6I5GBOHKBXOW7Q7UQIOOYNDWYRM4EKOSMVVRI"
+    # Type-specific fields should be None for unknown transaction types
+    assert decoded.payment is None
+    assert decoded.asset_transfer is None
+    assert decoded.asset_config is None
+    assert decoded.app_call is None
+    assert decoded.key_registration is None
+    assert decoded.asset_freeze is None
+    assert decoded.heartbeat is None
+    assert decoded.state_proof is None
 
 
 @pytest.mark.group_generic_transaction_tests

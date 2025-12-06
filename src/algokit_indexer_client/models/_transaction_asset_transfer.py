@@ -16,12 +16,15 @@ class TransactionAssetTransfer:
     """
 
     amount: int = field(
+        default=0,
         metadata=wire("amount"),
     )
     asset_id: int = field(
+        default=0,
         metadata=wire("asset-id"),
     )
     receiver: str = field(
+        default="",
         metadata=wire("receiver"),
     )
     close_amount: int | None = field(

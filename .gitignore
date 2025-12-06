@@ -176,6 +176,9 @@ cython_debug/
 
 .references/
 
+# Downloaded OAS specs (fetched from algokit-oas-generator)
+api/specs/
+
 *.xml
 
 .polytest*/

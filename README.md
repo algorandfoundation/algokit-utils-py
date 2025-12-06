@@ -37,3 +37,30 @@ To successfully run the tests in this repository you need to be running LocalNet
 ```
 algokit localnet start
 ```
+
+### Mock Server Tests
+
+Tests under `tests/modules/` use a mock server for deterministic API testing. By default, pytest spins up a Docker container automatically.
+
+**Local development with external server:**
+
+To test against a locally running mock server (e.g., when recording new HARs):
+
+```bash
+# Terminal 1: Start mock server (from algokit-polytest repo)
+cd path/to/algokit-polytest/resources/mock-server
+bun install && ALGOD_PORT=18000 bun bin/server.ts algod ./recordings
+
+# Terminal 2: Run tests pointing to your server
+MOCK_ALGOD_URL=http://localhost:18000 pytest tests/modules/algod_client/
+```
+
+| Environment Variable | Description |
+|---------------------|-------------|
+| `MOCK_ALGOD_URL` | External algod mock server URL |
+| `MOCK_INDEXER_URL` | External indexer mock server URL |
+| `MOCK_KMD_URL` | External KMD mock server URL |
+
+When set, pytest uses the external server instead of Docker. The server must pass a health check.
+
+Variables can be set via `.env` file in project root (copy from `.env.template`).

@@ -5,6 +5,8 @@ from typing import ClassVar
 
 
 class FeeDeltaType(Enum):
+    """Describes the type of fee delta"""
+
     DEFICIT = auto()
     SURPLUS = auto()
 

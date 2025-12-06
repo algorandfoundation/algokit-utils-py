@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import wire
 
 from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
@@ -11,23 +12,23 @@ from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
 @dataclass(slots=True)
 class SignProgramRequest:
     """
-    APIV1POSTProgramSignRequest is the request for `POST /v1/program/sign`
+    The request for `POST /v1/program/sign`
     """
 
-    address: str | None = field(
-        default=None,
+    address: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
-    data: bytes | None = field(
-        default=None,
+    program: bytes = field(
+        default=b"",
         metadata=wire(
             "data",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
     )
     wallet_password: str | None = field(

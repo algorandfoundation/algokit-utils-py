@@ -16,6 +16,7 @@ class ApplicationInitialStates:
     """
 
     id_: int = field(
+        default=0,
         metadata=wire("id"),
     )
     app_boxes: ApplicationKvstorage | None = field(

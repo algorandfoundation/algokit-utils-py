@@ -16,6 +16,7 @@ class AccountParticipation:
     """
 
     selection_participation_key: bytes = field(
+        default=b"",
         metadata=wire(
             "selection-participation-key",
             encode=encode_bytes_base64,
@@ -23,15 +24,19 @@ class AccountParticipation:
         ),
     )
     vote_first_valid: int = field(
+        default=0,
         metadata=wire("vote-first-valid"),
     )
     vote_key_dilution: int = field(
+        default=0,
         metadata=wire("vote-key-dilution"),
     )
     vote_last_valid: int = field(
+        default=0,
         metadata=wire("vote-last-valid"),
     )
     vote_participation_key: bytes = field(
+        default=b"",
         metadata=wire(
             "vote-participation-key",
             encode=encode_bytes_base64,

@@ -18,6 +18,7 @@ class SimulationOpcodeTraceUnit:
     """
 
     pc: int = field(
+        default=0,
         metadata=wire("pc"),
     )
     scratch_changes: list[ScratchChange] | None = field(

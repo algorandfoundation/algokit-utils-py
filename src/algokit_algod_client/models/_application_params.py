@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import nested, wire
 
 from ._application_state_schema import ApplicationStateSchema
@@ -17,6 +18,7 @@ class ApplicationParams:
     """
 
     approval_program: bytes = field(
+        default=b"",
         metadata=wire(
             "approval-program",
             encode=encode_bytes_base64,
@@ -24,6 +26,7 @@ class ApplicationParams:
         ),
     )
     clear_state_program: bytes = field(
+        default=b"",
         metadata=wire(
             "clear-state-program",
             encode=encode_bytes_base64,
@@ -31,6 +34,7 @@ class ApplicationParams:
         ),
     )
     creator: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("creator"),
     )
     extra_program_pages: int | None = field(

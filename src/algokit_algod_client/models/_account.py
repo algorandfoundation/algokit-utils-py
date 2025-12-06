@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import nested, wire
 
 from ._account_participation import AccountParticipation
@@ -24,39 +25,51 @@ class Account:
     """
 
     address: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
     amount: int = field(
+        default=0,
         metadata=wire("amount"),
     )
     amount_without_pending_rewards: int = field(
+        default=0,
         metadata=wire("amount-without-pending-rewards"),
     )
     min_balance: int = field(
+        default=0,
         metadata=wire("min-balance"),
     )
     pending_rewards: int = field(
+        default=0,
         metadata=wire("pending-rewards"),
     )
     rewards: int = field(
+        default=0,
         metadata=wire("rewards"),
     )
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     status: str = field(
+        default="",
         metadata=wire("status"),
     )
     total_apps_opted_in: int = field(
+        default=0,
         metadata=wire("total-apps-opted-in"),
     )
     total_assets_opted_in: int = field(
+        default=0,
         metadata=wire("total-assets-opted-in"),
     )
     total_created_apps: int = field(
+        default=0,
         metadata=wire("total-created-apps"),
     )
     total_created_assets: int = field(
+        default=0,
         metadata=wire("total-created-assets"),
     )
     apps_local_state: list[ApplicationLocalState] | None = field(

@@ -79,6 +79,8 @@ def populate_transaction_resources(  # noqa: C901, PLR0912
 
 
 class GroupResourceType(Enum):
+    """Describes different group resources"""
+
     Account = "Account"
     App = "App"
     Asset = "Asset"

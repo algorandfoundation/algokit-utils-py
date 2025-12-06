@@ -15,13 +15,14 @@ class AvmKeyValue:
     Represents an AVM key-value pair in an application store.
     """
 
+    value: AvmValue = field(
+        metadata=nested("value", lambda: AvmValue, required=True),
+    )
     key: bytes = field(
+        default=b"",
         metadata=wire(
             "key",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
-    )
-    value: AvmValue = field(
-        metadata=nested("value", lambda: AvmValue),
     )

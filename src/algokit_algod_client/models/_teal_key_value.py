@@ -15,13 +15,14 @@ class TealKeyValue:
     Represents a key-value pair in an application store.
     """
 
+    value: TealValue = field(
+        metadata=nested("value", lambda: TealValue, required=True),
+    )
     key: bytes = field(
+        default=b"",
         metadata=wire(
             "key",
             encode=encode_bytes_base64,
             decode=decode_bytes_base64,
         ),
-    )
-    value: TealValue = field(
-        metadata=nested("value", lambda: TealValue),
     )

@@ -16,6 +16,7 @@ class SimulateRequestTransactionGroup:
     """
 
     txns: list[SignedTransaction] = field(
+        default_factory=list,
         metadata=wire(
             "txns",
             encode=encode_model_sequence,
