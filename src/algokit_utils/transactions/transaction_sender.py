@@ -368,7 +368,8 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_payment,
             pre_log=lambda params, transaction: (
-                f"Sending {params.amount} from {params.sender} to {params.receiver} via transaction {transaction.tx_id}"
+                f"Sending {params.amount} from {params.sender} to {params.receiver} "
+                f"via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -481,7 +482,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_config,
             pre_log=lambda params, transaction: (
-                f"Configuring asset with ID {params.asset_id} via transaction {transaction.tx_id}"
+                f"Configuring asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -530,7 +531,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_freeze,
             pre_log=lambda params, transaction: (
-                f"Freezing asset with ID {params.asset_id} via transaction {transaction.tx_id}"
+                f"Freezing asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -575,7 +576,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_destroy,
             pre_log=lambda params, transaction: (
-                f"Destroying asset with ID {params.asset_id} via transaction {transaction.tx_id}"
+                f"Destroying asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -628,7 +629,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_transfer,
             pre_log=lambda params, transaction: (
                 f"Transferring {params.amount} units of asset with ID {params.asset_id} from "
-                f"{params.sender} to {params.receiver} via transaction {transaction.tx_id}"
+                f"{params.sender} to {params.receiver} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -673,7 +674,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_asset_opt_in,
             pre_log=lambda params, transaction: (
-                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.tx_id}"
+                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -751,7 +752,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_opt_out,
             pre_log=lambda params, transaction: (
                 f"Opting {params.sender} out of asset with ID {params.asset_id} to creator "
-                f"{creator} via transaction {transaction.tx_id}"
+                f"{creator} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -1200,7 +1201,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_online_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering online key for {params.sender} via transaction {transaction.tx_id}"
+                f"Registering online key for {params.sender} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -1234,6 +1235,6 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_offline_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering offline key for {params.sender} via transaction {transaction.tx_id}"
+                f"Registering offline key for {params.sender} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)

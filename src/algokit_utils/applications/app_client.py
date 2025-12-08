@@ -753,7 +753,7 @@ class _MethodParamsBuilder:
         input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
         if params.get("method"):
-            input_params["method"] = self._app_spec.get_arc56_method(params["method"])
+            input_params["method"] = self._app_spec.get_abi_method(params["method"])
             input_params["args"] = self._client._get_abi_args_with_default_values(
                 method_name_or_signature=params["method"],
                 args=params.get("args"),
@@ -1098,7 +1098,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1116,7 +1116,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1140,7 +1140,7 @@ class _TransactionSender:
                 lambda: self._algorand.send.app_update_method_call(
                     self._client.params.update(params, compilation_params), send_params
                 ),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
         assert isinstance(result, SendAppUpdateTransactionResult)
@@ -1160,7 +1160,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1178,7 +1178,7 @@ class _TransactionSender:
         """
         is_read_only_call = (
             params.on_complete == OnApplicationComplete.NoOp or params.on_complete is None
-        ) and self._app_spec.get_arc56_method(params.method).readonly
+        ) and self._app_spec.get_abi_method(params.method).readonly
 
         if is_read_only_call:
             readonly_params = params
@@ -1242,7 +1242,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.call(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -2053,7 +2053,7 @@ class AppClient:
         args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
         sender: str,
     ) -> list[Any]:
-        method = self._app_spec.get_arc56_method(method_name_or_signature)
+        method = self._app_spec.get_abi_method(method_name_or_signature)
         result = list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None]()
 
         if args and len(method.args) < len(args):
@@ -2095,7 +2095,7 @@ class AppClient:
                 return get_abi_decoded_value(value_raw, value_type)
 
             case "method":
-                default_method = self._app_spec.get_arc56_method(default_value.data)
+                default_method = self._app_spec.get_abi_method(default_value.data)
                 empty_args = [None] * len(default_method.args)
                 call_result = self.send.call(
                     AppClientMethodCallParams(
@@ -2157,7 +2157,7 @@ class AppClient:
 
     def _get_abi_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
-        method = self._app_spec.get_arc56_method(params["method"])
+        method = self._app_spec.get_abi_method(params["method"])
         args = self._get_abi_args_with_default_values(
             method_name_or_signature=params["method"], args=params.get("args"), sender=sender
         )
