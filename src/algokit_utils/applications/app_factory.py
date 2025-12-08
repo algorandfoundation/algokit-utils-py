@@ -354,7 +354,7 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory._app_spec.get_arc56_method(params.method),
+                "method": self._factory._app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
                 "on_complete": params.on_complete or OnApplicationComplete.NoOp,
             }
@@ -381,7 +381,7 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory._app_spec.get_arc56_method(params.method),
+                "method": self._factory._app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
                 "on_complete": OnApplicationComplete.UpdateApplication,
             }
@@ -406,7 +406,7 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory.app_spec.get_arc56_method(params.method),
+                "method": self._factory.app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
                 "on_complete": OnApplicationComplete.DeleteApplication,
             }
@@ -589,7 +589,7 @@ class _TransactionSender:
                 lambda: self._algorand.send.app_create_method_call(
                     self._factory.params.create(params, compilation_params), send_params
                 ),
-                self._factory._app_spec.get_arc56_method(params.method),
+                self._factory._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1106,7 +1106,7 @@ class AppFactory:
         Builds a list of ABI argument values for creation calls, applying default
         argument values when not provided.
         """
-        method = self._app_spec.get_arc56_method(method_name_or_signature)
+        method = self._app_spec.get_abi_method(method_name_or_signature)
 
         results: list[Any] = []
 

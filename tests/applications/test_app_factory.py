@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import algokit_algosdk as algosdk
-from algokit_abi.arc56 import Arc56Contract
+from algokit_abi import arc56
 from algokit_algod_client import models as algod_models
 from algokit_transact import OnApplicationComplete
 from algokit_utils.algorand import AlgorandClient
@@ -259,7 +259,7 @@ def test_deploy_app_update_detects_extra_pages_as_breaking_change(
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
-    factory._app_spec = Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
+    factory._app_spec = arc56.Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
     large_client, update_deploy_result = factory.deploy(
         compilation_params={
             "updatable": True,

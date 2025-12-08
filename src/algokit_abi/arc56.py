@@ -9,8 +9,8 @@ from functools import cached_property
 from Cryptodome.Hash import SHA512
 from typing_extensions import deprecated
 
-from algokit_abi import _abi_type as abi
 from algokit_abi import _arc56_serde as serde
+from algokit_abi import abi
 from algokit_common import from_wire, nested, to_wire, wire
 
 if typing.TYPE_CHECKING:
@@ -179,7 +179,7 @@ class Argument:
     Represents an argument for an ABI method
 
     Args:
-        _type (ABIType | ReferenceType | TransactionType | str): ABI type, reference type or transaction type
+        type (ABIType | ReferenceType | TransactionType | str): ABI type, reference type or transaction type
         name (string, optional): name of this argument
         desc (string, optional): description of this argument
     """
@@ -203,7 +203,7 @@ class Returns:
     Represents a return type for an ABI method
 
     Args:
-        _type (ABIType | VoidType | str): ABI type of this return argument
+        type (ABIType | VoidType | str): ABI type of this return argument
         desc (string, optional): description of this return argument
     """
 
@@ -737,7 +737,7 @@ class Arc56Contract:
     def dictify(self) -> dict:
         return to_wire(self)
 
-    def get_arc56_method(self, method_name_or_signature: str) -> Method:
+    def get_abi_method(self, method_name_or_signature: str) -> Method:
         if "(" in method_name_or_signature:
             methods = [m for m in self.methods if m.signature == method_name_or_signature]
         else:

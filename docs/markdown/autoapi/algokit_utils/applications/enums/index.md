@@ -9,7 +9,7 @@
 
 ## Module Contents
 
-### *class* algokit_utils.applications.enums.OnSchemaBreak
+### *class* algokit_utils.applications.enums.OnSchemaBreak(\*args, \*\*kwds)
 
 Bases: `enum.Enum`
 
@@ -27,7 +27,7 @@ Create a new Application and delete the old Application in a single transaction
 
 Create a new Application
 
-### *class* algokit_utils.applications.enums.OnUpdate
+### *class* algokit_utils.applications.enums.OnUpdate(\*args, \*\*kwds)
 
 Bases: `enum.Enum`
 
@@ -49,7 +49,7 @@ Create a new Application and delete the old Application in a single transaction
 
 Create a new application
 
-### *class* algokit_utils.applications.enums.OperationPerformed
+### *class* algokit_utils.applications.enums.OperationPerformed(\*args, \*\*kwds)
 
 Bases: `enum.Enum`
 

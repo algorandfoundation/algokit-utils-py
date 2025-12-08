@@ -8,9 +8,8 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 from typing_extensions import assert_never
 
-import algokit_abi
 import algokit_algosdk as algosdk
-from algokit_abi import arc32, arc56
+from algokit_abi import abi, arc32, arc56
 from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
@@ -753,7 +752,7 @@ class _MethodParamsBuilder:
         input_params["signer"] = self._client._get_signer(params["sender"], params["signer"])
 
         if params.get("method"):
-            input_params["method"] = self._app_spec.get_arc56_method(params["method"])
+            input_params["method"] = self._app_spec.get_abi_method(params["method"])
             input_params["args"] = self._client._get_abi_args_with_default_values(
                 method_name_or_signature=params["method"],
                 args=params.get("args"),
@@ -1098,7 +1097,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.opt_in(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1116,7 +1115,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_delete_method_call(self._client.params.delete(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1140,7 +1139,7 @@ class _TransactionSender:
                 lambda: self._algorand.send.app_update_method_call(
                     self._client.params.update(params, compilation_params), send_params
                 ),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
         assert isinstance(result, SendAppUpdateTransactionResult)
@@ -1160,7 +1159,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.close_out(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -1178,7 +1177,7 @@ class _TransactionSender:
         """
         is_read_only_call = (
             params.on_complete == OnApplicationComplete.NoOp or params.on_complete is None
-        ) and self._app_spec.get_arc56_method(params.method).readonly
+        ) and self._app_spec.get_abi_method(params.method).readonly
 
         if is_read_only_call:
             readonly_params = params
@@ -1242,7 +1241,7 @@ class _TransactionSender:
         return self._client._handle_call_errors(
             lambda: self._client._process_method_call_return(
                 lambda: self._algorand.send.app_call_method_call(self._client.params.call(params), send_params),
-                self._app_spec.get_arc56_method(params.method),
+                self._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -2053,7 +2052,7 @@ class AppClient:
         args: Sequence[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None] | None,
         sender: str,
     ) -> list[Any]:
-        method = self._app_spec.get_arc56_method(method_name_or_signature)
+        method = self._app_spec.get_abi_method(method_name_or_signature)
         result = list[ABIValue | ABIStruct | AppMethodCallTransactionArgument | None]()
 
         if args and len(method.args) < len(args):
@@ -2074,7 +2073,7 @@ class AppClient:
             if isinstance(arg_type, arc56.TransactionType):
                 result.append(None)
             elif default_value:
-                assert isinstance(arg_type, arc56.ReferenceType | algokit_abi.ABIType)
+                assert isinstance(arg_type, arc56.ReferenceType | abi.ABIType)
                 result.append(self._get_abi_arg_default_value(arg_name, arg_type, default_value, sender))
             else:
                 raise ValueError(f"No value provided for required argument {arg_name} in call to method {method.name}")
@@ -2084,7 +2083,7 @@ class AppClient:
     def _get_abi_arg_default_value(
         self,
         arg_name: str,
-        arg_type: algokit_abi.ABIType | arc56.ReferenceType,
+        arg_type: abi.ABIType | arc56.ReferenceType,
         default_value: arc56.DefaultValue,
         sender: str,
     ) -> ABIValue:
@@ -2095,7 +2094,7 @@ class AppClient:
                 return get_abi_decoded_value(value_raw, value_type)
 
             case "method":
-                default_method = self._app_spec.get_arc56_method(default_value.data)
+                default_method = self._app_spec.get_abi_method(default_value.data)
                 empty_args = [None] * len(default_method.args)
                 call_result = self.send.call(
                     AppClientMethodCallParams(
@@ -2107,7 +2106,7 @@ class AppClient:
 
                 if call_result.abi_return is None:
                     raise ValueError("Default value method call did not return a value")
-                assert isinstance(default_method.returns.type, algokit_abi.ABIType)
+                assert isinstance(default_method.returns.type, abi.ABIType)
                 return call_result.abi_return
 
             case "local" | "global" | "box":
@@ -2123,7 +2122,7 @@ class AppClient:
                 decoded_value: ABIValue
                 if isinstance(value, bytes):
                     # special case to convert raw AVM bytes to a native string type suitable for encoding
-                    if storage_key.value_type == arc56.AVMType.BYTES and isinstance(arg_type, algokit_abi.StringType):
+                    if storage_key.value_type == arc56.AVMType.BYTES and isinstance(arg_type, abi.StringType):
                         decoded_value = value.decode("utf-8")
                     else:
                         decoded_value = get_abi_decoded_value(value, storage_key.value_type)
@@ -2157,7 +2156,7 @@ class AppClient:
 
     def _get_abi_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:
         sender = self._get_sender(params.get("sender"))
-        method = self._app_spec.get_arc56_method(params["method"])
+        method = self._app_spec.get_abi_method(params["method"])
         args = self._get_abi_args_with_default_values(
             method_name_or_signature=params["method"], args=params.get("args"), sender=sender
         )
