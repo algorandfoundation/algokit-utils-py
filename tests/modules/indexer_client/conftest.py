@@ -6,13 +6,13 @@ import pytest
 
 from algokit_indexer_client import ClientConfig, IndexerClient
 
-from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, start_mock_server
+from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, get_mock_server
 
 
 @pytest.fixture(scope="session")
 def mock_indexer_server() -> Generator[MockServer, None, None]:
     """Session-scoped mock indexer server for deterministic testing."""
-    server = start_mock_server("indexer")
+    server = get_mock_server("indexer")
     try:
         yield server
     finally:

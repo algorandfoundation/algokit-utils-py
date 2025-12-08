@@ -26,6 +26,27 @@ jobs:
       - name: Install dependencies
         run: uv sync --group cicd --group api-generator
 
+      - name: Checkout algokit-polytest
+        uses: actions/checkout@v4
+        with:
+          repository: algorandfoundation/algokit-polytest
+          path: .polytest
+
+      - name: Start algod mock server
+        uses: ./.polytest/.github/actions/run-mock-server
+        with:
+          client: algod
+
+      - name: Start indexer mock server
+        uses: ./.polytest/.github/actions/run-mock-server
+        with:
+          client: indexer
+
+      - name: Start kmd mock server
+        uses: ./.polytest/.github/actions/run-mock-server
+        with:
+          client: kmd
+
       - name: Generate API clients
         run: uv run poe generate-api-clients
 

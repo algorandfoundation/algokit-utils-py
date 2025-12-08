@@ -40,27 +40,50 @@ algokit localnet start
 
 ### Mock Server Tests
 
-Tests under `tests/modules/` use a mock server for deterministic API testing. By default, pytest spins up a Docker container automatically.
+Tests under `tests/modules/` use a mock server for deterministic API testing against pre-recorded HAR files. The mock server is managed externally (not by pytest).
 
-**Local development with external server:**
+**In CI:** Mock servers are automatically started via the [algokit-polytest](https://github.com/algorandfoundation/algokit-polytest) GitHub Action.
 
-To test against a locally running mock server (e.g., when recording new HARs):
+**Local development:**
+
+1. Clone algokit-polytest and start the mock servers:
 
 ```bash
-# Terminal 1: Start mock server (from algokit-polytest repo)
-cd path/to/algokit-polytest/resources/mock-server
-bun install && ALGOD_PORT=18000 bun bin/server.ts algod ./recordings
+# Clone algokit-polytest (if not already)
+git clone https://github.com/algorandfoundation/algokit-polytest.git
 
-# Terminal 2: Run tests pointing to your server
-MOCK_ALGOD_URL=http://localhost:18000 pytest tests/modules/algod_client/
+# Start all mock servers (recommended)
+cd algokit-polytest/resources/mock-server
+./scripts/start_all_servers.sh
 ```
 
-| Environment Variable | Description |
-|---------------------|-------------|
-| `MOCK_ALGOD_URL` | External algod mock server URL |
-| `MOCK_INDEXER_URL` | External indexer mock server URL |
-| `MOCK_KMD_URL` | External KMD mock server URL |
+This starts algod (port 8000), kmd (port 8001), and indexer (port 8002) in the background.
 
-When set, pytest uses the external server instead of Docker. The server must pass a health check.
+2. Set environment variables and run tests:
 
-Variables can be set via `.env` file in project root (copy from `.env.template`).
+```bash
+export MOCK_ALGOD_URL=http://localhost:8000
+export MOCK_INDEXER_URL=http://localhost:8002
+export MOCK_KMD_URL=http://localhost:8001
+
+# Run all module tests
+pytest tests/modules/
+
+# Or run specific client tests
+pytest tests/modules/algod_client/
+```
+
+3. Stop servers when done:
+
+```bash
+cd algokit-polytest/resources/mock-server
+./scripts/stop_all_servers.sh
+```
+
+| Environment Variable | Description | Default Port |
+|---------------------|-------------|--------------|
+| `MOCK_ALGOD_URL` | Algod mock server URL | 8000 |
+| `MOCK_INDEXER_URL` | Indexer mock server URL | 8002 |
+| `MOCK_KMD_URL` | KMD mock server URL | 8001 |
+
+Environment variables can also be set via `.env` file in project root (copy from `.env.template`).

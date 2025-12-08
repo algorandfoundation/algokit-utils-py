@@ -6,13 +6,13 @@ import pytest
 
 from algokit_kmd_client import ClientConfig, KmdClient
 
-from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, start_mock_server
+from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, get_mock_server
 
 
 @pytest.fixture(scope="session")
 def mock_kmd_server() -> Generator[MockServer, None, None]:
     """Session-scoped mock KMD server for deterministic testing."""
-    server = start_mock_server("kmd")
+    server = get_mock_server("kmd")
     try:
         yield server
     finally:
