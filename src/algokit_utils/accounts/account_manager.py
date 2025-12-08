@@ -15,7 +15,7 @@ from algokit_utils.config import config
 from algokit_utils.models.account import (
     DISPENSER_ACCOUNT_NAME,
     LogicSigAccount,
-    MultiSigAccount,
+    MultisigAccount,
     MultisigMetadata,
     SigningAccount,
 )
@@ -254,7 +254,7 @@ class AccountManager:
             ... )
             >>> # Using deprecated keyword argument 'signer'
             >>> account_manager.set_signer_from_account(
-            ...     signer=MultiSigAccount(multisig_params, [account1, account2])
+            ...     signer=MultisigAccount(multisig_params, [account1, account2])
             ... )
         """
         # Extract the account from either positional args or keyword args
@@ -391,17 +391,17 @@ class AccountManager:
         return logic_sig
 
     def _register_multisig(
-        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
-    ) -> MultiSigAccount:
+        self, metadata: MultisigMetadata, sub_signers: Sequence[SignerAccountProtocol]
+    ) -> MultisigAccount:
         """
         Helper method to create and register a multisig account.
 
         :param metadata: The metadata for the multisig account
-        :param signing_accounts: The list of accounts that are present to sign
+        :param sub_signers: The list of accounts that are present to sign
         :returns: The registered MultisigAccount instance
         """
-        msig_account = MultiSigAccount(metadata, signing_accounts)
-        self._accounts[str(msig_account.address)] = MultiSigAccount(metadata, signing_accounts)
+        msig_account = MultisigAccount(metadata, sub_signers)
+        self._accounts[str(msig_account.address)] = MultisigAccount(metadata, sub_signers)
         return msig_account
 
     def from_mnemonic(self, *, mnemonic: str, sender: str | None = None) -> SigningAccount:
@@ -498,14 +498,12 @@ class AccountManager:
         """
         return self._register_logicsig(program, args)
 
-    def multisig(
-        self, metadata: MultisigMetadata, signing_accounts: Sequence[SignerAccountProtocol]
-    ) -> MultiSigAccount:
+    def multisig(self, metadata: MultisigMetadata, sub_signers: Sequence[SignerAccountProtocol]) -> MultisigAccount:
         """
         Tracks and returns an account that supports partial or full multisig signing.
 
         :param metadata: The metadata for the multisig account
-        :param signing_accounts: The signers that are currently present
+        :param sub_signers: The signers that are currently present
         :returns: A multisig account wrapper
 
         :example:
@@ -513,10 +511,10 @@ class AccountManager:
             ...     version=1,
             ...     threshold=1,
             ...     addrs=["ADDRESS1...", "ADDRESS2..."],
-            ...     signing_accounts=[account1, account2]
+            ...     sub_signers=[account1, account2]
             ... )
         """
-        return self._register_multisig(metadata, signing_accounts)
+        return self._register_multisig(metadata, sub_signers)
 
     def random(self) -> SigningAccount:
         """

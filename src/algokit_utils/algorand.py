@@ -107,7 +107,7 @@ class AlgorandClient:
             >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
             >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
             >>> accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
-            >>> accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
+            >>> accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
             >>> accountManager.set_signer_from_account(account)
         """
         self._account_manager.set_default_signer(signer)

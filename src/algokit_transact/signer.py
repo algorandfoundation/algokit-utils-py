@@ -29,7 +29,7 @@ MxBytesSigner = Callable[[bytes], bytes]
 
 
 @runtime_checkable
-class HasAddress(Protocol):
+class Addressable(Protocol):
     """Protocol for objects with an address."""
 
     @property
@@ -37,7 +37,7 @@ class HasAddress(Protocol):
 
 
 @runtime_checkable
-class HasTransactionSigner(HasAddress, Protocol):
+class AddressWithTransactionSigner(Addressable, Protocol):
     """Protocol for objects with transaction signing capability."""
 
     @property
@@ -45,7 +45,7 @@ class HasTransactionSigner(HasAddress, Protocol):
 
 
 @runtime_checkable
-class HasLsigSigner(HasAddress, Protocol):
+class AddressWithLsigSigner(Addressable, Protocol):
     """Protocol for objects with logic signature delegation signing."""
 
     @property
@@ -53,7 +53,7 @@ class HasLsigSigner(HasAddress, Protocol):
 
 
 @runtime_checkable
-class HasProgramDataSigner(HasAddress, Protocol):
+class AddressWithProgramDataSigner(Addressable, Protocol):
     """Protocol for objects with program data signing capability."""
 
     @property
@@ -61,14 +61,14 @@ class HasProgramDataSigner(HasAddress, Protocol):
 
 
 @runtime_checkable
-class HasMxBytesSigner(HasAddress, Protocol):
+class AddressWithMxBytesSigner(Addressable, Protocol):
     """Protocol for objects with MX-prefixed bytes signing capability."""
 
     @property
     def mx_bytes_signer(self) -> MxBytesSigner: ...
 
 
-SendingAddress = str | HasTransactionSigner
+SendingAddress = str | AddressWithTransactionSigner
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,9 +86,24 @@ class AddressWithSigners:
 def generate_address_with_signers(
     ed25519_pubkey: bytes,
     raw_ed25519_signer: BytesSigner,
+    *,
+    sending_address: str | None = None,
 ) -> AddressWithSigners:
-    """Generate domain-separated signers from an ed25519 pubkey and raw signer."""
-    addr = address_from_public_key(ed25519_pubkey)
+    """Generate domain-separated signers from an ed25519 pubkey and raw signer.
+
+    Args:
+        ed25519_pubkey: The ed25519 public key bytes.
+        raw_ed25519_signer: A function that signs raw bytes with the ed25519 private key.
+        sending_address: Optional address to use as the sending address. If provided,
+            this will be the `addr` in the returned object, and the address derived
+            from `ed25519_pubkey` will be used as the auth_address when signing
+            transactions where the sender differs from the sending_address.
+
+    Returns:
+        An AddressWithSigners containing the address and all signing functions.
+    """
+    auth_addr = address_from_public_key(ed25519_pubkey)
+    addr = sending_address if sending_address is not None else auth_addr
 
     def transaction_signer(txn_group: Sequence[Transaction], indexes_to_sign: Sequence[int]) -> list[bytes]:
         result: list[bytes] = []
@@ -99,7 +114,7 @@ def generate_address_with_signers(
             stxn = SignedTransaction(
                 transaction=txn,
                 signature=signature,
-                auth_address=addr if txn.sender != addr else None,
+                auth_address=auth_addr if txn.sender != auth_addr else None,
             )
             result.append(encode_signed_transaction(stxn))
         return result

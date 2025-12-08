@@ -1,4 +1,5 @@
 from algokit_transact.codec.signed import (
+    decode_logic_signature,
     decode_signed_transaction,
     decode_signed_transactions,
     encode_signed_transaction,
@@ -70,13 +71,13 @@ from algokit_transact.ops.validate import (
     validate_transaction,
 )
 from algokit_transact.signer import (
+    Addressable,
+    AddressWithLsigSigner,
+    AddressWithMxBytesSigner,
+    AddressWithProgramDataSigner,
     AddressWithSigners,
+    AddressWithTransactionSigner,
     BytesSigner,
-    HasAddress,
-    HasLsigSigner,
-    HasMxBytesSigner,
-    HasProgramDataSigner,
-    HasTransactionSigner,
     LsigSigner,
     MxBytesSigner,
     ProgramDataSigner,
@@ -97,9 +98,15 @@ from algokit_transact.signing.multisig import (
     participants_from_multisig_signature,
 )
 from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
+from algokit_transact.signing.validation import sanity_check_program
 
 __all__ = [
+    "Addressable",
+    "AddressWithLsigSigner",
+    "AddressWithMxBytesSigner",
+    "AddressWithProgramDataSigner",
     "AddressWithSigners",
+    "AddressWithTransactionSigner",
     "AlgokitTransactError",
     "AppCallTransactionFields",
     "BoxReference",
@@ -112,11 +119,6 @@ __all__ = [
     "AssetTransferTransactionFields",
     "FalconSignatureStruct",
     "FalconVerifier",
-    "HasAddress",
-    "HasLsigSigner",
-    "HasMxBytesSigner",
-    "HasProgramDataSigner",
-    "HasTransactionSigner",
     "HashFactory",
     "HeartbeatTransactionFields",
     "HeartbeatProof",
@@ -149,6 +151,7 @@ __all__ = [
     "assign_fee",
     "bytes_to_sign_for_delegation",
     "calculate_fee",
+    "decode_logic_signature",
     "decode_signed_transaction",
     "decode_signed_transactions",
     "decode_transaction",
@@ -171,6 +174,7 @@ __all__ = [
     "new_multisig_signature",
     "participants_from_multisig_signature",
     "program_data_to_sign",
+    "sanity_check_program",
     "to_transaction_dto",
     "validate_app_call_fields",
     "validate_asset_config_fields",

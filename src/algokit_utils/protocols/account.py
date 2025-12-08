@@ -14,7 +14,7 @@ __all__ = ["SignerAccountProtocol", "TransactionSignerAccountProtocol"]
 @runtime_checkable
 class TransactionSignerAccountProtocol(Protocol):
     """An account that has a transaction signer.
-    Implemented by SigningAccount, LogicSigAccount, MultiSigAccount and TransactionSignerAccount abstractions.
+    Implemented by SigningAccount, LogicSigAccount, MultisigAccount and TransactionSignerAccount abstractions.
     """
 
     @property

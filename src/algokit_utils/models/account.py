@@ -1,7 +1,7 @@
 import base64
 import dataclasses
 from collections.abc import Sequence
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from typing_extensions import deprecated
 
@@ -25,10 +25,26 @@ from algokit_utils.protocols.signer import (
     TransactionSigner,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    SanityCheckProgram = Callable[[bytes], None]
+
+
+def _get_sanity_check_program() -> "SanityCheckProgram":
+    """Get the sanity_check_program function from algokit_transact."""
+    # Import at runtime to avoid circular imports and type checking issues
+    from algokit_transact.signing.validation import (  # pyright: ignore[reportMissingImports]
+        sanity_check_program,
+    )
+
+    return sanity_check_program
+
+
 __all__ = [
     "DISPENSER_ACCOUNT_NAME",
     "LogicSigAccount",
-    "MultiSigAccount",
+    "MultisigAccount",
     "MultisigMetadata",
     "SigningAccount",
     "TransactionSignerAccount",
@@ -129,8 +145,8 @@ class SigningAccount:
 
             bytes_signer = self.bytes_signer
 
-            def _sign_program_data(data: bytes) -> bytes:
-                return bytes_signer(LOGIC_DATA_DOMAIN_SEPARATOR.encode() + data)
+            def _sign_program_data(data: bytes, program_address: bytes) -> bytes:
+                return bytes_signer(LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data)
 
             self._program_data_signer = _sign_program_data
         return self._program_data_signer
@@ -160,11 +176,11 @@ class MultisigMetadata:
 
 
 @dataclasses.dataclass(kw_only=True)
-class MultiSigAccount:
+class MultisigAccount:
     """Account wrapper for multisig signing. Supports secretless signing."""
 
     _params: MultisigMetadata
-    _signing_accounts: Sequence[SignerAccountProtocol]
+    _sub_signers: Sequence[SignerAccountProtocol]
     _addr: str
     _signer: TransactionSigner
     _multisig_signature: MultisigSignature
@@ -172,10 +188,10 @@ class MultiSigAccount:
     def __init__(
         self,
         multisig_params: MultisigMetadata,
-        signing_accounts: Sequence[SignerAccountProtocol],
+        sub_signers: Sequence[SignerAccountProtocol],
     ) -> None:
         self._params = multisig_params
-        self._signing_accounts = signing_accounts
+        self._sub_signers = sub_signers
         self._multisig_signature = new_multisig_signature(
             multisig_params.version,
             multisig_params.threshold,
@@ -186,7 +202,7 @@ class MultiSigAccount:
 
     def _create_multisig_signer(self) -> TransactionSigner:
         address_to_signer: dict[str, BytesSigner] = {
-            account.address: account.bytes_signer for account in self._signing_accounts
+            account.address: account.bytes_signer for account in self._sub_signers
         }
         msig_address = self._addr
         base_multisig = self._multisig_signature
@@ -221,14 +237,19 @@ class MultiSigAccount:
         return self._params
 
     @property
-    def signing_accounts(self) -> Sequence[SignerAccountProtocol]:
+    def sub_signers(self) -> Sequence[SignerAccountProtocol]:
         """The list of signing accounts."""
-        return self._signing_accounts
+        return self._sub_signers
 
     @property
     def address(self) -> str:
         """The multisig account address."""
         return self._addr
+
+    @property
+    def addr(self) -> str:
+        """Alias for address property (matching TypeScript's get addr())."""
+        return self.address
 
     @property
     def signer(self) -> TransactionSigner:
@@ -248,6 +269,7 @@ class LogicSigAccount:
     _signer: TransactionSigner | None
 
     def __init__(self, program: bytes, args: list[bytes] | None = None) -> None:
+        _get_sanity_check_program()(program)
         self._program = program
         self._args = args
         self._signature = None
@@ -283,6 +305,11 @@ class LogicSigAccount:
         address = algosdk.encoding.encode_address(program_hash)
         assert isinstance(address, str)
         return address
+
+    @property
+    def addr(self) -> str:
+        """Alias for address property (matching TypeScript's get addr())."""
+        return self.address
 
     @property
     def signer(self) -> TransactionSigner:
@@ -324,10 +351,66 @@ class LogicSigAccount:
 
         return signer
 
-    def delegate(self, account: SignerAccountProtocol) -> "LogicSigAccount":
-        """Delegate this LogicSig to a single account. Returns self for chaining."""
-        self._signature = account.lsig_signer(self._program)
-        self._delegated_address = account.address
+    def bytes_to_sign_for_delegation(self, msig: "MultisigAccount | None" = None) -> bytes:
+        """Returns bytes to sign for delegation.
+
+        Args:
+            msig: Optional multisig account for multisig delegation.
+
+        Returns:
+            The bytes that need to be signed for delegation.
+        """
+        from algokit_common.constants import MULTISIG_PROGRAM_DOMAIN_SEPARATOR, PROGRAM_DOMAIN_SEPARATOR
+
+        if msig is not None:
+            msig_public_key = algosdk.encoding.decode_address(msig.address)
+            assert isinstance(msig_public_key, bytes)
+            return MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_public_key + self._program
+        return PROGRAM_DOMAIN_SEPARATOR.encode() + self._program
+
+    def program_data_to_sign(self, data: bytes) -> bytes:
+        """Returns bytes to sign for program data.
+
+        Args:
+            data: The data to sign.
+
+        Returns:
+            The bytes that need to be signed (ProgData + program_address + data).
+        """
+        from algokit_common.constants import LOGIC_DATA_DOMAIN_SEPARATOR
+
+        program_address = algosdk.encoding.decode_address(self.address)
+        assert isinstance(program_address, bytes)
+        return LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
+
+    def sign_program_data(self, data: bytes, signer: ProgramDataSigner) -> bytes:
+        """Signs program data with given signer.
+
+        Args:
+            data: The data to sign.
+            signer: The program data signer to use.
+
+        Returns:
+            The signature bytes.
+        """
+        program_address = algosdk.encoding.decode_address(self.address)
+        assert isinstance(program_address, bytes)
+        return signer(data, program_address)
+
+    def delegate(self, signer: LsigSigner, delegating_address: str | None = None) -> "LogicSigAccount":
+        """Delegate this LogicSig to a single account. Returns self for chaining.
+
+        Args:
+            signer: The LsigSigner callback to sign the program.
+            delegating_address: Optional address of the delegating account.
+                If not provided, the address must be set separately or
+                the LogicSig will use the escrow address.
+
+        Returns:
+            Self for method chaining.
+        """
+        self._signature = signer(self._program)
+        self._delegated_address = delegating_address
         self._multisig_signature = None
         self._signer = None
         return self

@@ -30,9 +30,9 @@ class BytesSigner(Protocol):
 
 @runtime_checkable
 class ProgramDataSigner(Protocol):
-    """Signs data with "ProgData" domain prefix for delegated LogicSig transactions."""
+    """Signs data with 'ProgData' + program_address prefix."""
 
-    def __call__(self, data: bytes) -> bytes: ...
+    def __call__(self, data: bytes, program_address: bytes) -> bytes: ...
 
 
 @runtime_checkable

@@ -343,7 +343,7 @@ def test_multisig_single_account(algorand: AlgorandClient, funded_account: Signi
             threshold=1,
             addresses=[funded_account.address],
         ),
-        signing_accounts=[funded_account],
+        sub_signers=[funded_account],
     )
     algorand.send.payment(
         PaymentParams(sender=funded_account.address, receiver=multisig.address, amount=AlgoAmount.from_algo(1))
@@ -363,7 +363,7 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Signi
             threshold=2,
             addresses=[funded_account.address, account2.address],
         ),
-        signing_accounts=[funded_account, account2],
+        sub_signers=[funded_account, account2],
     )
 
     algorand.send.payment(
