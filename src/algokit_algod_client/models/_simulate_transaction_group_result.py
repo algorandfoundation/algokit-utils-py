@@ -17,6 +17,7 @@ class SimulateTransactionGroupResult:
     """
 
     txn_results: list[SimulateTransactionResult] = field(
+        default_factory=list,
         metadata=wire(
             "txn-results",
             encode=encode_model_sequence,

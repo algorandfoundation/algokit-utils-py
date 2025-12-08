@@ -36,8 +36,20 @@ class TypeInfo:
 LEDGER_STATE_DELTA_MODEL_NAMES: set[str] = {
     "LedgerStateDelta",
     "LedgerStateDeltaForTransactionGroup",
+    "GetTransactionGroupLedgerStateDeltasForRound",
     "GetTransactionGroupLedgerStateDeltasForRoundResponseModel",
 }
+
+
+def _get_import_module(python_name: str, default_module: str) -> str:
+    """Get the correct module name for importing a model.
+
+    Models in LEDGER_STATE_DELTA_MODEL_NAMES are defined in the custom
+    _ledger_state_delta template, not in individual module files.
+    """
+    if python_name in LEDGER_STATE_DELTA_MODEL_NAMES:
+        return "_ledger_state_delta"
+    return default_module
 
 
 class SchemaRegistry:
@@ -201,6 +213,69 @@ class ModelBuilder:
         self.sanitizer = sanitizer
         self.uses_signed_transaction = False
 
+    def _compute_default_value(self, type_info: TypeInfo, prop_schema: ctx.RawSchema) -> str | None:
+        """Compute default value for a required field based on its type.
+
+        This mirrors the TypeScript codec approach where each codec has a defaultValue():
+        - string → ""
+        - int → 0
+        - bool → False
+        - bytes → b""
+        - list → [] (uses default_factory)
+        - address (x-algorand-format: Address) → ZERO_ADDRESS
+        - nested models → None (will use default_factory)
+
+        Returns:
+            A string representation of the default value, or None if default_factory should be used.
+        """
+        # Check for address format (algorand addresses get ZERO_ADDRESS)
+        algorand_format = prop_schema.get("x-algorand-format")
+        if algorand_format == "Address":
+            return "ZERO_ADDRESS"
+
+        # Handle primitive types based on annotation
+        annotation = type_info.annotation
+
+        # Strip Optional wrapper if present (shouldn't be for required fields, but be safe)
+        base_type = annotation.replace(" | None", "").strip()
+
+        if base_type == "str":
+            return '""'
+        if base_type == "int":
+            return "0"
+        if base_type == "float":
+            return "0.0"
+        if base_type == "bool":
+            return "False"
+        if base_type == "bytes":
+            return 'b""'
+
+        # Lists need default_factory - return None to signal this
+        if type_info.is_list or base_type.startswith("list["):
+            return None  # Will use default_factory=list
+
+        # Nested models - return None (they'll remain without default)
+        if type_info.model:
+            return None
+
+        # Enums - return None (no sensible default)
+        if type_info.enum:
+            return None
+
+        # datetime - return None
+        if type_info.needs_datetime:
+            return None
+
+        # dict types - return None (will use default_factory)
+        if base_type.startswith("dict[") or base_type == "dict[str, object]":
+            return None
+
+        # object type - no sensible default
+        if base_type == "object":
+            return None
+
+        return None
+
     def build(self) -> tuple[list[ctx.ModelDescriptor], list[ctx.EnumDescriptor], list[ctx.TypeAliasDescriptor]]:
         models: list[ctx.ModelDescriptor] = []
         enums: list[ctx.EnumDescriptor] = []
@@ -257,24 +332,63 @@ class ModelBuilder:
             if prop_name not in required and "| None" not in annotation:
                 annotation = f"{annotation} | None"
             annotation = self._apply_forward_reference_annotation(annotation, entry, type_info)
+
+            # Compute default value and factory
+            default_value: str | None = None
+            default_factory: str | None = None
+
+            # Check for schema-level default value
+            schema_default = prop_schema.get("default")
+
+            if prop_name in required:
+                # Required fields get type-appropriate defaults to handle canonical msgpack encoding
+                computed_default = self._compute_default_value(type_info, prop_schema)
+                if computed_default is not None:
+                    default_value = computed_default
+                    # Add ZERO_ADDRESS import if needed
+                    if computed_default == "ZERO_ADDRESS":
+                        imports.add("from algokit_common.constants import ZERO_ADDRESS")
+                elif type_info.is_list:
+                    # Lists use default_factory=list
+                    default_factory = "list"
+            else:
+                # Optional fields: use schema default if provided, otherwise None
+                if schema_default is not None:
+                    # Format the default value based on type
+                    if isinstance(schema_default, str):
+                        default_value = f'"{schema_default}"'
+                    elif isinstance(schema_default, bool):
+                        default_value = str(schema_default)
+                    elif isinstance(schema_default, int | float):
+                        default_value = str(schema_default)
+                    else:
+                        default_value = "None"
+                else:
+                    default_value = "None"
+
             field = ctx.ModelField(
                 name=self.sanitizer.snake(python_name_hint),
                 wire_name=wire_name,
                 type_hint=annotation,
                 required=prop_name in required,
                 description=prop_schema.get("description"),
-                metadata=self._build_metadata(wire_name, type_info),
-                default_value=None if prop_name in required else "None",
+                metadata=self._build_metadata(wire_name, type_info, required=prop_name in required),
+                default_value=default_value,
+                default_factory=default_factory,
             )
             imports.update(type_info.imports)
             if type_info.model and type_info.model != entry.python_name:
                 dep_entry = self.registry.entries_by_python_name.get(type_info.model)
-                if dep_entry and dep_entry.module_name != entry.module_name:
-                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+                if dep_entry:
+                    dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
+                    if dep_module != entry.module_name:
+                        imports.add(f"from .{dep_module} import {dep_entry.python_name}")
             if type_info.list_inner_model:
                 dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_model)
-                if dep_entry and dep_entry.module_name != entry.module_name:
-                    imports.add(f"from .{dep_entry.module_name} import {dep_entry.python_name}")
+                if dep_entry:
+                    dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
+                    if dep_module != entry.module_name:
+                        imports.add(f"from .{dep_module} import {dep_entry.python_name}")
                 if type_info.list_inner_model == "SignedTransaction":
                     imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
             if type_info.enum:
@@ -308,7 +422,18 @@ class ModelBuilder:
                 imports.add("from typing import Any")
             fields.append(field)
 
-        fields.sort(key=lambda f: (not f.required, f.name))
+        # Sort fields: required without defaults first, then required with defaults, then optional
+        # This ensures dataclass field ordering rules are satisfied (non-default before default)
+        def field_sort_key(f: ctx.ModelField) -> tuple[int, str]:
+            has_default = f.default_value is not None or f.default_factory is not None
+            if f.required and not has_default:
+                return (0, f.name)  # Required without default: first
+            elif f.required and has_default:
+                return (1, f.name)  # Required with default: second
+            else:
+                return (2, f.name)  # Optional (always has default): third
+
+        fields.sort(key=field_sort_key)
         return ctx.ModelDescriptor(
             name=entry.python_name,
             module_name=entry.module_name,
@@ -383,9 +508,12 @@ class ModelBuilder:
             description=entry.description,
         )
 
-    def _build_metadata(self, wire_name: str, type_info: TypeInfo) -> str:
+    def _build_metadata(self, wire_name: str, type_info: TypeInfo, *, required: bool = False) -> str:
         alias = wire_name.replace('"', '\\"')
         if type_info.model and not type_info.is_list:
+            # Pass required flag for nested fields to enable default instance construction
+            if required:
+                return f'nested("{alias}", lambda: {type_info.model}, required=True)'
             return f'nested("{alias}", lambda: {type_info.model})'
         if type_info.enum and not type_info.is_list:
             return f'enum_value("{alias}", {type_info.enum})'
@@ -471,6 +599,7 @@ class OperationBuilder:
         "GetApplicationBoxByName",
         "TransactionParams",
     }
+    SKIP_TAGS: ClassVar[set[str]] = {"private", "experimental", "skip"}
 
     def __init__(
         self,
@@ -488,7 +617,9 @@ class OperationBuilder:
         self.uses_signed_transaction = False
         self.uses_msgpack = False
         self.uses_block_models = False
+        self.uses_ledger_state_delta = False
         self.uses_literal = False
+        self.used_schema_refs: set[str] = set()
 
     def build(self) -> list[ctx.OperationGroup]:
         grouped: dict[str, list[ctx.OperationDescriptor]] = defaultdict(list)
@@ -496,6 +627,13 @@ class OperationBuilder:
             for method, operation in path_item.items():
                 if method.lower() not in {"get", "post", "put", "delete", "patch"}:
                     continue
+                op_id = operation.get("operationId", "")
+                tags = operation.get("tags") or ["default"]
+                # Check if operation should be skipped before building
+                if self._should_skip_operation(op_id, tags):
+                    continue
+                # Collect schema refs from kept operations
+                self._collect_schema_refs(operation, self.used_schema_refs)
                 descriptor = self._build_operation(path, method.upper(), operation)
                 grouped[descriptor.tag].append(descriptor)
         result: list[ctx.OperationGroup] = []
@@ -506,7 +644,8 @@ class OperationBuilder:
 
     def _build_operation(self, path: str, method: str, op: dict[str, Any]) -> ctx.OperationDescriptor:
         operation_id = op.get("operationId") or self._derive_operation_id(method, path)
-        tag = (op.get("tags") or ["default"])[0]
+        tags = op.get("tags") or ["default"]
+        tag = tags[0]
         parameters, format_info = self._build_parameters(op.get("parameters", []))
         request_body = self._build_request_body(op.get("requestBody"), operation_id)
         response = self._build_response(op.get("responses", {}), operation_id)
@@ -567,6 +706,32 @@ class OperationBuilder:
         if self.client_key == ctx.ClientType.ALGOD_CLIENT:
             return operation_id in self.ALGOD_PRIVATE_OPERATIONS
         return False
+
+    def _should_skip_operation(self, operation_id: str, tags: list[str]) -> bool:
+        """Check if an operation should be skipped from generation.
+
+        Operations are skipped if they have any tags that match SKIP_TAGS
+        ('private', 'experimental', 'skip').
+        """
+        return any(tag in self.SKIP_TAGS for tag in tags)
+
+    def _collect_schema_refs(self, obj: Any, refs: set[str]) -> None:
+        """Recursively collect all schema $ref names from an object."""
+        if isinstance(obj, dict):
+            if "$ref" in obj:
+                ref = obj["$ref"]
+                if ref.startswith("#/components/schemas/"):
+                    schema_name = ref.split("/")[-1]
+                    if schema_name not in refs:
+                        refs.add(schema_name)
+                        # Also collect refs from the schema itself (for nested refs)
+                        schema = self.spec.schemas.get(schema_name, {})
+                        self._collect_schema_refs(schema, refs)
+            for v in obj.values():
+                self._collect_schema_refs(v, refs)
+        elif isinstance(obj, list):
+            for item in obj:
+                self._collect_schema_refs(item, refs)
 
     def _build_parameters(
         self, params: list[dict[str, Any]]
@@ -661,11 +826,17 @@ class OperationBuilder:
                 media_types = ["application/msgpack"]
             if "application/msgpack" in media_types:
                 self.uses_msgpack = True
+            self.uses_ledger_state_delta = True
+            model_name = (
+                "GetTransactionGroupLedgerStateDeltasForRound"
+                if operation_id == "GetTransactionGroupLedgerStateDeltasForRound"
+                else "LedgerStateDelta"
+            )
             return ctx.ResponseDescriptor(
-                type_hint="bytes",
+                type_hint=model_name,
                 media_types=media_types,
                 description=payload.get("description"),
-                is_raw_msgpack=True,
+                model=model_name,
             )
         if operation_id == "GetBlock" and schema is not None:
             self.uses_block_models = True
@@ -719,6 +890,38 @@ def build_client_descriptor(
     model_builder = ModelBuilder(registry, resolver, sanitizer)
     models, enums, aliases = model_builder.build()
     models = [model for model in models if model.name not in LEDGER_STATE_DELTA_MODEL_NAMES]
+
+    # Filter out schemas only used by skipped operations
+    used_schema_refs = operation_builder.used_schema_refs
+    if used_schema_refs:
+        # Build set of used python names from used schema refs
+        used_python_names: set[str] = set()
+        for schema_name in used_schema_refs:
+            entry = registry.entries.get(schema_name)
+            if entry:
+                used_python_names.add(entry.python_name)
+
+        # Filter models, enums, and aliases to only include used schemas
+        # Keep synthetic schemas (inline) as they are generated from used operations
+        models = [
+            m
+            for m in models
+            if m.name in used_python_names
+            or registry.entries_by_python_name.get(m.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+        enums = [
+            e
+            for e in enums
+            if e.name in used_python_names
+            or registry.entries_by_python_name.get(e.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+        aliases = [
+            a
+            for a in aliases
+            if a.name in used_python_names
+            or registry.entries_by_python_name.get(a.name, SchemaEntry("", {}, "", "", None, "", True)).synthetic
+        ]
+
     uses_signed_txn = model_builder.uses_signed_transaction or operation_builder.uses_signed_transaction
     defaults = {
         ctx.ClientType.ALGOD_CLIENT: ("http://localhost:4001", "X-Algo-API-Token"),
@@ -740,5 +943,6 @@ def build_client_descriptor(
         uses_signed_transaction=uses_signed_txn,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
+        include_ledger_state_delta=operation_builder.uses_ledger_state_delta,
         is_algod_client=client_key == ctx.ClientType.ALGOD_CLIENT,
     )

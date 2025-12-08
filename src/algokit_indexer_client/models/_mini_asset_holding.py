@@ -13,12 +13,15 @@ class MiniAssetHolding:
     """
 
     address: str = field(
+        default="",
         metadata=wire("address"),
     )
     amount: int = field(
+        default=0,
         metadata=wire("amount"),
     )
     is_frozen: bool = field(
+        default=False,
         metadata=wire("is-frozen"),
     )
     deleted: bool | None = field(

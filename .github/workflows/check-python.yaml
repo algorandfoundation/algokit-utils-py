@@ -35,3 +35,15 @@ jobs:
         run: |
           # stop the build if there are files that don't meet formatting requirements
           uv run poe lint
+
+      - name: Setup Polytest
+        uses: aorumbayev/algokit-polytest/.github/actions/setup-polytest@main
+
+      - name: Validate polytest algod_client tests
+        run: uv run poe polytest-validate-algod
+
+      - name: Validate polytest indexer_client tests
+        run: uv run poe polytest-validate-indexer
+
+      - name: Validate polytest kmd_client tests
+        run: uv run poe polytest-validate-kmd

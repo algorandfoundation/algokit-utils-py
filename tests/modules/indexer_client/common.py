@@ -22,7 +22,7 @@ def wait_for_indexer(indexer: IndexerClient, txid: str, *, timeout: float = 20.0
     deadline = time.time() + timeout
     while True:
         try:
-            indexer.lookup_transaction(txid)
+            indexer.lookup_transaction_by_id(txid)
             return
         except UnexpectedStatusError as exc:  # pragma: no cover - exercise via tests
             if exc.status_code is HTTPStatus.NOT_FOUND and time.time() < deadline:

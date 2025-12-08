@@ -13,6 +13,7 @@ class ErrorResponse:
     """
 
     message: str = field(
+        default="",
         metadata=wire("message"),
     )
     data: dict[str, object] | None = field(

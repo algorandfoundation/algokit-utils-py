@@ -21,11 +21,12 @@ class TransactionApplication:
     data/transactions/application.go : ApplicationCallTxnFields
     """
 
-    application_id: int = field(
-        metadata=wire("application-id"),
-    )
     on_completion: OnCompletion = field(
         metadata=enum_value("on-completion", OnCompletion),
+    )
+    application_id: int = field(
+        default=0,
+        metadata=wire("application-id"),
     )
     access: list[ResourceRef] | None = field(
         default=None,

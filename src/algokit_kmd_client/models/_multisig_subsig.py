@@ -13,11 +13,11 @@ class MultisigSubsig:
     signatures may be empty
     """
 
-    key: list[int] | None = field(
-        default=None,
-        metadata=wire("Key"),
+    public_key: list[int] = field(
+        default_factory=list,
+        metadata=wire("pk"),
     )
-    sig: list[int] | None = field(
+    signature: list[int] | None = field(
         default=None,
-        metadata=wire("Sig"),
+        metadata=wire("s"),
     )

@@ -10,12 +10,14 @@ from ._allocations_for_genesis_file_state_model import AllocationsForGenesisFile
 
 @dataclass(slots=True)
 class AllocationsForGenesisFile:
+    state: AllocationsForGenesisFileStateModel = field(
+        metadata=nested("state", lambda: AllocationsForGenesisFileStateModel, required=True),
+    )
     addr: str = field(
+        default="",
         metadata=wire("addr"),
     )
     comment: str = field(
+        default="",
         metadata=wire("comment"),
-    )
-    state: AllocationsForGenesisFileStateModel = field(
-        metadata=nested("state", lambda: AllocationsForGenesisFileStateModel),
     )

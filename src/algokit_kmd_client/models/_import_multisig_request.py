@@ -9,22 +9,22 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class ImportMultisigRequest:
     """
-    APIV1POSTMultisigImportRequest is the request for `POST /v1/multisig/import`
+    The request for `POST /v1/multisig/import`
     """
 
-    multisig_version: int | None = field(
-        default=None,
+    multisig_version: int = field(
+        default=0,
         metadata=wire("multisig_version"),
     )
-    pks: list[list[int]] | None = field(
-        default=None,
+    public_keys: list[list[int]] = field(
+        default_factory=list,
         metadata=wire("pks"),
     )
-    threshold: int | None = field(
-        default=None,
+    threshold: int = field(
+        default=0,
         metadata=wire("threshold"),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
     )

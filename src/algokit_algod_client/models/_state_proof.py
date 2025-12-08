@@ -16,9 +16,10 @@ class StateProof:
     """
 
     message: StateProofMessage = field(
-        metadata=nested("Message", lambda: StateProofMessage),
+        metadata=nested("Message", lambda: StateProofMessage, required=True),
     )
     state_proof: bytes = field(
+        default=b"",
         metadata=wire(
             "StateProof",
             encode=encode_bytes_base64,

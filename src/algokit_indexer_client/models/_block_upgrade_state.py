@@ -13,6 +13,7 @@ class BlockUpgradeState:
     """
 
     current_protocol: str = field(
+        default="",
         metadata=wire("current-protocol"),
     )
     next_protocol: str | None = field(

@@ -17,6 +17,7 @@ class SimulateRequest:
     """
 
     txn_groups: list[SimulateRequestTransactionGroup] = field(
+        default_factory=list,
         metadata=wire(
             "txn-groups",
             encode=encode_model_sequence,

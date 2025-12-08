@@ -15,9 +15,11 @@ class BoxReference:
     """
 
     app: int = field(
+        default=0,
         metadata=wire("app"),
     )
     name: bytes = field(
+        default=b"",
         metadata=wire(
             "name",
             encode=encode_bytes_base64,

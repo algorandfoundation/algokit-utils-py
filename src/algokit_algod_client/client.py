@@ -1,6 +1,6 @@
 # AUTO-GENERATED: oas_generator
-
-
+import random
+import time
 from base64 import b64encode
 from collections.abc import Sequence
 from dataclasses import is_dataclass
@@ -15,6 +15,25 @@ from . import models
 from .config import ClientConfig
 from .exceptions import UnexpectedStatusError
 from .types import Headers
+
+# HTTP status codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_STATUS_CODES: frozenset[int] = frozenset({408, 413, 429, 500, 502, 503, 504})
+# Network error codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_ERROR_CODES: frozenset[str] = frozenset(
+    {
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EADDRINUSE",
+        "ECONNREFUSED",
+        "EPIPE",
+        "ENOTFOUND",
+        "ENETUNREACH",
+        "EAI_AGAIN",
+        "EPROTO",
+    }
+)
+_MAX_BACKOFF_MS: float = 10_000.0
+_DEFAULT_MAX_TRIES: int = 5
 
 ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
@@ -32,6 +51,8 @@ _UNHASHABLE_PREFIXES: dict[str, str] = {
 class AlgodClient:
     def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
         self._config = config or ClientConfig()
+        # Track whether a custom HTTP client was provided to avoid retry conflicts
+        self._uses_custom_client = http_client is not None
         self._client = http_client or httpx.Client(
             base_url=self._config.base_url,
             timeout=self._config.timeout,
@@ -41,396 +62,89 @@ class AlgodClient:
     def close(self) -> None:
         self._client.close()
 
-    # private
+    def _calculate_max_tries(self) -> int:
+        """Calculate maximum number of tries from config.max_retries."""
+        max_retries = self._config.max_retries
+        if not isinstance(max_retries, int) or max_retries < 0:
+            return _DEFAULT_MAX_TRIES
+        return max_retries + 1
 
-    def abort_catchup(
-        self,
-        catchpoint: str,
-    ) -> models.AbortCatchupResponseModel:
+    def _should_retry(self, error: Exception | None, status_code: int | None, attempt: int, max_tries: int) -> bool:
+        """Determine if a request should be retried based on error/status and attempt count."""
+        if attempt >= max_tries:
+            return False
+
+        # Check HTTP status code
+        if status_code is not None and status_code in _RETRY_STATUS_CODES:
+            return True
+
+        # Check network error codes (aligned with algokit-utils-ts)
+        if error is not None:
+            error_code = self._extract_error_code(error)
+            if error_code and error_code in _RETRY_ERROR_CODES:
+                return True
+
+        return False
+
+    def _extract_error_code(self, error: BaseException) -> str | None:
+        """Extract error code from exception, checking common attributes."""
+        # Check for 'code' attribute (common in OS/network errors)
+        if hasattr(error, "code") and isinstance(error.code, str):
+            return error.code
+        # Check for errno attribute
+        if hasattr(error, "errno") and error.errno is not None:
+            import errno as errno_module
+
+            try:
+                return errno_module.errorcode.get(error.errno)
+            except (TypeError, AttributeError):
+                pass
+        # Check __cause__ for wrapped errors
+        if error.__cause__ is not None:
+            return self._extract_error_code(error.__cause__)
+        return None
+
+    def _request_with_retry(self, request_kwargs: dict[str, Any]) -> httpx.Response:
+        """Execute request with exponential backoff retry for transient failures.
+
+        When a custom HTTP client is provided, retries are disabled to avoid
+        conflicts with any retry mechanism the custom client may implement.
         """
-        Aborts a catchpoint catchup.
-        """
-
-        path = "/v2/catchup/{catchpoint}"
-        path = path.replace("{catchpoint}", str(catchpoint))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "DELETE",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.AbortCatchupResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def add_participation_key(
-        self,
-        body: bytes,
-    ) -> models.AddParticipationKeyResponseModel:
-        """
-        Add a participation key to the node
-        """
-
-        path = "/v2/participation"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/msgpack"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "is_binary": True,
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.AddParticipationKeyResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def append_keys(
-        self,
-        participation_id: str,
-        body: bytes,
-    ) -> models.ParticipationKey:
-        """
-        Append state proof keys to a participation key
-        """
-
-        path = "/v2/participation/{participation-id}"
-        path = path.replace("{participation-id}", str(participation_id))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/msgpack"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "is_binary": True,
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.ParticipationKey)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def delete_participation_key_by_id(
-        self,
-        participation_id: str,
-    ) -> None:
-        """
-        Delete a given participation key by ID
-        """
-
-        path = "/v2/participation/{participation-id}"
-        path = path.replace("{participation-id}", str(participation_id))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "DELETE",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def generate_participation_keys(
-        self,
-        address: str,
-        first: int,
-        last: int,
-        *,
-        dilution: int | None = None,
-    ) -> str:
-        """
-        Generate and install participation keys to the node.
-        """
-
-        path = "/v2/participation/generate/{address}"
-        path = path.replace("{address}", str(address))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if dilution is not None:
-            params["dilution"] = dilution
-
-        if first is not None:
-            params["first"] = first
-
-        if last is not None:
-            params["last"] = last
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, type_=str)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_config(
-        self,
-    ) -> str:
-        """
-        Gets the merged config file.
-        """
-
-        path = "/debug/settings/config"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, type_=str)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_debug_settings_prof(
-        self,
-    ) -> models.AlgodMutexAndBlockingProfilingState:
-        """
-        Retrieves the current settings for blocking and mutex profiles
-        """
-
-        path = "/debug/settings/pprof"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.AlgodMutexAndBlockingProfilingState)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_participation_key_by_id(
-        self,
-        participation_id: str,
-    ) -> models.ParticipationKey:
-        """
-        Get participation key info given a participation ID
-        """
-
-        path = "/v2/participation/{participation-id}"
-        path = path.replace("{participation-id}", str(participation_id))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.ParticipationKey)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_participation_keys(
-        self,
-    ) -> list[models.ParticipationKey]:
-        """
-        Return a list of participation keys
-        """
-
-        path = "/v2/participation"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, list_model=models.ParticipationKey)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def put_debug_settings_prof(
-        self,
-    ) -> models.AlgodMutexAndBlockingProfilingState:
-        """
-        Enables blocking and mutex profiles, and returns the old settings
-        """
-
-        path = "/debug/settings/pprof"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "PUT",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.AlgodMutexAndBlockingProfilingState)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def shutdown_node(
-        self,
-        *,
-        timeout: int | None = None,
-    ) -> dict[str, object]:
-        """
-        Special management endpoint to shutdown the node. Optionally provide a timeout parameter
-        to indicate that the node should begin shutting down after a number of seconds.
-        """
-
-        path = "/v2/shutdown"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if timeout is not None:
-            params["timeout"] = timeout
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, type_=dict[str, object])
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def start_catchup(
-        self,
-        catchpoint: str,
-        *,
-        min_: int | None = None,
-    ) -> models.StartCatchupResponseModel:
-        """
-        Starts a catchpoint catchup.
-        """
-
-        path = "/v2/catchup/{catchpoint}"
-        path = path.replace("{catchpoint}", str(catchpoint))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if min_ is not None:
-            params["min"] = min_
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.StartCatchupResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
+        # Disable retries when using a custom HTTP client to avoid conflicts
+        # with the client's own retry mechanism
+        if self._uses_custom_client:
+            return self._client.request(**request_kwargs)
+
+        max_tries = self._calculate_max_tries()
+        attempt = 1
+        last_error: Exception | None = None
+
+        while attempt <= max_tries:
+            status_code: int | None = None
+            try:
+                response = self._client.request(**request_kwargs)
+                status_code = response.status_code
+                if not self._should_retry(None, status_code, attempt, max_tries):
+                    return response
+            except httpx.TransportError as exc:
+                last_error = exc
+                if not self._should_retry(exc, None, attempt, max_tries):
+                    raise
+
+            if attempt == 1:
+                backoff_ms = 0.0
+            else:
+                base_backoff = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+                jitter = 0.5 + random.random()  # Random value between 0.5 and 1.5
+                backoff_ms = base_backoff * jitter
+            if backoff_ms > 0:
+                time.sleep(backoff_ms / 1000.0)
+            attempt += 1
+
+        # Should not reach here, but satisfy type checker
+        if last_error:
+            raise last_error
+        raise RuntimeError(f"Request failed after {max_tries} attempt(s)")
 
     # public
 
@@ -461,7 +175,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Box)
 
@@ -470,7 +184,7 @@ class AlgodClient:
     def _raw_transaction(
         self,
         body: bytes,
-    ) -> models.RawTransactionResponseModel:
+    ) -> models.PostTransactionsResponse:
         """
         Broadcasts a raw transaction or transaction group to the network.
         """
@@ -501,15 +215,15 @@ class AlgodClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.RawTransactionResponseModel)
+            return self._decode_response(response, model=models.PostTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def _transaction_params(
         self,
-    ) -> models.TransactionParamsResponseModel:
+    ) -> models.TransactionParametersResponse:
         """
         Get parameters for constructing a new transaction
         """
@@ -528,9 +242,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TransactionParamsResponseModel)
+            return self._decode_response(response, model=models.TransactionParametersResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -540,7 +254,7 @@ class AlgodClient:
         application_id: int,
         *,
         response_format: Literal["json", "msgpack"] | None = None,
-    ) -> models.AccountApplicationInformationResponseModel:
+    ) -> models.AccountApplicationResponse:
         """
         Get account information about a given app.
         """
@@ -557,10 +271,9 @@ class AlgodClient:
 
         selected_format = response_format
 
-        if selected_format is not None:
-            params["format"] = selected_format
-            if selected_format == "msgpack":
-                accept_value = "application/msgpack"
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -570,9 +283,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AccountApplicationInformationResponseModel)
+            return self._decode_response(response, model=models.AccountApplicationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -580,7 +293,7 @@ class AlgodClient:
         self,
         address: str,
         asset_id: int,
-    ) -> models.AccountAssetInformationResponseModel:
+    ) -> models.AccountAssetResponse:
         """
         Get account information about a given asset.
         """
@@ -595,8 +308,6 @@ class AlgodClient:
 
         accept_value: str | None = None
 
-        params["format"] = "json"
-
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
@@ -605,47 +316,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.AccountAssetInformationResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def account_assets_information(
-        self,
-        address: str,
-        *,
-        limit: int | None = None,
-        next_: str | None = None,
-    ) -> models.AccountAssetsInformationResponseModel:
-        """
-        Get a list of assets held by an account, inclusive of asset params.
-        """
-
-        path = "/v2/accounts/{address}/assets"
-        path = path.replace("{address}", str(address))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if limit is not None:
-            params["limit"] = limit
-
-        if next_ is not None:
-            params["next"] = next_
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.AccountAssetsInformationResponseModel)
+            return self._decode_response(response, model=models.AccountAssetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -669,8 +342,6 @@ class AlgodClient:
 
         accept_value: str | None = None
 
-        params["format"] = "json"
-
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
             "method": "GET",
@@ -679,36 +350,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Account)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def experimental_check(
-        self,
-    ) -> None:
-        """
-        Returns OK if experimental API is enabled.
-        """
-
-        path = "/v2/experimental"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -717,7 +361,7 @@ class AlgodClient:
         application_id: int,
         *,
         max_: int | None = None,
-    ) -> models.GetApplicationBoxesResponseModel:
+    ) -> models.BoxesResponse:
         """
         Get all box names for a given application.
         """
@@ -740,9 +384,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetApplicationBoxesResponseModel)
+            return self._decode_response(response, model=models.BoxesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -770,7 +414,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Application)
 
@@ -800,7 +444,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Asset)
 
@@ -827,7 +471,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -838,7 +481,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.GetBlock)
 
@@ -847,7 +490,7 @@ class AlgodClient:
     def get_block_hash(
         self,
         round_: int,
-    ) -> models.GetBlockHashResponseModel:
+    ) -> models.BlockHashResponse:
         """
         Get the block hash for the block on the given round.
         """
@@ -868,45 +511,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockHashResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_block_logs(
-        self,
-        round_: int,
-    ) -> models.GetBlockLogsResponseModel:
-        """
-        Get all of the logs from outer and inner app calls in the given round
-        """
-
-        path = "/v2/blocks/{round}/logs"
-        path = path.replace("{round}", str(round_))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.GetBlockLogsResponseModel)
+            return self._decode_response(response, model=models.BlockHashResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_time_stamp_offset(
         self,
-    ) -> models.GetBlockTimeStampOffsetResponseModel:
+    ) -> models.GetBlockTimeStampOffsetResponse:
         """
         Returns the timestamp offset. Timestamp offsets can only be set in dev mode.
         """
@@ -925,16 +538,16 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTimeStampOffsetResponseModel)
+            return self._decode_response(response, model=models.GetBlockTimeStampOffsetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_block_tx_ids(
         self,
         round_: int,
-    ) -> models.GetBlockTxIdsResponseModel:
+    ) -> models.BlockTxidsResponse:
         """
         Get the top level transaction IDs for the block on the given round.
         """
@@ -955,9 +568,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlockTxIdsResponseModel)
+            return self._decode_response(response, model=models.BlockTxidsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -982,7 +595,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.GenesisFileInJson)
 
@@ -991,7 +604,7 @@ class AlgodClient:
     def get_ledger_state_delta(
         self,
         round_: int,
-    ) -> bytes:
+    ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given round
         """
@@ -1005,7 +618,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1016,16 +628,16 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.LedgerStateDelta)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_ledger_state_delta_for_transaction_group(
         self,
         id_: str,
-    ) -> bytes:
+    ) -> models.LedgerStateDelta:
         """
         Get a LedgerStateDelta object for a given transaction group
         """
@@ -1039,7 +651,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1050,9 +661,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.LedgerStateDelta)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1080,7 +691,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.LightBlockHeaderProof)
 
@@ -1090,7 +701,7 @@ class AlgodClient:
         self,
         *,
         max_: int | None = None,
-    ) -> models.GetPendingTransactionsResponseModel:
+    ) -> models.PendingTransactionsResponse:
         """
         Get a list of unconfirmed transactions currently in the transaction pool.
         """
@@ -1104,7 +715,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1115,9 +725,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetPendingTransactionsResponseModel)
+            return self._decode_response(response, model=models.PendingTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1126,7 +736,7 @@ class AlgodClient:
         address: str,
         *,
         max_: int | None = None,
-    ) -> models.GetPendingTransactionsByAddressResponseModel:
+    ) -> models.PendingTransactionsResponse:
         """
         Get a list of unconfirmed transactions currently in the transaction pool by address.
         """
@@ -1142,7 +752,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1153,9 +762,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetPendingTransactionsByAddressResponseModel)
+            return self._decode_response(response, model=models.PendingTransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1180,7 +789,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
 
@@ -1210,7 +819,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.StateProof)
 
@@ -1218,7 +827,7 @@ class AlgodClient:
 
     def get_status(
         self,
-    ) -> models.GetStatusResponseModel:
+    ) -> models.NodeStatusResponse:
         """
         Gets the current node status.
         """
@@ -1237,15 +846,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetStatusResponseModel)
+            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_supply(
         self,
-    ) -> models.GetSupplyResponseModel:
+    ) -> models.SupplyResponse:
         """
         Get the current supply reported by the ledger.
         """
@@ -1264,15 +873,15 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetSupplyResponseModel)
+            return self._decode_response(response, model=models.SupplyResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_sync_round(
         self,
-    ) -> models.GetSyncRoundResponseModel:
+    ) -> models.GetSyncRoundResponse:
         """
         Returns the minimum sync round the ledger is keeping in cache.
         """
@@ -1291,16 +900,16 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetSyncRoundResponseModel)
+            return self._decode_response(response, model=models.GetSyncRoundResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def get_transaction_group_ledger_state_deltas_for_round(
         self,
         round_: int,
-    ) -> bytes:
+    ) -> models.GetTransactionGroupLedgerStateDeltasForRound:
         """
         Get LedgerStateDelta objects for all transaction groups in a given round
         """
@@ -1314,7 +923,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1325,9 +933,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, raw_msgpack=True)
+            return self._decode_response(response, model=models.GetTransactionGroupLedgerStateDeltasForRound)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1357,10 +965,9 @@ class AlgodClient:
 
         selected_format = response_format
 
-        if selected_format is not None:
-            params["format"] = selected_format
-            if selected_format == "msgpack":
-                accept_value = "application/msgpack"
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/json")
         request_kwargs: dict[str, Any] = {
@@ -1370,7 +977,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.TransactionProof)
 
@@ -1397,7 +1004,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.VersionContainsTheCurrentAlgodVersion)
 
@@ -1424,34 +1031,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def metrics(
-        self,
-    ) -> None:
-        """
-        Return metrics about algod functioning.
-        """
-
-        path = "/metrics"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
 
@@ -1474,7 +1054,6 @@ class AlgodClient:
         accept_value: str | None = None
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         headers.setdefault("accept", accept_value or "application/msgpack")
@@ -1485,51 +1064,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.PendingTransactionResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def raw_transaction_async(
-        self,
-        body: bytes,
-    ) -> None:
-        """
-        Fast track for broadcasting a raw transaction or transaction group to the network
-        through the tx handler without performing most of the checks and reporting detailed
-        errors. Should be only used for development and performance testing.
-        """
-
-        path = "/v2/transactions/async"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/x-binary"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "is_binary": True,
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1558,7 +1095,7 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
 
@@ -1588,16 +1125,16 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def simulate_transaction(
+    def simulate_transactions(
         self,
         body: models.SimulateRequest,
-    ) -> models.SimulateTransactionResponseModel:
+    ) -> models.SimulateResponse:
         """
         Simulates a raw transaction or transaction group as it would be evaluated on the
         network. The simulation will use blockchain state from the latest committed round.
@@ -1612,7 +1149,6 @@ class AlgodClient:
         body_media_types = ["application/msgpack"]
 
         params["format"] = "msgpack"
-
         accept_value = "application/msgpack"
 
         if "application/msgpack" in body_media_types:
@@ -1636,20 +1172,23 @@ class AlgodClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SimulateTransactionResponseModel)
+            return self._decode_response(response, model=models.SimulateResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def swagger_json(
+    def status_after_block(
         self,
-    ) -> str:
+        round_: int,
+    ) -> models.NodeStatusResponse:
         """
-        Gets the current swagger spec.
+        Gets the node status after waiting for a round after the given round.
         """
 
-        path = "/swagger.json"
+        path = "/v2/status/wait-for-block-after/{round}"
+        path = path.replace("{round}", str(round_))
+
         params: dict[str, Any] = {}
         headers: Headers = self._config.resolve_headers()
 
@@ -1663,9 +1202,9 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, type_=str)
+            return self._decode_response(response, model=models.NodeStatusResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1674,7 +1213,7 @@ class AlgodClient:
         body: bytes,
         *,
         sourcemap: bool | None = None,
-    ) -> models.TealCompileResponseModel:
+    ) -> models.CompileResponse:
         """
         Compile TEAL source code to binary, produce its hash
         """
@@ -1707,16 +1246,16 @@ class AlgodClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TealCompileResponseModel)
+            return self._decode_response(response, model=models.CompileResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def teal_disassemble(
         self,
         body: bytes,
-    ) -> models.TealDisassembleResponseModel:
+    ) -> models.DisassembleResponse:
         """
         Disassemble program bytes into the TEAL source code.
         """
@@ -1747,50 +1286,9 @@ class AlgodClient:
                 body_media_types,
             )
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.TealDisassembleResponseModel)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def teal_dryrun(
-        self,
-        *,
-        body: models.DryrunRequest | None = None,
-    ) -> models.TealDryrunResponseModel:
-        """
-        Provide debugging information for a transaction (or group).
-        """
-
-        path = "/v2/teal/dryrun"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/json", "application/msgpack"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "model": "DryrunRequest",
-                },
-                body_media_types,
-            )
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.TealDryrunResponseModel)
+            return self._decode_response(response, model=models.DisassembleResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1815,46 +1313,16 @@ class AlgodClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def wait_for_block(
-        self,
-        round_: int,
-    ) -> models.WaitForBlockResponseModel:
-        """
-        Gets the node status after waiting for a round after the given round.
-        """
-
-        path = "/v2/status/wait-for-block-after/{round}"
-        path = path.replace("{round}", str(round_))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._client.request(**request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.WaitForBlockResponseModel)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
     def send_raw_transaction(
         self,
         stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
-    ) -> models.RawTransactionResponseModel:
+    ) -> models.PostTransactionsResponse:
         """
         Send a signed transaction or array of signed transactions to the network.
         """

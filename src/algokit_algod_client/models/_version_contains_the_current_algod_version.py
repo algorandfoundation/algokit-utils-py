@@ -18,9 +18,10 @@ class VersionContainsTheCurrentAlgodVersion:
     """
 
     build: BuildVersionContainsTheCurrentAlgodBuildVersionInformation = field(
-        metadata=nested("build", lambda: BuildVersionContainsTheCurrentAlgodBuildVersionInformation),
+        metadata=nested("build", lambda: BuildVersionContainsTheCurrentAlgodBuildVersionInformation, required=True),
     )
     genesis_hash_b64: bytes = field(
+        default=b"",
         metadata=wire(
             "genesis_hash_b64",
             encode=encode_bytes_base64,
@@ -28,8 +29,10 @@ class VersionContainsTheCurrentAlgodVersion:
         ),
     )
     genesis_id: str = field(
+        default="",
         metadata=wire("genesis_id"),
     )
     versions: list[str] = field(
+        default_factory=list,
         metadata=wire("versions"),
     )

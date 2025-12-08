@@ -9,14 +9,14 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class InitWalletHandleTokenRequest:
     """
-    APIV1POSTWalletInitRequest is the request for `POST /v1/wallet/init`
+    The request for `POST /v1/wallet/init`
     """
 
-    wallet_id: str | None = field(
-        default=None,
+    wallet_id: str = field(
+        default="",
         metadata=wire("wallet_id"),
     )
-    wallet_password: str | None = field(
-        default=None,
+    wallet_password: str = field(
+        default="",
         metadata=wire("wallet_password"),
     )

@@ -9,30 +9,30 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class Wallet:
     """
-    APIV1Wallet is the API's representation of a wallet
+    Wallet is the API's representation of a wallet
     """
 
-    driver_name: str | None = field(
-        default=None,
+    driver_name: str = field(
+        default="",
         metadata=wire("driver_name"),
     )
-    driver_version: int | None = field(
-        default=None,
+    driver_version: int = field(
+        default=0,
         metadata=wire("driver_version"),
     )
-    id_: str | None = field(
-        default=None,
+    id_: str = field(
+        default="",
         metadata=wire("id"),
     )
-    mnemonic_ux: bool | None = field(
-        default=None,
+    mnemonic_ux: bool = field(
+        default=False,
         metadata=wire("mnemonic_ux"),
     )
-    name: str | None = field(
-        default=None,
+    name: str = field(
+        default="",
         metadata=wire("name"),
     )
-    supported_txs: list[str] | None = field(
-        default=None,
+    supported_txs: list[str] = field(
+        default_factory=list,
         metadata=wire("supported_txs"),
     )

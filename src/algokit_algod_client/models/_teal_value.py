@@ -15,6 +15,7 @@ class TealValue:
     """
 
     bytes_: bytes = field(
+        default=b"",
         metadata=wire(
             "bytes",
             encode=encode_bytes_base64,
@@ -22,8 +23,10 @@ class TealValue:
         ),
     )
     type_: int = field(
+        default=0,
         metadata=wire("type"),
     )
     uint: int = field(
+        default=0,
         metadata=wire("uint"),
     )
