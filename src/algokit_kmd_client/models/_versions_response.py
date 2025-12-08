@@ -13,7 +13,7 @@ class VersionsResponse:
     friendly:VersionsResponse
     """
 
-    versions: list[str] | None = field(
-        default=None,
+    versions: list[str] = field(
+        default_factory=list,
         metadata=wire("versions"),
     )

@@ -4,7 +4,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
 
-from algokit_common.serde import flatten, nested, wire, addr
+from algokit_common.serde import addr, addr_seq, flatten, nested, wire
 from algokit_transact.models.signed_transaction import SignedTransaction
 
 from ._serde_helpers import (
@@ -30,6 +30,7 @@ __all__ = [
     "ApplyData",
     "SignedTxnWithAD",
     "SignedTxnInBlock",
+    "BlockHeader",
     "Block",
     "GetBlock",
 ]
@@ -175,21 +176,15 @@ class SignedTxnWithAD:
     """Signed transaction with associated apply data."""
 
     signed_transaction: SignedTransaction = field(metadata=flatten(lambda: SignedTransaction))
-    apply_data: ApplyData = field(metadata=flatten(lambda: ApplyData))
+    apply_data: ApplyData | None = field(default=None, metadata=flatten(lambda: ApplyData))
 
 
 @dataclass(slots=True)
 class ParticipationUpdates:
     """Participation account updates embedded in a block."""
 
-    expired_participation_accounts: list[bytes] | None = field(
-        default=None,
-        metadata=wire("partupdrmv"),
-    )
-    absent_participation_accounts: list[bytes] | None = field(
-        default=None,
-        metadata=wire("partupdabs"),
-    )
+    expired_participation_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("partupdrmv"))
+    absent_participation_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("partupdabs"))
 
 
 @dataclass(slots=True)
@@ -229,30 +224,30 @@ class BlockAppEvalDelta:
             decode=lambda raw: decode_model_sequence(lambda: SignedTxnInBlock, raw),
         ),
     )
-    shared_accounts: list[bytes] | None = field(default=None, metadata=wire("sa"))
+    shared_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("sa"))
     logs: list[bytes] | None = field(default=None, metadata=wire("lg"))
 
 
 @dataclass(slots=True)
-class Block:
-    """Block header fields and transactions for a ledger round."""
+class BlockHeader:
+    """Block header fields."""
 
+    transactions_root: bytes = field(metadata=wire("txn", required=True))
     round: int | None = field(default=None, metadata=wire("rnd"))
     previous_block_hash: bytes | None = field(default=None, metadata=wire("prev"))
     previous_block_hash_512: bytes | None = field(default=None, metadata=wire("prev512"))
     seed: bytes | None = field(default=None, metadata=wire("seed"))
-    transactions_root: bytes | None = field(default=None, metadata=wire("txn"))
     transactions_root_sha256: bytes | None = field(default=None, metadata=wire("txn256"))
     transactions_root_sha512: bytes | None = field(default=None, metadata=wire("txn512"))
     timestamp: int | None = field(default=None, metadata=wire("ts"))
     genesis_id: str | None = field(default=None, metadata=wire("gen"))
     genesis_hash: bytes | None = field(default=None, metadata=wire("gh"))
-    proposer: bytes | None = field(default=None, metadata=addr("prp"))
+    proposer: str | None = field(default=None, metadata=addr("prp"))
     fees_collected: int | None = field(default=None, metadata=wire("fc"))
     bonus: int | None = field(default=None, metadata=wire("bi"))
     proposer_payout: int | None = field(default=None, metadata=wire("pp"))
-    fee_sink: bytes | None = field(default=None, metadata=addr("fees"))
-    rewards_pool: bytes | None = field(default=None, metadata=addr("rwd"))
+    fee_sink: str | None = field(default=None, metadata=addr("fees"))
+    rewards_pool: str | None = field(default=None, metadata=addr("rwd"))
     rewards_level: int | None = field(default=None, metadata=wire("earn"))
     rewards_rate: int | None = field(default=None, metadata=wire("rate"))
     rewards_residue: int | None = field(default=None, metadata=wire("frac"))
@@ -281,7 +276,14 @@ class Block:
         default=None,
         metadata=flatten(lambda: ParticipationUpdates),
     )
-    transactions: list[SignedTxnInBlock] | None = field(
+
+
+@dataclass(slots=True)
+class Block:
+    """Block header fields and transactions for a ledger round."""
+
+    header: BlockHeader = field(metadata=flatten(lambda: BlockHeader))
+    payset: list[SignedTxnInBlock] | None = field(
         default=None,
         metadata=wire(
             "txns",

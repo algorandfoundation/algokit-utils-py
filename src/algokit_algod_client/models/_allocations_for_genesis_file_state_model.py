@@ -9,9 +9,11 @@ from algokit_common.serde import wire
 @dataclass(slots=True)
 class AllocationsForGenesisFileStateModel:
     algo: int = field(
+        default=0,
         metadata=wire("algo"),
     )
     onl: int = field(
+        default=0,
         metadata=wire("onl"),
     )
     sel: str | None = field(

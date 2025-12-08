@@ -45,7 +45,7 @@ Bases: `RuntimeError`
 
 Raised when an error transformer returns a non-error value.
 
-### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateTransactionResponseModel | None = None)
+### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateResponse | None = None)
 
 Bases: `RuntimeError`
 
@@ -109,7 +109,7 @@ Contains detailed debugging information including simulation traces and sent tra
 
 #### group_id *: str | None* *= None*
 
-#### simulate_response *: algokit_algod_client.models.SimulateTransactionResponseModel | None* *= None*
+#### simulate_response *: algokit_algod_client.models.SimulateResponse | None* *= None*
 
 ### algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
 

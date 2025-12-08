@@ -3,21 +3,22 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
 class DeleteMultisigRequest:
     """
-    APIV1DELETEMultisigRequest is the request for `DELETE /v1/multisig`
+    The request for `DELETE /v1/multisig`
     """
 
-    address: str | None = field(
-        default=None,
+    address: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
     )
     wallet_password: str | None = field(

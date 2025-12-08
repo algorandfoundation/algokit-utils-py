@@ -1,6 +1,6 @@
 # AUTO-GENERATED: oas_generator
-
-
+import random
+import time
 from dataclasses import is_dataclass
 from datetime import datetime
 from typing import Any, Literal, TypeVar, overload
@@ -14,6 +14,25 @@ from . import models
 from .config import ClientConfig
 from .exceptions import UnexpectedStatusError
 from .types import Headers
+
+# HTTP status codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_STATUS_CODES: frozenset[int] = frozenset({408, 413, 429, 500, 502, 503, 504})
+# Network error codes that warrant a retry (aligned with algokit-utils-ts)
+_RETRY_ERROR_CODES: frozenset[str] = frozenset(
+    {
+        "ETIMEDOUT",
+        "ECONNRESET",
+        "EADDRINUSE",
+        "ECONNREFUSED",
+        "EPIPE",
+        "ENOTFOUND",
+        "ENETUNREACH",
+        "EAI_AGAIN",
+        "EPROTO",
+    }
+)
+_MAX_BACKOFF_MS: float = 10_000.0
+_DEFAULT_MAX_TRIES: int = 5
 
 ModelT = TypeVar("ModelT")
 ListModelT = TypeVar("ListModelT")
@@ -31,6 +50,8 @@ _UNHASHABLE_PREFIXES: dict[str, str] = {
 class IndexerClient:
     def __init__(self, config: ClientConfig | None = None, *, http_client: httpx.Client | None = None) -> None:
         self._config = config or ClientConfig()
+        # Track whether a custom HTTP client was provided to avoid retry conflicts
+        self._uses_custom_client = http_client is not None
         self._client = http_client or httpx.Client(
             base_url=self._config.base_url,
             timeout=self._config.timeout,
@@ -39,6 +60,90 @@ class IndexerClient:
 
     def close(self) -> None:
         self._client.close()
+
+    def _calculate_max_tries(self) -> int:
+        """Calculate maximum number of tries from config.max_retries."""
+        max_retries = self._config.max_retries
+        if not isinstance(max_retries, int) or max_retries < 0:
+            return _DEFAULT_MAX_TRIES
+        return max_retries + 1
+
+    def _should_retry(self, error: Exception | None, status_code: int | None, attempt: int, max_tries: int) -> bool:
+        """Determine if a request should be retried based on error/status and attempt count."""
+        if attempt >= max_tries:
+            return False
+
+        # Check HTTP status code
+        if status_code is not None and status_code in _RETRY_STATUS_CODES:
+            return True
+
+        # Check network error codes (aligned with algokit-utils-ts)
+        if error is not None:
+            error_code = self._extract_error_code(error)
+            if error_code and error_code in _RETRY_ERROR_CODES:
+                return True
+
+        return False
+
+    def _extract_error_code(self, error: BaseException) -> str | None:
+        """Extract error code from exception, checking common attributes."""
+        # Check for 'code' attribute (common in OS/network errors)
+        if hasattr(error, "code") and isinstance(error.code, str):
+            return error.code
+        # Check for errno attribute
+        if hasattr(error, "errno") and error.errno is not None:
+            import errno as errno_module
+
+            try:
+                return errno_module.errorcode.get(error.errno)
+            except (TypeError, AttributeError):
+                pass
+        # Check __cause__ for wrapped errors
+        if error.__cause__ is not None:
+            return self._extract_error_code(error.__cause__)
+        return None
+
+    def _request_with_retry(self, request_kwargs: dict[str, Any]) -> httpx.Response:
+        """Execute request with exponential backoff retry for transient failures.
+
+        When a custom HTTP client is provided, retries are disabled to avoid
+        conflicts with any retry mechanism the custom client may implement.
+        """
+        # Disable retries when using a custom HTTP client to avoid conflicts
+        # with the client's own retry mechanism
+        if self._uses_custom_client:
+            return self._client.request(**request_kwargs)
+
+        max_tries = self._calculate_max_tries()
+        attempt = 1
+        last_error: Exception | None = None
+
+        while attempt <= max_tries:
+            status_code: int | None = None
+            try:
+                response = self._client.request(**request_kwargs)
+                status_code = response.status_code
+                if not self._should_retry(None, status_code, attempt, max_tries):
+                    return response
+            except httpx.TransportError as exc:
+                last_error = exc
+                if not self._should_retry(exc, None, attempt, max_tries):
+                    raise
+
+            if attempt == 1:
+                backoff_ms = 0.0
+            else:
+                base_backoff = min(1000.0 * (2 ** (attempt - 1)), _MAX_BACKOFF_MS)
+                jitter = 0.5 + random.random()  # Random value between 0.5 and 1.5
+                backoff_ms = base_backoff * jitter
+            if backoff_ms > 0:
+                time.sleep(backoff_ms / 1000.0)
+            attempt += 1
+
+        # Should not reach here, but satisfy type checker
+        if last_error:
+            raise last_error
+        raise RuntimeError(f"Request failed after {max_tries} attempt(s)")
 
     # common
 
@@ -63,7 +168,7 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.HealthCheck)
 
@@ -79,7 +184,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountAppLocalStatesResponseModel:
+    ) -> models.ApplicationLocalStatesResponse:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -111,9 +216,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountAppLocalStatesResponseModel)
+            return self._decode_response(response, model=models.ApplicationLocalStatesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -125,7 +230,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountAssetsResponseModel:
+    ) -> models.AssetHoldingsResponse:
         """
         Lookup an account's asset holdings, optionally for a specific ID.
         """
@@ -157,9 +262,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetHoldingsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -170,7 +275,7 @@ class IndexerClient:
         round_: int | None = None,
         include_all: bool | None = None,
         exclude: list[str] | None = None,
-    ) -> models.LookupAccountByIdresponseModel:
+    ) -> models.AccountResponse:
         """
         Lookup account information.
         """
@@ -199,9 +304,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountByIdresponseModel)
+            return self._decode_response(response, model=models.AccountResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -213,7 +318,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountCreatedApplicationsResponseModel:
+    ) -> models.ApplicationsResponse:
         """
         Lookup an account's created application parameters, optionally for a specific ID.
         """
@@ -245,9 +350,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountCreatedApplicationsResponseModel)
+            return self._decode_response(response, model=models.ApplicationsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -259,7 +364,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.LookupAccountCreatedAssetsResponseModel:
+    ) -> models.AssetsResponse:
         """
         Lookup an account's created asset parameters, optionally for a specific ID.
         """
@@ -291,9 +396,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountCreatedAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -316,7 +421,7 @@ class IndexerClient:
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
         rekey_to: bool | None = None,
-    ) -> models.LookupAccountTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Lookup account transactions. Transactions are returned newest to oldest.
         """
@@ -381,9 +486,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAccountTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -414,7 +519,7 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Box)
 
@@ -425,7 +530,7 @@ class IndexerClient:
         application_id: int,
         *,
         include_all: bool | None = None,
-    ) -> models.LookupApplicationByIdresponseModel:
+    ) -> models.ApplicationResponse:
         """
         Lookup application.
         """
@@ -448,9 +553,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupApplicationByIdresponseModel)
+            return self._decode_response(response, model=models.ApplicationResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -464,7 +569,7 @@ class IndexerClient:
         min_round: int | None = None,
         max_round: int | None = None,
         sender_address: str | None = None,
-    ) -> models.LookupApplicationLogsByIdresponseModel:
+    ) -> models.ApplicationLogsResponse:
         """
         Lookup application logs.
         """
@@ -502,9 +607,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupApplicationLogsByIdresponseModel)
+            return self._decode_response(response, model=models.ApplicationLogsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -517,7 +622,7 @@ class IndexerClient:
         next_: str | None = None,
         currency_greater_than: int | None = None,
         currency_less_than: int | None = None,
-    ) -> models.LookupAssetBalancesResponseModel:
+    ) -> models.AssetBalancesResponse:
         """
         Lookup the list of accounts who hold this asset
         """
@@ -552,9 +657,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetBalancesResponseModel)
+            return self._decode_response(response, model=models.AssetBalancesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -563,7 +668,7 @@ class IndexerClient:
         asset_id: int,
         *,
         include_all: bool | None = None,
-    ) -> models.LookupAssetByIdresponseModel:
+    ) -> models.AssetResponse:
         """
         Lookup asset information.
         """
@@ -586,9 +691,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetByIdresponseModel)
+            return self._decode_response(response, model=models.AssetResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -613,7 +718,7 @@ class IndexerClient:
         address_role: str | None = None,
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
-    ) -> models.LookupAssetTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Lookup transactions for an asset. Transactions are returned oldest to newest.
         """
@@ -684,9 +789,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupAssetTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -718,16 +823,16 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.Block)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def lookup_transaction(
+    def lookup_transaction_by_id(
         self,
         txid: str,
-    ) -> models.LookupTransactionResponseModel:
+    ) -> models.TransactionResponse:
         """
         Lookup a single transaction.
         """
@@ -748,9 +853,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.LookupTransactionResponseModel)
+            return self._decode_response(response, model=models.TransactionResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -770,7 +875,7 @@ class IndexerClient:
         round_: int | None = None,
         application_id: int | None = None,
         online_only: bool | None = None,
-    ) -> models.SearchForAccountsResponseModel:
+    ) -> models.AccountsResponse:
         """
         Search for accounts.
         """
@@ -821,9 +926,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForAccountsResponseModel)
+            return self._decode_response(response, model=models.AccountsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -833,7 +938,7 @@ class IndexerClient:
         *,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.SearchForApplicationBoxesResponseModel:
+    ) -> models.BoxesResponse:
         """
         Get box names for a given application.
         """
@@ -859,9 +964,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForApplicationBoxesResponseModel)
+            return self._decode_response(response, model=models.BoxesResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -873,7 +978,7 @@ class IndexerClient:
         include_all: bool | None = None,
         limit: int | None = None,
         next_: str | None = None,
-    ) -> models.SearchForApplicationsResponseModel:
+    ) -> models.ApplicationsResponse:
         """
         Search for applications
         """
@@ -906,9 +1011,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForApplicationsResponseModel)
+            return self._decode_response(response, model=models.ApplicationsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -922,7 +1027,7 @@ class IndexerClient:
         name: str | None = None,
         unit: str | None = None,
         asset_id: int | None = None,
-    ) -> models.SearchForAssetsResponseModel:
+    ) -> models.AssetsResponse:
         """
         Search for assets.
         """
@@ -961,9 +1066,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForAssetsResponseModel)
+            return self._decode_response(response, model=models.AssetsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -979,7 +1084,7 @@ class IndexerClient:
         proposers: list[str] | None = None,
         expired: list[str] | None = None,
         absent: list[str] | None = None,
-    ) -> models.SearchForBlockHeadersResponseModel:
+    ) -> models.BlockHeadersResponse:
         """
         Search for block headers. Block headers are returned in ascending round order.
         Transactions are not included in the output.
@@ -1025,9 +1130,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForBlockHeadersResponseModel)
+            return self._decode_response(response, model=models.BlockHeadersResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1054,7 +1159,7 @@ class IndexerClient:
         exclude_close_to: bool | None = None,
         rekey_to: bool | None = None,
         application_id: int | None = None,
-    ) -> models.SearchForTransactionsResponseModel:
+    ) -> models.TransactionsResponse:
         """
         Search for transactions. Transactions are returned oldest to newest unless the address
         parameter is used, in which case results are returned newest to oldest.
@@ -1133,9 +1238,9 @@ class IndexerClient:
             "headers": headers,
         }
 
-        response = self._client.request(**request_kwargs)
+        response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.SearchForTransactionsResponseModel)
+            return self._decode_response(response, model=models.TransactionsResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

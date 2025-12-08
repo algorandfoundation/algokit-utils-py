@@ -16,9 +16,11 @@ class AccountStateDelta:
     """
 
     address: str = field(
+        default="",
         metadata=wire("address"),
     )
     delta: list[EvalDeltaKeyValue] = field(
+        default_factory=list,
         metadata=wire(
             "delta",
             encode=encode_model_sequence,

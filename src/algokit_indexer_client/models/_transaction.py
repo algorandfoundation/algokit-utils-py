@@ -38,18 +38,23 @@ class Transaction:
     """
 
     fee: int = field(
+        default=0,
         metadata=wire("fee"),
     )
     first_valid: int = field(
+        default=0,
         metadata=wire("first-valid"),
     )
     last_valid: int = field(
+        default=0,
         metadata=wire("last-valid"),
     )
     sender: str = field(
+        default="",
         metadata=wire("sender"),
     )
     tx_type: str = field(
+        default="",
         metadata=wire("tx-type"),
     )
     application_transaction: TransactionApplication | None = field(

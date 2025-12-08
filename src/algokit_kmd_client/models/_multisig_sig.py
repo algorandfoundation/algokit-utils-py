@@ -15,19 +15,19 @@ class MultisigSig:
     MultisigSig is the structure that holds multiple Subsigs
     """
 
-    subsigs: list[MultisigSubsig] | None = field(
-        default=None,
+    subsignatures: list[MultisigSubsig] = field(
+        default_factory=list,
         metadata=wire(
-            "Subsigs",
+            "subsig",
             encode=encode_model_sequence,
             decode=lambda raw: decode_model_sequence(lambda: MultisigSubsig, raw),
         ),
     )
-    threshold: int | None = field(
-        default=None,
-        metadata=wire("Threshold"),
+    threshold: int = field(
+        default=0,
+        metadata=wire("thr"),
     )
-    version: int | None = field(
-        default=None,
-        metadata=wire("Version"),
+    version: int = field(
+        default=0,
+        metadata=wire("v"),
     )

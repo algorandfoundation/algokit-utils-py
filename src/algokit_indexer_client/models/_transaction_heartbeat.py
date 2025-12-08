@@ -18,16 +18,19 @@ class TransactionHeartbeat:
     data/transactions/heartbeat.go : HeartbeatTxnFields
     """
 
+    hb_proof: HbProofFields = field(
+        metadata=nested("hb-proof", lambda: HbProofFields, required=True),
+    )
     hb_address: str = field(
+        default="",
         metadata=wire("hb-address"),
     )
     hb_key_dilution: int = field(
+        default=0,
         metadata=wire("hb-key-dilution"),
     )
-    hb_proof: HbProofFields = field(
-        metadata=nested("hb-proof", lambda: HbProofFields),
-    )
     hb_seed: bytes = field(
+        default=b"",
         metadata=wire(
             "hb-seed",
             encode=encode_bytes_base64,
@@ -35,6 +38,7 @@ class TransactionHeartbeat:
         ),
     )
     hb_vote_id: bytes = field(
+        default=b"",
         metadata=wire(
             "hb-vote-id",
             encode=encode_bytes_base64,

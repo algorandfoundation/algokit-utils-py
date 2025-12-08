@@ -17,7 +17,7 @@ class SimulateTransactionResult:
     """
 
     txn_result: PendingTransactionResponse = field(
-        metadata=nested("txn-result", lambda: PendingTransactionResponse),
+        metadata=nested("txn-result", lambda: PendingTransactionResponse, required=True),
     )
     app_budget_consumed: int | None = field(
         default=None,

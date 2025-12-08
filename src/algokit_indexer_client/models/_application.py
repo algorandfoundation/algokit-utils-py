@@ -14,11 +14,12 @@ class Application:
     Application index and its parameters
     """
 
-    id_: int = field(
-        metadata=wire("id"),
-    )
     params: ApplicationParams = field(
-        metadata=nested("params", lambda: ApplicationParams),
+        metadata=nested("params", lambda: ApplicationParams, required=True),
+    )
+    id_: int = field(
+        default=0,
+        metadata=wire("id"),
     )
     created_at_round: int | None = field(
         default=None,

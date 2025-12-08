@@ -28,6 +28,8 @@ __all__ = [
 
 
 class TypedAppClientProtocol(Protocol):
+    """App Client protocol"""
+
     @classmethod
     def from_creator_and_name(
         cls,
@@ -84,6 +86,8 @@ DeleteParamsT = TypeVar(  # noqa: PLC0105
 
 
 class TypedAppFactoryProtocol(Protocol, Generic[CreateParamsT, UpdateParamsT, DeleteParamsT]):
+    """App factory protocol"""
+
     def __init__(
         self,
         algorand: "AlgorandClient",

@@ -737,7 +737,7 @@ class Arc56Contract:
     def dictify(self) -> dict:
         return to_wire(self)
 
-    def get_arc56_method(self, method_name_or_signature: str) -> Method:
+    def get_abi_method(self, method_name_or_signature: str) -> Method:
         if "(" in method_name_or_signature:
             methods = [m for m in self.methods if m.signature == method_name_or_signature]
         else:

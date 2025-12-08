@@ -4,6 +4,7 @@ from pathlib import Path
 
 from oas_generator.builder import build_client_descriptor
 from oas_generator.config import GeneratorConfig
+from oas_generator.loader import resolve_spec
 from oas_generator.naming import IdentifierSanitizer
 from oas_generator.parser import SpecParser
 from oas_generator.renderer.engine import TemplateRenderer
@@ -12,7 +13,11 @@ from oas_generator.writer import write_files
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate Python API clients from an OpenAPI spec")
-    parser.add_argument("--spec", required=True, type=Path, help="Path to the OpenAPI spec JSON file")
+    parser.add_argument(
+        "--spec",
+        required=True,
+        help="Path or URL to the OpenAPI spec",
+    )
     parser.add_argument(
         "--out",
         required=True,
@@ -28,11 +33,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
+    spec_path = resolve_spec(args.spec)
     parser = SpecParser()
-    spec = parser.parse(args.spec)
+    spec = parser.parse(spec_path)
     sanitizer = IdentifierSanitizer()
     config = GeneratorConfig(
-        spec_path=args.spec,
+        spec_path=spec_path,
         output_root=args.out,
         package_name=args.package,
         template_root=args.template_dir,

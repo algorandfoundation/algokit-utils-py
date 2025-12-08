@@ -15,6 +15,7 @@ class BoxDescriptor:
     """
 
     name: bytes = field(
+        default=b"",
         metadata=wire(
             "name",
             encode=encode_bytes_base64,

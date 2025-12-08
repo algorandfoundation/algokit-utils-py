@@ -24,6 +24,7 @@ class Block:
     """
 
     genesis_hash: bytes = field(
+        default=b"",
         metadata=wire(
             "genesis-hash",
             encode=encode_bytes_base64,
@@ -31,9 +32,11 @@ class Block:
         ),
     )
     genesis_id: str = field(
+        default="",
         metadata=wire("genesis-id"),
     )
     previous_block_hash: bytes = field(
+        default=b"",
         metadata=wire(
             "previous-block-hash",
             encode=encode_bytes_base64,
@@ -41,9 +44,11 @@ class Block:
         ),
     )
     round_: int = field(
+        default=0,
         metadata=wire("round"),
     )
     seed: bytes = field(
+        default=b"",
         metadata=wire(
             "seed",
             encode=encode_bytes_base64,
@@ -51,9 +56,11 @@ class Block:
         ),
     )
     timestamp: int = field(
+        default=0,
         metadata=wire("timestamp"),
     )
     transactions_root: bytes = field(
+        default=b"",
         metadata=wire(
             "transactions-root",
             encode=encode_bytes_base64,
@@ -61,6 +68,7 @@ class Block:
         ),
     )
     transactions_root_sha256: bytes = field(
+        default=b"",
         metadata=wire(
             "transactions-root-sha256",
             encode=encode_bytes_base64,

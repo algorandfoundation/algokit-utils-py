@@ -12,6 +12,7 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 @dataclass(slots=True)
 class GenesisFileInJson:
     alloc: list[AllocationsForGenesisFile] = field(
+        default_factory=list,
         metadata=wire(
             "alloc",
             encode=encode_model_sequence,
@@ -19,18 +20,23 @@ class GenesisFileInJson:
         ),
     )
     fees: str = field(
+        default="",
         metadata=wire("fees"),
     )
     id_: str = field(
+        default="",
         metadata=wire("id"),
     )
     network: str = field(
+        default="",
         metadata=wire("network"),
     )
     proto: str = field(
+        default="",
         metadata=wire("proto"),
     )
     rwd: str = field(
+        default="",
         metadata=wire("rwd"),
     )
     comment: str | None = field(

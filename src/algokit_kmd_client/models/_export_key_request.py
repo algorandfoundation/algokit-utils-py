@@ -3,21 +3,22 @@
 
 from dataclasses import dataclass, field
 
+from algokit_common.constants import ZERO_ADDRESS
 from algokit_common.serde import wire
 
 
 @dataclass(slots=True)
 class ExportKeyRequest:
     """
-    APIV1POSTKeyExportRequest is the request for `POST /v1/key/export`
+    The request for `POST /v1/key/export`
     """
 
-    address: str | None = field(
-        default=None,
+    address: str = field(
+        default=ZERO_ADDRESS,
         metadata=wire("address"),
     )
-    wallet_handle_token: str | None = field(
-        default=None,
+    wallet_handle_token: str = field(
+        default="",
         metadata=wire("wallet_handle_token"),
     )
     wallet_password: str | None = field(

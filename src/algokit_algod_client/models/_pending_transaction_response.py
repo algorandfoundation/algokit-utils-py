@@ -18,11 +18,12 @@ class PendingTransactionResponse:
     confirmation details like the round and reward details.
     """
 
-    pool_error: str = field(
-        metadata=wire("pool-error"),
-    )
     txn: SignedTransaction = field(
-        metadata=nested("txn", lambda: SignedTransaction),
+        metadata=nested("txn", lambda: SignedTransaction, required=True),
+    )
+    pool_error: str = field(
+        default="",
+        metadata=wire("pool-error"),
     )
     app_id: int | None = field(
         default=None,

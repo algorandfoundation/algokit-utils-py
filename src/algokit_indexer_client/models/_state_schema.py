@@ -16,8 +16,10 @@ class StateSchema:
     """
 
     num_byte_slice: int = field(
+        default=0,
         metadata=wire("num-byte-slice"),
     )
     num_uint: int = field(
+        default=0,
         metadata=wire("num-uint"),
     )

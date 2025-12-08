@@ -1,0 +1,14 @@
+{
+  "assets": [
+    {
+      "amount": 0,
+      "asset_id": 705457144,
+      "deleted": false,
+      "is_frozen": false,
+      "opted_in_at_round": 42227833,
+      "opted_out_at_round": null
+    }
+  ],
+  "current_round": 57774717,
+  "next_token": "705457144"
+}

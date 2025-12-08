@@ -52,7 +52,6 @@ class SigslotCommit:
 class Reveal:
     participant: Participant | None = field(default=None, metadata=nested("p", Participant))
     sigslot: SigslotCommit | None = field(default=None, metadata=nested("s", SigslotCommit))
-    position: int | None = field(default=None, metadata=wire("pos"))
 
 
 @dataclass(slots=True, frozen=True)
@@ -100,10 +99,7 @@ def _encode_reveals(mapping: Mapping[int, Reveal] | Iterable[Reveal] | None) -> 
             for idx, (key, reveal) in enumerate(mapping.items())
         )
     else:
-        entries = (
-            (_coerce_reveal_position(getattr(reveal, "position", None), idx), reveal)
-            for idx, reveal in enumerate(mapping)
-        )
+        entries = ((_coerce_reveal_position(None, idx), reveal) for idx, reveal in enumerate(mapping))
     encoded: dict[int, dict[str, object]] = {}
     for position, reveal in entries:
         data = to_wire(reveal)
@@ -123,9 +119,9 @@ def _decode_reveals(obj: object | None) -> dict[int, Reveal] | None:
             if not isinstance(value, Mapping):
                 continue
             position = _coerce_reveal_position(key, len(decoded))
-            payload = dict(value)
-            payload.setdefault("pos", position)
-            decoded[position] = from_wire(Reveal, payload)
+            payload = {k: v for k, v in value.items() if k in {"p", "s"}}
+            if payload:
+                decoded[position] = from_wire(Reveal, payload)
         return decoded or None
 
     if isinstance(obj, list):
@@ -134,9 +130,9 @@ def _decode_reveals(obj: object | None) -> dict[int, Reveal] | None:
             if not isinstance(value, Mapping):
                 continue
             position = _coerce_reveal_position(value.get("pos"), idx)
-            payload = dict(value)
-            payload["pos"] = position
-            decoded_list[position] = from_wire(Reveal, payload)
+            payload = {k: v for k, v in value.items() if k in {"p", "s"}}
+            if payload:
+                decoded_list[position] = from_wire(Reveal, payload)
         return decoded_list or None
 
     return None
