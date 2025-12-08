@@ -1,22 +1,16 @@
 """Fixtures for KMD client tests using mock server."""
 
-from collections.abc import Generator
-
 import pytest
 
 from algokit_kmd_client import ClientConfig, KmdClient
 
-from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, start_mock_server
+from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, get_mock_server
 
 
 @pytest.fixture(scope="session")
-def mock_kmd_server() -> Generator[MockServer, None, None]:
+def mock_kmd_server() -> MockServer:
     """Session-scoped mock KMD server for deterministic testing."""
-    server = start_mock_server("kmd")
-    try:
-        yield server
-    finally:
-        server.stop()
+    return get_mock_server("kmd")
 
 
 @pytest.fixture

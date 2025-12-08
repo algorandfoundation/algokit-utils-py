@@ -1,22 +1,16 @@
 """Fixtures for algod client tests using mock server."""
 
-from collections.abc import Generator
-
 import pytest
 
 from algokit_algod_client import AlgodClient, ClientConfig
 
-from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, start_mock_server
+from tests.modules._mock_server import DEFAULT_TOKEN, MockServer, get_mock_server
 
 
 @pytest.fixture(scope="session")
-def mock_algod_server() -> Generator[MockServer, None, None]:
+def mock_algod_server() -> MockServer:
     """Session-scoped mock algod server for deterministic testing."""
-    server = start_mock_server("algod")
-    try:
-        yield server
-    finally:
-        server.stop()
+    return get_mock_server("algod")
 
 
 @pytest.fixture
