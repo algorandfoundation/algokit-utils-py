@@ -52,10 +52,6 @@ class MockServer:
     base_url: str
     client_type: str
 
-    def stop(self) -> None:
-        """No-op: Server lifecycle is managed externally."""
-        pass
-
 
 def _check_server_health(url: str, timeout: float = 5.0) -> bool:
     """Check if the mock server is reachable and responding.
