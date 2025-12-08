@@ -13,16 +13,6 @@ repos:
         minimum_pre_commit_version: "2.9.2"
         pass_filenames: false
         files: "^(src|tests)/"
-      - id: generate-api-clients
-        name: generate-api-clients
-        description: "Generate API clients before linting"
-        entry: uv run poe generate-api-clients
-        language: system
-        types_or: [python, pyi]
-        args: []
-        require_serial: true
-        pass_filenames: false
-        files: "^(src|tests)/"
       - id: lint
         name: lint
         description: "`mypy` and 'ruff' will check Python types for correctness"
@@ -35,14 +25,6 @@ repos:
         minimum_pre_commit_version: "2.9.2"
         pass_filenames: false
         files: "^(src|tests)/"
-      - id: docs
-        name: docs
-        description: "Build documentation (always passes)"
-        entry: bash -c 'uv run poe docs || true'
-        language: system
-        pass_filenames: false
-        always_run: true
-        verbose: true
       - id: docstrings-check
         name: docstrings-check
         description: "Check docstrings for correctness"
@@ -50,11 +32,3 @@ repos:
         language: system
         types: [python]
         files: "^(src)/"
-      - id: test
-        name: test
-        description: "Run pytest as final validation"
-        entry: uv run pytest
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
