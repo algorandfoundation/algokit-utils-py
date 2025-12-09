@@ -4,10 +4,10 @@ from typing import Any, Generic, TypeVar, cast
 
 from typing_extensions import Self
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
 from algokit_transact import Transaction
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
@@ -117,7 +117,7 @@ class SendSingleTransactionResult:
             base_params.update(
                 {
                     "app_id": app_id,
-                    "app_address": algosdk.logic.get_application_address(app_id),
+                    "app_address": get_application_address(app_id),
                     "abi_return": result.returns[index] if result.returns and is_abi else None,
                 }
             )
@@ -321,7 +321,7 @@ class AlgorandClientTransactionSender:
             return SendAppCreateTransactionResult[ABIReturn](
                 **result.__dict__,
                 app_id=app_id,
-                app_address=algosdk.logic.get_application_address(app_id),
+                app_address=get_application_address(app_id),
             )
 
         return send_app_create_call

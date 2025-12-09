@@ -1,6 +1,8 @@
+import nacl.signing
 import pytest
 
-import algokit_algosdk as algosdk
+import algokit_algo25
+from algokit_common import address_from_public_key
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
@@ -52,7 +54,9 @@ def test_same_account_is_subsequently_retrieved(algorand: AlgorandClient) -> Non
 def test_environment_is_used_in_preference_to_kmd(algorand: AlgorandClient, monkeypatch: pytest.MonkeyPatch) -> None:
     # Arrange - create a known account from a mnemonic
     # Generate a random mnemonic to create a test account
-    test_mnemonic = algosdk.mnemonic.from_private_key(algosdk.account.generate_account()[0])
+    signing_key = nacl.signing.SigningKey.generate()
+    secret_key = signing_key.encode() + signing_key.verify_key.encode()
+    test_mnemonic = algokit_algo25.secret_key_to_mnemonic(secret_key)
 
     # Set up environment variable for the account
     env_account_name = "TEST_ACCOUNT"
@@ -65,7 +69,9 @@ def test_environment_is_used_in_preference_to_kmd(algorand: AlgorandClient, monk
     # Assert - both calls should return accounts with the same address (from the mnemonic)
     assert account1.addr == account2.addr
     # Verify the address matches what we'd expect from the mnemonic
-    expected_address = algosdk.account.address_from_private_key(algosdk.mnemonic.to_private_key(test_mnemonic))
+    expected_seed = algokit_algo25.seed_from_mnemonic(test_mnemonic)
+    expected_signing_key = nacl.signing.SigningKey(expected_seed)
+    expected_address = address_from_public_key(expected_signing_key.verify_key.encode())
     assert account1.addr == expected_address
 
 

@@ -1,8 +1,9 @@
 from pathlib import Path
 
+import nacl.signing
 import pytest
 
-import algokit_algosdk as algosdk
+from algokit_common import address_from_public_key, get_application_address
 from algokit_transact import OnApplicationComplete
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
@@ -192,11 +193,13 @@ class BaseResourcePackerTest:
     def test_address_balance_invalid_account_reference(
         self,
     ) -> None:
+        signing_key = nacl.signing.SigningKey.generate()
+        test_address = address_from_public_key(signing_key.verify_key.encode())
         with pytest.raises(LogicError, match="unavailable Account"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
-                    args=[algosdk.account.generate_account()[1]],
+                    args=[test_address],
                 ),
                 send_params={
                     "populate_app_call_resources": False,
@@ -206,10 +209,12 @@ class BaseResourcePackerTest:
     def test_address_balance(
         self,
     ) -> None:
+        signing_key = nacl.signing.SigningKey.generate()
+        test_address = address_from_public_key(signing_key.verify_key.encode())
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="addressBalance",
-                args=[algosdk.account.generate_account()[1]],
+                args=[test_address],
                 on_complete=OnApplicationComplete.NoOp,
             ),
         )
@@ -305,7 +310,7 @@ class TestResourcePackerMixed:
         )
 
         external_app_id = int(self.v8_client.get_global_state()["externalAppID"].value)
-        external_app_addr = algosdk.logic.get_application_address(external_app_id)
+        external_app_addr = get_application_address(external_app_id)
 
         txn_group = algorand.send.new_group()
         txn_group.add_app_call_method_call(

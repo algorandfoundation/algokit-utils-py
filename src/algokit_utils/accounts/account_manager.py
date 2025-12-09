@@ -1,4 +1,3 @@
-import base64
 import os
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -7,7 +6,7 @@ from typing import Any
 import nacl.signing
 from typing_extensions import Self
 
-import algokit_algosdk as algosdk
+from algokit_algo25 import seed_from_mnemonic
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
 from algokit_transact.signer import (
@@ -454,12 +453,9 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
-        private_key = algosdk.mnemonic.to_private_key(mnemonic)
-        key_bytes = base64.b64decode(private_key)
-        seed = key_bytes[:32]
-        public_key = key_bytes[32:]
-
+        seed = seed_from_mnemonic(mnemonic)
         signing_key = nacl.signing.SigningKey(seed)
+        public_key = signing_key.verify_key.encode()
 
         def raw_signer(bytes_to_sign: bytes) -> bytes:
             return signing_key.sign(bytes_to_sign).signature

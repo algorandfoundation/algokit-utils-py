@@ -4,7 +4,7 @@ import dataclasses
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING
 
-import algokit_algosdk as algosdk
+from algokit_common import address_from_public_key, public_key_from_address
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction as AlgokitTransaction
@@ -93,9 +93,7 @@ class LogicSigAccount:
         from algokit_common.constants import PROGRAM_DOMAIN_SEPARATOR
 
         program_hash = sha512_256(PROGRAM_DOMAIN_SEPARATOR.encode() + self._program)
-        address = algosdk.encoding.encode_address(program_hash)
-        assert isinstance(address, str)
-        return address
+        return address_from_public_key(program_hash)
 
     @property
     def addr(self) -> str:
@@ -154,8 +152,7 @@ class LogicSigAccount:
         from algokit_common.constants import MULTISIG_PROGRAM_DOMAIN_SEPARATOR, PROGRAM_DOMAIN_SEPARATOR
 
         if msig is not None:
-            msig_public_key = algosdk.encoding.decode_address(msig.address)
-            assert isinstance(msig_public_key, bytes)
+            msig_public_key = public_key_from_address(msig.address)
             return MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_public_key + self._program
         return PROGRAM_DOMAIN_SEPARATOR.encode() + self._program
 
@@ -170,8 +167,7 @@ class LogicSigAccount:
         """
         from algokit_common.constants import LOGIC_DATA_DOMAIN_SEPARATOR
 
-        program_address = algosdk.encoding.decode_address(self.address)
-        assert isinstance(program_address, bytes)
+        program_address = public_key_from_address(self.address)
         return LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
 
     def sign_program_data(self, data: bytes, signer: ProgramDataSigner) -> bytes:
@@ -184,8 +180,7 @@ class LogicSigAccount:
         Returns:
             The signature bytes.
         """
-        program_address = algosdk.encoding.decode_address(self.address)
-        assert isinstance(program_address, bytes)
+        program_address = public_key_from_address(self.address)
         return signer(data, program_address)
 
     def delegate(self, signer: DelegatedLsigSigner, delegating_address: str | None = None) -> LogicSigAccount:
@@ -224,8 +219,7 @@ class LogicSigAccount:
         )
 
         msig_address = address_from_multisig_signature(msig)
-        msig_public_key = algosdk.encoding.decode_address(msig_address)
-        assert isinstance(msig_public_key, bytes)
+        msig_public_key = public_key_from_address(msig_address)
 
         address_to_signer: dict[str, Callable[[bytes, bytes | None], bytes]] = {
             self._get_lsig_account_address(account): account.delegated_lsig_signer for account in signing_accounts
