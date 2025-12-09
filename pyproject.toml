@@ -55,6 +55,7 @@ build-backend = "uv_build"
 [tool.uv.build-backend]
 module-name = [
   "algokit_abi",
+  "algokit_algo25",
   "algokit_algod_client",
   "algokit_algosdk",
   "algokit_common",
