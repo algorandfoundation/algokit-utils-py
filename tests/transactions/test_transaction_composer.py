@@ -7,10 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from algokit_abi import arc56
-from algokit_transact import make_empty_transaction_signer
+from algokit_transact import MultisigMetadata, make_empty_transaction_signer
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import MultisigMetadata
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -342,7 +341,7 @@ def test_multisig_single_account(algorand: AlgorandClient, funded_account: Addre
         metadata=MultisigMetadata(
             version=1,
             threshold=1,
-            addresses=[funded_account.addr],
+            addrs=[funded_account.addr],
         ),
         sub_signers=[funded_account],
     )
@@ -362,7 +361,7 @@ def test_multisig_double_account(algorand: AlgorandClient, funded_account: Addre
         metadata=MultisigMetadata(
             version=1,
             threshold=2,
-            addresses=[funded_account.addr, account2.addr],
+            addrs=[funded_account.addr, account2.addr],
         ),
         sub_signers=[funded_account, account2],
     )

@@ -19,6 +19,7 @@ from algokit_transact.exceptions import (
     AlgokitTransactError,
     TransactionValidationError,
 )
+from algokit_transact.logicsig import LogicSigAccount
 from algokit_transact.models.app_call import (
     AppCallTransactionFields,
     BoxReference,
@@ -48,6 +49,7 @@ from algokit_transact.models.state_proof import (
     StateProofTransactionFields,
 )
 from algokit_transact.models.transaction import Transaction, TransactionType
+from algokit_transact.multisig import MultisigAccount, MultisigMetadata
 from algokit_transact.ops.fees import (
     assign_fee,
     calculate_fee,
@@ -123,10 +125,13 @@ __all__ = [
     "HeartbeatTransactionFields",
     "HeartbeatProof",
     "KeyRegistrationTransactionFields",
+    "LogicSigAccount",
     "LogicSignature",
     "DelegatedLsigSigner",
     "MerkleArrayProof",
     "MerkleSignatureVerifier",
+    "MultisigAccount",
+    "MultisigMetadata",
     "MultisigSignature",
     "MultisigSubsignature",
     "MxBytesSigner",
