@@ -1,8 +1,8 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
+from algokit_common import MAX_TX_GROUP_SIZE
 from algokit_transact.signer import AddressWithSigners, AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
@@ -205,7 +205,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TX_GROUP_SIZE):
             composer = self._new_group()
 
             for asset_id in asset_group:
@@ -276,7 +276,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TX_GROUP_SIZE):
             composer = self._new_group()
 
             not_opted_in_asset_ids: list[int] = []

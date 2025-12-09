@@ -14,6 +14,7 @@ For more specific functionality, import directly from the relevant submodules:
 ## Submodules
 
 * [algokit_utils.accounts](accounts/index.md)
+* [algokit_utils.algo25](algo25/index.md)
 * [algokit_utils.algorand](algorand/index.md)
 * [algokit_utils.applications](applications/index.md)
 * [algokit_utils.assets](assets/index.md)

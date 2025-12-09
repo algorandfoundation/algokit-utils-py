@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any, Generic, Literal, TypedDict, TypeVar
 
 from typing_extensions import assert_never
 
-import algokit_algosdk as algosdk
 from algokit_abi import abi, arc32, arc56
 from algokit_algosdk.source_map import SourceMap
+from algokit_common import get_application_address
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
 from algokit_transact.signer import AddressWithTransactionSigner
@@ -1301,7 +1301,7 @@ class AppClient:
         self._app_id = params.app_id
         self._app_spec = self.normalise_app_spec(params.app_spec)
         self._algorand = params.algorand
-        self._app_address = algosdk.logic.get_application_address(self._app_id)
+        self._app_address = get_application_address(self._app_id)
         self._app_name = params.app_name or self._app_spec.name
         self._default_sender = params.default_sender
         self._default_signer = params.default_signer

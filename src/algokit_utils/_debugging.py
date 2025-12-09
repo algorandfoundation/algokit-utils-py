@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import algokit_algosdk as algosdk
+from algokit_common import sha512_256
 from algokit_common.serde import to_wire
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
@@ -37,7 +38,7 @@ TRACE_FILENAME_DATE_FORMAT = "%Y%m%d_%H%M%S"
 @dataclass
 class AVMDebuggerSourceMapEntry:
     location: str = field(metadata={"json": "sourcemap-location"})
-    program_hash: str = field(metadata={"json": "hash"})
+    program_hash: str = field(metadata={"json": "sha512_256"})
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, AVMDebuggerSourceMapEntry):
@@ -45,7 +46,7 @@ class AVMDebuggerSourceMapEntry:
         return False
 
     def __str__(self) -> str:
-        return json.dumps({"sourcemap-location": self.location, "hash": self.program_hash})
+        return json.dumps({"sourcemap-location": self.location, "sha512_256": self.program_hash})
 
 
 @dataclass
@@ -56,7 +57,7 @@ class AVMDebuggerSourceMap:
     def from_dict(cls, data: dict) -> "AVMDebuggerSourceMap":
         return cls(
             txn_group_sources=[
-                AVMDebuggerSourceMapEntry(location=item["sourcemap-location"], program_hash=item["hash"])
+                AVMDebuggerSourceMapEntry(location=item["sourcemap-location"], program_hash=item["sha512_256"])
                 for item in data.get("txn-group-sources", [])
             ]
         )
@@ -134,12 +135,12 @@ def _build_avm_sourcemap(
         raise ValueError("Either raw teal or compiled teal must be provided")
 
     if isinstance(compiled_teal, CompiledTeal):
-        program_hash = base64.b64encode(algosdk.encoding.checksum(compiled_teal.compiled_base64_to_bytes)).decode()
+        program_hash = base64.b64encode(sha512_256(compiled_teal.compiled_base64_to_bytes)).decode()
         source_map = compiled_teal.source_map.__dict__ if compiled_teal.source_map else {}
         teal_content = compiled_teal.teal
     else:
         compiled_bytes, source_map_obj, teal_content = _compile_raw_teal(str(raw_teal), client)
-        program_hash = base64.b64encode(algosdk.encoding.checksum(compiled_bytes)).decode()
+        program_hash = base64.b64encode(sha512_256(compiled_bytes)).decode()
         source_map = source_map_obj.__dict__
 
     source_map["sources"] = [f"{file_name}{TEAL_FILE_EXT}"] if with_sources else []

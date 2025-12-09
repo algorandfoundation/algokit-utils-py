@@ -68,7 +68,7 @@ class AddressWithMxBytesSigner(Addressable, Protocol):
     def mx_bytes_signer(self) -> MxBytesSigner: ...
 
 
-SendingAddress = str | AddressWithTransactionSigner
+ReadableAddress = str | AddressWithTransactionSigner
 
 
 @dataclass(frozen=True, slots=True)

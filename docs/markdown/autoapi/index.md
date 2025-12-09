@@ -6,6 +6,7 @@ This page contains auto-generated API reference documentation <sup>[1](#f1)</sup
   * [algokit_utils.accounts](algokit_utils/accounts/index.md)
     * [algokit_utils.accounts.account_manager](algokit_utils/accounts/account_manager/index.md)
     * [algokit_utils.accounts.kmd_account_manager](algokit_utils/accounts/kmd_account_manager/index.md)
+  * [algokit_utils.algo25](algokit_utils/algo25/index.md)
   * [algokit_utils.algorand](algokit_utils/algorand/index.md)
   * [algokit_utils.applications](algokit_utils/applications/index.md)
     * [algokit_utils.applications.abi](algokit_utils/applications/abi/index.md)

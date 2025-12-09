@@ -22,8 +22,8 @@ The following conform to `TransactionSignerAccountProtocol`:
 
 - `TransactionSignerAccount` - a basic transaction signer account that holds an address and a signer conforming to `TransactionSignerAccountProtocol`
 - `SigningAccount` - an abstraction that used to be available under `Account` in previous versions of AlgoKit Utils. Renamed for consistency with equivalent `ts` version. Holds private key and conforms to `TransactionSignerAccountProtocol`
-- [`LogicSigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.LogicSigAccount) - a wrapper class around `algosdk` logicsig abstractions conforming to `TransactionSignerAccountProtocol`
-- [`MultisigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.MultisigAccount) - a wrapper class around `algosdk` multisig abstractions conforming to `TransactionSignerAccountProtocol`
+- `LogicSigAccount` - a wrapper class around `algosdk` logicsig abstractions conforming to `TransactionSignerAccountProtocol`
+- `MultisigAccount` - a wrapper class around `algosdk` multisig abstractions conforming to `TransactionSignerAccountProtocol`
 
 ## Registering a signer
 
@@ -89,8 +89,8 @@ While `TransactionSignerAccount` is the main class used to represent an account 
 
 - `TransactionSignerAccount` - A default class conforming to `TransactionSignerAccountProtocol` that holds an address and a signer
 - `SigningAccount` - An abstraction around `algosdk.Account` that supports rekeyed accounts
-- [`LogicSigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.LogicSigAccount) - An abstraction around `algosdk.LogicSigAccount` and `algosdk.LogicSig` that supports logic sig signing. Exposes access to the underlying algosdk `algosdk.transaction.LogicSigAccount` object instance via `lsig` property.
-- [`MultisigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.MultisigAccount) - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
+- `LogicSigAccount` - An abstraction around `algosdk.LogicSigAccount` and `algosdk.LogicSig` that supports logic sig signing. Exposes access to the underlying algosdk `algosdk.transaction.LogicSigAccount` object instance via `lsig` property.
+- `MultisigAccount` - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
 
 ### Dispenser
 
