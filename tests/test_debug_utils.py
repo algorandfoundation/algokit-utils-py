@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from algokit_abi import arc56
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils._debugging import (
     PersistSourceMapInput,
     cleanup_old_trace_files,
@@ -17,7 +18,6 @@ from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_client import AppClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.models import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -33,7 +33,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -42,15 +42,15 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
         min_spending_balance=AlgoAmount.from_algo(100),
         min_funding_increment=AlgoAmount.from_algo(100),
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
 @pytest.fixture
-def client_fixture(algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
+def client_fixture(algorand: AlgorandClient, funded_account: AddressWithSigners) -> AppClient:
     app_spec = (Path(__file__).parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
     app_factory = algorand.client.get_app_factory(
-        app_spec=app_spec, default_sender=funded_account.address, default_signer=funded_account.signer
+        app_spec=app_spec, default_sender=funded_account.addr, default_signer=funded_account.signer
     )
     app_client, _ = app_factory.send.create(
         AppFactoryCreateMethodCallParams(method="create"),
@@ -176,8 +176,8 @@ def test_simulate_and_persist_response(tmp_path_factory: pytest.TempPathFactory,
     composer = algorand.new_group()
     composer.add_payment(
         PaymentParams(
-            sender=algorand.account.localnet_dispenser().address,
-            receiver=algorand.account.localnet_dispenser().address,
+            sender=algorand.account.localnet_dispenser().addr,
+            receiver=algorand.account.localnet_dispenser().addr,
             amount=AlgoAmount.from_micro_algo(1_000_000),
         )
     )
@@ -193,7 +193,7 @@ def test_simulate_and_persist_response(tmp_path_factory: pytest.TempPathFactory,
 def test_simulate_and_persist_response_via_app_call(
     tmp_path_factory: pytest.TempPathFactory,
     client_fixture: AppClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
     composer = client_fixture.algorand.new_group()
@@ -201,7 +201,7 @@ def test_simulate_and_persist_response_via_app_call(
         AppCallMethodCallParams(
             method=arc56.Method.from_signature("hello(string)string"),
             args=["test"],
-            sender=funded_account.address,
+            sender=funded_account.addr,
             app_id=client_fixture.app_id,
         )
     )
@@ -233,7 +233,7 @@ def test_simulate_response_filename_generation(
     expected_filename_part: str,
     tmp_path_factory: pytest.TempPathFactory,
     client_fixture: AppClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     cwd = tmp_path_factory.mktemp("cwd")
@@ -242,7 +242,7 @@ def test_simulate_response_filename_generation(
     if transactions.get("axfer"):
         asset_id = client_fixture.algorand.send.asset_create(
             AssetCreateParams(
-                sender=funded_account.address,
+                sender=funded_account.addr,
                 total=100_000_000,
                 decimals=0,
                 unit_name="TEST",
@@ -255,7 +255,7 @@ def test_simulate_response_filename_generation(
     for i in range(transactions.get("pay", 0)):
         composer.add_payment(
             PaymentParams(
-                sender=funded_account.address,
+                sender=funded_account.addr,
                 receiver=client_fixture.app_address,
                 amount=AlgoAmount.from_micro_algo(1_000_000 * (i + 1)),
                 note=f"Payment{i + 1}".encode(),
@@ -264,8 +264,8 @@ def test_simulate_response_filename_generation(
     for i in range(transactions.get("axfer", 0)):
         composer.add_asset_transfer(
             AssetTransferParams(
-                sender=funded_account.address,
-                receiver=funded_account.address,
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
                 amount=1_000 * (i + 1),
                 asset_id=asset_id,
             )
@@ -275,7 +275,7 @@ def test_simulate_response_filename_generation(
             AppCallMethodCallParams(
                 method=arc56.Method.from_signature("hello(string)string"),
                 args=[f"test{i + 1}"],
-                sender=funded_account.address,
+                sender=funded_account.addr,
                 app_id=client_fixture.app_id,
             )
         )

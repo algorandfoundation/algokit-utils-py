@@ -7,13 +7,13 @@ from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client.client import KmdClient
+from algokit_transact.signer import AddressWithTransactionSigner
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     ErrorTransformer,
@@ -67,16 +67,14 @@ class AlgorandClient:
         self._default_validity_window = validity_window
         return self
 
-    def set_default_signer(
-        self, signer: TransactionSigner | TransactionSignerAccountProtocol
-    ) -> typing_extensions.Self:
+    def set_default_signer(self, signer: TransactionSigner | AddressWithTransactionSigner) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
-        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
+        :param signer: The signer to use, either a `TransactionSigner` or an `AddressWithTransactionSigner`
         :return: The `AlgorandClient` so method calls can be chained
         :example:
-            >>> signer = SigningAccount(private_key=..., address=...)
+            >>> signer = account_manager.random()  # Returns AddressWithSigners
             >>> algorand = AlgorandClient.mainnet().set_default_signer(signer)
         """
         self._account_manager.set_default_signer(signer)
@@ -90,23 +88,23 @@ class AlgorandClient:
         :param signer: The signer to sign transactions with for the given sender
         :return: The `AlgorandClient` so method calls can be chained
         :example:
-            >>> signer = SigningAccount(private_key=..., address=...)
-            >>> algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
+            >>> account = account_manager.random()  # Returns AddressWithSigners
+            >>> algorand = AlgorandClient.mainnet().set_signer(account.addr, account.signer)
         """
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_signer_from_account(self, signer: TransactionSignerAccountProtocol) -> typing_extensions.Self:
+    def set_signer_from_account(self, signer: AddressWithTransactionSigner) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
-        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
+        :param signer: The signer to use, either a `TransactionSigner` or an `AddressWithTransactionSigner`
         :return: The `AlgorandClient` so method calls can be chained
         :example:
             >>> accountManager = AlgorandClient.mainnet()
             >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
             >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
-            >>> accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
+            >>> accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
             >>> accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
             >>> accountManager.set_signer_from_account(account)
         """

@@ -173,7 +173,7 @@ KMD account manager that allows you to easily get and create accounts using KMD.
   kmd_manager = account_manager.kmd
   ```
 
-#### set_default_signer(signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_default_signer(signer: algokit_transact.signer.TransactionSigner | algokit_transact.signer.AddressWithTransactionSigner) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
 
@@ -190,7 +190,7 @@ then an error will be thrown from get_signer / get_account.
   account_manager.set_default_signer(signer_account)
   ```
 
-#### set_signer(sender: str, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)) → typing_extensions.Self
+#### set_signer(sender: str, signer: algokit_transact.signer.TransactionSigner) → typing_extensions.Self
 
 Tracks the given TransactionSigner against the given sender address for later signing.
 
@@ -218,7 +218,7 @@ Merges the given AccountManager into this one.
   accountManager2.set_signers(accountManager1)
   ```
 
-#### set_signer_from_account(\*args: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol), \*\*kwargs: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_signer_from_account(\*args: algokit_transact.signer.AddressWithTransactionSigner, \*\*kwargs: algokit_transact.signer.AddressWithTransactionSigner) → typing_extensions.Self
 
 Tracks the given account for later signing.
 
@@ -231,11 +231,11 @@ The ‘signer’ parameter is deprecated and will show a warning when used.
 * **Parameters:**
   * **\*args** – 
 
-    Variable positional arguments. The first argument should be a TransactionSignerAccountProtocol.
+    Variable positional arguments. The first argument should be a AddressWithTransactionSigner.
   * **\*\*kwargs** – 
 
     Variable keyword arguments. Can include ‘account’ or ‘signer’ (deprecated) as
-    TransactionSignerAccountProtocol.
+    AddressWithTransactionSigner.
 * **Returns:**
   The AccountManager instance for method chaining
 * **Raises:**
@@ -245,7 +245,7 @@ The ‘signer’ parameter is deprecated and will show a warning when used.
   account_manager = AccountManager(client_manager)
   # Using positional argument
   account_manager.set_signer_from_account(
-      SigningAccount(private_key=algosdk.account.generate_account()[0])
+      AddressWithSigners(...)
   )
   # Using keyword argument 'account'
   account_manager.set_signer_from_account(
@@ -253,11 +253,11 @@ The ‘signer’ parameter is deprecated and will show a warning when used.
   )
   # Using deprecated keyword argument 'signer'
   account_manager.set_signer_from_account(
-      signer=MultiSigAccount(multisig_params, [account1, account2])
+      signer=MultisigAccount(multisig_params, [account1, account2])
   )
   ```
 
-#### get_signer(sender: str | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)
+#### get_signer(sender: str | algokit_transact.signer.AddressWithTransactionSigner) → algokit_transact.signer.TransactionSigner
 
 Returns the TransactionSigner for the given sender address.
 
@@ -275,25 +275,26 @@ If no signer has been registered for that address then the default signer is use
   signer = account_manager.get_signer("SENDERADDRESS")
   ```
 
-#### get_account(sender: str) → [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)
+#### get_account(sender: str) → StoredAccountType | algokit_transact.signer.AddressWithTransactionSigner
 
-Returns the TransactionSignerAccountProtocol for the given sender address.
+Returns the registered account for the given sender address.
 
 * **Parameters:**
   **sender** – The sender address
 * **Returns:**
-  The TransactionSignerAccountProtocol
+  The registered account (AddressWithSigners, LogicSigAccount, MultisigAccount,
+  or AddressWithTransactionSigner)
 * **Raises:**
-  **ValueError** – If no account is found or if the account is not a regular account
+  **ValueError** – If no account is found for the address
 * **Example:**
   ```python
-  sender = account_manager.random().address
+  sender = account_manager.random().addr
   # ...
-  # Returns the `TransactionSignerAccountProtocol` for `sender` that has previously been registered
+  # Returns the account for `sender` that has previously been registered
   account = account_manager.get_account(sender)
   ```
 
-#### get_information(sender: str | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → [AccountInformation](#algokit_utils.accounts.account_manager.AccountInformation)
+#### get_information(sender: str | algokit_transact.signer.AddressWithTransactionSigner) → [AccountInformation](#algokit_utils.accounts.account_manager.AccountInformation)
 
 Returns the given sender account’s current status, balance and spendable amounts.
 
@@ -301,7 +302,7 @@ See [https://dev.algorand.co/reference/rest-apis/algod/#account](https://dev.alg
 for response data schema details.
 
 * **Parameters:**
-  **sender** – The address or account compliant with TransactionSignerAccountProtocol protocol to look up
+  **sender** – The address or account compliant with AddressWithTransactionSigner protocol to look up
 * **Returns:**
   The account information
 * **Example:**
@@ -310,15 +311,15 @@ for response data schema details.
   account_info = account_manager.get_information(address)
   ```
 
-#### from_mnemonic(\*, mnemonic: str, sender: str | None = None) → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### from_mnemonic(\*, mnemonic: str, sender: str | None = None) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an Algorand account with secret key loaded by taking the mnemonic secret.
 
 * **Parameters:**
   * **mnemonic** – The mnemonic secret representing the private key of an account
-  * **sender** – Optional address to use as the sender
+  * **sender** – Optional address to use as the sender (for rekeyed accounts)
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 
 #### WARNING
 Be careful how the mnemonic is handled. Never commit it into source control and ideally load it
@@ -329,7 +330,7 @@ from the environment (ideally via a secret storage service) rather than the file
   account = account_manager.from_mnemonic("mnemonic secret ...")
   ```
 
-#### from_environment(name: str, fund_with: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### from_environment(name: str, fund_with: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an Algorand account with private key loaded by convention from environment variables.
 
@@ -341,7 +342,7 @@ without manual config locally (including when you reset the LocalNet).
   * **fund_with** – Optional amount to fund the account with when it gets created
     (when targeting LocalNet)
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 * **Raises:**
   **ValueError** – If environment variable {NAME}_MNEMONIC is missing when looking for account {NAME}
 
@@ -361,7 +362,7 @@ Convention:
   # with an account that is automatically funded with the specified amount from the LocalNet dispenser
   ```
 
-#### from_kmd(name: str, predicate: collections.abc.Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None) → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### from_kmd(name: str, predicate: collections.abc.Callable[[dict[str, Any]], bool] | None = None, sender: str | None = None) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an Algorand account with private key loaded from the given KMD wallet.
 
@@ -370,7 +371,7 @@ Tracks and returns an Algorand account with private key loaded from the given KM
   * **predicate** – Optional filter to use to find the account
   * **sender** – Optional sender address to use this signer for (aka a rekeyed account)
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 * **Raises:**
   **ValueError** – If unable to find KMD account with given name and predicate
 * **Example:**
@@ -381,7 +382,7 @@ Tracks and returns an Algorand account with private key loaded from the given KM
   )
   ```
 
-#### logicsig(program: bytes, args: list[bytes] | None = None) → [algokit_utils.models.account.LogicSigAccount](../../models/account/index.md#algokit_utils.models.account.LogicSigAccount)
+#### logicsig(program: bytes, args: list[bytes] | None = None) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an account that represents a logic signature.
 
@@ -389,84 +390,84 @@ Tracks and returns an account that represents a logic signature.
   * **program** – The bytes that make up the compiled logic signature
   * **args** – Optional (binary) arguments to pass into the logic signature
 * **Returns:**
-  A logic signature account wrapper
+  An AddressWithSigners wrapper for the logic signature account
 * **Example:**
   ```python
   account = account.logicsig(program, [new Uint8Array(3, ...)])
   ```
 
-#### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)]) → [algokit_utils.models.account.MultiSigAccount](../../models/account/index.md#algokit_utils.models.account.MultiSigAccount)
+#### multisig(metadata: [algokit_utils.models.account.MultisigMetadata](../../models/account/index.md#algokit_utils.models.account.MultisigMetadata), sub_signers: collections.abc.Sequence[algokit_transact.signer.AddressWithSigners]) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an account that supports partial or full multisig signing.
 
 * **Parameters:**
   * **metadata** – The metadata for the multisig account
-  * **signing_accounts** – The signers that are currently present
+  * **sub_signers** – The signers that are currently present
 * **Returns:**
-  A multisig account wrapper
+  An AddressWithSigners wrapper for the multisig account
 * **Example:**
   ```python
   account = account_manager.multi_sig(
       version=1,
       threshold=1,
       addrs=["ADDRESS1...", "ADDRESS2..."],
-      signing_accounts=[account1, account2]
+      sub_signers=[account1, account2]
   )
   ```
 
-#### random() → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### random() → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns a new, random Algorand account.
 
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 * **Example:**
   ```python
   account = account_manager.random()
   ```
 
-#### localnet_dispenser() → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### localnet_dispenser() → algokit_transact.signer.AddressWithSigners
 
 Returns an Algorand account with private key loaded for the default LocalNet dispenser account.
 
 This account can be used to fund other accounts.
 
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 * **Example:**
   ```python
   account = account_manager.localnet_dispenser()
   ```
 
-#### dispenser_from_environment() → [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount)
+#### dispenser_from_environment() → algokit_transact.signer.AddressWithSigners
 
 Returns an account (with private key loaded) that can act as a dispenser from environment variables.
 
 If environment variables are not present, returns the default LocalNet dispenser account.
 
 * **Returns:**
-  The account
+  The account as AddressWithSigners
 * **Example:**
   ```python
   account = account_manager.dispenser_from_environment()
   ```
 
-#### rekeyed(\*, sender: str, account: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)
+#### rekeyed(\*, sender: str, account: algokit_transact.signer.AddressWithTransactionSigner | algokit_transact.signer.AddressWithSigners) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an Algorand account that is a rekeyed version of the given account to a new sender.
 
 * **Parameters:**
-  * **sender** – The account or address to use as the sender
+  * **sender** – The address to use as the sender
   * **account** – The account to use as the signer for this new rekeyed account
 * **Returns:**
-  The rekeyed account
+  The rekeyed account as AddressWithSigners
 * **Example:**
   ```python
   account = account.from_mnemonic("mnemonic secret ...")
   rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
   ```
 
-#### rekey_account(account: str, rekey_to: str | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol), \*, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, suppress_log: bool | None = None) → [algokit_utils.transactions.transaction_composer.SendTransactionComposerResults](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
+#### rekey_account(account: str, rekey_to: str | algokit_transact.signer.AddressWithTransactionSigner, \*, signer: algokit_transact.signer.TransactionSigner | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None, suppress_log: bool | None = None) → [algokit_utils.transactions.transaction_composer.SendTransactionComposerResults](../../transactions/transaction_composer/index.md#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 
 Rekey an account to a new address.
 
@@ -511,7 +512,7 @@ Please be careful with this function and be sure to read the
   )
   ```
 
-#### ensure_funded(account_to_fund: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), dispenser_account: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None) → [EnsureFundedResult](#algokit_utils.accounts.account_manager.EnsureFundedResult) | None
+#### ensure_funded(account_to_fund: str | algokit_transact.signer.AddressWithTransactionSigner | algokit_transact.signer.AddressWithSigners, dispenser_account: str | algokit_transact.signer.AddressWithTransactionSigner | algokit_transact.signer.AddressWithSigners, min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, signer: algokit_transact.signer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None) → [EnsureFundedResult](#algokit_utils.accounts.account_manager.EnsureFundedResult) | None
 
 Funds a given account using a dispenser account as a funding source.
 
@@ -555,7 +556,7 @@ See [https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr](htt
   )
   ```
 
-#### ensure_funded_from_environment(account_to_fund: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), \*, min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None) → [EnsureFundedResult](#algokit_utils.accounts.account_manager.EnsureFundedResult) | None
+#### ensure_funded_from_environment(account_to_fund: str | algokit_transact.signer.AddressWithTransactionSigner | algokit_transact.signer.AddressWithSigners, min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), \*, min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None, signer: algokit_transact.signer.TransactionSigner | None = None, rekey_to: str | None = None, note: bytes | None = None, lease: bytes | None = None, static_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, extra_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, max_fee: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None, validity_window: int | None = None, first_valid_round: int | None = None, last_valid_round: int | None = None) → [EnsureFundedResult](#algokit_utils.accounts.account_manager.EnsureFundedResult) | None
 
 Ensure an account is funded from a dispenser account configured in environment.
 
@@ -604,7 +605,7 @@ if it’s a rekeyed account, or against default LocalNet if no environment varia
   )
   ```
 
-#### ensure_funded_from_testnet_dispenser_api(account_to_fund: str | [algokit_utils.models.account.SigningAccount](../../models/account/index.md#algokit_utils.models.account.SigningAccount), dispenser_client: [algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient](../../clients/dispenser_api_client/index.md#algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient), min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), \*, min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → [EnsureFundedFromTestnetDispenserApiResult](#algokit_utils.accounts.account_manager.EnsureFundedFromTestnetDispenserApiResult) | None
+#### ensure_funded_from_testnet_dispenser_api(account_to_fund: str | algokit_transact.signer.AddressWithTransactionSigner, dispenser_client: [algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient](../../clients/dispenser_api_client/index.md#algokit_utils.clients.dispenser_api_client.TestNetDispenserApiClient), min_spending_balance: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount), \*, min_funding_increment: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → [EnsureFundedFromTestnetDispenserApiResult](#algokit_utils.accounts.account_manager.EnsureFundedFromTestnetDispenserApiResult) | None
 
 Ensure an account is funded using the TestNet Dispenser API.
 

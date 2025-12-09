@@ -13,6 +13,7 @@ from algokit_abi import abi, arc32, arc56
 from algokit_algosdk.source_map import SourceMap
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.transaction import Transaction
+from algokit_transact.signer import AddressWithTransactionSigner
 from algokit_utils._debugging import PersistSourceMapInput, persist_sourcemaps
 from algokit_utils.applications.abi import (
     ABIReturn,
@@ -34,7 +35,6 @@ from algokit_utils.models.application import (
 )
 from algokit_utils.models.state import BoxName, BoxValue
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -2031,8 +2031,8 @@ class AppClient:
         return sender or self._default_sender  # type: ignore[return-value]
 
     def _get_signer(
-        self, sender: str | None, signer: TransactionSigner | TransactionSignerAccountProtocol | None
-    ) -> TransactionSigner | TransactionSignerAccountProtocol | None:
+        self, sender: str | None, signer: TransactionSigner | AddressWithTransactionSigner | None
+    ) -> TransactionSigner | AddressWithTransactionSigner | None:
         return signer or (self._default_signer if not sender or sender == self._default_sender else None)
 
     def _get_bare_params(self, params: dict[str, Any], on_complete: OnApplicationComplete) -> dict[str, Any]:

@@ -7,6 +7,7 @@ from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
+from algokit_transact.signer import AddressWithTransactionSigner
 from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
 from algokit_utils.models.application import (
     AppInformation,
@@ -14,7 +15,6 @@ from algokit_utils.models.application import (
     CompiledTeal,
 )
 from algokit_utils.models.state import BoxIdentifier, BoxName, BoxReference, DataTypeFlag, TealTemplateParams
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
 
 __all__ = [
     "DELETABLE_TEMPLATE_NAME",
@@ -390,8 +390,8 @@ class AppManager:
             name = box_id.encode("utf-8")
         elif isinstance(box_id, bytes):
             name = box_id
-        elif isinstance(box_id, TransactionSignerAccountProtocol):
-            name = cast(bytes, algosdk.encoding.decode_address(box_id.address))
+        elif isinstance(box_id, AddressWithTransactionSigner):
+            name = cast(bytes, algosdk.encoding.decode_address(box_id.addr))
         else:
             raise ValueError(f"Invalid box identifier type: {type(box_id)}")
 

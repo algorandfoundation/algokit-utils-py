@@ -16,14 +16,14 @@ account_manager = AccountManager(client_manager)
 
 ## `TransactionSignerAccountProtocol`
 
-The core internal type that holds information about a signer/sender pair for a transaction is [`TransactionSignerAccountProtocol`](../autoapi/algokit_utils/protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol), which represents an `algosdk.transaction.TransactionSigner` (`signer`) along with a sender address (`address`) as the encoded string address.
+The core internal type that holds information about a signer/sender pair for a transaction is `TransactionSignerAccountProtocol`, which represents an `algosdk.transaction.TransactionSigner` (`signer`) along with a sender address (`address`) as the encoded string address.
 
 The following conform to `TransactionSignerAccountProtocol`:
 
-- [`TransactionSignerAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.TransactionSignerAccount) - a basic transaction signer account that holds an address and a signer conforming to `TransactionSignerAccountProtocol`
-- [`SigningAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.SigningAccount) - an abstraction that used to be available under `Account` in previous versions of AlgoKit Utils. Renamed for consistency with equivalent `ts` version. Holds private key and conforms to `TransactionSignerAccountProtocol`
+- `TransactionSignerAccount` - a basic transaction signer account that holds an address and a signer conforming to `TransactionSignerAccountProtocol`
+- `SigningAccount` - an abstraction that used to be available under `Account` in previous versions of AlgoKit Utils. Renamed for consistency with equivalent `ts` version. Holds private key and conforms to `TransactionSignerAccountProtocol`
 - [`LogicSigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.LogicSigAccount) - a wrapper class around `algosdk` logicsig abstractions conforming to `TransactionSignerAccountProtocol`
-- `MultisigAccount` - a wrapper class around `algosdk` multisig abstractions conforming to `TransactionSignerAccountProtocol`
+- [`MultisigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.MultisigAccount) - a wrapper class around `algosdk` multisig abstractions conforming to `TransactionSignerAccountProtocol`
 
 ## Registering a signer
 
@@ -87,10 +87,10 @@ In order to get/register accounts for signing operations you can use the followi
 
 While `TransactionSignerAccount` is the main class used to represent an account that can sign, there are underlying account classes that can underpin the signer within the transaction signer account.
 
-- [`TransactionSignerAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.TransactionSignerAccount) - A default class conforming to `TransactionSignerAccountProtocol` that holds an address and a signer
-- [`SigningAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.SigningAccount) - An abstraction around `algosdk.Account` that supports rekeyed accounts
+- `TransactionSignerAccount` - A default class conforming to `TransactionSignerAccountProtocol` that holds an address and a signer
+- `SigningAccount` - An abstraction around `algosdk.Account` that supports rekeyed accounts
 - [`LogicSigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.LogicSigAccount) - An abstraction around `algosdk.LogicSigAccount` and `algosdk.LogicSig` that supports logic sig signing. Exposes access to the underlying algosdk `algosdk.transaction.LogicSigAccount` object instance via `lsig` property.
-- `MultisigAccount` - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
+- [`MultisigAccount`](../autoapi/algokit_utils/models/account/index.md#algokit_utils.models.account.MultisigAccount) - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
 
 ### Dispenser
 

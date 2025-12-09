@@ -6,6 +6,7 @@ import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import models as algod_models
 from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -21,7 +22,6 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateParams,
 )
 from algokit_utils.errors import LogicError
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
@@ -32,13 +32,13 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
@@ -53,33 +53,31 @@ def app_spec_bare_create_abi_delete() -> str:
 
 
 @pytest.fixture
-def factory(algorand: AlgorandClient, funded_account: SigningAccount, app_spec: str) -> AppFactory:
+def factory(algorand: AlgorandClient, funded_account: AddressWithSigners, app_spec: str) -> AppFactory:
     """Create AppFactory fixture"""
-    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.address)
+    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.addr)
 
 
 @pytest.fixture
 def factory_bare_create_abi_delete(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     app_spec_bare_create_abi_delete: str,
 ) -> AppFactory:
     """Create AppFactory fixture for bare create with ABI delete"""
-    return algorand.client.get_app_factory(
-        app_spec=app_spec_bare_create_abi_delete, default_sender=funded_account.address
-    )
+    return algorand.client.get_app_factory(app_spec=app_spec_bare_create_abi_delete, default_sender=funded_account.addr)
 
 
 @pytest.fixture
 def arc56_factory(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> AppFactory:
     """Create AppFactory fixture"""
     arc56_raw_spec = (
         Path(__file__).parent.parent / "artifacts" / "testing_app_arc56" / "app_spec.arc56.json"
     ).read_text()
-    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.address)
+    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.addr)
 
 
 def test_create_app(factory: AppFactory) -> None:
@@ -110,14 +108,14 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
     dispenser_account = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         account_to_fund=random_account,
-        dispenser_account=dispenser_account.address,
+        dispenser_account=dispenser_account.addr,
         min_spending_balance=AlgoAmount.from_algo(10),
         min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
-        default_sender=random_account.address,
+        default_sender=random_account.addr,
         compilation_params={
             "deploy_time_params": {
                 # It should strip off the TMPL_
@@ -243,13 +241,13 @@ def test_deploy_app_update(factory: AppFactory) -> None:
 
 
 def test_deploy_app_update_detects_extra_pages_as_breaking_change(
-    algorand: AlgorandClient, funded_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners
 ) -> None:
     small_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "small.arc56.json").read_text()
     large_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "large.arc56.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=small_app_spec,
-        default_sender=funded_account.address,
+        default_sender=funded_account.addr,
     )
     small_client, create_deploy_result = factory.deploy(
         compilation_params={
@@ -426,7 +424,7 @@ def test_call_app_with_too_many_args(factory: AppFactory) -> None:
         app_client.send.call(AppClientMethodCallParams(method="call_abi", args=["test", "extra"]))
 
 
-def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandClient, factory: AppFactory) -> None:
+def test_call_app_with_rekey(funded_account: AddressWithSigners, algorand: AlgorandClient, factory: AppFactory) -> None:
     rekey_to = algorand.account.random()
 
     app_client, _ = factory.send.bare.create(
@@ -439,12 +437,12 @@ def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandC
         },
     )
 
-    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.address))
+    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.addr))
 
     # If the rekey didn't work this will throw
-    rekeyed_account = algorand.account.rekeyed(sender=funded_account.address, account=rekey_to)
+    rekeyed_account = algorand.account.rekeyed(sender=funded_account.addr, account=rekey_to)
     algorand.send.payment(
-        PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.address, receiver=funded_account.address)
+        PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.addr, receiver=funded_account.addr)
     )
 
 
@@ -517,7 +515,7 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
 def test_export_import_sourcemaps(
     factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     # Export source maps from original client
     app_client, _ = factory.deploy(compilation_params={"deploy_time_params": {"VALUE": 1}})
@@ -527,7 +525,7 @@ def test_export_import_sourcemaps(
     new_client = AppClient(
         AppClientParams(
             app_id=app_client.app_id,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             algorand=algorand,
             app_spec=app_client.app_spec,
@@ -579,7 +577,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     # Deploy app with template parameters
     app_client, _ = arc56_factory.deploy(
@@ -599,7 +597,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     app_client = AppClient(
         AppClientParams(
             app_id=app_id,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             algorand=algorand,
             app_spec=app_client.app_spec,

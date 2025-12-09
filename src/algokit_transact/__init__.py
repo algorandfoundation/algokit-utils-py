@@ -72,13 +72,13 @@ from algokit_transact.ops.validate import (
 )
 from algokit_transact.signer import (
     Addressable,
-    AddressWithLsigSigner,
+    AddressWithDelegatedLsigSigner,
     AddressWithMxBytesSigner,
     AddressWithProgramDataSigner,
     AddressWithSigners,
     AddressWithTransactionSigner,
     BytesSigner,
-    LsigSigner,
+    DelegatedLsigSigner,
     MxBytesSigner,
     ProgramDataSigner,
     SendingAddress,
@@ -102,7 +102,7 @@ from algokit_transact.signing.validation import sanity_check_program
 
 __all__ = [
     "Addressable",
-    "AddressWithLsigSigner",
+    "AddressWithDelegatedLsigSigner",
     "AddressWithMxBytesSigner",
     "AddressWithProgramDataSigner",
     "AddressWithSigners",
@@ -124,7 +124,7 @@ __all__ = [
     "HeartbeatProof",
     "KeyRegistrationTransactionFields",
     "LogicSignature",
-    "LsigSigner",
+    "DelegatedLsigSigner",
     "MerkleArrayProof",
     "MerkleSignatureVerifier",
     "MultisigSignature",

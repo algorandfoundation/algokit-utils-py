@@ -1,6 +1,7 @@
-from base64 import b64encode
 from collections.abc import Callable
 from typing import Any
+
+from nacl.signing import SigningKey
 
 from algokit_common.serde import to_wire
 from algokit_kmd_client.client import KmdClient
@@ -9,9 +10,9 @@ from algokit_kmd_client.models._export_key_request import ExportKeyRequest
 from algokit_kmd_client.models._generate_key_request import GenerateKeyRequest
 from algokit_kmd_client.models._init_wallet_handle_token_request import InitWalletHandleTokenRequest
 from algokit_kmd_client.models._list_keys_request import ListKeysRequest
+from algokit_transact.signer import AddressWithSigners, generate_address_with_signers
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
@@ -19,20 +20,7 @@ from algokit_utils.transactions.transaction_composer import (
     TransactionComposerParams,
 )
 
-__all__ = ["KmdAccount", "KmdAccountManager"]
-
-
-class KmdAccount(SigningAccount):
-    """Account retrieved from KMD with signing capabilities, extending base Account.
-
-    Provides an account implementation that can be used to sign transactions using keys stored in KMD.
-
-    :param private_key: Base64 encoded private key
-    :param address: Optional address override for rekeyed accounts, defaults to None
-    """
-
-    def __init__(self, private_key: str, address: str | None = None) -> None:
-        super().__init__(private_key=private_key, address=address or "")
+__all__ = ["KmdAccountManager"]
 
 
 class KmdAccountManager:
@@ -68,7 +56,7 @@ class KmdAccountManager:
         wallet_name: str,
         predicate: Callable[[dict[str, Any]], bool] | None = None,
         sender: str | None = None,
-    ) -> KmdAccount | None:
+    ) -> AddressWithSigners | None:
         """Returns an Algorand signing account with private key loaded from the given KMD wallet.
 
         Retrieves an account from a KMD wallet that matches the given predicate, or a random account
@@ -108,10 +96,22 @@ class KmdAccountManager:
         private_key = kmd_client.export_key(ExportKeyRequest(matched_address, wallet_handle, "")).private_key
         if not private_key:
             raise Exception(f"Error exporting key for address {matched_address} from KMD wallet {wallet_name}")
-        private_key_str = b64encode(private_key).decode("ascii")
-        return KmdAccount(private_key=private_key_str, address=sender)
 
-    def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> KmdAccount:
+        # private_key is 64 bytes from KMD (seed + public key)
+        seed = private_key[:32]
+        public_key = private_key[32:]
+        signing_key = SigningKey(seed)
+
+        def raw_signer(bytes_to_sign: bytes) -> bytes:
+            return signing_key.sign(bytes_to_sign).signature
+
+        return generate_address_with_signers(
+            ed25519_pubkey=public_key,
+            raw_ed25519_signer=raw_signer,
+            sending_address=sender,
+        )
+
+    def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> AddressWithSigners:
         """Gets or creates a funded account in a KMD wallet of the given name.
 
         Provides idempotent access to accounts from LocalNet without specifying the private key.
@@ -140,7 +140,7 @@ class KmdAccountManager:
         assert account is not None
 
         config.logger.info(
-            f"LocalNet account '{name}' doesn't yet exist; created account {account.address} "
+            f"LocalNet account '{name}' doesn't yet exist; created account {account.addr} "
             f"with keys stored in KMD and funding with {fund_with} ALGO"
         )
 
@@ -153,14 +153,14 @@ class KmdAccountManager:
             )
         ).add_payment(
             PaymentParams(
-                sender=dispenser.address,
-                receiver=account.address,
+                sender=dispenser.addr,
+                receiver=account.addr,
                 amount=fund_with,
             )
         ).send()
         return account
 
-    def get_localnet_dispenser_account(self) -> KmdAccount:
+    def get_localnet_dispenser_account(self) -> AddressWithSigners:
         """Returns an Algorand account with private key loaded for the default LocalNet dispenser account.
 
         Retrieves the default funded account from LocalNet that can be used to fund other accounts.

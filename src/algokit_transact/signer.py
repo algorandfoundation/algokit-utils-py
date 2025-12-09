@@ -23,7 +23,7 @@ from algokit_transact.models.transaction import Transaction
 # Type aliases for signing functions
 BytesSigner = Callable[[bytes], bytes]
 TransactionSigner = Callable[[Sequence[Transaction], Sequence[int]], list[bytes]]
-LsigSigner = Callable[[bytes, bytes | None], bytes]
+DelegatedLsigSigner = Callable[[bytes, bytes | None], bytes]
 ProgramDataSigner = Callable[[bytes, bytes], bytes]
 MxBytesSigner = Callable[[bytes], bytes]
 
@@ -45,11 +45,11 @@ class AddressWithTransactionSigner(Addressable, Protocol):
 
 
 @runtime_checkable
-class AddressWithLsigSigner(Addressable, Protocol):
+class AddressWithDelegatedLsigSigner(Addressable, Protocol):
     """Protocol for objects with logic signature delegation signing."""
 
     @property
-    def lsig_signer(self) -> LsigSigner: ...
+    def delegated_lsig_signer(self) -> DelegatedLsigSigner: ...
 
 
 @runtime_checkable
@@ -77,7 +77,7 @@ class AddressWithSigners:
 
     addr: str
     signer: TransactionSigner
-    lsig_signer: LsigSigner
+    delegated_lsig_signer: DelegatedLsigSigner
     program_data_signer: ProgramDataSigner
     bytes_signer: BytesSigner
     mx_bytes_signer: MxBytesSigner
@@ -119,7 +119,7 @@ def generate_address_with_signers(
             result.append(encode_signed_transaction(stxn))
         return result
 
-    def lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
+    def delegated_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
         if msig_address is not None:
             payload = MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_address + program
         else:
@@ -137,7 +137,7 @@ def generate_address_with_signers(
     return AddressWithSigners(
         addr=addr,
         signer=transaction_signer,
-        lsig_signer=lsig_signer,
+        delegated_lsig_signer=delegated_lsig_signer,
         program_data_signer=program_data_signer,
         bytes_signer=raw_ed25519_signer,
         mx_bytes_signer=mx_bytes_signer,

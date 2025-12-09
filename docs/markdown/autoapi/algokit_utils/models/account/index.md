@@ -7,63 +7,14 @@
 
 ## Classes
 
-| [`TransactionSignerAccount`](#algokit_utils.models.account.TransactionSignerAccount)   | A basic transaction signer account.                                                     |
-|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| [`SigningAccount`](#algokit_utils.models.account.SigningAccount)                       | Account with private key. Implements SignerAccountProtocol.                             |
-| [`MultisigMetadata`](#algokit_utils.models.account.MultisigMetadata)                   | Metadata for a multisig account.                                                        |
-| [`MultiSigAccount`](#algokit_utils.models.account.MultiSigAccount)                     | Account wrapper for multisig signing. Supports secretless signing.                      |
-| [`LogicSigAccount`](#algokit_utils.models.account.LogicSigAccount)                     | Account wrapper for LogicSig signing. Supports delegation including secretless signing. |
+| [`MultisigMetadata`](#algokit_utils.models.account.MultisigMetadata)   | Metadata for a multisig account.                                                        |
+|------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| [`MultisigAccount`](#algokit_utils.models.account.MultisigAccount)     | Account wrapper for multisig signing. Supports secretless signing.                      |
+| [`LogicSigAccount`](#algokit_utils.models.account.LogicSigAccount)     | Account wrapper for LogicSig signing. Supports delegation including secretless signing. |
 
 ## Module Contents
 
 ### algokit_utils.models.account.DISPENSER_ACCOUNT_NAME *= 'DISPENSER'*
-
-### *class* algokit_utils.models.account.TransactionSignerAccount
-
-A basic transaction signer account.
-
-#### Deprecated
-Deprecated since version Use: [`TransactionSignerAccountProtocol`](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol) instead.
-
-#### address *: str*
-
-#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
-
-### *class* algokit_utils.models.account.SigningAccount
-
-Account with private key. Implements SignerAccountProtocol.
-
-#### private_key *: str*
-
-Base64 encoded private key
-
-#### address *: str* *= ''*
-
-Address for this account
-
-#### *property* public_key *: bytes*
-
-The public key for this account.
-
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
-
-Transaction signer callable.
-
-#### *property* bytes_signer *: [algokit_utils.protocols.signer.BytesSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.BytesSigner)*
-
-Raw bytes signer.
-
-#### *property* lsig_signer *: [algokit_utils.protocols.signer.LsigSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.LsigSigner)*
-
-LogicSig program signer.
-
-#### *property* program_data_signer *: [algokit_utils.protocols.signer.ProgramDataSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.ProgramDataSigner)*
-
-Program data signer (ProgData prefix).
-
-#### *property* mx_bytes_signer *: [algokit_utils.protocols.signer.MxBytesSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.MxBytesSigner)*
-
-MX-prefixed bytes signer.
 
 ### *class* algokit_utils.models.account.MultisigMetadata
 
@@ -75,7 +26,7 @@ Metadata for a multisig account.
 
 #### addresses *: list[str]*
 
-### *class* algokit_utils.models.account.MultiSigAccount(multisig_params: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)])
+### *class* algokit_utils.models.account.MultisigAccount(multisig_params: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata), sub_signers: collections.abc.Sequence[algokit_transact.signer.AddressWithSigners])
 
 Account wrapper for multisig signing. Supports secretless signing.
 
@@ -83,7 +34,7 @@ Account wrapper for multisig signing. Supports secretless signing.
 
 The multisig account parameters.
 
-#### *property* signing_accounts *: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)]*
+#### *property* sub_signers *: collections.abc.Sequence[algokit_transact.signer.AddressWithSigners]*
 
 The list of signing accounts.
 
@@ -91,7 +42,11 @@ The list of signing accounts.
 
 The multisig account address.
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* addr *: str*
+
+Alias for address property (matching TypeScript’s get addr()).
+
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 Transaction signer callable.
 
@@ -115,14 +70,59 @@ Whether this LogicSig is delegated to an account.
 
 The LogicSig account address (delegated address or escrow address).
 
-#### *property* signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### *property* addr *: str*
+
+Alias for address property (matching TypeScript’s get addr()).
+
+#### *property* signer *: algokit_transact.signer.TransactionSigner*
 
 Transaction signer callable.
 
-#### delegate(account: [algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)) → [LogicSigAccount](#algokit_utils.models.account.LogicSigAccount)
+#### bytes_to_sign_for_delegation(msig: [MultisigAccount](#algokit_utils.models.account.MultisigAccount) | None = None) → bytes
+
+Returns bytes to sign for delegation.
+
+Args:
+: msig: Optional multisig account for multisig delegation.
+
+Returns:
+: The bytes that need to be signed for delegation.
+
+#### program_data_to_sign(data: bytes) → bytes
+
+Returns bytes to sign for program data.
+
+Args:
+: data: The data to sign.
+
+Returns:
+: The bytes that need to be signed (ProgData + program_address + data).
+
+#### sign_program_data(data: bytes, signer: algokit_transact.signer.ProgramDataSigner) → bytes
+
+Signs program data with given signer.
+
+Args:
+: data: The data to sign.
+  signer: The program data signer to use.
+
+Returns:
+: The signature bytes.
+
+#### delegate(signer: algokit_transact.signer.DelegatedLsigSigner, delegating_address: str | None = None) → [LogicSigAccount](#algokit_utils.models.account.LogicSigAccount)
 
 Delegate this LogicSig to a single account. Returns self for chaining.
 
-#### delegate_multisig(multisig_params: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[[algokit_utils.protocols.account.SignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.SignerAccountProtocol)]) → [LogicSigAccount](#algokit_utils.models.account.LogicSigAccount)
+Args:
+: signer: The DelegatedLsigSigner callback to sign the program.
+  delegating_address: Optional address of the delegating account.
+  <br/>
+  > If not provided, the address must be set separately or
+  > the LogicSig will use the escrow address.
+
+Returns:
+: Self for method chaining.
+
+#### delegate_multisig(multisig_params: [MultisigMetadata](#algokit_utils.models.account.MultisigMetadata), signing_accounts: collections.abc.Sequence[algokit_transact.signer.AddressWithSigners]) → [LogicSigAccount](#algokit_utils.models.account.LogicSigAccount)
 
 Delegate this LogicSig to a multisig account. Returns self for chaining.

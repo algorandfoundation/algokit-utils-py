@@ -40,6 +40,38 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 
 - BoxReference used to be a subclass of algosdk BoxReference, now there is a direct equivalent imported from transact package. Do we want to keep aliasing the BoxReference to transact version or do we want to deprecate and advice consumers to import directly from transact?
 
+## Account and Signer Type Renames (TS Alignment)
+
+### Breaking Changes
+
+| Before | After | Notes |
+|--------|-------|-------|
+| `SigningAccount` | `AddressWithSigners` | Class renamed; `.address` → `.addr` |
+| `TransactionSignerAccountProtocol` | `AddressWithTransactionSigner` | Protocol renamed; `.address` → `.addr` |
+| `SignerAccountProtocol` | `AddressWithSigners` | Protocol merged into concrete class |
+| `LsigSigner` | `DelegatedLsigSigner` | Type alias renamed |
+| `AddressWithLsigSigner` | `AddressWithDelegatedLsigSigner` | Protocol renamed |
+
+### Justification
+
+- Aligns with `algokit-utils-ts` naming conventions
+- Python uses `AddressWithTransactionSigner` despite having no `Address` type (unlike TS) for cross-SDK consistency
+- The `addr` property matches TypeScript's `TransactionSignerAccount.addr`
+
+### Migration
+
+```python
+# Before
+from algokit_utils import SigningAccount, TransactionSignerAccountProtocol
+account = SigningAccount(...)
+print(account.address)
+
+# After
+from algokit_utils.transact import AddressWithSigners, AddressWithTransactionSigner
+account = AddressWithSigners(...)
+print(account.addr)
+```
+
 ## Contributing Guide
 
 - Introduce comprehensive contributing guide around running tests/updating snapshots in API client tests and dealing with Polytest

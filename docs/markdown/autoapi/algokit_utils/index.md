@@ -8,6 +8,7 @@ For more specific functionality, import directly from the relevant submodules:
 > from algokit_utils.accounts import KmdAccountManager
 > from algokit_utils.applications import AppClient
 > from algokit_utils.applications.app_spec import Arc52Contract
+> from algokit_utils.transact import Transaction, TransactionSigner
 > etc.
 
 ## Submodules
@@ -21,4 +22,5 @@ For more specific functionality, import directly from the relevant submodules:
 * [algokit_utils.errors](errors/index.md)
 * [algokit_utils.models](models/index.md)
 * [algokit_utils.protocols](protocols/index.md)
+* [algokit_utils.transact](transact/index.md)
 * [algokit_utils.transactions](transactions/index.md)

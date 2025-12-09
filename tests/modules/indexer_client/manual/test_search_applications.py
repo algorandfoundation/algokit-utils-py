@@ -4,16 +4,16 @@ import pytest
 
 from algokit_indexer_client import ClientConfig, IndexerClient
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.transactions.transaction_composer import AppCreateParams
 from tests.modules.indexer_client.common import fund_account, wait_for_indexer
 
 
 @pytest.fixture
-def funded_account(algorand_localnet: AlgorandClient) -> SigningAccount:
+def funded_account(algorand_localnet: AlgorandClient) -> AddressWithSigners:
     account = algorand_localnet.account.random()
     fund_account(algorand_localnet, account)
-    algorand_localnet.set_signer(sender=account.address, signer=account.signer)
+    algorand_localnet.set_signer(sender=account.addr, signer=account.signer)
     return account
 
 
@@ -30,7 +30,7 @@ def localnet_indexer_client() -> IndexerClient:
 @pytest.mark.localnet
 def test_search_applications_finds_recent_app(
     algorand_localnet: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     localnet_indexer_client: IndexerClient,
 ) -> None:
     """Test searching for applications using localnet indexer.
@@ -44,7 +44,7 @@ def test_search_applications_finds_recent_app(
 
     create_result = algorand_localnet.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             approval_program=approval_prog,
             clear_state_program=clear_prog,
             schema={

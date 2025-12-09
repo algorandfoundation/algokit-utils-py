@@ -24,21 +24,21 @@ Sets the default validity window for transactions.
   algorand = AlgorandClient.mainnet().set_default_validity_window(1000);
   ```
 
-#### set_default_signer(signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_default_signer(signer: algokit_utils.protocols.signer.TransactionSigner | algokit_transact.signer.AddressWithTransactionSigner) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
 
 * **Parameters:**
-  **signer** – The signer to use, either a TransactionSigner or a TransactionSignerAccountProtocol
+  **signer** – The signer to use, either a TransactionSigner or an AddressWithTransactionSigner
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
   ```python
-  signer = SigningAccount(private_key=..., address=...)
+  signer = account_manager.random()  # Returns AddressWithSigners
   algorand = AlgorandClient.mainnet().set_default_signer(signer)
   ```
 
-#### set_signer(sender: str, signer: [algokit_utils.protocols.signer.TransactionSigner](../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)) → typing_extensions.Self
+#### set_signer(sender: str, signer: algokit_utils.protocols.signer.TransactionSigner) → typing_extensions.Self
 
 Tracks the given account for later signing.
 
@@ -49,16 +49,16 @@ Tracks the given account for later signing.
   The AlgorandClient so method calls can be chained
 * **Example:**
   ```python
-  signer = SigningAccount(private_key=..., address=...)
-  algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
+  account = account_manager.random()  # Returns AddressWithSigners
+  algorand = AlgorandClient.mainnet().set_signer(account.addr, account.signer)
   ```
 
-#### set_signer_from_account(signer: [algokit_utils.protocols.account.TransactionSignerAccountProtocol](../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)) → typing_extensions.Self
+#### set_signer_from_account(signer: algokit_transact.signer.AddressWithTransactionSigner) → typing_extensions.Self
 
 Sets the default signer to use if no other signer is specified.
 
 * **Parameters:**
-  **signer** – The signer to use, either a TransactionSigner or a TransactionSignerAccountProtocol
+  **signer** – The signer to use, either a TransactionSigner or an AddressWithTransactionSigner
 * **Returns:**
   The AlgorandClient so method calls can be chained
 * **Example:**
@@ -66,8 +66,8 @@ Sets the default signer to use if no other signer is specified.
   accountManager = AlgorandClient.mainnet()
   accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
   accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
-  accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
-  accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
+  accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
+  accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
   accountManager.set_signer_from_account(account)
   ```
 
