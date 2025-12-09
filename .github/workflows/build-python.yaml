@@ -24,10 +24,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --group cicd --group api-generator
-
-      - name: Install algokit CLI
-        run: uv tool install algokit
+        run: uv sync --group api-generator
 
       - name: Setup Polytest
         uses: algorandfoundation/algokit-polytest/.github/actions/setup-polytest@main
@@ -68,9 +65,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          algokit localnet start
+          uvx algokit localnet start
           uv run poe test-ci 2>&1 | tee pytest-coverage.txt
-          algokit localnet stop
+          uvx algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
