@@ -855,15 +855,11 @@ def test_logic_error_includes_simulation_traces(
         assert error.traces is not None, "LogicError should include simulation traces"
         assert len(error.traces) > 0, "LogicError should have at least one simulation trace"
 
-        # Verify the trace structure
+        # Verify the trace structure - uses SimulateTransactionResult from algod client
         trace = error.traces[0]
-        assert hasattr(trace, "trace"), "SimulationTrace should have a trace attribute"
-        assert hasattr(trace, "app_budget_consumed"), "SimulationTrace should have app_budget_consumed"
-        assert hasattr(trace, "failure_message"), "SimulationTrace should have failure_message"
-
-        # The failure_message should contain the error details
-        assert trace.failure_message is not None, "Failure message should be set for failed transactions"
-        assert "assert failed" in trace.failure_message.lower(), "Failure message should indicate assertion failure"
+        assert hasattr(trace, "exec_trace"), "SimulateTransactionResult should have exec_trace attribute"
+        assert hasattr(trace, "app_budget_consumed"), "SimulateTransactionResult should have app_budget_consumed"
+        assert hasattr(trace, "txn_result"), "SimulateTransactionResult should have txn_result"
     finally:
         # Restore original debug setting
         config.configure(debug=original_debug)

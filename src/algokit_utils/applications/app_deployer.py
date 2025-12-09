@@ -740,9 +740,7 @@ class AppDeployer:
 
                 if metadata.get("name") and creation_txn.confirmed_round:
                     app_lookup[metadata["name"]] = ApplicationMetaData(
-                        reference=ApplicationReference(
-                            app_id=app_id, app_address=get_application_address(app_id)
-                        ),
+                        reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
                         deploy_metadata=AppDeploymentMetaData(
                             name=metadata["name"],
                             version=metadata.get("version", "1.0"),

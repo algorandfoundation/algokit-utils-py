@@ -9,6 +9,7 @@ from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
+from algokit_algod_client.models import SimulateTransactionResult
 from algokit_common.constants import MAX_TX_GROUP_SIZE
 from algokit_transact import decode_signed_transaction, encode_signed_transactions, make_empty_transaction_signer
 from algokit_transact.models.signed_transaction import SignedTransaction
@@ -22,7 +23,6 @@ from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.clients.client_manager import ClientManager
 from algokit_utils.config import config
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.models.simulate import SimulationTrace
 from algokit_utils.models.transaction import Arc2TransactionNote, SendParams
 from algokit_utils.transactions.builders import (
     build_app_call_method_call_transaction,
@@ -162,7 +162,7 @@ class TransactionComposerError(RuntimeError):
         message: str,
         *,
         cause: Exception | None = None,
-        traces: list[SimulationTrace] | None = None,
+        traces: list[SimulateTransactionResult] | None = None,
         sent_transactions: list[Transaction] | None = None,
         simulate_response: algod_models.SimulateResponse | None = None,
     ) -> None:
@@ -546,7 +546,7 @@ class TransactionComposer:
         except Exception as err:
             sent_transactions = self._resolve_error_transactions()
             simulate_response: algod_models.SimulateResponse | None = None
-            traces: list[SimulationTrace] = []
+            traces: list[SimulateTransactionResult] = []
 
             if config.debug and sent_transactions:
                 simulate_response, traces = self._simulate_error_context(
@@ -1448,7 +1448,7 @@ class TransactionComposer:
         sent_transactions: Sequence[Transaction],
         *,
         suppress_log: bool | None,
-    ) -> tuple[algod_models.SimulateResponse | None, list[SimulationTrace]]:
+    ) -> tuple[algod_models.SimulateResponse | None, list[SimulateTransactionResult]]:
         """Simulate transactions to get error context including traces.
 
         Returns:
@@ -1473,20 +1473,11 @@ class TransactionComposer:
             )
             response = self._algod.simulate_transactions(request)
 
-            # Extract traces from the response (aligned with TS implementation)
-            traces: list[SimulationTrace] = []
+            # Extract traces from the response - use SimulateTransactionResult directly
+            # aligned with TypeScript which uses algod client types directly
+            traces: list[SimulateTransactionResult] = []
             if response.txn_groups and response.txn_groups[0].failed_at:
-                failure_message = response.txn_groups[0].failure_message
-                for txn_result in response.txn_groups[0].txn_results:
-                    traces.append(
-                        SimulationTrace(
-                            trace=txn_result.exec_trace,
-                            app_budget_consumed=txn_result.app_budget_consumed,
-                            logic_sig_budget_consumed=txn_result.logic_sig_budget_consumed,
-                            logs=txn_result.txn_result.logs if txn_result.txn_result else None,
-                            failure_message=failure_message,
-                        )
-                    )
+                traces = list(response.txn_groups[0].txn_results)
 
             return response, traces
         except Exception:
@@ -1502,7 +1493,7 @@ class TransactionComposer:
         err: Exception,
         sent_transactions: Sequence[Transaction] | None,
         simulate_response: algod_models.SimulateResponse | None,
-        traces: list[SimulationTrace],
+        traces: list[SimulateTransactionResult],
     ) -> TransactionComposerError:
         """Create a TransactionComposerError with full context."""
         return TransactionComposerError(

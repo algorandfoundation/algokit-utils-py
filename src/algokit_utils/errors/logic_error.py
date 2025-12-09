@@ -4,7 +4,11 @@ from collections.abc import Callable, Mapping, Sequence
 from copy import copy
 from typing import TYPE_CHECKING, TypedDict
 
-from algokit_utils.models.simulate import SimulationTrace
+from algokit_algod_client.models import (
+    PendingTransactionResponse,
+    SimulateTransactionResult,
+    SimulationTransactionExecTrace,
+)
 
 if TYPE_CHECKING:
     import algokit_algosdk as algosdk
@@ -54,7 +58,7 @@ class LogicError(Exception):
         message: str,
         pc: int,
         logic_error: Exception | None = None,
-        traces: list[SimulationTrace] | None = None,
+        traces: list[SimulateTransactionResult] | None = None,
         get_line_for_pc: Callable[[int], int | None] | None = None,
     ):
         self.logic_error = logic_error
@@ -100,16 +104,16 @@ error please provide an approval SourceMap. Either by:
         return "\n\t" + "\n\t".join(program_lines[lines_before:lines_after])
 
 
-def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationTrace]:
+def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulateTransactionResult]:
     """Extract simulation traces from a simulate response for logic error debugging.
 
     Args:
         simulate: An object with simulate_response and failed_at attributes.
 
     Returns:
-        A list of SimulationTrace objects extracted from the simulation response.
+        A list of SimulateTransactionResult objects extracted from the simulation response.
     """
-    traces: list[SimulationTrace] = []
+    traces: list[SimulateTransactionResult] = []
     simulate_response = getattr(simulate, "simulate_response", None)
     failed_at = getattr(simulate, "failed_at", None)
 
@@ -123,7 +127,6 @@ def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationT
     for txn_group in txn_groups:
         if not isinstance(txn_group, Mapping):
             continue
-        failure_message = txn_group.get("failure-message")
         txn_results = txn_group.get("txn-results", [])
 
         if not isinstance(txn_results, Sequence):
@@ -132,19 +135,27 @@ def create_simulate_traces_for_logic_error(simulate: object) -> list[SimulationT
         for txn_result in txn_results:
             if not isinstance(txn_result, Mapping):
                 continue
-            exec_trace = txn_result.get("exec-trace")
+            exec_trace_raw = txn_result.get("exec-trace")
             app_budget_consumed = txn_result.get("app-budget-consumed")
             logic_sig_budget_consumed = txn_result.get("logic-sig-budget-consumed")
             txn_result_inner = txn_result.get("txn-result", {})
             logs_raw = txn_result_inner.get("logs", []) if isinstance(txn_result_inner, Mapping) else []
             logs = [base64.b64decode(log) if isinstance(log, str) else log for log in logs_raw] if logs_raw else None
+
+            # Create PendingTransactionResponse with logs for the SimulateTransactionResult
+            # Note: txn is required but we don't have it from raw JSON, use placeholder
+            pending_response = PendingTransactionResponse(
+                txn=None,  # type: ignore[arg-type]  # placeholder for raw response parsing
+                logs=logs,
+            )
+
+            # Create SimulateTransactionResult with available data
             traces.append(
-                SimulationTrace(
-                    trace=exec_trace,
+                SimulateTransactionResult(
+                    txn_result=pending_response,
                     app_budget_consumed=app_budget_consumed,
                     logic_sig_budget_consumed=logic_sig_budget_consumed,
-                    logs=logs,
-                    failure_message=failure_message,
+                    exec_trace=exec_trace_raw if isinstance(exec_trace_raw, SimulationTransactionExecTrace) else None,
                 )
             )
     return traces
