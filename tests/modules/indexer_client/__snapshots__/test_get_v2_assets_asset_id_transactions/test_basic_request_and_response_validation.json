@@ -216,8 +216,15 @@
         "access": null,
         "accounts": [],
         "application_args": [
-          "KCayAg==",
-          "AA=="
+          [
+            40,
+            38,
+            178,
+            2
+          ],
+          [
+            0
+          ]
         ],
         "application_id": 705410358,
         "approval_program": null,
