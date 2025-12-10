@@ -2,9 +2,8 @@
 
 ## Attributes
 
-| [`MAX_TRANSACTION_GROUP_SIZE`](#algokit_utils.transactions.transaction_composer.MAX_TRANSACTION_GROUP_SIZE)                     |    |
-|---------------------------------------------------------------------------------------------------------------------------------|----|
 | [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument)         |    |
+|---------------------------------------------------------------------------------------------------------------------------------|----|
 | [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                         |    |
 | [`SendAtomicTransactionComposerResults`](#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults) |    |
 
@@ -26,8 +25,6 @@
 | [`TransactionComposer`](#algokit_utils.transactions.transaction_composer.TransactionComposer)                       | Light-weight transaction composer built on top of algokit_transact. |
 
 ## Module Contents
-
-### algokit_utils.transactions.transaction_composer.MAX_TRANSACTION_GROUP_SIZE *= 16*
 
 ### algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument
 
