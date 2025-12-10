@@ -10,7 +10,7 @@ from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
-from algokit_common.constants import MAX_TX_GROUP_SIZE
+from algokit_common.constants import MAX_TRANSACTION_GROUP_SIZE
 from algokit_transact import decode_signed_transaction, encode_signed_transactions
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction, TransactionType
@@ -113,7 +113,6 @@ __all__ = [
     "calculate_extra_program_pages",
 ]
 
-MAX_TRANSACTION_GROUP_SIZE = MAX_TX_GROUP_SIZE
 AppMethodCallTransactionArgument = Any
 TxnParamTypes = (
     PaymentParams
