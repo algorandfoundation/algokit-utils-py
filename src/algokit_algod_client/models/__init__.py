@@ -25,6 +25,7 @@ from ._asset_params import AssetParams
 from ._avm_key_value import AvmKeyValue
 from ._avm_value import AvmValue
 from ._block import (
+    ApplyData,
     Block,
     BlockAccountStateDelta,
     BlockAppEvalDelta,
@@ -129,6 +130,7 @@ __all__ = [
     "ApplicationParams",
     "ApplicationStateOperation",
     "ApplicationStateSchema",
+    "ApplyData",
     "Asset",
     "AssetHolding",
     "AssetHoldingReference",
