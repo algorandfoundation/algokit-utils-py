@@ -5,38 +5,9 @@ detect common errors such as passing source code instead of bytecode,
 or passing base64-encoded programs.
 """
 
-import re
+import base64
 
 from algokit_common.address import public_key_from_address
-
-# Regex pattern for valid base64 strings
-_BASE64_REGEX = re.compile(r"^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$")
-
-# ASCII character ordinals
-_LINE_BREAK_ORD = ord("\n")
-_BLANK_SPACE_ORD = ord(" ")
-_TILDE_ORD = ord("~")
-
-
-def _is_printable(x: int) -> bool:
-    """Check if a byte value is a printable ASCII character (space to tilde)."""
-    return _BLANK_SPACE_ORD <= x <= _TILDE_ORD
-
-
-def _is_valid_address(address: str) -> bool:
-    """Check if a string is a valid Algorand address.
-
-    Args:
-        address: The string to check.
-
-    Returns:
-        True if the string is a valid Algorand address, False otherwise.
-    """
-    try:
-        public_key_from_address(address)
-        return True
-    except (ValueError, TypeError):
-        return False
 
 
 def sanity_check_program(program: bytes) -> None:
@@ -62,19 +33,31 @@ def sanity_check_program(program: bytes) -> None:
             - "program bytes are all ASCII printable characters, not looking
               like Teal byte code" if all bytes are printable ASCII
     """
-    if not program or len(program) == 0:
+    if not program:
         raise ValueError("empty program")
 
-    # Check if all bytes are ASCII printable (newlines allowed)
-    is_ascii_printable = all(byte == _LINE_BREAK_ORD or _is_printable(byte) for byte in program)
+    try:
+        ascii_str = program.decode("ascii")
+    except UnicodeDecodeError:
+        # not ascii, probably bytecode
+        return
 
-    if is_ascii_printable:
-        program_str = program.decode("utf-8")
+    if any(not line.isprintable() for line in ascii_str.splitlines()):
+        # not printable, probably bytecode
+        return
 
-        if _is_valid_address(program_str):
-            raise ValueError("requesting program bytes, get Algorand address")
+    try:
+        public_key_from_address(ascii_str)
+    except (TypeError, ValueError):
+        pass
+    else:
+        raise ValueError("requesting program bytes, get Algorand address")
 
-        if _BASE64_REGEX.match(program_str):
-            raise ValueError("program should not be b64 encoded")
+    try:
+        base64.b64decode(ascii_str)
+    except (TypeError, ValueError):
+        pass
+    else:
+        raise ValueError("program should not be b64 encoded")
 
-        raise ValueError("program bytes are all ASCII printable characters, not looking like Teal byte code")
+    raise ValueError("program bytes are all ASCII printable characters, not looking like Teal byte code")

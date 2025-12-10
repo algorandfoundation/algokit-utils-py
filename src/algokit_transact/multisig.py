@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from collections.abc import Callable, Sequence
+from functools import cached_property
 
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.codec.transaction import encode_transaction
@@ -30,40 +31,29 @@ class MultisigMetadata:
     addrs: list[str]
 
 
-@dataclasses.dataclass(kw_only=True)
+@dataclasses.dataclass(frozen=True)
 class MultisigAccount:
     """Account wrapper for multisig signing. Supports secretless signing."""
 
-    _params: MultisigMetadata
-    _sub_signers: Sequence[AddressWithSigners]
-    _addr: str
-    _signer: TransactionSigner
-    _multisig_signature: MultisigSignature
+    params: MultisigMetadata
+    """The multisig account parameters."""
+    sub_signers: Sequence[AddressWithSigners]
+    """The list of signing accounts."""
 
-    def __init__(
-        self,
-        multisig_params: MultisigMetadata,
-        sub_signers: Sequence[AddressWithSigners],
-    ) -> None:
-        self._params = multisig_params
-        self._sub_signers = sub_signers
-        self._multisig_signature = new_multisig_signature(
-            multisig_params.version,
-            multisig_params.threshold,
-            multisig_params.addrs,
+    @cached_property
+    def _multisig_signature(self) -> MultisigSignature:
+        return new_multisig_signature(
+            self.params.version,
+            self.params.threshold,
+            self.params.addrs,
         )
-        self._addr = address_from_multisig_signature(self._multisig_signature)
-        self._signer = self._create_multisig_signer()
 
-    def _get_account_address(self, account: AddressWithSigners) -> str:
-        """Get address from account, handling both AddressWithSigners and AddressWithSigners."""
-        return account.addr
-
-    def _create_multisig_signer(self) -> TransactionSigner:
+    @cached_property
+    def signer(self) -> TransactionSigner:
         address_to_signer: dict[str, Callable[[bytes], bytes]] = {
-            self._get_account_address(account): account.bytes_signer for account in self._sub_signers
+            account.addr: account.bytes_signer for account in self.sub_signers
         }
-        msig_address = self._addr
+        msig_address = self.address
         base_multisig = self._multisig_signature
 
         def signer(txn_group: Sequence[AlgokitTransaction], indexes_to_sign: Sequence[int]) -> list[bytes]:
@@ -90,27 +80,12 @@ class MultisigAccount:
 
         return signer
 
-    @property
-    def params(self) -> MultisigMetadata:
-        """The multisig account parameters."""
-        return self._params
-
-    @property
-    def sub_signers(self) -> Sequence[AddressWithSigners]:
-        """The list of signing accounts."""
-        return self._sub_signers
-
-    @property
+    @cached_property
     def address(self) -> str:
         """The multisig account address."""
-        return self._addr
+        return address_from_multisig_signature(self._multisig_signature)
 
     @property
     def addr(self) -> str:
         """Alias for address property (matching TypeScript's get addr())."""
         return self.address
-
-    @property
-    def signer(self) -> TransactionSigner:
-        """Transaction signer callable."""
-        return self._signer

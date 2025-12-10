@@ -1,10 +1,15 @@
-from __future__ import annotations
-
 import dataclasses
-from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import Protocol
 
-from algokit_common import address_from_public_key, public_key_from_address
+from typing_extensions import Self
+
+from algokit_common import address_from_public_key, public_key_from_address, sha512_256
+from algokit_common.constants import (
+    LOGIC_DATA_DOMAIN_SEPARATOR,
+    MULTISIG_PROGRAM_DOMAIN_SEPARATOR,
+    PROGRAM_DOMAIN_SEPARATOR,
+)
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction as AlgokitTransaction
@@ -14,38 +19,29 @@ from algokit_transact.signer import (
     ProgramDataSigner,
     TransactionSigner,
 )
+from algokit_transact.signing.logic_signature import LogicSignature
 from algokit_transact.signing.multisig import (
     address_from_multisig_signature,
     apply_multisig_subsignature,
     new_multisig_signature,
 )
 from algokit_transact.signing.types import MultisigSignature
-
-if TYPE_CHECKING:
-    from typing import Protocol as _Protocol
-
-    class _MultisigMetadataProtocol(_Protocol):
-        version: int
-        threshold: int
-        addrs: list[str]
-
-    class _MultisigAccountProtocol(_Protocol):
-        @property
-        def address(self) -> str: ...
-
+from algokit_transact.signing.validation import sanity_check_program
 
 __all__ = [
     "LogicSigAccount",
 ]
 
 
-def _get_sanity_check_program() -> Callable[[bytes], None]:
-    """Get the sanity_check_program function from algokit_transact."""
-    from algokit_transact.signing.validation import (  # pyright: ignore[reportMissingImports]
-        sanity_check_program,
-    )
+class _MultisigMetadataProtocol(Protocol):
+    version: int
+    threshold: int
+    addrs: list[str]
 
-    return sanity_check_program
+
+class _MultisigAccountProtocol(Protocol):
+    @property
+    def address(self) -> str: ...
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -60,7 +56,7 @@ class LogicSigAccount:
     _signer: TransactionSigner | None
 
     def __init__(self, program: bytes, args: list[bytes] | None = None) -> None:
-        _get_sanity_check_program()(program)
+        sanity_check_program(program)
         self._program = program
         self._args = args
         self._signature = None
@@ -89,9 +85,6 @@ class LogicSigAccount:
         if self._delegated_address is not None:
             return self._delegated_address
 
-        from algokit_common import sha512_256
-        from algokit_common.constants import PROGRAM_DOMAIN_SEPARATOR
-
         program_hash = sha512_256(PROGRAM_DOMAIN_SEPARATOR.encode() + self._program)
         return address_from_public_key(program_hash)
 
@@ -108,8 +101,6 @@ class LogicSigAccount:
         return self._signer
 
     def _create_logic_sig_signer(self) -> TransactionSigner:
-        from algokit_transact.signing.logic_signature import LogicSignature
-
         program = self._program
         args = list(self._args) if self._args else None
         signature = self._signature
@@ -149,7 +140,6 @@ class LogicSigAccount:
         Returns:
             The bytes that need to be signed for delegation.
         """
-        from algokit_common.constants import MULTISIG_PROGRAM_DOMAIN_SEPARATOR, PROGRAM_DOMAIN_SEPARATOR
 
         if msig is not None:
             msig_public_key = public_key_from_address(msig.address)
@@ -165,7 +155,6 @@ class LogicSigAccount:
         Returns:
             The bytes that need to be signed (ProgData + program_address + data).
         """
-        from algokit_common.constants import LOGIC_DATA_DOMAIN_SEPARATOR
 
         program_address = public_key_from_address(self.address)
         return LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
@@ -183,7 +172,7 @@ class LogicSigAccount:
         program_address = public_key_from_address(self.address)
         return signer(data, program_address)
 
-    def delegate(self, signer: DelegatedLsigSigner, delegating_address: str | None = None) -> LogicSigAccount:
+    def delegate(self, signer: DelegatedLsigSigner, delegating_address: str | None = None) -> Self:
         """Delegate this LogicSig to a single account. Returns self for chaining.
 
         Args:
@@ -201,29 +190,22 @@ class LogicSigAccount:
         self._signer = None
         return self
 
-    def _get_lsig_account_address(self, account: AddressWithSigners) -> str:
-        """Get address from account, handling both AddressWithSigners and AddressWithSigners."""
-        return account.addr
-
     def delegate_multisig(
         self,
         multisig_params: _MultisigMetadataProtocol,
         signing_accounts: Sequence[AddressWithSigners],
-    ) -> LogicSigAccount:
+    ) -> Self:
         """Delegate this LogicSig to a multisig account. Returns self for chaining."""
-        addrs = getattr(multisig_params, "addrs", getattr(multisig_params, "addresses", []))
         msig = new_multisig_signature(
             multisig_params.version,
             multisig_params.threshold,
-            addrs,
+            multisig_params.addrs,
         )
 
         msig_address = address_from_multisig_signature(msig)
         msig_public_key = public_key_from_address(msig_address)
 
-        address_to_signer: dict[str, Callable[[bytes, bytes | None], bytes]] = {
-            self._get_lsig_account_address(account): account.delegated_lsig_signer for account in signing_accounts
-        }
+        address_to_signer = {account.addr: account.delegated_lsig_signer for account in signing_accounts}
 
         for subsig in msig.subsignatures:
             if subsig.address in address_to_signer:
