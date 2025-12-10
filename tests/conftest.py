@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 from dotenv import load_dotenv
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications import Arc32Contract
 from algokit_utils.applications.app_manager import (
@@ -110,7 +110,7 @@ def get_unique_name() -> str:
     return name
 
 
-def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total: int | None) -> int:
+def generate_test_asset(algorand: AlgorandClient, sender: AddressWithSigners, total: int | None) -> int:
     if total is None:
         total = math.floor(random.random() * 100) + 20
 
@@ -119,17 +119,17 @@ def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total:
 
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=decimals,
             default_frozen=False,
             unit_name="CFG",
             asset_name=asset_name,
             url="https://example.com",
-            manager=sender.address,
-            reserve=sender.address,
-            freeze=sender.address,
-            clawback=sender.address,
+            manager=sender.addr,
+            reserve=sender.addr,
+            freeze=sender.addr,
+            clawback=sender.addr,
         )
     )
 

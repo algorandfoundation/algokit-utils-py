@@ -4,7 +4,7 @@ from typing import overload
 
 from typing_extensions import Self
 
-import algokit_algosdk as algosdk
+from algokit_common import MICROALGOS_TO_ALGOS_RATIO
 
 __all__ = ["ALGORAND_MIN_TX_FEE", "AlgoAmount", "algo", "micro_algo", "transaction_fees"]
 
@@ -38,7 +38,7 @@ class AlgoAmount:
         if micro_algo is not None:
             self.amount_in_micro_algo = int(micro_algo)
         elif algo is not None:
-            self.amount_in_micro_algo = int(algo * algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
+            self.amount_in_micro_algo = int(algo * MICROALGOS_TO_ALGOS_RATIO)
         else:
             raise ValueError("Invalid amount provided")
 
@@ -56,7 +56,7 @@ class AlgoAmount:
 
         :returns: The amount in Algo.
         """
-        return Decimal(self.amount_in_micro_algo) / Decimal(algosdk.constants.MICROALGOS_TO_ALGOS_RATIO)
+        return Decimal(self.amount_in_micro_algo) / Decimal(MICROALGOS_TO_ALGOS_RATIO)
 
     @staticmethod
     def from_algo(amount: int | Decimal) -> "AlgoAmount":

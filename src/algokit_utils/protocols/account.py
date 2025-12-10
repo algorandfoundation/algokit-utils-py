@@ -1,22 +1,11 @@
-from typing import Protocol, runtime_checkable
+"""Account protocols - re-exported for convenience."""
 
-from algokit_utils.protocols.signer import TransactionSigner
+from algokit_utils.transact import (
+    AddressWithSigners,
+    AddressWithTransactionSigner,
+)
 
-__all__ = ["TransactionSignerAccountProtocol"]
-
-
-@runtime_checkable
-class TransactionSignerAccountProtocol(Protocol):
-    """An account that has a transaction signer.
-    Implemented by SigningAccount, LogicSigAccount, MultiSigAccount and TransactionSignerAccount abstractions.
-    """
-
-    @property
-    def address(self) -> str:
-        """The address of the account."""
-        ...
-
-    @property
-    def signer(self) -> TransactionSigner:
-        """The AlgoKit-native signer callable."""
-        ...
+__all__ = [
+    "AddressWithSigners",
+    "AddressWithTransactionSigner",
+]

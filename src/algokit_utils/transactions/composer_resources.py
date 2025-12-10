@@ -2,8 +2,8 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Any
 
-import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
 from algokit_common.constants import MAX_ACCOUNT_REFERENCES, MAX_OVERALL_REFERENCES
 from algokit_transact.models.app_call import AppCallTransactionFields, BoxReference
 from algokit_transact.models.transaction import Transaction, TransactionType
@@ -172,7 +172,7 @@ def _is_app_call_below_resource_limit(txn: Transaction) -> bool:
 
 
 def _get_app_address(app_id: int) -> str:
-    return algosdk.logic.get_application_address(app_id)
+    return get_application_address(app_id)
 
 
 def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915

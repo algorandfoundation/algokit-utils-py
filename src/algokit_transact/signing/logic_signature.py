@@ -13,3 +13,7 @@ class LogicSignature:
         default=None,
         metadata=nested("msig", MultisigSignature),
     )
+    logic_multi_signature: MultisigSignature | None = field(
+        default=None,
+        metadata=nested("lmsig", MultisigSignature),
+    )
