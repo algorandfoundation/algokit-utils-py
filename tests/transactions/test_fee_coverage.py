@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -28,7 +28,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algo(100))
@@ -39,13 +39,13 @@ class TestCoverAppCallInnerFees:
     """Test covering app call inner transaction fees"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         # Load inner fee contract spec
         spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
         inner_fee_spec = json.loads(spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.addr)
 
         # Create 3 app instances
         self.app_client1, _ = factory.send.bare.create(params=AppFactoryCreateParams(note=b"app1"))
@@ -340,7 +340,7 @@ class TestCoverAppCallInnerFees:
         assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
-    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: SigningAccount) -> None:
+    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: AddressWithSigners) -> None:
         """Test that fee is not altered when another transaction in group covers inner fees"""
 
         expected_fee = 8000
@@ -349,8 +349,8 @@ class TestCoverAppCallInnerFees:
             self.app_client1.algorand.new_group()
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(expected_fee),
                 )
@@ -373,7 +373,7 @@ class TestCoverAppCallInnerFees:
         # and is probably unlikely to be a common use case
         assert wrapped_transactions[1].fee == 1000
 
-    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: SigningAccount) -> None:
+    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: AddressWithSigners) -> None:
         """Test that surplus fees are allocated to the most fee constrained transaction first"""
 
         result = (
@@ -389,16 +389,16 @@ class TestCoverAppCallInnerFees:
             )
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(7500),
                 )
             )
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(0),
                 )
@@ -415,14 +415,14 @@ class TestCoverAppCallInnerFees:
             assert txn.group is not None
             assert base64.b64encode(txn.group).decode("utf-8") == result.group_id
 
-    def test_handles_nested_abi_method_calls(self, funded_account: SigningAccount) -> None:
+    def test_handles_nested_abi_method_calls(self, funded_account: AddressWithSigners) -> None:
         """Test fee handling with nested ABI method calls"""
 
         # Create nested contract app
         app_spec = (Path(__file__).parent.parent / "artifacts" / "nested_contract" / "application.json").read_text()
         nested_factory = self.app_client1.algorand.client.get_app_factory(
             app_spec=app_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         nested_client, _ = nested_factory.send.create(
             params=AppFactoryCreateMethodCallParams(method="createApplication")
@@ -438,8 +438,8 @@ class TestCoverAppCallInnerFees:
         )
 
         payment_params = PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=AlgoAmount.from_micro_algo(0),
             static_fee=AlgoAmount.from_micro_algo(1500),
         )
@@ -499,14 +499,14 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_transaction_fees": True})
             )
 
-    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: SigningAccount) -> None:
+    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: AddressWithSigners) -> None:
         """Test that error is thrown when nested max fee is below calculated fee"""
 
         # Create nested contract app
         app_spec = (Path(__file__).parent.parent / "artifacts" / "nested_contract" / "application.json").read_text()
         nested_factory = self.app_client1.algorand.client.get_app_factory(
             app_spec=app_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         nested_client, _ = nested_factory.send.create(
             params=AppFactoryCreateMethodCallParams(method="createApplication")
@@ -529,8 +529,8 @@ class TestCoverAppCallInnerFees:
                     args=[
                         self.app_client1.algorand.create_transaction.payment(
                             PaymentParams(
-                                sender=funded_account.address,
-                                receiver=funded_account.address,
+                                sender=funded_account.addr,
+                                receiver=funded_account.addr,
                                 amount=AlgoAmount.from_micro_algo(0),
                             )
                         ),
@@ -573,7 +573,7 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_transaction_fees": True})
             )
 
-    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: SigningAccount) -> None:
+    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: AddressWithSigners) -> None:
         """Test that error is thrown when static fee for non-app-call transaction is too low"""
 
         with pytest.raises(
@@ -602,8 +602,8 @@ class TestCoverAppCallInnerFees:
                 )
                 .add_payment(
                     params=PaymentParams(
-                        sender=funded_account.address,
-                        receiver=funded_account.address,
+                        sender=funded_account.addr,
+                        receiver=funded_account.addr,
                         amount=AlgoAmount.from_micro_algo(0),
                         static_fee=AlgoAmount.from_micro_algo(500),
                     )
@@ -719,27 +719,27 @@ class TestAppDeployerFees:
         return algorand
 
     @pytest.fixture
-    def inner_app_id(self, algorand: AlgorandClient, funded_account: SigningAccount) -> int:
+    def inner_app_id(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> int:
         # Load inner fee contract spec
         spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
         inner_fee_spec = json.loads(spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.addr)
 
         # Create app
         app_client, _ = factory.send.bare.create()
         return app_client.app_id
 
     def test_delete_abi_inner_app_call_fees_should_be_covered(
-        self, algorand: AlgorandClient, funded_account: SigningAccount, inner_app_id: int
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners, inner_app_id: int
     ) -> None:
         # contract spec
         contract_spec_path = Path(__file__).parent.parent / "artifacts" / "delete_abi_with_inner" / "application.json"
         contract_spec = json.loads(contract_spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=contract_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=contract_spec, default_sender=funded_account.addr)
 
         # Deploy the app and fund the account
         app_client, _ = factory.deploy(

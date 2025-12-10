@@ -42,7 +42,7 @@ Bases: `RuntimeError`
 
 Raised when an error transformer returns a non-error value.
 
-### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[[algokit_utils.models.simulate.SimulationTrace](../../models/simulate/index.md#algokit_utils.models.simulate.SimulationTrace)] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateResponse | None = None)
+### *exception* algokit_utils.transactions.transaction_composer.TransactionComposerError(message: str, \*, cause: Exception | None = None, traces: list[algokit_algod_client.models.SimulateTransactionResult] | None = None, sent_transactions: list[algokit_transact.models.transaction.Transaction] | None = None, simulate_response: algokit_algod_client.models.SimulateResponse | None = None)
 
 Bases: `RuntimeError`
 
@@ -66,7 +66,7 @@ Contains detailed debugging information including simulation traces and sent tra
 
 #### algod *: algokit_algod_client.AlgodClient*
 
-#### get_signer *: collections.abc.Callable[[str], [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)]*
+#### get_signer *: collections.abc.Callable[[str], algokit_transact.signer.TransactionSigner]*
 
 #### get_suggested_params *: collections.abc.Callable[[], algokit_algod_client.models.SuggestedParams] | None* *= None*
 
@@ -82,7 +82,7 @@ Contains detailed debugging information including simulation traces and sent tra
 
 #### txn *: algokit_transact.models.transaction.Transaction*
 
-#### signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)*
+#### signer *: algokit_transact.signer.TransactionSigner*
 
 #### method *: ABIMethod | None* *= None*
 
@@ -92,7 +92,7 @@ Contains detailed debugging information including simulation traces and sent tra
 
 #### method_calls *: dict[int, ABIMethod]*
 
-#### signers *: dict[int, [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner)]*
+#### signers *: dict[int, algokit_transact.signer.TransactionSigner]*
 
 ### *class* algokit_utils.transactions.transaction_composer.SendTransactionComposerResults
 
@@ -120,7 +120,7 @@ Create a shallow copy of this composer, optionally overriding config flags.
 
 #### register_error_transformer(transformer: ErrorTransformer) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
-#### add_transaction(txn: algokit_transact.models.transaction.Transaction, signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
+#### add_transaction(txn: algokit_transact.models.transaction.Transaction, signer: algokit_transact.signer.TransactionSigner | None = None) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 
 #### add_payment(params: [algokit_utils.transactions.types.PaymentParams](../types/index.md#algokit_utils.transactions.types.PaymentParams)) → [TransactionComposer](#algokit_utils.transactions.transaction_composer.TransactionComposer)
 

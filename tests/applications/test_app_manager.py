@@ -1,8 +1,8 @@
 import pytest
 
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import check_output_stability
 
@@ -13,13 +13,13 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 

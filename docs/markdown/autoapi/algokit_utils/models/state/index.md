@@ -57,6 +57,6 @@ Enum where members are also (and must be) ints
 
 ### *type* algokit_utils.models.state.TealTemplateParams *= Mapping[str, str | int | bytes] | dict[str, str | int | bytes]*
 
-### *type* algokit_utils.models.state.BoxIdentifier *= str | bytes | [TransactionSignerAccountProtocol](../../protocols/account/index.md#algokit_utils.protocols.account.TransactionSignerAccountProtocol)*
+### *type* algokit_utils.models.state.BoxIdentifier *= str | bytes | AddressWithTransactionSigner*
 
 ### algokit_utils.models.state.BoxReference

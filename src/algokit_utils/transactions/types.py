@@ -3,10 +3,9 @@ from typing import TypedDict, Union
 
 from algokit_abi import arc56
 from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.state import BoxIdentifier, BoxReference
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 
 __all__ = [
     "AppCallMethodCallParams",
@@ -38,7 +37,7 @@ __all__ = [
 @dataclass(kw_only=True, frozen=True)
 class CommonTxnParams:
     sender: str
-    signer: TransactionSigner | TransactionSignerAccountProtocol | None = None
+    signer: TransactionSigner | AddressWithTransactionSigner | None = None
     rekey_to: str | None = None
     note: bytes | None = None
     lease: bytes | None = None

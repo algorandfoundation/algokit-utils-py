@@ -1,12 +1,11 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import algokit_algosdk as algosdk
 from algokit_algod_client import AlgodClient
+from algokit_common import MAX_TRANSACTION_GROUP_SIZE
+from algokit_transact.signer import AddressWithSigners, AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
-from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
     AssetOptOutParams,
@@ -139,7 +138,7 @@ class AssetManager:
         )
 
     def get_account_information(
-        self, sender: str | TransactionSignerAccountProtocol, asset_id: int
+        self, sender: str | AddressWithTransactionSigner, asset_id: int
     ) -> AccountAssetInformation:
         """Returns the given sender account's asset holding for a given asset.
 
@@ -206,7 +205,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TRANSACTION_GROUP_SIZE):
             composer = self._new_group()
 
             for asset_id in asset_group:
@@ -277,7 +276,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TRANSACTION_GROUP_SIZE):
             composer = self._new_group()
 
             not_opted_in_asset_ids: list[int] = []
@@ -331,12 +330,13 @@ class AssetManager:
 
     @staticmethod
     def _get_address_from_sender(
-        sender: str | TransactionSignerAccountProtocol,
+        sender: str | AddressWithTransactionSigner | AddressWithSigners,
     ) -> str:
         if isinstance(sender, str):
             return sender
-        if isinstance(sender, TransactionSignerAccountProtocol):
-            return sender.address
+        # Both AddressWithSigners and AddressWithTransactionSigner now use 'addr'
+        if isinstance(sender, AddressWithSigners | AddressWithTransactionSigner):
+            return sender.addr
         raise ValueError(f"Unsupported sender type: {type(sender)}")
 
 

@@ -1,24 +1,7 @@
-from dataclasses import dataclass
+# Re-export SimulateTransactionResult from algod client for simulation traces.
+# Previously this module defined a custom SimulationTrace wrapper class, but
+# now we use the algod client type directly for cross-language consistency.
 
-from algokit_algod_client.models import SimulationTransactionExecTrace
+from algokit_algod_client.models import SimulateTransactionResult
 
-__all__ = ["SimulationTrace"]
-
-
-@dataclass(slots=True)
-class SimulationTrace:
-    """Trace information from a simulated transaction.
-
-    Aligned with TypeScript algokit-utils SimulationTrace structure.
-    """
-
-    trace: SimulationTransactionExecTrace | None
-    """The execution trace of the transaction."""
-    app_budget_consumed: int | None
-    """Budget used during execution of an app call transaction."""
-    logic_sig_budget_consumed: int | None
-    """Budget used during execution of a logic sig transaction."""
-    logs: list[bytes] | None
-    """Logs from the transaction execution."""
-    failure_message: str | None
-    """The failure message if the transaction failed."""
+__all__ = ["SimulateTransactionResult"]

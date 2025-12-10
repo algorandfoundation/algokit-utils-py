@@ -40,6 +40,74 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 
 - BoxReference used to be a subclass of algosdk BoxReference, now there is a direct equivalent imported from transact package. Do we want to keep aliasing the BoxReference to transact version or do we want to deprecate and advice consumers to import directly from transact?
 
+## Account and Signer Type Renames (TS Alignment)
+
+### Breaking Changes
+
+| Before | After | Notes |
+|--------|-------|-------|
+| `SigningAccount` | `AddressWithSigners` | Class renamed; `.address` → `.addr` |
+| `TransactionSignerAccountProtocol` | `AddressWithTransactionSigner` | Protocol renamed; `.address` → `.addr` |
+| `SignerAccountProtocol` | `AddressWithSigners` | Protocol merged into concrete class |
+| `LsigSigner` | `DelegatedLsigSigner` | Type alias renamed |
+| `AddressWithLsigSigner` | `AddressWithDelegatedLsigSigner` | Protocol renamed |
+
+### Justification
+
+- Aligns with `algokit-utils-ts` naming conventions
+- Python uses `AddressWithTransactionSigner` despite having no `Address` type (unlike TS) for cross-SDK consistency
+- The `addr` property matches TypeScript's `TransactionSignerAccount.addr`
+
+### Migration
+
+```python
+# Before
+from algokit_utils import SigningAccount, TransactionSignerAccountProtocol
+account = SigningAccount(...)
+print(account.address)
+
+# After
+from algokit_utils.transact import AddressWithSigners, AddressWithTransactionSigner
+account = AddressWithSigners(...)
+print(account.addr)
+```
+
+## MultisigAccount and LogicSigAccount Relocation (TS Alignment)
+
+### Breaking Changes
+
+| Before | After | Notes |
+|--------|-------|-------|
+| `algokit_utils.models.account.MultisigAccount` | `algokit_transact.MultisigAccount` | Moved to transact package |
+| `algokit_utils.models.account.MultisigMetadata` | `algokit_transact.MultisigMetadata` | Moved to transact package; `.addresses` → `.addrs` |
+| `algokit_utils.models.account.LogicSigAccount` | `algokit_transact.LogicSigAccount` | Moved to transact package |
+
+### Justification
+
+- Aligns with `algokit-utils-ts` PR #465 which moved these classes to `@algorandfoundation/algokit-transact`
+- `MultisigMetadata.addrs` matches TypeScript's `MultisigMetadata.addrs` property
+
+### Backward Compatibility
+
+Classes remain importable from original locations via re-exports:
+- `algokit_utils.models.account` (re-exports from transact)
+- `algokit_utils.transact` (re-exports from transact)
+
+### Migration
+
+```python
+# Before
+from algokit_utils.models.account import MultisigAccount, MultisigMetadata, LogicSigAccount
+metadata = MultisigMetadata(version=1, threshold=2, addresses=["addr1", "addr2"])
+
+# After (preferred)
+from algokit_transact import MultisigAccount, MultisigMetadata, LogicSigAccount
+metadata = MultisigMetadata(version=1, threshold=2, addrs=["addr1", "addr2"])
+
+# Or via algokit_utils.transact
+from algokit_utils.transact import MultisigAccount, MultisigMetadata, LogicSigAccount
+```
+
 ## Contributing Guide
 
 - Introduce comprehensive contributing guide around running tests/updating snapshots in API client tests and dealing with Polytest

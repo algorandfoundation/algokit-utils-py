@@ -182,3 +182,5 @@ api/specs/
 *.xml
 
 .polytest*/
+
+references/

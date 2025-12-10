@@ -4,11 +4,11 @@ from http import HTTPStatus
 from algokit_indexer_client import IndexerClient
 from algokit_indexer_client.exceptions import UnexpectedStatusError
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.models.amount import AlgoAmount
 
 
-def fund_account(algorand: AlgorandClient, account: SigningAccount) -> None:
+def fund_account(algorand: AlgorandClient, account: AddressWithSigners) -> None:
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         account,

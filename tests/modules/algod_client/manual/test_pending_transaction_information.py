@@ -1,6 +1,6 @@
 import pytest
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
@@ -12,7 +12,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def sender(algorand: AlgorandClient) -> SigningAccount:
+def sender(algorand: AlgorandClient) -> AddressWithSigners:
     account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -22,7 +22,7 @@ def sender(algorand: AlgorandClient) -> SigningAccount:
 
 
 @pytest.fixture
-def receiver(algorand: AlgorandClient) -> SigningAccount:
+def receiver(algorand: AlgorandClient) -> AddressWithSigners:
     account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -33,7 +33,7 @@ def receiver(algorand: AlgorandClient) -> SigningAccount:
 
 @pytest.mark.localnet
 def test_pending_transaction_broadcast(
-    algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount
+    algorand: AlgorandClient, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     """Test broadcasting a transaction and retrieving pending transaction information."""
     # Get the algod_client from the AlgorandClient so we use the same client consistently
@@ -42,8 +42,8 @@ def test_pending_transaction_broadcast(
     # Build payment transaction using Algokit
     txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=AlgoAmount.from_micro_algo(500_000),
             note=b"Test payment transaction",
         )

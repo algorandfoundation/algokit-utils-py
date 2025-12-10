@@ -1,6 +1,6 @@
 import pytest
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import PaymentParams
@@ -13,8 +13,8 @@ def test_raw_transaction_broadcast() -> None:
     # Get the algod_client from the AlgorandClient so we use the same client consistently
     algod_client = algorand.client.algod
 
-    sender: SigningAccount = algorand.account.random()
-    receiver: SigningAccount = algorand.account.random()
+    sender: AddressWithSigners = algorand.account.random()
+    receiver: AddressWithSigners = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         sender, dispenser, AlgoAmount.from_algo(10), min_funding_increment=AlgoAmount.from_algo(1)
@@ -25,8 +25,8 @@ def test_raw_transaction_broadcast() -> None:
 
     txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=AlgoAmount.from_micro_algo(500_000),
             note=b"Test payment transaction",
         )

@@ -1,6 +1,6 @@
 import pytest
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.assets.asset_manager import (
     AccountAssetInformation,
@@ -20,18 +20,18 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def sender(algorand: AlgorandClient) -> SigningAccount:
+def sender(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
 @pytest.fixture
-def receiver(algorand: AlgorandClient) -> SigningAccount:
+def receiver(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -40,12 +40,12 @@ def receiver(algorand: AlgorandClient) -> SigningAccount:
     return new_account
 
 
-def test_get_by_id(algorand: AlgorandClient, sender: SigningAccount) -> None:
+def test_get_by_id(algorand: AlgorandClient, sender: AddressWithSigners) -> None:
     # First create an asset
     total = 1000
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=0,
             default_frozen=False,
@@ -68,15 +68,15 @@ def test_get_by_id(algorand: AlgorandClient, sender: SigningAccount) -> None:
     assert asset_info.unit_name == "TEST"
     assert asset_info.asset_name == "Test Asset"
     assert asset_info.url == "https://example.com"
-    assert asset_info.creator == sender.address
+    assert asset_info.creator == sender.addr
 
 
-def test_get_account_information_with_address(algorand: AlgorandClient, sender: SigningAccount) -> None:
+def test_get_account_information_with_address(algorand: AlgorandClient, sender: AddressWithSigners) -> None:
     # First create an asset
     total = 1000
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=0,
             default_frozen=False,
@@ -89,7 +89,7 @@ def test_get_account_information_with_address(algorand: AlgorandClient, sender: 
     asset_id = create_result.confirmation.asset_id
 
     # Then get account info
-    account_info = algorand.asset.get_account_information(sender.address, asset_id)
+    account_info = algorand.asset.get_account_information(sender.addr, asset_id)
 
     assert isinstance(account_info, AccountAssetInformation)
     assert account_info.asset_id == asset_id
@@ -97,12 +97,12 @@ def test_get_account_information_with_address(algorand: AlgorandClient, sender: 
     assert account_info.frozen is False
 
 
-def test_get_account_information_with_account(algorand: AlgorandClient, sender: SigningAccount) -> None:
+def test_get_account_information_with_account(algorand: AlgorandClient, sender: AddressWithSigners) -> None:
     # First create an asset
     total = 1000
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=0,
             default_frozen=False,
@@ -123,12 +123,12 @@ def test_get_account_information_with_account(algorand: AlgorandClient, sender: 
     assert account_info.frozen is False
 
 
-def test_get_account_information_with_transaction_signer(algorand: AlgorandClient, sender: SigningAccount) -> None:
+def test_get_account_information_with_transaction_signer(algorand: AlgorandClient, sender: AddressWithSigners) -> None:
     # First create an asset
     total = 1000
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=0,
             default_frozen=False,
@@ -149,13 +149,15 @@ def test_get_account_information_with_transaction_signer(algorand: AlgorandClien
     assert account_info.frozen is False
 
 
-def test_bulk_opt_in_with_address(algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount) -> None:
+def test_bulk_opt_in_with_address(
+    algorand: AlgorandClient, sender: AddressWithSigners, receiver: AddressWithSigners
+) -> None:
     # First create some assets
     asset_ids: list[int] = []
     for i in range(3):
         create_result = algorand.send.asset_create(
             AssetCreateParams(
-                sender=sender.address,
+                sender=sender.addr,
                 total=1000,
                 decimals=0,
                 default_frozen=False,
@@ -171,14 +173,14 @@ def test_bulk_opt_in_with_address(algorand: AlgorandClient, sender: SigningAccou
     # Fund receiver
     algorand.send.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=AlgoAmount.from_algo(1),
         )
     )
 
     # Then bulk opt-in
-    results = algorand.asset.bulk_opt_in(receiver.address, asset_ids, signer=receiver.signer)
+    results = algorand.asset.bulk_opt_in(receiver.addr, asset_ids, signer=receiver.signer)
 
     assert len(results) == len(asset_ids)
     for result in results:
@@ -188,12 +190,12 @@ def test_bulk_opt_in_with_address(algorand: AlgorandClient, sender: SigningAccou
 
 
 def test_bulk_opt_out_not_opted_in_fails(
-    algorand: AlgorandClient, sender: SigningAccount, receiver: SigningAccount
+    algorand: AlgorandClient, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     # First create an asset
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
@@ -208,12 +210,12 @@ def test_bulk_opt_out_not_opted_in_fails(
     # Fund receiver but don't opt-in
     algorand.send.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=AlgoAmount.from_algo(1),
         )
     )
 
     # Then attempt to opt-out
     with pytest.raises(ValueError, match="is not opted-in"):
-        algorand.asset.bulk_opt_out(account=receiver.address, asset_ids=[asset_id])
+        algorand.asset.bulk_opt_out(account=receiver.addr, asset_ids=[asset_id])

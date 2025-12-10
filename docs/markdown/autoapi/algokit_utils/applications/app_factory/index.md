@@ -25,7 +25,7 @@
 
 #### default_sender *: str | None* *= None*
 
-#### default_signer *: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None* *= None*
+#### default_signer *: algokit_utils.protocols.signer.TransactionSigner | None* *= None*
 
 #### version *: str | None* *= None*
 
@@ -260,7 +260,7 @@ various return properties like transaction, confirmation and deleteResult.
   })
   ```
 
-#### get_app_client_by_id(app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_id(app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Returns a new AppClient client for an app instance of the given ID.
 
@@ -278,7 +278,7 @@ Returns a new AppClient client for an app instance of the given ID.
   app_client = factory.get_app_client_by_id(app_id=123)
   ```
 
-#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, default_sender: str | None = None, default_signer: [algokit_utils.protocols.signer.TransactionSigner](../../protocols/signer/index.md#algokit_utils.protocols.signer.TransactionSigner) | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
+#### get_app_client_by_creator_and_name(creator_address: str, app_name: str, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [algokit_utils.applications.app_deployer.ApplicationLookup](../app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None) → [algokit_utils.applications.app_client.AppClient](../app_client/index.md#algokit_utils.applications.app_client.AppClient)
 
 Returns a new AppClient client, resolving the app by creator address and name
 using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note).

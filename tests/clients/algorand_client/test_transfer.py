@@ -2,10 +2,10 @@ import httpx
 import pytest
 from pytest_httpx._httpx_mock import HTTPXMock
 
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.accounts.account_manager import AccountInformation
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.clients.dispenser_api_client import DispenserApiConfig, TestNetDispenserApiClient
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AssetOptInParams,
@@ -21,23 +21,23 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
-def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     second_account = algorand.account.random()
 
     result = algorand.send.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             amount=AlgoAmount.from_algo(5),
             note=b"Transfer 5 Algos",
         )
@@ -48,17 +48,17 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
     assert result.transaction.payment
     assert result.transaction.payment.amount == 5_000_000
 
-    assert result.transaction.sender == funded_account.address == result.confirmation.txn.transaction.sender
+    assert result.transaction.sender == funded_account.addr == result.confirmation.txn.transaction.sender
     assert account_info.amount == 5_000_000
 
 
-def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     second_account = algorand.account.random()
 
     algorand.send.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             amount=AlgoAmount.from_algo(1),
             lease=b"test",
         )
@@ -67,21 +67,21 @@ def test_transfer_algo_respects_string_lease(algorand: AlgorandClient, funded_ac
     with pytest.raises(Exception, match="overlapping lease"):
         algorand.send.payment(
             PaymentParams(
-                sender=funded_account.address,
-                receiver=second_account.address,
+                sender=funded_account.addr,
+                receiver=second_account.addr,
                 amount=AlgoAmount.from_algo(2),
                 lease=b"test",
             )
         )
 
 
-def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     second_account = algorand.account.random()
 
     algorand.send.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             amount=AlgoAmount.from_algo(1),
             lease=b"\x01\x02\x03\x04",
         )
@@ -90,15 +90,15 @@ def test_transfer_algo_respects_byte_array_lease(algorand: AlgorandClient, funde
     with pytest.raises(Exception, match="overlapping lease"):
         algorand.send.payment(
             PaymentParams(
-                sender=funded_account.address,
-                receiver=second_account.address,
+                sender=funded_account.addr,
+                receiver=second_account.addr,
                 amount=AlgoAmount.from_algo(2),
                 lease=b"\x01\x02\x03\x04",
             )
         )
 
 
-def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
 
     second_account = algorand.account.random()
@@ -111,15 +111,15 @@ def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: S
 
     algorand.send.asset_opt_in(
         AssetOptInParams(
-            sender=second_account.address,
+            sender=second_account.addr,
             asset_id=test_asset_id,
         )
     )
 
     algorand.send.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             asset_id=test_asset_id,
             amount=1,
             lease=b"test",
@@ -129,8 +129,8 @@ def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: S
     with pytest.raises(Exception, match="overlapping lease"):
         algorand.send.asset_transfer(
             AssetTransferParams(
-                sender=funded_account.address,
-                receiver=second_account.address,
+                sender=funded_account.addr,
+                receiver=second_account.addr,
                 asset_id=test_asset_id,
                 amount=2,
                 lease=b"test",
@@ -140,7 +140,7 @@ def test_transfer_asa_respects_lease(algorand: AlgorandClient, funded_account: S
 
 def test_transfer_asa_receiver_not_opted_in(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
@@ -148,8 +148,8 @@ def test_transfer_asa_receiver_not_opted_in(
     with pytest.raises(Exception, match="receiver error: must optin"):
         algorand.send.asset_transfer(
             AssetTransferParams(
-                sender=funded_account.address,
-                receiver=second_account.address,
+                sender=funded_account.addr,
+                receiver=second_account.addr,
                 asset_id=test_asset_id,
                 amount=1,
                 note=b"Transfer 5 assets with id %d" % test_asset_id,
@@ -157,7 +157,7 @@ def test_transfer_asa_receiver_not_opted_in(
         )
 
 
-def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -167,11 +167,11 @@ def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_accou
         min_funding_increment=AlgoAmount.from_algo(1),
     )
 
-    with pytest.raises(Exception, match=f"asset {test_asset_id} missing from {second_account.address}"):
+    with pytest.raises(Exception, match=f"asset {test_asset_id} missing from {second_account.addr}"):
         algorand.send.asset_transfer(
             AssetTransferParams(
-                sender=second_account.address,
-                receiver=funded_account.address,
+                sender=second_account.addr,
+                receiver=funded_account.addr,
                 asset_id=test_asset_id,
                 amount=1,
                 note=b"Transfer 5 assets with id %d" % test_asset_id,
@@ -179,7 +179,7 @@ def test_transfer_asa_sender_not_opted_in(algorand: AlgorandClient, funded_accou
         )
 
 
-def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
         account_to_fund=second_account,
@@ -188,11 +188,11 @@ def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_accoun
         min_funding_increment=AlgoAmount.from_algo(1),
     )
 
-    with pytest.raises(Exception, match=f"asset 123123 missing from {funded_account.address}"):
+    with pytest.raises(Exception, match=f"asset 123123 missing from {funded_account.addr}"):
         algorand.send.asset_transfer(
             AssetTransferParams(
-                sender=funded_account.address,
-                receiver=second_account.address,
+                sender=funded_account.addr,
+                receiver=second_account.addr,
                 asset_id=123123,
                 amount=5,
                 note=b"Transfer asset with wrong id",
@@ -200,7 +200,7 @@ def test_transfer_asa_asset_doesnt_exist(algorand: AlgorandClient, funded_accoun
         )
 
 
-def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -215,15 +215,15 @@ def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_accoun
 
     algorand.send.asset_opt_in(
         AssetOptInParams(
-            sender=second_account.address,
+            sender=second_account.addr,
             asset_id=test_asset_id,
         )
     )
 
     algorand.send.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             asset_id=test_asset_id,
             amount=5,
             note=b"Transfer 5 assets with id %d" % test_asset_id,
@@ -237,7 +237,7 @@ def test_transfer_asa_to_another_account(algorand: AlgorandClient, funded_accoun
     assert test_account_info.balance == 95
 
 
-def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     test_asset_id = generate_test_asset(algorand, funded_account, 100)
     second_account = algorand.account.random()
     clawback_account = algorand.account.random()
@@ -257,22 +257,22 @@ def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_ac
 
     algorand.send.asset_opt_in(
         AssetOptInParams(
-            sender=second_account.address,
+            sender=second_account.addr,
             asset_id=test_asset_id,
         )
     )
 
     algorand.send.asset_opt_in(
         AssetOptInParams(
-            sender=clawback_account.address,
+            sender=clawback_account.addr,
             asset_id=test_asset_id,
         )
     )
 
     algorand.send.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
-            receiver=clawback_account.address,
+            sender=funded_account.addr,
+            receiver=clawback_account.addr,
             asset_id=test_asset_id,
             amount=5,
             note=b"Transfer 5 assets with id %d" % test_asset_id,
@@ -284,12 +284,12 @@ def test_transfer_asa_from_revocation_target(algorand: AlgorandClient, funded_ac
 
     algorand.send.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
-            receiver=second_account.address,
+            sender=funded_account.addr,
+            receiver=second_account.addr,
             asset_id=test_asset_id,
             amount=5,
             note=b"Transfer 5 assets with id %d" % test_asset_id,
-            clawback_target=clawback_account.address,
+            clawback_target=clawback_account.addr,
         )
     )
 
@@ -308,7 +308,7 @@ MINIMUM_BALANCE = AlgoAmount.from_micro_algo(
 )  # see https://dev.algorand.co/concepts/smart-contracts/costs-constraints#mbr
 
 
-def test_ensure_funded(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_ensure_funded(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     test_account = algorand.account.random()
     response = algorand.account.ensure_funded(
         account_to_fund=test_account,
@@ -336,7 +336,7 @@ def test_ensure_funded_uses_dispenser_by_default(
 
     assert result is not None
     assert result.transaction.payment is not None
-    assert result.transaction.sender == dispenser.address
+    assert result.transaction.sender == dispenser.addr
 
     account_info = algorand.account.get_information(second_account)
     expected_balance = MINIMUM_BALANCE + AlgoAmount.from_algo(1)
@@ -344,7 +344,7 @@ def test_ensure_funded_uses_dispenser_by_default(
 
 
 def test_ensure_funded_respects_minimum_funding_increment(
-    algorand: AlgorandClient, funded_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners
 ) -> None:
     test_account = algorand.account.random()
     response = algorand.account.ensure_funded(
@@ -373,7 +373,7 @@ def test_ensure_funded_testnet_api_success(monkeypatch: pytest.MonkeyPatch, http
     )
 
     fake_account_info = AccountInformation(
-        address=account_to_fund.address,
+        address=account_to_fund.addr,
         amount=AlgoAmount.from_micro_algo(0),
         amount_without_pending_rewards=AlgoAmount.from_micro_algo(0),
         min_balance=AlgoAmount.from_micro_algo(100_000),
@@ -421,7 +421,7 @@ def test_ensure_funded_testnet_api_bad_response(monkeypatch: pytest.MonkeyPatch,
     )
 
     fake_account_info = AccountInformation(
-        address=account_to_fund.address,
+        address=account_to_fund.addr,
         amount=AlgoAmount.from_micro_algo(0),
         amount_without_pending_rewards=AlgoAmount.from_micro_algo(0),
         min_balance=AlgoAmount.from_micro_algo(100_000),
@@ -441,16 +441,16 @@ def test_ensure_funded_testnet_api_bad_response(monkeypatch: pytest.MonkeyPatch,
         )
 
 
-def test_rekey_works(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_rekey_works(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     second_account = algorand.account.random()
 
-    algorand.account.rekey_account(funded_account.address, second_account, note=b"rekey")
+    algorand.account.rekey_account(funded_account.addr, second_account, note=b"rekey")
 
     # This will throw if the rekey wasn't successful
     algorand.send.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=AlgoAmount.from_micro_algo(1),
             signer=second_account.signer,
         )

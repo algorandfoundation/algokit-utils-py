@@ -4,8 +4,8 @@ import json
 from dataclasses import asdict, dataclass, fields
 from typing import Literal, TypeVar
 
-import algokit_algosdk as algosdk
 from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
 from algokit_indexer_client import IndexerClient
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
@@ -409,7 +409,7 @@ class AppDeployer:
 
         app_metadata = ApplicationMetaData(
             reference=ApplicationReference(
-                app_id=create_result.app_id, app_address=algosdk.logic.get_application_address(create_result.app_id)
+                app_id=create_result.app_id, app_address=get_application_address(create_result.app_id)
             ),
             deploy_metadata=deployment.metadata,
             created_round=_get_confirmed_round(create_result.confirmation),
@@ -497,7 +497,7 @@ class AppDeployer:
         assert app_id_raw is not None
         app_id = int(app_id_raw)
         app_metadata = ApplicationMetaData(
-            reference=ApplicationReference(app_id=app_id, app_address=algosdk.logic.get_application_address(app_id)),
+            reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
             deploy_metadata=deployment.metadata,
             created_round=_get_confirmed_round(result.confirmations[0]),
             updated_round=_get_confirmed_round(result.confirmations[0]),
@@ -740,9 +740,7 @@ class AppDeployer:
 
                 if metadata.get("name") and creation_txn.confirmed_round:
                     app_lookup[metadata["name"]] = ApplicationMetaData(
-                        reference=ApplicationReference(
-                            app_id=app_id, app_address=algosdk.logic.get_application_address(app_id)
-                        ),
+                        reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
                         deploy_metadata=AppDeploymentMetaData(
                             name=metadata["name"],
                             version=metadata.get("version", "1.0"),

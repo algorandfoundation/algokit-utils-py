@@ -4,7 +4,7 @@ from enum import IntEnum
 from typing import TypeAlias
 
 from algokit_transact import BoxReference as AlgoKitTransactBoxReference
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_transact.signer import AddressWithTransactionSigner
 
 __all__ = [
     "BoxIdentifier",
@@ -47,7 +47,7 @@ class DataTypeFlag(IntEnum):
 TealTemplateParams: TypeAlias = Mapping[str, str | int | bytes] | dict[str, str | int | bytes]
 
 
-BoxIdentifier: TypeAlias = str | bytes | TransactionSignerAccountProtocol
+BoxIdentifier: TypeAlias = str | bytes | AddressWithTransactionSigner
 
 
 BoxReference = AlgoKitTransactBoxReference
