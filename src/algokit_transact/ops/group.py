@@ -2,7 +2,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from algokit_common import sha512_256
-from algokit_common.constants import MAX_TX_GROUP_SIZE, TRANSACTION_GROUP_DOMAIN_SEPARATOR
+from algokit_common.constants import MAX_TRANSACTION_GROUP_SIZE, TRANSACTION_GROUP_DOMAIN_SEPARATOR
 from algokit_transact.codec.msgpack import encode_msgpack
 from algokit_transact.models.transaction import Transaction
 from algokit_transact.ops.ids import get_transaction_id_raw
@@ -13,8 +13,8 @@ def group_transactions(transactions: Iterable[Transaction]) -> list[Transaction]
 
     if not txs:
         raise ValueError("Transaction group cannot be empty")
-    if len(txs) > MAX_TX_GROUP_SIZE:
-        raise ValueError(f"Transaction group size exceeds the max limit of {MAX_TX_GROUP_SIZE}")
+    if len(txs) > MAX_TRANSACTION_GROUP_SIZE:
+        raise ValueError(f"Transaction group size exceeds the max limit of {MAX_TRANSACTION_GROUP_SIZE}")
 
     tx_hashes = []
     for tx in txs:

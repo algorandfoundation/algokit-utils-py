@@ -1,7 +1,7 @@
 import nacl.signing
 import pytest
 
-from algokit_common import MAX_TX_GROUP_SIZE
+from algokit_common import MAX_TRANSACTION_GROUP_SIZE
 from algokit_transact import (
     SignedTransaction,
     TransactionType,
@@ -127,7 +127,7 @@ def test_encode_signed_transactions(vector_lookup: VectorLookup) -> None:
 def test_group_transactions_max_size(vector_lookup: VectorLookup) -> None:
     vectors = _simple_group_vectors(vector_lookup)
     base = vectors[0].transaction
-    # Create MAX_TX_GROUP_SIZE + 1 copies (with different first_valid to avoid identical txs)
+    # Create MAX_TRANSACTION_GROUP_SIZE + 1 copies (with different first_valid to avoid identical txs)
     over_limit = [
         base.__class__(
             transaction_type=TransactionType.Payment,
@@ -136,8 +136,8 @@ def test_group_transactions_max_size(vector_lookup: VectorLookup) -> None:
             last_valid=base.last_valid + i,
             payment=base.payment,
         )
-        for i in range(MAX_TX_GROUP_SIZE + 1)
+        for i in range(MAX_TRANSACTION_GROUP_SIZE + 1)
     ]
 
-    with pytest.raises(ValueError, match=rf"max limit of {MAX_TX_GROUP_SIZE}"):
+    with pytest.raises(ValueError, match=rf"max limit of {MAX_TRANSACTION_GROUP_SIZE}"):
         group_transactions(over_limit)

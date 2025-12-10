@@ -67,9 +67,6 @@ def populate_transaction_resources(  # noqa: C901, PLR0912
             assets_count = len(current_assets)
 
     # Validate reference limits
-    if accounts_count > MAX_ACCOUNT_REFERENCES:
-        raise ValueError(f"Account reference limit of {MAX_ACCOUNT_REFERENCES} exceeded in transaction {group_index}")
-
     if accounts_count + assets_count + apps_count + boxes_count > MAX_OVERALL_REFERENCES:
         raise ValueError(f"Resource reference limit of {MAX_OVERALL_REFERENCES} exceeded in transaction {group_index}")
 
@@ -129,7 +126,7 @@ def populate_group_resources(  # noqa: C901, PLR0912
             if asset_holding.asset in remaining_assets:
                 remaining_assets.remove(asset_holding.asset)
 
-    # Process accounts next because account limit is capped (MAX_ACCOUNT_REFERENCES)
+    # Process accounts next
     for account in remaining_accounts:
         _populate_group_resource(transactions, GroupResourceToPopulate(GroupResourceType.Account, account))
 
@@ -305,14 +302,11 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
         boxes_count = len(app_call.box_references or [])
 
         if resource.type == GroupResourceType.Account:
-            if accounts_count < MAX_ACCOUNT_REFERENCES:
+            if accounts_count + assets_count + apps_count + boxes_count < MAX_OVERALL_REFERENCES:
                 group_index = i
                 break
         elif resource.type in (GroupResourceType.AssetHolding, GroupResourceType.AppLocal):
-            if (
-                accounts_count + assets_count + apps_count + boxes_count < MAX_OVERALL_REFERENCES - 1
-                and accounts_count < MAX_ACCOUNT_REFERENCES
-            ):
+            if accounts_count + assets_count + apps_count + boxes_count < MAX_OVERALL_REFERENCES - 1:
                 group_index = i
                 break
         elif resource.type == GroupResourceType.Box:
