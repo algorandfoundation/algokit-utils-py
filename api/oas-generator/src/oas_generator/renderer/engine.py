@@ -17,6 +17,7 @@ from oas_generator.renderer.filters import (
 
 class TemplateRenderer:
     BLOCK_MODEL_EXPORTS: ClassVar[list[str]] = [
+        "ApplyData",
         "BlockEvalDelta",
         "BlockStateDelta",
         "BlockAccountStateDelta",
