@@ -17,7 +17,7 @@ def populate_transaction_resources(  # noqa: C901, PLR0912
     """
     Populate transaction-level resources for app call transactions
     """
-    if transaction.transaction_type != TransactionType.AppCall or transaction.app_call is None:
+    if transaction.transaction_type != TransactionType.AppCall or transaction.application_call is None:
         return transaction
 
     # Check for unexpected resources at transaction level
@@ -28,7 +28,7 @@ def populate_transaction_resources(  # noqa: C901, PLR0912
     if resources_accessed.asset_holdings:
         raise ValueError("Unexpected asset holdings at the transaction level")
 
-    app_call = transaction.app_call
+    app_call = transaction.application_call
     updated_app_call = app_call
     accounts_count = len(app_call.account_references or [])
     apps_count = len(app_call.app_references or [])
@@ -72,7 +72,7 @@ def populate_transaction_resources(  # noqa: C901, PLR0912
 
     if updated_app_call is app_call:
         return transaction
-    return replace(transaction, app_call=updated_app_call)
+    return replace(transaction, application_call=updated_app_call)
 
 
 class GroupResourceType(Enum):
@@ -158,15 +158,15 @@ def populate_group_resources(  # noqa: C901, PLR0912
 
 
 def _is_app_call_below_resource_limit(txn: Transaction) -> bool:
-    if txn.transaction_type != TransactionType.AppCall or txn.app_call is None:
+    if txn.transaction_type != TransactionType.AppCall or txn.application_call is None:
         return False
-    if txn.app_call.access:
+    if txn.application_call.access_references:
         return False
 
-    accounts_count = len(txn.app_call.account_references or [])
-    assets_count = len(txn.app_call.asset_references or [])
-    apps_count = len(txn.app_call.app_references or [])
-    boxes_count = len(txn.app_call.box_references or [])
+    accounts_count = len(txn.application_call.account_references or [])
+    assets_count = len(txn.application_call.asset_references or [])
+    apps_count = len(txn.application_call.app_references or [])
+    boxes_count = len(txn.application_call.box_references or [])
 
     return accounts_count + assets_count + apps_count + boxes_count < MAX_OVERALL_REFERENCES
 
@@ -189,7 +189,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
             if not _is_app_call_below_resource_limit(txn):
                 continue
 
-            app_call = txn.app_call
+            app_call = txn.application_call
             assert app_call is not None
 
             # Check if account is in foreign accounts array
@@ -214,7 +214,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
                 break
 
         if group_index1 != -1:
-            app_call = transactions[group_index1].app_call
+            app_call = transactions[group_index1].application_call
             assert app_call is not None
             if resource.type == GroupResourceType.AssetHolding:
                 current_assets = list(app_call.asset_references or [])
@@ -236,7 +236,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
             if not _is_app_call_below_resource_limit(txn):
                 continue
 
-            app_call = txn.app_call
+            app_call = txn.application_call
             assert app_call is not None
             if len(app_call.account_references or []) >= MAX_ACCOUNT_REFERENCES:
                 continue
@@ -252,7 +252,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
                 break
 
         if group_index2 != -1:
-            app_call = transactions[group_index2].app_call
+            app_call = transactions[group_index2].application_call
             assert app_call is not None
             current_accounts = list(app_call.account_references or [])
             if account not in current_accounts:
@@ -268,7 +268,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
             if not _is_app_call_below_resource_limit(txn):
                 continue
 
-            app_call = txn.app_call
+            app_call = txn.application_call
             assert app_call is not None
             if (
                 app_call.app_references and resource.data.app_id in app_call.app_references
@@ -277,7 +277,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
                 break
 
         if group_index != -1:
-            app_call = transactions[group_index].app_call
+            app_call = transactions[group_index].application_call
             assert app_call is not None
             current_boxes = list(app_call.box_references or [])
             exists = any(b.app_id == resource.data.app_id and b.name == resource.data.name for b in current_boxes)
@@ -290,12 +290,12 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
     # Find the first transaction that can accommodate the resource
     group_index = -1
     for i, txn in enumerate(transactions):
-        if txn.transaction_type != TransactionType.AppCall or txn.app_call is None:
+        if txn.transaction_type != TransactionType.AppCall or txn.application_call is None:
             continue
-        if txn.app_call.access:
+        if txn.application_call.access_references:
             continue
 
-        app_call = txn.app_call
+        app_call = txn.application_call
         accounts_count = len(app_call.account_references or [])
         assets_count = len(app_call.asset_references or [])
         apps_count = len(app_call.app_references or [])
@@ -324,7 +324,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
     if group_index == -1:
         raise ValueError("No more transactions below reference limit. Add another app call to the group.")
 
-    app_call = transactions[group_index].app_call
+    app_call = transactions[group_index].application_call
     assert app_call is not None
 
     if resource.type == GroupResourceType.Account:
@@ -400,7 +400,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
 
 
 def _set_app_call(transactions: list[Transaction], index: int, app_call: AppCallTransactionFields) -> None:
-    transactions[index] = replace(transactions[index], app_call=app_call)
+    transactions[index] = replace(transactions[index], application_call=app_call)
 
 
 def _normalize_address(value: str | bytes) -> str:

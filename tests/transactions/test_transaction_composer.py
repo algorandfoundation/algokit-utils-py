@@ -162,10 +162,10 @@ def test_add_app_create(algorand: AlgorandClient, funded_account: AddressWithSig
 
     assert len(built.transactions) == 1
     txn = built.transactions[0]
-    assert txn.app_call
+    assert txn.application_call
     assert txn.sender == funded_account.addr
-    assert txn.app_call.approval_program
-    assert txn.app_call.clear_state_program
+    assert txn.application_call.approval_program
+    assert txn.application_call.clear_state_program
     response = composer.send({"max_rounds_to_wait": 20})
     assert response.confirmations[-1].app_id is not None
 
@@ -195,7 +195,7 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Addr
     built = composer.build_transactions()
 
     assert len(built.transactions) == 1
-    assert built.transactions[0].app_call
+    assert built.transactions[0].application_call
     response = composer.send({"max_rounds_to_wait": 20})
     assert response.returns[-1].value == "Hello, world"
 

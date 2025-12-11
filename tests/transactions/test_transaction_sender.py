@@ -413,8 +413,8 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
     assert result.app_id > 0
     assert result.app_address
 
-    assert result.transaction.app_call
-    txn = result.transaction.app_call
+    assert result.transaction.application_call
+    txn = result.transaction.application_call
     assert result.transaction.sender == sender.addr
     assert txn.approval_program == b"\x06\x81\x01"
     assert txn.clear_state_program == b"\x06\x81\x01"
@@ -440,7 +440,7 @@ def test_app_call(
 
     assert result.confirmations[-1].confirmed_round is not None
     assert result.confirmations[-1].confirmed_round > 0
-    assert result.transaction.app_call
+    assert result.transaction.application_call
 
 
 def test_app_call_method_call(

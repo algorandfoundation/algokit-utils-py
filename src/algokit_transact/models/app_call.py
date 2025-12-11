@@ -275,7 +275,7 @@ class AppCallTransactionFields:
             pass_obj=True,
         ),
     )
-    access: list[ResourceReference] | None = field(
+    access_references: list[ResourceReference] | None = field(
         default=None,
         metadata=wire(
             "al",
@@ -291,9 +291,11 @@ class AppCallTransactionFields:
                 _normalize_box_reference(self, item) for item in _coerce_box_sequence(self.box_references)
             ]
             object.__setattr__(self, "box_references", normalized_boxes or None)
-        if self.access:
-            normalized_access = [_normalize_resource_reference(item) for item in _coerce_resource_sequence(self.access)]
-            object.__setattr__(self, "access", normalized_access or None)
+        if self.access_references:
+            normalized_access = [
+                _normalize_resource_reference(item) for item in _coerce_resource_sequence(self.access_references)
+            ]
+            object.__setattr__(self, "access_references", normalized_access or None)
 
 
 def _coerce_box_sequence(

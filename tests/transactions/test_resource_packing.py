@@ -296,8 +296,12 @@ class TestResourcePackerMixed:
         result = txn_group.send()
         transactions = result.transactions
 
-        v8_accounts = (transactions[0].app_call.account_references if transactions[0].app_call else None) or []
-        v9_accounts = (transactions[1].app_call.account_references if transactions[1].app_call else None) or []
+        v8_accounts = (
+            transactions[0].application_call.account_references if transactions[0].application_call else None
+        ) or []
+        v9_accounts = (
+            transactions[1].application_call.account_references if transactions[1].application_call else None
+        ) or []
         assert len(v8_accounts) + len(v9_accounts) == 1
 
     def test_app_account(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
@@ -335,8 +339,10 @@ class TestResourcePackerMixed:
         result = txn_group.send()
         transactions = result.transactions
 
-        v8_apps = (transactions[0].app_call.app_references if transactions[0].app_call else None) or []
-        v9_accounts = (transactions[1].app_call.account_references if transactions[1].app_call else None) or []
+        v8_apps = (transactions[0].application_call.app_references if transactions[0].application_call else None) or []
+        v9_accounts = (
+            transactions[1].application_call.account_references if transactions[1].application_call else None
+        ) or []
         assert len(v8_apps) + len(v9_accounts) == 1
 
 
@@ -395,7 +401,17 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len((result.transaction.app_call.account_references if result.transaction.app_call else None) or []) == 0
+        assert (
+            len(
+                (
+                    result.transaction.application_call.account_references
+                    if result.transaction.application_call
+                    else None
+                )
+                or []
+            )
+            == 0
+        )
 
     def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         auth_addr = algorand.account.random()
@@ -411,7 +427,17 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len((result.transaction.app_call.account_references if result.transaction.app_call else None) or []) == 0
+        assert (
+            len(
+                (
+                    result.transaction.application_call.account_references
+                    if result.transaction.application_call
+                    else None
+                )
+                or []
+            )
+            == 0
+        )
 
     def test_create_box_in_new_app(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_000)))
@@ -432,7 +458,11 @@ class TestResourcePackerMeta:
             ),
         )
 
-        box_ref = result.transaction.app_call.box_references[0] if result.transaction.app_call.box_references else None
+        box_ref = (
+            result.transaction.application_call.box_references[0]
+            if result.transaction.application_call.box_references
+            else None
+        )
         assert box_ref is not None
         assert box_ref.app_id == 0
 

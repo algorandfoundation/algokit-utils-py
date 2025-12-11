@@ -2,10 +2,9 @@
 
 ## Attributes
 
-| [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument)         |    |
-|---------------------------------------------------------------------------------------------------------------------------------|----|
-| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                         |    |
-| [`SendAtomicTransactionComposerResults`](#algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults) |    |
+| [`AppMethodCallTransactionArgument`](#algokit_utils.transactions.transaction_composer.AppMethodCallTransactionArgument)   |    |
+|---------------------------------------------------------------------------------------------------------------------------|----|
+| [`ErrorTransformer`](#algokit_utils.transactions.transaction_composer.ErrorTransformer)                                   |    |
 
 ## Exceptions
 
@@ -107,8 +106,6 @@ Contains detailed debugging information including simulation traces and sent tra
 #### group_id *: str | None* *= None*
 
 #### simulate_response *: algokit_algod_client.models.SimulateResponse | None* *= None*
-
-### algokit_utils.transactions.transaction_composer.SendAtomicTransactionComposerResults
 
 ### *class* algokit_utils.transactions.transaction_composer.TransactionComposer(params: [TransactionComposerParams](#algokit_utils.transactions.transaction_composer.TransactionComposerParams))
 
