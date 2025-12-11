@@ -330,12 +330,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -512,12 +512,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -1337,12 +1337,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -1912,12 +1912,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -2693,12 +2693,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 0
+          "num_byte_slices": 1,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -3514,12 +3514,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -3716,12 +3716,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -3918,12 +3918,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -4120,12 +4120,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -4828,12 +4828,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -5483,12 +5483,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -5663,12 +5663,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -5843,12 +5843,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -6039,12 +6039,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -6241,12 +6241,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -6443,12 +6443,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -6645,12 +6645,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -6847,12 +6847,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -7049,12 +7049,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -7251,12 +7251,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -7453,12 +7453,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -7655,12 +7655,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -7857,12 +7857,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -8059,12 +8059,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -8261,12 +8261,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -8910,12 +8910,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 2,
-          "num_uint": 1
+          "num_byte_slices": 2,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 2,
-          "num_uint": 1
+          "num_byte_slices": 2,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -9318,12 +9318,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -9520,12 +9520,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -9753,12 +9753,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -10022,12 +10022,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -10219,12 +10219,12 @@
           162491529
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -10419,12 +10419,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -10611,12 +10611,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -10812,12 +10812,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -11023,12 +11023,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -11435,12 +11435,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -12211,12 +12211,12 @@
           2
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -12426,12 +12426,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -12631,12 +12631,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -12838,12 +12838,12 @@
           2
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -13043,12 +13043,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -13251,12 +13251,12 @@
           2
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -13456,12 +13456,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -13659,12 +13659,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -13866,12 +13866,12 @@
           2
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -14069,12 +14069,12 @@
           1
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -14274,12 +14274,12 @@
           162491529
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -14479,12 +14479,12 @@
           162491529
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -14684,12 +14684,12 @@
           162491529
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -14889,12 +14889,12 @@
           162491529
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -15161,12 +15161,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -15480,12 +15480,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -15672,12 +15672,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -15874,12 +15874,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -16076,12 +16076,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -16278,12 +16278,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -16480,12 +16480,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -16682,12 +16682,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -16884,12 +16884,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -17076,12 +17076,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -17268,12 +17268,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -17460,12 +17460,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -17686,12 +17686,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -17943,12 +17943,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -18275,12 +18275,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -18509,12 +18509,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -18763,12 +18763,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -19078,12 +19078,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -19358,12 +19358,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -19600,12 +19600,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -19877,12 +19877,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -20137,12 +20137,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -20398,12 +20398,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -20624,12 +20624,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -20816,12 +20816,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -21004,12 +21004,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -21202,12 +21202,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -21394,12 +21394,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -21610,12 +21610,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -21819,12 +21819,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -22004,12 +22004,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -22232,12 +22232,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -22496,12 +22496,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -22712,12 +22712,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -22938,12 +22938,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -23126,12 +23126,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -23312,12 +23312,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -23500,12 +23500,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -23700,12 +23700,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -23882,12 +23882,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -24066,12 +24066,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -24396,12 +24396,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -24762,12 +24762,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -25054,12 +25054,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -25521,12 +25521,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -25815,12 +25815,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -26067,12 +26067,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -26851,12 +26851,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -27629,12 +27629,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -28407,12 +28407,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -28796,12 +28796,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -29031,12 +29031,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -29240,12 +29240,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -29543,12 +29543,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -30328,12 +30328,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -31150,12 +31150,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -31596,12 +31596,12 @@
           705457144
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -32439,12 +32439,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -32725,12 +32725,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -33089,12 +33089,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -33632,12 +33632,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -33930,12 +33930,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -34180,12 +34180,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -34372,12 +34372,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -34563,12 +34563,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -34764,12 +34764,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -35174,12 +35174,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -35458,12 +35458,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -35867,12 +35867,12 @@
           705457144
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -37097,12 +37097,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null
@@ -37822,12 +37822,12 @@
         "foreign_apps": [],
         "foreign_assets": [],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null

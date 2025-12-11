@@ -5,8 +5,8 @@
   "apps_local_state": null,
   "apps_total_extra_pages": null,
   "apps_total_schema": {
-    "num_byte_slice": 8,
-    "num_uint": 23
+    "num_byte_slices": 8,
+    "num_uints": 23
   },
   "assets": [
     {
@@ -680,12 +680,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "version": null
       }
@@ -1388,12 +1388,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -1642,12 +1642,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -1891,12 +1891,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -2170,12 +2170,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -2324,12 +2324,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -2447,12 +2447,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -2601,12 +2601,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -3274,12 +3274,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "version": null
       }
@@ -3947,12 +3947,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "version": null
       }
@@ -4620,12 +4620,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 4
+          "num_byte_slices": 1,
+          "num_uints": 4
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "version": null
       }
@@ -4708,12 +4708,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -5001,12 +5001,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "version": null
       }
@@ -5097,12 +5097,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -5267,12 +5267,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -5443,12 +5443,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -5544,12 +5544,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -5652,12 +5652,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -6138,12 +6138,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 2,
-          "num_uint": 1
+          "num_byte_slices": 2,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 2,
-          "num_uint": 1
+          "num_byte_slices": 2,
+          "num_uints": 1
         },
         "version": null
       }
@@ -6730,12 +6730,12 @@
         "extra_program_pages": null,
         "global_state": null,
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 0
+          "num_byte_slices": 1,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
@@ -7219,12 +7219,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 1
+          "num_byte_slices": 0,
+          "num_uints": 1
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "version": null
       }
