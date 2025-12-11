@@ -19,22 +19,32 @@ from algokit_transact.codec.serde import (
 from algokit_transact.models.common import OnApplicationComplete, StateSchema
 
 
+def _decode_address_field(value: object) -> str:
+    """Decode address from wire format (can be bytes or string)"""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, bytes):
+        # The API returns address as UTF-8 encoded string, not public key bytes
+        return value.decode("utf-8")
+    raise DecodeError(f"Invalid address format: {type(value)}")
+
+
 @dataclass(slots=True, frozen=True)
 class BoxReference:
-    app_id: int = 0
-    name: bytes = b""
+    app_id: int = field(default=0, metadata=wire("app"))
+    name: bytes = field(default=b"", metadata=wire("name"))
 
 
 @dataclass(slots=True, frozen=True)
 class HoldingReference:
-    asset_id: int
-    address: str
+    asset_id: int = field(metadata=wire("asset"))
+    address: str = field(metadata=wire("account", decode=_decode_address_field))
 
 
 @dataclass(slots=True, frozen=True)
 class LocalsReference:
-    app_id: int
-    address: str
+    app_id: int = field(metadata=wire("app"))
+    address: str = field(metadata=wire("account", decode=_decode_address_field))
 
 
 @dataclass(slots=True, frozen=True)

@@ -29,6 +29,9 @@ class TypeInfo:
     is_bytes: bool = False
     list_inner_is_bytes: bool = False
     is_signed_transaction: bool = False
+    is_box_reference: bool = False
+    is_locals_reference: bool = False
+    is_holding_reference: bool = False
     needs_datetime: bool = False
     imports: set[str] = field(default_factory=set)
 
@@ -116,6 +119,12 @@ class SchemaRegistry:
             return "enum"
         if schema.get("x-algokit-signed-txn"):
             return "signed"
+        if schema.get("x-algokit-box-reference"):
+            return "box_reference"
+        if schema.get("x-algokit-locals-reference"):
+            return "locals_reference"
+        if schema.get("x-algokit-holding-reference"):
+            return "holding_reference"
         if schema.get("type") == "object" or schema.get("properties"):
             return "model"
         return "alias"
@@ -141,6 +150,15 @@ class TypeResolver:
             return self._maybe_optional(info, nullable=nullable)
         if schema.get("x-algokit-signed-txn"):
             info = TypeInfo(annotation="SignedTransaction", model="SignedTransaction", is_signed_transaction=True)
+            return self._maybe_optional(info, nullable=nullable)
+        if schema.get("x-algokit-box-reference"):
+            info = TypeInfo(annotation="BoxReference", model="BoxReference", is_box_reference=True)
+            return self._maybe_optional(info, nullable=nullable)
+        if schema.get("x-algokit-locals-reference"):
+            info = TypeInfo(annotation="LocalsReference", model="LocalsReference", is_locals_reference=True)
+            return self._maybe_optional(info, nullable=nullable)
+        if schema.get("x-algokit-holding-reference"):
+            info = TypeInfo(annotation="HoldingReference", model="HoldingReference", is_holding_reference=True)
             return self._maybe_optional(info, nullable=nullable)
         if schema_type == "array":
             info = self._resolve_array(schema, hint=hint)
@@ -183,6 +201,12 @@ class TypeResolver:
             return TypeInfo(annotation=entry.python_name, enum=entry.python_name)
         if entry.kind == "signed":
             return TypeInfo(annotation="SignedTransaction", model="SignedTransaction", is_signed_transaction=True)
+        if entry.kind == "box_reference":
+            return TypeInfo(annotation="BoxReference", model="BoxReference", is_box_reference=True)
+        if entry.kind == "locals_reference":
+            return TypeInfo(annotation="LocalsReference", model="LocalsReference", is_locals_reference=True)
+        if entry.kind == "holding_reference":
+            return TypeInfo(annotation="HoldingReference", model="HoldingReference", is_holding_reference=True)
         return self.resolve(entry.schema, hint=hint)
 
     def _resolve_array(self, schema: ctx.RawSchema, *, hint: str) -> TypeInfo:
@@ -196,6 +220,9 @@ class TypeResolver:
             list_inner_enum=inner.enum,
             list_inner_is_bytes=inner.is_bytes,
             is_signed_transaction=inner.is_signed_transaction,
+            is_box_reference=inner.is_box_reference,
+            is_locals_reference=inner.is_locals_reference,
+            is_holding_reference=inner.is_holding_reference,
             needs_datetime=inner.needs_datetime,
             imports=set(inner.imports),
         )
@@ -212,6 +239,9 @@ class ModelBuilder:
         self.resolver = resolver
         self.sanitizer = sanitizer
         self.uses_signed_transaction = False
+        self.uses_box_reference = False
+        self.uses_locals_reference = False
+        self.uses_holding_reference = False
 
     def _compute_default_value(self, type_info: TypeInfo, prop_schema: ctx.RawSchema) -> str | None:
         """Compute default value for a required field based on its type.
@@ -293,6 +323,9 @@ class ModelBuilder:
                 models.append(self._build_model(entry))
             elif entry.kind == "enum":
                 enums.append(self._build_enum(entry))
+            elif entry.kind in ("signed", "box_reference", "locals_reference", "holding_reference"):
+                # These are imported from algokit_transact, not generated
+                pass
             elif entry.kind == "alias":
                 alias_type = self.resolver.resolve(entry.schema).annotation
                 alias_imports = self._collect_alias_imports(alias_type, entry)
@@ -328,6 +361,15 @@ class ModelBuilder:
             if type_info.is_signed_transaction:
                 self.uses_signed_transaction = True
                 imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+            if type_info.is_box_reference:
+                self.uses_box_reference = True
+                imports.add("from algokit_transact.models.app_call import BoxReference")
+            if type_info.is_locals_reference:
+                self.uses_locals_reference = True
+                imports.add("from algokit_transact.models.app_call import LocalsReference")
+            if type_info.is_holding_reference:
+                self.uses_holding_reference = True
+                imports.add("from algokit_transact.models.app_call import HoldingReference")
             annotation = type_info.annotation
             if prop_name not in required and "| None" not in annotation:
                 annotation = f"{annotation} | None"
@@ -384,13 +426,22 @@ class ModelBuilder:
                     if dep_module != entry.module_name:
                         imports.add(f"from .{dep_module} import {dep_entry.python_name}")
             if type_info.list_inner_model:
-                dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_model)
-                if dep_entry:
-                    dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
-                    if dep_module != entry.module_name:
-                        imports.add(f"from .{dep_module} import {dep_entry.python_name}")
+                # Handle special external types first
                 if type_info.list_inner_model == "SignedTransaction":
                     imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+                elif type_info.list_inner_model == "BoxReference" and type_info.is_box_reference:
+                    imports.add("from algokit_transact.models.app_call import BoxReference")
+                elif type_info.list_inner_model == "LocalsReference" and type_info.is_locals_reference:
+                    imports.add("from algokit_transact.models.app_call import LocalsReference")
+                elif type_info.list_inner_model == "HoldingReference" and type_info.is_holding_reference:
+                    imports.add("from algokit_transact.models.app_call import HoldingReference")
+                else:
+                    # Only add local import if not a special external type
+                    dep_entry = self.registry.entries_by_python_name.get(type_info.list_inner_model)
+                    if dep_entry:
+                        dep_module = _get_import_module(dep_entry.python_name, dep_entry.module_name)
+                        if dep_module != entry.module_name:
+                            imports.add(f"from .{dep_module} import {dep_entry.python_name}")
             if type_info.enum:
                 dep_entry = self.registry.entries_by_python_name.get(type_info.enum)
                 if dep_entry:
@@ -483,7 +534,7 @@ class ModelBuilder:
     def _requires_direct_forward_reference(self, entry: SchemaEntry, type_info: TypeInfo) -> bool:
         if not type_info.model:
             return False
-        if type_info.model == "SignedTransaction":
+        if type_info.model in ("SignedTransaction", "BoxReference", "LocalsReference", "HoldingReference"):
             return False
         if type_info.model == entry.python_name:
             return True
@@ -551,6 +602,12 @@ class ModelBuilder:
             )
         if type_info.is_signed_transaction:
             return f'nested("{alias}", lambda: SignedTransaction)'
+        if type_info.is_box_reference:
+            return f'nested("{alias}", lambda: BoxReference)'
+        if type_info.is_locals_reference:
+            return f'nested("{alias}", lambda: LocalsReference)'
+        if type_info.is_holding_reference:
+            return f'nested("{alias}", lambda: HoldingReference)'
         return f'wire("{alias}")'
 
     def _collect_alias_imports(self, annotation: str, entry: SchemaEntry) -> list[str]:
@@ -579,6 +636,15 @@ class ModelBuilder:
                 continue
             if token == "SignedTransaction":
                 imports.add("from algokit_transact.models.signed_transaction import SignedTransaction")
+                continue
+            if token == "BoxReference":
+                imports.add("from algokit_transact.models.app_call import BoxReference")
+                continue
+            if token == "LocalsReference":
+                imports.add("from algokit_transact.models.app_call import LocalsReference")
+                continue
+            if token == "HoldingReference":
+                imports.add("from algokit_transact.models.app_call import HoldingReference")
                 continue
             dep_entry = self.registry.entries_by_python_name.get(token)
             if dep_entry:
@@ -941,6 +1007,9 @@ def build_client_descriptor(
         default_base_url=base_url,
         token_header=token_header,
         uses_signed_transaction=uses_signed_txn,
+        uses_box_reference=model_builder.uses_box_reference,
+        uses_locals_reference=model_builder.uses_locals_reference,
+        uses_holding_reference=model_builder.uses_holding_reference,
         uses_msgpack=operation_builder.uses_msgpack,
         include_block_models=operation_builder.uses_block_models,
         include_ledger_state_delta=operation_builder.uses_ledger_state_delta,

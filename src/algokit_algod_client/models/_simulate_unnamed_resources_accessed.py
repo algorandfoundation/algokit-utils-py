@@ -4,10 +4,8 @@
 from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
+from algokit_transact.models.app_call import BoxReference, HoldingReference, LocalsReference
 
-from ._application_local_reference import ApplicationLocalReference
-from ._asset_holding_reference import AssetHoldingReference
-from ._box_reference import BoxReference
 from ._serde_helpers import decode_model_sequence, encode_model_sequence
 
 
@@ -28,24 +26,24 @@ class SimulateUnnamedResourcesAccessed:
         default=None,
         metadata=wire("accounts"),
     )
-    app_locals: list[ApplicationLocalReference] | None = field(
+    app_locals: list[LocalsReference] | None = field(
         default=None,
         metadata=wire(
             "app-locals",
             encode=encode_model_sequence,
-            decode=lambda raw: decode_model_sequence(lambda: ApplicationLocalReference, raw),
+            decode=lambda raw: decode_model_sequence(lambda: LocalsReference, raw),
         ),
     )
     apps: list[int] | None = field(
         default=None,
         metadata=wire("apps"),
     )
-    asset_holdings: list[AssetHoldingReference] | None = field(
+    asset_holdings: list[HoldingReference] | None = field(
         default=None,
         metadata=wire(
             "asset-holdings",
             encode=encode_model_sequence,
-            decode=lambda raw: decode_model_sequence(lambda: AssetHoldingReference, raw),
+            decode=lambda raw: decode_model_sequence(lambda: HoldingReference, raw),
         ),
     )
     assets: list[int] | None = field(
