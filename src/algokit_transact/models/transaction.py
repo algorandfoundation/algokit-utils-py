@@ -64,7 +64,7 @@ class Transaction:
     asset_config: AssetConfigTransactionFields | None = field(
         default=None, metadata=flatten(AssetConfigTransactionFields, present_if=lambda p: _get_tx_type(p) == "acfg")
     )
-    app_call: AppCallTransactionFields | None = field(
+    application_call: AppCallTransactionFields | None = field(
         default=None, metadata=flatten(AppCallTransactionFields, present_if=lambda p: _get_tx_type(p) == "appl")
     )
     key_registration: KeyRegistrationTransactionFields | None = field(

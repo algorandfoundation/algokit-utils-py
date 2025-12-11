@@ -191,7 +191,7 @@ def _build_app_transaction(
         default_validity_window_is_explicit=default_validity_window_is_explicit,
         is_localnet=is_localnet,
     )
-    txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
+    txn = build_transaction(TransactionType.AppCall, header, application_call=fields)
     return apply_transaction_fees(txn, params, fee_config)
 
 

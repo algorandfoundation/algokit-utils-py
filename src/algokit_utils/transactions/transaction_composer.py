@@ -99,7 +99,6 @@ __all__ = [
     "OfflineKeyRegistrationParams",
     "OnlineKeyRegistrationParams",
     "PaymentParams",
-    "SendAtomicTransactionComposerResults",
     "SendParams",
     "SendTransactionComposerResults",
     "TransactionComposer",
@@ -218,10 +217,6 @@ class SendTransactionComposerResults:
     returns: list[ABIReturn]
     group_id: str | None = None
     simulate_response: algod_models.SimulateResponse | None = None
-
-
-# Backward compatibility alias
-SendAtomicTransactionComposerResults = SendTransactionComposerResults
 
 
 @dataclass(slots=True)
@@ -984,7 +979,7 @@ class TransactionComposer:
                     transactions[group_index] = replace(txn, fee=transaction_fee)
 
             if unnamed_resources_accessed and transactions[group_index].transaction_type == TransactionType.AppCall:
-                has_access_references = bool(transactions[group_index].app_call.access)
+                has_access_references = bool(transactions[group_index].application_call.access_references)
                 if not has_access_references:
                     transactions[group_index] = populate_transaction_resources(
                         transactions[group_index], unnamed_resources_accessed, group_index

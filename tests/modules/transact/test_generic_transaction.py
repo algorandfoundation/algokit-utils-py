@@ -82,7 +82,7 @@ def test_unknown_transaction_type() -> None:
     assert decoded.payment is None
     assert decoded.asset_transfer is None
     assert decoded.asset_config is None
-    assert decoded.app_call is None
+    assert decoded.application_call is None
     assert decoded.key_registration is None
     assert decoded.asset_freeze is None
     assert decoded.heartbeat is None
@@ -102,7 +102,7 @@ def _sample_app_call_tx() -> Transaction:
         sender="XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA",
         first_valid=1,
         last_valid=2,
-        app_call=AppCallTransactionFields(approval_program=b"\x01", clear_state_program=b"\x02"),
+        application_call=AppCallTransactionFields(approval_program=b"\x01", clear_state_program=b"\x02"),
     )
 
 

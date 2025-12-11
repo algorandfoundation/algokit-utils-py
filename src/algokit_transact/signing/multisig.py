@@ -20,17 +20,17 @@ def new_multisig_signature(version: int, threshold: int, participants: Iterable[
     if threshold == 0 or threshold > len(participants):
         raise ValueError("Threshold must be greater than zero and less than or equal to the number of participants")
 
-    subsignatures = [MultisigSubsignature(address=address) for address in participants]
+    subsignatures = [MultisigSubsignature(public_key=public_key_from_address(address)) for address in participants]
     return MultisigSignature(version=version, threshold=threshold, subsignatures=subsignatures)
 
 
 def participants_from_multisig_signature(multisig_signature: MultisigSignature) -> list[str]:
-    return [subsig.address for subsig in multisig_signature.subsignatures]
+    return [address_from_public_key(subsig.public_key) for subsig in multisig_signature.subsignatures]
 
 
 def address_from_multisig_signature(multisig_signature: MultisigSignature) -> str:
     prefix = MULTISIG_DOMAIN_SEPARATOR.encode()
-    participant_keys = [public_key_from_address(subsig.address) for subsig in multisig_signature.subsignatures]
+    participant_keys = [subsig.public_key for subsig in multisig_signature.subsignatures]
 
     buffer = bytearray()
     buffer.extend(prefix)
@@ -50,10 +50,11 @@ def apply_multisig_subsignature(
 ) -> MultisigSignature:
     found = False
     updated = []
+    participant_pk = public_key_from_address(participant)
     for subsig in multisig_signature.subsignatures:
-        if subsig.address == participant:
+        if subsig.public_key == participant_pk:
             found = True
-            updated.append(MultisigSubsignature(address=subsig.address, signature=signature))
+            updated.append(MultisigSubsignature(public_key=subsig.public_key, signature=signature))
         else:
             updated.append(subsig)
     if not found:
@@ -75,7 +76,7 @@ def merge_multisignatures(multisig_a: MultisigSignature, multisig_b: MultisigSig
     merged_subsigs = []
     for subsig_a, subsig_b in zip(multisig_a.subsignatures, multisig_b.subsignatures, strict=False):
         signature = subsig_b.signature if subsig_b.signature is not None else subsig_a.signature
-        merged_subsigs.append(MultisigSubsignature(address=subsig_a.address, signature=signature))
+        merged_subsigs.append(MultisigSubsignature(public_key=subsig_a.public_key, signature=signature))
     return MultisigSignature(
         version=multisig_a.version,
         threshold=multisig_a.threshold,

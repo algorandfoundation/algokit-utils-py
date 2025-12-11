@@ -70,7 +70,7 @@ def build_app_call_method_call_transaction(
         asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
-    txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
+    txn = build_transaction(TransactionType.AppCall, header, application_call=fields)
     return apply_transaction_fees(txn, params, fee_config)
 
 
@@ -147,7 +147,7 @@ def build_app_create_method_call_transaction(
         asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
-    txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
+    txn = build_transaction(TransactionType.AppCall, header, application_call=fields)
     return apply_transaction_fees(txn, params, fee_config)
 
 
@@ -190,7 +190,7 @@ def build_app_update_method_call_transaction(
         asset_references=_to_maybe_list(common.asset_references),
         box_references=_convert_box_references(params.box_references, app_manager),
     )
-    txn = build_transaction(TransactionType.AppCall, header, app_call=fields)
+    txn = build_transaction(TransactionType.AppCall, header, application_call=fields)
     return apply_transaction_fees(txn, params, fee_config)
 
 

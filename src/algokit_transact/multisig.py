@@ -4,6 +4,7 @@ import dataclasses
 from collections.abc import Callable, Sequence
 from functools import cached_property
 
+from algokit_common import address_from_public_key
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.codec.transaction import encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
@@ -64,9 +65,10 @@ class MultisigAccount:
 
                 multisig_sig = base_multisig
                 for subsig in base_multisig.subsignatures:
-                    if subsig.address in address_to_signer:
-                        signature = address_to_signer[subsig.address](payload)
-                        multisig_sig = apply_multisig_subsignature(multisig_sig, subsig.address, signature)
+                    subsig_addr = address_from_public_key(subsig.public_key)
+                    if subsig_addr in address_to_signer:
+                        signature = address_to_signer[subsig_addr](payload)
+                        multisig_sig = apply_multisig_subsignature(multisig_sig, subsig_addr, signature)
 
                 signed = SignedTransaction(
                     transaction=txn,

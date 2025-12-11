@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import cast
 
-from algokit_transact.codec.serde import addr, from_wire, to_wire, wire
+from algokit_transact.codec.serde import from_wire, to_wire, wire
 
 
 def _encode_subsig_seq(value: object) -> object:
@@ -26,7 +26,7 @@ def _decode_subsig_seq(value: object) -> object:
 
 @dataclass(slots=True, frozen=True)
 class MultisigSubsignature:
-    address: str = field(metadata=addr("pk"))
+    public_key: bytes = field(metadata=wire("pk"))
     signature: bytes | None = field(default=None, metadata=wire("s"))
 
 
