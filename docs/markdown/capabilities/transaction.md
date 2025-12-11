@@ -4,7 +4,7 @@ Transaction management is one of the core capabilities provided by AlgoKit Utils
 
 ## Transaction Results
 
-All AlgoKit Utils functions that send transactions return either a `SendSingleTransactionResult` or `SendAtomicTransactionComposerResults`, providing consistent mechanisms to interpret transaction outcomes.
+All AlgoKit Utils functions that send transactions return either a `SendSingleTransactionResult` or `SendTransactionComposerResults`, providing consistent mechanisms to interpret transaction outcomes.
 
 ### SendSingleTransactionResult
 
@@ -30,13 +30,13 @@ Common variations include:
 - `SendAppUpdateTransactionResult` - Adds compilation results
 - `SendAppCreateTransactionResult` - Adds `app_id` and `app_address`
 
-### SendAtomicTransactionComposerResults
+### SendTransactionComposerResults
 
-When using the atomic transaction composer directly via `TransactionComposer.send()` or `TransactionComposer.simulate()`, you’ll receive a `SendAtomicTransactionComposerResults`:
+When using the atomic transaction composer directly via `TransactionComposer.send()` or `TransactionComposer.simulate()`, you’ll receive a `SendTransactionComposerResults`:
 
 ```python
 @dataclass
-class SendAtomicTransactionComposerResults:
+class SendTransactionComposerResults:
     group_id: str  # The group ID if this was a transaction group
     confirmations: list[AlgodResponseType]  # The confirmation info for each transaction
     tx_ids: list[str]  # The transaction IDs that were sent
@@ -64,8 +64,8 @@ These types extend the base transaction results to add an `abi_value` field that
 Different interfaces return different result types:
 
 1. **Direct Transaction Composer**
-   - `TransactionComposer.send()` → `SendAtomicTransactionComposerResults`
-   - `TransactionComposer.simulate()` → `SendAtomicTransactionComposerResults`
+   - `TransactionComposer.send()` → `SendTransactionComposerResults`
+   - `TransactionComposer.simulate()` → `SendTransactionComposerResults`
 2. **AlgorandClient Methods**
    - `.send.payment()` → `SendSingleTransactionResult`
    - `.send.asset_create()` → `SendSingleAssetCreateTransactionResult`
@@ -110,7 +110,7 @@ Key differences between result types:
    - Focus on transaction confirmation details
    - Include group support but optimized for single transactions
    - No direct ABI value parsing
-2. **Atomic Transaction Results** (`SendAtomicTransactionComposerResults`)
+2. **Atomic Transaction Results** (`SendTransactionComposerResults`)
    - Built for transaction groups
    - Include simulation support
    - Raw ABI returns via `.returns`

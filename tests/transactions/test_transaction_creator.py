@@ -214,10 +214,10 @@ def test_create_app_create_transaction(algorand: AlgorandClient, funded_account:
         )
     )
 
-    assert txn.app_call
+    assert txn.application_call
     assert txn.sender == funded_account.addr
-    assert txn.app_call.approval_program == b"\x06\x81\x01"
-    assert txn.app_call.clear_state_program == b"\x06\x81\x01"
+    assert txn.application_call.approval_program == b"\x06\x81\x01"
+    assert txn.application_call.clear_state_program == b"\x06\x81\x01"
 
 
 def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
@@ -249,9 +249,9 @@ def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funde
 
     assert len(result.transactions) == 1
     transactions = result.transactions[0]
-    assert transactions.app_call
+    assert transactions.application_call
     assert transactions.sender == funded_account.addr
-    assert transactions.app_call.app_id == app_id
+    assert transactions.application_call.app_id == app_id
 
 
 def test_create_online_key_registration_transaction(

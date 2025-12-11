@@ -367,8 +367,8 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert call.transactions[0].app_call
-    assert call.transactions[0].app_call.box_references == [BoxReference(app_id=0, name=b"1")]
+    assert call.transactions[0].application_call
+    assert call.transactions[0].application_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
     # Test with string box reference
     call2 = test_app_client.create_transaction.call(
@@ -379,8 +379,8 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert call2.transactions[0].app_call
-    assert call2.transactions[0].app_call.box_references == [BoxReference(app_id=0, name=b"1")]
+    assert call2.transactions[0].application_call
+    assert call2.transactions[0].application_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
 
 def test_construct_transaction_with_abi_encoding_including_transaction(

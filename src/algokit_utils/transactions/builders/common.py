@@ -116,7 +116,7 @@ def build_transaction(
     asset_transfer: AssetTransferTransactionFields | None = None,
     asset_config: AssetConfigTransactionFields | None = None,
     asset_freeze: AssetFreezeTransactionFields | None = None,
-    app_call: AppCallTransactionFields | None = None,
+    application_call: AppCallTransactionFields | None = None,
     key_registration: KeyRegistrationTransactionFields | None = None,
 ) -> Transaction:
     return Transaction(
@@ -133,7 +133,7 @@ def build_transaction(
         asset_transfer=asset_transfer,
         asset_config=asset_config,
         asset_freeze=asset_freeze,
-        app_call=app_call,
+        application_call=application_call,
         key_registration=key_registration,
     )
 

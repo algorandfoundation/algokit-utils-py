@@ -146,8 +146,8 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
         },
     )
 
-    assert result.transaction.app_call
-    assert result.transaction.app_call.on_complete == OnApplicationComplete.OptIn
+    assert result.transaction.application_call
+    assert result.transaction.application_call.on_complete == OnApplicationComplete.OptIn
     assert app_client.app_id > 0
     assert app_client.app_address == get_application_address(app_client.app_id)
     assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
@@ -303,9 +303,10 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert update_deploy_result.app.updated_round != update_deploy_result.app.created_round
     assert update_deploy_result.update_result.confirmation.confirmed_round is not None
     assert update_deploy_result.app.updated_round == update_deploy_result.update_result.confirmation.confirmed_round
-    assert update_deploy_result.update_result.transaction.app_call
+    assert update_deploy_result.update_result.transaction.application_call
     assert (
-        update_deploy_result.update_result.transaction.app_call.on_complete == OnApplicationComplete.UpdateApplication
+        update_deploy_result.update_result.transaction.application_call.on_complete
+        == OnApplicationComplete.UpdateApplication
     )
     assert update_deploy_result.update_result.abi_return == "args_io"
 
@@ -341,10 +342,11 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
         len(replace_deploy_result.create_result.transactions) + len(replace_deploy_result.delete_result.transactions)
         == 2
     )
-    assert replace_deploy_result.delete_result.transaction.app_call
-    assert replace_deploy_result.delete_result.transaction.app_call.app_id == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.application_call
+    assert replace_deploy_result.delete_result.transaction.application_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.app_call.on_complete == OnApplicationComplete.DeleteApplication
+        replace_deploy_result.delete_result.transaction.application_call.on_complete
+        == OnApplicationComplete.DeleteApplication
     )
 
 
@@ -383,10 +385,11 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
         len(replace_deploy_result.create_result.transactions) + len(replace_deploy_result.delete_result.transactions)
         == 2
     )
-    assert replace_deploy_result.delete_result.transaction.app_call
-    assert replace_deploy_result.delete_result.transaction.app_call.app_id == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.application_call
+    assert replace_deploy_result.delete_result.transaction.application_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.app_call.on_complete == OnApplicationComplete.DeleteApplication
+        replace_deploy_result.delete_result.transaction.application_call.on_complete
+        == OnApplicationComplete.DeleteApplication
     )
     assert replace_deploy_result.create_result.abi_return == "arg_io"
     assert replace_deploy_result.delete_result.abi_return == "arg2_io"

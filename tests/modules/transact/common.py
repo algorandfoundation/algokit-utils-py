@@ -398,7 +398,7 @@ def _parse_transaction(payload: Mapping[str, Any]) -> Transaction:
         payment=_parse_payment(payload.get("payment")),
         asset_transfer=_parse_asset_transfer(payload.get("assetTransfer")),
         asset_config=_parse_asset_config(payload.get("assetConfig")),
-        app_call=_parse_app_call(payload.get("appCall")),
+        application_call=_parse_app_call(payload.get("appCall")),
         key_registration=_parse_key_registration(payload.get("keyRegistration")),
         asset_freeze=_parse_asset_freeze(payload.get("assetFreeze")),
         heartbeat=_parse_heartbeat(payload.get("heartbeat")),

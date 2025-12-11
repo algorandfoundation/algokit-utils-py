@@ -208,9 +208,10 @@ class LogicSigAccount:
         address_to_signer = {account.addr: account.delegated_lsig_signer for account in signing_accounts}
 
         for subsig in msig.subsignatures:
-            if subsig.address in address_to_signer:
-                signature = address_to_signer[subsig.address](self._program, msig_public_key)
-                msig = apply_multisig_subsignature(msig, subsig.address, signature)
+            subsig_addr = address_from_public_key(subsig.public_key)
+            if subsig_addr in address_to_signer:
+                signature = address_to_signer[subsig_addr](self._program, msig_public_key)
+                msig = apply_multisig_subsignature(msig, subsig_addr, signature)
 
         self._multisig_signature = msig
         self._delegated_address = address_from_multisig_signature(msig)

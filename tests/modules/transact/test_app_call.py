@@ -124,7 +124,7 @@ def test_should_throw_error_when_approval_program_is_missing_for_app_creation(
 ) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             clear_state_program=b"\x01\x02\x03",
@@ -139,7 +139,7 @@ def test_should_throw_error_when_clear_state_program_is_missing_for_app_creation
 ) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -152,7 +152,7 @@ def test_should_throw_error_when_clear_state_program_is_missing_for_app_creation
 def test_should_throw_error_when_extra_program_pages_exceed_maximum(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -167,7 +167,7 @@ def test_should_throw_error_when_extra_program_pages_exceed_maximum(app_create_t
 def test_should_throw_error_when_approval_program_exceeds_max_size(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x00" * 2049,
@@ -181,7 +181,7 @@ def test_should_throw_error_when_approval_program_exceeds_max_size(app_create_tr
 def test_should_throw_error_when_clear_state_program_exceeds_max_size(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -195,7 +195,7 @@ def test_should_throw_error_when_clear_state_program_exceeds_max_size(app_create
 def test_should_throw_error_when_combined_programs_exceed_max_size(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x00" * 1500,
@@ -212,7 +212,7 @@ def test_should_throw_error_when_combined_programs_exceed_max_size(app_create_tr
 def test_should_throw_error_when_global_state_schema_exceeds_maximum_keys(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -227,7 +227,7 @@ def test_should_throw_error_when_global_state_schema_exceeds_maximum_keys(app_cr
 def test_should_throw_error_when_local_state_schema_exceeds_maximum_keys(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -242,7 +242,7 @@ def test_should_throw_error_when_local_state_schema_exceeds_maximum_keys(app_cre
 def test_should_validate_valid_app_creation_transaction(app_create_transaction: Transaction) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\x01\x02\x03",
@@ -261,7 +261,7 @@ def test_should_validate_app_creation_with_large_programs_when_extra_pages_are_p
 ) -> None:
     tx = clone_transaction(
         app_create_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=0,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=b"\xaa" * 4000,
@@ -278,7 +278,7 @@ def test_should_throw_error_when_approval_program_is_missing_for_app_update(
 ) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             clear_state_program=b"\x01\x02\x03",
@@ -293,7 +293,7 @@ def test_should_throw_error_when_clear_state_program_is_missing_for_app_update(
 ) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             approval_program=b"\x01\x02\x03",
@@ -306,7 +306,7 @@ def test_should_throw_error_when_clear_state_program_is_missing_for_app_update(
 def test_should_throw_error_when_trying_to_modify_global_state_schema(base_update_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             approval_program=b"\x01",
@@ -321,7 +321,7 @@ def test_should_throw_error_when_trying_to_modify_global_state_schema(base_updat
 def test_should_throw_error_when_trying_to_modify_local_state_schema(base_update_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             approval_program=b"\x01",
@@ -336,7 +336,7 @@ def test_should_throw_error_when_trying_to_modify_local_state_schema(base_update
 def test_should_throw_error_when_trying_to_modify_extra_program_pages(base_update_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             approval_program=b"\x01",
@@ -351,7 +351,7 @@ def test_should_throw_error_when_trying_to_modify_extra_program_pages(base_updat
 def test_should_validate_valid_app_update_transaction(base_update_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_update_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.UpdateApplication,
             approval_program=b"\x01",
@@ -365,7 +365,7 @@ def test_should_validate_valid_app_update_transaction(base_update_transaction: T
 def test_should_validate_valid_app_call_transaction(base_call_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.NoOp,
             args=(b"\x01\x02\x03", b"\x04\x05\x06"),
@@ -392,7 +392,7 @@ def test_should_validate_other_app_operations(
 ) -> None:
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(app_id=123, on_complete=on_complete),
+        application_call=build_app_call(app_id=123, on_complete=on_complete),
     )
 
     validate_transaction(tx)
@@ -402,7 +402,7 @@ def test_should_throw_error_when_too_many_args_are_provided(base_call_transactio
     args = tuple(bytes([i]) for i in range(17))
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, args=args),
+        application_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, args=args),
     )
 
     assert_validation_error(tx, "App call validation failed: Args cannot exceed 16 arguments")
@@ -411,7 +411,7 @@ def test_should_throw_error_when_too_many_args_are_provided(base_call_transactio
 def test_should_throw_error_when_args_total_size_exceeds_maximum(base_call_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.NoOp,
             args=(b"\x01" * 2049,),
@@ -425,7 +425,7 @@ def test_should_throw_error_when_too_many_account_references_are_provided(base_c
     accounts = tuple("A" * 58 for _ in range(9))  # Max is 8
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, account_references=accounts),
+        application_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, account_references=accounts),
     )
 
     assert_validation_error(tx, "App call validation failed: Account references cannot exceed 8 refs")
@@ -435,7 +435,7 @@ def test_should_throw_error_when_too_many_app_references_are_provided(base_call_
     apps = tuple(range(1, 10))
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, app_references=apps),
+        application_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, app_references=apps),
     )
 
     assert_validation_error(tx, "App call validation failed: App references cannot exceed 8 refs")
@@ -445,19 +445,19 @@ def test_should_throw_error_when_too_many_asset_references_are_provided(base_cal
     assets = tuple(range(1, 10))
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, asset_references=assets),
+        application_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, asset_references=assets),
     )
 
     assert_validation_error(tx, "App call validation failed: Asset references cannot exceed 8 refs")
 
 
 def test_should_throw_error_when_box_references_exceed_limit(base_call_transaction: Transaction) -> None:
-    app_call = base_call_transaction.app_call
+    app_call = base_call_transaction.application_call
     assert app_call is not None
     boxes = tuple(BoxReference(app_id=app_call.app_id, name=b"box") for _ in range(9))
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=app_call.app_id,
             on_complete=OnApplicationComplete.NoOp,
             approval_program=app_call.approval_program,
@@ -470,7 +470,7 @@ def test_should_throw_error_when_box_references_exceed_limit(base_call_transacti
 
 
 def test_box_references_round_trip(base_call_transaction: Transaction) -> None:
-    app_call = base_call_transaction.app_call
+    app_call = base_call_transaction.application_call
     assert app_call is not None
     boxes = (
         BoxReference(app_id=app_call.app_id, name=b"self"),
@@ -478,7 +478,7 @@ def test_box_references_round_trip(base_call_transaction: Transaction) -> None:
     )
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=app_call.app_id,
             on_complete=app_call.on_complete,
             approval_program=app_call.approval_program,
@@ -493,11 +493,11 @@ def test_box_references_round_trip(base_call_transaction: Transaction) -> None:
 
 
 def test_box_reference_must_reference_known_app(base_call_transaction: Transaction) -> None:
-    app_call = base_call_transaction.app_call
+    app_call = base_call_transaction.application_call
     assert app_call is not None
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=app_call.app_id,
             on_complete=app_call.on_complete,
             approval_program=app_call.approval_program,
@@ -516,7 +516,7 @@ def test_box_reference_must_reference_known_app(base_call_transaction: Transacti
 def test_should_throw_error_when_total_references_exceed_limit(base_call_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.NoOp,
             account_references=("A" * 58,) * 2,
@@ -531,7 +531,7 @@ def test_should_throw_error_when_total_references_exceed_limit(base_call_transac
 def test_should_validate_app_call_with_maximum_allowed_references(base_call_transaction: Transaction) -> None:
     tx = clone_transaction(
         base_call_transaction,
-        app_call=build_app_call(
+        application_call=build_app_call(
             app_id=123,
             on_complete=OnApplicationComplete.NoOp,
             args=tuple(bytes([i]) for i in range(16)),

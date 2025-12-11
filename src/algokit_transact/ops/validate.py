@@ -63,7 +63,7 @@ def validate_transaction(transaction: Transaction) -> None:
         transaction.payment,
         transaction.asset_transfer,
         transaction.asset_config,
-        transaction.app_call,
+        transaction.application_call,
         transaction.key_registration,
         transaction.asset_freeze,
         transaction.heartbeat,
@@ -79,7 +79,7 @@ def validate_transaction(transaction: Transaction) -> None:
     type_label: str | None = None
 
     match transaction:
-        case Transaction(app_call=app_call) if app_call is not None:
+        case Transaction(application_call=app_call) if app_call is not None:
             issues.extend(validate_app_call_fields(app_call))
             type_label = "App call"
         case Transaction(asset_config=asset_config) if asset_config is not None:
