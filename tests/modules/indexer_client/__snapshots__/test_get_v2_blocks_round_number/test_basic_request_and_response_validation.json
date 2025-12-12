@@ -220,12 +220,12 @@
           81981957
         ],
         "global_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "local_state_schema": {
-          "num_byte_slice": 0,
-          "num_uint": 0
+          "num_byte_slices": 0,
+          "num_uints": 0
         },
         "on_completion": "<OnCompletion.NOOP: 'noop'>",
         "reject_version": null

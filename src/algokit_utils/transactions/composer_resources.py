@@ -110,10 +110,10 @@ def populate_group_resources(  # noqa: C901, PLR0912
         for app_local in group_resources.app_locals:
             _populate_group_resource(transactions, GroupResourceToPopulate(GroupResourceType.AppLocal, app_local))
             # Remove resources from remaining if we're adding them here
-            if app_local.account in remaining_accounts:
-                remaining_accounts.remove(app_local.account)
-            if app_local.app in remaining_apps:
-                remaining_apps.remove(app_local.app)
+            if app_local.address in remaining_accounts:
+                remaining_accounts.remove(app_local.address)
+            if app_local.app_id in remaining_apps:
+                remaining_apps.remove(app_local.app_id)
 
     if group_resources.asset_holdings:
         for asset_holding in group_resources.asset_holdings:
@@ -121,10 +121,10 @@ def populate_group_resources(  # noqa: C901, PLR0912
                 transactions, GroupResourceToPopulate(GroupResourceType.AssetHolding, asset_holding)
             )
             # Remove resources from remaining if we're adding them here
-            if asset_holding.account in remaining_accounts:
-                remaining_accounts.remove(asset_holding.account)
-            if asset_holding.asset in remaining_assets:
-                remaining_assets.remove(asset_holding.asset)
+            if asset_holding.address in remaining_accounts:
+                remaining_accounts.remove(asset_holding.address)
+            if asset_holding.asset_id in remaining_assets:
+                remaining_assets.remove(asset_holding.asset_id)
 
     # Process accounts next
     for account in remaining_accounts:
@@ -136,12 +136,12 @@ def populate_group_resources(  # noqa: C901, PLR0912
             transactions,
             GroupResourceToPopulate(
                 GroupResourceType.Box,
-                BoxReference(app_id=box_ref.app, name=box_ref.name),
+                BoxReference(app_id=box_ref.app_id, name=box_ref.name),
             ),
         )
         # Remove apps as resource if we're adding it here
-        if box_ref.app in remaining_apps:
-            remaining_apps.remove(box_ref.app)
+        if box_ref.app_id in remaining_apps:
+            remaining_apps.remove(box_ref.app_id)
 
     # Process assets
     for asset in remaining_assets:
@@ -181,7 +181,7 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
 ) -> None:
     # For asset holdings and app locals, first try to find a transaction that already has the account available
     if resource.type in (GroupResourceType.AssetHolding, GroupResourceType.AppLocal):
-        account = _normalize_address(resource.data.account)
+        account = _normalize_address(resource.data.address)
 
         # Try to find a transaction that already has the account available
         group_index1 = -1
@@ -218,14 +218,14 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
             assert app_call is not None
             if resource.type == GroupResourceType.AssetHolding:
                 current_assets = list(app_call.asset_references or [])
-                if resource.data.asset not in current_assets:
-                    current_assets.append(resource.data.asset)
+                if resource.data.asset_id not in current_assets:
+                    current_assets.append(resource.data.asset_id)
                 app_call = replace(app_call, asset_references=current_assets)
                 _set_app_call(transactions, group_index1, app_call)
             else:
                 current_apps = list(app_call.app_references or [])
-                if resource.data.app not in current_apps:
-                    current_apps.append(resource.data.app)
+                if resource.data.app_id not in current_apps:
+                    current_apps.append(resource.data.app_id)
                 app_call = replace(app_call, app_references=current_apps)
                 _set_app_call(transactions, group_index1, app_call)
             return
@@ -242,12 +242,12 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
                 continue
 
             if resource.type == GroupResourceType.AssetHolding:
-                if app_call.asset_references and resource.data.asset in app_call.asset_references:
+                if app_call.asset_references and resource.data.asset_id in app_call.asset_references:
                     group_index2 = i
                     break
             elif (
-                app_call.app_references and resource.data.app in app_call.app_references
-            ) or app_call.app_id == resource.data.app:
+                app_call.app_references and resource.data.app_id in app_call.app_references
+            ) or app_call.app_id == resource.data.app_id:
                 group_index2 = i
                 break
 
@@ -365,13 +365,13 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
 
     elif resource.type == GroupResourceType.AssetHolding:
         current_assets = list(app_call.asset_references or [])
-        if resource.data.asset not in current_assets:
-            current_assets.append(resource.data.asset)
+        if resource.data.asset_id not in current_assets:
+            current_assets.append(resource.data.asset_id)
         app_call = replace(app_call, asset_references=current_assets)
         _set_app_call(transactions, group_index, app_call)
 
         current_accounts = list(app_call.account_references or [])
-        account = _normalize_address(resource.data.account)
+        account = _normalize_address(resource.data.address)
         if account not in current_accounts:
             current_accounts.append(account)
         app_call = replace(app_call, account_references=current_accounts)
@@ -379,13 +379,13 @@ def _populate_group_resource(  # noqa: C901, PLR0912, PLR0915
 
     elif resource.type == GroupResourceType.AppLocal:
         current_apps = list(app_call.app_references or [])
-        if resource.data.app not in current_apps:
-            current_apps.append(resource.data.app)
+        if resource.data.app_id not in current_apps:
+            current_apps.append(resource.data.app_id)
         app_call = replace(app_call, app_references=current_apps)
         _set_app_call(transactions, group_index, app_call)
 
         current_accounts = list(app_call.account_references or [])
-        account = _normalize_address(resource.data.account)
+        account = _normalize_address(resource.data.address)
         if account not in current_accounts:
             current_accounts.append(account)
         app_call = replace(app_call, account_references=current_accounts)

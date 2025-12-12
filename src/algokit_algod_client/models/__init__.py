@@ -1,6 +1,7 @@
 # AUTO-GENERATED: oas_generator
 
 
+from algokit_transact.models.app_call import BoxReference, HoldingReference, LocalsReference
 from algokit_transact.models.signed_transaction import SignedTransaction
 
 from ._account import Account
@@ -13,14 +14,12 @@ from ._allocations_for_genesis_file_state_model import AllocationsForGenesisFile
 from ._application import Application
 from ._application_initial_states import ApplicationInitialStates
 from ._application_kvstorage import ApplicationKvstorage
-from ._application_local_reference import ApplicationLocalReference
 from ._application_local_state import ApplicationLocalState
 from ._application_params import ApplicationParams
 from ._application_state_operation import ApplicationStateOperation
 from ._application_state_schema import ApplicationStateSchema
 from ._asset import Asset
 from ._asset_holding import AssetHolding
-from ._asset_holding_reference import AssetHoldingReference
 from ._asset_params import AssetParams
 from ._avm_key_value import AvmKeyValue
 from ._avm_value import AvmValue
@@ -43,7 +42,6 @@ from ._block_response import BlockResponse
 from ._block_txids_response import BlockTxidsResponse
 from ._box import Box
 from ._box_descriptor import BoxDescriptor
-from ._box_reference import BoxReference
 from ._boxes_response import BoxesResponse
 from ._build_version_contains_the_current_algod_build_version_information import (
     BuildVersionContainsTheCurrentAlgodBuildVersionInformation,
@@ -125,7 +123,6 @@ __all__ = [
     "Application",
     "ApplicationInitialStates",
     "ApplicationKvstorage",
-    "ApplicationLocalReference",
     "ApplicationLocalState",
     "ApplicationParams",
     "ApplicationStateOperation",
@@ -133,7 +130,6 @@ __all__ = [
     "ApplyData",
     "Asset",
     "AssetHolding",
-    "AssetHoldingReference",
     "AssetParams",
     "AvmKeyValue",
     "AvmValue",
@@ -163,6 +159,7 @@ __all__ = [
     "GetBlockTimeStampOffsetResponse",
     "GetSyncRoundResponse",
     "GetTransactionGroupLedgerStateDeltasForRound",
+    "HoldingReference",
     "LedgerAccountBaseData",
     "LedgerAccountData",
     "LedgerAccountDeltas",
@@ -188,6 +185,7 @@ __all__ = [
     "LedgerTealValue",
     "LedgerVotingData",
     "LightBlockHeaderProof",
+    "LocalsReference",
     "NodeStatusResponse",
     "ParticipationUpdates",
     "PendingTransactionResponse",
