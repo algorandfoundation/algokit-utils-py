@@ -455,12 +455,12 @@
           }
         ],
         "global_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 6
+          "num_byte_slices": 1,
+          "num_uints": 6
         },
         "local_state_schema": {
-          "num_byte_slice": 1,
-          "num_uint": 0
+          "num_byte_slices": 1,
+          "num_uints": 0
         },
         "version": null
       }

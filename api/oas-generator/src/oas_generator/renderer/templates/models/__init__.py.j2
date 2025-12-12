@@ -1,6 +1,9 @@
 
 
 {% if client.uses_signed_transaction %}from algokit_transact.models.signed_transaction import SignedTransaction
+{% endif %}{% if client.uses_box_reference %}from algokit_transact.models.app_call import BoxReference
+{% endif %}{% if client.uses_locals_reference %}from algokit_transact.models.app_call import LocalsReference
+{% endif %}{% if client.uses_holding_reference %}from algokit_transact.models.app_call import HoldingReference
 {% endif %}{% for item in model_modules %}from .{{ item.module }} import {{ item.name }}
 {% endfor %}{% for item in enum_modules %}from .{{ item.module }} import {{ item.name }}
 {% endfor %}{% for item in alias_modules %}from .{{ item.module }} import {{ item.name }}
@@ -14,6 +17,9 @@
 {% endif %}
 
 __all__ = [
-    {% for name in model_exports %}"{{ name }}",
+    {% if client.uses_box_reference %}"BoxReference",
+    {% endif %}{% if client.uses_locals_reference %}"LocalsReference",
+    {% endif %}{% if client.uses_holding_reference %}"HoldingReference",
+    {% endif %}{% for name in model_exports %}"{{ name }}",
     {% endfor %}
 ]

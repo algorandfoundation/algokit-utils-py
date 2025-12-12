@@ -875,15 +875,15 @@ class TransactionComposer:
             group_resources.apps = sorted(group_resources.apps or [])
             group_resources.boxes = sorted(
                 group_resources.boxes or [],
-                key=lambda box: (box.app, box.name),
+                key=lambda box: (box.app_id, box.name),
             )
             group_resources.app_locals = sorted(
                 group_resources.app_locals or [],
-                key=lambda entry: (entry.app, entry.account),
+                key=lambda entry: (entry.app_id, entry.address),
             )
             group_resources.asset_holdings = sorted(
                 group_resources.asset_holdings or [],
-                key=lambda entry: (entry.asset, entry.account),
+                key=lambda entry: (entry.asset_id, entry.address),
             )
 
         return _GroupAnalysis(transactions=txn_analysis_results, unnamed_resources_accessed=group_resources)

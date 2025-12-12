@@ -15,11 +15,11 @@ class StateSchema:
     account holding the data.
     """
 
-    num_byte_slice: int = field(
+    num_byte_slices: int = field(
         default=0,
         metadata=wire("num-byte-slice"),
     )
-    num_uint: int = field(
+    num_uints: int = field(
         default=0,
         metadata=wire("num-uint"),
     )

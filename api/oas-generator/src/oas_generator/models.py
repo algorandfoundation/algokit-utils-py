@@ -153,6 +153,9 @@ class ClientDescriptor:
     default_base_url: str
     token_header: str
     uses_signed_transaction: bool = False
+    uses_box_reference: bool = False
+    uses_locals_reference: bool = False
+    uses_holding_reference: bool = False
     uses_msgpack: bool = False
     include_block_models: bool = False
     is_algod_client: bool = False
