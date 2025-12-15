@@ -8,13 +8,13 @@ from algokit_transact.signing.types import MultisigSignature
 
 @dataclass(slots=True, frozen=True)
 class SignedTransaction:
-    transaction: Transaction = field(metadata=nested("txn", Transaction))
-    signature: bytes | None = field(default=None, metadata=wire("sig"))
-    multi_signature: MultisigSignature | None = field(
+    txn: Transaction = field(metadata=nested("txn", Transaction))
+    sig: bytes | None = field(default=None, metadata=wire("sig"))
+    msig: MultisigSignature | None = field(
         default=None,
         metadata=nested("msig", MultisigSignature),
     )
-    logic_signature: LogicSignature | None = field(
+    lsig: LogicSignature | None = field(
         default=None,
         metadata=nested("lsig", LogicSignature),
     )

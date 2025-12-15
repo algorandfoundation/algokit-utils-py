@@ -31,8 +31,8 @@ def test_simulate_transactions() -> None:
         txn_groups=[
             SimulateRequestTransactionGroup(
                 txns=[
-                    SignedTransaction(transaction=t1),
-                    SignedTransaction(transaction=t2),
+                    SignedTransaction(txn=t1),
+                    SignedTransaction(txn=t2),
                 ]
             )
         ],

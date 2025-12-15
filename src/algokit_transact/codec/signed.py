@@ -11,16 +11,16 @@ from algokit_transact.signing.logic_signature import LogicSignature
 
 
 def _validate_signed_transaction(stx: SignedTransaction) -> None:
-    validate_transaction(stx.transaction)
+    validate_transaction(stx.txn)
 
-    signatures = [stx.signature, stx.multi_signature, stx.logic_signature]
+    signatures = [stx.sig, stx.msig, stx.lsig]
     set_count = sum(1 for item in signatures if item is not None)
     if set_count == 0:
         raise ValueError("At least one signature type must be set")
     if set_count > 1:
         raise ValueError("Only one signature type can be set")
 
-    if stx.signature is not None and len(stx.signature) != SIGNATURE_BYTE_LENGTH:
+    if stx.sig is not None and len(stx.sig) != SIGNATURE_BYTE_LENGTH:
         raise ValueError("Signature must be 64 bytes")
 
 
@@ -40,7 +40,7 @@ def decode_signed_transaction(encoded: bytes) -> SignedTransaction:
         raise ValueError("decoded signed transaction is not a dict")
     dto = cast(dict[str, object], raw)
     stx = from_wire(SignedTransaction, dto)
-    if not isinstance(stx.transaction, Transaction):
+    if not isinstance(stx.txn, Transaction):
         raise ValueError("signed transaction missing 'txn'")
     return stx
 
