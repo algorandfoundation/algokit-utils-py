@@ -33,8 +33,6 @@ if no predicate is provided.
   * **sender** – Optional sender address to use this signer for (aka a rekeyed account)
 * **Returns:**
   The signing account or None if no matching wallet or account was found
-* **Raises:**
-  **Exception** – If error received while exporting the private key from KMD
 
 #### get_or_create_wallet_account(name: str, fund_with: [algokit_utils.models.amount.AlgoAmount](../../models/amount/index.md#algokit_utils.models.amount.AlgoAmount) | None = None) → algokit_transact.signer.AddressWithSigners
 
