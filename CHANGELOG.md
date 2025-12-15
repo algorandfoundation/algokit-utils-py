@@ -2,6 +2,18 @@
 
 <!--next-version-placeholder-->
 
+## v4.2.3 (2025-12-15)
+
+### Fix
+
+* Update urllib3 for audit issue ([#239](https://github.com/algorandfoundation/algokit-utils-py/issues/239)) ([`ab36d0c`](https://github.com/algorandfoundation/algokit-utils-py/commit/ab36d0cfca8998db7837f6a98c2be994c6af4f27))
+* Enable LocalNet dispensing after 30000 rounds ([#226](https://github.com/algorandfoundation/algokit-utils-py/issues/226)) ([`d1f8693`](https://github.com/algorandfoundation/algokit-utils-py/commit/d1f8693a6b6253f2dff9a34ba0e474109e789d40))
+* Use extra pages available when deploying ([#217](https://github.com/algorandfoundation/algokit-utils-py/issues/217)) ([`afda7ac`](https://github.com/algorandfoundation/algokit-utils-py/commit/afda7ac85a32ef676c5cbefa3616e93af8f81265))
+
+### Documentation
+
+* Remove html docs and gh pages; tweak md docstrings to convert to regular python code blocks ([#205](https://github.com/algorandfoundation/algokit-utils-py/issues/205)) ([`4db24ba`](https://github.com/algorandfoundation/algokit-utils-py/commit/4db24ba4e3193ea442a4b3492cf041c030551b1d))
+
 ## v4.2.2 (2025-10-15)
 
 ### Fix
