@@ -36,8 +36,8 @@ def _build_signed_transaction(
     *, txn: TransactionVector, signature: bytes, auth_address: str | None = None
 ) -> SignedTransaction:
     return SignedTransaction(
-        transaction=txn.transaction,
-        signature=signature,
+        txn=txn.transaction,
+        sig=signature,
         auth_address=auth_address,
     )
 
@@ -129,6 +129,6 @@ def assert_multisig_example(label: str, test_data: TransactionVector) -> None:
     for msig in applied_signatures[1:]:
         merged = merge_multisignatures(merged, msig)
 
-    signed_txn = SignedTransaction(transaction=test_data.transaction, multi_signature=merged)
+    signed_txn = SignedTransaction(txn=test_data.transaction, msig=merged)
     encoded = encode_signed_transaction(signed_txn)
     assert encoded == _ensure_bytes("multisigSignedBytes", test_data.multisig_signed_bytes, label), label

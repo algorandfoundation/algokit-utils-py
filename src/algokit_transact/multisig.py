@@ -64,17 +64,17 @@ class MultisigAccount:
                 payload = encode_transaction(txn)
 
                 multisig_sig = base_multisig
-                for subsig in base_multisig.subsignatures:
+                for subsig in base_multisig.subsigs:
                     subsig_addr = address_from_public_key(subsig.public_key)
                     if subsig_addr in address_to_signer:
                         signature = address_to_signer[subsig_addr](payload)
                         multisig_sig = apply_multisig_subsignature(multisig_sig, subsig_addr, signature)
 
                 signed = SignedTransaction(
-                    transaction=txn,
-                    signature=None,
-                    multi_signature=multisig_sig,
-                    logic_signature=None,
+                    txn=txn,
+                    sig=None,
+                    msig=multisig_sig,
+                    lsig=None,
                     auth_address=msig_address if txn.sender != msig_address else None,
                 )
                 blobs.append(encode_signed_transaction(signed))

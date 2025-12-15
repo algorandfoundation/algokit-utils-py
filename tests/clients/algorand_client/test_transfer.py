@@ -48,7 +48,7 @@ def test_transfer_algo_is_sent_and_waited_for(algorand: AlgorandClient, funded_a
     assert result.transaction.payment
     assert result.transaction.payment.amount == 5_000_000
 
-    assert result.transaction.sender == funded_account.addr == result.confirmation.txn.transaction.sender
+    assert result.transaction.sender == funded_account.addr == result.confirmation.txn.txn.sender
     assert account_info.amount == 5_000_000
 
 

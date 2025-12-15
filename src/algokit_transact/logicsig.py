@@ -114,16 +114,16 @@ class LogicSigAccount:
                 logic_sig = LogicSignature(
                     logic=program,
                     args=args,
-                    signature=signature,
-                    multi_signature=multisig_sig,
+                    sig=signature,
+                    msig=multisig_sig,
                 )
                 auth_addr = lsig_address if txn.sender != lsig_address else None
 
                 signed = SignedTransaction(
-                    transaction=txn,
-                    signature=None,
-                    multi_signature=None,
-                    logic_signature=logic_sig,
+                    txn=txn,
+                    sig=None,
+                    msig=None,
+                    lsig=logic_sig,
                     auth_address=auth_addr,
                 )
                 blobs.append(encode_signed_transaction(signed))
@@ -207,7 +207,7 @@ class LogicSigAccount:
 
         address_to_signer = {account.addr: account.delegated_lsig_signer for account in signing_accounts}
 
-        for subsig in msig.subsignatures:
+        for subsig in msig.subsigs:
             subsig_addr = address_from_public_key(subsig.public_key)
             if subsig_addr in address_to_signer:
                 signature = address_to_signer[subsig_addr](self._program, msig_public_key)

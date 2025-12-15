@@ -20,17 +20,17 @@ def new_multisig_signature(version: int, threshold: int, participants: Iterable[
     if threshold == 0 or threshold > len(participants):
         raise ValueError("Threshold must be greater than zero and less than or equal to the number of participants")
 
-    subsignatures = [MultisigSubsignature(public_key=public_key_from_address(address)) for address in participants]
-    return MultisigSignature(version=version, threshold=threshold, subsignatures=subsignatures)
+    subsigs = [MultisigSubsignature(public_key=public_key_from_address(address)) for address in participants]
+    return MultisigSignature(version=version, threshold=threshold, subsigs=subsigs)
 
 
 def participants_from_multisig_signature(multisig_signature: MultisigSignature) -> list[str]:
-    return [address_from_public_key(subsig.public_key) for subsig in multisig_signature.subsignatures]
+    return [address_from_public_key(subsig.public_key) for subsig in multisig_signature.subsigs]
 
 
 def address_from_multisig_signature(multisig_signature: MultisigSignature) -> str:
     prefix = MULTISIG_DOMAIN_SEPARATOR.encode()
-    participant_keys = [subsig.public_key for subsig in multisig_signature.subsignatures]
+    participant_keys = [subsig.public_key for subsig in multisig_signature.subsigs]
 
     buffer = bytearray()
     buffer.extend(prefix)
@@ -51,15 +51,15 @@ def apply_multisig_subsignature(
     found = False
     updated = []
     participant_pk = public_key_from_address(participant)
-    for subsig in multisig_signature.subsignatures:
+    for subsig in multisig_signature.subsigs:
         if subsig.public_key == participant_pk:
             found = True
-            updated.append(MultisigSubsignature(public_key=subsig.public_key, signature=signature))
+            updated.append(MultisigSubsignature(public_key=subsig.public_key, sig=signature))
         else:
             updated.append(subsig)
     if not found:
         raise ValueError("Address not found in multisig signature")
-    return replace(multisig_signature, subsignatures=updated)
+    return replace(multisig_signature, subsigs=updated)
 
 
 def merge_multisignatures(multisig_a: MultisigSignature, multisig_b: MultisigSignature) -> MultisigSignature:
@@ -74,11 +74,11 @@ def merge_multisignatures(multisig_a: MultisigSignature, multisig_b: MultisigSig
         raise ValueError("Cannot merge multisig signatures with different participants")
 
     merged_subsigs = []
-    for subsig_a, subsig_b in zip(multisig_a.subsignatures, multisig_b.subsignatures, strict=False):
-        signature = subsig_b.signature if subsig_b.signature is not None else subsig_a.signature
-        merged_subsigs.append(MultisigSubsignature(public_key=subsig_a.public_key, signature=signature))
+    for subsig_a, subsig_b in zip(multisig_a.subsigs, multisig_b.subsigs, strict=False):
+        sig = subsig_b.sig if subsig_b.sig is not None else subsig_a.sig
+        merged_subsigs.append(MultisigSubsignature(public_key=subsig_a.public_key, sig=sig))
     return MultisigSignature(
         version=multisig_a.version,
         threshold=multisig_a.threshold,
-        subsignatures=merged_subsigs,
+        subsigs=merged_subsigs,
     )

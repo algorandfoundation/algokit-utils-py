@@ -110,9 +110,7 @@ def test_encode_signed_transactions(vector_lookup: VectorLookup) -> None:
             raise AssertionError("missing signing key for test vector")
         signatures.append(_sign(tx_bytes, vector.signing_private_key))
 
-    signed_grouped = [
-        SignedTransaction(transaction=tx, signature=sig) for tx, sig in zip(grouped, signatures, strict=False)
-    ]
+    signed_grouped = [SignedTransaction(txn=tx, sig=sig) for tx, sig in zip(grouped, signatures, strict=False)]
 
     encoded_signed = encode_signed_transactions(signed_grouped)
     assert len(encoded_signed) == len(signed_grouped)
