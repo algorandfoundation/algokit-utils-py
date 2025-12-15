@@ -99,7 +99,7 @@ The compiled hash
 
 The compiled base64 to bytes
 
-#### source_map *: algokit_algosdk.source_map.SourceMap | None*
+#### source_map *: algokit_common.ProgramSourceMap | None*
 
 ### *class* algokit_utils.models.application.AppCompilationResult
 
@@ -117,10 +117,10 @@ The compiled clear state program
 
 The source maps for the application
 
-#### approval_source_map *: algokit_algosdk.source_map.SourceMap | None* *= None*
+#### approval_source_map *: algokit_common.ProgramSourceMap | None* *= None*
 
 The source map for the approval program
 
-#### clear_source_map *: algokit_algosdk.source_map.SourceMap | None* *= None*
+#### clear_source_map *: algokit_common.ProgramSourceMap | None* *= None*
 
 The source map for the clear state program

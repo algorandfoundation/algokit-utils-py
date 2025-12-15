@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Generic, Protocol, TypeVar
 
 from typing_extensions import Self
 
-import algokit_algosdk as algosdk
+from algokit_common import ProgramSourceMap
 from algokit_utils.protocols.signer import TransactionSigner
 
 if TYPE_CHECKING:
@@ -50,8 +50,8 @@ class TypedAppClientProtocol(Protocol):
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
         algorand: "AlgorandClient",
     ) -> Self: ...
 
@@ -63,8 +63,8 @@ class TypedAppClientProtocol(Protocol):
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
         algorand: "AlgorandClient",
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> None: ...
 
 

@@ -425,7 +425,9 @@ def test_should_throw_error_when_too_many_account_references_are_provided(base_c
     accounts = tuple("A" * 58 for _ in range(9))  # Max is 8
     tx = clone_transaction(
         base_call_transaction,
-        application_call=build_app_call(app_id=123, on_complete=OnApplicationComplete.NoOp, account_references=accounts),
+        application_call=build_app_call(
+            app_id=123, on_complete=OnApplicationComplete.NoOp, account_references=accounts
+        ),
     )
 
     assert_validation_error(tx, "App call validation failed: Account references cannot exceed 8 refs")

@@ -8,7 +8,7 @@
 
 ## Module Contents
 
-### *class* algokit_utils.protocols.typed_clients.TypedAppClientProtocol(\*, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None)
+### *class* algokit_utils.protocols.typed_clients.TypedAppClientProtocol(\*, app_id: int, app_name: str | None = None, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), approval_source_map: algokit_common.ProgramSourceMap | None = None, clear_source_map: algokit_common.ProgramSourceMap | None = None)
 
 Bases: `Protocol`
 
@@ -16,7 +16,7 @@ App Client protocol
 
 #### *classmethod* from_creator_and_name(\*, creator_address: str, app_name: str, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, ignore_cache: bool | None = None, app_lookup_cache: [ApplicationLookup](../../applications/app_deployer/index.md#algokit_utils.applications.app_deployer.ApplicationLookup) | None = None, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient)) → typing_extensions.Self
 
-#### *classmethod* from_network(\*, app_name: str | None = None, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, approval_source_map: algokit_algosdk.source_map.SourceMap | None = None, clear_source_map: algokit_algosdk.source_map.SourceMap | None = None, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient)) → typing_extensions.Self
+#### *classmethod* from_network(\*, app_name: str | None = None, default_sender: str | None = None, default_signer: algokit_utils.protocols.signer.TransactionSigner | None = None, approval_source_map: algokit_common.ProgramSourceMap | None = None, clear_source_map: algokit_common.ProgramSourceMap | None = None, algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient)) → typing_extensions.Self
 
 ### *class* algokit_utils.protocols.typed_clients.TypedAppFactoryProtocol(algorand: [algokit_utils.algorand.AlgorandClient](../../algorand/index.md#algokit_utils.algorand.AlgorandClient), \*\*kwargs: Any)
 
