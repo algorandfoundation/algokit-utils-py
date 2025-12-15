@@ -5,7 +5,7 @@ import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
-from algokit_common import get_application_address, public_key_from_address
+from algokit_common import ProgramSourceMap, get_application_address, public_key_from_address
 from algokit_common.serde import to_wire
 from algokit_transact.signer import AddressWithTransactionSigner
 from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
@@ -144,7 +144,7 @@ class AppManager:
             compiled=compiled.result,
             compiled_hash=compiled.hash_,
             compiled_base64_to_bytes=base64.b64decode(compiled.result),
-            source_map=algosdk.source_map.SourceMap(sourcemap_dict),
+            source_map=ProgramSourceMap(sourcemap_dict),
         )
         self._compilation_results[teal_code] = result
         return result

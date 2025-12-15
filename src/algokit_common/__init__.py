@@ -16,10 +16,20 @@ from algokit_common.serde import (
     to_wire_canonical,
     wire,
 )
+from algokit_common.source_map import (
+    PcLineLocation,
+    ProgramSourceMap,
+    SourceLocation,
+    SourceMapVersionError,
+)
 
 __all__ = [
     "DecodeError",
     "EncodeError",
+    "PcLineLocation",
+    "ProgramSourceMap",
+    "SourceLocation",
+    "SourceMapVersionError",
     "addr",
     "addr_seq",
     "address_from_public_key",

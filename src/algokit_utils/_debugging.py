@@ -7,8 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import algokit_algosdk as algosdk
-from algokit_common import sha512_256
+from algokit_common import ProgramSourceMap, sha512_256
 from algokit_common.serde import to_wire
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.config import config
@@ -113,12 +112,12 @@ def _write_to_file(path: Path, content: str) -> None:
     path.write_text(content)
 
 
-def _compile_raw_teal(raw_teal: str, client: AlgodClient) -> tuple[bytes, algosdk.source_map.SourceMap, str]:
+def _compile_raw_teal(raw_teal: str, client: AlgodClient) -> tuple[bytes, ProgramSourceMap, str]:
     teal_to_compile = AppManager.strip_teal_comments(raw_teal)
     compiled = client.teal_compile(teal_to_compile.encode("utf-8"), sourcemap=True)
     compiled_bytes = base64.b64decode(compiled.result)
     sourcemap_dict = to_wire(compiled.sourcemap) if compiled.sourcemap else {}
-    return compiled_bytes, algosdk.source_map.SourceMap(sourcemap_dict), raw_teal
+    return compiled_bytes, ProgramSourceMap(sourcemap_dict), raw_teal
 
 
 def _build_avm_sourcemap(
