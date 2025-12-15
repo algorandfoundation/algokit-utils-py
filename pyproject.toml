@@ -239,7 +239,7 @@ sequence = [
   { cmd = "ruff check --fix src/algokit_${SPEC}_client" },
   { cmd = "ruff format src/algokit_${SPEC}_client" },
 ]
-env.OAS_BRANCH = "main"
+env.OAS_BRANCH = "fix/byte-len-validation"
 
 [tool.poe.tasks.generate-algod-client]
 ref = "generate-client"

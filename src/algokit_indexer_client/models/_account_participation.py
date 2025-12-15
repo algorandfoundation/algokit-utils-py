@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
-from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+from ._serde_helpers import decode_fixed_bytes_base64, encode_fixed_bytes_base64
 
 
 @dataclass(slots=True)
@@ -19,8 +19,8 @@ class AccountParticipation:
         default=b"",
         metadata=wire(
             "selection-participation-key",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     vote_first_valid: int = field(
@@ -39,15 +39,15 @@ class AccountParticipation:
         default=b"",
         metadata=wire(
             "vote-participation-key",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     state_proof_key: bytes | None = field(
         default=None,
         metadata=wire(
             "state-proof-key",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )

@@ -10,9 +10,11 @@ from ._eval_delta_key_value import EvalDeltaKeyValue
 from ._serde_helpers import (
     decode_bytes_base64,
     decode_bytes_sequence,
+    decode_fixed_bytes_base64,
     decode_model_sequence,
     encode_bytes_base64,
     encode_bytes_sequence,
+    encode_fixed_bytes_base64,
     encode_model_sequence,
 )
 from ._transaction_application import TransactionApplication
@@ -101,8 +103,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "genesis-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     genesis_id: str | None = field(
@@ -121,8 +123,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "group",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     heartbeat_transaction: TransactionHeartbeat | None = field(
@@ -153,8 +155,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "lease",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     local_state_delta: list[AccountStateDelta] | None = field(

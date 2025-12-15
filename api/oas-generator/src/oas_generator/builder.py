@@ -33,6 +33,8 @@ class TypeInfo:
     is_locals_reference: bool = False
     is_holding_reference: bool = False
     needs_datetime: bool = False
+    byte_length: int | None = None  # Fixed byte length from x-algokit-byte-length
+    list_inner_byte_length: int | None = None  # Fixed byte length for list items
     imports: set[str] = field(default_factory=set)
 
 
@@ -170,7 +172,10 @@ class TypeResolver:
         if schema_type == "string":
             fmt = schema.get("format")
             if fmt in {"byte", "binary"} or schema.get("x-algokit-bytes-base64"):
-                info = TypeInfo(annotation="bytes", is_bytes=True)
+                # Extract fixed byte length if present
+                byte_length_val = schema.get("x-algokit-byte-length")
+                byte_length = int(byte_length_val) if byte_length_val is not None else None
+                info = TypeInfo(annotation="bytes", is_bytes=True, byte_length=byte_length)
             elif fmt == "date-time":
                 info = TypeInfo(
                     annotation="datetime",
@@ -219,6 +224,7 @@ class TypeResolver:
             list_inner_model=inner.model,
             list_inner_enum=inner.enum,
             list_inner_is_bytes=inner.is_bytes,
+            list_inner_byte_length=inner.byte_length,
             is_signed_transaction=inner.is_signed_transaction,
             is_box_reference=inner.is_box_reference,
             is_locals_reference=inner.is_locals_reference,
@@ -462,6 +468,10 @@ class ModelBuilder:
                 imports.add("from ._serde_helpers import decode_bytes_base64, encode_bytes_base64")
             if "encode_bytes_sequence" in field.metadata or "decode_bytes_sequence" in field.metadata:
                 imports.add("from ._serde_helpers import decode_bytes_sequence, encode_bytes_sequence")
+            if "encode_fixed_bytes_base64" in field.metadata or "decode_fixed_bytes_base64" in field.metadata:
+                imports.add("from ._serde_helpers import decode_fixed_bytes_base64, encode_fixed_bytes_base64")
+            if "encode_fixed_bytes_sequence" in field.metadata or "decode_fixed_bytes_sequence" in field.metadata:
+                imports.add("from ._serde_helpers import decode_fixed_bytes_sequence, encode_fixed_bytes_sequence")
             if "nested(" in field.metadata:
                 uses_nested = True
             if "flatten(" in field.metadata:
@@ -585,6 +595,15 @@ class ModelBuilder:
                 "        )"
             )
         if type_info.is_list and type_info.list_inner_is_bytes:
+            # Handle fixed-length bytes in sequences
+            if type_info.list_inner_byte_length is not None:
+                return (
+                    "wire(\n"
+                    f'            "{alias}",\n'
+                    f"            encode=lambda v: encode_fixed_bytes_sequence(v, {type_info.list_inner_byte_length}),\n"
+                    f"            decode=lambda raw: decode_fixed_bytes_sequence(raw, {type_info.list_inner_byte_length}),\n"
+                    "        )"
+                )
             return (
                 "wire(\n"
                 f'            "{alias}",\n'
@@ -593,6 +612,15 @@ class ModelBuilder:
                 "        )"
             )
         if type_info.is_bytes:
+            # Handle fixed-length bytes
+            if type_info.byte_length is not None:
+                return (
+                    "wire(\n"
+                    f'            "{alias}",\n'
+                    f"            encode=lambda v: encode_fixed_bytes_base64(v, {type_info.byte_length}),\n"
+                    f"            decode=lambda raw: decode_fixed_bytes_base64(raw, {type_info.byte_length}),\n"
+                    "        )"
+                )
             return (
                 "wire(\n"
                 f'            "{alias}",\n'
