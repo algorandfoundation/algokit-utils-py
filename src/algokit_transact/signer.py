@@ -112,8 +112,8 @@ def generate_address_with_signers(
             bytes_to_sign = encode_transaction(txn)
             signature = raw_ed25519_signer(bytes_to_sign)
             stxn = SignedTransaction(
-                transaction=txn,
-                signature=signature,
+                txn=txn,
+                sig=signature,
                 auth_address=auth_addr if txn.sender != auth_addr else None,
             )
             result.append(encode_signed_transaction(stxn))
@@ -151,8 +151,8 @@ def make_empty_transaction_signer() -> TransactionSigner:
         result: list[bytes] = []
         for index in indexes_to_sign:
             stxn = SignedTransaction(
-                transaction=txn_group[index],
-                signature=EMPTY_SIGNATURE,
+                txn=txn_group[index],
+                sig=EMPTY_SIGNATURE,
             )
             result.append(encode_signed_transaction(stxn))
         return result

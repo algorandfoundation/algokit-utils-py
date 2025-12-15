@@ -250,7 +250,7 @@ def calculate_inner_fee_delta(
     current = acc
     for inner in reversed(inner_txns):
         recursive_delta = calculate_inner_fee_delta(inner.inner_txns, min_fee, current)
-        txn_fee = inner.txn.transaction.fee or 0
+        txn_fee = inner.txn.txn.fee or 0
         txn_fee_delta = FeeDelta.from_int(min_fee - txn_fee)
         combined = FeeDelta.add(recursive_delta, txn_fee_delta)
 

@@ -8,12 +8,12 @@ from algokit_transact.signing.types import MultisigSignature
 class LogicSignature:
     logic: bytes = field(metadata=wire("l"))
     args: list[bytes] | None = field(default=None, metadata=bytes_seq("arg"))
-    signature: bytes | None = field(default=None, metadata=wire("sig"))
-    multi_signature: MultisigSignature | None = field(
+    sig: bytes | None = field(default=None, metadata=wire("sig"))
+    msig: MultisigSignature | None = field(
         default=None,
         metadata=nested("msig", MultisigSignature),
     )
-    logic_multi_signature: MultisigSignature | None = field(
+    lmsig: MultisigSignature | None = field(
         default=None,
         metadata=nested("lmsig", MultisigSignature),
     )

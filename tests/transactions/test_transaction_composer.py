@@ -309,14 +309,14 @@ def test_transaction_cap_is_ignored_if_higher_than_fee(
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), max_fee=AlgoAmount.from_micro_algo(1_000_000))
     )
-    assert response.confirmation.txn.transaction.fee == AlgoAmount.from_micro_algo(1000)
+    assert response.confirmation.txn.txn.fee == AlgoAmount.from_micro_algo(1000)
 
 
 def test_transaction_fee_is_overridable(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     response = algorand.send.payment(
         PaymentParams(**_get_test_transaction(funded_account), static_fee=AlgoAmount.from_algo(1))
     )
-    assert response.confirmation.txn.transaction.fee == AlgoAmount.from_algo(1)
+    assert response.confirmation.txn.txn.fee == AlgoAmount.from_algo(1)
 
 
 def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
@@ -331,9 +331,9 @@ def test_transaction_group_is_sent(algorand: AlgorandClient, funded_account: Add
     group_bytes = response.transactions[0].group
     assert group_bytes is not None
     expected_group = base64.b64encode(group_bytes).decode()
-    assert response.confirmations[0].txn.transaction.group == group_bytes
-    assert response.confirmations[1].txn.transaction.group == group_bytes
-    assert response.confirmations[0].txn.transaction.group == base64.b64decode(expected_group.encode())
+    assert response.confirmations[0].txn.txn.group == group_bytes
+    assert response.confirmations[1].txn.txn.group == group_bytes
+    assert response.confirmations[0].txn.txn.group == base64.b64decode(expected_group.encode())
 
 
 def test_multisig_single_account(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
