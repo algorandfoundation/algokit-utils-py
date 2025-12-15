@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, Optional, TypeVar
 from urllib import parse
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import ClientConfig as AlgodClientConfig
 from algokit_algod_client import models as algod_models
+from algokit_common import ProgramSourceMap
 from algokit_indexer_client import ClientConfig as IndexerClientConfig
 from algokit_indexer_client import IndexerClient
 from algokit_kmd_client import ClientConfig as KmdClientConfig
@@ -278,8 +278,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> "AppClient":
         """Get an application client for an existing application by ID.
 
@@ -317,8 +317,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> "AppClient":
         """Get an application client for an existing application by network.
 
@@ -355,8 +355,8 @@ class ClientManager:
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: Optional["ApplicationLookup"] = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> "AppClient":
         """Get an application client by creator address and name.
 
@@ -513,8 +513,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> TypedAppClientT:
         """Get a typed application client by ID.
 
@@ -555,8 +555,8 @@ class ClientManager:
         app_name: str | None = None,
         default_sender: str | None = None,
         default_signer: TransactionSigner | None = None,
-        approval_source_map: algosdk.source_map.SourceMap | None = None,
-        clear_source_map: algosdk.source_map.SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> TypedAppClientT:
         """Returns a new typed client, resolves the app ID for the current network.
 

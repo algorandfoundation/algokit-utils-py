@@ -9,11 +9,10 @@ from algokit_algod_client.models import (
     SimulateTransactionResult,
     SimulationTransactionExecTrace,
 )
+from algokit_common import ProgramSourceMap
 
 if TYPE_CHECKING:
-    import algokit_algosdk as algosdk
-
-    AlgoSourceMap = algosdk.source_map.SourceMap
+    pass
 __all__ = [
     "LogicError",
     "LogicErrorData",
@@ -53,7 +52,7 @@ class LogicError(Exception):
         *,
         logic_error_str: str,
         program: str,
-        source_map: "AlgoSourceMap | None",
+        source_map: "ProgramSourceMap | None",
         transaction_id: str,
         message: str,
         pc: int,

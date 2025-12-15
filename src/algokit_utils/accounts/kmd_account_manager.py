@@ -66,8 +66,6 @@ class KmdAccountManager:
         :param predicate: Optional filter to use to find the account (otherwise gets a random account from the wallet)
         :param sender: Optional sender address to use this signer for (aka a rekeyed account)
         :return: The signing account or None if no matching wallet or account was found
-
-        :raises Exception: If error received while exporting the private key from KMD
         """
         return self._find_wallet_account(
             wallet_name,

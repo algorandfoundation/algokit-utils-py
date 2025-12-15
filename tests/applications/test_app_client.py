@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc32, arc32_to_arc56, arc56
+from algokit_common import ProgramSourceMap
 from algokit_transact.models.transaction import Transaction
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
@@ -165,8 +165,8 @@ def test_app_client_with_sourcemaps(
             default_signer=funded_account.signer,
             app_id=testing_app_arc32_app_id,
             algorand=algorand,
-            approval_source_map=algosdk.source_map.SourceMap(sourcemaps["approvalSourceMap"]),
-            clear_source_map=algosdk.source_map.SourceMap(sourcemaps["clearSourceMap"]),
+            approval_source_map=ProgramSourceMap(sourcemaps["approvalSourceMap"]),
+            clear_source_map=ProgramSourceMap(sourcemaps["clearSourceMap"]),
             app_spec=testing_app_arc32_app_spec,
         )
     )

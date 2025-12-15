@@ -50,7 +50,7 @@ kwargs) -> new dictionary initialized with the name=value pairs
 
 ### algokit_utils.errors.logic_error.parse_logic_error(error_str: str) → [LogicErrorData](#algokit_utils.errors.logic_error.LogicErrorData) | None
 
-### *exception* algokit_utils.errors.logic_error.LogicError(\*, logic_error_str: str, program: str, source_map: AlgoSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list[algokit_algod_client.models.SimulateTransactionResult] | None = None, get_line_for_pc: collections.abc.Callable[[int], int | None] | None = None)
+### *exception* algokit_utils.errors.logic_error.LogicError(\*, logic_error_str: str, program: str, source_map: ProgramSourceMap | None, transaction_id: str, message: str, pc: int, logic_error: Exception | None = None, traces: list[algokit_algod_client.models.SimulateTransactionResult] | None = None, get_line_for_pc: collections.abc.Callable[[int], int | None] | None = None)
 
 Bases: `Exception`
 

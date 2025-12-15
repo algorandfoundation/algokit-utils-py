@@ -118,11 +118,6 @@ class OutOfRangeDecimalsError(Exception):
         super().__init__("decimals must be between 0 and 19, inclusive")
 
 
-class SourceMapVersionError(Exception):
-    def __init__(self, version: int) -> None:
-        super().__init__(f"unsupported source map version: {version}")
-
-
 class EmptyAddressError(Exception):
     def __init__(self) -> None:
         super().__init__(
@@ -142,7 +137,9 @@ class UnderspecifiedRoundError(Exception):
 
 class ZeroAddressError(Exception):
     def __init__(self) -> None:
-        super().__init__("For the zero address, please specify AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ")
+        super().__init__(
+            "For the zero address, please specify AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ"
+        )
 
 
 class KeyregOnlineTxnInitError(Exception):
