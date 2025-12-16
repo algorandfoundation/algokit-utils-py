@@ -30,15 +30,18 @@ from ._block import (
     BlockAppEvalDelta,
     BlockEvalDelta,
     BlockHeader,
+    BlockResponse,
     BlockStateDelta,
     BlockStateProofTracking,
     BlockStateProofTrackingData,
-    GetBlock,
     ParticipationUpdates,
+    RewardState,
     SignedTxnInBlock,
+    TxnCommitments,
+    UpgradeState,
+    UpgradeVote,
 )
 from ._block_hash_response import BlockHashResponse
-from ._block_response import BlockResponse
 from ._block_txids_response import BlockTxidsResponse
 from ._box import Box
 from ._box_descriptor import BoxDescriptor
@@ -155,7 +158,6 @@ __all__ = [
     "EvalDelta",
     "EvalDeltaKeyValue",
     "GenesisFileInJson",
-    "GetBlock",
     "GetBlockTimeStampOffsetResponse",
     "GetSyncRoundResponse",
     "GetTransactionGroupLedgerStateDeltasForRound",
@@ -191,6 +193,7 @@ __all__ = [
     "PendingTransactionResponse",
     "PendingTransactionsResponse",
     "PostTransactionsResponse",
+    "RewardState",
     "ScratchChange",
     "SignedTransaction",
     "SignedTxnInBlock",
@@ -217,5 +220,8 @@ __all__ = [
     "TransactionGroupLedgerStateDeltasForRoundResponse",
     "TransactionParametersResponse",
     "TransactionProof",
+    "TxnCommitments",
+    "UpgradeState",
+    "UpgradeVote",
     "VersionContainsTheCurrentAlgodVersion",
 ]

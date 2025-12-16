@@ -455,7 +455,7 @@ class AlgodClient:
         round_: int,
         *,
         header_only: bool | None = None,
-    ) -> models.GetBlock:
+    ) -> models.BlockResponse:
         """
         Get the block for the given round.
         """
@@ -483,7 +483,7 @@ class AlgodClient:
 
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
-            return self._decode_response(response, model=models.GetBlock)
+            return self._decode_response(response, model=models.BlockResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

@@ -936,11 +936,11 @@ class OperationBuilder:
             self.uses_block_models = True
             media_types = media_types or ["application/json"]
             return ctx.ResponseDescriptor(
-                type_hint="models.GetBlock",
+                type_hint="models.BlockResponse",
                 media_types=media_types,
                 description=payload.get("description"),
                 is_binary=False,
-                model="GetBlock",
+                model="BlockResponse",
             )
         if schema is None:
             return None

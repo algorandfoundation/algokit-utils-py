@@ -17,18 +17,12 @@ from oas_generator.renderer.filters import (
 
 class TemplateRenderer:
     BLOCK_MODEL_EXPORTS: ClassVar[list[str]] = [
-        "ApplyData",
-        "BlockEvalDelta",
-        "BlockStateDelta",
-        "BlockAccountStateDelta",
-        "BlockAppEvalDelta",
-        "BlockStateProofTrackingData",
         "BlockStateProofTracking",
         "ParticipationUpdates",
         "SignedTxnInBlock",
         "BlockHeader",
         "Block",
-        "GetBlock",
+        "BlockResponse",
     ]
     LEDGER_STATE_DELTA_EXPORTS: ClassVar[list[str]] = [
         "LedgerTealValue",
