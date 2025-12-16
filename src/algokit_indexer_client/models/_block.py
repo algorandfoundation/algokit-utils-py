@@ -10,10 +10,8 @@ from ._block_upgrade_state import BlockUpgradeState
 from ._block_upgrade_vote import BlockUpgradeVote
 from ._participation_updates import ParticipationUpdates
 from ._serde_helpers import (
-    decode_bytes_base64,
     decode_fixed_bytes_base64,
     decode_model_sequence,
-    encode_bytes_base64,
     encode_fixed_bytes_base64,
     encode_model_sequence,
 )
@@ -98,8 +96,8 @@ class Block:
         default=None,
         metadata=wire(
             "previous-block-hash-512",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     proposer: str | None = field(
@@ -134,8 +132,8 @@ class Block:
         default=None,
         metadata=wire(
             "transactions-root-sha512",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     txn_counter: int | None = field(
