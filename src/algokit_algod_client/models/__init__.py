@@ -23,7 +23,25 @@ from ._asset_holding import AssetHolding
 from ._asset_params import AssetParams
 from ._avm_key_value import AvmKeyValue
 from ._avm_value import AvmValue
-from ._block import Block, BlockHeader, BlockResponse, BlockStateProofTracking, ParticipationUpdates, SignedTxnInBlock
+from ._block import (
+    ApplyData,
+    Block,
+    BlockAccountStateDelta,
+    BlockAppEvalDelta,
+    BlockEvalDelta,
+    BlockHeader,
+    BlockResponse,
+    BlockStateDelta,
+    BlockStateProofTracking,
+    BlockStateProofTrackingData,
+    ParticipationUpdates,
+    RewardState,
+    SignedTxnInBlock,
+    SignedTxnWithAD,
+    TxnCommitments,
+    UpgradeState,
+    UpgradeVote,
+)
 from ._block_hash_response import BlockHashResponse
 from ._block_txids_response import BlockTxidsResponse
 from ._box import Box
@@ -113,16 +131,22 @@ __all__ = [
     "ApplicationParams",
     "ApplicationStateOperation",
     "ApplicationStateSchema",
+    "ApplyData",
     "Asset",
     "AssetHolding",
     "AssetParams",
     "AvmKeyValue",
     "AvmValue",
     "Block",
+    "BlockAccountStateDelta",
+    "BlockAppEvalDelta",
+    "BlockEvalDelta",
     "BlockHashResponse",
     "BlockHeader",
     "BlockResponse",
+    "BlockStateDelta",
     "BlockStateProofTracking",
+    "BlockStateProofTrackingData",
     "BlockTxidsResponse",
     "Box",
     "BoxDescriptor",
@@ -170,9 +194,11 @@ __all__ = [
     "PendingTransactionResponse",
     "PendingTransactionsResponse",
     "PostTransactionsResponse",
+    "RewardState",
     "ScratchChange",
     "SignedTransaction",
     "SignedTxnInBlock",
+    "SignedTxnWithAD",
     "SimulateInitialStates",
     "SimulateRequest",
     "SimulateRequestTransactionGroup",
@@ -196,5 +222,8 @@ __all__ = [
     "TransactionGroupLedgerStateDeltasForRoundResponse",
     "TransactionParametersResponse",
     "TransactionProof",
+    "TxnCommitments",
+    "UpgradeState",
+    "UpgradeVote",
     "VersionContainsTheCurrentAlgodVersion",
 ]
