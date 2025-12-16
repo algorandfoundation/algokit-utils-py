@@ -40,6 +40,73 @@ A collection of notes to consolidate todos during decoupling efforts (similar do
 
 - BoxReference used to be a subclass of algosdk BoxReference, now there is a direct equivalent imported from transact package. Do we want to keep aliasing the BoxReference to transact version or do we want to deprecate and advice consumers to import directly from transact?
 
+## Block Model Restructuring (TS Alignment)
+
+### Breaking Changes
+
+- `GetBlock` removed → use `BlockResponse`
+- `BlockHeader` fields reorganized into nested types:
+  - `header.fee_sink` → `header.reward_state.fee_sink`
+  - `header.rewards_pool` → `header.reward_state.rewards_pool`
+  - `header.rewards_level` → `header.reward_state.rewards_level`
+  - `header.rewards_rate` → `header.reward_state.rewards_rate`
+  - `header.rewards_residue` → `header.reward_state.rewards_residue`
+  - `header.rewards_recalculation_round` → `header.reward_state.rewards_recalculation_round`
+  - `header.current_protocol` → `header.upgrade_state.current_protocol`
+  - `header.next_protocol` → `header.upgrade_state.next_protocol`
+  - `header.next_protocol_approvals` → `header.upgrade_state.next_protocol_approvals`
+  - `header.next_protocol_vote_before` → `header.upgrade_state.next_protocol_vote_before`
+  - `header.next_protocol_switch_on` → `header.upgrade_state.next_protocol_switch_on`
+  - `header.upgrade_propose` → `header.upgrade_vote.upgrade_propose`
+  - `header.upgrade_delay` → `header.upgrade_vote.upgrade_delay`
+  - `header.upgrade_approve` → `header.upgrade_vote.upgrade_approve`
+  - `header.transactions_root` → `header.txn_commitments.transactions_root`
+  - `header.transactions_root_sha256` → `header.txn_commitments.transactions_root_sha256`
+- `BlockEvalDelta.bytes` → `BlockEvalDelta.bytes_value` (avoid Python keyword)
+- `BlockAppEvalDelta.inner_txns` type changed: `SignedTxnInBlock` → `SignedTxnWithAD`
+- `previous_block_hash` and `genesis_hash` now non-optional with `bytes(32)` defaults
+
+### Migration
+
+```python
+# Before
+from algokit_algod_client.models import GetBlock
+response: GetBlock = algod_client.get_block(...)
+fee_sink = response.block.header.fee_sink
+protocol = response.block.header.current_protocol
+proposal = response.block.header.upgrade_propose
+
+# After
+from algokit_algod_client.models import BlockResponse
+response: BlockResponse = algod_client.get_block(...)
+fee_sink = response.block.header.reward_state.fee_sink
+protocol = response.block.header.upgrade_state.current_protocol
+proposal = response.block.header.upgrade_vote.upgrade_propose
+```
+
+## Fixed-Length Byte Validation
+
+### Breaking Changes
+
+- Runtime validation for fixed-length byte fields (32/64 bytes)
+- `ValueError` raised if byte length doesn't match expected length
+- Affects: `group`, `lease`, signatures, hashes, keys, commitment roots
+
+### Migration
+
+```python
+# Validation now enforced at encode/decode
+# 32-byte fields: group, lease, transaction hashes, block hashes, keys
+# 64-byte fields: signatures, SHA-512 hashes
+
+# Before: silently accepted wrong lengths
+txn.group = bytes(10)  # No error
+
+# After: raises ValueError
+txn.group = bytes(10)  # ValueError: Expected 32 bytes, got 10
+txn.group = bytes(32)  # OK
+```
+
 ## Account and Signer Type Renames (TS Alignment)
 
 ### Breaking Changes

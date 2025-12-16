@@ -23,4 +23,4 @@ def test_ledger_state_delta_endpoint(base_url: str, block_rounds: list[int]) -> 
 
         assert isinstance(raw_delta, LedgerStateDelta)
         assert raw_delta.accounts is not None
-        assert raw_delta.block.header.transactions_root is not None
+        assert raw_delta.block.header.txn_commitments.transactions_root_sha256 is not None

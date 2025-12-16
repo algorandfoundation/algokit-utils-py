@@ -7,8 +7,11 @@ from pathlib import Path
 import pytest
 
 from algokit_abi import arc56
+from algokit_common import sha512_256
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils._debugging import (
+    AVMDebuggerSourceMap,
+    AVMDebuggerSourceMapEntry,
     PersistSourceMapInput,
     cleanup_old_trace_files,
     persist_sourcemaps,
@@ -25,6 +28,7 @@ from algokit_utils.transactions.transaction_composer import (
     AssetTransferParams,
     PaymentParams,
 )
+from tests.conftest import check_output_stability
 
 
 @pytest.fixture
@@ -64,6 +68,7 @@ def client_fixture(algorand: AlgorandClient, funded_account: AddressWithSigners)
 
 
 def test_build_teal_sourcemaps(algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory) -> None:
+    """Test that sourcemaps are persisted correctly with TEAL sources and verify AVM debugger format."""
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
@@ -89,10 +94,29 @@ int 1
     assert (app_output_path / "clear.teal").exists()
     assert (app_output_path / "clear.teal.map").exists()
 
+    # Build AVMDebuggerSourceMap for AVM debugger compatibility verification
+    # Since sources.avm.json is no longer generated, we manually construct it
+    import base64
+
+    app_manager = AppManager(algorand.client.algod)
+
+    sourcemap_entries = []
+    for source in sources:
+        compiled = app_manager.compile_teal(AppManager.strip_teal_comments(source.raw_teal))
+        # Compute program hash the same way as _build_avm_sourcemap
+        program_hash = base64.b64encode(sha512_256(compiled.compiled_base64_to_bytes)).decode()
+        # Normalize location for snapshot comparison (use "dummy" placeholder)
+        entry = AVMDebuggerSourceMapEntry(location="dummy", program_hash=program_hash)
+        sourcemap_entries.append(entry)
+
+    avm_sourcemap = AVMDebuggerSourceMap(txn_group_sources=sourcemap_entries)
+    check_output_stability(json.dumps(avm_sourcemap.to_dict()))
+
 
 def test_build_teal_sourcemaps_without_sources(
     algorand: AlgorandClient, tmp_path_factory: pytest.TempPathFactory
 ) -> None:
+    """Test that sourcemaps are persisted without TEAL source files and verify AVM debugger format."""
     cwd = tmp_path_factory.mktemp("cwd")
 
     approval = """
@@ -122,6 +146,23 @@ int 1
     assert not (app_output_path / "clear.teal").exists()
     assert (app_output_path / "clear.teal.map").exists()
     assert json.loads((app_output_path / "clear.teal.map").read_text())["sources"] == []
+
+    # Build AVMDebuggerSourceMap for AVM debugger compatibility verification
+    import base64
+
+    sourcemap_entries = [
+        AVMDebuggerSourceMapEntry(
+            location="dummy",
+            program_hash=base64.b64encode(sha512_256(compiled_approval.compiled_base64_to_bytes)).decode(),
+        ),
+        AVMDebuggerSourceMapEntry(
+            location="dummy",
+            program_hash=base64.b64encode(sha512_256(compiled_clear.compiled_base64_to_bytes)).decode(),
+        ),
+    ]
+
+    avm_sourcemap = AVMDebuggerSourceMap(txn_group_sources=sourcemap_entries)
+    check_output_stability(json.dumps(avm_sourcemap.to_dict()))
 
 
 @dataclass

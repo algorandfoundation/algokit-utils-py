@@ -27,13 +27,17 @@ __all__ = [
     "BlockAppEvalDelta",
     "BlockEvalDelta",
     "BlockHeader",
+    "BlockResponse",
     "BlockStateDelta",
     "BlockStateProofTracking",
     "BlockStateProofTrackingData",
-    "GetBlock",
     "ParticipationUpdates",
+    "RewardState",
     "SignedTxnInBlock",
     "SignedTxnWithAD",
+    "TxnCommitments",
+    "UpgradeState",
+    "UpgradeVote",
 ]
 
 
@@ -119,7 +123,7 @@ class BlockEvalDelta:
     """Represents a TEAL value delta within block state changes."""
 
     action: int = field(metadata=wire("at", required=True))
-    bytes: str | None = field(default=None, metadata=wire("bs"))
+    bytes_value: bytes | None = field(default=None, metadata=wire("bs"))
     uint: int | None = field(default=None, metadata=wire("ui"))
 
 
@@ -181,6 +185,46 @@ class SignedTxnWithAD:
 
 
 @dataclass(slots=True)
+class TxnCommitments:
+    """Transaction commitment hashes for the block."""
+
+    transactions_root: bytes = field(default_factory=lambda: bytes(32), metadata=wire("txn"))
+    transactions_root_sha256: bytes = field(default_factory=lambda: bytes(32), metadata=wire("txn256"))
+
+
+@dataclass(slots=True)
+class RewardState:
+    """Reward distribution state for the block."""
+
+    fee_sink: str | None = field(default=None, metadata=addr("fees"))
+    rewards_pool: str | None = field(default=None, metadata=addr("rwd"))
+    rewards_level: int | None = field(default=None, metadata=wire("earn"))
+    rewards_rate: int | None = field(default=None, metadata=wire("rate"))
+    rewards_residue: int | None = field(default=None, metadata=wire("frac"))
+    rewards_recalculation_round: int | None = field(default=None, metadata=wire("rwcalr"))
+
+
+@dataclass(slots=True)
+class UpgradeState:
+    """Protocol upgrade state for the block."""
+
+    current_protocol: str | None = field(default=None, metadata=wire("proto"))
+    next_protocol: str | None = field(default=None, metadata=wire("nextproto"))
+    next_protocol_approvals: int | None = field(default=None, metadata=wire("nextyes"))
+    next_protocol_vote_before: int | None = field(default=None, metadata=wire("nextbefore"))
+    next_protocol_switch_on: int | None = field(default=None, metadata=wire("nextswitch"))
+
+
+@dataclass(slots=True)
+class UpgradeVote:
+    """Protocol upgrade vote parameters for the block."""
+
+    upgrade_propose: str | None = field(default=None, metadata=wire("upgradeprop"))
+    upgrade_delay: int | None = field(default=None, metadata=wire("upgradedelay"))
+    upgrade_approve: bool | None = field(default=None, metadata=wire("upgradeyes"))
+
+
+@dataclass(slots=True)
 class ParticipationUpdates:
     """Participation account updates embedded in a block."""
 
@@ -217,12 +261,12 @@ class BlockAppEvalDelta:
             decode=_decode_local_deltas,
         ),
     )
-    inner_txns: list[SignedTxnInBlock] | None = field(
+    inner_txns: list[SignedTxnWithAD] | None = field(
         default=None,
         metadata=wire(
             "itx",
             encode=encode_model_sequence,
-            decode=lambda raw: decode_model_sequence(lambda: SignedTxnInBlock, raw),
+            decode=lambda raw: decode_model_sequence(lambda: SignedTxnWithAD, raw),
         ),
     )
     shared_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("sa"))
@@ -233,34 +277,34 @@ class BlockAppEvalDelta:
 class BlockHeader:
     """Block header fields."""
 
-    transactions_root: bytes = field(metadata=wire("txn", required=True))
     round: int | None = field(default=None, metadata=wire("rnd"))
-    previous_block_hash: bytes | None = field(default=None, metadata=wire("prev"))
+    txn_commitments: TxnCommitments = field(
+        default_factory=TxnCommitments,
+        metadata=flatten(lambda: TxnCommitments),
+    )
+    previous_block_hash: bytes = field(default_factory=lambda: bytes(32), metadata=wire("prev"))
     previous_block_hash_512: bytes | None = field(default=None, metadata=wire("prev512"))
     seed: bytes | None = field(default=None, metadata=wire("seed"))
-    transactions_root_sha256: bytes | None = field(default=None, metadata=wire("txn256"))
     transactions_root_sha512: bytes | None = field(default=None, metadata=wire("txn512"))
     timestamp: int | None = field(default=None, metadata=wire("ts"))
     genesis_id: str | None = field(default=None, metadata=wire("gen"))
-    genesis_hash: bytes | None = field(default=None, metadata=wire("gh"))
+    genesis_hash: bytes = field(default_factory=lambda: bytes(32), metadata=wire("gh"))
     proposer: str | None = field(default=None, metadata=addr("prp"))
     fees_collected: int | None = field(default=None, metadata=wire("fc"))
     bonus: int | None = field(default=None, metadata=wire("bi"))
     proposer_payout: int | None = field(default=None, metadata=wire("pp"))
-    fee_sink: str | None = field(default=None, metadata=addr("fees"))
-    rewards_pool: str | None = field(default=None, metadata=addr("rwd"))
-    rewards_level: int | None = field(default=None, metadata=wire("earn"))
-    rewards_rate: int | None = field(default=None, metadata=wire("rate"))
-    rewards_residue: int | None = field(default=None, metadata=wire("frac"))
-    rewards_recalculation_round: int | None = field(default=None, metadata=wire("rwcalr"))
-    current_protocol: str | None = field(default=None, metadata=wire("proto"))
-    next_protocol: str | None = field(default=None, metadata=wire("nextproto"))
-    next_protocol_approvals: int | None = field(default=None, metadata=wire("nextyes"))
-    next_protocol_vote_before: int | None = field(default=None, metadata=wire("nextbefore"))
-    next_protocol_switch_on: int | None = field(default=None, metadata=wire("nextswitch"))
-    upgrade_propose: str | None = field(default=None, metadata=wire("upgradeprop"))
-    upgrade_delay: int | None = field(default=None, metadata=wire("upgradedelay"))
-    upgrade_approve: bool | None = field(default=None, metadata=wire("upgradeyes"))
+    reward_state: RewardState = field(
+        default_factory=RewardState,
+        metadata=flatten(lambda: RewardState),
+    )
+    upgrade_state: UpgradeState = field(
+        default_factory=UpgradeState,
+        metadata=flatten(lambda: UpgradeState),
+    )
+    upgrade_vote: UpgradeVote = field(
+        default_factory=UpgradeVote,
+        metadata=flatten(lambda: UpgradeVote),
+    )
     txn_counter: int | None = field(default=None, metadata=wire("tc"))
     state_proof_tracking: BlockStateProofTracking | None = field(
         default=None,
@@ -295,7 +339,7 @@ class Block:
 
 
 @dataclass(slots=True)
-class GetBlock:
+class BlockResponse:
     """Response payload for the get block endpoint (with optional certificate)."""
 
     block: Block = field(metadata=nested("block", lambda: Block))
