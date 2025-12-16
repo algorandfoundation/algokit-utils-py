@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - alpha
     paths-ignore:
       - "docs/**"
       - ".github/**"
@@ -67,6 +68,22 @@ jobs:
 
       - name: Set Git user as GitHub actions
         run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
+
+      - name: Create Continuous Deployment - Alpha
+        if: steps.get_branch.outputs.branch == 'alpha'
+        run: |
+          uv run semantic-release \
+            -v DEBUG \
+            --prerelease \
+            --define=prerelease_tag=alpha \
+            --define=branch=alpha \
+            --define=upload_to_repository=true \
+            publish
+          gh release edit --prerelease "v$(uv run semantic-release print-version --current)"
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+          REPOSITORY_USERNAME: __token__
+          REPOSITORY_PASSWORD: ${{ secrets.PYPI_API_KEY }}
 
       - name: Create Continuous Deployment - Beta (non-prod)
         if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release

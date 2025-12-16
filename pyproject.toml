@@ -260,6 +260,21 @@ sequence = [
   "generate-kmd-client",
 ]
 
+[tool.poe.tasks.release-preview]
+sequence = [
+  { cmd = "semantic-release print-version --current" },
+  { cmd = "semantic-release print-version --prerelease" },
+]
+help = "Preview current and next prerelease version"
+
+[tool.poe.tasks.release-dry-run-alpha]
+shell = "semantic-release -v DEBUG --noop --prerelease --define=prerelease_tag=alpha publish"
+help = "Dry-run alpha release (no changes made)"
+
+[tool.poe.tasks.release-dry-run-beta]
+shell = "semantic-release -v DEBUG --noop --prerelease --define=prerelease_tag=beta publish"
+help = "Dry-run beta release (no changes made)"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
@@ -308,6 +323,10 @@ disallow_untyped_calls = false
 module = ["tests.transactions.test_transaction_composer"]
 disable_error_code = ["call-overload", "union-attr"]
 
+[[tool.mypy.overrides]]
+module = ["msgpack", "msgpack.*"]
+ignore_missing_imports = true
+
 [tool.semantic_release]
 version_toml = "pyproject.toml:project.version"
 remove_dist = false
@@ -318,7 +337,3 @@ upload_to_repository = false
 tag_commit = true
 branch = "main"
 commit_message = "{version}\n\nskip-checks: true"
-
-[[tool.mypy.overrides]]
-module = ["msgpack", "msgpack.*"]
-ignore_missing_imports = true
