@@ -79,7 +79,6 @@ jobs:
             --define=branch=alpha \
             --define=upload_to_repository=true \
             publish
-          gh release edit --prerelease "v$(uv run semantic-release print-version --current)"
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           REPOSITORY_USERNAME: __token__
@@ -94,7 +93,6 @@ jobs:
             --define=branch=main \
             --define=upload_to_repository=true \
             publish
-          gh release edit --prerelease "v$(uv run semantic-release print-version --current)"
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
           REPOSITORY_USERNAME: __token__
