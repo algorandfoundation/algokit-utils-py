@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
-from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+from ._serde_helpers import decode_fixed_bytes_base64, encode_fixed_bytes_base64
 
 
 @dataclass(slots=True)
@@ -19,39 +19,39 @@ class HbProofFields:
         default=None,
         metadata=wire(
             "hb-pk",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     hb_pk1sig: bytes | None = field(
         default=None,
         metadata=wire(
             "hb-pk1sig",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     hb_pk2: bytes | None = field(
         default=None,
         metadata=wire(
             "hb-pk2",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     hb_pk2sig: bytes | None = field(
         default=None,
         metadata=wire(
             "hb-pk2sig",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     hb_sig: bytes | None = field(
         default=None,
         metadata=wire(
             "hb-sig",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )

@@ -26,9 +26,14 @@ class TemplateRenderer:
         "BlockStateProofTracking",
         "ParticipationUpdates",
         "SignedTxnInBlock",
+        "SignedTxnWithAD",
+        "TxnCommitments",
+        "RewardState",
+        "UpgradeState",
+        "UpgradeVote",
         "BlockHeader",
         "Block",
-        "GetBlock",
+        "BlockResponse",
     ]
     LEDGER_STATE_DELTA_EXPORTS: ClassVar[list[str]] = [
         "LedgerTealValue",
@@ -87,7 +92,9 @@ class TemplateRenderer:
         files[models_dir / "__init__.py"] = self._render_template("models/__init__.py.j2", context)
         files[models_dir / "_serde_helpers.py"] = self._render_template("models/_serde_helpers.py.j2", context)
         ledger_model_names = set(LEDGER_STATE_DELTA_MODEL_NAMES)
-        models = [model for model in context["client"].models if model.name not in ledger_model_names]
+        block_model_names = set(self.BLOCK_MODEL_EXPORTS) if client.include_block_models else set()
+        excluded_models = ledger_model_names | block_model_names
+        models = [model for model in context["client"].models if model.name not in excluded_models]
         for model in models:
             model_context = {**context, "model": model}
             files[models_dir / f"{model.module_name}.py"] = self._render_template("models/model.py.j2", model_context)
@@ -132,10 +139,12 @@ class TemplateRenderer:
             model_exports.append("SuggestedParams")
         metadata_usage = self._collect_metadata_usage(client)
         ledger_model_names = set(LEDGER_STATE_DELTA_MODEL_NAMES)
+        block_model_names = set(self.BLOCK_MODEL_EXPORTS) if client.include_block_models else set()
+        excluded_models = ledger_model_names | block_model_names
         model_modules = [
             {"module": model.module_name, "name": model.name}
             for model in client.models
-            if model.name not in ledger_model_names
+            if model.name not in excluded_models
         ]
         enum_modules = [{"module": enum.module_name, "name": enum.name} for enum in client.enums]
         alias_modules = [{"module": alias.module_name, "name": alias.name} for alias in client.aliases]

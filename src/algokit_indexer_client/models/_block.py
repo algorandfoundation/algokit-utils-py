@@ -9,7 +9,12 @@ from ._block_rewards import BlockRewards
 from ._block_upgrade_state import BlockUpgradeState
 from ._block_upgrade_vote import BlockUpgradeVote
 from ._participation_updates import ParticipationUpdates
-from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
+from ._serde_helpers import (
+    decode_fixed_bytes_base64,
+    decode_model_sequence,
+    encode_fixed_bytes_base64,
+    encode_model_sequence,
+)
 from ._state_proof_tracking import StateProofTracking
 from ._transaction import Transaction
 
@@ -27,8 +32,8 @@ class Block:
         default=b"",
         metadata=wire(
             "genesis-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     genesis_id: str = field(
@@ -39,8 +44,8 @@ class Block:
         default=b"",
         metadata=wire(
             "previous-block-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     round_: int = field(
@@ -51,8 +56,8 @@ class Block:
         default=b"",
         metadata=wire(
             "seed",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     timestamp: int = field(
@@ -63,16 +68,16 @@ class Block:
         default=b"",
         metadata=wire(
             "transactions-root",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     transactions_root_sha256: bytes = field(
         default=b"",
         metadata=wire(
             "transactions-root-sha256",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     bonus: int | None = field(
@@ -91,8 +96,8 @@ class Block:
         default=None,
         metadata=wire(
             "previous-block-hash-512",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     proposer: str | None = field(
@@ -127,8 +132,8 @@ class Block:
         default=None,
         metadata=wire(
             "transactions-root-sha512",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=lambda v: encode_fixed_bytes_base64(v, 64),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
         ),
     )
     txn_counter: int | None = field(

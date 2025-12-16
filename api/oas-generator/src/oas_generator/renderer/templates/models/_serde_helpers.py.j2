@@ -37,6 +37,22 @@ def decode_bytes_base64(raw: object) -> bytes:
     raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
 
 
+def encode_fixed_bytes_base64(value: BytesLike, expected_length: int) -> str:
+    """Encode fixed-length bytes to base64, validating the length."""
+    coerced = _coerce_bytes(value)
+    if len(coerced) != expected_length:
+        raise ValueError(f"Expected {expected_length} bytes, got {len(coerced)}")
+    return base64.b64encode(coerced).decode("ascii")
+
+
+def decode_fixed_bytes_base64(raw: object, expected_length: int) -> bytes:
+    """Decode base64 to fixed-length bytes, validating the length."""
+    decoded = decode_bytes_base64(raw)
+    if len(decoded) != expected_length:
+        raise ValueError(f"Expected {expected_length} bytes, got {len(decoded)}")
+    return decoded
+
+
 def decode_bytes_map_key(raw: object) -> bytes:
     if isinstance(raw, bytes | bytearray | memoryview):
         return bytes(raw)
@@ -74,6 +90,36 @@ def decode_bytes_sequence(raw: object) -> list[bytes | None] | None:
             decoded.append(None)
             continue
         decoded.append(decode_bytes_base64(item))
+    return decoded or None
+
+
+def encode_fixed_bytes_sequence(
+    values: Iterable[BytesLike | None] | None, expected_length: int
+) -> list[str | None] | None:
+    """Encode a sequence of fixed-length bytes to base64, validating each element's length."""
+    if values is None:
+        return None
+    encoded: list[str | None] = []
+    for value in values:
+        if value is None:
+            encoded.append(None)
+            continue
+        if not isinstance(value, bytes | bytearray | memoryview):
+            raise TypeError(f"Unsupported value for bytes field sequence: {type(value)!r}")
+        encoded.append(encode_fixed_bytes_base64(value, expected_length))
+    return encoded or None
+
+
+def decode_fixed_bytes_sequence(raw: object, expected_length: int) -> list[bytes | None] | None:
+    """Decode a sequence of base64 strings to fixed-length bytes, validating each element's length."""
+    if not isinstance(raw, list):
+        return None
+    decoded: list[bytes | None] = []
+    for item in raw:
+        if item is None:
+            decoded.append(None)
+            continue
+        decoded.append(decode_fixed_bytes_base64(item, expected_length))
     return decoded or None
 
 

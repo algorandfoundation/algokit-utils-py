@@ -37,7 +37,7 @@ TRACE_FILENAME_DATE_FORMAT = "%Y%m%d_%H%M%S"
 @dataclass
 class AVMDebuggerSourceMapEntry:
     location: str = field(metadata={"json": "sourcemap-location"})
-    program_hash: str = field(metadata={"json": "sha512_256"})
+    program_hash: str = field(metadata={"json": "hash"})
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, AVMDebuggerSourceMapEntry):
@@ -45,7 +45,7 @@ class AVMDebuggerSourceMapEntry:
         return False
 
     def __str__(self) -> str:
-        return json.dumps({"sourcemap-location": self.location, "sha512_256": self.program_hash})
+        return json.dumps({"sourcemap-location": self.location, "hash": self.program_hash})
 
 
 @dataclass
@@ -56,7 +56,7 @@ class AVMDebuggerSourceMap:
     def from_dict(cls, data: dict) -> "AVMDebuggerSourceMap":
         return cls(
             txn_group_sources=[
-                AVMDebuggerSourceMapEntry(location=item["sourcemap-location"], program_hash=item["sha512_256"])
+                AVMDebuggerSourceMapEntry(location=item["sourcemap-location"], program_hash=item["hash"])
                 for item in data.get("txn-group-sources", [])
             ]
         )
