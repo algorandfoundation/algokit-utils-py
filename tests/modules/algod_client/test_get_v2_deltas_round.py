@@ -13,7 +13,7 @@ from tests.modules.conftest import TEST_ROUND
 @pytest.mark.group_common_tests
 def test_basic_request_and_response_validation(algod_client: AlgodClient) -> None:
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
-    result = algod_client.get_ledger_state_delta(round_=TEST_ROUND)
+    result = algod_client.ledger_state_delta(round_=TEST_ROUND)
 
     assert result is not None
     assert result.block is not None

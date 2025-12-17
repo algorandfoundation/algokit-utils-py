@@ -60,7 +60,7 @@ class TemplateRenderer:
         "LedgerAccountTotals",
         "LedgerStateDelta",
         "LedgerStateDeltaForTransactionGroup",
-        "GetTransactionGroupLedgerStateDeltasForRound",
+        "TransactionGroupLedgerStateDeltasForRound",
     ]
 
     def __init__(self, template_dir: Path | None = None) -> None:

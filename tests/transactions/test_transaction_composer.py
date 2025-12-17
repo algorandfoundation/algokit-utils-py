@@ -102,7 +102,7 @@ def test_add_asset_create(algorand: AlgorandClient, funded_account: AddressWithS
     assert built.transactions[0].asset_config
     txn = built.transactions[0]
     assert txn.sender == funded_account.addr
-    created_asset = algorand.client.algod.get_asset_by_id(asset_id).params
+    created_asset = algorand.client.algod.asset_by_id(asset_id).params
     assert created_asset.creator == funded_account.addr
     assert txn.asset_config.total == created_asset.total == expected_total
     assert txn.asset_config.decimals == created_asset.decimals == 0
@@ -143,7 +143,7 @@ def test_add_asset_config(
     assert txn.asset_config.manager == funded_secondary_account.addr
 
     composer.send({"max_rounds_to_wait": 20})
-    updated_asset = algorand.client.algod.get_asset_by_id(asset_id).params
+    updated_asset = algorand.client.algod.asset_by_id(asset_id).params
     assert updated_asset.manager == funded_secondary_account.addr
 
 

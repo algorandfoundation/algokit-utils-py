@@ -19,7 +19,7 @@ def test_block_endpoint(base_url: str, block_rounds: list[int]) -> None:
     algod_client = AlgodClient(config)
 
     for block_round in block_rounds:
-        resp = algod_client.get_block(round_=block_round, header_only=False)
+        resp = algod_client.block(round_=block_round, header_only=False)
 
         assert resp.block.header.state_proof_tracking is not None
         assert resp.block.payset is not None
@@ -50,7 +50,7 @@ def test_block_endpoint_empty_block(base_url: str, block_round: int) -> None:
     )
     algod_client = AlgodClient(config)
 
-    resp = algod_client.get_block(round_=block_round, header_only=False)
+    resp = algod_client.block(round_=block_round, header_only=False)
 
     # Verify block header is parsed correctly
     assert resp.block.header.round == block_round
