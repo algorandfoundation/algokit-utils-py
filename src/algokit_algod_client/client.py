@@ -148,7 +148,7 @@ class AlgodClient:
 
     # public
 
-    def _get_application_box_by_name(
+    def _application_box_by_name(
         self,
         application_id: int,
         name: str,
@@ -356,7 +356,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_application_boxes(
+    def application_boxes(
         self,
         application_id: int,
         *,
@@ -390,7 +390,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_application_by_id(
+    def application_by_id(
         self,
         application_id: int,
     ) -> models.Application:
@@ -420,7 +420,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_asset_by_id(
+    def asset_by_id(
         self,
         asset_id: int,
     ) -> models.Asset:
@@ -450,7 +450,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block(
+    def block(
         self,
         round_: int,
         *,
@@ -487,7 +487,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block_hash(
+    def block_hash(
         self,
         round_: int,
     ) -> models.BlockHashResponse:
@@ -517,7 +517,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block_time_stamp_offset(
+    def block_time_stamp_offset(
         self,
     ) -> models.GetBlockTimeStampOffsetResponse:
         """
@@ -544,7 +544,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_block_tx_ids(
+    def block_tx_ids(
         self,
         round_: int,
     ) -> models.BlockTxidsResponse:
@@ -574,7 +574,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_genesis(
+    def genesis(
         self,
     ) -> models.GenesisFileInJson:
         """
@@ -601,7 +601,34 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_ledger_state_delta(
+    def health_check(
+        self,
+    ) -> None:
+        """
+        Returns OK if healthy.
+        """
+
+        path = "/health"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def ledger_state_delta(
         self,
         round_: int,
     ) -> models.LedgerStateDelta:
@@ -634,7 +661,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_ledger_state_delta_for_transaction_group(
+    def ledger_state_delta_for_transaction_group(
         self,
         id_: str,
     ) -> models.LedgerStateDelta:
@@ -667,7 +694,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_light_block_header_proof(
+    def light_block_header_proof(
         self,
         round_: int,
     ) -> models.LightBlockHeaderProof:
@@ -697,7 +724,40 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_pending_transactions(
+    def pending_transaction_information(
+        self,
+        txid: str,
+    ) -> models.PendingTransactionResponse:
+        """
+        Get a specific pending transaction.
+        """
+
+        path = "/v2/transactions/pending/{txid}"
+        path = path.replace("{txid}", str(txid))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        params["format"] = "msgpack"
+        accept_value = "application/msgpack"
+
+        headers.setdefault("accept", accept_value or "application/msgpack")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.PendingTransactionResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def pending_transactions(
         self,
         *,
         max_: int | None = None,
@@ -731,7 +791,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_pending_transactions_by_address(
+    def pending_transactions_by_address(
         self,
         address: str,
         *,
@@ -768,7 +828,7 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_ready(
+    def ready(
         self,
     ) -> None:
         """
@@ -792,281 +852,6 @@ class AlgodClient:
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_state_proof(
-        self,
-        round_: int,
-    ) -> models.StateProof:
-        """
-        Get a state proof that covers a given round
-        """
-
-        path = "/v2/stateproofs/{round}"
-        path = path.replace("{round}", str(round_))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.StateProof)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_status(
-        self,
-    ) -> models.NodeStatusResponse:
-        """
-        Gets the current node status.
-        """
-
-        path = "/v2/status"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.NodeStatusResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_supply(
-        self,
-    ) -> models.SupplyResponse:
-        """
-        Get the current supply reported by the ledger.
-        """
-
-        path = "/v2/ledger/supply"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.SupplyResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_sync_round(
-        self,
-    ) -> models.GetSyncRoundResponse:
-        """
-        Returns the minimum sync round the ledger is keeping in cache.
-        """
-
-        path = "/v2/ledger/sync"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.GetSyncRoundResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_transaction_group_ledger_state_deltas_for_round(
-        self,
-        round_: int,
-    ) -> models.GetTransactionGroupLedgerStateDeltasForRound:
-        """
-        Get LedgerStateDelta objects for all transaction groups in a given round
-        """
-
-        path = "/v2/deltas/{round}/txn/group"
-        path = path.replace("{round}", str(round_))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        params["format"] = "msgpack"
-        accept_value = "application/msgpack"
-
-        headers.setdefault("accept", accept_value or "application/msgpack")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.GetTransactionGroupLedgerStateDeltasForRound)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_transaction_proof(
-        self,
-        round_: int,
-        txid: str,
-        *,
-        response_format: Literal["json", "msgpack"] | None = None,
-        hashtype: str | None = None,
-    ) -> models.TransactionProof:
-        """
-        Get a proof for a transaction in a block.
-        """
-
-        path = "/v2/blocks/{round}/transactions/{txid}/proof"
-        path = path.replace("{round}", str(round_))
-
-        path = path.replace("{txid}", str(txid))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-        if hashtype is not None:
-            params["hashtype"] = hashtype
-
-        accept_value: str | None = None
-
-        selected_format = response_format
-
-        if selected_format == "msgpack":
-            params["format"] = "msgpack"
-            accept_value = "application/msgpack"
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.TransactionProof)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_version(
-        self,
-    ) -> models.VersionContainsTheCurrentAlgodVersion:
-        """
-        Retrieves the supported API versions, binary build versions, and genesis information.
-        """
-
-        path = "/versions"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.VersionContainsTheCurrentAlgodVersion)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def health_check(
-        self,
-    ) -> None:
-        """
-        Returns OK if healthy.
-        """
-
-        path = "/health"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def pending_transaction_information(
-        self,
-        txid: str,
-    ) -> models.PendingTransactionResponse:
-        """
-        Get a specific pending transaction.
-        """
-
-        path = "/v2/transactions/pending/{txid}"
-        path = path.replace("{txid}", str(txid))
-
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        params["format"] = "msgpack"
-        accept_value = "application/msgpack"
-
-        headers.setdefault("accept", accept_value or "application/msgpack")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.PendingTransactionResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1178,6 +963,63 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
+    def state_proof(
+        self,
+        round_: int,
+    ) -> models.StateProof:
+        """
+        Get a state proof that covers a given round
+        """
+
+        path = "/v2/stateproofs/{round}"
+        path = path.replace("{round}", str(round_))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.StateProof)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def status(
+        self,
+    ) -> models.NodeStatusResponse:
+        """
+        Gets the current node status.
+        """
+
+        path = "/v2/status"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.NodeStatusResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
     def status_after_block(
         self,
         round_: int,
@@ -1205,6 +1047,60 @@ class AlgodClient:
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.NodeStatusResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def supply(
+        self,
+    ) -> models.SupplyResponse:
+        """
+        Get the current supply reported by the ledger.
+        """
+
+        path = "/v2/ledger/supply"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.SupplyResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def sync_round(
+        self,
+    ) -> models.GetSyncRoundResponse:
+        """
+        Returns the minimum sync round the ledger is keeping in cache.
+        """
+
+        path = "/v2/ledger/sync"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.GetSyncRoundResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
@@ -1292,6 +1188,83 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
+    def transaction_group_ledger_state_deltas_for_round(
+        self,
+        round_: int,
+    ) -> models.TransactionGroupLedgerStateDeltasForRound:
+        """
+        Get LedgerStateDelta objects for all transaction groups in a given round
+        """
+
+        path = "/v2/deltas/{round}/txn/group"
+        path = path.replace("{round}", str(round_))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        params["format"] = "msgpack"
+        accept_value = "application/msgpack"
+
+        headers.setdefault("accept", accept_value or "application/msgpack")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.TransactionGroupLedgerStateDeltasForRound)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def transaction_proof(
+        self,
+        round_: int,
+        txid: str,
+        *,
+        response_format: Literal["json", "msgpack"] | None = None,
+        hashtype: str | None = None,
+    ) -> models.TransactionProof:
+        """
+        Get a proof for a transaction in a block.
+        """
+
+        path = "/v2/blocks/{round}/transactions/{txid}/proof"
+        path = path.replace("{round}", str(round_))
+
+        path = path.replace("{txid}", str(txid))
+
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+        if hashtype is not None:
+            params["hashtype"] = hashtype
+
+        accept_value: str | None = None
+
+        selected_format = response_format
+
+        if selected_format == "msgpack":
+            params["format"] = "msgpack"
+            accept_value = "application/msgpack"
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.TransactionProof)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
     def unset_sync_round(
         self,
     ) -> None:
@@ -1319,6 +1292,33 @@ class AlgodClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
+    def version(
+        self,
+    ) -> models.VersionContainsTheCurrentAlgodVersion:
+        """
+        Retrieves the supported API versions, binary build versions, and genesis information.
+        """
+
+        path = "/versions"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.VersionContainsTheCurrentAlgodVersion)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
     def send_raw_transaction(
         self,
         stx_or_stxs: bytes | bytearray | memoryview | Sequence[bytes | bytearray | memoryview],
@@ -1342,7 +1342,7 @@ class AlgodClient:
 
         return self._raw_transaction(payload)
 
-    def get_application_box_by_name(
+    def application_box_by_name(
         self,
         application_id: int,
         box_name: bytes | bytearray | memoryview | str,
@@ -1353,7 +1353,7 @@ class AlgodClient:
 
         box_bytes = box_name.encode() if isinstance(box_name, str) else bytes(box_name)
         encoded_name = "b64:" + b64encode(box_bytes).decode("ascii")
-        return self._get_application_box_by_name(application_id, name=encoded_name)
+        return self._application_box_by_name(application_id, name=encoded_name)
 
     def suggested_params(self) -> models.SuggestedParams:
         """
