@@ -337,6 +337,23 @@ class Block:
         ),
     )
 
+    def __post_init__(self) -> None:
+        # populates genesis id and hash on transactions if required to ensure
+        # tx id's are correct
+        genesis_id = self.header.genesis_id
+        genesis_hash = self.header.genesis_hash
+        set_frozen_field = object.__setattr__
+        for txn_in_block in self.payset or []:
+            txn = txn_in_block.signed_transaction.signed_transaction.txn
+
+            if txn_in_block.has_genesis_id and txn.genesis_id is None:
+                set_frozen_field(txn, "genesis_id", genesis_id)
+
+            # the following assumes that Consensus.RequireGenesisHash is true
+            # so assigns genesis hash unless explicitly set to False
+            if txn_in_block.has_genesis_hash is not False and txn.genesis_hash is None:
+                set_frozen_field(txn, "genesis_hash", genesis_hash)
+
 
 @dataclass(slots=True)
 class BlockResponse:
