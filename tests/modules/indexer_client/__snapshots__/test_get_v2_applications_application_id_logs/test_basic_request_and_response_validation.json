@@ -4,56 +4,13 @@
   "log_data": [
     {
       "logs": [
-        [
-          21,
-          31,
-          124,
-          117,
-          0,
-          10,
-          0,
-          0,
-          0,
-          0,
-          7,
-          91,
-          205,
-          21,
-          0,
-          4,
-          74,
-          111,
-          104,
-          110
-        ]
+        "FR98dQAKAAAAAAdbzRUABEpvaG4="
       ],
       "tx_id": "BIVEPHMPLY5BL76MWU55TP65EWPI4UQZD2O2FOFLIL4SQO6Z7WXA"
     },
     {
       "logs": [
-        [
-          21,
-          31,
-          124,
-          117,
-          0,
-          10,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          0,
-          123,
-          0,
-          5,
-          116,
-          101,
-          115,
-          116,
-          32
-        ]
+        "FR98dQAKAAAAAAAAAHsABXRlc3Qg"
       ],
       "tx_id": "OUQEBRIXBLCFGEYLIY45XKBNYVIYRJRCTE53HF6R55IUYBIIPOQA"
     }
