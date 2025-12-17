@@ -14,23 +14,11 @@
         "manager": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
         "metadata_hash": null,
         "name": "myasset",
-        "name_b64": [
-          109,
-          121,
-          97,
-          115,
-          115,
-          101,
-          116
-        ],
+        "name_b64": "bXlhc3NldA==",
         "reserve": "WLH5LELVSEVQL45LBRQYCLJAX6KQPGWUY5WHJXVRV2NPYZUBQAFPH22Q7A",
         "total": 100,
         "unit_name": "MYA",
-        "unit_name_b64": [
-          77,
-          89,
-          65
-        ],
+        "unit_name_b64": "TVlB",
         "url": null,
         "url_b64": null
       }

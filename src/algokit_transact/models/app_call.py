@@ -276,6 +276,7 @@ class AppCallTransactionFields:
     app_references: list[int] | None = field(default=None, metadata=int_seq("apfa"))
     asset_references: list[int] | None = field(default=None, metadata=int_seq("apas"))
     extra_program_pages: int | None = field(default=None, metadata=wire("apep"))
+    reject_version: int | None = field(default=None, metadata=wire("aprv"))
     box_references: list[BoxReference] | None = field(
         default=None,
         metadata=wire(

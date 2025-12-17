@@ -6,6 +6,7 @@ Mock server fixtures are in individual module conftest files:
 - kmd_client/conftest.py
 """
 
+import base64
 from dataclasses import fields, is_dataclass
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def _dataclass_to_dict(obj: object) -> object:
     if is_dataclass(obj) and not isinstance(obj, type):
         return {f.name: _dataclass_to_dict(getattr(obj, f.name)) for f in fields(obj)}
     if isinstance(obj, bytes | bytearray | memoryview):
-        return list(bytes(obj))
+        return base64.b64encode(bytes(obj)).decode("ascii")
     if isinstance(obj, list | tuple):
         return [_dataclass_to_dict(item) for item in obj]
     if isinstance(obj, dict):
