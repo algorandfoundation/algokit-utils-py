@@ -426,87 +426,6 @@ class KmdClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def get_version(
-        self,
-        *,
-        body: models.VersionsRequest | None = None,
-    ) -> models.VersionsResponse:
-        """
-        Retrieves the current version
-        """
-
-        path = "/versions"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/json"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "GET",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "model": "VersionsRequest",
-                },
-                body_media_types,
-            )
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.VersionsResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
-    def get_wallet_info(
-        self,
-        body: models.WalletInfoRequest,
-    ) -> models.WalletInfoResponse:
-        """
-        Get wallet info
-        """
-
-        path = "/v1/wallet/info"
-        params: dict[str, Any] = {}
-        headers: Headers = self._config.resolve_headers()
-
-        accept_value: str | None = None
-
-        body_media_types = ["application/json"]
-
-        headers.setdefault("accept", accept_value or "application/json")
-        request_kwargs: dict[str, Any] = {
-            "method": "POST",
-            "url": path,
-            "params": params,
-            "headers": headers,
-        }
-
-        if body is not None:
-            self._assign_body(
-                request_kwargs,
-                body,
-                {
-                    "model": "WalletInfoRequest",
-                },
-                body_media_types,
-            )
-
-        response = self._request_with_retry(request_kwargs)
-        if response.is_success:
-            return self._decode_response(response, model=models.WalletInfoResponse)
-
-        raise UnexpectedStatusError(response.status_code, response.text)
-
     def import_key(
         self,
         body: models.ImportKeyRequest,
@@ -1025,6 +944,87 @@ class KmdClient:
         response = self._request_with_retry(request_kwargs)
         if response.is_success:
             return self._decode_response(response, model=models.SignTransactionResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def version(
+        self,
+        *,
+        body: models.VersionsRequest | None = None,
+    ) -> models.VersionsResponse:
+        """
+        Retrieves the current version
+        """
+
+        path = "/versions"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "GET",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "model": "VersionsRequest",
+                },
+                body_media_types,
+            )
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.VersionsResponse)
+
+        raise UnexpectedStatusError(response.status_code, response.text)
+
+    def wallet_info(
+        self,
+        body: models.WalletInfoRequest,
+    ) -> models.WalletInfoResponse:
+        """
+        Get wallet info
+        """
+
+        path = "/v1/wallet/info"
+        params: dict[str, Any] = {}
+        headers: Headers = self._config.resolve_headers()
+
+        accept_value: str | None = None
+
+        body_media_types = ["application/json"]
+
+        headers.setdefault("accept", accept_value or "application/json")
+        request_kwargs: dict[str, Any] = {
+            "method": "POST",
+            "url": path,
+            "params": params,
+            "headers": headers,
+        }
+
+        if body is not None:
+            self._assign_body(
+                request_kwargs,
+                body,
+                {
+                    "model": "WalletInfoRequest",
+                },
+                body_media_types,
+            )
+
+        response = self._request_with_retry(request_kwargs)
+        if response.is_success:
+            return self._decode_response(response, model=models.WalletInfoResponse)
 
         raise UnexpectedStatusError(response.status_code, response.text)
 

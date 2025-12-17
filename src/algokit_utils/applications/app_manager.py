@@ -205,7 +205,7 @@ class AppManager:
             >>> app_info = app_manager.get_by_id(app_id)
         """
 
-        app = self._algod.get_application_by_id(app_id)
+        app = self._algod.application_by_id(app_id)
         app_params = app.params
 
         return AppInformation(
@@ -277,7 +277,7 @@ class AppManager:
             except UnicodeDecodeError:
                 return str(b)
 
-        box_result = self._algod.get_application_boxes(app_id)
+        box_result = self._algod.application_boxes(app_id)
         return [
             BoxName(
                 name_raw=b.name,
@@ -302,7 +302,7 @@ class AppManager:
         """
 
         name = AppManager.get_box_reference(box_name)[1]
-        box_result = self._algod.get_application_box_by_name(
+        box_result = self._algod.application_box_by_name(
             app_id,
             name if isinstance(name, bytes | bytearray | memoryview) else str(name).encode("utf-8"),
         )

@@ -1561,7 +1561,7 @@ def _wait_for_confirmation(
     max_rounds: int,
 ) -> algod_models.PendingTransactionResponse:
     remaining = max_rounds
-    status = algod.get_status()
+    status = algod.status()
     current_round = getattr(status, "last_round", 0)
     while remaining > 0:
         pending = algod.pending_transaction_information(tx_id)

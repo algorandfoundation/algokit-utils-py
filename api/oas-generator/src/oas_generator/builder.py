@@ -41,8 +41,8 @@ class TypeInfo:
 LEDGER_STATE_DELTA_MODEL_NAMES: set[str] = {
     "LedgerStateDelta",
     "LedgerStateDeltaForTransactionGroup",
-    "GetTransactionGroupLedgerStateDeltasForRound",
-    "GetTransactionGroupLedgerStateDeltasForRoundResponseModel",
+    "TransactionGroupLedgerStateDeltasForRound",
+    "TransactionGroupLedgerStateDeltasForRoundResponseModel",
 }
 
 
@@ -684,13 +684,13 @@ class ModelBuilder:
 
 class OperationBuilder:
     RAW_LEDGER_STATE_DELTA_OPERATIONS: ClassVar[set[str]] = {
-        "GetLedgerStateDelta",
-        "GetLedgerStateDeltaForTransactionGroup",
-        "GetTransactionGroupLedgerStateDeltasForRound",
+        "LedgerStateDelta",
+        "LedgerStateDeltaForTransactionGroup",
+        "TransactionGroupLedgerStateDeltasForRound",
     }
     ALGOD_PRIVATE_OPERATIONS: ClassVar[set[str]] = {
         "RawTransaction",
-        "GetApplicationBoxByName",
+        "ApplicationBoxByName",
         "TransactionParams",
     }
     SKIP_TAGS: ClassVar[set[str]] = {"private", "experimental", "skip"}
@@ -922,8 +922,8 @@ class OperationBuilder:
                 self.uses_msgpack = True
             self.uses_ledger_state_delta = True
             model_name = (
-                "GetTransactionGroupLedgerStateDeltasForRound"
-                if operation_id == "GetTransactionGroupLedgerStateDeltasForRound"
+                "TransactionGroupLedgerStateDeltasForRound"
+                if operation_id == "TransactionGroupLedgerStateDeltasForRound"
                 else "LedgerStateDelta"
             )
             return ctx.ResponseDescriptor(
@@ -932,7 +932,7 @@ class OperationBuilder:
                 description=payload.get("description"),
                 model=model_name,
             )
-        if operation_id == "GetBlock" and schema is not None:
+        if operation_id == "Block" and schema is not None:
             self.uses_block_models = True
             media_types = media_types or ["application/json"]
             return ctx.ResponseDescriptor(

@@ -115,7 +115,7 @@ class AssetManager:
             >>> info = asset_manager.get_by_id(1234567890)
             >>> print(info.total, info.creator, info.unit_name)
         """
-        asset = self._algod.get_asset_by_id(asset_id)
+        asset = self._algod.asset_by_id(asset_id)
         params = asset.params
 
         return AssetInformation(

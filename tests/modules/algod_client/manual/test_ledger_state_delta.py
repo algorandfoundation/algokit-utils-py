@@ -19,7 +19,7 @@ def test_ledger_state_delta_endpoint(base_url: str, block_rounds: list[int]) -> 
     algod_client = AlgodClient(config)
 
     for block_round in block_rounds:
-        raw_delta = algod_client.get_ledger_state_delta(round_=block_round)
+        raw_delta = algod_client.ledger_state_delta(round_=block_round)
 
         assert isinstance(raw_delta, LedgerStateDelta)
         assert raw_delta.accounts is not None

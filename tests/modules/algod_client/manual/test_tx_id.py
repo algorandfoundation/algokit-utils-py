@@ -18,7 +18,7 @@ def test_algod_tx_id_matches_indexer() -> None:
         )
     )
 
-    algod_txns = algod_client.get_block(_ROUND).block.payset
+    algod_txns = algod_client.block(_ROUND).block.payset
     assert algod_txns is not None
     algod_txn = algod_txns[0].signed_transaction.signed_transaction.txn
 

@@ -13,7 +13,7 @@ from tests.modules.conftest import TEST_ADDRESS
 @pytest.mark.group_common_tests
 def test_basic_request_and_response_validation(algod_client: AlgodClient) -> None:
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
-    result = algod_client.get_pending_transactions_by_address(TEST_ADDRESS)
+    result = algod_client.pending_transactions_by_address(TEST_ADDRESS)
 
     assert result is not None
     assert isinstance(result.total_transactions, int)

@@ -147,7 +147,7 @@ class IndexerClient:
 
     # common
 
-    def make_health_check(
+    def health_check(
         self,
     ) -> models.HealthCheck:
         """

@@ -39,7 +39,7 @@ __all__ = [
     "LedgerAccountTotals",
     "LedgerStateDelta",
     "LedgerStateDeltaForTransactionGroup",
-    "GetTransactionGroupLedgerStateDeltasForRound",
+    "TransactionGroupLedgerStateDeltasForRound",
 ]
 
 
@@ -375,7 +375,7 @@ class LedgerStateDeltaForTransactionGroup:
 
 
 @dataclass(slots=True)
-class GetTransactionGroupLedgerStateDeltasForRound:
+class TransactionGroupLedgerStateDeltasForRound:
     """All ledger deltas for transaction groups in a round."""
 
     deltas: list[LedgerStateDeltaForTransactionGroup] = field(

@@ -189,8 +189,8 @@ class KmdAccountManager:
         if not self._client_manager.is_localnet():
             raise Exception("Can't get LocalNet dispenser account from non LocalNet network")
 
-        genesis_response = cast(dict[str, Any], self._client_manager.algod.genesis())
-        dispenser_addresses = [cast(str, a["addr"]) for a in genesis_response["alloc"] if a.get("comment") == "Wallet1"]
+        genesis_response = self._client_manager.algod.genesis()
+        dispenser_addresses = [a.addr for a in genesis_response.alloc if a.comment == "Wallet1"]
 
         if dispenser_addresses:
             dispenser = self._find_wallet_account(

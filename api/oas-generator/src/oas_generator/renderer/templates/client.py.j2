@@ -283,7 +283,7 @@ class {{ client.class_name }}:
 
         return self._raw_transaction(payload)
 
-    def get_application_box_by_name(
+    def application_box_by_name(
         self,
         application_id: int,
         box_name: bytes | bytearray | memoryview | str,
@@ -294,7 +294,7 @@ class {{ client.class_name }}:
 
         box_bytes = box_name.encode() if isinstance(box_name, str) else bytes(box_name)
         encoded_name = "b64:" + b64encode(box_bytes).decode("ascii")
-        return self._get_application_box_by_name(application_id, name=encoded_name)
+        return self._application_box_by_name(application_id, name=encoded_name)
 
     def suggested_params(self) -> models.SuggestedParams:
         """

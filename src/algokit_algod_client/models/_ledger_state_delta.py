@@ -16,7 +16,6 @@ from ._serde_helpers import (
 )
 
 __all__ = [
-    "GetTransactionGroupLedgerStateDeltasForRound",
     "LedgerAccountBaseData",
     "LedgerAccountData",
     "LedgerAccountDeltas",
@@ -41,6 +40,7 @@ __all__ = [
     "LedgerStateSchema",
     "LedgerTealValue",
     "LedgerVotingData",
+    "TransactionGroupLedgerStateDeltasForRound",
 ]
 
 
@@ -376,7 +376,7 @@ class LedgerStateDeltaForTransactionGroup:
 
 
 @dataclass(slots=True)
-class GetTransactionGroupLedgerStateDeltasForRound:
+class TransactionGroupLedgerStateDeltasForRound:
     """All ledger deltas for transaction groups in a round."""
 
     deltas: list[LedgerStateDeltaForTransactionGroup] = field(

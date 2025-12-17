@@ -59,7 +59,6 @@ from ._genesis_file_in_json import GenesisFileInJson
 from ._get_block_time_stamp_offset_response import GetBlockTimeStampOffsetResponse
 from ._get_sync_round_response import GetSyncRoundResponse
 from ._ledger_state_delta import (
-    GetTransactionGroupLedgerStateDeltasForRound,
     LedgerAccountBaseData,
     LedgerAccountData,
     LedgerAccountDeltas,
@@ -84,6 +83,7 @@ from ._ledger_state_delta import (
     LedgerStateSchema,
     LedgerTealValue,
     LedgerVotingData,
+    TransactionGroupLedgerStateDeltasForRound,
 )
 from ._light_block_header_proof import LightBlockHeaderProof
 from ._node_status_response import NodeStatusResponse
@@ -161,7 +161,6 @@ __all__ = [
     "GenesisFileInJson",
     "GetBlockTimeStampOffsetResponse",
     "GetSyncRoundResponse",
-    "GetTransactionGroupLedgerStateDeltasForRound",
     "HoldingReference",
     "LedgerAccountBaseData",
     "LedgerAccountData",
@@ -219,6 +218,7 @@ __all__ = [
     "TealKeyValue",
     "TealKeyValueStore",
     "TealValue",
+    "TransactionGroupLedgerStateDeltasForRound",
     "TransactionGroupLedgerStateDeltasForRoundResponse",
     "TransactionParametersResponse",
     "TransactionProof",
