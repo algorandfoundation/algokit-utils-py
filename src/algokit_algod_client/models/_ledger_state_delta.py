@@ -75,7 +75,7 @@ class LedgerTealValue:
     """Type and value for TEAL key-value entries."""
 
     type: int = field(metadata=wire("tt", required=True))
-    bytes: bytes | None = field(default=None, metadata=wire("tb"))
+    bytes_: bytes | None = field(default=None, metadata=wire("tb"))
     uint: int | None = field(default=None, metadata=wire("ui"))
 
 
