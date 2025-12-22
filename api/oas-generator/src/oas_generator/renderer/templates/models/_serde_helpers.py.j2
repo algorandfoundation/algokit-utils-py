@@ -15,9 +15,7 @@ BytesLike: TypeAlias = bytes | bytearray | memoryview
 
 
 def _coerce_bytes(value: bytes | bytearray | memoryview) -> bytes:
-    if isinstance(value, memoryview):
-        return value.tobytes()
-    if isinstance(value, bytearray):
+    if isinstance(value, memoryview | bytearray):
         return bytes(value)
     return value
 
