@@ -55,13 +55,13 @@ def decode_bytes_map_key(raw: object) -> bytes:
     if isinstance(raw, bytes | bytearray | memoryview):
         return bytes(raw)
     if isinstance(raw, str):
+        # note: this is undoing the implicit bytes -> str conversion that
+        # _coerce_msgpack_key does in client.py
+        # as long as "strict" was used to encode the str then this should be safe
         try:
-            return decode_bytes_base64(raw)
-        except ValueError:
-            try:
-                return raw.encode("utf-8")
-            except UnicodeEncodeError as fallback_exc:
-                raise ValueError("Invalid bytes map key") from fallback_exc
+            return raw.encode("utf-8", errors="strict")
+        except UnicodeEncodeError as fallback_exc:
+            raise ValueError("Invalid bytes map key") from fallback_exc
     raise TypeError(f"Unsupported map key for bytes field: {type(raw)!r}")
 
 
