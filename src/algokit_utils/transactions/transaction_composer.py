@@ -1,7 +1,7 @@
 import base64
 import json
 import re
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, replace
 from typing import Any, TypeAlias, TypedDict, cast
 
@@ -10,13 +10,14 @@ from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
 from algokit_algod_client.models import SimulateTransactionResult
-from algokit_common.constants import MAX_TRANSACTION_GROUP_SIZE
+from algokit_common.constants import MAX_TRANSACTION_GROUP_SIZE, SIGNATURE_BYTE_LENGTH
 from algokit_transact import decode_signed_transaction, encode_signed_transactions, make_empty_transaction_signer
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction, TransactionType
 from algokit_transact.ops.fees import calculate_fee
 from algokit_transact.ops.group import group_transactions
 from algokit_transact.ops.ids import get_transaction_id
+from algokit_transact.ops.validate import validate_transaction
 from algokit_transact.signer import AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
@@ -500,6 +501,7 @@ class TransactionComposer:
 
         # Send transactions and handle network errors
         try:
+            _validate_signed_transactions(signed_transactions)
             blobs = encode_signed_transactions(signed_transactions)
             self._algod.send_raw_transaction(blobs)
 
@@ -1553,6 +1555,24 @@ class TransactionComposer:
             if isinstance(first, str) and first.strip():
                 return first
         return text
+
+
+def _validate_signed_transactions(stxns: Iterable[SignedTransaction]) -> None:
+    for stxn in stxns:
+        _validate_signed_transaction(stxn)
+
+
+def _validate_signed_transaction(stx: SignedTransaction) -> None:
+    validate_transaction(stx.txn)
+
+    signatures = {stx.sig, stx.msig, stx.lsig} - {None}
+    if not signatures:
+        raise ValueError("At least one signature type must be set")
+    if len(signatures) > 1:
+        raise ValueError("Only one signature type can be set")
+
+    if stx.sig is not None and len(stx.sig) != SIGNATURE_BYTE_LENGTH:
+        raise ValueError("Signature must be 64 bytes")
 
 
 def _wait_for_confirmation(
