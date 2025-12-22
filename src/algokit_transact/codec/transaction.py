@@ -5,7 +5,6 @@ from algokit_common.constants import TRANSACTION_DOMAIN_SEPARATOR
 from algokit_transact.codec.msgpack import decode_msgpack, encode_msgpack
 from algokit_transact.codec.serde import from_wire, to_wire, to_wire_canonical
 from algokit_transact.models.transaction import Transaction, TransactionType
-from algokit_transact.ops.validate import validate_transaction
 
 
 def _from_type_str(s: str) -> TransactionType:
@@ -17,7 +16,6 @@ def to_transaction_dto(tx: Transaction) -> dict[str, object]:
 
 
 def encode_transaction_raw(tx: Transaction) -> bytes:
-    validate_transaction(tx)
     canonical = to_wire_canonical(tx)
     return encode_msgpack(canonical)
 
