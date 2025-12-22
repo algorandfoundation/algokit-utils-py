@@ -28,6 +28,15 @@ class Block:
     data/bookkeeping/block.go : Block
     """
 
+    participation_updates: ParticipationUpdates = field(
+        metadata=nested("participation-updates", lambda: ParticipationUpdates, required=True),
+    )
+    rewards: BlockRewards = field(
+        metadata=nested("rewards", lambda: BlockRewards, required=True),
+    )
+    upgrade_state: BlockUpgradeState = field(
+        metadata=nested("upgrade-state", lambda: BlockUpgradeState, required=True),
+    )
     genesis_hash: bytes = field(
         default=b"",
         metadata=wire(
@@ -64,18 +73,18 @@ class Block:
         default=0,
         metadata=wire("timestamp"),
     )
+    transactions: list[Transaction] = field(
+        default_factory=list,
+        metadata=wire(
+            "transactions",
+            encode=encode_model_sequence,
+            decode=lambda raw: decode_model_sequence(lambda: Transaction, raw),
+        ),
+    )
     transactions_root: bytes = field(
         default=b"",
         metadata=wire(
             "transactions-root",
-            encode=lambda v: encode_fixed_bytes_base64(v, 32),
-            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
-        ),
-    )
-    transactions_root_sha256: bytes = field(
-        default=b"",
-        metadata=wire(
-            "transactions-root-sha256",
             encode=lambda v: encode_fixed_bytes_base64(v, 32),
             decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
@@ -87,10 +96,6 @@ class Block:
     fees_collected: int | None = field(
         default=None,
         metadata=wire("fees-collected"),
-    )
-    participation_updates: ParticipationUpdates | None = field(
-        default=None,
-        metadata=nested("participation-updates", lambda: ParticipationUpdates),
     )
     previous_block_hash_512: bytes | None = field(
         default=None,
@@ -108,10 +113,6 @@ class Block:
         default=None,
         metadata=wire("proposer-payout"),
     )
-    rewards: BlockRewards | None = field(
-        default=None,
-        metadata=nested("rewards", lambda: BlockRewards),
-    )
     state_proof_tracking: list[StateProofTracking] | None = field(
         default=None,
         metadata=wire(
@@ -120,12 +121,12 @@ class Block:
             decode=lambda raw: decode_model_sequence(lambda: StateProofTracking, raw),
         ),
     )
-    transactions: list[Transaction] | None = field(
+    transactions_root_sha256: bytes | None = field(
         default=None,
         metadata=wire(
-            "transactions",
-            encode=encode_model_sequence,
-            decode=lambda raw: decode_model_sequence(lambda: Transaction, raw),
+            "transactions-root-sha256",
+            encode=lambda v: encode_fixed_bytes_base64(v, 32),
+            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
         ),
     )
     transactions_root_sha512: bytes | None = field(
@@ -139,10 +140,6 @@ class Block:
     txn_counter: int | None = field(
         default=None,
         metadata=wire("txn-counter"),
-    )
-    upgrade_state: BlockUpgradeState | None = field(
-        default=None,
-        metadata=nested("upgrade-state", lambda: BlockUpgradeState),
     )
     upgrade_vote: BlockUpgradeVote | None = field(
         default=None,
