@@ -1,3 +1,5 @@
+import pytest
+
 import algokit_algod_client
 import algokit_indexer_client
 
@@ -27,3 +29,23 @@ def test_algod_tx_id_matches_indexer() -> None:
     idx_txn = idx_txns[0]
 
     assert algod_txn.tx_id() == idx_txn.id_
+
+
+def test_algod_inner_tx_id() -> None:
+    algod_client = algokit_algod_client.AlgodClient(
+        algokit_algod_client.ClientConfig(
+            base_url="https://mainnet-api.algonode.cloud",
+            token=None,
+        )
+    )
+
+    algod_txns = algod_client.block(35214367).block.payset
+    assert algod_txns is not None
+    apply_data = algod_txns[46].signed_transaction.apply_data
+    assert apply_data is not None
+    eval_data = apply_data.eval_delta
+    assert eval_data is not None
+    inner_txn = (eval_data.inner_txns or [])[0].signed_transaction.txn
+
+    with pytest.raises(ValueError, match="Cannot compute transaction id without genesis hash"):
+        assert inner_txn.tx_id()
