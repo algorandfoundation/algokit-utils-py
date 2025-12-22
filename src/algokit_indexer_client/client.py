@@ -1417,7 +1417,7 @@ class IndexerClient:
     def _coerce_msgpack_key(self, key: object) -> object:
         if isinstance(key, bytes):
             try:
-                return key.decode("utf-8")
+                return key.decode("utf-8", errors="strict")
             except UnicodeDecodeError:
                 return key
         return key
