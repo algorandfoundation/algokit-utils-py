@@ -3,6 +3,7 @@ from dataclasses import dataclass, replace
 from typing import Protocol, runtime_checkable
 
 from algokit_algod_client import models as algod_models
+from algokit_transact import validate_transaction
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
 from algokit_transact.models.asset_freeze import AssetFreezeTransactionFields
@@ -119,7 +120,7 @@ def build_transaction(
     application_call: AppCallTransactionFields | None = None,
     key_registration: KeyRegistrationTransactionFields | None = None,
 ) -> Transaction:
-    return Transaction(
+    txn = Transaction(
         transaction_type=txn_type,
         sender=header.sender,
         first_valid=header.first_valid,
@@ -136,6 +137,8 @@ def build_transaction(
         application_call=application_call,
         key_registration=key_registration,
     )
+    validate_transaction(txn)
+    return txn
 
 
 def apply_transaction_fees(
