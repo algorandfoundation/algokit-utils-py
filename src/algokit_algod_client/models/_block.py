@@ -1,10 +1,9 @@
 # AUTO-GENERATED: oas_generator
-
-
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import cast
 
+from algokit_common import ZERO_ADDRESS
 from algokit_common.serde import addr, addr_seq, flatten, nested, wire
 from algokit_transact.models.signed_transaction import SignedTransaction
 
@@ -39,7 +38,6 @@ __all__ = [
     "UpgradeState",
     "UpgradeVote",
 ]
-
 
 BlockStateDelta = dict[bytes, "BlockEvalDelta"]
 BlockStateProofTracking = dict[int, "BlockStateProofTrackingData"]
@@ -188,27 +186,31 @@ class SignedTxnWithAD:
 class TxnCommitments:
     """Transaction commitment hashes for the block."""
 
-    transactions_root: bytes = field(default_factory=lambda: bytes(32), metadata=wire("txn"))
-    transactions_root_sha256: bytes = field(default_factory=lambda: bytes(32), metadata=wire("txn256"))
+    native_sha512_256_commitment: bytes = field(default_factory=lambda: bytes(32), metadata=wire("txn"))
+    """Root of transaction merkle tree using SHA512_256."""
+    sha256_commitment: bytes | None = field(default_factory=lambda: bytes(32), metadata=wire("txn256"))
+    """Root of transaction vector commitment using SHA256."""
+    sha512_commitment: bytes | None = field(default_factory=lambda: bytes(64), metadata=wire("txn512"))
+    """Root of transaction vector commitment using SHA512."""
 
 
 @dataclass(slots=True)
 class RewardState:
     """Reward distribution state for the block."""
 
-    fee_sink: str | None = field(default=None, metadata=addr("fees"))
-    rewards_pool: str | None = field(default=None, metadata=addr("rwd"))
-    rewards_level: int | None = field(default=None, metadata=wire("earn"))
-    rewards_rate: int | None = field(default=None, metadata=wire("rate"))
-    rewards_residue: int | None = field(default=None, metadata=wire("frac"))
-    rewards_recalculation_round: int | None = field(default=None, metadata=wire("rwcalr"))
+    fee_sink: str = field(default=ZERO_ADDRESS, metadata=addr("fees"))
+    rewards_pool: str = field(default=ZERO_ADDRESS, metadata=addr("rwd"))
+    rewards_level: int = field(default=0, metadata=wire("earn"))
+    rewards_rate: int = field(default=0, metadata=wire("rate"))
+    rewards_residue: int = field(default=0, metadata=wire("frac"))
+    rewards_recalculation_round: int = field(default=0, metadata=wire("rwcalr"))
 
 
 @dataclass(slots=True)
 class UpgradeState:
     """Protocol upgrade state for the block."""
 
-    current_protocol: str | None = field(default=None, metadata=wire("proto"))
+    current_protocol: str = field(default="", metadata=wire("proto", required=True))
     next_protocol: str | None = field(default=None, metadata=wire("nextproto"))
     next_protocol_approvals: int | None = field(default=None, metadata=wire("nextyes"))
     next_protocol_vote_before: int | None = field(default=None, metadata=wire("nextbefore"))
@@ -228,8 +230,8 @@ class UpgradeVote:
 class ParticipationUpdates:
     """Participation account updates embedded in a block."""
 
-    expired_participation_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("partupdrmv"))
-    absent_participation_accounts: tuple[str, ...] | None = field(default=None, metadata=addr_seq("partupdabs"))
+    expired_participation_accounts: tuple[str, ...] = field(default=(), metadata=addr_seq("partupdrmv"))
+    absent_participation_accounts: tuple[str, ...] = field(default=(), metadata=addr_seq("partupdabs"))
 
 
 @dataclass(slots=True)
@@ -277,17 +279,16 @@ class BlockAppEvalDelta:
 class BlockHeader:
     """Block header fields."""
 
-    round: int | None = field(default=None, metadata=wire("rnd"))
+    round: int = field(default=0, metadata=wire("rnd"))
+    previous_block_hash: bytes = field(default_factory=lambda: bytes(32), metadata=wire("prev"))
+    previous_block_hash_512: bytes | None = field(default=None, metadata=wire("prev512"))
+    seed: bytes = field(default=b"", metadata=wire("seed"))
     txn_commitments: TxnCommitments = field(
         default_factory=TxnCommitments,
         metadata=flatten(lambda: TxnCommitments),
     )
-    previous_block_hash: bytes = field(default_factory=lambda: bytes(32), metadata=wire("prev"))
-    previous_block_hash_512: bytes | None = field(default=None, metadata=wire("prev512"))
-    seed: bytes | None = field(default=None, metadata=wire("seed"))
-    transactions_root_sha512: bytes | None = field(default=None, metadata=wire("txn512"))
-    timestamp: int | None = field(default=None, metadata=wire("ts"))
-    genesis_id: str | None = field(default=None, metadata=wire("gen"))
+    timestamp: int = field(default=0, metadata=wire("ts"))
+    genesis_id: str = field(default="", metadata=wire("gen"))
     genesis_hash: bytes = field(default_factory=lambda: bytes(32), metadata=wire("gh"))
     proposer: str | None = field(default=None, metadata=addr("prp"))
     fees_collected: int | None = field(default=None, metadata=wire("fc"))
@@ -317,8 +318,8 @@ class BlockHeader:
             ),
         ),
     )
-    participation_updates: ParticipationUpdates | None = field(
-        default=None,
+    participation_updates: ParticipationUpdates = field(
+        default_factory=ParticipationUpdates,
         metadata=flatten(lambda: ParticipationUpdates),
     )
 
