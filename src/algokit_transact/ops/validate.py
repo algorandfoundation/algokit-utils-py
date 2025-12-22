@@ -18,7 +18,9 @@ from algokit_common.constants import (
     MAX_LOCAL_STATE_KEYS,
     MAX_OVERALL_REFERENCES,
     PROGRAM_PAGE_SIZE,
+    SIGNATURE_BYTE_LENGTH,
 )
+from algokit_transact import SignedTransaction
 from algokit_transact.exceptions import TransactionValidationError
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
@@ -53,6 +55,19 @@ def _issue(
     context: Mapping[str, object] | None = None,
 ) -> ValidationIssue:
     return ValidationIssue(code=code, message=message, field=field, context=context)
+
+
+def validate_signed_transaction(stx: SignedTransaction) -> None:
+    validate_transaction(stx.txn)
+
+    signatures = {stx.sig, stx.msig, stx.lsig} - {None}
+    if not signatures:
+        raise ValueError("At least one signature type must be set")
+    if len(signatures) > 1:
+        raise ValueError("Only one signature type can be set")
+
+    if stx.sig is not None and len(stx.sig) != SIGNATURE_BYTE_LENGTH:
+        raise ValueError("Signature must be 64 bytes")
 
 
 def validate_transaction(transaction: Transaction) -> None:

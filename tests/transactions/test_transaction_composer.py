@@ -21,7 +21,6 @@ from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendTransactionComposerResults,
     TransactionComposer,
-    TransactionComposerError,
     TransactionComposerParams,
 )
 
@@ -428,11 +427,10 @@ def test_error_transformers_applied_on_send(algorand: AlgorandClient, funded_acc
 def test_validation_occurs_on_send(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     params = AssetDestroyParams(asset_id=0, sender=funded_account.addr)
     with pytest.raises(
-        TransactionComposerError,
+        TransactionValidationError,
         match="Asset config validation failed: Total is required",
-    ) as ex:
+    ):
         algorand.send.asset_destroy(params)
-    assert isinstance(ex.value.__cause__, TransactionValidationError)
 
 
 def test_simulate_does_not_throw_when_disabled(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
