@@ -5,7 +5,10 @@
       "fees_collected": null,
       "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
       "genesis_id": "testnet-v1.0",
-      "participation_updates": null,
+      "participation_updates": {
+        "absent_participation_accounts": [],
+        "expired_participation_accounts": []
+      },
       "previous_block_hash": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
       "previous_block_hash_512": null,
       "proposer": null,
@@ -22,7 +25,7 @@
       "seed": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
       "state_proof_tracking": null,
       "timestamp": 1560210455,
-      "transactions": null,
+      "transactions": [],
       "transactions_root": "J3hisbLS0SebtaGdDYdRj+cVAPEmuLozZ3W9NJoee3M=",
       "transactions_root_sha256": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
       "transactions_root_sha512": null,
