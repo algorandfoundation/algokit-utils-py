@@ -58,15 +58,15 @@ def test_block_endpoint_empty_block(base_url: str, block_round: int) -> None:
 
     # This block uses newer protocol format with txn256/txn512 instead of txn
     # txn is missing from wire, defaults to 32 zero bytes
-    assert resp.block.header.txn_commitments.transactions_root == bytes(32)
+    assert resp.block.header.txn_commitments.native_sha512_256_commitment == bytes(32)
     # txn256 has actual value (not zeros)
-    assert resp.block.header.txn_commitments.transactions_root_sha256 is not None
-    assert resp.block.header.txn_commitments.transactions_root_sha256 != bytes(32)
-    assert len(resp.block.header.txn_commitments.transactions_root_sha256) == 32
+    assert resp.block.header.txn_commitments.sha256_commitment is not None
+    assert resp.block.header.txn_commitments.sha256_commitment != bytes(32)
+    assert len(resp.block.header.txn_commitments.sha256_commitment) == 32
     # txn512 has actual value (64 bytes)
-    assert resp.block.header.transactions_root_sha512 is not None
-    assert resp.block.header.transactions_root_sha512 != bytes(64)
-    assert len(resp.block.header.transactions_root_sha512) == 64
+    assert resp.block.header.txn_commitments.sha512_commitment is not None
+    assert resp.block.header.txn_commitments.sha512_commitment != bytes(64)
+    assert len(resp.block.header.txn_commitments.sha512_commitment) == 64
 
     # Empty block has no transactions
     assert resp.block.payset is None
