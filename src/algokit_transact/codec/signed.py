@@ -1,31 +1,14 @@
 from collections.abc import Iterable
 from typing import cast
 
-from algokit_common.constants import SIGNATURE_BYTE_LENGTH
 from algokit_transact.codec.msgpack import decode_msgpack, encode_msgpack
 from algokit_transact.codec.serde import from_wire, to_wire_canonical
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
-from algokit_transact.ops.validate import validate_transaction
 from algokit_transact.signing.logic_signature import LogicSignature
 
 
-def _validate_signed_transaction(stx: SignedTransaction) -> None:
-    validate_transaction(stx.txn)
-
-    signatures = [stx.sig, stx.msig, stx.lsig]
-    set_count = sum(1 for item in signatures if item is not None)
-    if set_count == 0:
-        raise ValueError("At least one signature type must be set")
-    if set_count > 1:
-        raise ValueError("Only one signature type can be set")
-
-    if stx.sig is not None and len(stx.sig) != SIGNATURE_BYTE_LENGTH:
-        raise ValueError("Signature must be 64 bytes")
-
-
 def encode_signed_transaction(stx: SignedTransaction) -> bytes:
-    _validate_signed_transaction(stx)
     payload = to_wire_canonical(stx)
     return encode_msgpack(payload)
 

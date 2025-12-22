@@ -7,8 +7,9 @@ from unittest.mock import Mock, patch
 import pytest
 
 from algokit_abi import arc56
-from algokit_transact import MultisigMetadata, make_empty_transaction_signer
+from algokit_transact import MultisigMetadata, TransactionValidationError, make_empty_transaction_signer
 from algokit_transact.signer import AddressWithSigners
+from algokit_utils import AssetDestroyParams
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
@@ -20,6 +21,7 @@ from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendTransactionComposerResults,
     TransactionComposer,
+    TransactionComposerError,
     TransactionComposerParams,
 )
 
@@ -421,6 +423,16 @@ def test_error_transformers_applied_on_send(algorand: AlgorandClient, funded_acc
 
     with pytest.raises(Exception, match="ASSET MISSING ON SEND"):
         composer.send({"max_rounds_to_wait": 0})
+
+
+def test_validation_occurs_on_send(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+    params = AssetDestroyParams(asset_id=0, sender=funded_account.addr)
+    with pytest.raises(
+        TransactionComposerError,
+        match="Asset config validation failed: Total is required",
+    ) as ex:
+        algorand.send.asset_destroy(params)
+    assert isinstance(ex.value.__cause__, TransactionValidationError)
 
 
 def test_simulate_does_not_throw_when_disabled(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
