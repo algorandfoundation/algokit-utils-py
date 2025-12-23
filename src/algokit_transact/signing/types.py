@@ -1,6 +1,5 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import cast
 
 from algokit_transact.codec.serde import from_wire, to_wire, wire
 
@@ -19,7 +18,7 @@ def _decode_subsig_seq(value: object) -> object:
         decoded: list[MultisigSubsignature] = []
         for entry in value:
             if isinstance(entry, Mapping):
-                decoded.append(from_wire(MultisigSubsignature, cast(Mapping[str, object], entry)))
+                decoded.append(from_wire(MultisigSubsignature, entry))
         return tuple(decoded)
     return value
 
