@@ -382,7 +382,7 @@ Tracks and returns an Algorand account with private key loaded from the given KM
   )
   ```
 
-#### logicsig(program: bytes, args: list[bytes] | None = None) → algokit_transact.signer.AddressWithSigners
+#### logicsig(program: bytes, args: collections.abc.Sequence[bytes] = ()) → algokit_transact.signer.AddressWithSigners
 
 Tracks and returns an account that represents a logic signature.
 
@@ -393,7 +393,7 @@ Tracks and returns an account that represents a logic signature.
   An AddressWithSigners wrapper for the logic signature account
 * **Example:**
   ```python
-  account = account.logicsig(program, [new Uint8Array(3, ...)])
+  account = account_manager.logicsig(program, [b"arg1", b"arg2"])
   ```
 
 #### multisig(metadata: algokit_utils.models.account.MultisigMetadata, sub_signers: collections.abc.Sequence[algokit_transact.signer.AddressWithSigners]) → algokit_transact.signer.AddressWithSigners
