@@ -4,11 +4,12 @@ from dataclasses import dataclass
 from typing import Any
 
 import nacl.signing
-from typing_extensions import Self
+from typing_extensions import Never, Self
 
 from algokit_algo25 import seed_from_mnemonic
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
+from algokit_transact.logicsig import LogicSig
 from algokit_transact.signer import (
     AddressWithSigners,
     AddressWithTransactionSigner,
@@ -192,21 +193,6 @@ class AccountManager:
         # If it's already AddressWithSigners, return it directly
         if isinstance(account, AddressWithSigners):
             return account
-
-        # For LogicSigAccount and MultisigAccount, create an AddressWithSigners wrapper
-        # These accounts have a .signer property but may not have all the other signers
-        # We create placeholder signers for the other capabilities
-        def _placeholder_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("bytes_signer not available for this account type")
-
-        def _placeholder_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
-            raise NotImplementedError("delegated_lsig_signer not available for this account type")
-
-        def _placeholder_program_data_signer(data: bytes, program_address: bytes) -> bytes:
-            raise NotImplementedError("program_data_signer not available for this account type")
-
-        def _placeholder_mx_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("mx_bytes_signer not available for this account type")
 
         return AddressWithSigners(
             addr=addr,
@@ -513,7 +499,7 @@ class AccountManager:
 
         return self._signer_account(kmd_account)
 
-    def logicsig(self, program: bytes, args: list[bytes] | None = None) -> AddressWithSigners:
+    def logicsig(self, program: bytes, args: Sequence[bytes] = ()) -> AddressWithSigners:
         """
         Tracks and returns an account that represents a logic signature.
 
@@ -522,9 +508,9 @@ class AccountManager:
         :returns: An AddressWithSigners wrapper for the logic signature account
 
         :example:
-            >>> account = account.logicsig(program, [new Uint8Array(3, ...)])
+            >>> account = account_manager.logicsig(program, [b"arg1", b"arg2"])
         """
-        logic_sig = LogicSigAccount(program, args)
+        logic_sig = LogicSigAccount(logic=program, args=args)
         return self._signer_account(logic_sig)
 
     def multisig(self, metadata: MultisigMetadata, sub_signers: Sequence[AddressWithSigners]) -> AddressWithSigners:
@@ -610,19 +596,6 @@ class AccountManager:
             >>> account = account.from_mnemonic("mnemonic secret ...")
             >>> rekeyed_account = account_manager.rekeyed(account, "SENDERADDRESS...")
         """
-
-        # Create AddressWithSigners with the new sender address but using the original account's signer
-        def _placeholder_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("bytes_signer not available for rekeyed accounts")
-
-        def _placeholder_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
-            raise NotImplementedError("delegated_lsig_signer not available for rekeyed accounts")
-
-        def _placeholder_program_data_signer(data: bytes, program_address: bytes) -> bytes:
-            raise NotImplementedError("program_data_signer not available for rekeyed accounts")
-
-        def _placeholder_mx_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("mx_bytes_signer not available for rekeyed accounts")
 
         rekeyed_account = AddressWithSigners(
             addr=sender,
@@ -1032,3 +1005,22 @@ class AccountManager:
         )
 
         return AlgoAmount.from_micro_algo(amount_funded) if amount_funded is not None else None
+
+
+# For LogicSigAccount and MultisigAccount, create an AddressWithSigners wrapper
+# These accounts have a .signer property but may not have all the other signers
+# We create placeholder signers for the other capabilities
+def _placeholder_bytes_signer(_: bytes) -> Never:
+    raise NotImplementedError("bytes_signer not available for this account type")
+
+
+def _placeholder_lsig_signer(_: LogicSigAccount, __: MultisigAccount | None = None) -> Never:
+    raise NotImplementedError("delegated_lsig_signer not available for this account type")
+
+
+def _placeholder_program_data_signer(_: LogicSig, __: bytes) -> Never:
+    raise NotImplementedError("program_data_signer not available for this account type")
+
+
+def _placeholder_mx_bytes_signer(_: bytes) -> Never:
+    raise NotImplementedError("mx_bytes_signer not available for this account type")

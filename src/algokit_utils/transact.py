@@ -67,7 +67,6 @@ from algokit_transact import (
     # Fee functions
     assign_fee,
     # Signer functions
-    bytes_to_sign_for_delegation,
     calculate_fee,
     # Codec functions
     decode_logic_signature,
@@ -94,7 +93,6 @@ from algokit_transact import (
     merge_multisignatures,
     new_multisig_signature,
     participants_from_multisig_signature,
-    program_data_to_sign,
     # Validation functions
     sanity_check_program,
     to_transaction_dto,
@@ -159,7 +157,6 @@ __all__ = [
     "address_from_multisig_signature",
     "apply_multisig_subsignature",
     "assign_fee",
-    "bytes_to_sign_for_delegation",
     "calculate_fee",
     "decode_logic_signature",
     "decode_signed_transaction",
@@ -183,7 +180,6 @@ __all__ = [
     "merge_multisignatures",
     "new_multisig_signature",
     "participants_from_multisig_signature",
-    "program_data_to_sign",
     "sanity_check_program",
     "to_transaction_dto",
     "validate_app_call_fields",
