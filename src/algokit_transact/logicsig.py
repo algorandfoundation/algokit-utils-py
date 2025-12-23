@@ -19,7 +19,7 @@ from algokit_transact.signer import (
     ProgramDataSigner,
     TransactionSigner,
 )
-from algokit_transact.signing.logic_signature import LogicSignature
+from algokit_transact.signing.logic_signature import LogicSigSignature
 from algokit_transact.signing.multisig import (
     address_from_multisig_signature,
     apply_multisig_subsignature,
@@ -111,7 +111,7 @@ class LogicSigAccount:
             blobs: list[bytes] = []
             for index in indexes_to_sign:
                 txn = txn_group[index]
-                logic_sig = LogicSignature(
+                logic_sig = LogicSigSignature(
                     logic=program,
                     args=args,
                     sig=signature,

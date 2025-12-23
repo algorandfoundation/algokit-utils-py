@@ -5,7 +5,7 @@ from algokit_transact.signing.types import MultisigSignature
 
 
 @dataclass(slots=True, frozen=True)
-class LogicSignature:
+class LogicSigSignature:
     logic: bytes = field(metadata=wire("l"))
     args: list[bytes] | None = field(default=None, metadata=bytes_seq("arg"))
     sig: bytes | None = field(default=None, metadata=wire("sig"))

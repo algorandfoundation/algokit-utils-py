@@ -90,7 +90,7 @@ from algokit_transact.signer import (
     make_empty_transaction_signer,
     program_data_to_sign,
 )
-from algokit_transact.signing.logic_signature import LogicSignature
+from algokit_transact.signing.logic_signature import LogicSigSignature
 from algokit_transact.signing.multisig import (
     address_from_multisig_signature,
     apply_multisig_subsignature,
@@ -125,7 +125,7 @@ __all__ = [
     "HeartbeatProof",
     "KeyRegistrationTransactionFields",
     "LogicSigAccount",
-    "LogicSignature",
+    "LogicSigSignature",
     "DelegatedLsigSigner",
     "MerkleArrayProof",
     "MerkleSignatureVerifier",
