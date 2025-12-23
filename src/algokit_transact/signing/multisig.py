@@ -17,7 +17,7 @@ def new_multisig_signature(version: int, threshold: int, participants: Iterable[
         raise ValueError("Version cannot be zero")
     if not participants:
         raise ValueError("Participants cannot be empty")
-    if threshold == 0 or threshold > len(participants):
+    if threshold < 1 or threshold > len(participants):
         raise ValueError("Threshold must be greater than zero and less than or equal to the number of participants")
 
     subsigs = [MultisigSubsignature(public_key=public_key_from_address(address)) for address in participants]
