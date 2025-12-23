@@ -118,17 +118,17 @@ def generate_address_with_signers(
 
     def delegated_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
         if msig_address is not None:
-            payload = MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_address + program
+            payload = MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_address + program
         else:
-            payload = PROGRAM_DOMAIN_SEPARATOR.encode() + program
+            payload = PROGRAM_DOMAIN_SEPARATOR + program
         return raw_ed25519_signer(payload)
 
     def program_data_signer(data: bytes, program_address: bytes) -> bytes:
-        payload = LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
+        payload = LOGIC_DATA_DOMAIN_SEPARATOR + program_address + data
         return raw_ed25519_signer(payload)
 
     def mx_bytes_signer(data: bytes) -> bytes:
-        payload = MX_BYTES_DOMAIN_SEPARATOR.encode() + data
+        payload = MX_BYTES_DOMAIN_SEPARATOR + data
         return raw_ed25519_signer(payload)
 
     return AddressWithSigners(
@@ -160,14 +160,14 @@ def make_empty_transaction_signer() -> TransactionSigner:
 def bytes_to_sign_for_delegation(program: bytes, msig_public_key: bytes | None = None) -> bytes:
     """Get bytes to sign for delegating a logic signature."""
     if msig_public_key is not None:
-        return MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_public_key + program
-    return PROGRAM_DOMAIN_SEPARATOR.encode() + program
+        return MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_public_key + program
+    return PROGRAM_DOMAIN_SEPARATOR + program
 
 
 def program_data_to_sign(data: bytes, program_address: str) -> bytes:
     """Get bytes to sign for program data."""
     program_public_key = public_key_from_address(program_address)
-    return LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_public_key + data
+    return LOGIC_DATA_DOMAIN_SEPARATOR + program_public_key + data
 
 
 def make_basic_account_transaction_signer(private_key: str) -> TransactionSigner:

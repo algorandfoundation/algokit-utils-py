@@ -29,11 +29,10 @@ def participants_from_multisig_signature(multisig_signature: MultisigSignature) 
 
 
 def address_from_multisig_signature(multisig_signature: MultisigSignature) -> str:
-    prefix = MULTISIG_DOMAIN_SEPARATOR.encode()
     participant_keys = [subsig.public_key for subsig in multisig_signature.subsigs]
 
     buffer = bytearray()
-    buffer.extend(prefix)
+    buffer.extend(MULTISIG_DOMAIN_SEPARATOR)
     buffer.append(multisig_signature.version)
     buffer.append(multisig_signature.threshold)
     for pk in participant_keys:
