@@ -32,7 +32,7 @@ from algokit_transact import (
     LocalsReference,
     # Logic signature
     LogicSigAccount,
-    LogicSignature,
+    LogicSigSignature,
     MerkleArrayProof,
     MerkleSignatureVerifier,
     # Multisig types
@@ -130,7 +130,7 @@ __all__ = [
     "KeyRegistrationTransactionFields",
     "LocalsReference",
     "LogicSigAccount",
-    "LogicSignature",
+    "LogicSigSignature",
     "MerkleArrayProof",
     "MerkleSignatureVerifier",
     "MultisigAccount",
