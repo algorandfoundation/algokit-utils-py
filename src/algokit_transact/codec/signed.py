@@ -36,5 +36,5 @@ def decode_logic_signature(encoded: bytes) -> LogicSigSignature:
     raw: object = decode_msgpack(encoded)
     if not isinstance(raw, dict):
         raise ValueError("decoded logic signature is not a dict")
-    dto = cast(dict[str, object], raw)
+    dto = raw
     return from_wire(LogicSigSignature, dto)
