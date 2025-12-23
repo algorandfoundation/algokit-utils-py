@@ -3,28 +3,30 @@
 import base64
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import nacl.signing
 
-from algokit_common import address_from_public_key, public_key_from_address
-from algokit_common.constants import (
-    EMPTY_SIGNATURE,
-    LOGIC_DATA_DOMAIN_SEPARATOR,
-    MULTISIG_PROGRAM_DOMAIN_SEPARATOR,
-    MX_BYTES_DOMAIN_SEPARATOR,
-    PROGRAM_DOMAIN_SEPARATOR,
-)
+from algokit_common import address_from_public_key
+from algokit_common.constants import EMPTY_SIGNATURE
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.codec.transaction import encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
 
-# Type aliases for signing functions
+if TYPE_CHECKING:
+    from algokit_transact.logicsig import (
+        DelegatedLsigResult,
+        LogicSig,
+        LogicSigAccount,
+    )
+    from algokit_transact.multisig import MultisigAccount
+_MX_BYTES_DOMAIN_SEPARATOR = b"MX"
+
+DelegatedLsigSigner = Callable[["LogicSigAccount", "MultisigAccount | None"], "DelegatedLsigResult"]
+ProgramDataSigner = Callable[["LogicSig", bytes], bytes]
+TransactionSigner = Callable[["Sequence[Transaction]", Sequence[int]], list[bytes]]
 BytesSigner = Callable[[bytes], bytes]
-TransactionSigner = Callable[[Sequence[Transaction], Sequence[int]], list[bytes]]
-DelegatedLsigSigner = Callable[[bytes, bytes | None], bytes]
-ProgramDataSigner = Callable[[bytes, bytes], bytes]
 MxBytesSigner = Callable[[bytes], bytes]
 
 
@@ -116,19 +118,19 @@ def generate_address_with_signers(
             result.append(encode_signed_transaction(stxn))
         return result
 
-    def delegated_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
-        if msig_address is not None:
-            payload = MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_address + program
-        else:
-            payload = PROGRAM_DOMAIN_SEPARATOR + program
-        return raw_ed25519_signer(payload)
+    def delegated_lsig_signer(lsig: "LogicSigAccount", msig: "MultisigAccount | None" = None) -> "DelegatedLsigResult":
+        from algokit_transact import DelegatedLsigResult
 
-    def program_data_signer(data: bytes, program_address: bytes) -> bytes:
-        payload = LOGIC_DATA_DOMAIN_SEPARATOR + program_address + data
+        payload = lsig.bytes_to_sign_for_delegation(msig.address if msig else None)
+        sig = raw_ed25519_signer(payload)
+        return DelegatedLsigResult(addr=addr, sig=sig)
+
+    def program_data_signer(lsig: "LogicSig", data: bytes) -> bytes:
+        payload = lsig.program_data_to_sign(data)
         return raw_ed25519_signer(payload)
 
     def mx_bytes_signer(data: bytes) -> bytes:
-        payload = MX_BYTES_DOMAIN_SEPARATOR + data
+        payload = _MX_BYTES_DOMAIN_SEPARATOR + data
         return raw_ed25519_signer(payload)
 
     return AddressWithSigners(
@@ -155,19 +157,6 @@ def make_empty_transaction_signer() -> TransactionSigner:
         return result
 
     return empty_signer
-
-
-def bytes_to_sign_for_delegation(program: bytes, msig_public_key: bytes | None = None) -> bytes:
-    """Get bytes to sign for delegating a logic signature."""
-    if msig_public_key is not None:
-        return MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_public_key + program
-    return PROGRAM_DOMAIN_SEPARATOR + program
-
-
-def program_data_to_sign(data: bytes, program_address: str) -> bytes:
-    """Get bytes to sign for program data."""
-    program_public_key = public_key_from_address(program_address)
-    return LOGIC_DATA_DOMAIN_SEPARATOR + program_public_key + data
 
 
 def make_basic_account_transaction_signer(private_key: str) -> TransactionSigner:

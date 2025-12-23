@@ -2,13 +2,14 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from algokit_common import (
-    MULTISIG_DOMAIN_SEPARATOR,
     PUBLIC_KEY_BYTE_LENGTH,
     address_from_public_key,
     public_key_from_address,
     sha512_256,
 )
 from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
+
+_MULTISIG_DOMAIN_SEPARATOR = b"MultisigAddr"
 
 
 def new_multisig_signature(version: int, threshold: int, participants: Iterable[str]) -> MultisigSignature:
@@ -32,7 +33,7 @@ def address_from_multisig_signature(multisig_signature: MultisigSignature) -> st
     participant_keys = [subsig.public_key for subsig in multisig_signature.subsigs]
 
     buffer = bytearray()
-    buffer.extend(MULTISIG_DOMAIN_SEPARATOR)
+    buffer.extend(_MULTISIG_DOMAIN_SEPARATOR)
     buffer.append(multisig_signature.version)
     buffer.append(multisig_signature.threshold)
     for pk in participant_keys:

@@ -3,7 +3,9 @@ import pytest
 
 import algokit_algo25
 from algokit_common import address_from_public_key
+from algokit_transact import LogicSigAccount, MultisigAccount, MultisigMetadata
 from algokit_transact.signer import AddressWithSigners
+from algokit_utils import PaymentParams
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 from tests.conftest import get_unique_name
@@ -16,10 +18,14 @@ def algorand() -> AlgorandClient:
 
 @pytest.fixture
 def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
+    return _fund_new_account(algorand, 100)
+
+
+def _fund_new_account(algorand: AlgorandClient, min_algo: int) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
-        new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
+        new_account, dispenser, AlgoAmount.from_algo(min_algo), min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
@@ -121,3 +127,49 @@ def test_get_account_information(algorand: AlgorandClient) -> None:
     assert info.min_balance is not None
     assert info.address is not None
     assert info.address == account.addr
+
+
+def test_logic_sig_account_msig_signing(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+    account1 = _fund_new_account(algorand, 1)
+    account2 = _fund_new_account(algorand, 1)
+    account3 = _fund_new_account(algorand, 1)
+
+    msig_params = MultisigMetadata(version=1, threshold=2, addrs=[account1.addr, account2.addr, account3.addr])
+    msig_account1 = MultisigAccount(params=msig_params, sub_signers=[account1])
+    msig_account2 = MultisigAccount(params=msig_params, sub_signers=[account2])
+
+    # Setup the multisig delegated logicsig
+    lsig_account = LogicSigAccount(
+        logic=bytes([1, 32, 1, 1, 34]),  # int 1
+        args=(bytes([1]), bytes([2, 3])),
+        _address=msig_account1.addr,
+    )
+
+    lsig_account.sign_for_delegation(msig_account1)  # sign with the first account
+    lsig_account.sign_for_delegation(msig_account2)  # sign with the second account
+
+    algorand.account.ensure_funded(
+        lsig_account.address, funded_account, AlgoAmount.from_algo(1)
+    )  # Fund the lsig account
+
+    algorand.set_signer_from_account(lsig_account)
+
+    result = algorand.send.payment(
+        PaymentParams(
+            sender=lsig_account.addr,
+            receiver=funded_account.addr,
+            amount=AlgoAmount.from_micro_algo(100000),
+        )
+    )
+
+    lsig = result.confirmation.txn.lsig
+    assert lsig is not None
+    assert lsig.msig is None
+    lmsig = lsig.lmsig
+    assert lmsig is not None
+    assert lmsig.threshold == 2
+    assert lmsig.version == 1
+    assert len(lmsig.subsigs) == 3
+    assert lmsig.subsigs[0].sig is not None
+    assert lmsig.subsigs[1].sig is not None
+    assert lmsig.subsigs[2].sig is None
