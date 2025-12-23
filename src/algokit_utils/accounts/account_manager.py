@@ -184,11 +184,7 @@ class AccountManager:
         :returns: AddressWithSigners for the account
         """
         # Get the address from the account
-        if isinstance(account, AddressWithSigners):
-            addr = account.addr
-        else:
-            # LogicSigAccount and MultisigAccount have .addr property
-            addr = account.addr
+        addr = account.addr
 
         # Store the account
         self._accounts[addr] = account
@@ -253,19 +249,6 @@ class AccountManager:
         :example:
             >>> account_manager.set_signer("SENDERADDRESS", transaction_signer)
         """
-
-        # Create a minimal AddressWithSigners with placeholder signers for non-transaction operations
-        def _placeholder_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("bytes_signer not available for signer-only accounts")
-
-        def _placeholder_lsig_signer(program: bytes, msig_address: bytes | None = None) -> bytes:
-            raise NotImplementedError("delegated_lsig_signer not available for signer-only accounts")
-
-        def _placeholder_program_data_signer(data: bytes, program_address: bytes) -> bytes:
-            raise NotImplementedError("program_data_signer not available for signer-only accounts")
-
-        def _placeholder_mx_bytes_signer(data: bytes) -> bytes:
-            raise NotImplementedError("mx_bytes_signer not available for signer-only accounts")
 
         self._accounts[sender] = AddressWithSigners(
             addr=sender,
