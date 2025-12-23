@@ -19,7 +19,10 @@ from algokit_transact.exceptions import (
     AlgokitTransactError,
     TransactionValidationError,
 )
-from algokit_transact.logicsig import LogicSigAccount
+from algokit_transact.logicsig import (
+    DelegatedLsigResult,
+    LogicSigAccount,
+)
 from algokit_transact.models.app_call import (
     AppCallTransactionFields,
     BoxReference,
@@ -84,11 +87,9 @@ from algokit_transact.signer import (
     MxBytesSigner,
     ProgramDataSigner,
     TransactionSigner,
-    bytes_to_sign_for_delegation,
     generate_address_with_signers,
     make_basic_account_transaction_signer,
     make_empty_transaction_signer,
-    program_data_to_sign,
 )
 from algokit_transact.signing.logic_signature import LogicSigSignature
 from algokit_transact.signing.multisig import (
@@ -126,6 +127,7 @@ __all__ = [
     "KeyRegistrationTransactionFields",
     "LogicSigAccount",
     "LogicSigSignature",
+    "DelegatedLsigResult",
     "DelegatedLsigSigner",
     "MerkleArrayProof",
     "MerkleSignatureVerifier",
@@ -152,7 +154,6 @@ __all__ = [
     "address_from_multisig_signature",
     "apply_multisig_subsignature",
     "assign_fee",
-    "bytes_to_sign_for_delegation",
     "calculate_fee",
     "decode_logic_signature",
     "decode_signed_transaction",
@@ -176,7 +177,6 @@ __all__ = [
     "merge_multisignatures",
     "new_multisig_signature",
     "participants_from_multisig_signature",
-    "program_data_to_sign",
     "sanity_check_program",
     "to_transaction_dto",
     "validate_app_call_fields",

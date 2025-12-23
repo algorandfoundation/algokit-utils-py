@@ -1,113 +1,142 @@
 import dataclasses
 from collections.abc import Sequence
-from typing import Protocol
-
-from typing_extensions import Self
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 from algokit_common import address_from_public_key, public_key_from_address, sha512_256
-from algokit_common.constants import (
-    LOGIC_DATA_DOMAIN_SEPARATOR,
-    MULTISIG_PROGRAM_DOMAIN_SEPARATOR,
-    PROGRAM_DOMAIN_SEPARATOR,
-)
+from algokit_transact import decode_logic_signature
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
-from algokit_transact.models.transaction import Transaction as AlgokitTransaction
-from algokit_transact.signer import (
-    AddressWithSigners,
-    DelegatedLsigSigner,
-    ProgramDataSigner,
-    TransactionSigner,
-)
+from algokit_transact.models.transaction import Transaction
 from algokit_transact.signing.logic_signature import LogicSigSignature
-from algokit_transact.signing.multisig import (
-    address_from_multisig_signature,
-    apply_multisig_subsignature,
-    new_multisig_signature,
-)
 from algokit_transact.signing.types import MultisigSignature
 from algokit_transact.signing.validation import sanity_check_program
 
-__all__ = [
-    "LogicSigAccount",
-]
+if TYPE_CHECKING:
+    from algokit_transact.signer import (
+        AddressWithDelegatedLsigSigner,
+        ProgramDataSigner,
+        TransactionSigner,
+    )
+
+_MULTISIG_DOMAIN_SEPARATOR = b"MultisigAddr"
+_PROG_DATA_TAG = b"ProgData"
+_PROGRAM_TAG = b"Program"
+_MX_TAG = b"MX"
+_MSIG_PROGRAM_TAG = b"MsigProgram"
 
 
-class _MultisigMetadataProtocol(Protocol):
-    version: int
-    threshold: int
-    addrs: list[str]
+@dataclasses.dataclass(frozen=True)
+class DelegatedLsigResult:
+    addr: str
+    sig: bytes | None = None
+    lmsig: MultisigSignature | None = None
 
-
-class _MultisigAccountProtocol(Protocol):
-    @property
-    def address(self) -> str: ...
+    def __post_init__(self) -> None:
+        # invalid to have neither or both defined
+        if bool(self.sig) == bool(self.lmsig):
+            raise ValueError("Must provide either a signature or a multi signature")
 
 
 @dataclasses.dataclass(kw_only=True)
-class LogicSigAccount:
-    """Account wrapper for LogicSig signing. Supports delegation including secretless signing."""
+class LogicSig:
+    logic: bytes
+    """The LogicSig program bytes."""
+    args: Sequence[bytes] = dataclasses.field(default=())
+    """The arguments to pass to the LogicSig program."""
+    _address: str | None = None
 
-    _program: bytes
-    _args: list[bytes] | None
-    _signature: bytes | None
-    _multisig_signature: MultisigSignature | None
-    _delegated_address: str | None
-    _signer: TransactionSigner | None
+    def __post_init__(self) -> None:
+        sanity_check_program(self.logic)
 
-    def __init__(self, program: bytes, args: list[bytes] | None = None) -> None:
-        sanity_check_program(program)
-        self._program = program
-        self._args = args
-        self._signature = None
-        self._multisig_signature = None
-        self._delegated_address = None
-        self._signer = None
+    @staticmethod
+    def from_signature(signature: LogicSigSignature) -> "LogicSig":
+        return LogicSig(logic=signature.logic, args=signature.args or ())
 
-    @property
-    def program(self) -> bytes:
-        """The LogicSig program bytes."""
-        return self._program
+    @staticmethod
+    def from_bytes(encoded_lsig: bytes) -> "LogicSig":
+        signature = decode_logic_signature(encoded_lsig)
+        return LogicSig.from_signature(signature)
 
-    @property
-    def args(self) -> list[bytes] | None:
-        """The arguments to pass to the LogicSig program."""
-        return self._args
-
-    @property
-    def is_delegated(self) -> bool:
-        """Whether this LogicSig is delegated to an account."""
-        return self._signature is not None or self._multisig_signature is not None
-
-    @property
+    @cached_property
     def address(self) -> str:
         """The LogicSig account address (delegated address or escrow address)."""
-        if self._delegated_address is not None:
-            return self._delegated_address
-
-        program_hash = sha512_256(PROGRAM_DOMAIN_SEPARATOR + self._program)
-        return address_from_public_key(program_hash)
+        return self._address or address_from_public_key(sha512_256(_PROGRAM_TAG + self.logic))
 
     @property
     def addr(self) -> str:
         """Alias for address property (matching TypeScript's get addr())."""
         return self.address
 
-    @property
-    def signer(self) -> TransactionSigner:
-        """Transaction signer callable."""
-        if self._signer is None:
-            self._signer = self._create_logic_sig_signer()
-        return self._signer
+    def bytes_to_sign_for_delegation(self, msig_address: str | None = None) -> bytes:
+        if msig_address:
+            return _MSIG_PROGRAM_TAG + public_key_from_address(msig_address) + self.logic
+        else:
+            return _PROGRAM_TAG + self.logic
 
-    def _create_logic_sig_signer(self) -> TransactionSigner:
-        program = self._program
-        args = list(self._args) if self._args else None
-        signature = self._signature
-        multisig_sig = self._multisig_signature
+    def sign_program_data(self, data: bytes, signer: "ProgramDataSigner") -> bytes:
+        return signer(self, data)
+
+    def program_data_to_sign(self, data: bytes) -> bytes:
+        return _PROG_DATA_TAG + public_key_from_address(self.address) + data
+
+    def account(self) -> "LogicSigAccount":
+        return LogicSigAccount(logic=self.logic, args=self.args)
+
+    def delegated_account(self, delegator: str) -> "LogicSigAccount":
+        return LogicSigAccount(logic=self.logic, args=self.args, _address=delegator)
+
+
+@dataclasses.dataclass(kw_only=True)
+class LogicSigAccount(LogicSig):
+    """Account wrapper for LogicSig signing. Supports delegation including secretless signing."""
+
+    sig: bytes | None = None
+    msig: MultisigSignature | None = None
+    lmsig: MultisigSignature | None = None
+
+    @staticmethod
+    def from_signature(signature: LogicSigSignature, delgator: str | None = None) -> "LogicSigAccount":
+        from algokit_transact.multisig import MultisigAccount
+
+        if msig := (signature.lmsig or signature.msig):
+            msig_addr = MultisigAccount.from_signature(msig).addr
+            if delgator and delgator != msig_addr:
+                raise ValueError("Provided delegator address does not match multisig address")
+
+            return LogicSigAccount(
+                logic=signature.logic,
+                args=signature.args or (),
+                _address=msig_addr,
+                lmsig=signature.lmsig,
+                msig=signature.msig,
+            )
+
+        if (signature.sig or delgator) is None:
+            raise ValueError("Delegated address must be provided when logic sig has a signature")
+
+        return LogicSigAccount(logic=signature.logic, args=signature.args or (), _address=delgator, sig=signature.sig)
+
+    @staticmethod
+    def from_bytes(encoded_lsig: bytes, delegator: str | None = None) -> "LogicSigAccount":
+        decoded = decode_logic_signature(encoded_lsig)
+        return LogicSigAccount.from_signature(decoded, delegator)
+
+    @property
+    def is_delegated(self) -> bool:
+        """Whether this LogicSig is delegated to an account."""
+        return self.sig is not None or self.lmsig is not None
+
+    @property
+    def signer(self) -> "TransactionSigner":
+        """Transaction signer callable."""
+        program = self.logic
+        args = list(self.args) or None
+        signature = self.sig
+        multisig_sig = self.lmsig
         lsig_address = self.address
 
-        def signer(txn_group: Sequence[AlgokitTransaction], indexes_to_sign: Sequence[int]) -> list[bytes]:
+        def signer(txn_group: Sequence[Transaction], indexes_to_sign: Sequence[int]) -> list[bytes]:
             blobs: list[bytes] = []
             for index in indexes_to_sign:
                 txn = txn_group[index]
@@ -115,7 +144,7 @@ class LogicSigAccount:
                     logic=program,
                     args=args,
                     sig=signature,
-                    msig=multisig_sig,
+                    lmsig=multisig_sig,
                 )
                 auth_addr = lsig_address if txn.sender != lsig_address else None
 
@@ -131,90 +160,18 @@ class LogicSigAccount:
 
         return signer
 
-    def bytes_to_sign_for_delegation(self, msig: _MultisigAccountProtocol | None = None) -> bytes:
-        """Returns bytes to sign for delegation.
+    def sign_for_delegation(self, signer: "AddressWithDelegatedLsigSigner") -> None:
+        result = signer.delegated_lsig_signer(self, None)
 
-        Args:
-            msig: Optional multisig account for multisig delegation.
+        if result.addr != self.address:
+            raise ValueError(
+                f"Delegator address from signer does not match expected delegator address."
+                f" Expected: {self.addr}, got: {result.addr}",
+            )
 
-        Returns:
-            The bytes that need to be signed for delegation.
-        """
-
-        if msig is not None:
-            msig_public_key = public_key_from_address(msig.address)
-            return MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_public_key + self._program
-        return PROGRAM_DOMAIN_SEPARATOR + self._program
-
-    def program_data_to_sign(self, data: bytes) -> bytes:
-        """Returns bytes to sign for program data.
-
-        Args:
-            data: The data to sign.
-
-        Returns:
-            The bytes that need to be signed (ProgData + program_address + data).
-        """
-
-        program_address = public_key_from_address(self.address)
-        return LOGIC_DATA_DOMAIN_SEPARATOR + program_address + data
-
-    def sign_program_data(self, data: bytes, signer: ProgramDataSigner) -> bytes:
-        """Signs program data with given signer.
-
-        Args:
-            data: The data to sign.
-            signer: The program data signer to use.
-
-        Returns:
-            The signature bytes.
-        """
-        program_address = public_key_from_address(self.address)
-        return signer(data, program_address)
-
-    def delegate(self, signer: DelegatedLsigSigner, delegating_address: str | None = None) -> Self:
-        """Delegate this LogicSig to a single account. Returns self for chaining.
-
-        Args:
-            signer: The DelegatedLsigSigner callback to sign the program.
-            delegating_address: Optional address of the delegating account.
-                If not provided, the address must be set separately or
-                the LogicSig will use the escrow address.
-
-        Returns:
-            Self for method chaining.
-        """
-        self._signature = signer(self._program, None)
-        self._delegated_address = delegating_address
-        self._multisig_signature = None
-        self._signer = None
-        return self
-
-    def delegate_multisig(
-        self,
-        multisig_params: _MultisigMetadataProtocol,
-        signing_accounts: Sequence[AddressWithSigners],
-    ) -> Self:
-        """Delegate this LogicSig to a multisig account. Returns self for chaining."""
-        msig = new_multisig_signature(
-            multisig_params.version,
-            multisig_params.threshold,
-            multisig_params.addrs,
-        )
-
-        msig_address = address_from_multisig_signature(msig)
-        msig_public_key = public_key_from_address(msig_address)
-
-        address_to_signer = {account.addr: account.delegated_lsig_signer for account in signing_accounts}
-
-        for subsig in msig.subsigs:
-            subsig_addr = address_from_public_key(subsig.public_key)
-            if subsig_addr in address_to_signer:
-                signature = address_to_signer[subsig_addr](self._program, msig_public_key)
-                msig = apply_multisig_subsignature(msig, subsig_addr, signature)
-
-        self._multisig_signature = msig
-        self._delegated_address = address_from_multisig_signature(msig)
-        self._signature = None
-        self._signer = None
-        return self
+        if result.sig:
+            self.sig = result.sig
+        elif result.lmsig:
+            self.lmsig = result.lmsig
+        else:
+            raise ValueError("Delegated lsig signer must return either a sig or lmsig")
