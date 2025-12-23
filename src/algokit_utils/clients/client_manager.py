@@ -91,17 +91,6 @@ class ClientManager:
 
     :param clients_or_configs: Either client instances or client configurations
     :param algorand_client: "AlgorandClient" instance
-
-    :example:
-        >>> # Algod only
-        >>> client_manager = ClientManager(algod_client)
-        >>> # Algod and Indexer
-        >>> client_manager = ClientManager(algod_client, indexer_client)
-        >>> # Algod config only
-        >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment())
-        >>> # Algod and Indexer config
-        >>> client_manager = ClientManager(ClientManager.get_algod_config_from_environment(),
-        ...     ClientManager.get_indexer_config_from_environment())
     """
 
     def __init__(self, clients_or_configs: AlgoClientConfigs | AlgoSdkClients, algorand_client: "AlgorandClient"):

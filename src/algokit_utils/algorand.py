@@ -181,7 +181,7 @@ class AlgorandClient:
 
         :example:
             >>> composer = AlgorandClient.mainnet().new_group()
-            >>> result = await composer.add_transaction(payment).send()
+            >>> result = composer.add_transaction(payment).send()
         """
 
         return TransactionComposer(
@@ -250,7 +250,7 @@ class AlgorandClient:
         Methods for sending a transaction and waiting for confirmation
 
         :example:
-            >>> result = await AlgorandClient.mainnet().send.payment(
+            >>> result = AlgorandClient.mainnet().send.payment(
             >>> PaymentParams(
             >>>  sender="SENDERADDRESS",
             >>>  receiver="RECEIVERADDRESS",
