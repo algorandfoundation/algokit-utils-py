@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from algokit_abi import arc56
+from algokit_algod_client import models as algod_models
 from algokit_transact import MultisigMetadata, TransactionValidationError, make_empty_transaction_signer
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils import AssetDestroyParams
@@ -21,6 +22,7 @@ from algokit_utils.transactions.transaction_composer import (
     PaymentParams,
     SendTransactionComposerResults,
     TransactionComposer,
+    TransactionComposerConfig,
     TransactionComposerParams,
 )
 
@@ -474,3 +476,69 @@ def test_clone_keeps_groups_independent(algorand: AlgorandClient, funded_account
     assert group1 is not None
     assert group2 is not None
     assert group1 != group2
+
+
+def test_send_without_params_respects_composer_config(
+    algorand: AlgorandClient, funded_account: AddressWithSigners
+) -> None:
+    """Test that send() without params respects the composer's config settings.
+
+    This test verifies that calling send() without explicit params doesn't override
+    the composer's configured populate_app_call_resources and cover_app_call_inner_transaction_fees
+    settings. We verify this by using a mock to track whether simulate_transactions is called
+    when building app call transactions - it should only be called if resource population is enabled.
+    """
+    approval_program = "#pragma version 6\nint 1"
+    clear_state_program = "#pragma version 6\nint 1"
+
+    # First, create an app to call
+    create_result = algorand.send.app_create(
+        AppCreateParams(
+            sender=funded_account.addr,
+            approval_program=approval_program,
+            clear_state_program=clear_state_program,
+            schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
+        )
+    )
+    app_id = create_result.app_id
+
+    # Create a composer with populate_app_call_resources=False
+    original_simulate = algorand.client.algod.simulate_transactions
+    simulate_call_count = 0
+
+    def tracking_simulate(
+        request: algod_models.SimulateRequest,
+    ) -> algod_models.SimulateResponse:
+        nonlocal simulate_call_count
+        simulate_call_count += 1
+        return original_simulate(request)
+
+    composer = TransactionComposer(
+        TransactionComposerParams(
+            algod=algorand.client.algod,
+            get_signer=lambda addr: algorand.account.get_signer(addr),
+            composer_config=TransactionComposerConfig(populate_app_call_resources=False),
+        )
+    )
+
+    from algokit_utils.transactions.transaction_composer import AppCallParams
+
+    composer.add_app_call(
+        AppCallParams(
+            sender=funded_account.addr,
+            app_id=app_id,
+        )
+    )
+
+    # Patch simulate_transactions to track calls
+    with patch.object(algorand.client.algod, "simulate_transactions", side_effect=tracking_simulate):
+        # Send without params - since populate_app_call_resources=False,
+        # simulate should NOT be called during build
+        composer.send()
+
+    # simulate_transactions should not have been called because
+    # populate_app_call_resources=False was respected
+    assert simulate_call_count == 0, (
+        f"simulate_transactions was called {simulate_call_count} times, "
+        "but should not be called when populate_app_call_resources=False"
+    )
