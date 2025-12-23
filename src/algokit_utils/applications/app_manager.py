@@ -1,7 +1,6 @@
 import base64
 from collections.abc import Mapping, Sequence
 
-import algokit_algosdk as algosdk
 from algokit_abi import arc56
 from algokit_algod_client import AlgodClient
 from algokit_algod_client import models as algod_models
@@ -21,8 +20,6 @@ __all__ = [
     "UPDATABLE_TEMPLATE_NAME",
     "AppManager",
 ]
-
-AlgosdkBoxReference = algosdk.box_reference.BoxReference
 
 
 UPDATABLE_TEMPLATE_NAME = "TMPL_UPDATABLE"
@@ -382,7 +379,7 @@ class AppManager:
             >>> box_reference = app_manager.get_box_reference(box_name)
         """
 
-        if isinstance(box_id, (BoxReference | AlgosdkBoxReference)):
+        if isinstance(box_id, BoxReference):
             return box_id.app_id, box_id.name
 
         name = b""
