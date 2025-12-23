@@ -23,6 +23,6 @@ def group_transactions(transactions: Iterable[Transaction]) -> list[Transaction]
         tx_hashes.append(get_transaction_id_raw(tx))
 
     encoded = encode_msgpack({"txlist": tx_hashes})
-    group = sha512_256(TRANSACTION_GROUP_DOMAIN_SEPARATOR.encode() + encoded)
+    group = sha512_256(TRANSACTION_GROUP_DOMAIN_SEPARATOR + encoded)
 
     return [replace(tx, group=group) for tx in txs]

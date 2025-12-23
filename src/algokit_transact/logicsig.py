@@ -85,7 +85,7 @@ class LogicSigAccount:
         if self._delegated_address is not None:
             return self._delegated_address
 
-        program_hash = sha512_256(PROGRAM_DOMAIN_SEPARATOR.encode() + self._program)
+        program_hash = sha512_256(PROGRAM_DOMAIN_SEPARATOR + self._program)
         return address_from_public_key(program_hash)
 
     @property
@@ -143,8 +143,8 @@ class LogicSigAccount:
 
         if msig is not None:
             msig_public_key = public_key_from_address(msig.address)
-            return MULTISIG_PROGRAM_DOMAIN_SEPARATOR.encode() + msig_public_key + self._program
-        return PROGRAM_DOMAIN_SEPARATOR.encode() + self._program
+            return MULTISIG_PROGRAM_DOMAIN_SEPARATOR + msig_public_key + self._program
+        return PROGRAM_DOMAIN_SEPARATOR + self._program
 
     def program_data_to_sign(self, data: bytes) -> bytes:
         """Returns bytes to sign for program data.
@@ -157,7 +157,7 @@ class LogicSigAccount:
         """
 
         program_address = public_key_from_address(self.address)
-        return LOGIC_DATA_DOMAIN_SEPARATOR.encode() + program_address + data
+        return LOGIC_DATA_DOMAIN_SEPARATOR + program_address + data
 
     def sign_program_data(self, data: bytes, signer: ProgramDataSigner) -> bytes:
         """Signs program data with given signer.
