@@ -133,7 +133,7 @@ Start a new TransactionComposer transaction group
 * **Example:**
   ```python
   composer = AlgorandClient.mainnet().new_group()
-  result = await composer.add_transaction(payment).send()
+  result = composer.add_transaction(payment).send()
   ```
 
 #### *property* client *: [algokit_utils.clients.client_manager.ClientManager](../clients/client_manager/index.md#algokit_utils.clients.client_manager.ClientManager)*
@@ -187,7 +187,7 @@ Methods for sending a transaction and waiting for confirmation
 
 * **Example:**
   ```python
-  result = await AlgorandClient.mainnet().send.payment(
+  result = AlgorandClient.mainnet().send.payment(
   PaymentParams(
    sender="SENDERADDRESS",
    receiver="RECEIVERADDRESS",

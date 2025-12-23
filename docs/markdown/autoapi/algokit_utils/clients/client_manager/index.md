@@ -61,18 +61,6 @@ Provides access to Algod, Indexer and KMD clients and helper methods for working
 * **Parameters:**
   * **clients_or_configs** – Either client instances or client configurations
   * **algorand_client** – “AlgorandClient” instance
-* **Example:**
-  ```python
-  # Algod only
-  client_manager = ClientManager(algod_client)
-  # Algod and Indexer
-  client_manager = ClientManager(algod_client, indexer_client)
-  # Algod config only
-  client_manager = ClientManager(ClientManager.get_algod_config_from_environment())
-  # Algod and Indexer config
-  client_manager = ClientManager(ClientManager.get_algod_config_from_environment(),
-      ClientManager.get_indexer_config_from_environment())
-  ```
 
 #### *property* algod *: algokit_algod_client.AlgodClient*
 
