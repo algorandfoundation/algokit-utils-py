@@ -2,16 +2,18 @@ from collections.abc import Callable
 
 import pytest
 
-from .common import TransactionVector, get_test_vector
+from .common import TransactionTestData, load_test_data
 
-VectorLookup = Callable[[str], TransactionVector]
+TestDataLookup = Callable[[str], TransactionTestData]
 
 
 @pytest.fixture(scope="module")
-def transaction_vectors() -> dict[str, TransactionVector]:
+def test_data() -> dict[str, TransactionTestData]:
+    """Load all test data vectors (mirrors TS testData)."""
     keys = [
         "simplePayment",
         "optInAssetTransfer",
+        "simpleAssetTransfer",
         "assetCreate",
         "assetConfig",
         "assetDestroy",
@@ -26,11 +28,16 @@ def transaction_vectors() -> dict[str, TransactionVector]:
         "nonParticipationKeyRegistration",
         "heartbeat",
         "stateProof",
+        "lsigPayment",
+        "msigPayment",
+        "msigDelegatedPayment",
+        "singleDelegatedPayment",
     ]
 
-    return {key: get_test_vector(key) for key in keys}
+    return {key: load_test_data(key) for key in keys}
 
 
 @pytest.fixture(scope="module")
-def vector_lookup(transaction_vectors: dict[str, TransactionVector]) -> VectorLookup:
-    return transaction_vectors.__getitem__
+def test_data_lookup(test_data: dict[str, TransactionTestData]) -> TestDataLookup:
+    """Lookup function for test data by key."""
+    return test_data.__getitem__

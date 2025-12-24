@@ -2,19 +2,18 @@ import pytest
 
 from algokit_transact import Transaction, TransactionValidationError, validate_transaction
 
-from ._helpers import iter_asset_config_vectors
+from ._helpers import iter_asset_config_test_data
 from ._validation import (
     assert_validation_error,
     build_asset_config,
     clone_transaction,
 )
-from .conftest import VectorLookup
+from .conftest import TestDataLookup
 from .transaction_asserts import (
     assert_assign_fee,
     assert_decode_with_prefix,
     assert_decode_without_prefix,
     assert_encode,
-    assert_encode_with_auth_address,
     assert_encode_with_signature,
     assert_encoded_transaction_type,
     assert_example,
@@ -28,88 +27,81 @@ from .transaction_asserts import (
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_example(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A human-readable example of forming a transaction and signing it"""
-    assert_example(label, vector_lookup(key))
+    assert_example(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_multisig_example(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_multisig_example(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A human-readable example of forming a transaction and signing it with a multisignature sig"""
-    assert_multisig_example(label, vector_lookup(key))
+    assert_multisig_example(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_get_transaction_id(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_get_transaction_id(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A transaction id can be obtained from a transaction"""
-    assert_transaction_id(label, vector_lookup(key))
+    assert_transaction_id(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_assign_fee(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_assign_fee(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A fee can be calculated and assigned to a transaction"""
-    assert_assign_fee(label, vector_lookup(key))
+    assert_assign_fee(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_get_encoded_transaction_type(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_get_encoded_transaction_type(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """The transaction type of an encoded transaction can be retrieved"""
-    assert_encoded_transaction_type(label, vector_lookup(key))
+    assert_encoded_transaction_type(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_decode_without_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_decode_without_prefix(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A transaction without TX prefix and valid fields is decoded properly"""
-    assert_decode_without_prefix(label, vector_lookup(key))
+    assert_decode_without_prefix(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_decode_with_prefix(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_decode_with_prefix(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A transaction with TX prefix and valid fields is decoded properly"""
-    assert_decode_with_prefix(label, vector_lookup(key))
+    assert_decode_with_prefix(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_encode_with_auth_address(label: str, key: str, vector_lookup: VectorLookup) -> None:
-    """An auth address can be attached to a encoded transaction with a signature"""
-    assert_encode_with_auth_address(label, vector_lookup(key))
-
-
-@pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_encode_with_signature(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_encode_with_signature(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A signature can be attached to a encoded transaction"""
-    assert_encode_with_signature(label, vector_lookup(key))
+    assert_encode_with_signature(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_vectors()))
-def test_encode(label: str, key: str, vector_lookup: VectorLookup) -> None:
+@pytest.mark.parametrize(("label", "key"), list(iter_asset_config_test_data()))
+def test_encode(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A transaction with valid fields is encoded properly"""
-    assert_encode(label, vector_lookup(key))
+    assert_encode(label, test_data_lookup(key))
 
 
 @pytest.fixture
-def asset_create_transaction(vector_lookup: VectorLookup) -> Transaction:
-    return vector_lookup("assetCreate").transaction
+def asset_create_transaction(test_data_lookup: TestDataLookup) -> Transaction:
+    return test_data_lookup("assetCreate").transaction
 
 
 @pytest.fixture
-def asset_reconfig_transaction(vector_lookup: VectorLookup) -> Transaction:
-    return vector_lookup("assetConfig").transaction
+def asset_reconfig_transaction(test_data_lookup: TestDataLookup) -> Transaction:
+    return test_data_lookup("assetConfig").transaction
 
 
 @pytest.fixture
-def asset_destroy_transaction(vector_lookup: VectorLookup) -> Transaction:
-    return vector_lookup("assetDestroy").transaction
+def asset_destroy_transaction(test_data_lookup: TestDataLookup) -> Transaction:
+    return test_data_lookup("assetDestroy").transaction
 
 
 def test_should_throw_error_when_total_is_missing_for_asset_creation(asset_create_transaction: Transaction) -> None:

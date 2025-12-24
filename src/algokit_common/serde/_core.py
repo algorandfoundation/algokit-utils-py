@@ -528,9 +528,18 @@ def from_wire(cls: type[DecodedValueT], payload: Mapping[str, object]) -> Decode
 
 def addr(alias: str, *, omit_if_none: bool = True) -> dict[str, object]:
     """Typed helper for address fields (str <-> bytes)."""
+    from algokit_common.constants import ZERO_ADDRESS
+
+    def _encode(v: object) -> bytes | None:
+        addr_str = cast(str, v)
+        # Treat ZERO_ADDRESS as default (omit from output)
+        if addr_str == ZERO_ADDRESS:
+            return None
+        return public_key_from_address(addr_str)
+
     return wire(
         alias,
-        encode=lambda v: public_key_from_address(cast(str, v)),
+        encode=_encode,
         decode=lambda v: address_from_public_key(cast(bytes, v)),
         omit_if_none=omit_if_none,
     )
