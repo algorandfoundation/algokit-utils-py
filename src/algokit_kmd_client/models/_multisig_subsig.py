@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+
 
 @dataclass(slots=True)
 class MultisigSubsig:
@@ -13,11 +15,19 @@ class MultisigSubsig:
     signatures may be empty
     """
 
-    public_key: list[int] = field(
-        default_factory=list,
-        metadata=wire("pk"),
+    public_key: bytes = field(
+        default=b"",
+        metadata=wire(
+            "pk",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
-    signature: list[int] | None = field(
+    signature: bytes | None = field(
         default=None,
-        metadata=wire("s"),
+        metadata=wire(
+            "s",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )

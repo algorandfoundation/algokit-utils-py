@@ -28,9 +28,13 @@ class SignProgramMultisigRequest:
             decode=decode_bytes_base64,
         ),
     )
-    public_key: list[int] = field(
-        default_factory=list,
-        metadata=wire("public_key"),
+    public_key: bytes = field(
+        default=b"",
+        metadata=wire(
+            "public_key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     wallet_handle_token: str = field(
         default="",
