@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
+from ._serde_helpers import decode_bytes_sequence, encode_bytes_sequence
+
 
 @dataclass(slots=True)
 class ImportMultisigRequest:
@@ -16,9 +18,13 @@ class ImportMultisigRequest:
         default=0,
         metadata=wire("multisig_version"),
     )
-    public_keys: list[list[int]] = field(
+    public_keys: list[bytes] = field(
         default_factory=list,
-        metadata=wire("pks"),
+        metadata=wire(
+            "pks",
+            encode=encode_bytes_sequence,
+            decode=decode_bytes_sequence,
+        ),
     )
     threshold: int = field(
         default=0,

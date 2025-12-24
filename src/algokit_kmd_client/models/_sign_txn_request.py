@@ -26,9 +26,13 @@ class SignTxnRequest:
         default="",
         metadata=wire("wallet_handle_token"),
     )
-    public_key: list[int] | None = field(
+    public_key: bytes | None = field(
         default=None,
-        metadata=wire("public_key"),
+        metadata=wire(
+            "public_key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     wallet_password: str | None = field(
         default=None,

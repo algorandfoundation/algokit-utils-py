@@ -15,9 +15,13 @@ class SignMultisigTxnRequest:
     The request for `POST /v1/multisig/sign`
     """
 
-    public_key: list[int] = field(
-        default_factory=list,
-        metadata=wire("public_key"),
+    public_key: bytes = field(
+        default=b"",
+        metadata=wire(
+            "public_key",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     transaction: bytes = field(
         default=b"",
@@ -35,9 +39,13 @@ class SignMultisigTxnRequest:
         default=None,
         metadata=nested("partial_multisig", lambda: MultisigSig),
     )
-    signer: list[int] | None = field(
+    signer: bytes | None = field(
         default=None,
-        metadata=wire("signer"),
+        metadata=wire(
+            "signer",
+            encode=encode_bytes_base64,
+            decode=decode_bytes_base64,
+        ),
     )
     wallet_password: str | None = field(
         default=None,
