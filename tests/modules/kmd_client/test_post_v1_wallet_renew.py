@@ -1,12 +1,24 @@
 import pytest
 
+from algokit_kmd_client import KmdClient
+from algokit_kmd_client.models import RenewWalletHandleTokenRequest
+
 # Polytest Suite: POST v1_wallet_renew
 
 # Polytest Group: Common Tests
 
 
 @pytest.mark.group_common_tests
-@pytest.mark.skip(reason="No mock server recording available for this endpoint - requires localnet test")
-def test_basic_request_and_response_validation() -> None:
+@pytest.mark.localnet
+def test_basic_request_and_response_validation(
+    localnet_kmd_client: KmdClient,
+    wallet_handle: tuple[str, str, str],
+) -> None:
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
-    # Note: This endpoint renews a wallet handle token, requires stateful setup
+    wallet_handle_token, _, _ = wallet_handle
+
+    result = localnet_kmd_client.renew_wallet_handle_token(
+        RenewWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
+    )
+
+    assert result.wallet_handle is not None
