@@ -1,4 +1,4 @@
 # AUTO-GENERATED: oas_generator
 
 
-DigestRepresentsA32ByteValueHoldingThe256BitHashDigest = list[int]
+DigestRepresentsA32ByteValueHoldingThe256BitHashDigest = bytes

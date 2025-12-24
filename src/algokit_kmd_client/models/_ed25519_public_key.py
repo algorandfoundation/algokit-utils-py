@@ -1,4 +1,4 @@
 # AUTO-GENERATED: oas_generator
 
 
-Ed25519PublicKey = list[int]
+Ed25519PublicKey = bytes
