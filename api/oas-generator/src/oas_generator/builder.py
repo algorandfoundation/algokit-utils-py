@@ -136,6 +136,38 @@ class TypeResolver:
     def __init__(self, registry: SchemaRegistry) -> None:
         self.registry = registry
 
+    def _is_array_of_uint8(self, schema: ctx.RawSchema) -> bool:
+        """Check if a schema represents an array of uint8 integers (should be bytes).
+
+        This detects schemas like:
+        {
+            "type": "array",
+            "items": {
+                "type": "integer",
+                "format": "uint8"
+            }
+        }
+        """
+        if not isinstance(schema, dict):
+            return False
+
+        # Check if this is a $ref to another schema
+        if "$ref" in schema:
+            ref_name = schema["$ref"].split("/")[-1]
+            if ref_name in self.registry.entries:
+                ref_schema = self.registry.entries[ref_name].schema
+                return self._is_array_of_uint8(ref_schema)
+
+        if schema.get("type") != "array":
+            return False
+
+        items = schema.get("items")
+        if not isinstance(items, dict):
+            return False
+
+        # Check if items are integers with uint8 format
+        return items.get("type") == "integer" and items.get("format") == "uint8"
+
     def resolve(self, schema: ctx.RawSchema, *, hint: str = "Inline") -> TypeInfo:  # noqa: C901, PLR0911, PLR0912
         schema = schema or {}
         schema_type = schema.get("type")
@@ -216,6 +248,11 @@ class TypeResolver:
 
     def _resolve_array(self, schema: ctx.RawSchema, *, hint: str) -> TypeInfo:
         items = schema.get("items") or {"type": "object"}
+
+        # Check if this is an array of uint8 integers (should be bytes)
+        if self._is_array_of_uint8(schema):
+            return TypeInfo(annotation="bytes", is_bytes=True)
+
         inner = self.resolve(items, hint=f"{hint}Item")
         annotation = f"list[{inner.annotation}]"
         return TypeInfo(

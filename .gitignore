@@ -182,6 +182,8 @@ api/specs/
 *.xml
 
 .polytest*/
+polytest_resources/
+.algokit-*
 
 references/
 
