@@ -47,3 +47,6 @@ jobs:
 
       - name: Validate polytest kmd_client tests
         run: uv run poe polytest-validate-kmd
+
+      - name: Validate polytest transact tests
+        run: uv run poe polytest-validate-transact
