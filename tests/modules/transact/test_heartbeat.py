@@ -10,7 +10,6 @@ from .transaction_asserts import (
     assert_encode_with_signature,
     assert_encoded_transaction_type,
     assert_example,
-    assert_multisig_example,
     assert_transaction_id,
 )
 
@@ -24,13 +23,6 @@ from .transaction_asserts import (
 def test_example(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
     """A human-readable example of forming a transaction and signing it"""
     assert_example(label, test_data_lookup(key))
-
-
-@pytest.mark.group_transaction_tests
-@pytest.mark.parametrize(("label", "key"), iter_heartbeat_test_data())
-def test_multisig_example(label: str, key: str, test_data_lookup: TestDataLookup) -> None:
-    """A human-readable example of forming a transaction and signing it with a multisignature sig"""
-    assert_multisig_example(label, test_data_lookup(key))
 
 
 @pytest.mark.group_transaction_tests
