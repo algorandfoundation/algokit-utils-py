@@ -470,14 +470,11 @@ class TransactionComposer:
         params = params or SendParams()
 
         # Update config from params if provided, falling back to composer's config
-        cover_flag = params.get("cover_app_call_inner_transaction_fees")
-        populate_flag = params.get("populate_app_call_resources")
-        effective_cover = (
-            bool(cover_flag) if cover_flag is not None else self._config.cover_app_call_inner_transaction_fees
+        effective_cover = params.get(
+            "cover_app_call_inner_transaction_fees", self._config.cover_app_call_inner_transaction_fees
         )
-        effective_populate = (
-            bool(populate_flag) if populate_flag is not None else self._config.populate_app_call_resources
-        )
+        effective_populate = params.get("populate_app_call_resources", self._config.populate_app_call_resources)
+
         if (
             effective_cover != self._config.cover_app_call_inner_transaction_fees
             or effective_populate != self._config.populate_app_call_resources

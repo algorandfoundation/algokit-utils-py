@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from algokit_abi import arc56
-from algokit_algod_client import models as algod_models
 from algokit_transact import MultisigMetadata, TransactionValidationError, make_empty_transaction_signer
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils import AssetDestroyParams
@@ -503,16 +502,6 @@ def test_send_without_params_respects_composer_config(
     app_id = create_result.app_id
 
     # Create a composer with populate_app_call_resources=False
-    original_simulate = algorand.client.algod.simulate_transactions
-    simulate_call_count = 0
-
-    def tracking_simulate(
-        request: algod_models.SimulateRequest,
-    ) -> algod_models.SimulateResponse:
-        nonlocal simulate_call_count
-        simulate_call_count += 1
-        return original_simulate(request)
-
     composer = TransactionComposer(
         TransactionComposerParams(
             algod=algorand.client.algod,
@@ -531,14 +520,16 @@ def test_send_without_params_respects_composer_config(
     )
 
     # Patch simulate_transactions to track calls
-    with patch.object(algorand.client.algod, "simulate_transactions", side_effect=tracking_simulate):
+    with patch.object(
+        algorand.client.algod, "simulate_transactions", side_effect=algorand.client.algod.simulate_transactions
+    ) as patched:
         # Send without params - since populate_app_call_resources=False,
         # simulate should NOT be called during build
         composer.send()
 
     # simulate_transactions should not have been called because
     # populate_app_call_resources=False was respected
-    assert simulate_call_count == 0, (
-        f"simulate_transactions was called {simulate_call_count} times, "
+    assert patched.call_count == 0, (
+        f"simulate_transactions was called {patched.call_count} times, "
         "but should not be called when populate_app_call_resources=False"
     )
