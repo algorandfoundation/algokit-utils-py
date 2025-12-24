@@ -218,7 +218,7 @@ _THREE_ARRAYS = abi.ABIType.from_string("(uint8[],uint8[],uint8[])").encode(([1]
         (17, 16, _THREE_ARRAYS),
     ],
 )
-def test_add_app_call_wtih_tuple_packing(
+def test_add_app_call_with_tuple_packing(
     algorand: AlgorandClient,
     funded_account: AddressWithSigners,
     num_abi_args: int,
