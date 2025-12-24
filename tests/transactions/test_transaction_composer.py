@@ -6,7 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from algokit_abi import arc56
+from algokit_abi import abi, arc56
 from algokit_transact import MultisigMetadata, TransactionValidationError, make_empty_transaction_signer
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils import AssetDestroyParams
@@ -200,6 +200,47 @@ def test_add_app_call_method_call(algorand: AlgorandClient, funded_account: Addr
     assert built.transactions[0].application_call
     response = composer.send({"max_rounds_to_wait": 20})
     assert response.returns[-1].value == "Hello, world"
+
+
+_SINGLE_ARRAY = abi.ABIType.from_string("uint8[]").encode([1])
+_TWO_ARRAYS = abi.ABIType.from_string("(uint8[],uint8[])").encode(([1], [1]))
+_THREE_ARRAYS = abi.ABIType.from_string("(uint8[],uint8[],uint8[])").encode(([1], [1], [1]))
+
+
+@pytest.mark.parametrize(
+    ("num_abi_args", "expected_txn_args", "expected_last_arg"),
+    [
+        (1, 2, _SINGLE_ARRAY),
+        (13, 14, _SINGLE_ARRAY),
+        (14, 15, _SINGLE_ARRAY),
+        (15, 16, _SINGLE_ARRAY),
+        (16, 16, _TWO_ARRAYS),
+        (17, 16, _THREE_ARRAYS),
+    ],
+)
+def test_add_app_call_wtih_tuple_packing(
+    algorand: AlgorandClient,
+    funded_account: AddressWithSigners,
+    num_abi_args: int,
+    expected_txn_args: int,
+    expected_last_arg: bytes,
+) -> None:
+    args_str = ",".join(["uint8[]"] * num_abi_args)
+    method = arc56.Method.from_signature(f"args{num_abi_args}({args_str})void")
+    app_call = algorand.create_transaction.app_call_method_call(
+        AppCallMethodCallParams(
+            sender=funded_account.addr,
+            app_id=1234,
+            method=method,
+            args=[[1]] * num_abi_args,
+        )
+    )
+    txn = app_call.transactions[0]
+    assert txn.application_call is not None
+    args = txn.application_call.args or []
+    assert len(args) == expected_txn_args
+    assert args[0] == method.selector
+    assert args[-1] == expected_last_arg
 
 
 def test_simulate(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:

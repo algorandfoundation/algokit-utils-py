@@ -25,7 +25,7 @@ from algokit_utils.transactions.types import (
     AppUpdateMethodCallParams,
 )
 
-ARGS_TUPLE_PACKING_THRESHOLD = 14
+_ARGS_TUPLE_PACKING_THRESHOLD = 15
 
 __all__ = [
     "build_app_call_method_call_transaction",
@@ -366,8 +366,14 @@ def _calculate_application_reference_index(value: str | int, app_id: int, app_re
 
 def _encode_args_with_tuple_packing(abi_types: Sequence[abi.ABIType], abi_values: Sequence) -> list[bytes]:
     type_value_pairs = list(zip(abi_types, abi_values, strict=True))
-    unpacked_pairs = type_value_pairs[:ARGS_TUPLE_PACKING_THRESHOLD]
-    packed_pairs = type_value_pairs[ARGS_TUPLE_PACKING_THRESHOLD:]
+    if len(type_value_pairs) > _ARGS_TUPLE_PACKING_THRESHOLD:
+        # if the threshold has been exceeded then need to leave 1 element at the end
+        # for the packed tuple
+        split_at = _ARGS_TUPLE_PACKING_THRESHOLD - 1
+    else:
+        split_at = len(type_value_pairs)
+    unpacked_pairs = type_value_pairs[:split_at]
+    packed_pairs = type_value_pairs[split_at:]
     encoded = [abi_type.encode(abi_value) for abi_type, abi_value in unpacked_pairs]
 
     if packed_pairs:
