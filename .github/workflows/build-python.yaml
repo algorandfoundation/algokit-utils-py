@@ -29,6 +29,10 @@ jobs:
       - name: Setup Polytest
         uses: algorandfoundation/algokit-polytest/.github/actions/setup-polytest@main
 
+      - name: Generate all polytest files
+        shell: bash
+        run: uv run poe polytest-generate-all
+
       - name: Start algod mock server
         uses: algorandfoundation/algokit-polytest/.github/actions/run-mock-server@main
         with:

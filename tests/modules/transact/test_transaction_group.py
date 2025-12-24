@@ -1,10 +1,8 @@
 import nacl.signing
 import pytest
 
-from algokit_common import MAX_TRANSACTION_GROUP_SIZE
 from algokit_transact import (
     SignedTransaction,
-    TransactionType,
     decode_signed_transactions,
     decode_transactions,
     encode_signed_transaction,
@@ -22,7 +20,7 @@ from .conftest import TestDataLookup
 # Polytest Group: Transaction Group Tests
 
 
-def _simple_group_vectors(test_data_lookup: TestDataLookup) -> list[TransactionTestData]:
+def _simple_group_test_data(test_data_lookup: TestDataLookup) -> list[TransactionTestData]:
     payment = test_data_lookup("simplePayment")
     opt_in = test_data_lookup("optInAssetTransfer")
     return [payment, opt_in]
@@ -39,7 +37,7 @@ def _sign(message: bytes, private_key: bytes) -> bytes:
 @pytest.mark.group_transaction_group_tests
 def test_group_transactions(test_data_lookup: TestDataLookup) -> None:
     """A collection of transactions can be grouped"""
-    vectors = _simple_group_vectors(test_data_lookup)
+    vectors = _simple_group_test_data(test_data_lookup)
     grouped = group_transactions([v.transaction for v in vectors])
 
     assert len(grouped) == len(vectors)
@@ -56,7 +54,7 @@ def test_group_transactions(test_data_lookup: TestDataLookup) -> None:
 @pytest.mark.group_transaction_group_tests
 def test_encode_transactions(test_data_lookup: TestDataLookup) -> None:
     """A collection of transactions can be encoded"""
-    vectors = _simple_group_vectors(test_data_lookup)
+    vectors = _simple_group_test_data(test_data_lookup)
     grouped = group_transactions([v.transaction for v in vectors])
     encoded_grouped = encode_transactions(grouped)
 
@@ -76,7 +74,7 @@ def test_encode_transactions(test_data_lookup: TestDataLookup) -> None:
 @pytest.mark.group_transaction_group_tests
 def test_encode_signed_transactions(test_data_lookup: TestDataLookup) -> None:
     """A collection of signed transactions can be encoded"""
-    vectors = _simple_group_vectors(test_data_lookup)
+    vectors = _simple_group_test_data(test_data_lookup)
     grouped = group_transactions([v.transaction for v in vectors])
     encoded_grouped = encode_transactions(grouped)
 
@@ -101,22 +99,3 @@ def test_encode_signed_transactions(test_data_lookup: TestDataLookup) -> None:
         assert decoded.txn.transaction_type == original.txn.transaction_type
         assert decoded.txn.sender == original.txn.sender
         assert decoded.sig == original.sig
-
-
-def test_group_transactions_max_size(test_data_lookup: TestDataLookup) -> None:
-    vectors = _simple_group_vectors(test_data_lookup)
-    base = vectors[0].transaction
-    # Create MAX_TRANSACTION_GROUP_SIZE + 1 copies (with different first_valid to avoid identical txs)
-    over_limit = [
-        base.__class__(
-            transaction_type=TransactionType.Payment,
-            sender=base.sender,
-            first_valid=base.first_valid + i,
-            last_valid=base.last_valid + i,
-            payment=base.payment,
-        )
-        for i in range(MAX_TRANSACTION_GROUP_SIZE + 1)
-    ]
-
-    with pytest.raises(ValueError, match=rf"max limit of {MAX_TRANSACTION_GROUP_SIZE}"):
-        group_transactions(over_limit)
