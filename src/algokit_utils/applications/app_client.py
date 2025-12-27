@@ -276,6 +276,8 @@ class AppClientBareCallParams(CommonAppCallParams):
 class AppClientBareCallCreateParams(CommonAppCallCreateParams):
     """Parameters for creating application with bare call."""
 
+    args: list[bytes] | None = None
+    """Optional arguments"""
     on_complete: CreateOnComplete | None = None
     """Optional on complete action"""
 
