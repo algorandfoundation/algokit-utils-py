@@ -84,11 +84,11 @@ Result of updating an application.
 
 Contains the compiled approval and clear programs.
 
-#### compiled_approval *: Any | None* *= None*
+#### compiled_approval *: [algokit_utils.models.application.CompiledTeal](../../models/application/index.md#algokit_utils.models.application.CompiledTeal) | bytes | None* *= None*
 
 The compiled approval program
 
-#### compiled_clear *: Any | None* *= None*
+#### compiled_clear *: [algokit_utils.models.application.CompiledTeal](../../models/application/index.md#algokit_utils.models.application.CompiledTeal) | bytes | None* *= None*
 
 The compiled clear state program
 
