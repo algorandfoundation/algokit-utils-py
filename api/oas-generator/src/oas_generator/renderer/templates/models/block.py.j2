@@ -11,7 +11,7 @@ from ._serde_helpers import (
     decode_model_mapping,
     decode_model_sequence,
     decode_optional_bool,
-    encode_bytes_base64,
+    encode_bytes,
     encode_model_mapping,
     encode_model_sequence,
     mapping_decoder,
@@ -54,11 +54,11 @@ def _encode_block_state_delta(value: BlockStateDelta | None) -> dict[str, object
 
 def _encode_state_delta_key(key: object) -> str:
     if isinstance(key, bytes):
-        return encode_bytes_base64(key)
+        return encode_bytes(key)
     if isinstance(key, memoryview):
-        return encode_bytes_base64(bytes(key))
+        return encode_bytes(bytes(key))
     if isinstance(key, bytearray):
-        return encode_bytes_base64(bytes(key))
+        return encode_bytes(bytes(key))
     raise TypeError("State delta keys must be bytes-like")
 
 
@@ -301,8 +301,8 @@ class BlockHeader:
         default_factory=UpgradeState,
         metadata=flatten(lambda: UpgradeState),
     )
-    upgrade_vote: UpgradeVote = field(
-        default_factory=UpgradeVote,
+    upgrade_vote: UpgradeVote | None = field(
+        default=None,
         metadata=flatten(lambda: UpgradeVote),
     )
     txn_counter: int | None = field(default=None, metadata=wire("tc"))

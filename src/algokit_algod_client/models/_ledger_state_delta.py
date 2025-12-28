@@ -9,7 +9,7 @@ from ._block import Block
 from ._serde_helpers import (
     decode_bytes_map_key,
     decode_model_sequence,
-    encode_bytes_base64,
+    encode_bytes,
     encode_model_sequence,
     mapping_decoder,
     mapping_encoder,
@@ -46,9 +46,9 @@ __all__ = [
 
 def _encode_bytes_key(key: object) -> str:
     if isinstance(key, bytes):
-        return encode_bytes_base64(key)
+        return encode_bytes(key)
     if isinstance(key, memoryview | bytearray):
-        return encode_bytes_base64(bytes(key))
+        return encode_bytes(bytes(key))
     raise TypeError("Ledger map keys must be bytes-like")
 
 

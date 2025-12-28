@@ -506,10 +506,15 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     assert expected_return.value == result.abi_return
 
 
-def test_retrieve_state(test_app_client: AppClient, funded_account: AddressWithSigners) -> None:
-    # Test global state
-    test_app_client.send.call(AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
+def test_retrieve_global_state(test_app_client: AppClient) -> None:
+    set_global_result = test_app_client.send.call(
+        AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
+    )
     global_state = test_app_client.get_global_state()
+    confirmation_global_delta_kvs = {
+        x.key.decode("utf-8"): (x.value.bytes_ if x.value.action == 1 else x.value.uint)
+        for x in sorted(set_global_result.confirmation.global_state_delta or [], key=lambda x: x.key)
+    }
 
     assert "int1" in global_state
     assert "int2" in global_state
@@ -521,11 +526,25 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: AddressWithS
     assert global_state["int2"].value == 2
     assert global_state["bytes1"].value == "asdf"
     assert global_state["bytes2"].value_raw == bytes([1, 2, 3, 4])
+    assert confirmation_global_delta_kvs == {
+        "bytes1": b"asdf",
+        "bytes2": bytes([1, 2, 3, 4]),
+        "int1": 1,
+        "int2": 2,
+    }
 
-    # Test local state
+
+def test_retrieve_local_state(test_app_client: AppClient, funded_account: AddressWithSigners) -> None:
     test_app_client.send.opt_in(AppClientMethodCallParams(method="opt_in"))
-    test_app_client.send.call(AppClientMethodCallParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
+    set_local_result = test_app_client.send.call(
+        AppClientMethodCallParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
+    )
     local_state = test_app_client.get_local_state(funded_account.addr)
+    assert set_local_result.confirmation.local_state_delta is not None
+    confirmation_local_delta_kvs = {
+        x.key.decode("utf-8"): (x.value.bytes_ if x.value.action == 1 else x.value.uint)
+        for x in sorted(set_local_result.confirmation.local_state_delta[0].delta or [], key=lambda x: x.key)
+    }
 
     assert "local_int1" in local_state
     assert "local_int2" in local_state
@@ -536,8 +555,15 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: AddressWithS
     assert local_state["local_int2"].value == 2
     assert local_state["local_bytes1"].value == "asdf"
     assert local_state["local_bytes2"].value_raw == bytes([1, 2, 3, 4])
+    assert confirmation_local_delta_kvs == {
+        "local_bytes1": b"asdf",
+        "local_bytes2": bytes([1, 2, 3, 4]),
+        "local_int1": 1,
+        "local_int2": 2,
+    }
 
-    # Test box storage
+
+def test_retrieve_box_state(test_app_client: AppClient) -> None:
     box_name1 = bytes([0, 0, 0, 1])
     box_name1_base64 = base64.b64encode(box_name1).decode()
     box_name2 = bytes([0, 0, 0, 2])

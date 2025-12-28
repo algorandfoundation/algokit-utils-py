@@ -27,7 +27,9 @@ class TypeInfo:
     list_inner_model: str | None = None
     list_inner_enum: str | None = None
     is_bytes: bool = False
+    is_bytes_b64: bool = False  # True for x-algokit-bytes-base64 fields (always base64 encoded)
     list_inner_is_bytes: bool = False
+    list_inner_is_bytes_b64: bool = False  # True for x-algokit-bytes-base64 list items
     is_signed_transaction: bool = False
     is_box_reference: bool = False
     is_locals_reference: bool = False
@@ -203,11 +205,12 @@ class TypeResolver:
             return self._maybe_optional(info, nullable=nullable)
         if schema_type == "string":
             fmt = schema.get("format")
-            if fmt in {"byte", "binary"} or schema.get("x-algokit-bytes-base64"):
+            is_bytes_b64 = bool(schema.get("x-algokit-bytes-base64"))
+            if fmt in {"byte", "binary"} or is_bytes_b64:
                 # Extract fixed byte length if present
                 byte_length_val = schema.get("x-algokit-byte-length")
                 byte_length = int(byte_length_val) if byte_length_val is not None else None
-                info = TypeInfo(annotation="bytes", is_bytes=True, byte_length=byte_length)
+                info = TypeInfo(annotation="bytes", is_bytes=True, is_bytes_b64=is_bytes_b64, byte_length=byte_length)
             elif fmt == "date-time":
                 info = TypeInfo(
                     annotation="datetime",
@@ -261,6 +264,7 @@ class TypeResolver:
             list_inner_model=inner.model,
             list_inner_enum=inner.enum,
             list_inner_is_bytes=inner.is_bytes,
+            list_inner_is_bytes_b64=inner.is_bytes_b64,
             list_inner_byte_length=inner.byte_length,
             is_signed_transaction=inner.is_signed_transaction,
             is_box_reference=inner.is_box_reference,
@@ -436,20 +440,17 @@ class ModelBuilder:
                 elif type_info.is_list:
                     # Lists use default_factory=list
                     default_factory = "list"
-            else:
-                # Optional fields: use schema default if provided, otherwise None
-                if schema_default is not None:
-                    # Format the default value based on type
-                    if isinstance(schema_default, str):
-                        default_value = f'"{schema_default}"'
-                    elif isinstance(schema_default, bool):
-                        default_value = str(schema_default)
-                    elif isinstance(schema_default, int | float):
-                        default_value = str(schema_default)
-                    else:
-                        default_value = "None"
+            # Optional fields: use schema default if provided, otherwise None
+            elif schema_default is not None:
+                # Format the default value based on type
+                if isinstance(schema_default, str):
+                    default_value = f'"{schema_default}"'
+                elif isinstance(schema_default, bool | (int | float)):
+                    default_value = str(schema_default)
                 else:
                     default_value = "None"
+            else:
+                default_value = "None"
 
             field = ctx.ModelField(
                 name=self.sanitizer.snake(python_name_hint),
@@ -501,12 +502,14 @@ class ModelBuilder:
                 imports.add("from ._serde_helpers import encode_model_mapping, mapping_encoder")
             if "decode_model_mapping" in field.metadata or "mapping_decoder" in field.metadata:
                 imports.add("from ._serde_helpers import decode_model_mapping, mapping_decoder")
-            if "encode_bytes_base64" in field.metadata or "decode_bytes_base64" in field.metadata:
-                imports.add("from ._serde_helpers import decode_bytes_base64, encode_bytes_base64")
+            if "encode_bytes" in field.metadata or "decode_bytes" in field.metadata:
+                imports.add("from ._serde_helpers import decode_bytes, encode_bytes")
+            if "decode_bytes_base64" in field.metadata:
+                imports.add("from ._serde_helpers import decode_bytes_base64, encode_bytes")
             if "encode_bytes_sequence" in field.metadata or "decode_bytes_sequence" in field.metadata:
                 imports.add("from ._serde_helpers import decode_bytes_sequence, encode_bytes_sequence")
-            if "encode_fixed_bytes_base64" in field.metadata or "decode_fixed_bytes_base64" in field.metadata:
-                imports.add("from ._serde_helpers import decode_fixed_bytes_base64, encode_fixed_bytes_base64")
+            if "encode_fixed_bytes" in field.metadata or "decode_fixed_bytes" in field.metadata:
+                imports.add("from ._serde_helpers import decode_fixed_bytes, encode_fixed_bytes")
             if "encode_fixed_bytes_sequence" in field.metadata or "decode_fixed_bytes_sequence" in field.metadata:
                 imports.add("from ._serde_helpers import decode_fixed_bytes_sequence, encode_fixed_bytes_sequence")
             if "nested(" in field.metadata:
@@ -649,20 +652,22 @@ class ModelBuilder:
                 "        )"
             )
         if type_info.is_bytes:
+            # Use decode_bytes_base64 for fields marked with x-algokit-bytes-base64
+            decode_fn = "decode_bytes_base64" if type_info.is_bytes_b64 else "decode_bytes"
             # Handle fixed-length bytes
             if type_info.byte_length is not None:
                 return (
                     "wire(\n"
                     f'            "{alias}",\n'
-                    f"            encode=lambda v: encode_fixed_bytes_base64(v, {type_info.byte_length}),\n"
-                    f"            decode=lambda raw: decode_fixed_bytes_base64(raw, {type_info.byte_length}),\n"
+                    f"            encode=lambda v: encode_fixed_bytes(v, {type_info.byte_length}),\n"
+                    f"            decode=lambda raw: decode_fixed_bytes(raw, {type_info.byte_length}),\n"
                     "        )"
                 )
             return (
                 "wire(\n"
                 f'            "{alias}",\n'
-                "            encode=encode_bytes_base64,\n"
-                "            decode=decode_bytes_base64,\n"
+                "            encode=encode_bytes,\n"
+                f"            decode={decode_fn},\n"
                 "        )"
             )
         if type_info.is_signed_transaction:
