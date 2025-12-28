@@ -42,13 +42,11 @@ def decode_bytes_base64(raw: object) -> bytes:
     Used for fields marked with x-algokit-bytes-base64 in the OpenAPI spec.
     These fields contain base64-encoded strings in both JSON and msgpack responses.
     """
-    try:
-        if isinstance(raw, bytes | bytearray | memoryview):
+    if isinstance(raw, bytes | bytearray | memoryview | str):
+        try:
             return base64.b64decode(raw, validate=True)
-        if isinstance(raw, str):
-            return base64.b64decode(raw.encode("ascii"), validate=True)
-    except (BinasciiError, ValueError, UnicodeEncodeError) as exc:
-        raise ValueError("Invalid base64 payload") from exc
+        except (BinasciiError, ValueError, UnicodeEncodeError) as exc:
+            raise ValueError("Invalid base64 payload") from exc
     raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
 
 
