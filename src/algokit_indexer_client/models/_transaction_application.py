@@ -9,10 +9,10 @@ from ._box_reference import BoxReference
 from ._on_completion import OnCompletion
 from ._resource_ref import ResourceRef
 from ._serde_helpers import (
-    decode_bytes_base64,
+    decode_bytes,
     decode_bytes_sequence,
     decode_model_sequence,
-    encode_bytes_base64,
+    encode_bytes,
     encode_bytes_sequence,
     encode_model_sequence,
 )
@@ -59,8 +59,8 @@ class TransactionApplication:
         default=None,
         metadata=wire(
             "approval-program",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     box_references: list[BoxReference] | None = field(
@@ -75,8 +75,8 @@ class TransactionApplication:
         default=None,
         metadata=wire(
             "clear-state-program",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     extra_program_pages: int | None = field(

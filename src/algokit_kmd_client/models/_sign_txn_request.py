@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
-from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+from ._serde_helpers import decode_bytes, encode_bytes
 
 
 @dataclass(slots=True)
@@ -18,8 +18,8 @@ class SignTxnRequest:
         default=b"",
         metadata=wire(
             "transaction",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     wallet_handle_token: str = field(
@@ -30,8 +30,8 @@ class SignTxnRequest:
         default=None,
         metadata=wire(
             "public_key",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     wallet_password: str | None = field(

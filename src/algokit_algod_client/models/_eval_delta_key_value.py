@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._eval_delta import EvalDelta
-from ._serde_helpers import decode_bytes_base64, encode_bytes_base64
+from ._serde_helpers import decode_bytes_base64, encode_bytes
 
 
 @dataclass(slots=True)
@@ -22,7 +22,7 @@ class EvalDeltaKeyValue:
         default=b"",
         metadata=wire(
             "key",
-            encode=encode_bytes_base64,
+            encode=encode_bytes,
             decode=decode_bytes_base64,
         ),
     )

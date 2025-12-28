@@ -6,12 +6,12 @@ from dataclasses import dataclass, field
 from algokit_common.serde import nested, wire
 
 from ._serde_helpers import (
-    decode_bytes_base64,
+    decode_bytes,
     decode_bytes_sequence,
-    decode_fixed_bytes_base64,
-    encode_bytes_base64,
+    decode_fixed_bytes,
+    encode_bytes,
     encode_bytes_sequence,
-    encode_fixed_bytes_base64,
+    encode_fixed_bytes,
 )
 from ._transaction_signature_multisig import TransactionSignatureMultisig
 
@@ -29,8 +29,8 @@ class TransactionSignatureLogicsig:
         default=b"",
         metadata=wire(
             "logic",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     args: list[bytes] | None = field(
@@ -53,7 +53,7 @@ class TransactionSignatureLogicsig:
         default=None,
         metadata=wire(
             "signature",
-            encode=lambda v: encode_fixed_bytes_base64(v, 64),
-            decode=lambda raw: decode_fixed_bytes_base64(raw, 64),
+            encode=lambda v: encode_fixed_bytes(v, 64),
+            decode=lambda raw: decode_fixed_bytes(raw, 64),
         ),
     )
