@@ -20,11 +20,12 @@ def _coerce_bytes(value: bytes | bytearray | memoryview) -> bytes:
     return value
 
 
-def encode_bytes_base64(value: BytesLike) -> str:
+def encode_bytes(value: BytesLike) -> str:
     return base64.b64encode(_coerce_bytes(value)).decode("ascii")
 
 
-def decode_bytes_base64(raw: object) -> bytes:
+def decode_bytes(raw: object) -> bytes:
+    """Decode bytes that may be raw (msgpack) or base64-encoded (JSON)."""
     if isinstance(raw, bytes | bytearray | memoryview):
         return bytes(raw)
     if isinstance(raw, str):
@@ -35,7 +36,23 @@ def decode_bytes_base64(raw: object) -> bytes:
     raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
 
 
-def encode_fixed_bytes_base64(value: BytesLike, expected_length: int) -> str:
+def decode_bytes_base64(raw: object) -> bytes:
+    """Decode bytes that are always base64-encoded strings (even in msgpack).
+
+    Used for fields marked with x-algokit-bytes-base64 in the OpenAPI spec.
+    These fields contain base64-encoded strings in both JSON and msgpack responses.
+    """
+    try:
+        if isinstance(raw, bytes | bytearray | memoryview):
+            return base64.b64decode(raw, validate=True)
+        if isinstance(raw, str):
+            return base64.b64decode(raw.encode("ascii"), validate=True)
+    except (BinasciiError, ValueError, UnicodeEncodeError) as exc:
+        raise ValueError("Invalid base64 payload") from exc
+    raise TypeError(f"Unsupported value for bytes field: {type(raw)!r}")
+
+
+def encode_fixed_bytes(value: BytesLike, expected_length: int) -> str:
     """Encode fixed-length bytes to base64, validating the length."""
     coerced = _coerce_bytes(value)
     if len(coerced) != expected_length:
@@ -43,9 +60,9 @@ def encode_fixed_bytes_base64(value: BytesLike, expected_length: int) -> str:
     return base64.b64encode(coerced).decode("ascii")
 
 
-def decode_fixed_bytes_base64(raw: object, expected_length: int) -> bytes:
+def decode_fixed_bytes(raw: object, expected_length: int) -> bytes:
     """Decode base64 to fixed-length bytes, validating the length."""
-    decoded = decode_bytes_base64(raw)
+    decoded = decode_bytes(raw)
     if len(decoded) != expected_length:
         raise ValueError(f"Expected {expected_length} bytes, got {len(decoded)}")
     return decoded
@@ -75,7 +92,7 @@ def encode_bytes_sequence(values: Iterable[BytesLike | None] | None) -> list[str
             continue
         if not isinstance(value, bytes | bytearray | memoryview):
             raise TypeError(f"Unsupported value for bytes field sequence: {type(value)!r}")
-        encoded.append(encode_bytes_base64(value))
+        encoded.append(encode_bytes(value))
     return encoded or None
 
 
@@ -87,7 +104,7 @@ def decode_bytes_sequence(raw: object) -> list[bytes | None] | None:
         if item is None:
             decoded.append(None)
             continue
-        decoded.append(decode_bytes_base64(item))
+        decoded.append(decode_bytes(item))
     return decoded or None
 
 
@@ -104,7 +121,7 @@ def encode_fixed_bytes_sequence(
             continue
         if not isinstance(value, bytes | bytearray | memoryview):
             raise TypeError(f"Unsupported value for bytes field sequence: {type(value)!r}")
-        encoded.append(encode_fixed_bytes_base64(value, expected_length))
+        encoded.append(encode_fixed_bytes(value, expected_length))
     return encoded or None
 
 
@@ -117,7 +134,7 @@ def decode_fixed_bytes_sequence(raw: object, expected_length: int) -> list[bytes
         if item is None:
             decoded.append(None)
             continue
-        decoded.append(decode_fixed_bytes_base64(item, expected_length))
+        decoded.append(decode_fixed_bytes(item, expected_length))
     return decoded or None
 
 

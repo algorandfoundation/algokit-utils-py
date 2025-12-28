@@ -8,13 +8,13 @@ from algokit_common.serde import nested, wire
 from ._account_state_delta import AccountStateDelta
 from ._eval_delta_key_value import EvalDeltaKeyValue
 from ._serde_helpers import (
-    decode_bytes_base64,
+    decode_bytes,
     decode_bytes_sequence,
-    decode_fixed_bytes_base64,
+    decode_fixed_bytes,
     decode_model_sequence,
-    encode_bytes_base64,
+    encode_bytes,
     encode_bytes_sequence,
-    encode_fixed_bytes_base64,
+    encode_fixed_bytes,
     encode_model_sequence,
 )
 from ._transaction_application import TransactionApplication
@@ -103,8 +103,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "genesis-hash",
-            encode=lambda v: encode_fixed_bytes_base64(v, 32),
-            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
+            encode=lambda v: encode_fixed_bytes(v, 32),
+            decode=lambda raw: decode_fixed_bytes(raw, 32),
         ),
     )
     genesis_id: str | None = field(
@@ -123,8 +123,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "group",
-            encode=lambda v: encode_fixed_bytes_base64(v, 32),
-            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
+            encode=lambda v: encode_fixed_bytes(v, 32),
+            decode=lambda raw: decode_fixed_bytes(raw, 32),
         ),
     )
     heartbeat_transaction: TransactionHeartbeat | None = field(
@@ -155,8 +155,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "lease",
-            encode=lambda v: encode_fixed_bytes_base64(v, 32),
-            decode=lambda raw: decode_fixed_bytes_base64(raw, 32),
+            encode=lambda v: encode_fixed_bytes(v, 32),
+            decode=lambda raw: decode_fixed_bytes(raw, 32),
         ),
     )
     local_state_delta: list[AccountStateDelta] | None = field(
@@ -179,8 +179,8 @@ class Transaction:
         default=None,
         metadata=wire(
             "note",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     payment_transaction: TransactionPayment | None = field(

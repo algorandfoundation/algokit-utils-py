@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from algokit_common.serde import wire
 
-from ._serde_helpers import decode_bytes_base64, decode_model_sequence, encode_bytes_base64, encode_model_sequence
+from ._serde_helpers import decode_bytes, decode_model_sequence, encode_bytes, encode_model_sequence
 from ._simulation_opcode_trace_unit import SimulationOpcodeTraceUnit
 
 
@@ -20,8 +20,8 @@ class SimulationTransactionExecTrace:
         default=None,
         metadata=wire(
             "approval-program-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     approval_program_trace: list[SimulationOpcodeTraceUnit] | None = field(
@@ -36,8 +36,8 @@ class SimulationTransactionExecTrace:
         default=None,
         metadata=wire(
             "clear-state-program-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     clear_state_program_trace: list[SimulationOpcodeTraceUnit] | None = field(
@@ -68,8 +68,8 @@ class SimulationTransactionExecTrace:
         default=None,
         metadata=wire(
             "logic-sig-hash",
-            encode=encode_bytes_base64,
-            decode=decode_bytes_base64,
+            encode=encode_bytes,
+            decode=decode_bytes,
         ),
     )
     logic_sig_trace: list[SimulationOpcodeTraceUnit] | None = field(
