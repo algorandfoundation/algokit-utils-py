@@ -13,6 +13,7 @@ from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
+from algokit_utils.models.application import CompiledTeal
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -160,10 +161,10 @@ class SendAppUpdateTransactionResult(SendAppTransactionResult[ABIReturnT]):
     Contains the compiled approval and clear programs.
     """
 
-    compiled_approval: Any | None = None
+    compiled_approval: CompiledTeal | bytes | None = None
     """The compiled approval program"""
 
-    compiled_clear: Any | None = None
+    compiled_clear: CompiledTeal | bytes | None = None
     """The compiled clear state program"""
 
 
