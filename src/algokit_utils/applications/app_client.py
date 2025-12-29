@@ -954,14 +954,13 @@ class _AppClientBareSendAccessor:
                 "deletable": compilation.get("deletable"),
             }
         )
-        bare_params = self._client.params.bare.update(params)
-        bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
-        bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
-        call_result = self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_params, send_params))
-        return SendAppTransactionResult[ABIReturn](
-            **{**call_result.__dict__, **(compiled.__dict__ if compiled else {})},
-            abi_return=AppManager.get_abi_return(call_result.confirmation, getattr(params, "method", None)),
+        bare_call_params = self._client.params.bare.call(params, on_complete=OnApplicationComplete.UpdateApplication)
+        bare_update_params = AppUpdateParams(
+            **bare_call_params.__dict__,
+            approval_program=compiled.approval_program,
+            clear_state_program=compiled.clear_state_program,
         )
+        return self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_update_params, send_params))
 
     def opt_in(
         self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
