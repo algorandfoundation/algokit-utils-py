@@ -1348,7 +1348,7 @@ class TransactionComposer:
             return resolved
         return signer
 
-    def _sign_transactions(self, txns_with_signers: Sequence[TransactionWithSigner]) -> list[SignedTransaction]:
+    def _sign_transactions(self, txns_with_signers: Sequence[TransactionWithSigner]) -> list[SignedTransaction]:  # noqa: C901
         if not txns_with_signers:
             raise ValueError("No transactions available to sign")
 
@@ -1364,21 +1364,34 @@ class TransactionComposer:
         for key, (signer, indexes) in signer_groups.items():
             blobs = signer(transactions, indexes)
             signed_blobs[key] = list(blobs)
-            if len(blobs) != len(indexes):
-                raise ValueError("Signer returned unexpected number of transactions")
 
-        ordered: list[SignedTransaction | None] = [None] * len(transactions)
+        raw_signed_transactions: list[bytes | None] = [None] * len(transactions)
+
         for key, (_, indexes) in signer_groups.items():
             blobs = signed_blobs[key]
             for blob_index, txn_index in enumerate(indexes):
-                signed_txn = decode_signed_transaction(blobs[blob_index])
-                validate_signed_transaction(signed_txn)
-                ordered[txn_index] = signed_txn
+                if blob_index < len(blobs):
+                    raw_signed_transactions[txn_index] = blobs[blob_index]
 
-        if any(item is None for item in ordered):
-            raise ValueError("One or more transactions were not signed")
+        unsigned_indexes = [i for i, item in enumerate(raw_signed_transactions) if item is None]
+        if unsigned_indexes:
+            raise ValueError(f"Transactions at indexes [{', '.join(map(str, unsigned_indexes))}] were not signed")
 
-        return [item for item in ordered if item is not None]
+        # Decode and validate all signed transactions
+        signed_transactions: list[SignedTransaction] = []
+        for index, stxn in enumerate(raw_signed_transactions):
+            if stxn is None:
+                # This shouldn't happen due to the check above, but ensures type safety
+                raise ValueError(f"Transaction at index {index} was not signed")
+
+            try:
+                signed_transaction = decode_signed_transaction(stxn)
+                validate_signed_transaction(signed_transaction)
+                signed_transactions.append(signed_transaction)
+            except Exception as err:
+                raise ValueError(f"Invalid signed transaction at index {index}. {err}") from err
+
+        return signed_transactions
 
     def _group_id(self) -> str | None:
         txns = self._transactions_with_signers or []
