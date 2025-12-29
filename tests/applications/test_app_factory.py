@@ -2,11 +2,13 @@ from pathlib import Path
 
 import pytest
 
+import algokit_utils
 from algokit_abi import arc56
 from algokit_algod_client import models as algod_models
 from algokit_common import get_application_address
 from algokit_transact import OnApplicationComplete
 from algokit_transact.signer import AddressWithSigners
+from algokit_utils import AppClientCompilationParams
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -50,6 +52,20 @@ def app_spec() -> str:
 @pytest.fixture
 def app_spec_bare_create_abi_delete() -> str:
     return (Path(__file__).parent.parent / "artifacts" / "bare_create_abi_delete" / "app_spec.arc56.json").read_text()
+
+
+@pytest.fixture
+def legacy_app_client_test_app_spec() -> str:
+    return (Path(__file__).parent.parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
+
+
+@pytest.fixture
+def legacy_app_client_factory(
+    algorand: AlgorandClient, funded_account: AddressWithSigners, legacy_app_client_test_app_spec: str
+) -> AppFactory:
+    """Create AppFactory fixture"""
+    app_spec = arc56.Arc56Contract.from_arc32(legacy_app_client_test_app_spec)
+    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.addr)
 
 
 @pytest.fixture
@@ -649,6 +665,42 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     assert "retsub" in actual_trace
     assert "// specificLengthTemplateVar()void" in actual_trace
     assert "*abi_route_specificLengthTemplateVar:" in actual_trace
+
+
+def test_bare_create_update_delete(legacy_app_client_factory: AppFactory) -> None:
+    client, _ = legacy_app_client_factory.send.bare.create(
+        compilation_params=AppClientCompilationParams(
+            deploy_time_params={"TMPL_VERSION": 1},
+            deletable=False,
+            updatable=True,
+        )
+    )
+
+    # should fail to delete
+    with pytest.raises(algokit_utils.LogicError, match="// is deletable\n\tassert\t\t<-- Error"):
+        client.send.bare.delete()
+
+    # make deletable but not updatable
+    client.send.bare.update(
+        compilation_params=AppClientCompilationParams(
+            deploy_time_params={"TMPL_VERSION": 2},
+            deletable=True,
+            updatable=False,
+        )
+    )
+
+    # should fail to update
+    with pytest.raises(algokit_utils.LogicError, match="// is updatable\n\tassert\t\t<-- Error"):
+        client.send.bare.update(
+            compilation_params=AppClientCompilationParams(
+                deploy_time_params={"TMPL_VERSION": 3},
+                deletable=True,
+                updatable=False,
+            )
+        )
+
+    # should delete
+    client.send.bare.delete()
 
 
 def test_bare_create_abi_delete(
