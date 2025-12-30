@@ -574,3 +574,209 @@ def test_send_without_params_respects_composer_config(
         f"simulate_transactions was called {patched.call_count} times, "
         "but should not be called when populate_app_call_resources=False"
     )
+
+
+class TestGatherSignatures:
+    """Tests for the gather_signatures method."""
+
+    def test_should_successfully_sign_a_single_transaction(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test that a single transaction is signed successfully."""
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+            )
+        )
+
+        signed_txns = composer.gather_signatures()
+
+        assert len(signed_txns) == 1
+        assert signed_txns[0] is not None
+        assert signed_txns[0].sig is not None
+
+    def test_should_successfully_sign_multiple_transactions_with_same_signer(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test that multiple transactions from the same sender are signed correctly."""
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+            )
+        )
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(2000),
+            )
+        )
+
+        signed_txns = composer.gather_signatures()
+
+        assert len(signed_txns) == 2
+        assert signed_txns[0].sig is not None
+        assert signed_txns[1].sig is not None
+
+    def test_should_successfully_sign_transactions_with_multiple_different_signers(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test that transactions from different senders are each signed correctly."""
+        # Create and fund a second account
+        sender2 = algorand.account.random()
+        algorand.send.payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=sender2.addr,
+                amount=AlgoAmount.from_algo(10),
+            )
+        )
+
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=sender2.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+            )
+        )
+        composer.add_payment(
+            PaymentParams(
+                sender=sender2.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+                signer=sender2.signer,
+            )
+        )
+
+        signed_txns = composer.gather_signatures()
+
+        assert len(signed_txns) == 2
+        assert signed_txns[0].sig is not None
+        assert signed_txns[1].sig is not None
+
+    def test_should_throw_error_when_no_transactions_to_sign(self, algorand: AlgorandClient) -> None:
+        """Test that an error is thrown when there are no transactions to sign."""
+        composer = algorand.new_group()
+
+        with pytest.raises(ValueError, match="Cannot build an empty transaction group"):
+            composer.gather_signatures()
+
+    def test_should_throw_error_when_signer_returns_fewer_signed_transactions_than_expected(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test error handling when a signer returns fewer signed transactions than requested."""
+        from collections.abc import Sequence
+
+        from algokit_transact.models.transaction import Transaction
+
+        real_signer = algorand.account.get_signer(funded_account.addr)
+
+        # Create a faulty signer that returns fewer signed transactions than requested
+        def faulty_signer(txns: Sequence[Transaction], indexes: Sequence[int]) -> list[bytes]:
+            # Only return one signed transaction even if multiple are requested
+            return real_signer(txns, [indexes[0]])
+
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+                signer=faulty_signer,
+            )
+        )
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(2000),
+                signer=faulty_signer,
+            )
+        )
+
+        with pytest.raises(ValueError, match=r"Transactions at indexes \[1\] were not signed"):
+            composer.gather_signatures()
+
+    def test_should_throw_error_when_signer_returns_none_signed_transaction(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test error handling when a signer returns None values."""
+        from collections.abc import Sequence
+
+        from algokit_transact.models.transaction import Transaction
+
+        # Create a faulty signer that returns array of Nones
+        def faulty_signer(_txns: Sequence[Transaction], indexes: Sequence[int]) -> list[bytes]:
+            return [None] * len(indexes)  # type: ignore[list-item]
+
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+                signer=faulty_signer,
+            )
+        )
+
+        # Should provide a clear error message indicating which transaction was not signed
+        with pytest.raises(ValueError, match=r"Transactions at indexes \[0\] were not signed"):
+            composer.gather_signatures()
+
+    def test_should_throw_error_when_signer_returns_empty_array(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test error handling when a signer returns an empty array."""
+        from collections.abc import Sequence
+
+        from algokit_transact.models.transaction import Transaction
+
+        # Create a faulty signer that returns empty array
+        def faulty_signer(_txns: Sequence[Transaction], _indexes: Sequence[int]) -> list[bytes]:
+            return []
+
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+                signer=faulty_signer,
+            )
+        )
+
+        with pytest.raises(ValueError, match=r"Transactions at indexes \[0\] were not signed"):
+            composer.gather_signatures()
+
+    def test_should_throw_error_when_signer_returns_invalid_signed_transaction_data(
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test error handling when a signer returns malformed signed transaction data."""
+        from collections.abc import Sequence
+
+        from algokit_transact.models.transaction import Transaction
+
+        # Create a faulty signer that returns invalid data
+        def faulty_signer(_txns: Sequence[Transaction], indexes: Sequence[int]) -> list[bytes]:
+            return [bytes([1, 2, 3]) for _ in indexes]
+
+        composer = algorand.new_group()
+        composer.add_payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(1000),
+                signer=faulty_signer,
+            )
+        )
+
+        # Should provide a clear error message indicating which transaction had invalid data
+        with pytest.raises(ValueError, match="Invalid signed transaction at index 0"):
+            composer.gather_signatures()
