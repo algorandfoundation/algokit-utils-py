@@ -11,13 +11,13 @@ from algokit_algod_client import models as algod_models
 from algokit_algod_client.exceptions import UnexpectedStatusError
 from algokit_algod_client.models import SimulateTransactionResult
 from algokit_common.constants import MAX_TRANSACTION_GROUP_SIZE
-from algokit_transact import decode_signed_transaction, encode_signed_transactions, make_empty_transaction_signer
-from algokit_transact.models.signed_transaction import SignedTransaction
+from algokit_transact import make_empty_transaction_signer
+from algokit_transact.codec.signed import decode_signed_transactions
 from algokit_transact.models.transaction import Transaction, TransactionType
 from algokit_transact.ops.fees import calculate_fee
 from algokit_transact.ops.group import group_transactions
 from algokit_transact.ops.ids import get_transaction_id
-from algokit_transact.ops.validate import validate_signed_transaction, validate_transaction
+from algokit_transact.ops.validate import validate_transaction
 from algokit_transact.signer import AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
@@ -262,7 +262,7 @@ class TransactionComposer:
 
         self._queued: list[_QueuedTransaction] = []
         self._transactions_with_signers: list[TransactionWithSigner] | None = None
-        self._signed_transactions: list[SignedTransaction] | None = None
+        self._signed_transactions: list[bytes] | None = None
         self._raw_built_transactions: list[Transaction] | None = None
 
     def clone(self, composer_config: TransactionComposerConfig | None = None) -> "TransactionComposer":
@@ -459,7 +459,7 @@ class TransactionComposer:
         signers = {index: entry.signer for index, entry in enumerate(built_entries) if entry.signer is not None}
         return BuiltTransactions(transactions=transactions, method_calls=method_calls, signers=signers)
 
-    def gather_signatures(self) -> list[SignedTransaction]:
+    def gather_signatures(self) -> list[bytes]:
         self._ensure_built()
         if self._signed_transactions is None:
             self._signed_transactions = self._sign_transactions(self._transactions_with_signers or [])
@@ -503,8 +503,7 @@ class TransactionComposer:
 
         # Send transactions and handle network errors
         try:
-            blobs = encode_signed_transactions(signed_transactions)
-            self._algod.send_raw_transaction(blobs)
+            self._algod.send_raw_transaction(signed_transactions)
 
             tx_ids = [get_transaction_id(entry.txn) for entry in self._transactions_with_signers or []]
             group_id = self._group_id()
@@ -627,7 +626,8 @@ class TransactionComposer:
                 )
                 for entry in txns_with_signers
             ]
-            signed_transactions = self._sign_transactions(signing_entries)
+            encoded_signed_transactions = self._sign_transactions(signing_entries)
+            signed_transactions = decode_signed_transactions(encoded_signed_transactions)
 
             request = algod_models.SimulateRequest(
                 txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
@@ -813,9 +813,10 @@ class TransactionComposer:
             transactions_to_simulate = group_transactions(transactions_to_simulate)
 
         empty_signer: TransactionSigner = make_empty_transaction_signer()
-        signed_transactions = self._sign_transactions(
+        encoded_signed_transactions = self._sign_transactions(
             [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in transactions_to_simulate]
         )
+        signed_transactions = decode_signed_transactions(encoded_signed_transactions)
 
         simulate_request = algod_models.SimulateRequest(
             txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
@@ -1348,7 +1349,7 @@ class TransactionComposer:
             return resolved
         return signer
 
-    def _sign_transactions(self, txns_with_signers: Sequence[TransactionWithSigner]) -> list[SignedTransaction]:  # noqa: C901
+    def _sign_transactions(self, txns_with_signers: Sequence[TransactionWithSigner]) -> list[bytes]:
         if not txns_with_signers:
             raise ValueError("No transactions available to sign")
 
@@ -1365,33 +1366,19 @@ class TransactionComposer:
             blobs = signer(transactions, indexes)
             signed_blobs[key] = list(blobs)
 
-        raw_signed_transactions: list[bytes | None] = [None] * len(transactions)
+        encoded_signed_transactions: list[bytes | None] = [None] * len(transactions)
 
         for key, (_, indexes) in signer_groups.items():
             blobs = signed_blobs[key]
             for blob_index, txn_index in enumerate(indexes):
                 if blob_index < len(blobs):
-                    raw_signed_transactions[txn_index] = blobs[blob_index]
+                    encoded_signed_transactions[txn_index] = blobs[blob_index]
 
-        unsigned_indexes = [i for i, item in enumerate(raw_signed_transactions) if item is None]
+        unsigned_indexes = [i for i, item in enumerate(encoded_signed_transactions) if item is None]
         if unsigned_indexes:
             raise ValueError(f"Transactions at indexes [{', '.join(map(str, unsigned_indexes))}] were not signed")
 
-        # Decode and validate all signed transactions
-        signed_transactions: list[SignedTransaction] = []
-        for index, stxn in enumerate(raw_signed_transactions):
-            if stxn is None:
-                # This shouldn't happen due to the check above, but ensures type safety
-                raise ValueError(f"Transaction at index {index} was not signed")
-
-            try:
-                signed_transaction = decode_signed_transaction(stxn)
-                validate_signed_transaction(signed_transaction)
-                signed_transactions.append(signed_transaction)
-            except Exception as err:
-                raise ValueError(f"Invalid signed transaction at index {index}. {err}") from err
-
-        return signed_transactions
+        return cast(list[bytes], encoded_signed_transactions)  # The guard above ensures no None values
 
     def _group_id(self) -> str | None:
         txns = self._transactions_with_signers or []
@@ -1468,9 +1455,10 @@ class TransactionComposer:
         """
         try:
             empty_signer: TransactionSigner = make_empty_transaction_signer()
-            signed_transactions = self._sign_transactions(
+            encoded_signed_transactions = self._sign_transactions(
                 [TransactionWithSigner(txn=txn, signer=empty_signer) for txn in sent_transactions]
             )
+            signed_transactions = decode_signed_transactions(encoded_signed_transactions)
             request = algod_models.SimulateRequest(
                 txn_groups=[algod_models.SimulateRequestTransactionGroup(txns=signed_transactions)],
                 allow_empty_signatures=True,

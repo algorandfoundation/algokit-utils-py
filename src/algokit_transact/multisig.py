@@ -8,6 +8,7 @@ from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.codec.transaction import encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction as AlgokitTransaction
+from algokit_transact.ops.validate import validate_signed_transaction
 from algokit_transact.signer import AddressWithSigners
 from algokit_transact.signing.multisig import (
     address_from_multisig_signature,
@@ -87,6 +88,7 @@ class MultisigAccount:
                     lsig=None,
                     auth_address=msig_address if txn.sender != msig_address else None,
                 )
+                validate_signed_transaction(signed)
                 blobs.append(encode_signed_transaction(signed))
             return blobs
 

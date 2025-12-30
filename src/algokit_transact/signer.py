@@ -13,6 +13,7 @@ from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.codec.transaction import encode_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
+from algokit_transact.ops.validate import validate_signed_transaction
 
 if TYPE_CHECKING:
     from algokit_transact.logicsig import (
@@ -115,6 +116,7 @@ def generate_address_with_signers(
                 sig=signature,
                 auth_address=auth_addr if txn.sender != auth_addr else None,
             )
+            validate_signed_transaction(stxn)
             result.append(encode_signed_transaction(stxn))
         return result
 
@@ -153,6 +155,7 @@ def make_empty_transaction_signer() -> TransactionSigner:
                 txn=txn_group[index],
                 sig=EMPTY_SIGNATURE,
             )
+            validate_signed_transaction(stxn)
             result.append(encode_signed_transaction(stxn))
         return result
 
