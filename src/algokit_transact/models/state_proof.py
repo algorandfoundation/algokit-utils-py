@@ -83,7 +83,7 @@ class StateProofMessage:
 
 @dataclass(slots=True, frozen=True)
 class StateProofTransactionFields:
-    state_proof_type: int | None = field(default=None, metadata=wire("sptype"))
+    state_proof_type: int = field(default=0, metadata=wire("sptype"))
     # Flatten state proof and message at the transaction level (aliases under root: sp and spmsg)
     state_proof: StateProof | None = field(default=None, metadata=nested("sp", StateProof))
     message: StateProofMessage | None = field(default=None, metadata=nested("spmsg", StateProofMessage))
