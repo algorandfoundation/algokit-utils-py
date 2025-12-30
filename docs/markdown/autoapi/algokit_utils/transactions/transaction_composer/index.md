@@ -174,7 +174,7 @@ Build queued transactions without resource population or grouping.
 Returns raw transactions, method call metadata, and any explicit signers. This does not
 populate unnamed resources or adjust fees, and it leaves grouping unchanged.
 
-#### gather_signatures() → list[algokit_transact.models.signed_transaction.SignedTransaction]
+#### gather_signatures() → list[bytes]
 
 #### send(params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendTransactionComposerResults](#algokit_utils.transactions.transaction_composer.SendTransactionComposerResults)
 

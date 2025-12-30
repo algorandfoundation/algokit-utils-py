@@ -8,6 +8,7 @@ from algokit_transact import decode_logic_signature
 from algokit_transact.codec.signed import encode_signed_transaction
 from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
+from algokit_transact.ops.validate import validate_signed_transaction
 from algokit_transact.signing.logic_signature import LogicSigSignature
 from algokit_transact.signing.types import MultisigSignature
 from algokit_transact.signing.validation import sanity_check_program
@@ -155,6 +156,7 @@ class LogicSigAccount(LogicSig):
                     lsig=logic_sig,
                     auth_address=auth_addr,
                 )
+                validate_signed_transaction(signed)
                 blobs.append(encode_signed_transaction(signed))
             return blobs
 
