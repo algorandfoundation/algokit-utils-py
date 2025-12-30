@@ -20,7 +20,6 @@ from algokit_common.constants import (
     PROGRAM_PAGE_SIZE,
     SIGNATURE_BYTE_LENGTH,
 )
-from algokit_transact import SignedTransaction
 from algokit_transact.exceptions import TransactionValidationError
 from algokit_transact.models.app_call import AppCallTransactionFields
 from algokit_transact.models.asset_config import AssetConfigTransactionFields
@@ -28,6 +27,7 @@ from algokit_transact.models.asset_freeze import AssetFreezeTransactionFields
 from algokit_transact.models.asset_transfer import AssetTransferTransactionFields
 from algokit_transact.models.common import OnApplicationComplete
 from algokit_transact.models.key_registration import KeyRegistrationTransactionFields
+from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.models.transaction import Transaction
 
 
@@ -60,9 +60,8 @@ def _issue(
 def validate_signed_transaction(stx: SignedTransaction) -> None:
     validate_transaction(stx.txn)
 
-    signatures = {stx.sig, stx.msig, stx.lsig} - {None}
-    if not signatures:
-        raise ValueError("At least one signature type must be set")
+    signatures = [s for s in (stx.sig, stx.msig, stx.lsig) if s is not None]
+
     if len(signatures) > 1:
         raise ValueError("Only one signature type can be set")
 
