@@ -31,9 +31,7 @@ def test_basic_request_and_response_validation(
     assert result.wallet is not None
 
     # Verify the wallet was renamed
-    wallet_info = localnet_kmd_client.wallet_info(
-        WalletInfoRequest(wallet_handle_token=wallet_handle_token)
-    )
+    wallet_info = localnet_kmd_client.wallet_info(WalletInfoRequest(wallet_handle_token=wallet_handle_token))
     assert wallet_info.wallet_handle is not None
     assert wallet_info.wallet_handle.wallet is not None
     assert wallet_info.wallet_handle.wallet.name == new_wallet_name
