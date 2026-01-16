@@ -22,9 +22,7 @@ def test_basic_request_and_response_validation(
     # Generate at least one key
     generate_test_key(localnet_kmd_client, wallet_handle_token)
 
-    result = localnet_kmd_client.list_keys_in_wallet(
-        ListKeysRequest(wallet_handle_token=wallet_handle_token)
-    )
+    result = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
 
     assert result.addresses is not None
     assert len(result.addresses) > 0

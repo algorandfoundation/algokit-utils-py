@@ -17,15 +17,11 @@ def test_basic_request_and_response_validation(
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
     wallet_handle_token, _, _ = wallet_handle
 
-    result = localnet_kmd_client.generate_key(
-        GenerateKeyRequest(wallet_handle_token=wallet_handle_token)
-    )
+    result = localnet_kmd_client.generate_key(GenerateKeyRequest(wallet_handle_token=wallet_handle_token))
 
     assert result.address is not None
 
     # Verify the key exists in the wallet
-    list_result = localnet_kmd_client.list_keys_in_wallet(
-        ListKeysRequest(wallet_handle_token=wallet_handle_token)
-    )
+    list_result = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
     addresses = list_result.addresses or []
     assert result.address in addresses

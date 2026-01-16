@@ -23,9 +23,7 @@ def test_basic_request_and_response_validation(
     address = generate_test_key(localnet_kmd_client, wallet_handle_token)
 
     # Verify key exists
-    list_before = localnet_kmd_client.list_keys_in_wallet(
-        ListKeysRequest(wallet_handle_token=wallet_handle_token)
-    )
+    list_before = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
     assert address in (list_before.addresses or [])
 
     # Delete the key (returns empty response)
@@ -38,7 +36,5 @@ def test_basic_request_and_response_validation(
     )
 
     # Verify key was deleted
-    list_after = localnet_kmd_client.list_keys_in_wallet(
-        ListKeysRequest(wallet_handle_token=wallet_handle_token)
-    )
+    list_after = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
     assert address not in (list_after.addresses or [])

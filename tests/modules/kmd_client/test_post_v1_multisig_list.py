@@ -22,9 +22,7 @@ def test_basic_request_and_response_validation(
     # Create a multisig first
     multisig_address, _, _, _ = create_test_multisig(localnet_kmd_client, wallet_handle_token)
 
-    result = localnet_kmd_client.list_multisig(
-        ListMultisigRequest(wallet_handle_token=wallet_handle_token)
-    )
+    result = localnet_kmd_client.list_multisig(ListMultisigRequest(wallet_handle_token=wallet_handle_token))
 
     assert result.addresses is not None
     # Verify the multisig is in the list

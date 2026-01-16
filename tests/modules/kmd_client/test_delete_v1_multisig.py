@@ -23,9 +23,7 @@ def test_basic_request_and_response_validation(
     multisig_address, _, _, _ = create_test_multisig(localnet_kmd_client, wallet_handle_token)
 
     # Verify multisig exists
-    list_before = localnet_kmd_client.list_multisig(
-        ListMultisigRequest(wallet_handle_token=wallet_handle_token)
-    )
+    list_before = localnet_kmd_client.list_multisig(ListMultisigRequest(wallet_handle_token=wallet_handle_token))
     assert multisig_address in (list_before.addresses or [])
 
     # Delete the multisig (returns empty response)
@@ -38,7 +36,5 @@ def test_basic_request_and_response_validation(
     )
 
     # Verify multisig was deleted
-    list_after = localnet_kmd_client.list_multisig(
-        ListMultisigRequest(wallet_handle_token=wallet_handle_token)
-    )
+    list_after = localnet_kmd_client.list_multisig(ListMultisigRequest(wallet_handle_token=wallet_handle_token))
     assert multisig_address not in (list_after.addresses or [])
