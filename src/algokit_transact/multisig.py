@@ -46,13 +46,26 @@ class MultisigAccount:
     sub_signers: Sequence[AddressWithSigners]
     """The list of signing accounts."""
 
-    def __post_init__(self) -> None:
-        if not self.sub_signers:
-            raise ValueError("sub_signers cannot be empty")
-
     @staticmethod
     def from_signature(msig: MultisigSignature) -> "MultisigAccount":
-        raise NotImplementedError
+        """
+        Create a MultisigAccount from a MultisigSignature.
+
+        This is primarily used to extract the multisig address from a signature,
+        such as when dealing with delegated logic signatures.
+
+        Args:
+            msig: The multisig signature to create the account from
+
+        Returns:
+            A MultisigAccount with no sub-signers
+        """
+        params = MultisigMetadata(
+            version=msig.version,
+            threshold=msig.threshold,
+            addrs=[address_from_public_key(subsig.public_key) for subsig in msig.subsigs],
+        )
+        return MultisigAccount(params=params, sub_signers=[])
 
     @cached_property
     def _multisig_signature(self) -> MultisigSignature:
@@ -139,3 +152,69 @@ class MultisigAccount:
                 f"Multisig signature parameters do not match expected multisig parameters. {expected=!r}, {given=!r}"
             )
         return apply_multisig_subsignature(msig, address, sig)
+
+    def create_multisig_transaction(self, txn: AlgokitTransaction) -> SignedTransaction:
+        """
+        Create a multisig transaction without any signatures.
+
+        Args:
+            txn: The transaction to create a multisig transaction for
+
+        Returns:
+            A SignedTransaction with empty multisig structure
+        """
+        msig = self.create_multisig_signature()
+
+        auth_address = self.address if txn.sender != self.address else None
+
+        return SignedTransaction(
+            txn=txn,
+            sig=None,
+            msig=msig,
+            lsig=None,
+            auth_address=auth_address,
+        )
+
+    def create_multisig_signature(self) -> MultisigSignature:
+        """
+        Create an empty multisig signature structure.
+
+        Returns:
+            A MultisigSignature with empty signatures
+        """
+        return new_multisig_signature(
+            self.params.version,
+            self.params.threshold,
+            self.params.addrs,
+        )
+
+    def apply_signature_to_txn(self, txn: SignedTransaction, pubkey: bytes, signature: bytes) -> SignedTransaction:
+        """
+        Apply a signature to a signed transaction, returning a new SignedTransaction.
+
+        Note: Unlike TypeScript which mutates in place, this returns a new SignedTransaction
+        since Python's SignedTransaction is a frozen dataclass.
+
+        Args:
+            txn: The signed transaction to apply the signature to
+            pubkey: The public key of the signer
+            signature: The signature to apply
+
+        Returns:
+            A new SignedTransaction with the signature applied
+        """
+        from dataclasses import replace
+
+        msig = txn.msig
+        if not msig:
+            created_txn = self.create_multisig_transaction(txn.txn)
+            msig = created_txn.msig
+
+        if not msig:
+            raise ValueError("Failed to create multisig signature")
+
+        # Convert to address for validation via apply_signature
+        address = address_from_public_key(pubkey)
+        updated_msig = self.apply_signature(msig, address, signature)
+
+        return replace(txn, msig=updated_msig)
