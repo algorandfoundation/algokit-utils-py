@@ -73,36 +73,19 @@ jobs:
 
       - name: Create Continuous Deployment - Alpha
         if: steps.get_branch.outputs.branch == 'alpha'
-        run: |
-          uv run semantic-release \
-            -v DEBUG \
-            --prerelease \
-            --define=prerelease_tag=alpha \
-            --define=branch=alpha \
-            publish
+        run: uv run semantic-release -vv version --as-prerelease --prerelease-token alpha
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
 
       - name: Create Continuous Deployment - Beta (non-prod)
         if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
-        run: |
-          uv run semantic-release \
-            -v DEBUG \
-            --prerelease \
-            --define=branch=main \
-            publish
+        run: uv run semantic-release -vv version --as-prerelease
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
 
       - name: Create Continuous Deployment - Production
         if: steps.get_branch.outputs.branch == 'main' && inputs.production_release
-        run: |
-          uv run semantic-release \
-            -v DEBUG \
-            --define=version_source="commit" \
-            --define=patch_without_tag=true \
-            --define=branch=main \
-            publish
+        run: uv run semantic-release -vv version
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
 
