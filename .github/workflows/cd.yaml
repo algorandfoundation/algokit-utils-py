@@ -42,6 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
+      contents: write
 
     steps:
       - name: Generate bot token
@@ -72,22 +73,34 @@ jobs:
         run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
 
       - name: Create Continuous Deployment - Alpha
+        id: release-alpha
         if: steps.get_branch.outputs.branch == 'alpha'
-        run: uv run semantic-release -vv version --as-prerelease --prerelease-token alpha
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        uses: python-semantic-release/python-semantic-release@v10.3.1
+        with:
+          github_token: ${{ steps.app_token.outputs.token }}
+          prerelease: true
+          prerelease_token: alpha
 
       - name: Create Continuous Deployment - Beta (non-prod)
+        id: release-beta
         if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
-        run: uv run semantic-release -vv version --as-prerelease
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        uses: python-semantic-release/python-semantic-release@v10.3.1
+        with:
+          github_token: ${{ steps.app_token.outputs.token }}
+          prerelease: true
 
       - name: Create Continuous Deployment - Production
+        id: release-prod
         if: steps.get_branch.outputs.branch == 'main' && inputs.production_release
-        run: uv run semantic-release -vv version
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        uses: python-semantic-release/python-semantic-release@v10.3.1
+        with:
+          github_token: ${{ steps.app_token.outputs.token }}
 
       - name: Publish package distributions to PyPI
+        if: |
+          (steps.release-alpha.outputs.released == 'true') ||
+          (steps.release-beta.outputs.released == 'true') ||
+          (steps.release-prod.outputs.released == 'true')
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
