@@ -25,7 +25,7 @@ dev = [
   "pip-audit>=2.5.6,<3",
   "pytest-mock~=3.14",
   "mypy>=1.5.1,<2",
-  "python-semantic-release>=7.34.3,<8",
+  "python-semantic-release>=10.5.0,<11",
   "pytest-cov>=6,<7",
   "pre-commit>=3.4.0,<4",
   "python-dotenv>=1.0.0,<2",
@@ -261,17 +261,17 @@ sequence = [
 
 [tool.poe.tasks.release-preview]
 sequence = [
-  { cmd = "semantic-release print-version --current" },
-  { cmd = "semantic-release print-version --prerelease" },
+  { cmd = "semantic-release version --print" },
+  { cmd = "semantic-release version --print --as-prerelease" },
 ]
 help = "Preview current and next prerelease version"
 
 [tool.poe.tasks.release-dry-run-alpha]
-shell = "semantic-release -v DEBUG --noop --prerelease --define=prerelease_tag=alpha publish"
+shell = "semantic-release --noop version --as-prerelease --prerelease-token alpha"
 help = "Dry-run alpha release (no changes made)"
 
 [tool.poe.tasks.release-dry-run-beta]
-shell = "semantic-release -v DEBUG --noop --prerelease --define=prerelease_tag=beta publish"
+shell = "semantic-release --noop version --as-prerelease --prerelease-token beta"
 help = "Dry-run beta release (no changes made)"
 
 [tool.pytest.ini_options]
@@ -327,12 +327,12 @@ module = ["msgpack", "msgpack.*"]
 ignore_missing_imports = true
 
 [tool.semantic_release]
-version_toml = "pyproject.toml:project.version"
-remove_dist = false
+version_toml = ["pyproject.toml:project.version"]
 build_command = "uv build"
-version_source = "tag"
 major_on_zero = true
-upload_to_repository = false
-tag_commit = true
-branch = "main"
 commit_message = "{version}\n\nskip-checks: true"
+tag_format = "v{version}"
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GH_TOKEN" }
