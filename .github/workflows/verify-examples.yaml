@@ -1,0 +1,36 @@
+name: Verify Examples
+
+on: [workflow_call]
+
+jobs:
+  verify-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Start LocalNet
+        run: uvx algokit localnet start
+
+      - name: Verify examples
+        run: |
+          cd examples
+          chmod +x verify-all.sh
+          ./verify-all.sh
+
+      - name: Stop LocalNet
+        if: always()
+        run: uvx algokit localnet stop
