@@ -4,11 +4,7 @@
 # Exit with non-zero code if any example fails
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$SCRIPT_DIR"
-
-# Set PYTHONPATH to include repo root so examples module is importable
-export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
 # Add Python example files here as they are created
