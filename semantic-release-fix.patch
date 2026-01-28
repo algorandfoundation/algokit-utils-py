@@ -1,0 +1,30 @@
+From 34148d07d6c412846542dcdd93904a74042de565 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Wed, 28 Jan 2026 13:18:39 +0000
+Subject: [PATCH] fix: add semantic-release v10 branch configuration for alpha
+ and main branches
+
+---
+ pyproject.toml | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/pyproject.toml b/pyproject.toml
+index 4cd69ea..c6cea1c 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -336,3 +336,12 @@ tag_format = "v{version}"
+ [tool.semantic_release.remote]
+ type = "github"
+ token = { env = "GH_TOKEN" }
++
++[tool.semantic_release.branches.main]
++match = "main"
++prerelease = false
++
++[tool.semantic_release.branches.alpha]
++match = "alpha"
++prerelease = true
++prerelease_token = "alpha"
+-- 
+2.52.0
+

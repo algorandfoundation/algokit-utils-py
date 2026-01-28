@@ -110,8 +110,34 @@ With the branch configuration added, semantic-release correctly:
 - Identifies existing releases (5.0.0-alpha.15)
 - Would create new alpha releases when new commits are pushed to the alpha branch
 
+## Applying the Fix
+
+### Option 1: Using the Patch File
+
+A patch file `semantic-release-fix.patch` is included in this repository. To apply it to the alpha branch:
+
+```bash
+git checkout alpha
+git apply semantic-release-fix.patch
+git add pyproject.toml
+git commit -m "fix: add semantic-release v10 branch configuration"
+git push origin alpha
+```
+
+### Option 2: Manual Edit
+
+Alternatively, edit `pyproject.toml` on the alpha branch and add the branch configuration sections as shown in the "Complete Fixed Configuration" section above.
+
+## Next Steps
+
+After applying this fix to the alpha branch:
+1. Future commits to the alpha branch will automatically trigger alpha releases
+2. The configuration also supports the main branch for beta and production releases
+3. Consider applying the same fix to the main branch when it gets the semantic-release v10 upgrade
+
 ## References
 
 - Workflow Run: https://github.com/algorandfoundation/algokit-utils-py/actions/runs/21405141569
 - PR #259: https://github.com/algorandfoundation/algokit-utils-py/pull/259
 - Python Semantic Release v10 Documentation: https://python-semantic-release.readthedocs.io/en/latest/configuration/configuration.html
+- Python Semantic Release v10 Branch Configuration: https://python-semantic-release.readthedocs.io/en/latest/configuration/configuration.html#branches
