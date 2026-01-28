@@ -9,6 +9,11 @@ cd "$SCRIPT_DIR"
 # Array of example files in order
 # Add Python example files here as they are created
 EXAMPLES=(
+    "01_mnemonic_from_seed.py"
+    "02_seed_from_mnemonic.py"
+    "03_secret_key_to_mnemonic.py"
+    "04_master_derivation_key.py"
+    "05_error_handling.py"
 )
 
 # Colors for output
