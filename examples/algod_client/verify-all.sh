@@ -9,6 +9,25 @@ cd "$SCRIPT_DIR"
 # Array of example files in order
 # Add Python example files here as they are created
 EXAMPLES=(
+    "01_node_health_status.py"
+    "02_version_genesis.py"
+    "03_ledger_supply.py"
+    "04_account_info.py"
+    "05_transaction_params.py"
+    "06_send_transaction.py"
+    "07_pending_transactions.py"
+    "08_block_data.py"
+    "09_asset_info.py"
+    "10_application_info.py"
+    "11_application_boxes.py"
+    "12_teal_compile.py"
+    "13_simulation.py"
+    "14_state_deltas.py"
+    "15_transaction_proof.py"
+    "16_lightblock_proof.py"
+    "17_state_proof.py"
+    "18_devmode_timestamp.py"
+    "19_sync_round.py"
 )
 
 # Colors for output
