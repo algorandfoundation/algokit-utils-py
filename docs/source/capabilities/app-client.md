@@ -12,16 +12,16 @@ App client and App factory are higher-order use case capabilities provided by Al
 
 The `AppFactory` is a class that, for a given app spec, allows you to create and deploy one or more app instances and to create one or more app clients to interact with those (or other) app instances.
 
-To get an instance of `AppFactory` you can use `AlgorandClient` via `algorand.get_app_factory`:
+To get an instance of `AppFactory` you can use `AlgorandClient` via `algorand.client.get_app_factory`:
 
 ```python
 # Minimal example
-factory = algorand.get_app_factory(
+factory = algorand.client.get_app_factory(
     app_spec="{/* ARC-56 or ARC-32 compatible JSON */}",
 )
 
 # Advanced example
-factory = algorand.get_app_factory(
+factory = algorand.client.get_app_factory(
     app_spec=parsed_arc32_or_arc56_app_spec,
     default_sender="SENDERADDRESS",
     app_name="OverriddenAppName",
@@ -134,7 +134,7 @@ result, app_client = factory.send.bare.create()
 result, app_client = factory.send.bare.create(
     params=AppClientBareCallParams(
         args=[bytes([1, 2, 3, 4])],
-        static_fee=AlgoAmount.from_microalgos(3000),
+        static_fee=AlgoAmount.from_micro_algo(3000),
         on_complete=OnComplete.OptIn,
     ),
     compilation_params={
@@ -232,7 +232,7 @@ result = app_client.send.call(
         args=[
             app_client.create_transaction.fund_app_account(
                 FundAppAccountParams(
-                    amount=AlgoAmount.from_microalgos(200_000)
+                    amount=AlgoAmount.from_micro_algo(200_000)
                 )
             )
         ],
@@ -293,13 +293,16 @@ box_name2: BoxReference = BoxReference(app_id=app_client.app_id, name="my-box2")
 box_names = app_client.get_box_names()
 box_value = app_client.get_box_value(box_name)
 box_values = app_client.get_box_values([box_name, box_name2])
+
+from algokit_abi import abi
+
 box_abi_value = app_client.get_box_value_from_abi_type(
   box_name,
-  algosdk.ABIStringType
+  abi.StringType()
 )
 box_abi_values = app_client.get_box_values_from_abi_type(
   [box_name, box_name2],
-  algosdk.ABIStringType
+  abi.StringType()
 )
 ```
 

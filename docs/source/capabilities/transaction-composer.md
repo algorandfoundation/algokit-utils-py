@@ -83,7 +83,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100),
+        amount=AlgoAmount.from_micro_algo(100),
         note=b"Payment note"
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
@@ -119,7 +119,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100)
+        amount=AlgoAmount.from_micro_algo(100)
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
         sender="SENDER",
@@ -150,7 +150,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100)
+        amount=AlgoAmount.from_micro_algo(100)
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
         sender="SENDER",
@@ -234,13 +234,15 @@ Note: Resource population uses simulation under the hood to detect required reso
 For example:
 
 ```python
-myMethod = algosdk.ABIMethod.fromSignature('my_method()void')
+from algokit_abi import arc56
+
+my_method = arc56.Method.from_signature('my_method()void')
 result = algorand
   .new_group()
   .add_app_call_method_call(AppCallMethodCallParams(
     sender: 'SENDER',
     app_id=123,
-    method=myMethod,
+    method=my_method,
     args=[1, 2, 3],
     max_fee=AlgoAmount.from_micro_algo(5000), # NOTE: a maxFee value is required when enabling coverAppCallInnerTransactionFees
   ))
@@ -251,10 +253,10 @@ Assuming the app account is not covering any of the inner transaction fees, if `
 
 The above example also has a `max_fee` of 5000 µALGO specified. An exception will be thrown if the transaction fee execeeds that value, which allows you to set fee limits. The `max_fee` field is required when enabling `cover_app_call_inner_transaction_fees`.
 
-Because `max_fee` is required and an `algosdk.Transaction` does not hold any max fee information, you cannot use the generic `add_transaction()` method on the composer with `cover_app_call_inner_transaction_fees` enabled. Instead use the below, which provides a better overall experience:
+Because `max_fee` is required and a `Transaction` does not hold any max fee information, you cannot use the generic `add_transaction()` method on the composer with `cover_app_call_inner_transaction_fees` enabled. Instead use the below, which provides a better overall experience:
 
 ```python
-my_method = algosdk.abi.Method.from_signature('my_method()void')
+my_method = arc56.Method.from_signature('my_method()void')
 
 # Does not work
 result = algorand
@@ -265,7 +267,7 @@ result = algorand
         app_id=123,
         method=my_method,
         args=[1, 2, 3],
-        max_fee=AlgoAmount.from_micro_algos(5000), # This is only used to create the algosdk.Transaction object and isn't made available to the composer.
+        max_fee=AlgoAmount.from_micro_algo(5000), # This is only used to create the Transaction object and isn't made available to the composer.
       )
     ).transactions[0]
   )
@@ -279,7 +281,7 @@ result = algorand
     app_id=123,
     method=my_method,
     args=[1, 2, 3],
-    max_fee=AlgoAmount.from_micro_algos(5000),
+    max_fee=AlgoAmount.from_micro_algo(5000),
   ))
   .send(send_params={"cover_app_call_inner_transaction_fees": True})
 ```
@@ -299,7 +301,7 @@ payment_arg = algorand.create_transaction.payment(
   PaymentParams(
     sender=sender.addr,
     receiver=receiver.addr,
-    amount=AlgoAmount.from_micro_algos(1),
+    amount=AlgoAmount.from_micro_algo(1),
   )
 )
 
@@ -308,7 +310,7 @@ app_call_arg = app_client_2.params.call(
   AppCallMethodCallParams(
     method='my_other_method',
     args=[],
-    max_fee=AlgoAmount.from_micro_algos(2000),
+    max_fee=AlgoAmount.from_micro_algo(2000),
   )
 )
 
@@ -319,7 +321,7 @@ result = app_client_1.algorand
       AppClientMethodCallParams(
         method='my_method',
         args=[payment_arg, app_call_arg],
-        max_fee=AlgoAmount.from_micro_algos(5000),
+        max_fee=AlgoAmount.from_micro_algo(5000),
       )
     ),
   )
