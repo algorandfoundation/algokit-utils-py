@@ -19,6 +19,11 @@ from algokit_indexer_client import IndexerClient
 from algokit_indexer_client.config import ClientConfig as IndexerConfig
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.config import ClientConfig as KmdConfig
+from algokit_kmd_client.models import (
+    CreateWalletRequest,
+    InitWalletHandleTokenRequest,
+    ReleaseWalletHandleTokenRequest,
+)
 from algokit_utils import AlgoAmount, AlgorandClient
 
 from .constants import (
@@ -219,12 +224,16 @@ def create_test_wallet(
     wallet_name = _generate_wallet_name()
 
     # Create the wallet
-    create_result = kmd.create_wallet(wallet_name, password, driver_name="sqlite")
-    wallet_id = create_result["id"]
+    create_result = kmd.create_wallet(
+        CreateWalletRequest(wallet_name=wallet_name, wallet_password=password, wallet_driver_name="sqlite")
+    )
+    wallet_id = create_result.wallet.id_
 
     # Initialize the wallet handle (unlock the wallet)
-    init_result = kmd.init_wallet_handle(wallet_id, password)
-    wallet_handle_token = init_result
+    init_result = kmd.init_wallet_handle(
+        InitWalletHandleTokenRequest(wallet_id=wallet_id, wallet_password=password)
+    )
+    wallet_handle_token = init_result.wallet_handle_token
 
     return {
         "wallet_id": wallet_id,
@@ -245,7 +254,9 @@ def cleanup_test_wallet(kmd: KmdClient, wallet_handle_token: str) -> None:
     """
     # Ignore errors during cleanup (handle may have already expired)
     with contextlib.suppress(Exception):
-        kmd.release_wallet_handle(wallet_handle_token)
+        kmd.release_wallet_handle_token(
+            ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
+        )
 
 
 # ============================================================================
@@ -257,7 +268,7 @@ def wait_for_confirmation(
     algod: AlgodClient,
     tx_id: str,
     max_rounds: int = 5,
-) -> dict:
+) -> object:
     """
     Wait for a transaction to be confirmed.
 
@@ -273,16 +284,16 @@ def wait_for_confirmation(
         Exception: If transaction is rejected or not confirmed within max_rounds
     """
     status = algod.status()
-    current_round = status["last-round"]
+    current_round = status.last_round
     end_round = current_round + max_rounds
 
     while current_round < end_round:
-        pending_info = algod.pending_transaction_info(tx_id)
+        pending_info = algod.pending_transaction_information(tx_id)
 
-        if pending_info.get("confirmed-round", 0) > 0:
+        if pending_info.confirmed_round is not None and pending_info.confirmed_round > 0:
             return pending_info
 
-        pool_error = pending_info.get("pool-error", "")
+        pool_error = pending_info.pool_error
         if pool_error:
             raise Exception(f"Transaction rejected: {pool_error}")
 
@@ -345,12 +356,12 @@ def create_random_account(
     amount = funding_amount if funding_amount is not None else AlgoAmount.from_algo(10)
 
     algorand.account.ensure_funded(
-        account_to_fund=account.address,
+        account_to_fund=account.addr,
         dispenser_account=dispenser,
         min_spending_balance=amount,
     )
 
-    algorand.set_signer(sender=account.address, signer=account.signer)
+    algorand.set_signer(sender=account.addr, signer=account.signer)
 
     return account
 
