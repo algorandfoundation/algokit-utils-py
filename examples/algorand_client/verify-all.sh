@@ -4,11 +4,29 @@
 # Exit with non-zero code if any example fails
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 cd "$SCRIPT_DIR"
 
+# Set PYTHONPATH to include repo root so examples module is importable
+export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
+
 # Array of example files in order
-# Add Python example files here as they are created
 EXAMPLES=(
+    "01_client_instantiation.py"
+    "02_algo_amount.py"
+    "03_signer_config.py"
+    "04_params_config.py"
+    "05_account_manager.py"
+    "06_send_payment.py"
+    "07_send_asset_ops.py"
+    "08_send_app_ops.py"
+    "09_create_transaction.py"
+    "10_transaction_composer.py"
+    "11_asset_manager.py"
+    "12_app_manager.py"
+    "13_app_deployer.py"
+    "14_client_manager.py"
+    "15_error_transformers.py"
 )
 
 # Colors for output
