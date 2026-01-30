@@ -11,8 +11,23 @@ cd "$SCRIPT_DIR"
 export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
-# Add Python example files here as they are created
 EXAMPLES=(
+    "01_health_check.py"
+    "02_account_lookup.py"
+    "03_account_assets.py"
+    "04_account_applications.py"
+    "05_account_transactions.py"
+    "06_transaction_lookup.py"
+    "07_transaction_search.py"
+    "08_asset_lookup.py"
+    "09_asset_balances.py"
+    "10_asset_transactions.py"
+    "11_application_lookup.py"
+    "12_application_logs.py"
+    "13_application_boxes.py"
+    "14_block_lookup.py"
+    "15_block_headers.py"
+    "16_pagination.py"
 )
 
 # Colors for output

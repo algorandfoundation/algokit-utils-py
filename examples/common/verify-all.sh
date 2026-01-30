@@ -11,7 +11,6 @@ cd "$SCRIPT_DIR"
 export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
-# Add Python example files here as they are created
 EXAMPLES=(
     "01_address_basics.py"
     "02_address_encoding.py"
