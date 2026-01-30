@@ -13,6 +13,18 @@ export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 # Array of example files in order
 # Add Python example files here as they are created
 EXAMPLES=(
+    "01_address_basics.py"
+    "02_address_encoding.py"
+    "03_array_utilities.py"
+    "04_constants.py"
+    "05_crypto_hash.py"
+    "06_logger.py"
+    "07_json_bigint.py"
+    "08_msgpack.py"
+    "09_primitive_codecs.py"
+    "10_composite_codecs.py"
+    "11_model_codecs.py"
+    "12_sourcemap.py"
 )
 
 # Colors for output
