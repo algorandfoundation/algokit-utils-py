@@ -12,6 +12,20 @@ export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
 EXAMPLES=(
+    "01_payment_transaction.py"
+    "02_payment_close.py"
+    "03_asset_create.py"
+    "04_asset_transfer.py"
+    "05_asset_freeze.py"
+    "06_asset_clawback.py"
+    "07_atomic_group.py"
+    "08_atomic_swap.py"
+    "09_single_sig.py"
+    "10_multisig.py"
+    "11_logic_sig.py"
+    "12_fee_calculation.py"
+    "13_encoding_decoding.py"
+    "14_app_call.py"
 )
 
 # Colors for output
