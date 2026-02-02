@@ -11,8 +11,20 @@ cd "$SCRIPT_DIR"
 export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
-# Add Python example files here as they are created
 EXAMPLES=(
+    "01_version.py"
+    "02_wallet_management.py"
+    "03_wallet_sessions.py"
+    "04_key_generation.py"
+    "05_key_import_export.py"
+    "06_key_listing_deletion.py"
+    "07_master_key_export.py"
+    "08_multisig_setup.py"
+    "09_multisig_management.py"
+    "10_transaction_signing.py"
+    "11_multisig_signing.py"
+    "12_program_signing.py"
+    "13_multisig_program_signing.py"
 )
 
 # Colors for output
