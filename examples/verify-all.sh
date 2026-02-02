@@ -4,11 +4,7 @@
 # Exit with non-zero code if any example suite fails
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$SCRIPT_DIR"
-
-# Set PYTHONPATH to include repo root so examples module is importable
-export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Colors for output
 RED='\033[0;31m'

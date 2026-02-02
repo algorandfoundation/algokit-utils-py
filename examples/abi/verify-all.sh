@@ -4,11 +4,8 @@
 # Exit with non-zero code if any example fails
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+RUN="$SCRIPT_DIR/../run.sh"
 cd "$SCRIPT_DIR"
-
-# Set PYTHONPATH to include repo root so examples module is importable
-export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
 
 # Array of example files in order
 EXAMPLES=(
@@ -61,7 +58,7 @@ for example in "${EXAMPLES[@]}"; do
     fi
 
     # Run the example and capture output/exit code
-    if OUTPUT=$(uv run python "$example" 2>&1); then
+    if OUTPUT=$("$RUN" "$example" 2>&1); then
         echo -e "${GREEN}PASSED${NC}"
         PASSED=$((PASSED + 1))
     else
