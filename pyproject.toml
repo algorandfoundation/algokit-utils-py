@@ -20,6 +20,7 @@ dependencies = [
 [dependency-groups]
 cicd = []
 dev = [
+  "pydantic>=2.0.0,<3",
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.14.8",
   "pip>=26.0",  # Fix GHSA-6vgw-5pg2-w6jp vulnerability
@@ -170,6 +171,7 @@ suppress-none-returning = true
 "api/oas-generator/src/oas_generator/builder.py" = ["C901", "PLR0911", "PLR0912", "E501", "ARG002", "ANN401", "FBT003"]
 # Examples may have long demo lines
 "examples/**/*" = ["E501"]
+"scripts/**/*" = ["T201"] # Allow print statements in CLI scripts
 
 
 [tool.poe.tasks]
@@ -265,6 +267,10 @@ sequence = [
   "generate-indexer-client",
   "generate-kmd-client",
 ]
+
+[tool.poe.tasks.generate-schemas]
+cmd = "python scripts/generate_schemas.py"
+help = "Generate Pydantic validation schemas from OpenAPI specs"
 
 [tool.poe.tasks.release-preview]
 sequence = [

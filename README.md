@@ -19,6 +19,35 @@ This library can be installed using pip, e.g.:
 pip install algokit-utils
 ```
 
+## Validation Schemas
+
+This library includes **optional** Pydantic validation schemas for runtime validation of API client responses.
+
+> **Note**: Validation schemas require `pydantic>=2.0` which is a dev dependency (not installed by default).
+
+```python
+# Install pydantic first: pip install pydantic>=2.0
+from algokit_algod_client.schemas import AccountSchema, NodeStatusResponseSchema
+
+# Validate API responses
+response = algod_client.status()
+validated = NodeStatusResponseSchema.model_validate(response)
+print(f"Last round: {validated.last_round}")
+```
+
+**Features:**
+- Type validation (str, int, bool, etc.)
+- Uint64 bounds checking (0 to 2^64-1)
+- Nested schema support
+- 208 schemas across algod, kmd, and indexer clients
+
+**For developers - regenerate schemas:**
+```bash
+poe generate-schemas
+```
+
+See [VALIDATION.md](./api/oas-generator/VALIDATION.md) for details.
+
 ## Migration from `v2.x` to `v3.x`
 
 Refer to the [v3 migration guide](https://algorandfoundation.github.io/algokit-utils-py/migration/v3-migration-guide/) for more information on how to migrate to latest version of `algokit-utils-py`.

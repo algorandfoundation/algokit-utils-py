@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "algokit-utils"
-version = "5.0.0a19"
+version = "4.2.3"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
@@ -41,10 +41,10 @@ dev = [
     { name = "linkify-it-py" },
     { name = "mypy" },
     { name = "myst-parser" },
-    { name = "pip" },
     { name = "pip-audit" },
     { name = "poethepoet" },
     { name = "pre-commit" },
+    { name = "pydantic" },
     { name = "pydoclint" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -79,15 +79,15 @@ api-generator = [{ name = "oas-generator", editable = "api/oas-generator" }]
 cicd = []
 dev = [
     { name = "filelock", specifier = ">=3.12.0,<4" },
-    { name = "furo", specifier = ">=2024.8.6,<2026" },
+    { name = "furo", specifier = ">=2024.8.6,<2025" },
     { name = "linkify-it-py", specifier = ">=2.0.3,<3" },
     { name = "mypy", specifier = ">=1.5.1,<2" },
     { name = "myst-parser", specifier = ">=4.0.0,<5" },
-    { name = "pip", specifier = ">=26.0" },
     { name = "pip-audit", specifier = ">=2.5.6,<3" },
-    { name = "poethepoet", specifier = ">=0.19,<0.39" },
+    { name = "poethepoet", specifier = ">=0.19,<0.35" },
     { name = "pre-commit", specifier = ">=3.4.0,<4" },
-    { name = "pydoclint", specifier = ">=0.6.0,<0.9" },
+    { name = "pydantic", specifier = ">=2.0.0,<3" },
+    { name = "pydoclint", specifier = ">=0.6.0,<0.7" },
     { name = "pytest", specifier = ">=8,<9" },
     { name = "pytest-cov", specifier = ">=6,<7" },
     { name = "pytest-httpx", specifier = ">=0.35.0,<0.36" },
@@ -96,7 +96,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6.1,<4" },
     { name = "python-dotenv", specifier = ">=1.0.0,<2" },
     { name = "python-semantic-release", specifier = ">=10.5.0,<11" },
-    { name = "ruff", specifier = ">=0.1.6,<=0.14.8" },
+    { name = "ruff", specifier = ">=0.1.6,<=0.11.8" },
     { name = "setuptools", specifier = ">=80.9.0,<81" },
     { name = "sphinx", specifier = ">=8.0.0,<9" },
     { name = "sphinx-autoapi", specifier = ">=3.4.0,<4" },
@@ -1115,11 +1115,11 @@ wheels = [
 
 [[package]]
 name = "pip"
-version = "26.0.1"
+version = "25.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/48/83/0d7d4e9efe3344b8e2fe25d93be44f64b65364d3c8d7bc6dc90198d5422e/pip-26.0.1.tar.gz", hash = "sha256:c4037d8a277c89b320abe636d59f91e6d0922d08a05b60e85e53b296613346d8", size = 1812747, upload-time = "2026-02-05T02:20:18.702Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fe/6e/74a3f0179a4a73a53d66ce57fdb4de0080a8baa1de0063de206d6167acc2/pip-25.3.tar.gz", hash = "sha256:8d0538dbbd7babbd207f261ed969c65de439f6bc9e5dbd3b3b9a77f25d95f343", size = 1803014, upload-time = "2025-10-25T00:55:41.394Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/de/f0/c81e05b613866b76d2d1066490adf1a3dbc4ee9d9c839961c3fc8a6997af/pip-26.0.1-py3-none-any.whl", hash = "sha256:bdb1b08f4274833d62c1aa29e20907365a2ceb950410df15fc9521bad440122b", size = 1787723, upload-time = "2026-02-05T02:20:16.416Z" },
+    { url = "https://files.pythonhosted.org/packages/44/3c/d717024885424591d5376220b5e836c2d5293ce2011523c9de23ff7bf068/pip-25.3-py3-none-any.whl", hash = "sha256:9655943313a94722b7774661c21049070f6bbb0a1516bf02f7c8d5d9201514cd", size = 1778622, upload-time = "2025-10-25T00:55:39.247Z" },
 ]
 
 [[package]]
