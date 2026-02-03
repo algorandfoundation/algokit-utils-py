@@ -34,14 +34,14 @@ There are two methods that can be used for this, `set_signer_from_account`, whic
 algorand.account
   .set_signer_from_account(AddressWithSigners(addr=your_address, signer=your_signer))
   .set_signer_from_account(
-    LogicSigAccount(program, args)
+    LogicSigAccount(logic=program, args=args)
   )
   .set_signer_from_account(
     MultisigAccount(
       MultisigMetadata(
-        version = 1,
-        threshold = 1,
-        addrs = ["ADDRESS1...", "ADDRESS2..."]
+        version=1,
+        threshold=1,
+        addrs=["ADDRESS1...", "ADDRESS2..."]
       ),
       [account1, account2]
     )
@@ -201,7 +201,7 @@ localnet_dispenser = algorand.account.localnet_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = algorand.account.dispenser_from_environment()
 # Get an account from KMD idempotently by name. In this case we'll get the default dispenser account
-dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a.status != 'Offline' and a.amount > 1_000_000_000)
+dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a["status"] != 'Offline' and a["amount"] > 1_000_000_000)
 # Get / create and register account from KMD idempotently by name
 fresh_account_via_kmd = algorand.account.kmd.get_or_create_wallet_account('account1', AlgoAmount.from_algo(2))
 ```

@@ -94,7 +94,7 @@ algorand_client.account.ensure_funded(
     "DISPENSERADDRESS",
     AlgoAmount(algo=1),
     min_funding_increment=AlgoAmount(algo=2),
-    fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     send_params=SendParams(
         suppress_log=True,
     ),
@@ -109,7 +109,7 @@ algorand_client.account.ensure_funded_from_environment(
     "ACCOUNTADDRESS",
     AlgoAmount(algo=1),
     min_funding_increment=AlgoAmount(algo=2),
-    fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     send_params=SendParams(
         suppress_log=True,
     ),

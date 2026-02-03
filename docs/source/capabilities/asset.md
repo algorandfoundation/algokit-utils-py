@@ -7,12 +7,17 @@ The Algorand Standard Asset (ASA) management functions include creating, opting 
 The `AssetManager` class provides functionality for managing Algorand Standard Assets (ASAs). It can be accessed through the `AlgorandClient` via `algorand.asset` or instantiated directly:
 
 ```python
-from algokit_utils import AssetManager, TransactionComposer
+from algokit_utils import AssetManager, TransactionComposer, TransactionComposerParams
 from algokit_algod_client import AlgodClient
 
 asset_manager = AssetManager(
     algod_client=algod_client,
-    new_group=lambda: TransactionComposer()
+    new_group=lambda: TransactionComposer(
+        TransactionComposerParams(
+            algod=algod_client,
+            get_signer=lambda addr: get_signer(addr),  # Your signer function
+        )
+    )
 )
 ```
 
