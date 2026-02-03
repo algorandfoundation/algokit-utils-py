@@ -1,7 +1,5 @@
 """Runtime schema validation tests for all API clients."""
 
-import base64
-
 import pytest
 from pydantic import ValidationError
 
@@ -85,9 +83,9 @@ def test_indexer_schemas_validate():
 
 
 @pytest.mark.localnet
-def test_algod_runtime_validation(algod_client):
+def test_algod_runtime_validation(algod_client: object) -> None:
     """Validate real algod API responses."""
-    response = algod_client.status()
+    response = algod_client.status()  # type: ignore[attr-defined]
     validated = NodeStatusResponseSchema.model_validate(response)
     assert validated.last_round >= 0
 
@@ -109,11 +107,13 @@ class TestBasicValidation:
     def test_invalid_type(self) -> None:
         """Invalid type should fail validation."""
         with pytest.raises(ValidationError):
-            AccountSchema.model_validate({
-                "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-                "amount": "not_a_number",
-                "min-balance": 100000,
-            })
+            AccountSchema.model_validate(
+                {
+                    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                    "amount": "not_a_number",
+                    "min-balance": 100000,
+                }
+            )
 
 
 class TestUint64Bounds:
@@ -144,21 +144,25 @@ class TestUint64Bounds:
     def test_negative_uint64(self) -> None:
         """Negative values should fail."""
         with pytest.raises(ValidationError) as exc_info:
-            AccountSchema.model_validate({
-                "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-                "amount": -1,
-                "min-balance": 0,
-            })
+            AccountSchema.model_validate(
+                {
+                    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                    "amount": -1,
+                    "min-balance": 0,
+                }
+            )
         assert "greater than or equal to 0" in str(exc_info.value)
 
     def test_overflow_uint64(self) -> None:
         """Values exceeding uint64 max should fail."""
         with pytest.raises(ValidationError) as exc_info:
-            AccountSchema.model_validate({
-                "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
-                "amount": 18446744073709551616,  # max_uint64 + 1
-                "min-balance": 0,
-            })
+            AccountSchema.model_validate(
+                {
+                    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+                    "amount": 18446744073709551616,  # max_uint64 + 1
+                    "min-balance": 0,
+                }
+            )
         assert "less than or equal to" in str(exc_info.value)
 
 

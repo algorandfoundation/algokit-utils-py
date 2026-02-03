@@ -85,31 +85,31 @@ def generate_schema(name: str, schema: dict[str, Any]) -> str:
     if schema.get("type") == "array":
         item = map_type(schema.get("items", {}), required=True)
         item_str = f'"{item}"' if "Schema" in item else item
-        return f'''from typing import Any
+        return f"""from typing import Any
 from pydantic import RootModel
 
 class {name}Schema(RootModel[list[{item_str}]]):
 {desc}
     pass
-'''
+"""
 
     properties = schema.get("properties", {})
 
     # Empty object schema
     if not properties:
-        return f'''from typing import Any
+        return f"""from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 class {name}Schema(BaseModel):
 {desc}
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True, extra="allow")
-'''
+"""
 
     # Regular object schema
     required_fields = schema.get("required", [])
     fields = [build_field(prop, details, required=prop in required_fields) for prop, details in properties.items()]
 
-    return f'''from typing import Any
+    return f"""from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 class {name}Schema(BaseModel):
@@ -117,7 +117,7 @@ class {name}Schema(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
 {chr(10).join(fields)}
-'''
+"""
 
 
 def write_schemas(client: str, schemas: dict[str, str]) -> None:
@@ -136,7 +136,7 @@ def write_schemas(client: str, schemas: dict[str, str]) -> None:
     init += "".join(f"from .{mod} import {name}Schema\n" for name, mod in sorted(files))
     init += "\n# Rebuild models to resolve forward references\n"
     init += "".join(f"{name}Schema.model_rebuild()\n" for name, _ in sorted(files))
-    init += '\n__all__ = [\n' + "".join(f'    "{name}Schema",\n' for name, _ in sorted(files)) + "]\n"
+    init += "\n__all__ = [\n" + "".join(f'    "{name}Schema",\n' for name, _ in sorted(files)) + "]\n"
 
     (output_dir / "__init__.py").write_text(init)
 

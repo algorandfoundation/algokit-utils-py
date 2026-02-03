@@ -172,6 +172,10 @@ suppress-none-returning = true
 # Examples may have long demo lines
 "examples/**/*" = ["E501"]
 "scripts/**/*" = ["T201"] # Allow print statements in CLI scripts
+# Ignore lint rules for generated API clients
+"src/algokit_algod_client/**/*" = ["F821", "N815", "E501"]
+"src/algokit_indexer_client/**/*" = ["F821", "N815", "E501"]
+"src/algokit_kmd_client/**/*" = ["F821", "N815", "E501", "N801"]
 
 
 [tool.poe.tasks]
@@ -311,7 +315,7 @@ norecursedirs = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_algosdk"]
+exclude = ["dist", "tests/artifacts", "src/algokit_algosdk", "src/algokit_algod_client", "src/algokit_indexer_client", "src/algokit_kmd_client"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
