@@ -122,7 +122,7 @@ class {name}Schema(BaseModel):
 
 def write_schemas(client: str, schemas: dict[str, str]) -> None:
     """Write schemas to files."""
-    output_dir = Path(f"src/algokit_{client}_client/schemas")
+    output_dir = Path(f"tests/fixtures/schemas/{client}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     files = []

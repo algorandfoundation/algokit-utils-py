@@ -1,0 +1,9 @@
+from typing import Any
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class AccountResponseSchema(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
+
+    account: "AccountSchema" = Field(default=None, alias="account")
+    current_round: int = Field(default=None, alias="current-round")

@@ -67,11 +67,11 @@ jobs:
       - name: Check schema output stability
         shell: bash
         run: |
-          git status --porcelain src > /tmp/post_schema_status.txt
+          git status --porcelain tests/fixtures/schemas > /tmp/post_schema_status.txt
           if [ -s /tmp/post_schema_status.txt ]; then
             echo "❌ Validation schema sync needed!"
-            git status --porcelain src
-            git diff -- src
+            git status --porcelain tests/fixtures/schemas
+            git diff -- tests/fixtures/schemas
             echo "🔧 Run 'uv run poe generate-schemas' locally and commit the results."
             exit 1
           else

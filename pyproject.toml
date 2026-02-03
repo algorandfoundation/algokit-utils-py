@@ -20,6 +20,7 @@ dependencies = [
 [dependency-groups]
 cicd = []
 dev = [
+  "pip>=26.0,<27",
   "pydantic>=2.0.0,<3",
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.14.8",
@@ -176,6 +177,8 @@ suppress-none-returning = true
 "src/algokit_algod_client/**/*" = ["F821", "N815", "E501"]
 "src/algokit_indexer_client/**/*" = ["F821", "N815", "E501"]
 "src/algokit_kmd_client/**/*" = ["F821", "N815", "E501", "N801"]
+# Ignore lint rules for test fixture schemas (generated from OpenAPI)
+"tests/fixtures/schemas/**/*" = ["F821", "N815", "E501", "N801", "I001", "F401", "RUF022", "PIE790", "W605"]
 
 
 [tool.poe.tasks]
@@ -273,7 +276,10 @@ sequence = [
 ]
 
 [tool.poe.tasks.generate-schemas]
-cmd = "python scripts/generate_schemas.py"
+sequence = [
+  { cmd = "python scripts/generate_schemas.py" },
+  { cmd = "ruff format tests/fixtures/schemas" },
+]
 help = "Generate Pydantic validation schemas from OpenAPI specs"
 
 [tool.poe.tasks.release-preview]
@@ -315,7 +321,7 @@ norecursedirs = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_algosdk", "src/algokit_algod_client", "src/algokit_indexer_client", "src/algokit_kmd_client"]
+exclude = ["dist", "tests/artifacts", "tests/fixtures/schemas", "src/algokit_algosdk", "src/algokit_algod_client", "src/algokit_indexer_client", "src/algokit_kmd_client"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true

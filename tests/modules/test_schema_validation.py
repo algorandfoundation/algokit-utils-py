@@ -3,9 +3,9 @@
 import pytest
 from pydantic import ValidationError
 
-from algokit_algod_client.schemas import AccountSchema, NodeStatusResponseSchema
-from algokit_indexer_client.schemas import AccountResponseSchema
-from algokit_kmd_client.schemas import CreateWalletResponseSchema, WalletSchema
+from tests.fixtures.schemas.algod import AccountSchema, NodeStatusResponseSchema
+from tests.fixtures.schemas.indexer import AccountResponseSchema
+from tests.fixtures.schemas.kmd import CreateWalletResponseSchema, WalletSchema
 
 
 def test_algod_schemas_validate():
@@ -83,10 +83,17 @@ def test_indexer_schemas_validate():
 
 
 @pytest.mark.localnet
-def test_algod_runtime_validation(algod_client: object) -> None:
+def test_algod_runtime_validation(algorand_localnet: object) -> None:
     """Validate real algod API responses."""
-    response = algod_client.status()  # type: ignore[attr-defined]
-    validated = NodeStatusResponseSchema.model_validate(response)
+    from dataclasses import asdict
+
+    from algokit_utils.algorand import AlgorandClient
+
+    client = algorand_localnet if isinstance(algorand_localnet, AlgorandClient) else AlgorandClient.default_localnet()
+    response = client.client.algod.status()
+    # Convert dataclass response to dict for Pydantic validation
+    response_dict = asdict(response)
+    validated = NodeStatusResponseSchema.model_validate(response_dict)
     assert validated.last_round >= 0
 
 
@@ -171,7 +178,7 @@ class TestSchemaImports:
 
     def test_algod_schemas_import(self) -> None:
         """Algod schemas should be importable."""
-        from algokit_algod_client.schemas import (
+        from tests.fixtures.schemas.algod import (
             ApplicationSchema,
             AssetSchema,
         )
@@ -182,14 +189,14 @@ class TestSchemaImports:
 
     def test_kmd_schemas_import(self) -> None:
         """KMD schemas should be importable."""
-        from algokit_kmd_client.schemas import CreateWalletRequestSchema
+        from tests.fixtures.schemas.kmd import CreateWalletRequestSchema
 
         assert WalletSchema is not None
         assert CreateWalletRequestSchema is not None
 
     def test_indexer_schemas_import(self) -> None:
         """Indexer schemas should be importable."""
-        from algokit_indexer_client.schemas import (
+        from tests.fixtures.schemas.indexer import (
             AccountSchema as IndexerAccountSchema,
             BlockSchema,
             TransactionSchema,
