@@ -53,7 +53,7 @@ When working with applications via `AppClient` or `AppFactory`, you’ll get enh
 - `SendAppUpdateFactoryTransactionResult`
 - `SendAppCreateFactoryTransactionResult`
 
-These types extend the base transaction results to add an `abi_value` field that contains the parsed ABI return value according to the ARC-56 specification. The `Arc56ReturnValueType` can be:
+These types extend the base transaction results with the `abi_return` field that contains the parsed ABI return value according to the ARC-56 specification. The `Arc56ReturnValueType` can be:
 
 - A primitive ABI value (bool, int, str, bytes)
 - An ABI struct (as a Python dict)
@@ -90,8 +90,9 @@ result = app_factory.send.call(AppCallMethodCallParams(
     args=[1, 2, 3],
     sender=sender
 ))
-# Access the parsed ABI return value directly
-parsed_value = result.abi_value  # Already decoded per ARC-56 spec
+# Access the parsed ABI return value
+if result.abi_return:
+    parsed_value = result.abi_return.value  # Decoded per ARC-56 spec
 
 # Compared to base AppClient where you need to parse manually
 base_result = app_client.send.call(AppCallMethodCallParams(
@@ -121,7 +122,7 @@ Key differences between result types:
    - Base application transaction support
 4. **Factory Results** (`SendAppFactoryTransactionResult` family)
    - Highest level of abstraction
-   - Direct access to parsed ABI values via `.abi_value`
+   - Access to parsed ABI values via `.abi_return.value`
    - Automatic ARC-56 compliant value parsing
    - Combines app-specific fields with parsed ABI returns
 

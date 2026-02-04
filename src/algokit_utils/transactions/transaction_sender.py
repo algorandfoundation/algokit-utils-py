@@ -362,7 +362,7 @@ class AlgorandClientTransactionSender:
             >>>  max_fee=AlgoAmount(micro_algo=3000),
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -421,7 +421,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -476,7 +476,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -525,7 +525,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -570,7 +570,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -622,7 +622,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -668,7 +668,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -723,7 +723,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -790,7 +790,7 @@ class AlgorandClientTransactionSender:
             >>> #    "local_byte_slices": 4
             >>> #  },
             >>> #  extra_program_pages: 1,
-            >>> #  on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
+            >>> #  on_complete: OnApplicationComplete.OptIn,
             >>> #  args: [b'some_bytes']
             >>> #  account_references: ["ACCOUNT_1"]
             >>> #  app_references: [123, 1234]
@@ -811,7 +811,7 @@ class AlgorandClientTransactionSender:
             >>> #  #  against the sender and not need to pass it in
             >>> #  signer: transactionSigner
             >>> #}, send_params=SendParams(
-            >>> #  max_rounds_to_wait_for_confirmation=5,
+            >>> #  max_rounds_to_wait=5,
             >>> #  suppress_log=True,
             >>> #))
         """
@@ -859,7 +859,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -904,7 +904,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner,
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -928,7 +928,7 @@ class AlgorandClientTransactionSender:
             >>> # Advanced example
             >>> algorand.send.app_call(AppCallParams(
             >>>  sender="CREATORADDRESS",
-            >>>  on_complete=OnApplicationComplete.OptInOC,
+            >>>  on_complete=OnApplicationComplete.OptIn,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -949,7 +949,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner,
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -1000,7 +1000,7 @@ class AlgorandClientTransactionSender:
             >>>    "local_byte_slices": 4
             >>>  },
             >>>  extra_program_pages: 1,
-            >>>  on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
+            >>>  on_complete: OnApplicationComplete.OptIn,
             >>>  args: [new Uint8Array(1, 2, 3, 4)],
             >>>  account_references: ["ACCOUNT_1"],
             >>>  app_references: [123, 1234],
@@ -1021,7 +1021,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer: transactionSigner,
             >>> }, send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """

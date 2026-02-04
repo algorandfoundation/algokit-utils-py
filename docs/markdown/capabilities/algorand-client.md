@@ -82,7 +82,7 @@ algorand.create_transaction.{method}(params=TxnParams(...), send_params=SendPara
   - `OnlineKeyRegistrationParams`,
   - `PaymentParams`,
 - `SendParams` is a typed dictionary exposing setting to apply during send operation:
-  - `max_rounds_to_wait_for_confirmation: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
+  - `max_rounds_to_wait: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
   - `suppress_log: bool | None` - Whether to suppress log messages from transaction send, default: do not suppress.
   - `populate_app_call_resources: bool | None` - Whether to use simulate to automatically populate app call resources in the txn objects. Defaults to `Config.populateAppCallResources`.
   - `cover_app_call_inner_transaction_fees: bool | None` - Whether to use simulate to automatically calculate required app call inner transaction fees and cover them in the parent app call transaction fee
