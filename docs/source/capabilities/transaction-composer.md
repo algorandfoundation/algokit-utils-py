@@ -5,11 +5,17 @@ The `TransactionComposer` class allows you to easily compose one or more complia
 It's the core of how the `AlgorandClient` class composes and sends transactions.
 
 ```python
-from algokit_utils import TransactionComposer, TransactionComposerParams, AppManager, AppClient, AppClientParams
+from algokit_utils import (
+    TransactionComposer,
+    TransactionComposerParams,
+    AppManager,
+    AppClient,
+    AppClientParams,
+    AppClientMethodCallParams,
+)
 from algokit_utils.transactions import (
     PaymentParams,
     AppCallMethodCallParams,
-    AppClientMethodCallParams,
     AssetCreateParams,
     AppCreateParams,
     SendParams,

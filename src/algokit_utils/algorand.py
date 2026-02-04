@@ -251,11 +251,12 @@ class AlgorandClient:
 
         :example:
             >>> result = AlgorandClient.mainnet().send.payment(
-            >>> PaymentParams(
-            >>>  sender="SENDERADDRESS",
-            >>>  receiver="RECEIVERADDRESS",
-            >>>  amount=AlgoAmount(algo-1)
-            >>> ))
+            >>>     PaymentParams(
+            >>>         sender="SENDERADDRESS",
+            >>>         receiver="RECEIVERADDRESS",
+            >>>         amount=AlgoAmount(algo=1)
+            >>>     )
+            >>> )
         """
         return self._transaction_sender
 

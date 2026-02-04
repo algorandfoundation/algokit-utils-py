@@ -134,8 +134,8 @@ result, app_client = factory.send.bare.create()
 result, app_client = factory.send.bare.create(
     params=AppClientBareCallParams(
         args=[bytes([1, 2, 3, 4])],
-        static_fee=AlgoAmount.from_microalgos(3000),
-        on_complete=OnComplete.OptIn,
+        static_fee=AlgoAmount.from_micro_algo(3000),
+        on_complete=OnApplicationComplete.OptIn,
     ),
     compilation_params={
         "deploy_time_params": {
@@ -232,7 +232,7 @@ result = app_client.send.call(
         args=[
             app_client.create_transaction.fund_app_account(
                 FundAppAccountParams(
-                    amount=AlgoAmount.from_microalgos(200_000)
+                    amount=AlgoAmount.from_micro_algo(200_000)
                 )
             )
         ],

@@ -193,7 +193,7 @@ localnet_dispenser_account = kmd_account_manager.get_localnet_dispenser_account(
 # if creating it then fund it with 2 ALGO from the default dispenser account
 new_account = kmd_account_manager.get_or_create_wallet_account(
   "account1",
-  AlgoAmount.from_algos(2)
+  AlgoAmount.from_algo(2)
 )
 # This will return the same account as above since the name matches
 existing_account = kmd_account_manager.get_or_create_wallet_account(
@@ -211,5 +211,5 @@ dispenser = algorand.account.dispenser_from_environment()
 # Get an account from KMD idempotently by name. In this case we'll get the default dispenser account
 dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a.status != 'Offline' and a.amount > 1_000_000_000)
 # Get / create and register account from KMD idempotently by name
-fresh_account_via_kmd = algorand.account.kmd.get_or_create_wallet_account('account1', AlgoAmount.from_algos(2))
+fresh_account_via_kmd = algorand.account.kmd.get_or_create_wallet_account('account1', AlgoAmount.from_algo(2))
 ```

@@ -139,7 +139,7 @@ algorand.account.rekey_account(
     # Max fee doesn't make sense with extra_fee AND static_fee
     # already specified, but here for completeness
     max_fee=AlgoAmount.from_micro_algo(3000),
-    max_rounds_to_wait_for_confirmation=5,
+    max_rounds_to_wait=5,
     suppress_log=True,
 )
 

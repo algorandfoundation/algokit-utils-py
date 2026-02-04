@@ -25,8 +25,8 @@ def funded_account(algorand: AlgorandClient) -> SigningAccount:
     algorand.account.ensure_funded(
         new_account,
         dispenser,
-        min_spending_balance=AlgoAmount.from_algos(100),
-        min_funding_increment=AlgoAmount.from_algos(1)
+        min_spending_balance=AlgoAmount.from_algo(100),
+        min_funding_increment=AlgoAmount.from_algo(1)
     )
     algorand.set_signer(sender=new_account.address, signer=new_account.signer)
     return new_account
@@ -109,7 +109,7 @@ def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount
     algorand.account.ensure_funded(
         account_to_fund=receiver,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1)
+        min_spending_balance=AlgoAmount.from_algo(1)
     )
 
     # Create test asset
@@ -186,7 +186,7 @@ def test_box_storage(algorand: AlgorandClient, funded_account: SigningAccount):
 
     # Fund app account for box storage MBR
     app_client.fund_app_account(
-        FundAppAccountParams(amount=AlgoAmount.from_algos(1))
+        FundAppAccountParams(amount=AlgoAmount.from_algo(1))
     )
 
     # Store value in box

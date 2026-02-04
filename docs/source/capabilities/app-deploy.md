@@ -132,8 +132,8 @@ deployment_result = algorand.app_deployer.deploy(
         deploy_time_params={
             "VALUE": 1,  # TEAL template variables to replace
         },
-        on_schema_break=OnSchemaBreak.Append,
-        on_update=OnUpdate.Update,
+        on_schema_break=OnSchemaBreak.AppendApp,
+        on_update=OnUpdate.UpdateApp,
         send_params=SendParams(
             populate_app_call_resources=True,
             # Other execution control parameters
@@ -243,10 +243,10 @@ When `deploy` executes it will return a {py:obj}`AppDeployResult <algokit_utils.
 
 The `deploy` call itself may do one of the following (which you can determine by looking at the `operation_performed` field on the return value from the function):
 
-- `OperationPerformed.CREATE` - The smart contract app was created
-- `OperationPerformed.UPDATE` - The smart contract app was updated
-- `OperationPerformed.REPLACE` - The smart contract app was deleted and created again (in an atomic transaction)
-- `OperationPerformed.NOTHING` - Nothing was done since it was detected the existing smart contract app deployment was up to date
+- `OperationPerformed.Create` - The smart contract app was created
+- `OperationPerformed.Update` - The smart contract app was updated
+- `OperationPerformed.Replace` - The smart contract app was deleted and created again (in an atomic transaction)
+- `OperationPerformed.Nothing` - Nothing was done since it was detected the existing smart contract app deployment was up to date
 
 As well as the `operation_performed` parameter and the [optional compilation result](#compilation-and-template-substitution), the return value will have the {py:obj}`ApplicationMetaData <algokit_utils.applications.app_deployer.ApplicationMetaData>` [fields](#deployment-metadata) present.
 
