@@ -12,16 +12,16 @@ App client and App factory are higher-order use case capabilities provided by Al
 
 The `AppFactory` is a class that, for a given app spec, allows you to create and deploy one or more app instances and to create one or more app clients to interact with those (or other) app instances.
 
-To get an instance of `AppFactory` you can use `AlgorandClient` via `algorand.get_app_factory`:
+To get an instance of `AppFactory` you can use `AlgorandClient` via `algorand.client.get_app_factory`:
 
 ```python
 # Minimal example
-factory = algorand.get_app_factory(
+factory = algorand.client.get_app_factory(
     app_spec="{/* ARC-56 or ARC-32 compatible JSON */}",
 )
 
 # Advanced example
-factory = algorand.get_app_factory(
+factory = algorand.client.get_app_factory(
     app_spec=parsed_arc32_or_arc56_app_spec,
     default_sender="SENDERADDRESS",
     app_name="OverriddenAppName",
@@ -293,13 +293,16 @@ box_name2: BoxReference = BoxReference(app_id=app_client.app_id, name="my-box2")
 box_names = app_client.get_box_names()
 box_value = app_client.get_box_value(box_name)
 box_values = app_client.get_box_values([box_name, box_name2])
+
+from algokit_abi import abi
+
 box_abi_value = app_client.get_box_value_from_abi_type(
   box_name,
-  algosdk.ABIStringType
+  abi.StringType()
 )
 box_abi_values = app_client.get_box_values_from_abi_type(
   [box_name, box_name2],
-  algosdk.ABIStringType
+  abi.StringType()
 )
 ```
 

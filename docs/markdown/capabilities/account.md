@@ -14,36 +14,34 @@ from algokit_utils import AccountManager
 account_manager = AccountManager(client_manager)
 ```
 
-## `TransactionSignerAccountProtocol`
+## `AddressWithTransactionSigner`
 
-The core internal type that holds information about a signer/sender pair for a transaction is `TransactionSignerAccountProtocol`, which represents an `algosdk.transaction.TransactionSigner` (`signer`) along with a sender address (`address`) as the encoded string address.
+The core internal type that holds information about a signer/sender pair for a transaction is `AddressWithTransactionSigner`, which represents a `TransactionSigner` (`signer`) along with a sender address (`addr`) as the encoded string address.
 
-The following conform to `TransactionSignerAccountProtocol`:
+The following conform to `AddressWithTransactionSigner`:
 
-- `TransactionSignerAccount` - a basic transaction signer account that holds an address and a signer conforming to `TransactionSignerAccountProtocol`
-- `SigningAccount` - an abstraction that used to be available under `Account` in previous versions of AlgoKit Utils. Renamed for consistency with equivalent `ts` version. Holds private key and conforms to `TransactionSignerAccountProtocol`
-- `LogicSigAccount` - a wrapper class around `algosdk` logicsig abstractions conforming to `TransactionSignerAccountProtocol`
-- `MultisigAccount` - a wrapper class around `algosdk` multisig abstractions conforming to `TransactionSignerAccountProtocol`
+- `AddressWithSigners` - an account that holds a private key and conforms to `AddressWithTransactionSigner`. This was previously named `SigningAccount` in v4.
+- `LogicSigAccount` - a wrapper class around logic signature abstractions conforming to `AddressWithTransactionSigner`
+- `MultisigAccount` - a wrapper class around multisig abstractions conforming to `AddressWithTransactionSigner`
 
 ## Registering a signer
 
 The `AccountManager` keeps track of which signer is associated with a given sender address. This is used by [`AlgorandClient`](algorand-client.md) to automatically sign transactions by that sender. Any of the [methods]() within `AccountManager` that return an account will automatically register the signer with the sender.
 
-There are two methods that can be used for this, `set_signer_from_account`, which takes any number of [account based objects]() that combine signer and sender (`TransactionSignerAccount` | `SigningAccount` | `LogicSigAccount` | `MultisigAccount`), or `set_signer` which takes the sender address and the `TransactionSigner`:
+There are two methods that can be used for this, `set_signer_from_account`, which takes any number of [account based objects]() that combine signer and sender (`AddressWithSigners` | `LogicSigAccount` | `MultisigAccount`), or `set_signer` which takes the sender address and the `TransactionSigner`:
 
 ```python
 algorand.account
-  .set_signer_from_account(TransactionSignerAccount(your_address, your_signer))
-  .set_signer_from_account(SigningAccount(private_key=algosdk.account.generate_account()[0]))
+  .set_signer_from_account(AddressWithSigners(addr=your_address, signer=your_signer))
   .set_signer_from_account(
-    LogicSigAccount(algosdk.transaction.LogicSigAccount(program, args))
+    LogicSigAccount(logic=program, args=args)
   )
   .set_signer_from_account(
     MultisigAccount(
       MultisigMetadata(
-        version = 1,
-        threshold = 1,
-        addresses = ["ADDRESS1...", "ADDRESS2..."]
+        version=1,
+        threshold=1,
+        addrs=["ADDRESS1...", "ADDRESS2..."]
       ),
       [account1, account2]
     )
@@ -85,12 +83,11 @@ In order to get/register accounts for signing operations you can use the followi
 
 ### Underlying account classes
 
-While `TransactionSignerAccount` is the main class used to represent an account that can sign, there are underlying account classes that can underpin the signer within the transaction signer account.
+The following account classes can be used to represent accounts that can sign transactions:
 
-- `TransactionSignerAccount` - A default class conforming to `TransactionSignerAccountProtocol` that holds an address and a signer
-- `SigningAccount` - An abstraction around `algosdk.Account` that supports rekeyed accounts
-- `LogicSigAccount` - An abstraction around `algosdk.LogicSigAccount` and `algosdk.LogicSig` that supports logic sig signing. Exposes access to the underlying algosdk `algosdk.transaction.LogicSigAccount` object instance via `lsig` property.
-- `MultisigAccount` - An abstraction around `algosdk.MultisigMetadata`, `algosdk.makeMultiSigAccountTransactionSigner`, `algosdk.multisigAddress`, `algosdk.signMultisigTransaction` and `algosdk.appendSignMultisigTransaction` that supports multisig accounts with one or more signers present. Exposes access to the underlying algosdk `algosdk.transaction.Multisig` object instance via `multisig` property.
+- `AddressWithSigners` - An account that holds a private key and conforms to `AddressWithTransactionSigner`. Supports rekeyed accounts.
+- `LogicSigAccount` - An abstraction that supports logic signature signing. Exposes access to the underlying logic signature via `lsig` property.
+- `MultisigAccount` - An abstraction that supports multisig accounts with one or more signers present. Exposes access to the underlying multisig via `multisig` property.
 
 ### Dispenser
 
@@ -106,8 +103,8 @@ One of the unique features of Algorand is the ability to change the private key 
 
 You can issue a transaction to rekey an account by using the [`rekey_account`](../autoapi/algokit_utils/accounts/account_manager/index.md#algokit_utils.accounts.account_manager.AccountManager.rekey_account) function:
 
-- `account: string | TransactionSignerAccount` - The account address or signing account of the account that will be rekeyed
-- `rekeyTo: string | TransactionSignerAccount` - The account address or signing account of the account that will be used to authorise transactions for the rekeyed account going forward. If a signing account is provided that will now be tracked as the signer for `account` in the `AccountManager` instance.
+- `account: str | AddressWithTransactionSigner` - The account address or signing account of the account that will be rekeyed
+- `rekeyTo: str | AddressWithTransactionSigner` - The account address or signing account of the account that will be used to authorise transactions for the rekeyed account going forward. If a signing account is provided that will now be tracked as the signer for `account` in the `AccountManager` instance.
 - An `options` object, which has:
   - [Common transaction parameters](algorand-client.md#transaction-parameters)
   - [Execution parameters](algorand-client.md#sending-a-single-transaction)
@@ -118,42 +115,37 @@ You can also pass in `rekeyTo` as a [common transaction parameter](algorand-clie
 
 ```python
 # Basic example (with string addresses)
-
-algorand.account.rekey_account({
-  account: "ACCOUNTADDRESS",
-  rekey_to: "NEWADDRESS",
-})
+algorand.account.rekey_account(
+    account="ACCOUNTADDRESS",
+    rekey_to="NEWADDRESS",
+)
 
 # Basic example (with signer accounts)
-
-algorand.account.rekey_account({
-  account: account1,
-  rekey_to: new_signer_account,
-})
+algorand.account.rekey_account(
+    account=account1,
+    rekey_to=new_signer_account,
+)
 
 # Advanced example
-
-algorand.account.rekey_account({
-  account: "ACCOUNTADDRESS",
-  rekey_to: "NEWADDRESS",
-  lease: "lease",
-  note: "note",
-  first_valid_round: 1000,
-  validity_window: 10,
-  extra_fee: AlgoAmount.from_micro_algo(1000),
-  static_fee: AlgoAmount.from_micro_algo(1000),
-  # Max fee doesn't make sense with extra_fee AND static_fee
-  #  already specified, but here for completeness
-  max_fee: AlgoAmount.from_micro_algo(3000),
-  max_rounds_to_wait: 5,
-  suppress_log: True,
-})
-
+algorand.account.rekey_account(
+    account="ACCOUNTADDRESS",
+    rekey_to="NEWADDRESS",
+    lease="lease",
+    note="note",
+    first_valid_round=1000,
+    validity_window=10,
+    extra_fee=AlgoAmount.from_micro_algo(1000),
+    static_fee=AlgoAmount.from_micro_algo(1000),
+    # Max fee doesn't make sense with extra_fee AND static_fee
+    # already specified, but here for completeness
+    max_fee=AlgoAmount.from_micro_algo(3000),
+    max_rounds_to_wait=5,
+    suppress_log=True,
+)
 
 # Using a rekeyed account
-
-Note: if a signing account is passed into `algorand.account.rekey_account` then you don't need to call `rekeyed_account` to register the new signer
-
+# Note: if a signing account is passed into `algorand.account.rekey_account`
+# then you don't need to call `rekeyed_account` to register the new signer
 rekeyed_account = algorand.account.rekey_account(account, new_account)
 # rekeyed_account can be used to sign transactions on behalf of account...
 ```
@@ -209,7 +201,7 @@ localnet_dispenser = algorand.account.localnet_dispenser()
 # Get and register a dispenser by environment variable, or if not set then LocalNet dispenser via KMD
 dispenser = algorand.account.dispenser_from_environment()
 # Get an account from KMD idempotently by name. In this case we'll get the default dispenser account
-dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a.status != 'Offline' and a.amount > 1_000_000_000)
+dispenser_via_kmd = algorand.account.from_kmd('unencrypted-default-wallet', lambda a: a["status"] != 'Offline' and a["amount"] > 1_000_000_000)
 # Get / create and register account from KMD idempotently by name
 fresh_account_via_kmd = algorand.account.kmd.get_or_create_wallet_account('account1', AlgoAmount.from_algo(2))
 ```

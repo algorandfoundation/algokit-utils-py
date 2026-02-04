@@ -70,7 +70,8 @@ You can also shortcut needing to write the likes of `ClientManager.get_algod_cli
 Once you have a `ClientManager` instance, you can access the SDK clients:
 
 ```python
-client_manager = ClientManager(algod=algod_client, indexer=indexer_client, kmd=kmd_client)
+clients = AlgoSdkClients(algod=algod_client, indexer=indexer_client, kmd=kmd_client)
+client_manager = ClientManager(clients, algorand_client)
 
 algod_client = client_manager.algod
 indexer_client = client_manager.indexer

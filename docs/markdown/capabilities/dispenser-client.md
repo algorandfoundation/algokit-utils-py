@@ -47,7 +47,7 @@ To fund an account with Algo from the dispenser API, use the `fund` method. This
 
 ```python
 response = dispenser.fund(
-    receiver="RECEIVER_ADDRESS",
+    address="RECEIVER_ADDRESS",
     amount=1000,  # Amount in microAlgos
 )
 ```
@@ -69,10 +69,10 @@ dispenser.refund("transaction_id")
 To get the current limit for an account with Algo from the dispenser API, use the `get_limit` method.
 
 ```python
-response = dispenser.get_limit()
+response = dispenser.get_limit(address="YOUR_ADDRESS")
 ```
 
-The `get_limit` method returns a `DispenserLimitResponse` object, which contains the current limit amount.
+The `get_limit` method returns a `DispenserLimitResponse` object, which contains the current limit amount for the specified address.
 
 ## Error Handling
 
@@ -83,7 +83,7 @@ Here’s an example of handling errors:
 ```python
 try:
     response = dispenser.fund(
-        receiver="RECEIVER_ADDRESS",
+        address="RECEIVER_ADDRESS",
         amount=1000,
     )
 except Exception as e:

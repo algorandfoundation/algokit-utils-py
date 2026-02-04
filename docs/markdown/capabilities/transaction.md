@@ -84,8 +84,8 @@ Different interfaces return different result types:
 Example usage with AppFactory for easy access to ABI returns:
 
 ```python
-# Using AppFactory
-result = app_factory.send.call(AppCallMethodCallParams(
+# Using AppFactory or AppClient
+result = app_factory.send.call(AppClientMethodCallParams(
     method="my_method",
     args=[1, 2, 3],
     sender=sender
@@ -93,16 +93,6 @@ result = app_factory.send.call(AppCallMethodCallParams(
 # Access the parsed ABI return value
 if result.abi_return:
     parsed_value = result.abi_return.value  # Decoded per ARC-56 spec
-
-# Compared to base AppClient where you need to parse manually
-base_result = app_client.send.call(AppCallMethodCallParams(
-    method="my_method",
-    args=[1, 2, 3],
-    sender=sender
-))
-# Need to manually handle ABI return parsing
-if base_result.abi_return:
-    parsed_value = base_result.abi_return.value
 ```
 
 Key differences between result types:

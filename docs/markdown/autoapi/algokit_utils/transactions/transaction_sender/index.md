@@ -164,7 +164,7 @@ Send a payment transaction to transfer Algo between accounts.
    max_fee=AlgoAmount(micro_algo=3000),
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -220,7 +220,7 @@ Create a new Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -258,7 +258,7 @@ Configure an existing Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -304,7 +304,7 @@ Freeze or unfreeze an Algorand Standard Asset for an account.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -346,7 +346,7 @@ Destroys an Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -395,7 +395,7 @@ Transfer an Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -437,7 +437,7 @@ Opt an account into an Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -486,7 +486,7 @@ Opt an account out of an Algorand Standard Asset.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -527,7 +527,7 @@ Create a new application.
   #    "local_byte_slices": 4
   #  },
   #  extra_program_pages: 1,
-  #  on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
+  #  on_complete: OnApplicationComplete.OptIn,
   #  args: [b'some_bytes']
   #  account_references: ["ACCOUNT_1"]
   #  app_references: [123, 1234]
@@ -548,7 +548,7 @@ Create a new application.
   #  #  against the sender and not need to pass it in
   #  signer: transactionSigner
   #}, send_params=SendParams(
-  #  max_rounds_to_wait_for_confirmation=5,
+  #  max_rounds_to_wait=5,
   #  suppress_log=True,
   #))
   ```
@@ -596,7 +596,7 @@ Update an application.
    #  against the sender and not need to pass it in
    signer=transactionSigner
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -641,7 +641,7 @@ Delete an application.
    #  against the sender and not need to pass it in
    signer=transactionSigner,
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -665,7 +665,7 @@ Call an application.
   # Advanced example
   algorand.send.app_call(AppCallParams(
    sender="CREATORADDRESS",
-   on_complete=OnApplicationComplete.OptInOC,
+   on_complete=OnApplicationComplete.OptIn,
    args=[b'some_bytes'],
    account_references=["ACCOUNT_1"],
    app_references=[123, 1234],
@@ -686,7 +686,7 @@ Call an application.
    #  against the sender and not need to pass it in
    signer=transactionSigner,
   ), send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```
@@ -737,7 +737,7 @@ Call an application’s create method.
      "local_byte_slices": 4
    },
    extra_program_pages: 1,
-   on_complete: algosdk.transaction.OnApplicationComplete.OptInOC,
+   on_complete: OnApplicationComplete.OptIn,
    args: [new Uint8Array(1, 2, 3, 4)],
    account_references: ["ACCOUNT_1"],
    app_references: [123, 1234],
@@ -758,7 +758,7 @@ Call an application’s create method.
    #  against the sender and not need to pass it in
    signer: transactionSigner,
   }, send_params=SendParams(
-   max_rounds_to_wait_for_confirmation=5,
+   max_rounds_to_wait=5,
    suppress_log=True,
   ))
   ```

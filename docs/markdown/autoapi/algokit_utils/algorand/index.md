@@ -64,7 +64,7 @@ Sets the default signer to use if no other signer is specified.
 * **Example:**
   ```python
   accountManager = AlgorandClient.mainnet()
-  accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
+  accountManager.set_signer_from_account(AddressWithSigners(addr=..., signer=...))
   accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
   accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
   accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
@@ -188,11 +188,12 @@ Methods for sending a transaction and waiting for confirmation
 * **Example:**
   ```python
   result = AlgorandClient.mainnet().send.payment(
-  PaymentParams(
-   sender="SENDERADDRESS",
-   receiver="RECEIVERADDRESS",
-   amount=AlgoAmount(algo-1)
-  ))
+      PaymentParams(
+          sender="SENDERADDRESS",
+          receiver="RECEIVERADDRESS",
+          amount=AlgoAmount(algo=1)
+      )
+  )
   ```
 
 #### *property* create_transaction *: [algokit_utils.transactions.transaction_creator.AlgorandClientTransactionCreator](../transactions/transaction_creator/index.md#algokit_utils.transactions.transaction_creator.AlgorandClientTransactionCreator)*
