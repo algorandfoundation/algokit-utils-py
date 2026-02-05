@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 import nacl.signing
@@ -11,7 +12,7 @@ from algokit_utils.applications.app_client import AppClient, AppClientMethodCall
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.transactions.transaction_composer import PaymentParams, TransactionWithSigner
+from algokit_utils.transactions.transaction_composer import AssetCreateParams, PaymentParams, TransactionWithSigner
 
 
 @pytest.fixture
@@ -490,3 +491,127 @@ def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: AddressWit
     )
 
     assert algorand.app.get_box_value(external_app_id, "box") == b"foo"
+
+
+class TestResourcePackerDeterminism:
+    """Test that resource population produces deterministic ordering."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+        # Load ARC-56 spec for the main contract
+        spec_path = (
+            Path(__file__).parent.parent / "artifacts" / "resource-packer-puya" / "ResourcePackerPuya.arc56.json"
+        )
+        spec = spec_path.read_text()
+
+        factory = algorand.client.get_app_factory(
+            app_spec=spec,
+            default_sender=funded_account.addr,
+        )
+        self.app_client, _ = factory.send.create(
+            params=AppFactoryCreateMethodCallParams(
+                method="create_application",
+                note=b"main_app",
+            )
+        )
+        # Fund app account for box storage MBR
+        self.app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(500_000)))
+
+    def test_order_is_deterministic(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+        """Test that resource population produces consistent ordering across multiple iterations.
+
+        The non-determinism comes from the simulate endpoint, not from input order.
+        This test builds the same transaction group 100 times and verifies that
+        after resource population, the resource references are always in the same order.
+        """
+        # Create 4 random accounts
+        accounts = [algorand.account.random().addr for _ in range(4)]
+
+        # Create 4 assets
+        assets = []
+        for i in range(4):
+            result = algorand.send.asset_create(
+                AssetCreateParams(
+                    sender=funded_account.addr,
+                    total=1,
+                    note=f"asset{i}".encode(),
+                )
+            )
+            assets.append(result.asset_id)
+
+        # Create 4 external apps using the ExternalAppPuya contract
+        external_spec = (
+            Path(__file__).parent.parent / "artifacts" / "resource-packer-puya" / "ExternalAppPuya.arc56.json"
+        ).read_text()
+        external_apps = []
+        for i in range(4):
+            factory = algorand.client.get_app_factory(
+                app_spec=external_spec,
+                default_sender=funded_account.addr,
+            )
+            client, _ = factory.send.create(
+                params=AppFactoryCreateMethodCallParams(
+                    method="create_application",
+                    note=f"app{i}".encode(),
+                )
+            )
+            external_apps.append(client.app_id)
+
+        def get_resources() -> dict:
+            """Build and populate a transaction group, returning the resource references."""
+            # Create a fresh composer for each iteration
+            composer = algorand.new_group()
+
+            # Add the many_resources call
+            composer.add_app_call_method_call(
+                self.app_client.params.call(
+                    AppClientMethodCallParams(
+                        method="many_resources",
+                        args=[
+                            accounts,  # address[4]
+                            assets,  # uint64[4]
+                            external_apps,  # uint64[4]
+                            [1, 2, 3, 4],  # uint8[4] box keys
+                        ],
+                        static_fee=AlgoAmount.from_micro_algo(10_000),
+                    ),
+                ),
+            )
+
+            # Add dummy transactions to fill the group
+            for i in range(10):
+                composer.add_app_call_method_call(
+                    self.app_client.params.call(
+                        AppClientMethodCallParams(
+                            method="dummy",
+                            note=f"{i}".encode(),  # Different note each time to make txns unique
+                        )
+                    )
+                )
+
+            # Build (which triggers simulation and resource population)
+            build_result = composer.build()
+
+            # Extract all resources from all transactions
+            resources = []
+            for txn in build_result.transactions:
+                app_call = txn.application_call
+                if app_call:
+                    for acct in app_call.account_references or []:
+                        resources.append(f"acct:{acct}")
+                    for asset in app_call.asset_references or []:
+                        resources.append(f"asset:{asset}")
+                    for app in app_call.app_references or []:
+                        resources.append(f"app:{app}")
+                    for box in app_call.box_references or []:
+                        resources.append(f"box:{box.app_id}-{box.name}")
+
+            return {"resources": tuple(resources)}
+
+        # Collect resources from 100 iterations
+        all_resources = [get_resources() for _ in range(100)]
+
+        # Verify all iterations produced identical results
+        first_result = all_resources[0]
+        for i, result in enumerate(all_resources[1:], 1):
+            assert result == first_result, f"Iteration {i} produced different resource ordering"
