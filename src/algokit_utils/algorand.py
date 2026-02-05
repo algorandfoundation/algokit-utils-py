@@ -103,7 +103,7 @@ class AlgorandClient:
         :example:
             >>> accountManager = AlgorandClient.mainnet()
             >>> accountManager.set_signer_from_account(AddressWithSigners(addr=..., signer=...))
-            >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
+            >>> accountManager.set_signer_from_account(LogicSigAccount(logic=..., args=...))
             >>> accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
             >>> accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
             >>> accountManager.set_signer_from_account(account)
