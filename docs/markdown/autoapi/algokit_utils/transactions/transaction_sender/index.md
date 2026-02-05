@@ -515,42 +515,37 @@ Create a new application.
    sender="CREATORADDRESS",
    approval_program="TEALCODE",
    clear_state_program="TEALCODE",
+   schema=AppCreateSchema(
+    global_ints=1,
+    global_byte_slices=2,
+    local_ints=3,
+    local_byte_slices=4,
+   ),
+   extra_program_pages=1,
+   on_complete=OnApplicationComplete.OptIn,
+   args=[b'some_bytes'],
+   account_references=["ACCOUNT_1"],
+   app_references=[123, 1234],
+   asset_references=[12345],
+   box_references=[...],
+   lease=b'lease',
+   note=b'note',
+   # You wouldn't normally set this field
+   first_valid_round=1000,
+   validity_window=10,
+   extra_fee=AlgoAmount(micro_algo=1000),
+   static_fee=AlgoAmount(micro_algo=1000),
+   # Max fee doesn't make sense with extra_fee AND static_fee
+   #  already specified, but here for completeness
+   max_fee=AlgoAmount(micro_algo=3000),
+   # Signer only needed if you want to provide one,
+   #  generally you'd register it with AlgorandClient
+   #  against the sender and not need to pass it in
+   signer=transaction_signer,
+  ), send_params=SendParams(
+   max_rounds_to_wait=5,
+   suppress_log=True,
   ))
-  # algorand.send.appCreate(AppCreateParams(
-  #  sender='CREATORADDRESS',
-  #  approval_program="TEALCODE",
-  #  clear_state_program="TEALCODE",
-  #  schema={
-  #    "global_ints": 1,
-  #    "global_byte_slices": 2,
-  #    "local_ints": 3,
-  #    "local_byte_slices": 4
-  #  },
-  #  extra_program_pages: 1,
-  #  on_complete: OnApplicationComplete.OptIn,
-  #  args: [b'some_bytes']
-  #  account_references: ["ACCOUNT_1"]
-  #  app_references: [123, 1234]
-  #  asset_references: [12345]
-  #  box_references: ["box1", {app_id: 1234, name: "box2"}]
-  #  lease: 'lease',
-  #  note: 'note',
-  #  # You wouldn't normally set this field
-  #  first_valid_round: 1000,
-  #  validity_window: 10,
-  #  extra_fee: AlgoAmount(micro_algo=1000),
-  #  static_fee: AlgoAmount(micro_algo=1000),
-  #  # Max fee doesn't make sense with extraFee AND staticFee
-  #  #  already specified, but here for completeness
-  #  max_fee: AlgoAmount(micro_algo=3000),
-  #  # Signer only needed if you want to provide one,
-  #  #  generally you'd register it with AlgorandClient
-  #  #  against the sender and not need to pass it in
-  #  signer: transactionSigner
-  #}, send_params=SendParams(
-  #  max_rounds_to_wait=5,
-  #  suppress_log=True,
-  #))
   ```
 
 #### app_update(params: algokit_utils.transactions.transaction_composer.AppUpdateParams, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppUpdateTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppUpdateTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -702,62 +697,58 @@ Call an application’s create method.
   Result containing the new application ID and address
 * **Example:**
   ```python
-  # Note: you may prefer to use `algorand.client` to get an app client for more advanced functionality.
-  #
-  # @param params The parameters for the app creation transaction
+  # Note: you may prefer to use `algorand.client` to get an app client
+  # for more advanced functionality.
+  from algokit_abi import arc56
+
   # Basic example
-  method = algorand.abi.Method(
-    name='method',
-    args=[b'arg1'],
-    returns='string'
-  )
-  result = algorand.send.app_create_method_call({ sender: 'CREATORADDRESS',
-    approval_program: 'TEALCODE',
-    clear_state_program: 'TEALCODE',
-    method: method,
-    args: ["arg1_value"] })
+  method = arc56.Method.from_signature("method(string)string")
+  result = algorand.send.app_create_method_call(
+   AppCreateMethodCallParams(
+    sender="CREATORADDRESS",
+    approval_program="TEALCODE",
+    clear_state_program="TEALCODE",
+    method=method,
+    args=["arg1_value"],
+  ))
   created_app_id = result.app_id
-  ...
+
   # Advanced example
-  method = algorand.abi.Method(
-    name='method',
-    args=[b'arg1'],
-    returns='string'
-  )
-  result = algorand.send.app_create_method_call({
-   sender: 'CREATORADDRESS',
-   method: method,
-   args: ["arg1_value"],
-   approval_program: "TEALCODE",
-   clear_state_program: "TEALCODE",
-   schema: {
-     "global_ints": 1,
-     "global_byte_slices": 2,
-     "local_ints": 3,
-     "local_byte_slices": 4
-   },
-   extra_program_pages: 1,
-   on_complete: OnApplicationComplete.OptIn,
-   args: [new Uint8Array(1, 2, 3, 4)],
-   account_references: ["ACCOUNT_1"],
-   app_references: [123, 1234],
-   asset_references: [12345],
-   box_references: [...],
-   lease: 'lease',
-   note: 'note',
-   # You wouldn't normally set this field
-   first_valid_round: 1000,
-   validity_window: 10,
-   extra_fee: AlgoAmount(micro_algo=1000),
-   static_fee: AlgoAmount(micro_algo=1000),
-   # Max fee doesn't make sense with extraFee AND staticFee
-   #  already specified, but here for completeness
-   max_fee: AlgoAmount(micro_algo=3000),
-   # Signer only needed if you want to provide one,
-   #  generally you'd register it with AlgorandClient
-   #  against the sender and not need to pass it in
-   signer: transactionSigner,
-  }, send_params=SendParams(
+  method = arc56.Method.from_signature("method(string)string")
+  result = algorand.send.app_create_method_call(
+   AppCreateMethodCallParams(
+    sender="CREATORADDRESS",
+    method=method,
+    args=["arg1_value"],
+    approval_program="TEALCODE",
+    clear_state_program="TEALCODE",
+    schema=AppCreateSchema(
+     global_ints=1,
+     global_byte_slices=2,
+     local_ints=3,
+     local_byte_slices=4,
+    ),
+    extra_program_pages=1,
+    on_complete=OnApplicationComplete.OptIn,
+    account_references=["ACCOUNT_1"],
+    app_references=[123, 1234],
+    asset_references=[12345],
+    box_references=[...],
+    lease=b'lease',
+    note=b'note',
+    # You wouldn't normally set this field
+    first_valid_round=1000,
+    validity_window=10,
+    extra_fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
+    # Max fee doesn't make sense with extra_fee AND static_fee
+    #  already specified, but here for completeness
+    max_fee=AlgoAmount(micro_algo=3000),
+    # Signer only needed if you want to provide one,
+    #  generally you'd register it with AlgorandClient
+    #  against the sender and not need to pass it in
+    signer=transaction_signer,
+  ), send_params=SendParams(
    max_rounds_to_wait=5,
    suppress_log=True,
   ))
@@ -774,44 +765,32 @@ Call an application’s update method.
   Result containing the compiled programs
 * **Example:**
   ```python
-  # Basic example:
-  method = algorand.abi.Method(
-      name=”updateMethod”,
-      args=[{“type”: “string”, “name”: “arg1”}],
-      returns=”string”
-  )
-  params = AppUpdateMethodCallParams(
-      sender=”CREATORADDRESS”,
-      app_id=123,
-      method=method,
-      args=[“new_value”],
-      approval_program=”TEALCODE”,
-      clear_state_program=”TEALCODE”
-  )
-  result = algorand.send.app_update_method_call(params)
-  print(result.compiled_approval, result.compiled_clear)
-  ```
+  # Basic example
+  method = arc56.Method.from_signature("updateMethod(string)string")
+  result = algorand.send.app_update_method_call(
+   AppUpdateMethodCallParams(
+    sender="CREATORADDRESS",
+    app_id=123,
+    method=method,
+    args=["new_value"],
+    approval_program="TEALCODE",
+    clear_state_program="TEALCODE",
+  ))
 
-  ```python
-  # Advanced example:
-  method = algorand.abi.Method(
-      name=”updateMethod”,
-      args=[{“type”: “string”, “name”: “arg1”}, {“type”: “uint64”, “name”: “arg2”}],
-      returns=”string”
-  )
-  params = AppUpdateMethodCallParams(
-      sender=”CREATORADDRESS”,
-      app_id=456,
-      method=method,
-      args=[“new_value”, 42],
-      approval_program=”TEALCODE_ADVANCED”,
-      clear_state_program=”TEALCLEAR_ADVANCED”,
-      account_references=[“ACCOUNT1”, “ACCOUNT2”],
-      app_references=[789],
-      asset_references=[101112]
-  )
-  result = algorand.send.app_update_method_call(params)
-  print(result.compiled_approval, result.compiled_clear)
+  # Advanced example
+  method = arc56.Method.from_signature("updateMethod(string,uint64)string")
+  result = algorand.send.app_update_method_call(
+   AppUpdateMethodCallParams(
+    sender="CREATORADDRESS",
+    app_id=456,
+    method=method,
+    args=["new_value", 42],
+    approval_program="TEALCODE",
+    clear_state_program="TEALCODE",
+    account_references=["ACCOUNT1", "ACCOUNT2"],
+    app_references=[789],
+    asset_references=[101112],
+  ))
   ```
 
 #### app_delete_method_call(params: algokit_utils.transactions.transaction_composer.AppDeleteMethodCallParams, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -825,38 +804,26 @@ Call an application’s delete method.
   Result of the deletion transaction
 * **Example:**
   ```python
-  # Basic example:
-  method = algorand.abi.Method(
-      name=”deleteMethod”,
-      args=[],
-      returns=”void”
-  )
-  params = AppDeleteMethodCallParams(
-      sender=”CREATORADDRESS”,
-      app_id=123,
-      method=method
-  )
-  result = algorand.send.app_delete_method_call(params)
-  print(result.tx_id)
-  ```
+  # Basic example
+  method = arc56.Method.from_signature("deleteMethod()void")
+  result = algorand.send.app_delete_method_call(
+   AppDeleteMethodCallParams(
+    sender="CREATORADDRESS",
+    app_id=123,
+    method=method,
+  ))
 
-  ```python
-  # Advanced example:
-  method = algorand.abi.Method(
-      name=”deleteMethod”,
-      args=[{“type”: “uint64”, “name”: “confirmation”}],
-      returns=”void”
-  )
-  params = AppDeleteMethodCallParams(
-      sender=”CREATORADDRESS”,
-      app_id=123,
-      method=method,
-      args=[1],
-      account_references=[“ACCOUNT1”],
-      app_references=[456]
-  )
-  result = algorand.send.app_delete_method_call(params)
-  print(result.tx_id)
+  # Advanced example
+  method = arc56.Method.from_signature("deleteMethod(uint64)void")
+  result = algorand.send.app_delete_method_call(
+   AppDeleteMethodCallParams(
+    sender="CREATORADDRESS",
+    app_id=123,
+    method=method,
+    args=[1],
+    account_references=["ACCOUNT1"],
+    app_references=[456],
+  ))
   ```
 
 #### app_call_method_call(params: algokit_utils.transactions.transaction_composer.AppCallMethodCallParams, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendAppTransactionResult](#algokit_utils.transactions.transaction_sender.SendAppTransactionResult)[[algokit_utils.applications.abi.ABIReturn](../../applications/abi/index.md#algokit_utils.applications.abi.ABIReturn)]
@@ -870,40 +837,28 @@ Call an application’s call method.
   Result containing any ABI return value
 * **Example:**
   ```python
-  # Basic example:
-  method = algorand.abi.Method(
-      name=”callMethod”,
-      args=[{“type”: “uint64”, “name”: “arg1”}],
-      returns=”uint64”
-  )
-  params = AppCallMethodCallParams(
-      sender=”CALLERADDRESS”,
-      app_id=123,
-      method=method,
-      args=[12345]
-  )
-  result = algorand.send.app_call_method_call(params)
-  print(result.abi_return)
-  ```
+  # Basic example
+  method = arc56.Method.from_signature("callMethod(uint64)uint64")
+  result = algorand.send.app_call_method_call(
+   AppCallMethodCallParams(
+    sender="CALLERADDRESS",
+    app_id=123,
+    method=method,
+    args=[12345],
+  ))
 
-  ```python
-  # Advanced example:
-  method = algorand.abi.Method(
-      name=”callMethod”,
-      args=[{“type”: “uint64”, “name”: “arg1”}, {“type”: “string”, “name”: “arg2”}],
-      returns=”uint64”
-  )
-  params = AppCallMethodCallParams(
-      sender=”CALLERADDRESS”,
-      app_id=123,
-      method=method,
-      args=[12345, “extra”],
-      account_references=[“ACCOUNT1”],
-      asset_references=[101112],
-      app_references=[789]
-  )
-  result = algorand.send.app_call_method_call(params)
-  print(result.abi_return)
+  # Advanced example
+  method = arc56.Method.from_signature("callMethod(uint64,string)uint64")
+  result = algorand.send.app_call_method_call(
+   AppCallMethodCallParams(
+    sender="CALLERADDRESS",
+    app_id=123,
+    method=method,
+    args=[12345, "extra"],
+    account_references=["ACCOUNT1"],
+    asset_references=[101112],
+    app_references=[789],
+  ))
   ```
 
 #### online_key_registration(params: algokit_utils.transactions.transaction_composer.OnlineKeyRegistrationParams, send_params: [algokit_utils.models.transaction.SendParams](../../models/transaction/index.md#algokit_utils.models.transaction.SendParams) | None = None) → [SendSingleTransactionResult](#algokit_utils.transactions.transaction_sender.SendSingleTransactionResult)
