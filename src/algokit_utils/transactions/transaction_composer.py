@@ -782,7 +782,7 @@ class TransactionComposer:
 
         return self._transactions_with_signers
 
-    def _analyze_group_requirements(  # noqa: C901, PLR0912
+    def _analyze_group_requirements(  # noqa: C901, PLR0912, PLR0915
         self,
         transactions: list[Transaction],
         logical_max_fees: Sequence[AlgoAmount | None],

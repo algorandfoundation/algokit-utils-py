@@ -1,4 +1,3 @@
-import random
 from pathlib import Path
 
 import nacl.signing
@@ -517,7 +516,9 @@ class TestResourcePackerDeterminism:
         # Fund app account for box storage MBR
         self.app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(500_000)))
 
-    def test_order_is_deterministic(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+    def test_order_is_deterministic(  # noqa: C901
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
         """Test that resource population produces consistent ordering across multiple iterations.
 
         The non-determinism comes from the simulate endpoint, not from input order.
