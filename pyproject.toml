@@ -357,7 +357,7 @@ allowed_tags = [
   "test",
 ]
 minor_tags = ["feat"]
-patch_tags = ["fix", "perf", "docs"]
+patch_tags = ["fix", "perf", "build", "chore", "refactor"]
 
 [tool.semantic_release.remote]
 type = "github"
