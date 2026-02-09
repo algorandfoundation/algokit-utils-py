@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Upgrade pip
-        run: pip install --upgrade "pip>=26.0"
+      - name: Upgrade pip in uv environment
+        run: uv pip install --upgrade "pip>=26.0"
 
       - name: Audit with pip-audit
         run: |
@@ -32,7 +32,7 @@ jobs:
           # If a vulnerability is found in a dev dependency without an available fix,
           # it can be temporarily ignored by adding --ignore-vuln e.g.
           # --ignore-vuln "GHSA-hcpj-qp55-gfph" # GitPython vulnerability, dev only dependency
-          uv run pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
+          uv run --no-sync pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
 
       - name: Check codebase with ruff and mypy
         run: |
