@@ -24,7 +24,7 @@ from algokit_algo25 import (
     mnemonic_from_seed,
     seed_from_mnemonic,
 )
-from examples.shared import print_error, print_header, print_info, print_step, print_success
+from shared import print_error, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

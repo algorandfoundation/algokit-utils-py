@@ -18,7 +18,7 @@ from decimal import Decimal
 from algokit_algod_client.models import SimulateRequest, SimulateRequestTransactionGroup
 from algokit_transact import SignedTransaction, decode_signed_transaction
 from algokit_utils import AlgoAmount, PaymentParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     format_micro_algo,

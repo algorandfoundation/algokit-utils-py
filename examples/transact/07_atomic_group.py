@@ -24,7 +24,7 @@ from algokit_transact import (
     group_transactions,
 )
 from algokit_utils import AlgorandClient
-from examples.shared import (
+from shared import (
     create_algod_client,
     format_algo,
     get_account_balance,

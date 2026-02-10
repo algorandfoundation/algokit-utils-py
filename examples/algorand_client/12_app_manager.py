@@ -26,7 +26,7 @@ from algokit_utils.transactions.types import (
     AppDeleteParams,
     PaymentParams,
 )
-from examples.shared import (
+from shared import (
     load_teal_source,
     print_error,
     print_header,

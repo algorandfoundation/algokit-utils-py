@@ -17,7 +17,7 @@ from algokit_common import (
     TRANSACTION_DOMAIN_SEPARATOR,
     sha512_256,
 )
-from examples.shared import (
+from shared import (
     format_bytes,
     format_hex,
     print_header,

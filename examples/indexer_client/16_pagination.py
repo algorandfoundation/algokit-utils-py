@@ -15,7 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from algokit_utils import AlgoAmount, AssetCreateParams, PaymentParams
-from examples.shared import (
+from shared import (
     create_algorand_client,
     create_indexer_client,
     format_micro_algo,

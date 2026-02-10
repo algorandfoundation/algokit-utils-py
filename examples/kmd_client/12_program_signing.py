@@ -36,7 +36,7 @@ import sys
 
 from algokit_kmd_client.models import GenerateKeyRequest, SignProgramRequest
 from algokit_transact import LogicSigAccount
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_algod_client,
     create_kmd_client,

@@ -18,7 +18,7 @@ No LocalNet required - pure utility class demonstration (except for payment exam
 """
 
 from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,

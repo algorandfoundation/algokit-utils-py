@@ -22,7 +22,7 @@ from algokit_algo25 import (
     mnemonic_to_master_derivation_key,
     seed_from_mnemonic,
 )
-from examples.shared import format_hex, print_header, print_info, print_step, print_success
+from shared import format_hex, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

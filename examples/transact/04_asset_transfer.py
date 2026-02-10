@@ -24,7 +24,7 @@ from algokit_transact import (
     assign_fee,
 )
 from algokit_utils import AlgorandClient
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,

@@ -10,7 +10,7 @@ Prerequisites:
 """
 
 from algokit_utils import AssetCreateParams
-from examples.shared import (
+from shared import (
     create_algorand_client,
     create_indexer_client,
     print_error,

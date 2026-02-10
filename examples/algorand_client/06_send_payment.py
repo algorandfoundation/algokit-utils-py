@@ -18,7 +18,7 @@ import json
 from datetime import datetime, timezone
 
 from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
-from examples.shared import (
+from shared import (
     format_algo,
     print_error,
     print_header,

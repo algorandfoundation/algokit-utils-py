@@ -13,7 +13,7 @@ import base64
 import time
 
 from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     create_indexer_client,

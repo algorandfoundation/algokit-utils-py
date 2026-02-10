@@ -20,7 +20,7 @@ from algokit_kmd_client.models import GenerateKeyRequest, SignTxnRequest
 from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, assign_fee, encode_transaction_raw
 from algokit_utils import AlgoAmount
 from algokit_utils.transactions.types import PaymentParams
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_algod_client,
     create_algorand_client,

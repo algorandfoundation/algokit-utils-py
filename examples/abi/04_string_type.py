@@ -12,7 +12,7 @@ No LocalNet required - pure ABI encoding/decoding
 """
 
 from algokit_abi import abi
-from examples.shared import format_hex, print_header, print_info, print_step, print_success
+from shared import format_hex, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

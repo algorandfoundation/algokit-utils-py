@@ -14,7 +14,7 @@ LocalNet required for transaction signing
 """
 
 from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,

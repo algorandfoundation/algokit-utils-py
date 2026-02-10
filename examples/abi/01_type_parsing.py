@@ -14,7 +14,7 @@ No LocalNet required - pure ABI encoding/decoding
 """
 
 from algokit_abi import abi
-from examples.shared import print_header, print_info, print_step, print_success
+from shared import print_header, print_info, print_step, print_success
 
 
 def main() -> None:

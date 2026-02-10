@@ -22,7 +22,7 @@ from decimal import Decimal
 
 from algokit_algod_client.models import TransactionProof
 from algokit_utils import AlgoAmount, PaymentParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     print_error,

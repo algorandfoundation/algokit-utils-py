@@ -4,7 +4,6 @@
 # Exit with non-zero code if any example fails
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUN="$SCRIPT_DIR/../run.sh"
 cd "$SCRIPT_DIR"
 
 # Array of example files in order
@@ -59,7 +58,7 @@ for example in "${EXAMPLES[@]}"; do
     fi
 
     # Run the example and capture output/exit code
-    if OUTPUT=$("$RUN" "$example" 2>&1); then
+    if OUTPUT=$(uv run python "$example" 2>&1); then
         echo -e "${GREEN}PASSED${NC}"
         PASSED=$((PASSED + 1))
     else

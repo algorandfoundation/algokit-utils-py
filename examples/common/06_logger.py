@@ -19,7 +19,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Protocol
 
-from examples.shared import (
+from shared import (
     print_header,
     print_info,
     print_step,

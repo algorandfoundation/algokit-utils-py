@@ -27,7 +27,7 @@ from algokit_utils import (
     AppUpdateParams,
     OperationPerformed,
 )
-from examples.shared import (
+from shared import (
     load_teal_source,
     print_error,
     print_header,

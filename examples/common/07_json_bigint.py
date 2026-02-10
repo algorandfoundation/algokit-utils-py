@@ -20,7 +20,7 @@ import json
 import sys
 from decimal import Decimal
 
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,

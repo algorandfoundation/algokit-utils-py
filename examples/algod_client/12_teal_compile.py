@@ -16,7 +16,7 @@ Prerequisites:
 
 import base64
 
-from examples.shared import (
+from shared import (
     create_algod_client,
     load_teal_source,
     print_error,

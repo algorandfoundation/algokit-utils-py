@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
 from algokit_utils.transactions.types import AppCreateParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     create_indexer_client,

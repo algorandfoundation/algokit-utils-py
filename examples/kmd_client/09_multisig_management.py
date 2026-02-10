@@ -34,7 +34,7 @@ from algokit_kmd_client.models import (
     ImportMultisigRequest,
     ListMultisigRequest,
 )
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_kmd_client,
     create_test_wallet,

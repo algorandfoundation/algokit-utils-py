@@ -12,7 +12,7 @@ Prerequisites:
 import time
 
 from algokit_utils import AssetCreateParams, AssetOptInParams, AssetTransferParams
-from examples.shared import (
+from shared import (
     create_algorand_client,
     create_indexer_client,
     create_random_account,

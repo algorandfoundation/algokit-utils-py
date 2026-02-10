@@ -17,7 +17,7 @@ No LocalNet required - pure ABI encoding/decoding
 import hashlib
 
 from algokit_abi.arc56 import Method, ReferenceType, TransactionType
-from examples.shared import format_hex, print_header, print_info, print_step, print_success
+from shared import format_hex, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

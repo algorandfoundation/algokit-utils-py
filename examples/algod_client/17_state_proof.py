@@ -26,7 +26,7 @@ This example demonstrates the API call and handles the expected errors gracefull
 
 from algokit_algod_client.models import StateProof
 
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,

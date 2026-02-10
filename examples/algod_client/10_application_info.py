@@ -14,7 +14,7 @@ import base64
 from algokit_algod_client.models import TealValue
 from algokit_utils import AppCallParams, AppCreateParams
 
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     get_funded_account,

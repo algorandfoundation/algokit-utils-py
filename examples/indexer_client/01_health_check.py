@@ -9,7 +9,7 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from examples.shared import (
+from shared import (
     create_indexer_client,
     print_error,
     print_header,

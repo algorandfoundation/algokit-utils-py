@@ -27,7 +27,7 @@ from algokit_transact import (
     encode_transaction_raw,
 )
 from algokit_utils import AlgorandClient
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,

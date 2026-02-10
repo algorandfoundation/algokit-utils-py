@@ -12,7 +12,7 @@ Prerequisites:
 import base64
 from datetime import UTC, datetime
 
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,
