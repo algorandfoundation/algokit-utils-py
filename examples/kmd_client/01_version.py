@@ -11,7 +11,7 @@ Prerequisites:
 
 import sys
 
-from examples.shared import (
+from shared import (
     create_kmd_client,
     print_error,
     print_header,

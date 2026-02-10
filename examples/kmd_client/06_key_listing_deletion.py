@@ -17,7 +17,7 @@ import sys
 
 from algokit_kmd_client.models import DeleteKeyRequest, GenerateKeyRequest, ListKeysRequest
 
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_kmd_client,
     create_test_wallet,

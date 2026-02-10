@@ -20,7 +20,7 @@ import base64
 
 from algokit_common import get_application_address
 from algokit_utils import AlgoAmount, AppCallParams, AppCreateParams, BoxReference, PaymentParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     get_funded_account,

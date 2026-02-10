@@ -24,14 +24,14 @@ from algokit_kmd_client import KmdClient
 from algokit_kmd_client.config import ClientConfig as KmdConfig
 from algokit_utils import AlgorandClient
 from algokit_utils.models.network import AlgoClientNetworkConfig
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,
     print_step,
     print_success,
 )
-from examples.shared.constants import (
+from shared.constants import (
     ALGOD_PORT,
     ALGOD_SERVER,
     ALGOD_TOKEN,

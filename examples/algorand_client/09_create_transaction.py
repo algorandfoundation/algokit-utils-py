@@ -35,7 +35,7 @@ from algokit_utils.transactions.types import (
     PaymentParams,
 )
 
-from examples.shared import (
+from shared import (
     format_algo,
     load_teal_source,
     print_error,

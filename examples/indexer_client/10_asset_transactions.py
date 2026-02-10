@@ -13,7 +13,7 @@ import time
 from datetime import datetime, timezone
 
 from algokit_utils import AssetConfigParams, AssetCreateParams, AssetFreezeParams, AssetOptInParams, AssetTransferParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     create_indexer_client,

@@ -22,7 +22,7 @@ No LocalNet required - pure ABI encoding/decoding
 
 from algokit_abi import abi
 from algokit_abi.arc56 import AVMType, Method, ReferenceType, TransactionType
-from examples.shared import print_header, print_info, print_step, print_success
+from shared import print_header, print_info, print_step, print_success
 
 
 def is_transaction_type(arg_type: abi.ABIType | ReferenceType | TransactionType) -> bool:

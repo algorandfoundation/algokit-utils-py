@@ -14,7 +14,7 @@ import time
 
 from algokit_utils import AlgoAmount, PaymentParams
 from algokit_utils.transactions.types import AppCallParams, AppCreateParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     create_indexer_client,

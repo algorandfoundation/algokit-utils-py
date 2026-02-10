@@ -28,7 +28,7 @@ from algokit_utils import AlgoAmount, AlgorandClient
 from algokit_utils.applications.app_deployer import AppDeploymentMetaData, AppDeployParams
 from algokit_utils.models.network import AlgoClientNetworkConfig
 from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams, AppUpdateParams
-from examples.shared import (
+from shared import (
     load_teal_source,
     print_error,
     print_header,

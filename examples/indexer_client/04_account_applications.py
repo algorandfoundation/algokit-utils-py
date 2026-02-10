@@ -12,7 +12,7 @@ Prerequisites:
 from algokit_transact import OnApplicationComplete
 from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 
-from examples.shared import (
+from shared import (
     create_algorand_client,
     create_indexer_client,
     load_teal_source,

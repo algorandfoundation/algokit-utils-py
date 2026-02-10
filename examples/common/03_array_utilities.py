@@ -14,7 +14,7 @@ unlike JavaScript's Uint8Array which needs utility functions.
 No LocalNet required - pure utility functions
 """
 
-from examples.shared import (
+from shared import (
     format_bytes,
     print_header,
     print_info,

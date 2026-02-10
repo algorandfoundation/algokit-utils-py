@@ -21,7 +21,7 @@ from algokit_common import (
     public_key_from_address,
     sha512_256,
 )
-from examples.shared import (
+from shared import (
     format_bytes,
     format_hex,
     print_header,

@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timezone
 
 from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
-from examples.shared import (
+from shared import (
     create_algorand_client,
     create_indexer_client,
     format_micro_algo,

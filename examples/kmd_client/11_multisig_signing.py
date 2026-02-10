@@ -35,7 +35,7 @@ from algokit_transact.models.signed_transaction import SignedTransaction
 from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
 from algokit_utils import AlgoAmount
 from algokit_utils.transactions.types import PaymentParams
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_algod_client,
     create_algorand_client,

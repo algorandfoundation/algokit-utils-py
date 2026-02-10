@@ -13,7 +13,7 @@ Prerequisites:
 from typing import Any
 
 from algokit_utils import AlgoAmount, PaymentParams
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     format_micro_algo,

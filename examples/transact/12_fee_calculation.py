@@ -26,7 +26,7 @@ from algokit_transact import (
     estimate_transaction_size,
 )
 from algokit_utils import AlgorandClient
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,

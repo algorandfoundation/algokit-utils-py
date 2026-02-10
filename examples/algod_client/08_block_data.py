@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 from algokit_transact import TransactionType
 from algokit_utils import AlgoAmount
-from examples.shared import (
+from shared import (
     create_algod_client,
     create_algorand_client,
     format_micro_algo,

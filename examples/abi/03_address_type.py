@@ -21,7 +21,7 @@ No LocalNet required - pure ABI encoding/decoding
 from algokit_abi import abi
 from algokit_common import address_from_public_key, public_key_from_address
 from algokit_common.constants import ZERO_ADDRESS
-from examples.shared import format_bytes, format_hex, print_header, print_info, print_step, print_success
+from shared import format_bytes, format_hex, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

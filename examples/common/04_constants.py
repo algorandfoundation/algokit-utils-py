@@ -46,7 +46,7 @@ from algokit_common import (
     TRANSACTION_GROUP_DOMAIN_SEPARATOR,
     TRANSACTION_ID_LENGTH,
 )
-from examples.shared import (
+from shared import (
     format_bytes,
     print_header,
     print_info,

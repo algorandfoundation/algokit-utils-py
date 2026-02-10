@@ -26,7 +26,7 @@ from algokit_utils.transactions.types import (
     AssetTransferParams,
 )
 
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,

@@ -34,7 +34,7 @@ from algokit_common import (
     wire,
 )
 from algokit_transact.codec.msgpack import decode_msgpack, encode_msgpack
-from examples.shared import (
+from shared import (
     format_hex,
     print_header,
     print_info,

@@ -14,7 +14,7 @@ LocalNet required to fetch suggested params and send transactions
 import time
 
 from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
-from examples.shared import (
+from shared import (
     print_error,
     print_header,
     print_info,

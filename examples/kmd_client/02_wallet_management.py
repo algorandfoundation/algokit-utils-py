@@ -24,7 +24,7 @@ from algokit_kmd_client.models import (
     RenameWalletRequest,
     WalletInfoRequest,
 )
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_kmd_client,
     print_error,

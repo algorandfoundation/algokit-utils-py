@@ -20,7 +20,7 @@ from algokit_common import (
     ProgramSourceMap,
     SourceMapVersionError,
 )
-from examples.shared import (
+from shared import (
     print_header,
     print_info,
     print_step,

@@ -25,7 +25,7 @@ import sys
 
 from algokit_common import public_key_from_address
 from algokit_kmd_client.models import GenerateKeyRequest, ImportMultisigRequest, ListMultisigRequest
-from examples.shared import (
+from shared import (
     cleanup_test_wallet,
     create_kmd_client,
     create_test_wallet,

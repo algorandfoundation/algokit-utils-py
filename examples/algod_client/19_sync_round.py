@@ -34,7 +34,7 @@ or return errors if the feature is not supported.
 
 from algokit_algod_client.models import GetSyncRoundResponse
 
-from examples.shared import (
+from shared import (
     create_algod_client,
     print_error,
     print_header,
