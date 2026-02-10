@@ -11,6 +11,10 @@ jobs:
     name: Check Documentation
     uses: ./.github/workflows/check-docs.yaml
 
+  pr-verify-examples:
+    name: Verify Examples
+    uses: ./.github/workflows/verify-examples.yaml
+
   pr-build:
     name: Build and Test Python
     needs: [pr-check, pr-check-docs]
