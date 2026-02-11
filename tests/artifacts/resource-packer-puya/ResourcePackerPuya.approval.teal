@@ -1,0 +1,279 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 1 0 4 32
+    // contract.py:29
+    // class ResourcePackerPuya(ARC4Contract):
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@8
+    pushbytess 0xa30ce7ff 0x1929655b // method "dummy()void", method "many_resources(address[4],uint64[4],uint64[4],uint8[4])void"
+    txna ApplicationArgs 0
+    match main_dummy_route@5 many_resources
+    err
+
+main_dummy_route@5:
+    // contract.py:43
+    // @arc4.abimethod
+    intc_0 // 1
+    return
+
+main_create_NoOp@8:
+    // contract.py:29
+    // class ResourcePackerPuya(ARC4Contract):
+    pushbytes 0x752c3ac0 // method "create_application()void"
+    txna ApplicationArgs 0
+    match main_create_application_route@9
+    err
+
+main_create_application_route@9:
+    // contract.py:39
+    // @arc4.abimethod(create="require")
+    intc_0 // 1
+    return
+
+
+// contract.ResourcePackerPuya.many_resources[routing]() -> void:
+many_resources:
+    intc_1 // 0
+    pushbytes ""
+    dupn 4
+    // contract.py:48
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 128
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.static_array<arc4.uint8, 32>, 4>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint64, 4>
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint64, 4>
+    txna ApplicationArgs 4
+    dup
+    len
+    intc_2 // 4
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 4>
+    intc_1 // 0
+
+many_resources_for_header@2:
+    // contract.py:61-62
+    // # Reference all accounts by checking they are NOT in the ledger
+    // for addr_arc4 in accounts:
+    dup
+    intc_2 // 4
+    <
+    bz many_resources_after_for@13
+    dup
+    intc_3 // 32
+    *
+    dig 5
+    swap
+    intc_3 // 32
+    extract3 // on error: index access is out of bounds
+    dup
+    bury 12
+    // contract.py:63
+    // addr = Account(addr_arc4.bytes)
+    dup
+    len
+    intc_3 // 32
+    ==
+    assert // Address length is 32 bytes
+    // contract.py:64
+    // min_bal, exists = op.AcctParamsGet.acct_min_balance(addr)
+    acct_params_get AcctMinBalance
+    bury 1
+    // contract.py:65
+    // assert not exists, "account should not be in ledger"
+    !
+    assert // account should not be in ledger
+    intc_1 // 0
+    bury 10
+
+many_resources_for_header@4:
+    // contract.py:67-68
+    // # Check account is not opted into any of the assets
+    // for asset_arc4 in assets:
+    dig 9
+    intc_2 // 4
+    <
+    bz many_resources_after_for@7
+    dig 9
+    dup
+    pushint 8
+    *
+    // contract.py:69
+    // asset = Asset(asset_arc4.native)
+    dig 5
+    swap
+    extract_uint64
+    // contract.py:70
+    // balance, is_opted_in = op.AssetHoldingGet.asset_balance(addr, asset)
+    dig 12
+    swap
+    asset_holding_get AssetBalance
+    bury 1
+    // contract.py:71
+    // assert not is_opted_in, "account should not hold asset"
+    !
+    assert // account should not hold asset
+    intc_0 // 1
+    +
+    bury 10
+    b many_resources_for_header@4
+
+many_resources_after_for@7:
+    intc_1 // 0
+    bury 9
+
+many_resources_for_header@8:
+    // contract.py:73-74
+    // # Check account is not opted into any of the apps
+    // for app_arc4 in apps:
+    dig 8
+    intc_2 // 4
+    <
+    bz many_resources_after_for@11
+    dig 8
+    dup
+    pushint 8
+    *
+    // contract.py:75
+    // app = Application(app_arc4.native)
+    dig 4
+    swap
+    extract_uint64
+    // contract.py:76
+    // assert not addr.is_opted_in(app), "account should not be opted into app"
+    dig 12
+    swap
+    app_opted_in
+    !
+    assert // account should not be opted into app
+    intc_0 // 1
+    +
+    bury 9
+    b many_resources_for_header@8
+
+many_resources_after_for@11:
+    dup
+    intc_0 // 1
+    +
+    bury 1
+    b many_resources_for_header@2
+
+many_resources_after_for@13:
+    intc_1 // 0
+    bury 8
+
+many_resources_for_header@14:
+    // contract.py:78-79
+    // # Reference all assets by checking their total supply
+    // for asset_arc4 in assets:
+    dig 7
+    intc_2 // 4
+    <
+    bz many_resources_after_for@17
+    dig 7
+    dup
+    pushint 8
+    *
+    // contract.py:80
+    // asset = Asset(asset_arc4.native)
+    dig 5
+    swap
+    extract_uint64
+    // contract.py:81
+    // assert asset.total > 0, "asset must have total > 0"
+    asset_params_get AssetTotal
+    assert // asset exists
+    assert // asset must have total > 0
+    intc_0 // 1
+    +
+    bury 8
+    b many_resources_for_header@14
+
+many_resources_after_for@17:
+    intc_1 // 0
+    bury 7
+
+many_resources_for_header@18:
+    // contract.py:83-84
+    // # Reference all apps by logging their creator
+    // for app_arc4 in apps:
+    dig 6
+    intc_2 // 4
+    <
+    bz many_resources_after_for@21
+    dig 6
+    dup
+    pushint 8
+    *
+    // contract.py:85
+    // app = Application(app_arc4.native)
+    dig 4
+    swap
+    extract_uint64
+    // contract.py:86
+    // log(app.creator)
+    app_params_get AppCreator
+    assert // application exists
+    log
+    intc_0 // 1
+    +
+    bury 7
+    b many_resources_for_header@18
+
+many_resources_after_for@21:
+    intc_1 // 0
+    bury 6
+
+many_resources_for_header@22:
+    // contract.py:88-89
+    // # Reference boxes by writing to them
+    // for box_key in boxes:
+    dig 5
+    intc_2 // 4
+    <
+    bz many_resources_after_for@25
+    dig 1
+    dig 6
+    dup
+    cover 2
+    intc_0 // 1
+    extract3 // on error: index access is out of bounds
+    // contract.py:90
+    // self.byte_boxes[box_key] = Bytes(b"foo")
+    pushbytes "byte_boxes"
+    swap
+    concat
+    dup
+    box_del
+    pop
+    pushbytes 0x666f6f
+    box_put
+    intc_0 // 1
+    +
+    bury 6
+    b many_resources_for_header@22
+
+many_resources_after_for@25:
+    // contract.py:48
+    // @arc4.abimethod
+    intc_0 // 1
+    return

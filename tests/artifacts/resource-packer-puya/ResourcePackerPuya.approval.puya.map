@@ -1,0 +1,3504 @@
+{
+  "version": 3,
+  "sources": [
+    "contract.py"
+  ],
+  "mappings": ";;;;;;;AA4BA;;AAAA;AAAA;AAAA;;AAAA;;;AAAA;;;;;;;;;;;;AAAA;;;AAAA;;;;;;AAAA;AAcK;AAAA;AAdL;;;;;;AAAA;;;AAAA;;;;AAAA;AAUK;AAAA;;;;;;AASA;;;AAAA;AAAA;AAAA;;;AAAA;AAAA;AAAA;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA;;;AAAA;AAAA;AAAA;AAAA;AAAA;;AAcL;AAAA;AAAA;AAAA;;;AAAA;AAAA;AAAA;AAAA;;AAAA;AAAA;AAAA;AAAA;AAAA;;AACmB;AAAA;AAAA;AAAA;AAAA;AACW;;AAAA;;AACX;AAAP;;;;AAGZ;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AAAA;;AAAA;AAC8B;;AAAA;AAAA;AACS;;AAAA;AAAA;;AAAA;;AAChB;AAAP;;;;;;;;;;;AAGhB;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AAAA;;AAAA;AACkC;;AAAA;AAAA;AACP;;AAAA;AAAA;AAAJ;AAAP;;;;;;;;;;;;;;;;;;;AAGhB;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AAAA;;AAAA;AAC0B;;AAAA;AAAA;AACP;;AAAA;AAAP;;;;;;;;;;;AAGZ;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;AAAA;;AAAA;AAC8B;;AAAA;AAAA;AACd;;AAAA;AAAJ;;;;;;;;;;;AAGZ;;AAAA;AAAA;AAAA;;;AAAA;;AAAA;;AAAA;AAAA;;AAAA;AAAA;AACY;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;;AAA2B;;;;;AAA3B;;;;;;;;AA1CP;AAAA",
+  "op_pc_offset": 0,
+  "pc_events": {
+    "1": {
+      "subroutine": "algopy.arc4.ARC4Contract.approval_program",
+      "params": {},
+      "block": "main",
+      "stack_in": [],
+      "op": "intcblock 1 0 4 32"
+    },
+    "7": {
+      "op": "txn OnCompletion",
+      "defined_out": [
+        "tmp%0#1"
+      ],
+      "stack_out": [
+        "tmp%0#1"
+      ]
+    },
+    "9": {
+      "op": "!",
+      "defined_out": [
+        "tmp%1#1"
+      ],
+      "stack_out": [
+        "tmp%1#1"
+      ]
+    },
+    "10": {
+      "op": "assert",
+      "stack_out": []
+    },
+    "11": {
+      "op": "txn ApplicationID",
+      "defined_out": [
+        "tmp%2#0"
+      ],
+      "stack_out": [
+        "tmp%2#0"
+      ]
+    },
+    "13": {
+      "op": "bz main_create_NoOp@8",
+      "stack_out": []
+    },
+    "16": {
+      "op": "pushbytess 0xa30ce7ff 0x1929655b // method \"dummy()void\", method \"many_resources(address[4],uint64[4],uint64[4],uint8[4])void\"",
+      "defined_out": [
+        "Method(dummy()void)",
+        "Method(many_resources(address[4],uint64[4],uint64[4],uint8[4])void)"
+      ],
+      "stack_out": [
+        "Method(dummy()void)",
+        "Method(many_resources(address[4],uint64[4],uint64[4],uint8[4])void)"
+      ]
+    },
+    "28": {
+      "op": "txna ApplicationArgs 0",
+      "defined_out": [
+        "Method(dummy()void)",
+        "Method(many_resources(address[4],uint64[4],uint64[4],uint8[4])void)",
+        "tmp%4#0"
+      ],
+      "stack_out": [
+        "Method(dummy()void)",
+        "Method(many_resources(address[4],uint64[4],uint64[4],uint8[4])void)",
+        "tmp%4#0"
+      ]
+    },
+    "31": {
+      "op": "match main_dummy_route@5 many_resources",
+      "stack_out": []
+    },
+    "37": {
+      "op": "err"
+    },
+    "38": {
+      "block": "main_dummy_route@5",
+      "stack_in": [],
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1"
+      ],
+      "stack_out": [
+        "1"
+      ]
+    },
+    "39": {
+      "op": "return",
+      "stack_out": []
+    },
+    "40": {
+      "block": "main_create_NoOp@8",
+      "stack_in": [],
+      "op": "pushbytes 0x752c3ac0 // method \"create_application()void\"",
+      "defined_out": [
+        "Method(create_application()void)"
+      ],
+      "stack_out": [
+        "Method(create_application()void)"
+      ]
+    },
+    "46": {
+      "op": "txna ApplicationArgs 0",
+      "defined_out": [
+        "Method(create_application()void)",
+        "tmp%5#0"
+      ],
+      "stack_out": [
+        "Method(create_application()void)",
+        "tmp%5#0"
+      ]
+    },
+    "49": {
+      "op": "match main_create_application_route@9",
+      "stack_out": []
+    },
+    "53": {
+      "op": "err"
+    },
+    "54": {
+      "block": "main_create_application_route@9",
+      "stack_in": [],
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1"
+      ],
+      "stack_out": [
+        "1"
+      ]
+    },
+    "55": {
+      "op": "return",
+      "stack_out": []
+    },
+    "56": {
+      "subroutine": "contract.ResourcePackerPuya.many_resources[routing]",
+      "params": {},
+      "block": "many_resources",
+      "stack_in": [],
+      "op": "intc_1 // 0",
+      "stack_out": [
+        "addr_arc4#0"
+      ]
+    },
+    "57": {
+      "op": "pushbytes \"\"",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "59": {
+      "op": "dupn 4",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "61": {
+      "op": "txna ApplicationArgs 1"
+    },
+    "64": {
+      "op": "dup",
+      "defined_out": [
+        "accounts#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "accounts#0"
+      ]
+    },
+    "65": {
+      "op": "len",
+      "defined_out": [
+        "accounts#0",
+        "len%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "len%0#0"
+      ]
+    },
+    "66": {
+      "op": "pushint 128",
+      "defined_out": [
+        "128",
+        "accounts#0",
+        "len%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "len%0#0",
+        "128"
+      ]
+    },
+    "69": {
+      "op": "==",
+      "defined_out": [
+        "accounts#0",
+        "eq%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "eq%0#0"
+      ]
+    },
+    "70": {
+      "error": "invalid number of bytes for arc4.static_array<arc4.static_array<arc4.uint8, 32>, 4>",
+      "op": "assert // invalid number of bytes for arc4.static_array<arc4.static_array<arc4.uint8, 32>, 4>",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0"
+      ]
+    },
+    "71": {
+      "op": "txna ApplicationArgs 2"
+    },
+    "74": {
+      "op": "dup",
+      "defined_out": [
+        "accounts#0",
+        "assets#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "assets#0"
+      ]
+    },
+    "75": {
+      "op": "len",
+      "defined_out": [
+        "accounts#0",
+        "assets#0",
+        "len%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "len%1#0"
+      ]
+    },
+    "76": {
+      "op": "intc_3 // 32",
+      "defined_out": [
+        "32",
+        "accounts#0",
+        "assets#0",
+        "len%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "len%1#0",
+        "32"
+      ]
+    },
+    "77": {
+      "op": "==",
+      "defined_out": [
+        "accounts#0",
+        "assets#0",
+        "eq%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "eq%1#0"
+      ]
+    },
+    "78": {
+      "error": "invalid number of bytes for arc4.static_array<arc4.uint64, 4>",
+      "op": "assert // invalid number of bytes for arc4.static_array<arc4.uint64, 4>",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0"
+      ]
+    },
+    "79": {
+      "op": "txna ApplicationArgs 3"
+    },
+    "82": {
+      "op": "dup",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "apps#0"
+      ]
+    },
+    "83": {
+      "op": "len",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "len%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "len%2#0"
+      ]
+    },
+    "84": {
+      "op": "intc_3 // 32",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "len%2#0",
+        "32"
+      ]
+    },
+    "85": {
+      "op": "==",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "eq%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "eq%2#0"
+      ]
+    },
+    "86": {
+      "error": "invalid number of bytes for arc4.static_array<arc4.uint64, 4>",
+      "op": "assert // invalid number of bytes for arc4.static_array<arc4.uint64, 4>",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0"
+      ]
+    },
+    "87": {
+      "op": "txna ApplicationArgs 4"
+    },
+    "90": {
+      "op": "dup",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "boxes#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "boxes#0"
+      ]
+    },
+    "91": {
+      "op": "len",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "boxes#0",
+        "len%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "len%3#0"
+      ]
+    },
+    "92": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "boxes#0",
+        "len%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "len%3#0",
+        "4"
+      ]
+    },
+    "93": {
+      "op": "==",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "boxes#0",
+        "eq%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "eq%3#0"
+      ]
+    },
+    "94": {
+      "error": "invalid number of bytes for arc4.static_array<arc4.uint8, 4>",
+      "op": "assert // invalid number of bytes for arc4.static_array<arc4.uint8, 4>",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0"
+      ]
+    },
+    "95": {
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "accounts#0",
+        "apps#0",
+        "assets#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "96": {
+      "block": "many_resources_for_header@2",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "97": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0",
+        "4"
+      ]
+    },
+    "98": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%0#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%0#0"
+      ]
+    },
+    "99": {
+      "op": "bz many_resources_after_for@13",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "102": {
+      "op": "dup",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "103": {
+      "op": "intc_3 // 32",
+      "defined_out": [
+        "32",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0",
+        "32"
+      ]
+    },
+    "104": {
+      "op": "*",
+      "defined_out": [
+        "aggregate%bytes_offset%0#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "aggregate%bytes_offset%0#0"
+      ]
+    },
+    "105": {
+      "op": "dig 5",
+      "defined_out": [
+        "accounts#0",
+        "aggregate%bytes_offset%0#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "aggregate%bytes_offset%0#0",
+        "accounts#0"
+      ]
+    },
+    "107": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "accounts#0",
+        "aggregate%bytes_offset%0#0"
+      ]
+    },
+    "108": {
+      "op": "intc_3 // 32",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "accounts#0",
+        "aggregate%bytes_offset%0#0",
+        "32"
+      ]
+    },
+    "109": {
+      "error": "index access is out of bounds",
+      "op": "extract3 // on error: index access is out of bounds",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0"
+      ]
+    },
+    "110": {
+      "op": "dup",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0",
+        "addr_arc4#0"
+      ]
+    },
+    "111": {
+      "op": "bury 12",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0"
+      ]
+    },
+    "113": {
+      "op": "dup",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "addr_arc4#0 (copy)",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0",
+        "addr_arc4#0 (copy)"
+      ]
+    },
+    "114": {
+      "op": "len",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0",
+        "tmp%0#1"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0",
+        "tmp%0#1"
+      ]
+    },
+    "115": {
+      "op": "intc_3 // 32",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0",
+        "tmp%0#1",
+        "32"
+      ]
+    },
+    "116": {
+      "op": "==",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0",
+        "tmp%1#1"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0",
+        "tmp%1#1"
+      ]
+    },
+    "117": {
+      "error": "Address length is 32 bytes",
+      "op": "assert // Address length is 32 bytes",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "addr_arc4#0"
+      ]
+    },
+    "118": {
+      "op": "acct_params_get AcctMinBalance",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "exists#0",
+        "item_index_internal%0#0",
+        "min_bal#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "min_bal#0",
+        "exists#0"
+      ]
+    },
+    "120": {
+      "op": "bury 1",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "exists#0"
+      ]
+    },
+    "122": {
+      "op": "!",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0",
+        "tmp%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "tmp%4#0"
+      ]
+    },
+    "123": {
+      "error": "account should not be in ledger",
+      "op": "assert // account should not be in ledger",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "124": {
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "125": {
+      "op": "bury 10",
+      "defined_out": [
+        "accounts#0",
+        "addr_arc4#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "127": {
+      "block": "many_resources_for_header@4",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dig 9",
+      "defined_out": [
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "129": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "4"
+      ]
+    },
+    "130": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%1#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%1#0"
+      ]
+    },
+    "131": {
+      "op": "bz many_resources_after_for@7",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "134": {
+      "op": "dig 9",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "136": {
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%1#0",
+        "item_index_internal%1#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "item_index_internal%1#0 (copy)"
+      ]
+    },
+    "137": {
+      "op": "pushint 8",
+      "defined_out": [
+        "8",
+        "item_index_internal%1#0",
+        "item_index_internal%1#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "item_index_internal%1#0 (copy)",
+        "8"
+      ]
+    },
+    "139": {
+      "op": "*",
+      "defined_out": [
+        "aggregate%bytes_offset%1#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "aggregate%bytes_offset%1#0"
+      ]
+    },
+    "140": {
+      "op": "dig 5",
+      "defined_out": [
+        "aggregate%bytes_offset%1#0",
+        "assets#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "aggregate%bytes_offset%1#0",
+        "assets#0"
+      ]
+    },
+    "142": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "assets#0",
+        "aggregate%bytes_offset%1#0"
+      ]
+    },
+    "143": {
+      "op": "extract_uint64",
+      "defined_out": [
+        "asset#0",
+        "assets#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "asset#0"
+      ]
+    },
+    "144": {
+      "op": "dig 12",
+      "defined_out": [
+        "addr_arc4#0",
+        "asset#0",
+        "assets#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "asset#0",
+        "addr_arc4#0"
+      ]
+    },
+    "146": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "addr_arc4#0",
+        "asset#0"
+      ]
+    },
+    "147": {
+      "op": "asset_holding_get AssetBalance",
+      "defined_out": [
+        "addr_arc4#0",
+        "assets#0",
+        "balance#0",
+        "is_opted_in#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "balance#0",
+        "is_opted_in#0"
+      ]
+    },
+    "149": {
+      "op": "bury 1",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "is_opted_in#0"
+      ]
+    },
+    "151": {
+      "op": "!",
+      "defined_out": [
+        "addr_arc4#0",
+        "assets#0",
+        "item_index_internal%1#0",
+        "tmp%8#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "tmp%8#0"
+      ]
+    },
+    "152": {
+      "error": "account should not hold asset",
+      "op": "assert // account should not hold asset",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "153": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "addr_arc4#0",
+        "assets#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0",
+        "1"
+      ]
+    },
+    "154": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%1#0"
+      ]
+    },
+    "155": {
+      "op": "bury 10",
+      "defined_out": [
+        "addr_arc4#0",
+        "assets#0",
+        "item_index_internal%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "157": {
+      "op": "b many_resources_for_header@4"
+    },
+    "160": {
+      "block": "many_resources_after_for@7",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0"
+      ]
+    },
+    "161": {
+      "op": "bury 9",
+      "defined_out": [
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "163": {
+      "block": "many_resources_for_header@8",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dig 8",
+      "defined_out": [
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0"
+      ]
+    },
+    "165": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "4"
+      ]
+    },
+    "166": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%2#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%2#0"
+      ]
+    },
+    "167": {
+      "op": "bz many_resources_after_for@11",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "170": {
+      "op": "dig 8",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0"
+      ]
+    },
+    "172": {
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%2#0",
+        "item_index_internal%2#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "item_index_internal%2#0 (copy)"
+      ]
+    },
+    "173": {
+      "op": "pushint 8",
+      "defined_out": [
+        "8",
+        "item_index_internal%2#0",
+        "item_index_internal%2#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "item_index_internal%2#0 (copy)",
+        "8"
+      ]
+    },
+    "175": {
+      "op": "*",
+      "defined_out": [
+        "aggregate%bytes_offset%2#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "aggregate%bytes_offset%2#0"
+      ]
+    },
+    "176": {
+      "op": "dig 4",
+      "defined_out": [
+        "aggregate%bytes_offset%2#0",
+        "apps#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "aggregate%bytes_offset%2#0",
+        "apps#0"
+      ]
+    },
+    "178": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "apps#0",
+        "aggregate%bytes_offset%2#0"
+      ]
+    },
+    "179": {
+      "op": "extract_uint64",
+      "defined_out": [
+        "app#0",
+        "apps#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "app#0"
+      ]
+    },
+    "180": {
+      "op": "dig 12",
+      "defined_out": [
+        "addr_arc4#0",
+        "app#0",
+        "apps#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "app#0",
+        "addr_arc4#0"
+      ]
+    },
+    "182": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "addr_arc4#0",
+        "app#0"
+      ]
+    },
+    "183": {
+      "op": "app_opted_in",
+      "defined_out": [
+        "addr_arc4#0",
+        "apps#0",
+        "item_index_internal%2#0",
+        "tmp%10#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "tmp%10#0"
+      ]
+    },
+    "184": {
+      "op": "!",
+      "defined_out": [
+        "addr_arc4#0",
+        "apps#0",
+        "item_index_internal%2#0",
+        "tmp%11#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "tmp%11#0"
+      ]
+    },
+    "185": {
+      "error": "account should not be opted into app",
+      "op": "assert // account should not be opted into app",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0"
+      ]
+    },
+    "186": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "addr_arc4#0",
+        "apps#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0",
+        "1"
+      ]
+    },
+    "187": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%2#0"
+      ]
+    },
+    "188": {
+      "op": "bury 9",
+      "defined_out": [
+        "addr_arc4#0",
+        "apps#0",
+        "item_index_internal%2#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "190": {
+      "op": "b many_resources_for_header@8"
+    },
+    "193": {
+      "block": "many_resources_after_for@11",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "194": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0",
+        "1"
+      ]
+    },
+    "195": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "196": {
+      "op": "bury 1",
+      "defined_out": [
+        "item_index_internal%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "198": {
+      "op": "b many_resources_for_header@2"
+    },
+    "201": {
+      "block": "many_resources_after_for@13",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0"
+      ]
+    },
+    "202": {
+      "op": "bury 8",
+      "defined_out": [
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "204": {
+      "block": "many_resources_for_header@14",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dig 7",
+      "defined_out": [
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0"
+      ]
+    },
+    "206": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "4"
+      ]
+    },
+    "207": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%3#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%3#0"
+      ]
+    },
+    "208": {
+      "op": "bz many_resources_after_for@17",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "211": {
+      "op": "dig 7",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0"
+      ]
+    },
+    "213": {
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%3#0",
+        "item_index_internal%3#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "item_index_internal%3#0 (copy)"
+      ]
+    },
+    "214": {
+      "op": "pushint 8",
+      "defined_out": [
+        "8",
+        "item_index_internal%3#0",
+        "item_index_internal%3#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "item_index_internal%3#0 (copy)",
+        "8"
+      ]
+    },
+    "216": {
+      "op": "*",
+      "defined_out": [
+        "aggregate%bytes_offset%3#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "aggregate%bytes_offset%3#0"
+      ]
+    },
+    "217": {
+      "op": "dig 5",
+      "defined_out": [
+        "aggregate%bytes_offset%3#0",
+        "assets#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "aggregate%bytes_offset%3#0",
+        "assets#0"
+      ]
+    },
+    "219": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "assets#0",
+        "aggregate%bytes_offset%3#0"
+      ]
+    },
+    "220": {
+      "op": "extract_uint64",
+      "defined_out": [
+        "asset#0",
+        "assets#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "asset#0"
+      ]
+    },
+    "221": {
+      "op": "asset_params_get AssetTotal",
+      "defined_out": [
+        "assets#0",
+        "check%0#0",
+        "item_index_internal%3#0",
+        "value%0#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "value%0#0",
+        "check%0#0"
+      ]
+    },
+    "223": {
+      "error": "asset exists",
+      "op": "assert // asset exists",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "value%0#0"
+      ]
+    },
+    "224": {
+      "error": "asset must have total > 0",
+      "op": "assert // asset must have total > 0",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0"
+      ]
+    },
+    "225": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "assets#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0",
+        "1"
+      ]
+    },
+    "226": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%3#0"
+      ]
+    },
+    "227": {
+      "op": "bury 8",
+      "defined_out": [
+        "assets#0",
+        "item_index_internal%3#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "229": {
+      "op": "b many_resources_for_header@14"
+    },
+    "232": {
+      "block": "many_resources_after_for@17",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0"
+      ]
+    },
+    "233": {
+      "op": "bury 7",
+      "defined_out": [
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "235": {
+      "block": "many_resources_for_header@18",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dig 6",
+      "defined_out": [
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0"
+      ]
+    },
+    "237": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "4"
+      ]
+    },
+    "238": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%4#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%4#0"
+      ]
+    },
+    "239": {
+      "op": "bz many_resources_after_for@21",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "242": {
+      "op": "dig 6",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0"
+      ]
+    },
+    "244": {
+      "op": "dup",
+      "defined_out": [
+        "item_index_internal%4#0",
+        "item_index_internal%4#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "item_index_internal%4#0 (copy)"
+      ]
+    },
+    "245": {
+      "op": "pushint 8",
+      "defined_out": [
+        "8",
+        "item_index_internal%4#0",
+        "item_index_internal%4#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "item_index_internal%4#0 (copy)",
+        "8"
+      ]
+    },
+    "247": {
+      "op": "*",
+      "defined_out": [
+        "aggregate%bytes_offset%4#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "aggregate%bytes_offset%4#0"
+      ]
+    },
+    "248": {
+      "op": "dig 4",
+      "defined_out": [
+        "aggregate%bytes_offset%4#0",
+        "apps#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "aggregate%bytes_offset%4#0",
+        "apps#0"
+      ]
+    },
+    "250": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "apps#0",
+        "aggregate%bytes_offset%4#0"
+      ]
+    },
+    "251": {
+      "op": "extract_uint64",
+      "defined_out": [
+        "app#0",
+        "apps#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "app#0"
+      ]
+    },
+    "252": {
+      "op": "app_params_get AppCreator",
+      "defined_out": [
+        "apps#0",
+        "check%1#0",
+        "item_index_internal%4#0",
+        "value%1#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "value%1#0",
+        "check%1#0"
+      ]
+    },
+    "254": {
+      "error": "application exists",
+      "op": "assert // application exists",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "value%1#0"
+      ]
+    },
+    "255": {
+      "op": "log",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0"
+      ]
+    },
+    "256": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "apps#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0",
+        "1"
+      ]
+    },
+    "257": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%4#0"
+      ]
+    },
+    "258": {
+      "op": "bury 7",
+      "defined_out": [
+        "apps#0",
+        "item_index_internal%4#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "260": {
+      "op": "b many_resources_for_header@18"
+    },
+    "263": {
+      "block": "many_resources_after_for@21",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "intc_1 // 0",
+      "defined_out": [
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "264": {
+      "op": "bury 6",
+      "defined_out": [
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "266": {
+      "block": "many_resources_for_header@22",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "dig 5",
+      "defined_out": [
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "268": {
+      "op": "intc_2 // 4",
+      "defined_out": [
+        "4",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "4"
+      ]
+    },
+    "269": {
+      "op": "<",
+      "defined_out": [
+        "continue_looping%5#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "continue_looping%5#0"
+      ]
+    },
+    "270": {
+      "op": "bz many_resources_after_for@25",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "273": {
+      "op": "dig 1",
+      "defined_out": [
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "boxes#0"
+      ]
+    },
+    "275": {
+      "op": "dig 6",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "277": {
+      "op": "dup",
+      "defined_out": [
+        "boxes#0",
+        "item_index_internal%5#0",
+        "item_index_internal%5#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "boxes#0",
+        "item_index_internal%5#0 (copy)",
+        "item_index_internal%5#0 (copy)"
+      ]
+    },
+    "278": {
+      "op": "cover 2",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "boxes#0",
+        "item_index_internal%5#0 (copy)"
+      ]
+    },
+    "280": {
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1",
+        "boxes#0",
+        "item_index_internal%5#0",
+        "item_index_internal%5#0 (copy)"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "boxes#0",
+        "item_index_internal%5#0 (copy)",
+        "1"
+      ]
+    },
+    "281": {
+      "error": "index access is out of bounds",
+      "op": "extract3 // on error: index access is out of bounds",
+      "defined_out": [
+        "box_key#0",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_key#0"
+      ]
+    },
+    "282": {
+      "op": "pushbytes \"byte_boxes\"",
+      "defined_out": [
+        "\"byte_boxes\"",
+        "box_key#0",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_key#0",
+        "\"byte_boxes\""
+      ]
+    },
+    "294": {
+      "op": "swap",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "\"byte_boxes\"",
+        "box_key#0"
+      ]
+    },
+    "295": {
+      "op": "concat",
+      "defined_out": [
+        "box_prefixed_key%0#0",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_prefixed_key%0#0"
+      ]
+    },
+    "296": {
+      "op": "dup",
+      "defined_out": [
+        "box_prefixed_key%0#0",
+        "box_prefixed_key%0#0 (copy)",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_prefixed_key%0#0",
+        "box_prefixed_key%0#0 (copy)"
+      ]
+    },
+    "297": {
+      "op": "box_del",
+      "defined_out": [
+        "box_prefixed_key%0#0",
+        "boxes#0",
+        "item_index_internal%5#0",
+        "{box_del}"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_prefixed_key%0#0",
+        "{box_del}"
+      ]
+    },
+    "298": {
+      "op": "pop",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_prefixed_key%0#0"
+      ]
+    },
+    "299": {
+      "op": "pushbytes 0x666f6f",
+      "defined_out": [
+        "0x666f6f",
+        "box_prefixed_key%0#0",
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "box_prefixed_key%0#0",
+        "0x666f6f"
+      ]
+    },
+    "304": {
+      "op": "box_put",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "305": {
+      "op": "intc_0 // 1",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0",
+        "1"
+      ]
+    },
+    "306": {
+      "op": "+",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "item_index_internal%5#0"
+      ]
+    },
+    "307": {
+      "op": "bury 6",
+      "defined_out": [
+        "boxes#0",
+        "item_index_internal%5#0"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    },
+    "309": {
+      "op": "b many_resources_for_header@22"
+    },
+    "312": {
+      "block": "many_resources_after_for@25",
+      "stack_in": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ],
+      "op": "intc_0 // 1",
+      "defined_out": [
+        "1"
+      ],
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0",
+        "1"
+      ]
+    },
+    "313": {
+      "op": "return",
+      "stack_out": [
+        "addr_arc4#0",
+        "item_index_internal%1#0",
+        "item_index_internal%2#0",
+        "item_index_internal%3#0",
+        "item_index_internal%4#0",
+        "item_index_internal%5#0",
+        "accounts#0",
+        "assets#0",
+        "apps#0",
+        "boxes#0",
+        "item_index_internal%0#0"
+      ]
+    }
+  }
+}

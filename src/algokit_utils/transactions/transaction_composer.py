@@ -782,7 +782,7 @@ class TransactionComposer:
 
         return self._transactions_with_signers
 
-    def _analyze_group_requirements(  # noqa: C901, PLR0912
+    def _analyze_group_requirements(  # noqa: C901, PLR0912, PLR0915
         self,
         transactions: list[Transaction],
         logical_max_fees: Sequence[AlgoAmount | None],
@@ -865,6 +865,16 @@ class TransactionComposer:
             unnamed_resources = (
                 simulate_txn_result.unnamed_resources_accessed if config.populate_app_call_resources else None
             )
+
+            # Sort transaction-level resources for deterministic ordering
+            if unnamed_resources:
+                if unnamed_resources.accounts:
+                    unnamed_resources.accounts = sorted(unnamed_resources.accounts)
+                if unnamed_resources.assets:
+                    unnamed_resources.assets = sorted(unnamed_resources.assets)
+                if unnamed_resources.apps:
+                    unnamed_resources.apps = sorted(unnamed_resources.apps)
+
             txn_analysis_results.append(
                 _TransactionAnalysis(
                     required_fee_delta=required_fee_delta,
