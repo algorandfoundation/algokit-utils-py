@@ -76,22 +76,22 @@ lint.select = [
   # ones we don't want/need are commented out to make it clear
   # which have been omitted on purpose vs which ones get added
   # in new ruff releases and should be considered for enabling
-  "F", # pyflakes
+  "F",   # pyflakes
   "E",
-  "W", # pycodestyle
+  "W",   # pycodestyle
   "C90", # mccabe
-  "I", # isort
-  "N", # PEP8 naming
-  "UP", # pyupgrade
+  "I",   # isort
+  "N",   # PEP8 naming
+  "UP",  # pyupgrade
   "YTT", # flake8-2020
   "ANN", # flake8-annotations
   # "S",    # flake8-bandit
   # "BLE",  # flake8-blind-except
   "FBT", # flake8-boolean-trap
-  "B", # flake8-bugbear
-  "A", # flake8-builtins
+  "B",   # flake8-bugbear
+  "A",   # flake8-builtins
   # "COM",  # flake8-commas
-  "C4", # flake8-comprehensions
+  "C4",  # flake8-comprehensions
   "DTZ", # flake8-datetimez
   "T10", # flake8-debugger
   # "DJ",   # flake8-django
@@ -104,8 +104,8 @@ lint.select = [
   "PIE", # flake8-pie
   "T20", # flake8-print
   "PYI", # flake8-pyi
-  "PT", # flake8-pytest-style
-  "Q", # flake8-quotes
+  "PT",  # flake8-pytest-style
+  "Q",   # flake8-quotes
   "RSE", # flake8-raise
   "RET", # flake8-return
   "SLF", # flake8-self
@@ -116,7 +116,7 @@ lint.select = [
   "ERA", # eradicate
   # "PD",   # pandas-vet
   "PGH", # pygrep-hooks
-  "PL", # pylint
+  "PL",  # pylint
   # "TRY",  # tryceratops
   # "NPY",  # NumPy-specific rules
   "RUF", # Ruff-specific rules
@@ -124,15 +124,15 @@ lint.select = [
 lint.ignore = [
   "RET505", # allow else after return
   "SIM108", # allow if-else in place of ternary
-  "E111", # indentation is not a multiple of four
-  "E117", # over-indented
+  "E111",   # indentation is not a multiple of four
+  "E117",   # over-indented
   "ISC001", # single line implicit string concatenation
   "ISC002", # multi line implicit string concatenation
-  "Q000", # bad quotes inline string
-  "Q001", # bad quotes multiline string
-  "Q002", # bad quotes docstring
-  "Q003", # avoidable escaped quotes
-  "W191", # indentation contains tabs
+  "Q000",   # bad quotes inline string
+  "Q001",   # bad quotes multiline string
+  "Q002",   # bad quotes docstring
+  "Q003",   # avoidable escaped quotes
+  "W191",   # indentation contains tabs
   "ERA001", # commented out code
 ]
 # Exclude a variety of commonly ignored directories.
@@ -334,6 +334,32 @@ build_command = "uv build"
 major_on_zero = true
 commit_message = "{version}\n\nskip-checks: true"
 tag_format = "v{version}"
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease_token = "beta"
+prerelease = false
+
+[tool.semantic_release.branches.alpha]
+match = "alpha"
+prerelease_token = "alpha"
+prerelease = true
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = [
+  "build",
+  "chore",
+  "ci",
+  "docs",
+  "feat",
+  "fix",
+  "perf",
+  "style",
+  "refactor",
+  "test",
+]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf", "build", "chore", "refactor"]
 
 [tool.semantic_release.remote]
 type = "github"
