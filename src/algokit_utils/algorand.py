@@ -102,8 +102,8 @@ class AlgorandClient:
         :return: The `AlgorandClient` so method calls can be chained
         :example:
             >>> accountManager = AlgorandClient.mainnet()
-            >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
-            >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
+            >>> accountManager.set_signer_from_account(AddressWithSigners(addr=..., signer=...))
+            >>> accountManager.set_signer_from_account(LogicSigAccount(logic=..., args=...))
             >>> accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
             >>> accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
             >>> accountManager.set_signer_from_account(account)
@@ -251,11 +251,12 @@ class AlgorandClient:
 
         :example:
             >>> result = AlgorandClient.mainnet().send.payment(
-            >>> PaymentParams(
-            >>>  sender="SENDERADDRESS",
-            >>>  receiver="RECEIVERADDRESS",
-            >>>  amount=AlgoAmount(algo-1)
-            >>> ))
+            >>>     PaymentParams(
+            >>>         sender="SENDERADDRESS",
+            >>>         receiver="RECEIVERADDRESS",
+            >>>         amount=AlgoAmount(algo=1)
+            >>>     )
+            >>> )
         """
         return self._transaction_sender
 

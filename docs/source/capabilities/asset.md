@@ -7,12 +7,17 @@ The Algorand Standard Asset (ASA) management functions include creating, opting 
 The `AssetManager` class provides functionality for managing Algorand Standard Assets (ASAs). It can be accessed through the `AlgorandClient` via `algorand.asset` or instantiated directly:
 
 ```python
-from algokit_utils import AssetManager, TransactionComposer
-from algosdk.v2client import algod
+from algokit_utils import AssetManager, TransactionComposer, TransactionComposerParams
+from algokit_algod_client import AlgodClient
 
 asset_manager = AssetManager(
     algod_client=algod_client,
-    new_group=lambda: TransactionComposer()
+    new_group=lambda: TransactionComposer(
+        TransactionComposerParams(
+            algod=algod_client,
+            get_signer=lambda addr: get_signer(addr),  # Your signer function
+        )
+    )
 )
 ```
 
@@ -75,9 +80,9 @@ result = asset_manager.bulk_opt_in(
     signer=transaction_signer,
     note=b"opt-in note",
     lease=b"lease",
-    static_fee=AlgoAmount(1000),
-    extra_fee=AlgoAmount(500),
-    max_fee=AlgoAmount(2000),
+    static_fee=AlgoAmount(micro_algo=1000),
+    extra_fee=AlgoAmount(micro_algo=500),
+    max_fee=AlgoAmount(micro_algo=2000),
     validity_window=10,
     send_params=SendParams(...)
 )
@@ -100,9 +105,9 @@ result = asset_manager.bulk_opt_out(
     signer=transaction_signer,
     note=b"opt-out note",
     lease=b"lease",
-    static_fee=AlgoAmount(1000),
-    extra_fee=AlgoAmount(500),
-    max_fee=AlgoAmount(2000),
+    static_fee=AlgoAmount(micro_algo=1000),
+    extra_fee=AlgoAmount(micro_algo=500),
+    max_fee=AlgoAmount(micro_algo=2000),
     validity_window=10,
     send_params=SendParams(...)
 )

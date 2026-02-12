@@ -43,7 +43,7 @@ This design allows you to have the same deployment code across environments with
 
 The {py:obj}`AppDeployer <algokit_utils.app_deployer.AppDeployer>` is a class that is used to manage app deployments and deployment metadata.
 
-To get an instance of `AppDeployer` you can use either [`AlgorandClient`](./algorand-client.md) via `algorand.appDeployer` or instantiate it directly (passing in an [`AppManager`](./app.md#appmanager), [`AlgorandClientTransactionSender`](./algorand-client.md#sending-a-single-transaction) and optionally an indexer client instance):
+To get an instance of `AppDeployer` you can use either [`AlgorandClient`](./algorand-client.md) via `algorand.app_deployer` or instantiate it directly (passing in an [`AppManager`](./app.md#appmanager), [`AlgorandClientTransactionSender`](./algorand-client.md#sending-a-single-transaction) and optionally an indexer client instance):
 
 ```python
 from algokit_utils.app_deployer import AppDeployer
@@ -55,7 +55,7 @@ app_deployer = AppDeployer(app_manager, transaction_sender, indexer)
 
 When AlgoKit performs a deployment of an app it creates metadata to describe that deployment and includes this metadata in an [ARC-2](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md) transaction note on any creation and update transactions.
 
-The deployment metadata is defined in {py:obj}`AppDeployMetadata <algokit_utils.models.app_deployer.AppDeployMetadata>`, which is an object with:
+The deployment metadata is defined in {py:obj}`AppDeploymentMetaData <algokit_utils.applications.app_deployer.AppDeploymentMetaData>`, which is an object with:
 
 - `name: str` - The unique name identifier of the app within the creator account
 - `version: str` - The version of app that is / will be deployed; can be an arbitrary string, but we recommend using [semver](https://semver.org/)
@@ -113,7 +113,7 @@ deployment_result = algorand.app_deployer.deploy(
             sender="CREATORADDRESS",
             approval_program=approval_teal_template_or_byte_code,
             clear_state_program=clear_state_teal_template_or_byte_code,
-            schema=StateSchema(
+            schema=AppCreateSchema(
                 global_ints=1,
                 global_byte_slices=2,
                 local_ints=3,
@@ -132,8 +132,8 @@ deployment_result = algorand.app_deployer.deploy(
         deploy_time_params={
             "VALUE": 1,  # TEAL template variables to replace
         },
-        on_schema_break=OnSchemaBreak.Append,
-        on_update=OnUpdate.Update,
+        on_schema_break=OnSchemaBreak.AppendApp,
+        on_update=OnUpdate.UpdateApp,
         send_params=SendParams(
             populate_app_call_resources=True,
             # Other execution control parameters
@@ -243,10 +243,10 @@ When `deploy` executes it will return a {py:obj}`AppDeployResult <algokit_utils.
 
 The `deploy` call itself may do one of the following (which you can determine by looking at the `operation_performed` field on the return value from the function):
 
-- `OperationPerformed.CREATE` - The smart contract app was created
-- `OperationPerformed.UPDATE` - The smart contract app was updated
-- `OperationPerformed.REPLACE` - The smart contract app was deleted and created again (in an atomic transaction)
-- `OperationPerformed.NOTHING` - Nothing was done since it was detected the existing smart contract app deployment was up to date
+- `OperationPerformed.Create` - The smart contract app was created
+- `OperationPerformed.Update` - The smart contract app was updated
+- `OperationPerformed.Replace` - The smart contract app was deleted and created again (in an atomic transaction)
+- `OperationPerformed.Nothing` - Nothing was done since it was detected the existing smart contract app deployment was up to date
 
 As well as the `operation_performed` parameter and the [optional compilation result](#compilation-and-template-substitution), the return value will have the {py:obj}`ApplicationMetaData <algokit_utils.applications.app_deployer.ApplicationMetaData>` [fields](#deployment-metadata) present.
 

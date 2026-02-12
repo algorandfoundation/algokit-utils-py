@@ -8,7 +8,7 @@ Here’s a basic test setup using pytest fixtures that provides common testing u
 
 ```python
 import pytest
-from algokit_utils import Account, SigningAccount
+from algokit_utils import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.models.amount import AlgoAmount
 
@@ -18,17 +18,17 @@ def algorand() -> AlgorandClient:
     return AlgorandClient.default_localnet()
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     """Create and fund a test account with ALGOs"""
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account,
         dispenser,
-        min_spending_balance=AlgoAmount.from_algos(100),
-        min_funding_increment=AlgoAmount.from_algos(1)
+        min_spending_balance=AlgoAmount.from_algo(100),
+        min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 ```
 
@@ -39,24 +39,24 @@ Refer to [pytest fixture scopes](https://docs.pytest.org/en/latest/how-to/fixtur
 Here’s a helper function to create test ASAs (Algorand Standard Assets):
 
 ```python
-def generate_test_asset(algorand: AlgorandClient, sender: Account, total: int | None = None) -> int:
+def generate_test_asset(algorand: AlgorandClient, sender: AddressWithTransactionSigner, total: int | None = None) -> int:
     """Create a test asset and return its ID"""
     if total is None:
         total = random.randint(20, 120)
 
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=0,
             default_frozen=False,
             unit_name="TST",
             asset_name=f"Test Asset {random.randint(1,100)}",
             url="https://example.com",
-            manager=sender.address,
-            reserve=sender.address,
-            freeze=sender.address,
-            clawback=sender.address,
+            manager=sender.addr,
+            reserve=sender.addr,
+            freeze=sender.addr,
+            clawback=sender.addr,
         )
     )
 
@@ -70,7 +70,7 @@ def generate_test_asset(algorand: AlgorandClient, sender: Account, total: int | 
 Here’s how one can test smart contract application deployments:
 
 ```python
-def test_app_deployment(algorand: AlgorandClient, funded_account: SigningAccount):
+def test_app_deployment(algorand: AlgorandClient, funded_account: AddressWithSigners):
     """Test deploying a smart contract application"""
 
     # Load the application spec
@@ -79,7 +79,7 @@ def test_app_deployment(algorand: AlgorandClient, funded_account: SigningAccount
     # Create app factory
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
-        default_sender=funded_account.address
+        default_sender=funded_account.addr
     )
 
     # Deploy the app
@@ -101,7 +101,7 @@ def test_app_deployment(algorand: AlgorandClient, funded_account: SigningAccount
 Here’s how one can test ASA transfers between accounts:
 
 ```python
-def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount):
+def test_asset_transfer(algorand: AlgorandClient, funded_account: AddressWithSigners):
     """Test ASA transfers between accounts"""
 
     # Create receiver account
@@ -109,7 +109,7 @@ def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount
     algorand.account.ensure_funded(
         account_to_fund=receiver,
         dispenser_account=funded_account,
-        min_spending_balance=AlgoAmount.from_algos(1)
+        min_spending_balance=AlgoAmount.from_algo(1)
     )
 
     # Create test asset
@@ -118,7 +118,7 @@ def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount
     # Opt receiver into asset
     algorand.send.asset_opt_in(
         AssetOptInParams(
-            sender=receiver.address,
+            sender=receiver.addr,
             asset_id=asset_id,
             signer=receiver.signer
         )
@@ -128,8 +128,8 @@ def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount
     transfer_amount = 5
     result = algorand.send.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
-            receiver=receiver.address,
+            sender=funded_account.addr,
+            receiver=receiver.addr,
             asset_id=asset_id,
             amount=transfer_amount
         )
@@ -145,14 +145,14 @@ def test_asset_transfer(algorand: AlgorandClient, funded_account: SigningAccount
 Here’s how to test application method calls:
 
 ```python
-def test_app_method_call(algorand: AlgorandClient, funded_account: SigningAccount):
+def test_app_method_call(algorand: AlgorandClient, funded_account: AddressWithSigners):
     """Test calling ABI methods on an application"""
 
     # Deploy application first
     app_spec = Path("artifacts/application.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
-        default_sender=funded_account.address
+        default_sender=funded_account.addr
     )
     app_client, _ = factory.deploy()
 
@@ -173,20 +173,20 @@ def test_app_method_call(algorand: AlgorandClient, funded_account: SigningAccoun
 Here’s how to test application box storage:
 
 ```python
-def test_box_storage(algorand: AlgorandClient, funded_account: SigningAccount):
+def test_box_storage(algorand: AlgorandClient, funded_account: AddressWithSigners):
     """Test application box storage"""
 
     # Deploy application
     app_spec = Path("artifacts/application.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
-        default_sender=funded_account.address
+        default_sender=funded_account.addr
     )
     app_client, _ = factory.deploy()
 
     # Fund app account for box storage MBR
     app_client.fund_app_account(
-        FundAppAccountParams(amount=AlgoAmount.from_algos(1))
+        FundAppAccountParams(amount=AlgoAmount.from_algo(1))
     )
 
     # Store value in box

@@ -5,12 +5,20 @@ The `TransactionComposer` class allows you to easily compose one or more complia
 It's the core of how the `AlgorandClient` class composes and sends transactions.
 
 ```python
-from algokit_utils import TransactionComposer, AppManager
+from algokit_utils import (
+    TransactionComposer,
+    TransactionComposerParams,
+    AppManager,
+    AppClient,
+    AppClientParams,
+    AppClientMethodCallParams,
+)
 from algokit_utils.transactions import (
     PaymentParams,
     AppCallMethodCallParams,
     AssetCreateParams,
     AppCreateParams,
+    SendParams,
     # ... other transaction parameter types
 )
 ```
@@ -26,22 +34,26 @@ composer_from_app_client = app_client.algorand.new_group()
 
 # From constructor
 composer_from_constructor = TransactionComposer(
-    algod=algod,
-    # Return the TransactionSigner for this address
-    get_signer=lambda address: signer
+    TransactionComposerParams(
+        algod=algod,
+        # Return the TransactionSigner for this address
+        get_signer=lambda address: signer
+    )
 )
 
 # From constructor with optional params
 composer_from_constructor = TransactionComposer(
-    algod=algod,
-    # Return the TransactionSigner for this address
-    get_signer=lambda address: signer,
-    # Custom function to get suggested params
-    get_suggested_params=lambda: algod.suggested_params(),
-    # Number of rounds the transaction should be valid for
-    default_validity_window=1000,
-    # Optional AppManager instance for TEAL compilation
-    app_manager=AppManager(algod)
+    TransactionComposerParams(
+        algod=algod,
+        # Return the TransactionSigner for this address
+        get_signer=lambda address: signer,
+        # Custom function to get suggested params
+        get_suggested_params=lambda: algod.suggested_params(),
+        # Number of rounds the transaction should be valid for
+        default_validity_window=1000,
+        # Optional AppManager instance for TEAL compilation
+        app_manager=AppManager(algod)
+    )
 )
 ```
 
@@ -83,7 +95,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100),
+        amount=AlgoAmount.from_micro_algo(100),
         note=b"Payment note"
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
@@ -91,7 +103,7 @@ result = (
         app_id=123,
         method=abi_method,
         args=[1, 2, 3],
-        boxes=[box_reference]  # Optional box references
+        box_references=[box_reference]  # Optional box references
     ))
 )
 ```
@@ -119,7 +131,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100)
+        amount=AlgoAmount.from_micro_algo(100)
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
         sender="SENDER",
@@ -150,7 +162,7 @@ result = (
     .add_payment(PaymentParams(
         sender="SENDER",
         receiver="RECEIVER",
-        amount=AlgoAmount.from_micro_algos(100)
+        amount=AlgoAmount.from_micro_algo(100)
     ))
     .add_app_call_method_call(AppCallMethodCallParams(
         sender="SENDER",
@@ -234,54 +246,61 @@ Note: Resource population uses simulation under the hood to detect required reso
 For example:
 
 ```python
-myMethod = algosdk.ABIMethod.fromSignature('my_method()void')
-result = algorand
-  .new_group()
-  .add_app_call_method_call(AppCallMethodCallParams(
-    sender: 'SENDER',
-    app_id=123,
-    method=myMethod,
-    args=[1, 2, 3],
-    max_fee=AlgoAmount.from_micro_algo(5000), # NOTE: a maxFee value is required when enabling coverAppCallInnerTransactionFees
-  ))
-  .send(send_params={"cover_app_call_inner_transaction_fees": True})
+from algokit_abi import arc56
+
+my_method = arc56.Method.from_signature('my_method()void')
+result = (
+    algorand
+    .new_group()
+    .add_app_call_method_call(AppCallMethodCallParams(
+        sender='SENDER',
+        app_id=123,
+        method=my_method,
+        args=[1, 2, 3],
+        max_fee=AlgoAmount.from_micro_algo(5000),  # NOTE: a max_fee value is required when enabling cover_app_call_inner_transaction_fees
+    ))
+    .send(SendParams(cover_app_call_inner_transaction_fees=True))
+)
 ```
 
 Assuming the app account is not covering any of the inner transaction fees, if `my_method` in the above example sends 2 inner transactions, then the fee calculated for the parent transaction will be 3000 µALGO when the transaction is sent to the network.
 
 The above example also has a `max_fee` of 5000 µALGO specified. An exception will be thrown if the transaction fee execeeds that value, which allows you to set fee limits. The `max_fee` field is required when enabling `cover_app_call_inner_transaction_fees`.
 
-Because `max_fee` is required and an `algosdk.Transaction` does not hold any max fee information, you cannot use the generic `add_transaction()` method on the composer with `cover_app_call_inner_transaction_fees` enabled. Instead use the below, which provides a better overall experience:
+Because `max_fee` is required and a `Transaction` does not hold any max fee information, you cannot use the generic `add_transaction()` method on the composer with `cover_app_call_inner_transaction_fees` enabled. Instead use the below, which provides a better overall experience:
 
 ```python
-my_method = algosdk.abi.Method.from_signature('my_method()void')
+my_method = arc56.Method.from_signature('my_method()void')
 
 # Does not work
-result = algorand
-  .new_group()
-  .add_transaction(localnet.algorand.create_transaction.app_call_method_call(
-    AppCallMethodCallParams(
+result = (
+    algorand
+    .new_group()
+    .add_transaction(localnet.algorand.create_transaction.app_call_method_call(
+        AppCallMethodCallParams(
+            sender='SENDER',
+            app_id=123,
+            method=my_method,
+            args=[1, 2, 3],
+            max_fee=AlgoAmount.from_micro_algo(5000),  # This is only used to create the Transaction object and isn't made available to the composer.
+        )
+    ).transactions[0])
+    .send(SendParams(cover_app_call_inner_transaction_fees=True))
+)
+
+# Works as expected
+result = (
+    algorand
+    .new_group()
+    .add_app_call_method_call(AppCallMethodCallParams(
         sender='SENDER',
         app_id=123,
         method=my_method,
         args=[1, 2, 3],
-        max_fee=AlgoAmount.from_micro_algos(5000), # This is only used to create the algosdk.Transaction object and isn't made available to the composer.
-      )
-    ).transactions[0]
-  )
-  .send(send_params={"cover_app_call_inner_transaction_fees": True})
-
-# Works as expected
-result = algorand
-  .new_group()
-  .add_app_call_method_call(AppCallMethodCallParams(
-    sender='SENDER',
-    app_id=123,
-    method=my_method,
-    args=[1, 2, 3],
-    max_fee=AlgoAmount.from_micro_algos(5000),
-  ))
-  .send(send_params={"cover_app_call_inner_transaction_fees": True})
+        max_fee=AlgoAmount.from_micro_algo(5000),
+    ))
+    .send(SendParams(cover_app_call_inner_transaction_fees=True))
+)
 ```
 
 A more complex valid scenario which leverages an app client to send an ABI method call with ABI method call transactions argument is below:
@@ -299,7 +318,7 @@ payment_arg = algorand.create_transaction.payment(
   PaymentParams(
     sender=sender.addr,
     receiver=receiver.addr,
-    amount=AlgoAmount.from_micro_algos(1),
+    amount=AlgoAmount.from_micro_algo(1),
   )
 )
 
@@ -308,22 +327,24 @@ app_call_arg = app_client_2.params.call(
   AppCallMethodCallParams(
     method='my_other_method',
     args=[],
-    max_fee=AlgoAmount.from_micro_algos(2000),
+    max_fee=AlgoAmount.from_micro_algo(2000),
   )
 )
 
-result = app_client_1.algorand
-  .new_group()
-  .add_app_call_method_call(
-    app_client_1.params.call(
-      AppClientMethodCallParams(
-        method='my_method',
-        args=[payment_arg, app_call_arg],
-        max_fee=AlgoAmount.from_micro_algos(5000),
-      )
-    ),
-  )
-  .send({"cover_app_call_inner_transaction_fees": True})
+result = (
+    app_client_1.algorand
+    .new_group()
+    .add_app_call_method_call(
+        app_client_1.params.call(
+            AppClientMethodCallParams(
+                method='my_method',
+                args=[payment_arg, app_call_arg],
+                max_fee=AlgoAmount.from_micro_algo(5000),
+            )
+        ),
+    )
+    .send(SendParams(cover_app_call_inner_transaction_fees=True))
+)
 ```
 
 This feature should efficiently calculate the minimum fee needed to execute an app call transaction with inners, however we always recommend testing your specific scenario behaves as expected before releasing.
@@ -337,8 +358,6 @@ Error transformers provide a powerful mechanism for enhancing error messages and
 Error transformers are functions that take an `Exception` as input and return either a transformed `Exception` or the original exception unchanged. They are called in sequence during transaction simulation or sending when errors occur, allowing for a chain of transformations.
 
 ```python
-from typing import Exception
-
 def my_error_transformer(error: Exception) -> Exception:
     """Transform generic errors into more meaningful ones."""
     if "asset missing" in str(error).lower():
@@ -417,14 +436,16 @@ from algokit_utils import AppClient
 
 # Error transformer is automatically registered
 app_client = AppClient(
-    app_spec=app_spec,
-    app_id=123,  # Existing app
-    algorand=algorand
+    AppClientParams(
+        app_spec=app_spec,
+        app_id=123,  # Existing app
+        algorand=algorand
+    )
 )
 
 # App-specific logic errors will be enhanced with source maps and debugging info
 try:
-    result = app_client.send.call("my_method", args=[])
+    result = app_client.send.call(AppClientMethodCallParams(method="my_method", args=[]))
 except LogicError as e:
     # Enhanced error with source information
     print(f"Logic error at PC {e.pc}: {e.message}")
