@@ -22,7 +22,9 @@ cicd = []
 dev = [
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.11.8",
+  "pip>=26.0",  # Fix GHSA-6vgw-5pg2-w6jp vulnerability
   "pip-audit>=2.5.6,<3",
+  "pip>=26.0",
   "pytest-mock~=3.14",
   "mypy>=1.5.1,<2",
   "python-semantic-release>=10.5.0,<11",

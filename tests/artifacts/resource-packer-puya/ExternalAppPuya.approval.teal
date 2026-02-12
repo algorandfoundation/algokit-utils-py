@@ -1,0 +1,36 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    // contract.py:16
+    // class ExternalAppPuya(ARC4Contract):
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    bz main_create_NoOp@5
+    pushbytes 0xa30ce7ff // method "dummy()void"
+    txna ApplicationArgs 0
+    match main_dummy_route@3
+    err
+
+main_dummy_route@3:
+    // contract.py:23
+    // @arc4.abimethod
+    pushint 1
+    return
+
+main_create_NoOp@5:
+    // contract.py:16
+    // class ExternalAppPuya(ARC4Contract):
+    pushbytes 0x752c3ac0 // method "create_application()void"
+    txna ApplicationArgs 0
+    match main_create_application_route@6
+    err
+
+main_create_application_route@6:
+    // contract.py:19
+    // @arc4.abimethod(create="require")
+    pushint 1
+    return

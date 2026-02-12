@@ -13,7 +13,7 @@ If you prefer TypeScript there’s an equivalent [TypeScript utility library](ht
 
 * [Account management](capabilities/account.md)
   * [`AccountManager`](capabilities/account.md#accountmanager)
-  * [`TransactionSignerAccountProtocol`](capabilities/account.md#transactionsigneraccountprotocol)
+  * [`AddressWithTransactionSigner`](capabilities/account.md#addresswithtransactionsigner)
   * [Registering a signer](capabilities/account.md#registering-a-signer)
   * [Default signer](capabilities/account.md#default-signer)
   * [Get a signer](capabilities/account.md#get-a-signer)

@@ -99,11 +99,13 @@ box_value = app_manager.get_box_value(app_id, box_name)
 box_values = app_manager.get_box_values(app_id, [box_name1, box_name2])
 
 # Get decoded ABI values
+from algokit_abi import abi
+
 abi_value = app_manager.get_box_value_from_abi_type(
-    app_id, box_name, algosdk.abi.StringType()
+    app_id, box_name, abi.StringType()
 )
 abi_values = app_manager.get_box_values_from_abi_type(
-    app_id, [box_name1, box_name2], algosdk.abi.StringType()
+    app_id, [box_name1, box_name2], abi.StringType()
 )
 
 # Get box reference for transaction

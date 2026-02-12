@@ -1,6 +1,6 @@
 # Migration Guide - v3
 
-Version 3 of `algokit-utils-ts` moved from a stateless function-based interface to a stateful class-based interfaces. This change allows for:
+Version 3 of `algokit-utils-py` moved from a stateless function-based interface to a stateful class-based interfaces. This change allows for:
 
 - Easier and simpler consumption experience guided by IDE autocompletion
 - Less redundant parameter passing (e.g., `algod` client)

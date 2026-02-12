@@ -27,7 +27,7 @@ jobs:
       - name: Audit with pip-audit
         run: |
           # GHSA-4xh5-x5gv-qwph is safe to ignore since we are using a python version that is not affected
-          #                     can remove once pip has fix
+          # GHSA-6vgw-5pg2-w6jp is low severity pip path traversal, can remove once pip >= 26.0
           # Audit all installed dependencies with exclusions
           # If a vulnerability is found in a dev dependency without an available fix,
           # it can be temporarily ignored by adding --ignore-vuln e.g.
