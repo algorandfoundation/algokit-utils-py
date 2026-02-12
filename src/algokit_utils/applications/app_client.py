@@ -1277,16 +1277,15 @@ class AppClient:
     :param params: Parameters for creating the app client
 
     :example:
+        >>> # Get a signer from account manager
+        >>> account = algorand.account.from_mnemonic("your mnemonic here...")
         >>> params = AppClientParams(
         ...     app_spec=Arc56Contract.from_json(app_spec_json),
         ...     algorand=algorand,
         ...     app_id=1234567890,
         ...     app_name="My App",
-        ...     default_sender="SENDERADDRESS",
-        ...     default_signer=TransactionSigner(
-        ...         account="SIGNERACCOUNT",
-        ...         private_key="SIGNERPRIVATEKEY",
-        ...     ),
+        ...     default_sender=account.addr,
+        ...     default_signer=account.signer,
         ...     approval_source_map=ProgramSourceMap(
         ...         source="APPROVALSOURCE",
         ...     ),
@@ -1454,15 +1453,14 @@ class AppClient:
         :raises Exception: If no app ID is found for the network
 
         :example:
+            >>> # Get a signer from account manager
+            >>> account = algorand.account.from_mnemonic("your mnemonic here...")
             >>> client = AppClient.from_network(
             ...     app_spec=Arc56Contract.from_json(app_spec_json),
             ...     algorand=algorand,
             ...     app_name="My App",
-            ...     default_sender="SENDERADDRESS",
-            ...     default_signer=TransactionSigner(
-            ...         account="SIGNERACCOUNT",
-            ...         private_key="SIGNERPRIVATEKEY",
-            ...     ),
+            ...     default_sender=account.addr,
+            ...     default_signer=account.signer,
             ...     approval_source_map=ProgramSourceMap(
             ...         source="APPROVALSOURCE",
             ...     ),

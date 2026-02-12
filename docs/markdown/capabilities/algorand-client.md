@@ -46,9 +46,9 @@ kmd_client = algorand.client.kmd
 The `AlgorandClient` has a number of manager class instances that help you quickly use intellisense to get access to advanced functionality.
 
 - [`AccountManager`](account.md) via `algorand.account`, there are also some chainable convenience methods which wrap specific methods in `AccountManager`:
-  - `algorand.setDefaultSigner(signer)` -
-  - `algorand.setSignerFromAccount(account)` -
-  - `algorand.setSigner(sender, signer)`
+  - `algorand.set_default_signer(signer)` - Sets the default signer to use if no other signer is specified
+  - `algorand.set_signer_from_account(account)` - Sets the signer from an account that conforms to `AddressWithTransactionSigner`
+  - `algorand.set_signer(sender, signer)` - Tracks the given signer for the specified sender address
 - [`AssetManager`](asset.md) via `algorand.asset`
 - [`ClientManager`](client.md) via `algorand.client`
 
@@ -82,9 +82,9 @@ algorand.create_transaction.{method}(params=TxnParams(...), send_params=SendPara
   - `OnlineKeyRegistrationParams`,
   - `PaymentParams`,
 - `SendParams` is a typed dictionary exposing setting to apply during send operation:
-  - `max_rounds_to_wait_for_confirmation: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
+  - `max_rounds_to_wait: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
   - `suppress_log: bool | None` - Whether to suppress log messages from transaction send, default: do not suppress.
-  - `populate_app_call_resources: bool | None` - Whether to use simulate to automatically populate app call resources in the txn objects. Defaults to `Config.populateAppCallResources`.
+  - `populate_app_call_resources: bool | None` - Whether to use simulate to automatically populate app call resources in the txn objects. Defaults to `config.populate_app_call_resources`.
   - `cover_app_call_inner_transaction_fees: bool | None` - Whether to use simulate to automatically calculate required app call inner transaction fees and cover them in the parent app call transaction fee
 
 The return type for the ABI method call methods are slightly different:
@@ -105,7 +105,7 @@ Where `BuiltTransactions` looks like this:
 ```python
 @dataclass(frozen=True)
 class BuiltTransactions:
-    transactions: list[algosdk.transaction.Transaction]
+    transactions: list[Transaction]
     method_calls: dict[int, Method]
     signers: dict[int, TransactionSigner]
 ```
@@ -131,7 +131,7 @@ The signature for the calls to send a single transaction usually look like:
 - `algokit_utils.transactions.SendParams` a typed dictionary exposing setting to apply during send operation.
 - `algokit_utils.transactions.SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](transaction.md#transaction-results)
 
-Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by sending `suppressLog: true`.
+Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by passing `suppress_log=True` in `SendParams`.
 
 ### Composing a group of transactions
 
@@ -165,7 +165,7 @@ To create a transaction you instantiate a relevant Transaction parameters datacl
 All transaction parameters share the following common base parameters:
 
 - `sender: str` - The address of the account sending the transaction.
-- `signer: algosdk.TransactionSigner | TransactionSignerAccount | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
+- `signer: TransactionSigner | AddressWithTransactionSigner | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
 - `rekey_to: string | None` - Change the signing key of the sender to the given address. **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
 - `note: bytes | str | None` - Note to attach to the transaction. Max of 1000 bytes.
 - `lease: bytes | str | None` - Prevent multiple transactions with the same lease being included within the validity window. A [lease](https://dev.algorand.co/concepts/transactions/leases) enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
@@ -185,8 +185,8 @@ Then on top of that the base type gets extended for the specific type of transac
 AlgorandClient caches network provided transaction values for you automatically to reduce network traffic. It has a set of default configurations that control this behaviour, but you have the ability to override and change the configuration of this behaviour:
 
 - `algorand.set_default_validity_window(validity_window)` - Set the default validity window (number of rounds from the current known round that the transaction will be valid to be accepted for), having a smallish value for this is usually ideal to avoid transactions that are valid for a long future period and may be submitted even after you think it failed to submit if waiting for a particular number of rounds for the transaction to be successfully submitted. The validity window defaults to `10`, except localnet environments where it’s set to `1000`.
-- `algorand.set_suggested_params(suggested_params, until?)` - Set the suggested network parameters to use (optionally until the given time)
-- `algorand.set_suggested_params_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
+- `algorand.set_suggested_params_cache(suggested_params, until?)` - Set the suggested network parameters to use (optionally until the given time)
+- `algorand.set_suggested_params_cache_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
 - `algorand.get_suggested_params()` - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value
 
 ### Error handling

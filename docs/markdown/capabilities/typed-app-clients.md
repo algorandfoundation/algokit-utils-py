@@ -9,9 +9,7 @@ Typed application clients are the recommended way of interacting with smart cont
 You can generate an app spec file:
 
 - Using [Algorand Python](https://algorandfoundation.github.io/puya/#quick-start)
-- Using [TEALScript](https://tealscript.netlify.app/tutorials/hello-world/0004-artifacts/)
 - By hand by following the specification [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258)/[ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md)
-- Using [Beaker](https://algorand-devrel.github.io/beaker/html/usage.html) (PyTEAL)  *(DEPRECATED)*
 
 ## Generating a typed client
 
@@ -156,7 +154,7 @@ deployer = algorand.account.from_environment("DEPLOYER")
 
 # Create the typed app factory
 typed_factory = algorand.client.get_typed_app_factory(
-    HelloWorldFactory, default_sender=deployer.address
+    HelloWorldFactory, default_sender=deployer.addr
 )
 
 # Deploy idempotently - creates if it doesn't exist or updates if changed
@@ -173,7 +171,7 @@ if result.operation_performed in [
     algorand.send.payment(
         algokit_utils.PaymentParams(
             amount=algokit_utils.AlgoAmount(algo=1),
-            sender=deployer.address,
+            sender=deployer.addr,
             receiver=typed_client.app_address,
         )
     )
