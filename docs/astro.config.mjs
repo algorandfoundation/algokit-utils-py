@@ -16,6 +16,12 @@ export default defineConfig({
 			sidebar: [
 				{ label: 'Home', link: '/' },
 				{
+					label: 'Tutorials',
+					items: [
+						{ slug: 'tutorials/quick-start' },
+					],
+				},
+				{
 					label: 'Core',
 					items: [
 						{ slug: 'concepts/core/algorand-client' },
@@ -43,6 +49,12 @@ export default defineConfig({
 						{ slug: 'concepts/advanced/transaction-composer' },
 						{ slug: 'concepts/advanced/debugging' },
 						{ slug: 'concepts/advanced/dispenser-client' },
+					],
+				},
+				{
+					label: 'Migration',
+					items: [
+						{ slug: 'migration/v3-migration-guide' },
 					],
 				},
 			],
