@@ -57,10 +57,66 @@ export default defineConfig({
 						{ slug: 'migration/v3-migration-guide' },
 					],
 				},
+				{ label: 'API Reference', link: '/api/algokit_utils/' },
 				{
-					label: 'API Reference',
+					label: 'accounts',
 					collapsed: true,
-					autogenerate: { directory: 'api' },
+					autogenerate: { directory: 'api/algokit_utils/accounts' },
+				},
+				{
+					label: 'algo25',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/algo25' },
+				},
+				{
+					label: 'algorand',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/algorand' },
+				},
+				{
+					label: 'applications',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/applications' },
+				},
+				{
+					label: 'assets',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/assets' },
+				},
+				{
+					label: 'clients',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/clients' },
+				},
+				{
+					label: 'config',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/config' },
+				},
+				{
+					label: 'errors',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/errors' },
+				},
+				{
+					label: 'models',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/models' },
+				},
+				{
+					label: 'protocols',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/protocols' },
+				},
+				{
+					label: 'transact',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/transact' },
+				},
+				{
+					label: 'transactions',
+					collapsed: true,
+					autogenerate: { directory: 'api/algokit_utils/transactions' },
 				},
 			],
 		}),
