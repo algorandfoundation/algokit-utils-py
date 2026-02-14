@@ -1,0 +1,36 @@
+name: "Build Documentation"
+description: "Generate API docs via Sphinx and build Starlight site"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+
+    - name: Install Python dependencies
+      shell: bash
+      run: uv sync
+
+    - name: Set up Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+        cache: "npm"
+        cache-dependency-path: docs/package-lock.json
+
+    - name: Install docs dependencies
+      shell: bash
+      run: npm ci --prefix docs
+
+    - name: Generate API docs
+      shell: bash
+      run: bash docs/api-build.sh
+
+    - name: Build Starlight site
+      shell: bash
+      run: npm run --prefix docs build
