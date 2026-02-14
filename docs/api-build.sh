@@ -53,8 +53,9 @@ done
 echo "==> Fixing internal links for Starlight..."
 # Sphinx generates links like (foo/index.md) and (../../bar/index.md#anchor)
 # Starlight doesn't use .md extensions — strip index.md from link paths
+# Using perl -pi -e for cross-platform compatibility
 find "$API_OUT" -name "*.md" -type f -exec \
-    sed -i '' 's|/index\.md|/|g' {} +
+    perl -pi -e 's|/index\.md|/|g' {} +
 
 echo "==> API docs generated at: $API_OUT"
 echo "    $(find "$API_OUT" -name '*.md' | wc -l | tr -d ' ') markdown files"
