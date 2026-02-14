@@ -20,6 +20,9 @@ rm -f "$API_OUT/.buildinfo"
 rm -rf "$API_OUT/.doctrees"
 # Remove the top-level index.md generated from index.rst (not needed in Starlight)
 rm -f "$API_OUT/index.md"
+# Flatten autoapi/ — move algokit_utils/ up one level so Starlight sees api/algokit_utils/
+mv "$API_OUT/autoapi/algokit_utils" "$API_OUT/algokit_utils"
+rm -rf "$API_OUT/autoapi"
 
 echo "==> Injecting Starlight frontmatter into API docs..."
 # Process each .md file: prepend YAML frontmatter with title derived from filename
@@ -46,6 +49,12 @@ find "$API_OUT" -name "*.md" -type f | while read -r file; do
     } > "$tmp_file"
     mv "$tmp_file" "$file"
 done
+
+echo "==> Fixing internal links for Starlight..."
+# Sphinx generates links like (foo/index.md) and (../../bar/index.md#anchor)
+# Starlight doesn't use .md extensions — strip index.md from link paths
+find "$API_OUT" -name "*.md" -type f -exec \
+    sed -i '' 's|/index\.md|/|g' {} +
 
 echo "==> API docs generated at: $API_OUT"
 echo "    $(find "$API_OUT" -name '*.md' | wc -l | tr -d ' ') markdown files"
