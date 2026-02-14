@@ -169,10 +169,11 @@ suppress-none-returning = true
 
 
 [tool.poe.tasks]
-docs = ["docs-md-only"]
-docs-md-only = "sphinx-build docs/source docs/markdown -b markdown"
+docs-api = "bash docs/api-build.sh"
+docs-dev = { shell = "bash docs/api-build.sh && npm run --prefix docs dev" }
+docs-build = { shell = "bash docs/api-build.sh && npm run --prefix docs build" }
+docs-preview = "npm run --prefix docs preview"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false"
-docs-dev = "sphinx-autobuild --ignore '**/_build/**' --ignore '**/autoapi/**' --ignore '**/.doctrees/**' docs/source docs/_build"
 # Polytest tasks for test generation and validation
 # Uses --git flag to pull config from central polytest repo without storing jsonc files locally
 # Test execution is done globally via pytest, polytest is only used for scaffolding and validation
