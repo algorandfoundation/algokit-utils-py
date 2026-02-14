@@ -7,7 +7,7 @@ AlgoKit contains advanced smart contract deployment capabilities that allow you 
 
 It's optional to use this functionality, since you can construct your own deployment logic using create / update / delete calls and your own mechanism to maintaining app metadata (like app IDs etc.), but this capability is an opinionated out-of-the-box solution that takes care of the heavy lifting for you.
 
-App deployment is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App management](./app.md).
+App deployment is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App management](../app).
 
 To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_deploy_scenarios.py).
 
@@ -46,7 +46,7 @@ This design allows you to have the same deployment code across environments with
 
 The `AppDeployer` is a class that is used to manage app deployments and deployment metadata.
 
-To get an instance of `AppDeployer` you can use either [`AlgorandClient`](../core/algorand-client.md) via `algorand.app_deployer` or instantiate it directly (passing in an [`AppManager`](./app.md#appmanager), [`AlgorandClientTransactionSender`](../core/algorand-client.md#sending-a-single-transaction) and optionally an indexer client instance):
+To get an instance of `AppDeployer` you can use either [`AlgorandClient`](../../core/algorand-client) via `algorand.app_deployer` or instantiate it directly (passing in an [`AppManager`](../app#appmanager), [`AlgorandClientTransactionSender`](../../core/algorand-client#sending-a-single-transaction) and optionally an indexer client instance):
 
 ```python
 from algokit_utils.app_deployer import AppDeployer
@@ -159,9 +159,9 @@ It will automatically [add metadata to the transaction note of the create or upd
 The first parameter `deployment` is an `AppDeployParams`, which is an object with:
 
 - `metadata: AppDeployMetadata` - determines the [deployment metadata](#deployment-metadata) of the deployment
-- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](./app.md) (raw parameters or ABI method call)
-- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](./app.md) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
-- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](./app.md) (raw parameters or ABI method call) without the `app_id` parameter
+- `create_params: AppCreateParams | CreateCallABI` - the parameters for an [app creation call](../app) (raw parameters or ABI method call)
+- `update_params: AppUpdateParams | UpdateCallABI` - the parameters for an [app update call](../app) (raw parameters or ABI method call) without the `app_id`, `approval_program`, or `clear_state_program` as these are handled by the deploy logic
+- `delete_params: AppDeleteParams | DeleteCallABI` - the parameters for an [app delete call](../app) (raw parameters or ABI method call) without the `app_id` parameter
 - `deploy_time_params: TealTemplateParams | None` - optional parameters for [TEAL template substitution](#compilation-and-template-substitution)
   - `TealTemplateParams` is a dict that replaces `TMPL_{key}` with `value` (strings/Uint8Arrays are properly encoded)
 - `on_schema_break: OnSchemaBreak | str | None` - determines `OnSchemaBreak` if schema requirements increase (values: 'replace', 'fail', 'append')

@@ -3,7 +3,7 @@ title: "Algorand Client"
 description: "AlgorandClient is a client class that brokers easy access to Algorand functionality. It's the default entrypoint into AlgoKit Utils functionality."
 ---
 
-`AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the [default entrypoint](/algokit-utils-py/#usage) into AlgoKit Utils functionality.
+`AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the default entrypoint into AlgoKit Utils functionality.
 
 The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `AlgorandClient` class, most of the time you can get started by typing `AlgorandClient.` and choosing one of the static initialisation methods to create an `AlgorandClient`, e.g.:
 
@@ -48,16 +48,16 @@ kmd_client = algorand.client.kmd
 
 The `AlgorandClient` has a number of manager class instances that help you quickly use intellisense to get access to advanced functionality.
 
-- [`AccountManager`](./account.md) via `algorand.account`, there are also some chainable convenience methods which wrap specific methods in `AccountManager`:
+- [`AccountManager`](../account) via `algorand.account`, there are also some chainable convenience methods which wrap specific methods in `AccountManager`:
   - `algorand.set_default_signer(signer)` - Sets the default signer to use if no other signer is specified
   - `algorand.set_signer_from_account(account)` - Sets the signer from an account that conforms to `AddressWithTransactionSigner`
   - `algorand.set_signer(sender, signer)` - Tracks the given signer for the specified sender address
-- [`AssetManager`](../building/asset.md) via `algorand.asset`
-- [`ClientManager`](./client.md) via `algorand.client`
+- [`AssetManager`](../../building/asset) via `algorand.asset`
+- [`ClientManager`](../client) via `algorand.client`
 
 ## Creating and issuing transactions
 
-`AlgorandClient` exposes a series of methods that allow you to create, execute, and compose groups of transactions (all via the [`TransactionComposer`](../advanced/transaction-composer.md)).
+`AlgorandClient` exposes a series of methods that allow you to create, execute, and compose groups of transactions (all via the [`TransactionComposer`](../../advanced/transaction-composer)).
 
 ### Creating transactions
 
@@ -121,9 +121,9 @@ You can compose a single transaction via `algorand.send...`, which gives you an 
 
 Further documentation is present in the related capabilities:
 
-- [App management](../building/app.md)
-- [Asset management](../building/asset.md)
-- [Algo transfers](../building/transfer.md)
+- [App management](../../building/app)
+- [Asset management](../../building/asset)
+- [Algo transfers](../../building/transfer)
 
 The signature for the calls to send a single transaction usually look like:
 
@@ -132,13 +132,13 @@ The signature for the calls to send a single transaction usually look like:
 - To get intellisense on the params, use your IDE's intellisense keyboard shortcut (e.g. ctrl+space).
 - `TxnParams` is a union type that can be any of the Algorand transaction types, exact dataclasses can be imported from `algokit_utils`.
 - `SendParams` a typed dictionary exposing setting to apply during send operation.
-- `SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](./transaction.md#transaction-results)
+- `SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](../transaction#transaction-results)
 
 Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by passing `suppress_log=True` in `SendParams`.
 
 ### Composing a group of transactions
 
-You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{Type}()` methods on [`TransactionComposer`](../advanced/transaction-composer.md) to add a series of transactions.
+You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{Type}()` methods on [`TransactionComposer`](../../advanced/transaction-composer) to add a series of transactions.
 
 ```python
 result = (algorand
@@ -159,7 +159,7 @@ result = (algorand
     .send())
 ```
 
-`new_group()` returns a new [`TransactionComposer`](../advanced/transaction-composer.md) instance, which can also return the group of transactions, simulate them and other things.
+`new_group()` returns a new [`TransactionComposer`](../../advanced/transaction-composer) instance, which can also return the group of transactions, simulate them and other things.
 
 ### Transaction parameters
 
@@ -181,7 +181,7 @@ All transaction parameters share the following common base parameters:
   - `first_valid_round: int | None` - Set the first round this transaction is valid. If left undefined, the value from algod will be used. We recommend you only set this when you intentionally want this to be some time in the future.
   - `last_valid_round: int | None` - The last round this transaction is valid. It is recommended to use `validity_window` instead.
 
-Then on top of that the base type gets extended for the specific type of transaction you are issuing. These are all defined as part of [`TransactionComposer`](../advanced/transaction-composer.md) and we recommend reading these docs, especially when leveraging either `populate_app_call_resources` or `cover_app_call_inner_transaction_fees`.
+Then on top of that the base type gets extended for the specific type of transaction you are issuing. These are all defined as part of [`TransactionComposer`](../../advanced/transaction-composer) and we recommend reading these docs, especially when leveraging either `populate_app_call_resources` or `cover_app_call_inner_transaction_fees`.
 
 ### Transaction configuration
 
@@ -212,4 +212,4 @@ algorand.register_error_transformer(my_error_transformer)
 algorand.unregister_error_transformer(my_error_transformer)
 ```
 
-Error transformers registered at the `AlgorandClient` level will be applied to all transaction groups created from that client instance. For more detailed documentation on error transformers, including examples and best practices, see the [Transaction Composer Error Transformers](../advanced/transaction-composer.md#error-transformers) section.
+Error transformers registered at the `AlgorandClient` level will be applied to all transaction groups created from that client instance. For more detailed documentation on error transformers, including examples and best practices, see the [Transaction Composer Error Transformers](../../advanced/transaction-composer#error-transformers) section.

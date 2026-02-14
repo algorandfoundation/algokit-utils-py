@@ -87,7 +87,7 @@ If the method to create the `ClientManager` doesn't configure indexer or kmd (bo
 
 ### Creating a TestNet dispenser API client instance
 
-You can also create a [TestNet dispenser API client instance](../advanced/dispenser-client.md) from `ClientManager` too.
+You can also create a [TestNet dispenser API client instance](../../advanced/dispenser-client) from `ClientManager` too.
 
 ## Automatic retry
 
