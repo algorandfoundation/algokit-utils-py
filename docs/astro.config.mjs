@@ -57,6 +57,11 @@ export default defineConfig({
 						{ slug: 'migration/v3-migration-guide' },
 					],
 				},
+				{
+					label: 'API Reference',
+					collapsed: true,
+					autogenerate: { directory: 'api' },
+				},
 			],
 		}),
 	],
