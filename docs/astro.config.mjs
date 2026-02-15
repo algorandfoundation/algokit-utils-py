@@ -9,6 +9,8 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "AlgoKit Utils Python",
+      tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
+      customCss: ["./src/styles/api-reference.css"],
       social: [
         {
           icon: "github",

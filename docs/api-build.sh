@@ -57,5 +57,19 @@ echo "==> Fixing internal links for Starlight..."
 find "$API_OUT" -name "*.md" -type f -exec \
     perl -pi -e 's|/index\.md|/|g' {} +
 
+echo "==> Shortening qualified names in headings..."
+# Strip fully-qualified module paths from heading text so the TOC sidebar and
+# headings show short names (e.g. "AccountManager" not "algokit_utils.x.y.AccountManager").
+# Handles: algokit_utils.*, algokit_transact.*, algokit_common.*, typing_extensions.*, collections.abc.*
+# Only applies to H3/H4 heading lines. Preserves full paths inside link URLs (...).
+find "$API_OUT" -name "*.md" -type f -exec \
+    perl -pi -e '
+        next unless /^#{3,4}\s/;
+        # Shorten linked types: [algokit_utils.x.y.Name](...) → [Name](...)
+        s/\[(?:algokit_\w+|typing_extensions|collections\.abc|algokit_common)(?:\.\w+)*\.(\w+)\]/[$1]/g;
+        # Shorten plain types: algokit_utils.x.y.Name → Name (but not inside parentheses/URLs)
+        s/(?<!\[|#|\/|\.md)(?:algokit_\w+|typing_extensions|collections\.abc|algokit_common)(?:\.\w+)*\.(\w+)/$1/g;
+    ' {} +
+
 echo "==> API docs generated at: $API_OUT"
 echo "    $(find "$API_OUT" -name '*.md' | wc -l | tr -d ' ') markdown files"
