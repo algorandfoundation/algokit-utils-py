@@ -45,7 +45,11 @@ find "$API_OUT" -name "*.md" -type f | while read -r file; do
         echo "title: \"$escaped_title\""
         echo "---"
         echo ""
+        echo '<div class="api-ref">'
+        echo ""
         cat "$file"
+        echo ""
+        echo '</div>'
     } > "$tmp_file"
     mv "$tmp_file" "$file"
 done

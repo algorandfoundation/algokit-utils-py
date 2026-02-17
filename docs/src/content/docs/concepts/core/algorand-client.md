@@ -1,11 +1,11 @@
 ---
-title: "Algorand Client"
-description: "AlgorandClient is a client class that brokers easy access to Algorand functionality. It's the default entrypoint into AlgoKit Utils functionality."
+title: "Algorand client"
+description: "`AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the `default entrypoint` into AlgoKit Utils functionality."
 ---
 
-`AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the default entrypoint into AlgoKit Utils functionality.
+`AlgorandClient` is a client class that brokers easy access to Algorand functionality. It's the `default entrypoint` into AlgoKit Utils functionality.
 
-The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `AlgorandClient` class, most of the time you can get started by typing `AlgorandClient.` and choosing one of the static initialisation methods to create an `AlgorandClient`, e.g.:
+The main entrypoint to the bulk of the functionality in AlgoKit Utils is the `AlgorandClient` class, most of the time you can get started by typing `AlgorandClient.` and choosing one of the static initialisation methods to create an [Algorand client](./), e.g.:
 
 ```python
 # Point to the network configured through environment variables or
@@ -32,11 +32,11 @@ algorand = AlgorandClient.from_config(
 )
 ```
 
-## Accessing SDK clients
+## Accessing API clients
 
-Once you have an `AlgorandClient` instance, you can access the SDK clients for the various Algorand APIs via the `algorand.client` property.
+Once you have an `AlgorandClient` instance, you can access the API clients for the various Algorand APIs via the `algorand.client` property.
 
-```py
+```python
 algorand = AlgorandClient.default_localnet()
 
 algod_client = algorand.client.algod
@@ -49,10 +49,12 @@ kmd_client = algorand.client.kmd
 The `AlgorandClient` has a number of manager class instances that help you quickly use intellisense to get access to advanced functionality.
 
 - [`AccountManager`](../account) via `algorand.account`, there are also some chainable convenience methods which wrap specific methods in `AccountManager`:
-  - `algorand.set_default_signer(signer)` - Sets the default signer to use if no other signer is specified
-  - `algorand.set_signer_from_account(account)` - Sets the signer from an account that conforms to `AddressWithTransactionSigner`
-  - `algorand.set_signer(sender, signer)` - Tracks the given signer for the specified sender address
+  - `algorand.set_default_signer(signer)` -
+  - `algorand.set_signer_from_account(account)` -
+  - `algorand.set_signer(sender, signer)`
 - [`AssetManager`](../../building/asset) via `algorand.asset`
+- `AppManager` via `algorand.app`
+- [`AppDeployer`](../../building/app-deploy) via `algorand.app_deployer`
 - [`ClientManager`](../client) via `algorand.client`
 
 ## Creating and issuing transactions
@@ -65,51 +67,28 @@ You can compose a transaction via `algorand.create_transaction.`, which gives yo
 
 The signature for the calls to send a single transaction usually look like:
 
-```python
-algorand.create_transaction.{method}(params=TxnParams(...), send_params=SendParams(...)) -> Transaction:
+```
+algorand.create_transaction.{method}(params: {ComposerTransactionTypeParams} & CommonTxnParams) -> Transaction
 ```
 
-- `TxnParams` is a union type that can be any of the Algorand transaction types, exact dataclasses can be imported from `algokit_utils` and consist of:
-  - `AppCallParams`,
-  - `AppCreateParams`,
-  - `AppDeleteParams`,
-  - `AppUpdateParams`,
-  - `AssetConfigParams`,
-  - `AssetCreateParams`,
-  - `AssetDestroyParams`,
-  - `AssetFreezeParams`,
-  - `AssetOptInParams`,
-  - `AssetOptOutParams`,
-  - `AssetTransferParams`,
-  - `OfflineKeyRegistrationParams`,
-  - `OnlineKeyRegistrationParams`,
-  - `PaymentParams`,
-- `SendParams` is a typed dictionary exposing setting to apply during send operation:
-  - `max_rounds_to_wait: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
-  - `suppress_log: bool | None` - Whether to suppress log messages from transaction send, default: do not suppress.
-  - `populate_app_call_resources: bool | None` - Whether to use simulate to automatically populate app call resources in the txn objects. Defaults to `config.populate_app_call_resources`.
-  - `cover_app_call_inner_transaction_fees: bool | None` - Whether to use simulate to automatically calculate required app call inner transaction fees and cover them in the parent app call transaction fee
+- To get intellisense on the params, use your IDE's intellisense keyboard shortcut (e.g. ctrl+space).
+- `{ComposerTransactionTypeParams}` will be the parameters that are specific to that transaction type e.g. `PaymentParams`, `see the full list`
+- `CommonTxnParams` are the [common transaction parameters](#transaction-parameters) that can be specified for every single transaction
+- `Transaction` is an unsigned transaction object, ready to be signed and sent
 
 The return type for the ABI method call methods are slightly different:
 
-```python
-algorand.createTransaction.app{call_type}_method_call(params=MethodCallParams(...), send_params=SendParams(...)) -> BuiltTransactions
 ```
-
-MethodCallParams is a union type that can be any of the Algorand method call types, exact dataclasses can be imported from `algokit_utils` and consist of:
-
-- `AppCreateMethodCallParams`,
-- `AppCallMethodCallParams`,
-- `AppDeleteMethodCallParams`,
-- `AppUpdateMethodCallParams`,
+algorand.create_transaction.app_{call_type}_method_call(params: {ComposerTransactionTypeParams} & CommonTxnParams) -> BuiltTransactions
+```
 
 Where `BuiltTransactions` looks like this:
 
 ```python
-@dataclass(frozen=True)
+@dataclass(slots=True, frozen=True)
 class BuiltTransactions:
     transactions: list[Transaction]
-    method_calls: dict[int, Method]
+    method_calls: dict[int, ABIMethod]
     signers: dict[int, TransactionSigner]
 ```
 
@@ -127,18 +106,19 @@ Further documentation is present in the related capabilities:
 
 The signature for the calls to send a single transaction usually look like:
 
-`algorand.send.{method}(params=TxnParams, send_params=SendParams) -> SingleSendTransactionResult`
+`algorand.send.{method}(params: {ComposerTransactionTypeParams} & CommonTxnParams & SendParams) -> SendSingleTransactionResult`
 
 - To get intellisense on the params, use your IDE's intellisense keyboard shortcut (e.g. ctrl+space).
-- `TxnParams` is a union type that can be any of the Algorand transaction types, exact dataclasses can be imported from `algokit_utils`.
-- `SendParams` a typed dictionary exposing setting to apply during send operation.
-- `SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](../transaction#transaction-results)
+- `{ComposerTransactionTypeParams}` will be the parameters that are specific to that transaction type e.g. `PaymentParams`, `see the full list`
+- `CommonTxnParams` are the [common transaction parameters](#transaction-parameters) that can be specified for every single transaction
+- `SendParams` are the [parameters](#transaction-parameters) that control execution semantics when sending transactions to the network
+- `SendSingleTransactionResult` is all of the information that is relevant when [sending a single transaction to the network](../transaction)
 
-Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by passing `suppress_log=True` in `SendParams`.
+Generally, the functions to immediately send a single transaction will emit log messages before and/or after sending the transaction. You can opt-out of this by passing `suppress_log=True`.
 
 ### Composing a group of transactions
 
-You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{Type}()` methods on [`TransactionComposer`](../../advanced/transaction-composer) to add a series of transactions.
+You can compose a group of transactions for execution by using the `new_group()` method on `AlgorandClient` and then use the various `.add_{type}()` methods on [`TransactionComposer`](../../advanced/transaction-composer) to add a series of transactions.
 
 ```python
 result = (algorand
@@ -147,7 +127,7 @@ result = (algorand
         PaymentParams(
             sender="SENDERADDRESS",
             receiver="RECEIVERADDRESS",
-            amount=1_000_000 # 1 Algo in microAlgos
+            amount=AlgoAmount.from_micro_algo(1)
         )
     )
     .add_asset_opt_in(
@@ -163,23 +143,29 @@ result = (algorand
 
 ### Transaction parameters
 
-To create a transaction you instantiate a relevant Transaction parameters dataclass from `algokit_utils.transactions import *` or `from algokit_utils import PaymentParams, AssetOptInParams, etc`.
+To create a transaction you instantiate a relevant transaction parameters dataclass from `algokit_utils`.
 
-All transaction parameters share the following common base parameters:
+There are two common base parameter groups that get reused:
 
-- `sender: str` - The address of the account sending the transaction.
-- `signer: TransactionSigner | AddressWithTransactionSigner | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
-- `rekey_to: string | None` - Change the signing key of the sender to the given address. **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
-- `note: bytes | str | None` - Note to attach to the transaction. Max of 1000 bytes.
-- `lease: bytes | str | None` - Prevent multiple transactions with the same lease being included within the validity window. A [lease](https://dev.algorand.co/concepts/transactions/leases) enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
-- Fee management
-  - `static_fee: AlgoAmount | None` - The static transaction fee. In most cases you want to use `extra_fee` unless setting the fee to 0 to be covered by another transaction.
-  - `extra_fee: AlgoAmount | None` - The fee to pay IN ADDITION to the suggested fee. Useful for covering inner transaction fees.
-  - `max_fee: AlgoAmount | None` - Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
-- Round validity management
-  - `validity_window: int | None` - How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
-  - `first_valid_round: int | None` - Set the first round this transaction is valid. If left undefined, the value from algod will be used. We recommend you only set this when you intentionally want this to be some time in the future.
-  - `last_valid_round: int | None` - The last round this transaction is valid. It is recommended to use `validity_window` instead.
+- `CommonTxnParams`
+  - `sender: str` - The address of the account sending the transaction.
+  - `signer: TransactionSigner | AddressWithTransactionSigner | None` - The function used to sign transaction(s); if not specified then an attempt will be made to find a registered signer for the given `sender` or use a default signer (if configured).
+  - `rekey_to: str | None` - Change the signing key of the sender to the given address. **Warning:** Please be careful with this parameter and be sure to read the [official rekey guidance](https://dev.algorand.co/concepts/accounts/rekeying).
+  - `note: bytes | None` - Note to attach to the transaction. Max of 1000 bytes.
+  - `lease: bytes | None` - Prevent multiple transactions with the same lease being included within the validity window. A [lease](https://dev.algorand.co/concepts/transactions/leases) enforces a mutually exclusive transaction (useful to prevent double-posting and other scenarios).
+  - Fee management
+    - `static_fee: AlgoAmount | None` - The static transaction fee. In most cases you want to use `extra_fee` unless setting the fee to 0 to be covered by another transaction.
+    - `extra_fee: AlgoAmount | None` - The fee to pay IN ADDITION to the suggested fee. Useful for covering inner transaction fees.
+    - `max_fee: AlgoAmount | None` - Throw an error if the fee for the transaction is more than this amount; prevents overspending on fees during high congestion periods.
+  - Round validity management
+    - `validity_window: int | None` - How many rounds the transaction should be valid for, if not specified then the registered default validity window will be used.
+    - `first_valid_round: int | None` - Set the first round this transaction is valid. If left undefined, the value from algod will be used. We recommend you only set this when you intentionally want this to be some time in the future.
+    - `last_valid_round: int | None` - The last round this transaction is valid. It is recommended to use `validity_window` instead.
+- `SendParams`
+  - `max_rounds_to_wait: int | None` - The number of rounds to wait for confirmation. By default until the latest lastValid has past.
+  - `suppress_log: bool | None` - Whether to suppress log messages from transaction send, default: do not suppress.
+  - `populate_app_call_resources: bool | None` - Whether to use simulate to automatically populate app call resources in the txn objects. Defaults to `config.populate_app_call_resources`.
+  - `cover_app_call_inner_transaction_fees: bool | None` - Whether to use simulate to automatically calculate required app call inner transaction fees and cover them in the parent app call transaction fee
 
 Then on top of that the base type gets extended for the specific type of transaction you are issuing. These are all defined as part of [`TransactionComposer`](../../advanced/transaction-composer) and we recommend reading these docs, especially when leveraging either `populate_app_call_resources` or `cover_app_call_inner_transaction_fees`.
 
@@ -187,29 +173,7 @@ Then on top of that the base type gets extended for the specific type of transac
 
 AlgorandClient caches network provided transaction values for you automatically to reduce network traffic. It has a set of default configurations that control this behaviour, but you have the ability to override and change the configuration of this behaviour:
 
-- `algorand.set_default_validity_window(validity_window)` - Set the default validity window (number of rounds from the current known round that the transaction will be valid to be accepted for), having a smallish value for this is usually ideal to avoid transactions that are valid for a long future period and may be submitted even after you think it failed to submit if waiting for a particular number of rounds for the transaction to be successfully submitted. The validity window defaults to `10`, except localnet environments where it's set to `1000`.
-- `algorand.set_suggested_params_cache(suggested_params, until?)` - Set the suggested network parameters to use (optionally until the given time)
+- `algorand.set_default_validity_window(validity_window)` - Set the default validity window (number of rounds from the current known round that the transaction will be valid to be accepted for), having a smallish value for this is usually ideal to avoid transactions that are valid for a long future period and may be submitted even after you think it failed to submit if waiting for a particular number of rounds for the transaction to be successfully submitted. The validity window defaults to 10, except in [automated testing](../../building/testing) where it's set to 1000 when targeting LocalNet.
+- `algorand.set_suggested_params_cache(suggested_params, until=None)` - Set the suggested network parameters to use (optionally until the given time)
 - `algorand.set_suggested_params_cache_timeout(timeout)` - Set the timeout that is used to cache the suggested network parameters (by default 3 seconds)
 - `algorand.get_suggested_params()` - Get the current suggested network parameters object, either the cached value, or if the cache has expired a fresh value
-
-### Error handling
-
-AlgorandClient provides error transformer functionality to enhance error messages and debugging information when transactions fail. Error transformers allow you to register custom functions that can transform generic blockchain errors into more meaningful, application-specific error messages.
-
-#### Registering Error Transformers
-
-```python
-def my_error_transformer(error: Exception) -> Exception:
-    """Transform generic errors into more meaningful ones."""
-    if "asset missing" in str(error).lower():
-        return Exception("Asset not found: Please check the asset ID")
-    return error  # Return unchanged if not applicable
-
-# Register globally for all transaction groups
-algorand.register_error_transformer(my_error_transformer)
-
-# Unregister when no longer needed
-algorand.unregister_error_transformer(my_error_transformer)
-```
-
-Error transformers registered at the `AlgorandClient` level will be applied to all transaction groups created from that client instance. For more detailed documentation on error transformers, including examples and best practices, see the [Transaction Composer Error Transformers](../../advanced/transaction-composer#error-transformers) section.

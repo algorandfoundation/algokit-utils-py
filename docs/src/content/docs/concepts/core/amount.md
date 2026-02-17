@@ -1,13 +1,13 @@
 ---
-title: "Algo Amount Handling"
+title: "Algo amount handling"
 description: "Algo amount handling is one of the core capabilities provided by AlgoKit Utils. It allows you to reliably and tersely specify amounts of microAlgo and Algo and safely convert between them."
 ---
 
 Algo amount handling is one of the core capabilities provided by AlgoKit Utils. It allows you to reliably and tersely specify amounts of microAlgo and Algo and safely convert between them.
 
-Any AlgoKit Utils function that needs an Algo amount will take an `AlgoAmount` object, which ensures that there is never any confusion about what value is being passed around. Whenever an AlgoKit Utils function calls into an underlying algosdk function, or if you need to take an `AlgoAmount` and pass it into an underlying algosdk function (per the [modularity principle](/algokit-utils-py/tutorials/quick-start#core-principles)) you can safely and explicitly convert to microAlgo or Algo.
+Any AlgoKit Utils function that needs an Algo amount will take an `AlgoAmount` object, which ensures that there is never any confusion about what value is being passed around. You can safely and explicitly convert to microAlgo or Algo when needed.
 
-To see some usage examples check out the automated tests. Alternatively, you can see the reference documentation for `AlgoAmount`.
+To see some usage examples check out the `automated tests`. Alternatively, you see the `reference documentation` for `AlgoAmount`.
 
 ## `AlgoAmount`
 
@@ -34,28 +34,39 @@ There are a few ways to create an `AlgoAmount`:
 
 The `AlgoAmount` class has properties to return Algo and microAlgo:
 
-- `amount.algo` - Returns the value in Algo as a python `Decimal` object
-- `amount.micro_algo` - Returns the value in microAlgo as an integer
+- `amount.algo` - Returns the value in Algo
+- `amount.micro_algo` - Returns the value in microAlgo
 
-`AlgoAmount` will coerce to an integer automatically (in microAlgo) when using `int(amount)`, which allows you to use `AlgoAmount` objects in comparison operations such as `<` and `>=` etc.
+`AlgoAmount` will coerce to an integer automatically (in microAlgo) when using `int(amount)`.
+
+`AlgoAmount` objects support comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) against other `AlgoAmount` instances or plain `int` values (treated as microAlgo).
 
 You can also call `str(amount)` or use an `AlgoAmount` directly in string interpolation to convert it to a nice user-facing formatted amount expressed in microAlgo.
 
-### Additional Features
+### Convenience functions
 
-The `AlgoAmount` class supports arithmetic and comparisons:
-
-- Addition/subtraction with other `AlgoAmount` values or integers (either side), including in-place (`+=`, `-=`).
-- Multiplication and division by integers (true and floor division); dividing by zero raises `ZeroDivisionError`.
-- Comparison operations with other `AlgoAmount` values or integers: `<`, `<=`, `>`, `>=`, `==`, `!=`.
-- Using `int(amount)` yields microAlgos; `str(amount)` formats as µALGO.
-
-Example:
+There are also standalone convenience functions for creating `AlgoAmount` instances:
 
 ```python
-amount1 = AlgoAmount(algo=1)
-amount2 = AlgoAmount(micro_algo=500_000)
-total = amount1 + amount2  # Results in 1.5 Algo
-scaled = total * 2         # Results in 3 Algo
-remaining = 5_000_000 - total  # Works with ints (microAlgos)
+from algokit_utils import algo, micro_algo
+
+amount1 = algo(1)            # equivalent to AlgoAmount.from_algo(1)
+amount2 = micro_algo(1_000)  # equivalent to AlgoAmount.from_micro_algo(1_000)
+```
+
+### Arithmetic operations
+
+`AlgoAmount` supports arithmetic operations with other `AlgoAmount` instances or plain `int` values (treated as microAlgo):
+
+```python
+a = AlgoAmount.from_algo(1)
+b = AlgoAmount.from_algo(2)
+
+# Addition and subtraction (AlgoAmount or int)
+c = a + b           # AlgoAmount(micro_algo=3_000_000)
+d = b - a           # AlgoAmount(micro_algo=1_000_000)
+
+# Multiplication and division (int only)
+e = a * 3           # AlgoAmount(micro_algo=3_000_000)
+f = b / 2           # AlgoAmount(micro_algo=1_000_000)
 ```

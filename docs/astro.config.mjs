@@ -1,11 +1,15 @@
 // @ts-check
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
+import remarkGithubAlerts from "remark-github-alerts";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://algorandfoundation.github.io",
   base: "/algokit-utils-py/",
+  markdown: {
+    remarkPlugins: [remarkGithubAlerts],
+  },
   integrations: [
     starlight({
       title: "AlgoKit Utils Python",
@@ -24,43 +28,48 @@ export default defineConfig({
         },
       ],
       sidebar: [
+        { label: "Home", link: "/" },
         {
-          label: "Tutorials",
+          label: "Getting Started",
           items: [{ slug: "tutorials/quick-start" }],
         },
         {
-          label: "Core",
+          label: "Core Concepts",
           items: [
             { slug: "concepts/core/algorand-client" },
             { slug: "concepts/core/account" },
-            { slug: "concepts/core/client" },
             { slug: "concepts/core/transaction" },
             { slug: "concepts/core/amount" },
+            { slug: "concepts/core/client" },
           ],
         },
         {
-          label: "Building",
+          label: "Building Applications",
           items: [
             { slug: "concepts/building/app-client" },
-            { slug: "concepts/building/typed-app-clients" },
-            { slug: "concepts/building/app" },
             { slug: "concepts/building/app-deploy" },
+            { slug: "concepts/building/app" },
+            { slug: "concepts/building/typed-app-clients" },
             { slug: "concepts/building/asset" },
             { slug: "concepts/building/transfer" },
             { slug: "concepts/building/testing" },
           ],
         },
         {
-          label: "Advanced",
+          label: "Advanced Topics",
+          collapsed: true,
           items: [
             { slug: "concepts/advanced/transaction-composer" },
+            { slug: "concepts/advanced/modular-imports" },
             { slug: "concepts/advanced/debugging" },
+            { slug: "concepts/advanced/indexer" },
             { slug: "concepts/advanced/dispenser-client" },
           ],
         },
         {
-          label: "Migration",
-          items: [{ slug: "migration/v3-migration-guide" }],
+          label: "Migration Guides",
+          collapsed: true,
+          autogenerate: { directory: "migration" },
         },
         {
           label: "API Reference",

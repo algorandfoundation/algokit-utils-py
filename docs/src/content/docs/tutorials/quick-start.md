@@ -1,18 +1,17 @@
 ---
 title: "Quick Start"
-description: "Get up and running with AlgoKit Utils for Python — installation, initialization, and your first transaction."
+description: "Get up and running with AlgoKit Utils in 5 minutes."
 ---
 
-AlgoKit Utils for Python provides intuitive, productive utility functions that make it easier, quicker, and safer to build applications on Algorand. It wraps the underlying Algorand SDK with a higher-level interface, sensible defaults, and capabilities for common tasks.
+Get up and running with AlgoKit Utils in 5 minutes.
 
 ## Prerequisites
 
-- Python 3.12+
-- An Algorand node to connect to (or [AlgoKit LocalNet](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/localnet.md) for local development)
+- Python 3.10+
+- [AlgoKit CLI](https://github.com/algorandfoundation/algokit-cli) installed
+- LocalNet running (`algokit localnet start`)
 
 ## Installation
-
-Install via pip, poetry, or uv:
 
 ```bash
 pip install algokit-utils
@@ -22,123 +21,55 @@ poetry add algokit-utils
 uv add algokit-utils
 ```
 
-## Core Principles
+## Your First Transaction
 
-This library follows the [Guiding Principles of AlgoKit](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/algokit.md#guiding-principles):
-
-- **Modularity** — A thin wrapper of modular building blocks over the Algorand SDK; opt-in to which parts you want without an all-or-nothing approach.
-- **Type-safety** — Strong type hints with full [MyPy](https://mypy-lang.org/) compatibility for static type checking and IDE intellisense.
-- **Productivity** — Common code made easier and terser to write, so you can focus on your application logic.
-
-## Getting Started
-
-The main entrypoint to AlgoKit Utils is the `AlgorandClient` class:
-
-```python
-from algokit_utils import AlgorandClient
-
-# Connect to LocalNet (default for local development)
-algorand = AlgorandClient.default_localnet()
-
-# Or connect via environment variables
-algorand = AlgorandClient.from_environment()
-
-# Or connect to TestNet / MainNet via AlgoNode free tier
-algorand = AlgorandClient.testnet()
-algorand = AlgorandClient.mainnet()
-
-# Or use custom configuration
-from algokit_utils import AlgoClientNetworkConfig
-algod_config = AlgoClientNetworkConfig(server="https://...", token="...", port=443)
-algorand = AlgorandClient.from_config(algod_config=algod_config)
-```
-
-## Sending Your First Transaction
-
-Here's a complete example that creates a funded account on LocalNet and sends a payment:
+Create a file called `hello_algorand.py`:
 
 ```python
 from algokit_utils import AlgorandClient, AlgoAmount, PaymentParams
 
-# Connect to LocalNet
+# 1. Connect to LocalNet
 algorand = AlgorandClient.default_localnet()
 
-# Create and fund a new account
-account = algorand.account.random()
-dispenser = algorand.account.localnet_dispenser()
-algorand.account.ensure_funded(
-    account,
-    dispenser,
-    min_spending_balance=AlgoAmount.from_algo(10),
-)
+# 2. Create a new random account
+sender = algorand.account.random()
+print(f"Created account: {sender.addr}")
 
-# Send a payment
+# 3. Fund the account from the LocalNet dispenser
+algorand.account.ensure_funded(sender, algorand.account.localnet_dispenser(), min_spending_balance=AlgoAmount.from_algo(10))
+print("Funded account with 10 ALGO")
+
+# 4. Check the balance
+info = algorand.account.get_information(sender)
+print(f"Balance: {info.amount.algo} ALGO")
+
+# 5. Create a second account and send a payment
+receiver = algorand.account.random()
+
 result = algorand.send.payment(
     PaymentParams(
-        sender=account.addr,
-        receiver=dispenser.addr,
+        sender=sender.addr,
+        receiver=receiver.addr,
         amount=AlgoAmount.from_algo(1),
     )
 )
 
-print(f"Transaction ID: {result.tx_id}")
+print(f"Payment sent! Transaction ID: {result.tx_id}")
+
+# 6. Check receiver balance
+receiver_info = algorand.account.get_information(receiver)
+print(f"Receiver balance: {receiver_info.amount.algo} ALGO")
 ```
 
-## Deploying a Smart Contract
+Run it:
 
-Use `AppFactory` to deploy and interact with smart contracts:
-
-```python
-from algokit_utils import AlgorandClient, AlgoAmount
-
-algorand = AlgorandClient.default_localnet()
-deployer = algorand.account.random()
-dispenser = algorand.account.localnet_dispenser()
-algorand.account.ensure_funded(
-    deployer,
-    dispenser,
-    min_spending_balance=AlgoAmount.from_algo(10),
-)
-
-# Create a factory from an ARC-56/ARC-32 app spec
-factory = algorand.client.get_app_factory(
-    app_spec="path/to/application.json",
-    default_sender=deployer.addr,
-)
-
-# Deploy the app
-app_client, deploy_result = factory.deploy()
-
-print(f"App ID: {deploy_result.app.app_id}")
-print(f"App Address: {deploy_result.app.app_address}")
+```bash
+python hello_algorand.py
 ```
-
-## Config and Logging
-
-Configure AlgoKit Utils behaviour using the config singleton:
-
-```python
-from algokit_utils.config import config
-
-# Enable debug mode (automatic tracing, verbose logging)
-config.configure(debug=True)
-
-# Enable automatic resource population for app calls
-config.configure(populate_app_call_resources=True)
-```
-
-> [!WARNING]
-> Debug mode may result in extra HTTP calls to algod. Use it carefully in production environments.
 
 ## What's Next?
 
-Explore the key capabilities of AlgoKit Utils:
-
-- [**AlgorandClient**](/algokit-utils-py/concepts/core/algorand-client/) — The main entrypoint to all functionality
-- [**Account Management**](/algokit-utils-py/concepts/core/account/) — Create and manage accounts
-- [**App Client**](/algokit-utils-py/concepts/building/app-client/) — Deploy and interact with smart contracts
-- [**Transaction Composer**](/algokit-utils-py/concepts/advanced/transaction-composer/) — Build complex transaction groups
-- [**Testing**](/algokit-utils-py/concepts/building/testing/) — Patterns for testing with pytest
-
-> [!NOTE]
-> If you prefer TypeScript, there's an equivalent [TypeScript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
+- [AlgorandClient](/algokit-utils-py/concepts/core/algorand-client/) — Learn about the main entry point
+- [Account Management](/algokit-utils-py/concepts/core/account/) — Different ways to create and manage accounts
+- [Transaction Management](/algokit-utils-py/concepts/core/transaction/) — Build and send transactions
+- [App Client](/algokit-utils-py/concepts/building/app-client/) — Deploy and interact with smart contracts

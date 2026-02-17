@@ -8,7 +8,7 @@
  */
 
 /* ── Base H3 — monospace, reduced size, no box ── */
-.sl-markdown-content h3 {
+.api-ref h3 {
   font-family: var(--sl-font-mono, ui-monospace, monospace);
   font-size: var(--sl-text-base, 1rem);
   font-weight: 400;
@@ -18,7 +18,7 @@
 }
 
 /* ── Class/type definitions (H3 with <em>) — boxed like Furo ── */
-.sl-markdown-content h3:has(> em) {
+.api-ref h3:has(> em) {
   padding: 0.5rem 0.75rem;
   background: var(--sl-color-gray-7, #23262f);
   border-left: 3px solid var(--sl-color-accent, #6366f1);
@@ -27,13 +27,13 @@
 }
 
 /* Keyword styling: class, type, property in blue italic */
-.sl-markdown-content h3 em {
+.api-ref h3 em {
   color: var(--sl-color-blue, #60a5fa);
   font-style: italic;
 }
 
 /* ── Attributes, methods, properties (H4) — compact field style ── */
-.sl-markdown-content h4 {
+.api-ref h4 {
   font-family: var(--sl-font-mono, ui-monospace, monospace);
   font-size: var(--sl-text-sm, 0.875rem);
   font-weight: 600;
@@ -44,7 +44,7 @@
 }
 
 /* Type annotations and keywords in H4 — subdued */
-.sl-markdown-content h4 em {
+.api-ref h4 em {
   font-weight: 400;
   color: var(--sl-color-gray-3, #9ca3af);
   font-style: normal;
