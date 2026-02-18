@@ -73,6 +73,7 @@ instance/
 # Sphinx (API generation artifacts)
 docs/sphinx/autoapi/
 docs/sphinx/.doctrees/
+docs/markdown/.doctrees/
 
 # Starlight
 docs/dist/
