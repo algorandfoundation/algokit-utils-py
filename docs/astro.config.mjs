@@ -14,7 +14,12 @@ export default defineConfig({
     starlight({
       title: "AlgoKit Utils Python",
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
-      customCss: ["./src/styles/api-reference.css"],
+      customCss: [
+        "./src/styles/api-reference.css",
+        "remark-github-alerts/styles/github-colors-light.css",
+        "remark-github-alerts/styles/github-colors-dark-media.css",
+        "remark-github-alerts/styles/github-base.css",
+      ],
       social: [
         {
           icon: "github",
