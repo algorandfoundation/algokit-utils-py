@@ -1,6 +1,6 @@
 ---
 title: "Modular imports"
-description: "AlgoKit Utils is designed with a modular architecture that allows you to import only the functionality you need..."
+description: "AlgoKit Utils is designed with a modular architecture that allows you to import only the functionality you need. This keeps your imports explicit and helps with code readability and IDE auto-completion."
 ---
 
 AlgoKit Utils is designed with a modular architecture that allows you to import only the functionality you need. This keeps your imports explicit and helps with code readability and IDE auto-completion.

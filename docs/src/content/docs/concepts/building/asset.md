@@ -143,6 +143,105 @@ algorand.send.asset_config(
 )
 ```
 
+## Freeze
+
+To freeze or unfreeze an asset holding for a specific account you can use `algorand.send.asset_freeze(params)` (immediately send a single asset freeze transaction), `algorand.create_transaction.asset_freeze(params)` (construct an asset freeze transaction), or `algorand.new_group().add_asset_freeze(params)` (add asset freeze to a group of transactions) per [`AlgorandClient`](../../core/algorand-client) [transaction semantics](../../core/algorand-client#creating-and-issuing-transactions).
+
+**Note:** The `sender` of the freeze transaction must be the `freeze` account of the asset.
+
+The base type for specifying an asset freeze transaction is `AssetFreezeParams`, which has the following parameters in addition to the [common transaction parameters](../../core/algorand-client#transaction-parameters):
+
+- `asset_id: int` - The ID of the asset to freeze/unfreeze
+- `account: str` - The address of the account to freeze or unfreeze the asset for
+- `frozen: bool` - Whether the assets of this account should be frozen for this asset
+
+### Examples
+
+```python
+# Basic example (freeze)
+algorand.send.asset_freeze(
+    AssetFreezeParams(sender="FREEZEADDRESS", asset_id=123456, account="TARGETADDRESS", frozen=True)
+)
+
+# Basic example (unfreeze)
+algorand.send.asset_freeze(
+    AssetFreezeParams(sender="FREEZEADDRESS", asset_id=123456, account="TARGETADDRESS", frozen=False)
+)
+
+# Advanced example
+algorand.send.asset_freeze(
+    AssetFreezeParams(
+        sender="FREEZEADDRESS",
+        asset_id=123456,
+        account="TARGETADDRESS",
+        frozen=True,
+        lease=b"lease",
+        note=b"note",
+        # You wouldn't normally set this field
+        first_valid_round=1000,
+        validity_window=10,
+        extra_fee=AlgoAmount(micro_algo=1000),
+        static_fee=AlgoAmount(micro_algo=1000),
+        # Max fee doesn't make sense with extra_fee AND static_fee
+        #  already specified, but here for completeness
+        max_fee=AlgoAmount(micro_algo=3000),
+        # Signer only needed if you want to provide one,
+        #  generally you'd register it with AlgorandClient
+        #  against the sender and not need to pass it in
+        signer=transaction_signer,
+    ),
+    send_params=SendParams(
+        max_rounds_to_wait=5,
+        suppress_log=True,
+    ),
+)
+```
+
+## Destroy
+
+To destroy an asset you can use `algorand.send.asset_destroy(params)` (immediately send a single asset destroy transaction), `algorand.create_transaction.asset_destroy(params)` (construct an asset destroy transaction), or `algorand.new_group().add_asset_destroy(params)` (add asset destroy to a group of transactions) per [`AlgorandClient`](../../core/algorand-client) [transaction semantics](../../core/algorand-client#creating-and-issuing-transactions).
+
+**Note:** The `sender` of the destroy transaction must be the `manager` account of the asset, and the asset must have zero total supply (all units must be held by the creator).
+
+The base type for specifying an asset destroy transaction is `AssetDestroyParams`, which has the following parameters in addition to the [common transaction parameters](../../core/algorand-client#transaction-parameters):
+
+- `asset_id: int` - The ID of the asset to destroy
+
+### Examples
+
+```python
+# Basic example
+algorand.send.asset_destroy(
+    AssetDestroyParams(sender="MANAGERADDRESS", asset_id=123456)
+)
+
+# Advanced example
+algorand.send.asset_destroy(
+    AssetDestroyParams(
+        sender="MANAGERADDRESS",
+        asset_id=123456,
+        lease=b"lease",
+        note=b"note",
+        # You wouldn't normally set this field
+        first_valid_round=1000,
+        validity_window=10,
+        extra_fee=AlgoAmount(micro_algo=1000),
+        static_fee=AlgoAmount(micro_algo=1000),
+        # Max fee doesn't make sense with extra_fee AND static_fee
+        #  already specified, but here for completeness
+        max_fee=AlgoAmount(micro_algo=3000),
+        # Signer only needed if you want to provide one,
+        #  generally you'd register it with AlgorandClient
+        #  against the sender and not need to pass it in
+        signer=transaction_signer,
+    ),
+    send_params=SendParams(
+        max_rounds_to_wait=5,
+        suppress_log=True,
+    ),
+)
+```
+
 ## Transfer
 
 To transfer unit(s) of an asset between accounts you can use `algorand.send.asset_transfer(params)` (immediately send a single asset transfer transaction), `algorand.create_transaction.asset_transfer(params)` (construct an asset transfer transaction), or `algorand.new_group().add_asset_transfer(params)` (add asset transfer to a group of transactions) per [`AlgorandClient`](../../core/algorand-client) [transaction semantics](../../core/algorand-client#creating-and-issuing-transactions).
@@ -337,7 +436,7 @@ algorand.asset.bulk_opt_out(
 
 ### Getting current parameters for an asset
 
-You can get the current parameters of an asset from algod by using `algorand.asset.get_by_id(asset_id)`.
+You can get the current parameters of an asset from algod by using `algorand.asset.get_by_id(asset_id)`, which returns an [`AssetInformation`](#assetinformation) instance.
 
 ```python
 asset_info = algorand.asset.get_by_id(12353)
@@ -345,10 +444,57 @@ asset_info = algorand.asset.get_by_id(12353)
 
 ### Getting current holdings of an asset for an account
 
-You can get the current holdings of an asset for a given account from algod by using `algorand.asset.get_account_information(address, asset_id)`.
+You can get the current holdings of an asset for a given account from algod by using `algorand.asset.get_account_information(address, asset_id)`, which returns an [`AccountAssetInformation`](#accountassetinformation) instance.
 
 ```python
 address = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
 asset_id = 12345
 account_info = algorand.asset.get_account_information(address, asset_id)
 ```
+
+## Return types
+
+These dataclasses are defined in `algokit_utils.assets.asset_manager`.
+
+### `AssetInformation`
+
+Returned by `algorand.asset.get_by_id()`. Contains the current on-chain parameters for an Algorand Standard Asset.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `asset_id` | `int` | The ID of the asset |
+| `creator` | `str` | The address of the account that created the asset |
+| `total` | `int` | The total amount of the smallest divisible units that were created of the asset |
+| `decimals` | `int` | The amount of decimal places the asset was created with |
+| `default_frozen` | `bool \| None` | Whether the asset was frozen by default for all accounts, defaults to `None` |
+| `manager` | `str \| None` | The address of the optional account that can manage the configuration of the asset and destroy it, defaults to `None` |
+| `reserve` | `str \| None` | The address of the optional account that holds the reserve (uncirculated supply) units of the asset, defaults to `None` |
+| `freeze` | `str \| None` | The address of the optional account that can be used to freeze or unfreeze holdings of this asset, defaults to `None` |
+| `clawback` | `str \| None` | The address of the optional account that can clawback holdings of this asset from any account, defaults to `None` |
+| `unit_name` | `str \| None` | The optional name of the unit of this asset (e.g. ticker name), defaults to `None` |
+| `unit_name_b64` | `bytes \| None` | The optional name of the unit of this asset as bytes, defaults to `None` |
+| `asset_name` | `str \| None` | The optional name of the asset, defaults to `None` |
+| `asset_name_b64` | `bytes \| None` | The optional name of the asset as bytes, defaults to `None` |
+| `url` | `str \| None` | The optional URL where more information about the asset can be retrieved, defaults to `None` |
+| `url_b64` | `bytes \| None` | The optional URL where more information about the asset can be retrieved as bytes, defaults to `None` |
+| `metadata_hash` | `bytes \| None` | The 32-byte hash of some metadata that is relevant to the asset and/or asset holders, defaults to `None` |
+
+### `AccountAssetInformation`
+
+Returned by `algorand.asset.get_account_information()`. Contains an account's holding of a particular asset.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `asset_id` | `int` | The ID of the asset |
+| `balance` | `int` | The amount of the asset held by the account |
+| `frozen` | `bool` | Whether the asset is frozen for this account |
+| `round` | `int` | The round this information was retrieved at |
+
+### `BulkAssetOptInOutResult`
+
+Returned by `algorand.asset.bulk_opt_in()` and `algorand.asset.bulk_opt_out()`. Contains the result for each asset in a bulk operation.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `asset_id` | `int` | The ID of the asset opted into / out of |
+| `transaction_id` | `str` | The transaction ID of the resulting opt in / out |

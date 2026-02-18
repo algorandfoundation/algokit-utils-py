@@ -1,6 +1,6 @@
 ---
 title: "TestNet Dispenser Client"
-description: "The TestNet Dispenser Client is a utility for interacting with the AlgoKit TestNet Dispenser API. It provides methods to fund an account, register a refund for a transaction, and get the current limit..."
+description: "The TestNet Dispenser Client is a utility for interacting with the AlgoKit TestNet Dispenser API. It provides methods to fund an account, register a refund for a transaction, and get the current limit for an account."
 ---
 
 The TestNet Dispenser Client is a utility for interacting with the AlgoKit TestNet Dispenser API. It provides methods to fund an account, register a refund for a transaction, and get the current limit for an account.
@@ -39,12 +39,12 @@ Alternatively, you can construct it directly.
 from algokit_utils import TestNetDispenserApiClient
 
 # Using constructor argument
-client = TestNetDispenserApiClient(auth_token="your_auth_token")
+dispenser = TestNetDispenserApiClient(auth_token="your_auth_token")
 
 # Using environment variable
 import os
 os.environ["ALGOKIT_DISPENSER_ACCESS_TOKEN"] = "your_auth_token"
-client = TestNetDispenserApiClient()
+dispenser = TestNetDispenserApiClient()
 ```
 
 ## Funding an Account
@@ -52,7 +52,7 @@ client = TestNetDispenserApiClient()
 To fund an account with Algo from the dispenser API, use the `fund` method. This method requires the receiver's address and the amount to be funded (in microAlgos).
 
 ```python
-response = client.fund("receiver_address", 1000)
+response = dispenser.fund("receiver_address", 1000)
 ```
 
 The `fund` method returns a `DispenserFundResponse` object, which contains the transaction ID (`tx_id`) and the amount funded.
@@ -62,7 +62,7 @@ The `fund` method returns a `DispenserFundResponse` object, which contains the t
 To register a refund for a transaction with the dispenser API, use the `refund` method. This method requires the transaction ID of the refund transaction.
 
 ```python
-client.refund("transaction_id")
+dispenser.refund("transaction_id")
 ```
 
 > Keep in mind, to perform a refund you need to perform a payment transaction yourself first by sending funds back to TestNet Dispenser, then you can invoke this refund endpoint and pass the txn_id of your refund txn. You can obtain dispenser address by inspecting the sender field of any issued fund transaction initiated via [fund](#funding-an-account).
@@ -72,7 +72,7 @@ client.refund("transaction_id")
 To get the current limit for an account with Algo from the dispenser API, use the `get_limit` method. This method requires the account address.
 
 ```python
-response = client.get_limit(address="YOUR_ADDRESS")
+response = dispenser.get_limit("YOUR_ADDRESS")
 ```
 
 The `get_limit` method returns a `DispenserLimitResponse` object, which contains the current limit amount.
@@ -80,3 +80,22 @@ The `get_limit` method returns a `DispenserLimitResponse` object, which contains
 ## Error Handling
 
 If an error occurs while making a request to the dispenser API, an exception will be raised with a message indicating the type of error. Refer to [Error Handling docs](https://github.com/algorandfoundation/algokit/blob/main/docs/testnet_api.md#error-handling) for details on how you can handle each individual error `code`.
+
+```python
+try:
+    response = dispenser.fund("receiver_address", 1_000_000)
+    print(f"Funded: {response.tx_id}")
+except Exception as e:
+    print(f"Fund failed: {e}")
+
+try:
+    dispenser.refund("transaction_id")
+except Exception as e:
+    print(f"Refund failed: {e}")
+
+try:
+    response = dispenser.get_limit("receiver_address")
+    print(f"Current limit: {response.amount}")
+except Exception as e:
+    print(f"Get limit failed: {e}")
+```

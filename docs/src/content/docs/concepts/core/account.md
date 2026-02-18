@@ -1,13 +1,13 @@
 ---
 title: "Account management"
-description: "Account management is one of the core capabilities provided by AlgoKit Utils. It allows you to create mnemonic, rekeyed, multisig, transaction signer, idempotent KMD and environment variable injected accounts."
+description: "Account management is one of the core capabilities provided by AlgoKit Utils. It allows you to create mnemonic, rekeyed, multisig, transaction signer, idempotent KMD and environment variable injected accounts that can be used to sign transactions as well as representing a sender address at the same time. This significantly simplifies management of transaction signing."
 ---
 
 Account management is one of the core capabilities provided by AlgoKit Utils. It allows you to create mnemonic, rekeyed, multisig, transaction signer, idempotent KMD and environment variable injected accounts that can be used to sign transactions as well as representing a sender address at the same time. This significantly simplifies management of transaction signing.
 
 ## `AccountManager`
 
-The `AccountManager` is a class that is used to get, create, and fund accounts and perform account-related actions such as funding. The `AccountManager` also keeps track of signers for each address so when using the [`TransactionComposer`](../../advanced/transaction-composer) to send transactions, a signer function does not need to manually be specified for each transaction - instead it can be inferred from the sender address automatically!
+The `AccountManager` is a class that is used to get, create, and fund accounts and perform account-related actions such as funding. The `AccountManager` also keeps track of signers for each address so when using the [`TransactionComposer`](../advanced/transaction-composer) to send transactions, a signer function does not need to manually be specified for each transaction - instead it can be inferred from the sender address automatically!
 
 To get an instance of `AccountManager`, you can use either [`AlgorandClient`](../algorand-client) via `algorand.account` or instantiate it directly:
 
@@ -21,13 +21,25 @@ account_manager = AccountManager(client_manager)
 
 The core internal type that holds information about a signer/sender pair for a transaction is `AddressWithTransactionSigner`, which represents a `TransactionSigner` (`signer`) along with a sender address (`addr`).
 
-Many methods in `AccountManager` expose an `AddressWithTransactionSigner`. `AddressWithTransactionSigner` can be used with [`TransactionComposer`](../../advanced/transaction-composer).
+Many methods in `AccountManager` expose an `AddressWithTransactionSigner`. `AddressWithTransactionSigner` can be used with [`TransactionComposer`](../advanced/transaction-composer).
+
+`AddressWithTransactionSigner` is a `Protocol` — any object that provides an `addr: str` property (via the `Addressable` protocol) and a `signer: TransactionSigner` property structurally conforms to it. The following built-in types satisfy this protocol:
+
+| Type | Description | Created via |
+| --- | --- | --- |
+| [`AddressWithSigners`](#underlying-account-classes) | Standard account with private key | `algorand.account.random()`, `algorand.account.from_mnemonic()` |
+| [`LogicSigAccount`](#logicsigaccount) | Logic signature account | `algorand.account.logicsig()` |
+| [`MultisigAccount`](#multisigaccount) | Multisig account | `algorand.account.multisig()` |
+
+You can also create your own conforming type by implementing a class with `addr` and `signer` properties. Since `AddressWithTransactionSigner` is decorated with `@runtime_checkable`, you can verify conformance at runtime with `isinstance()`.
+
+Source: [`src/algokit_transact/signer.py`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/src/algokit_transact/signer.py)
 
 ## Registering a signer
 
 The `AccountManager` keeps track of which signer is associated with a given sender address. This is used by [`AlgorandClient`](../algorand-client) to automatically sign transactions by that sender. Any of the [methods](#accounts) within `AccountManager` that return an account will automatically register the signer with the sender. If however, you are creating a signer external to the `AccountManager`, then you need to register the signer with the `AccountManager` if you want it to be able to automatically sign transactions from that sender.
 
-There are two methods that can be used for this, `set_signer_from_account`, which takes any number of [account based objects](#underlying-account-classes) that combine signer and sender (`AddressWithSigners` | `LogicSigAccount` | `MultisigAccount`), or `set_signer` which takes the sender address and the `TransactionSigner`:
+There are two methods that can be used for this, `set_signer_from_account`, which takes any `AddressWithTransactionSigner` conforming object (such as `AddressWithSigners`, `LogicSigAccount`, or `MultisigAccount`), or `set_signer` which takes the sender address and the `TransactionSigner`:
 
 ```python
 algorand.account \
@@ -42,9 +54,15 @@ algorand.account \
   .set_signer("SENDERADDRESS", transaction_signer)
 ```
 
+You can also merge all signers from another `AccountManager` into the current one using `set_signers`:
+
+```python
+algorand.account.set_signers(another_account_manager=other_manager, overwrite_existing=True)
+```
+
 ## Default signer
 
-If you want to have a default signer that is used to sign transactions without a registered signer (rather than throwing an exception) then you can register a default signer:
+If you want to have a default signer that is used to sign transactions without a registered signer (rather than throwing an exception) then you can register a default signer. The parameter accepts either a `TransactionSigner` or an `AddressWithTransactionSigner`:
 
 ```python
 algorand.account.set_default_signer(my_default_signer)
@@ -52,13 +70,33 @@ algorand.account.set_default_signer(my_default_signer)
 
 ## Get a signer
 
-[`AlgorandClient`](../algorand-client) will automatically retrieve a signer when signing a transaction, but if you need to get a `TransactionSigner` externally to do something more custom then you can retrieve the signer for a given sender address:
+[`AlgorandClient`](../algorand-client) will automatically retrieve a signer when signing a transaction, but if you need to get a `TransactionSigner` externally to do something more custom then you can retrieve the signer for a given sender address (or an `AddressWithTransactionSigner`):
 
 ```python
 signer = algorand.account.get_signer("SENDER_ADDRESS")
 ```
 
 If there is no signer registered for that sender address it will either return the default signer ([if registered](#default-signer)) or throw an exception.
+
+## Get an account
+
+If you need to retrieve the full account object (e.g. `AddressWithSigners`, `LogicSigAccount`, or `MultisigAccount`) that was previously registered for a given sender address:
+
+```python
+account = algorand.account.get_account("SENDER_ADDRESS")
+```
+
+## Get account information
+
+You can retrieve the current on-chain information for a given account (balance, minimum balance, status, etc.):
+
+```python
+info = algorand.account.get_information("SENDER_ADDRESS")
+# Returns an AccountInformation dataclass with properties like:
+# info.amount (AlgoAmount), info.min_balance (AlgoAmount), info.status (str), etc.
+```
+
+The `sender` parameter accepts either a `str` address or an `AddressWithTransactionSigner`.
 
 ## Accounts
 
@@ -69,7 +107,7 @@ In order to get/register accounts for signing operations you can use the followi
   - Note: `fund_with` allows you to control how many Algo are seeded into an account created in KMD
 - `algorand.account.from_mnemonic(mnemonic, sender)` - Registers and returns an account with secret key loaded by taking the mnemonic secret
 - `algorand.account.multisig(metadata, sub_signers)` - Registers and returns a multisig account with one or more signing keys loaded
-- `algorand.account.rekeyed(sender, account)` - Registers and returns an account representing the given rekeyed sender/signer combination
+- `algorand.account.rekeyed(sender, account)` - Registers and returns an account representing the given rekeyed sender/signer combination. `account` accepts `AddressWithTransactionSigner | AddressWithSigners`
 - `algorand.account.random()` - Returns a new, cryptographically randomly generated account with private key loaded
 - `algorand.account.from_kmd(name, predicate, sender)` - Returns an account with private key loaded from the given KMD wallet (identified by name)
 - `algorand.account.logicsig(program, args)` - Returns an account that represents a logic signature
@@ -81,6 +119,41 @@ While `AddressWithTransactionSigner` is the main interface used to represent an 
 - `AddressWithSigners` - An account that holds a private key and conforms to `AddressWithTransactionSigner`, created via `algorand.account.random()` or `algorand.account.from_mnemonic()`
 - `LogicSigAccount` - A logic signature account for signing with a TEAL program
 - `MultisigAccount` - A multisig account that supports multisig transactions with one or more signers present
+
+> [!NOTE]
+> In v4, `SigningAccount` was replaced by `AddressWithSigners`. If you are migrating from an earlier version, update any references to `SigningAccount` accordingly.
+
+> [!NOTE]
+> All account types support rekeyed accounts. You can use `algorand.account.rekeyed(sender, account)` to register a rekeyed sender/signer combination. See [Rekey account](#rekey-account) for details.
+
+#### `LogicSigAccount`
+
+A logic signature account for signing with a TEAL program. Extends `LogicSig` with delegation support.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `sig` | `bytes \| None` | Single signature for delegation (if delegated to a single account) |
+| `msig` | `MultisigSignature \| None` | Multisig signature (if part of a multisig) |
+| `lmsig` | `MultisigSignature \| None` | Multisig-delegated logic sig signature |
+| `is_delegated` | `bool` | Whether this LogicSig is delegated to an account |
+| `signer` | `TransactionSigner` | Transaction signer callable for use with `TransactionComposer` |
+| `addr` | `str` | The logic signature account address (conforms to `AddressWithTransactionSigner` protocol) |
+
+Source: [`src/algokit_transact/logicsig.py`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/src/algokit_transact/logicsig.py)
+
+#### `MultisigAccount`
+
+A multisig account that supports multisig transactions with one or more signers present.
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `params` | `MultisigMetadata` | The multisig account parameters (`version`, `threshold`, `addrs`) |
+| `sub_signers` | `Sequence[AddressWithSigners]` | The list of signing accounts |
+| `signer` | `TransactionSigner` | Transaction signer callable for use with `TransactionComposer` |
+| `address` | `str` | The multisig account address |
+| `addr` | `str` | Alias for `address` (conforms to `AddressWithTransactionSigner` protocol) |
+
+Source: [`src/algokit_transact/multisig.py`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/src/algokit_transact/multisig.py)
 
 ### Dispenser
 

@@ -83,7 +83,7 @@ dispenser = algokit_utils.get_dispenser_account(algod)
 #### After:
 
 ```python
-account = algorand.account.from_mnemonic(os.getenv("MY_ACCOUNT_MNEMONIC"))
+account = algorand.account.from_mnemonic(mnemonic=os.getenv("MY_ACCOUNT_MNEMONIC"))
 dispenser = algorand.account.dispenser_from_environment()
 ```
 
@@ -118,11 +118,15 @@ result = algokit_utils.execute_atc_with_logic_error(atc, algod)
 #### After:
 
 ```python
+from algokit_utils import PaymentParams, AlgoAmount
+
 # Single transaction
 result = algorand.send.payment(
-    sender=account.address,
-    receiver="RECEIVER",
-    amount=AlgoAmount.from_algo(1),
+    PaymentParams(
+        sender=account.addr,
+        receiver="RECEIVER",
+        amount=AlgoAmount.from_algo(1),
+    )
 )
 
 # Transaction groups
@@ -223,8 +227,8 @@ result = algokit_utils.opt_in(algod, account, [asset_id])
 
 """After"""
 result = algorand.send.asset_opt_in(
-    params=AssetOptInParams(
-        sender=account.address,
+    AssetOptInParams(
+        sender=account.addr,
         asset_id=asset_id,
     )
 )

@@ -23,10 +23,10 @@ from algokit_utils import AlgoAmount
 
 There are a few ways to create an `AlgoAmount`:
 
-- Algo
+- Algo (accepts `int` or `Decimal`)
   - Constructor: `AlgoAmount(algo=10)`
   - Static helper: `AlgoAmount.from_algo(10)`
-- microAlgo
+- microAlgo (accepts `int`)
   - Constructor: `AlgoAmount(micro_algo=10_000)`
   - Static helper: `AlgoAmount.from_micro_algo(10_000)`
 
@@ -34,12 +34,24 @@ There are a few ways to create an `AlgoAmount`:
 
 The `AlgoAmount` class has properties to return Algo and microAlgo:
 
-- `amount.algo` - Returns the value in Algo
-- `amount.micro_algo` - Returns the value in microAlgo
+- `amount.algo` - Returns the value in Algo as `Decimal`
+- `amount.micro_algo` - Returns the value in microAlgo as `int`
 
 `AlgoAmount` will coerce to an integer automatically (in microAlgo) when using `int(amount)`.
 
-`AlgoAmount` objects support comparison operators (`==`, `!=`, `<`, `<=`, `>`, `>=`) against other `AlgoAmount` instances or plain `int` values (treated as microAlgo).
+`AlgoAmount` objects support the following comparison operators against other `AlgoAmount` instances or plain `int` values (treated as microAlgo):
+
+| Operator | Description |
+| -------- | ----------- |
+| `==` | Equal to |
+| `!=` | Not equal to |
+| `<` | Less than |
+| `<=` | Less than or equal to |
+| `>` | Greater than |
+| `>=` | Greater than or equal to |
+
+> [!NOTE]
+> Only `__eq__` and `__lt__` are explicitly defined. The remaining operators (`!=`, `<=`, `>`, `>=`) are derived automatically via Python's [`@total_ordering`](https://docs.python.org/3/library/functools.html#functools.total_ordering) decorator.
 
 You can also call `str(amount)` or use an `AlgoAmount` directly in string interpolation to convert it to a nice user-facing formatted amount expressed in microAlgo.
 
@@ -54,9 +66,32 @@ amount1 = algo(1)            # equivalent to AlgoAmount.from_algo(1)
 amount2 = micro_algo(1_000)  # equivalent to AlgoAmount.from_micro_algo(1_000)
 ```
 
+### Constants and helpers
+
+`ALGORAND_MIN_TX_FEE` is a pre-defined `AlgoAmount` representing the minimum transaction fee (1,000 µALGO):
+
+```python
+from algokit_utils import ALGORAND_MIN_TX_FEE, transaction_fees
+
+fee = ALGORAND_MIN_TX_FEE                # AlgoAmount(micro_algo=1_000)
+total = transaction_fees(3)              # AlgoAmount(micro_algo=3_000)
+```
+
 ### Arithmetic operations
 
 `AlgoAmount` supports arithmetic operations with other `AlgoAmount` instances or plain `int` values (treated as microAlgo):
+
+| Operator | Right operand | Return type | Description |
+| -------- | ------------- | ----------- | ----------- |
+| `+` | `AlgoAmount \| int` | `AlgoAmount` | Addition |
+| `-` | `AlgoAmount \| int` | `AlgoAmount` | Subtraction |
+| `*` | `int` | `AlgoAmount` | Scalar multiplication |
+| `/` | `int` | `AlgoAmount` | Division (integer, floors result) |
+| `//` | `int` | `AlgoAmount` | Floor division |
+| `+=` | `AlgoAmount \| int` | `AlgoAmount` | In-place addition |
+| `-=` | `AlgoAmount \| int` | `AlgoAmount` | In-place subtraction |
+
+Division by zero raises `ZeroDivisionError`.
 
 ```python
 a = AlgoAmount.from_algo(1)
@@ -70,3 +105,5 @@ d = b - a           # AlgoAmount(micro_algo=1_000_000)
 e = a * 3           # AlgoAmount(micro_algo=3_000_000)
 f = b / 2           # AlgoAmount(micro_algo=1_000_000)
 ```
+
+> Source: [`src/algokit_utils/models/amount.py`](https://github.com/algorandfoundation/algokit-utils-py/blob/main/src/algokit_utils/models/amount.py)

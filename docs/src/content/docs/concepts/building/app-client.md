@@ -1,6 +1,6 @@
 ---
 title: "App client and App factory"
-description: "App client and App factory are higher-order use case capabilities provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App deployment](./app-deploy) and [App management](./app)."
+description: "App client and App factory are higher-order use case capabilities provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App deployment](./app-deploy.md) and [App management](./app.md). They allow you to access high productivity application clients that work with [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) and [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) application spec defined smart contracts, which you can use to create, update, delete, deploy and call a smart contract and access state data for it."
 ---
 
 > [!NOTE]
@@ -8,7 +8,7 @@ description: "App client and App factory are higher-order use case capabilities 
 
 App client and App factory are higher-order use case capabilities provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App deployment](../app-deploy) and [App management](../app). They allow you to access high productivity application clients that work with [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) and [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) application spec defined smart contracts, which you can use to create, update, delete, deploy and call a smart contract and access state data for it.
 
-> ![NOTE]
+> [!NOTE]
 >
 > If you are confused about when to use the factory vs client the mental model is: use the client if you know the app ID, use the factory if you don't know the app ID (deferred knowledge or the instance doesn't exist yet on the blockchain) or you have multiple app IDs
 
@@ -111,8 +111,8 @@ app_client6 = factory.get_app_client_by_creator_and_name(
 
 Once you have an [app factory](#appfactory) you can perform the following actions:
 
-- `factory.send.bare.create(...)` - Signs and sends a transaction to create an app and returns the [result of that call](./app.md#creation) and an [`AppClient`](#appclient) instance for the created app
-- `factory.deploy(...)` - Uses the [creator address and app name pattern](./app-deploy.md#lookup-deployed-apps-by-name) to find if the app has already been deployed or not and either creates, updates or replaces that app based on the [deployment rules](./app-deploy.md#performing-a-deployment) (i.e. it's an idempotent deployment) and returns the [result of the deployment](./app-deploy.md#return-value) and an [`AppClient`](#appclient) instance for the created/updated/existing app
+- `factory.send.bare.create(...)` - Signs and sends a transaction to create an app and returns a tuple of an [`AppClient`](#appclient) instance for the created app and the [result of that call](./app.md#creation)
+- `factory.deploy(...)` - Uses the [creator address and app name pattern](./app-deploy.md#lookup-deployed-apps-by-name) to find if the app has already been deployed or not and either creates, updates or replaces that app based on the [deployment rules](./app-deploy.md#performing-a-deployment) (i.e. it's an idempotent deployment) and returns a tuple of an [`AppClient`](#appclient) instance for the created/updated/existing app and the [result of the deployment](./app-deploy.md#return-value)
 
 ### Create
 
@@ -439,7 +439,7 @@ The information in that error message can be parsed and when combined with the [
 
 The app client and app factory automatically provide this functionality for all smart contract calls through an automatically registered error transformer (via `algorand.register_error_transformer`).
 
-For more information about error transformers and how to create custom ones, see the [Transaction Composer Error Transformers](../../advanced/transaction-composer#error-transformers) documentation.
+Custom error transformers can be registered via `algorand.register_error_transformer` to provide additional error handling logic.
 
 When an error is thrown then the resulting error that is re-thrown will be a `LogicError` object, which has the following fields:
 

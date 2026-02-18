@@ -49,9 +49,9 @@ kmd_client = algorand.client.kmd
 The `AlgorandClient` has a number of manager class instances that help you quickly use intellisense to get access to advanced functionality.
 
 - [`AccountManager`](../account) via `algorand.account`, there are also some chainable convenience methods which wrap specific methods in `AccountManager`:
-  - `algorand.set_default_signer(signer)` -
-  - `algorand.set_signer_from_account(account)` -
-  - `algorand.set_signer(sender, signer)`
+  - `algorand.set_default_signer(signer)` - Sets the default signer to use if no other signer is specified
+  - `algorand.set_signer_from_account(account)` - Registers the provided account as the default signer
+  - `algorand.set_signer(sender, signer)` - Sets the signer for the given sender address
 - [`AssetManager`](../../building/asset) via `algorand.asset`
 - `AppManager` via `algorand.app`
 - [`AppDeployer`](../../building/app-deploy) via `algorand.app_deployer`
@@ -168,6 +168,41 @@ There are two common base parameter groups that get reused:
   - `cover_app_call_inner_transaction_fees: bool | None` - Whether to use simulate to automatically calculate required app call inner transaction fees and cover them in the parent app call transaction fee
 
 Then on top of that the base type gets extended for the specific type of transaction you are issuing. These are all defined as part of [`TransactionComposer`](../../advanced/transaction-composer) and we recommend reading these docs, especially when leveraging either `populate_app_call_resources` or `cover_app_call_inner_transaction_fees`.
+
+### Error handling
+
+`AlgorandClient` lets you register error transformers that intercept and transform errors raised when sending or simulating transactions. This is useful for mapping low-level Algorand errors into domain-specific exceptions.
+
+The `ErrorTransformer` type alias is defined as:
+
+```python
+from collections.abc import Callable
+
+ErrorTransformer = Callable[[Exception], Exception]
+```
+
+Register and unregister transformers via chainable methods:
+
+```python
+from algokit_utils import AlgorandClient
+
+def my_transformer(err: Exception) -> Exception:
+    if "TRANSACTION_REJECTED" in str(err):
+        return MyDomainError("Transaction was rejected by the network")
+    return err
+
+algorand = AlgorandClient.default_localnet()
+algorand.register_error_transformer(my_transformer)
+
+# Remove it later
+algorand.unregister_error_transformer(my_transformer)
+```
+
+`AlgorandClient` stores transformers in a `set` (de-duplicated). A snapshot is passed to each new composer created via `new_group()`. Transformers can also be registered directly on individual [`TransactionComposer`](../../advanced/transaction-composer) instances.
+
+If a transformer itself raises, an `ErrorTransformerError` is raised. If a transformer returns a non-`Exception` value, an `InvalidErrorTransformerValueError` is raised. Both are defined in `algokit_utils.transactions.transaction_composer`.
+
+For full details on the error flow and per-composer registration, see [Error Transformers](../../advanced/transaction-composer#error-transformers).
 
 ### Transaction configuration
 

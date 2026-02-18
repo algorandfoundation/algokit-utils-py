@@ -41,15 +41,18 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ```python
 from algokit_utils import AlgorandClient, AlgoAmount, PaymentParams
 
+# Connect to LocalNet
 algorand = AlgorandClient.from_environment()
 
+# Create and fund a test account
 account = algorand.account.random()
 algorand.account.ensure_funded(
-    account,
-    algorand.account.localnet_dispenser(),
+    account_to_fund=account,
+    dispenser_account=algorand.account.localnet_dispenser(),
     min_spending_balance=AlgoAmount.from_algo(10),
 )
 
+# Send a payment
 result = algorand.send.payment(
     PaymentParams(
         sender=account.addr,

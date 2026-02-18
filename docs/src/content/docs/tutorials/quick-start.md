@@ -67,6 +67,57 @@ Run it:
 python hello_algorand.py
 ```
 
+## Deploy a Smart Contract
+
+Use `AppFactory` to deploy an [ARC-32](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0032.md) or [ARC-56](https://github.com/algorandfoundation/ARCs/pull/258) compatible smart contract.
+
+```python
+from pathlib import Path
+from algokit_utils import (
+    AlgorandClient,
+    AlgoAmount,
+    AppClientMethodCallParams,
+    OnUpdate,
+    OnSchemaBreak,
+)
+
+# 1. Connect to LocalNet and set up a deployer account
+algorand = AlgorandClient.default_localnet()
+deployer = algorand.account.random()
+algorand.account.ensure_funded(
+    account_to_fund=deployer,
+    dispenser_account=algorand.account.localnet_dispenser(),
+    min_spending_balance=AlgoAmount.from_algo(10),
+)
+
+# 2. Load the app spec (ARC-32 or ARC-56 JSON)
+app_spec = Path("artifacts/HelloWorld/app_spec.arc32.json").read_text()
+
+# 3. Create a factory
+factory = algorand.client.get_app_factory(
+    app_spec=app_spec,
+    default_sender=deployer.addr,
+)
+
+# 4. Deploy (idempotent — creates on first run, updates on subsequent runs)
+app_client, deploy_result = factory.deploy(
+    on_update=OnUpdate.UpdateApp,
+    on_schema_break=OnSchemaBreak.ReplaceApp,
+)
+
+print(f"App ID: {deploy_result.app.app_id}")
+print(f"Operation: {deploy_result.operation_performed.name}")  # Create, Update, etc.
+
+# 5. Call the app
+response = app_client.send.call(
+    AppClientMethodCallParams(method="hello", args=["world"]),
+)
+print(f"Response: {response.abi_return}")  # "Hello, world"
+```
+
+> [!NOTE]
+> `deploy()` is idempotent — it looks up existing deployments by app name and creator, creating a new app only if one doesn't exist yet. On subsequent runs it detects changes and applies the `on_update` / `on_schema_break` strategy you specify.
+
 ## What's Next?
 
 - [AlgorandClient](/algokit-utils-py/concepts/core/algorand-client/) — Learn about the main entry point

@@ -1,6 +1,6 @@
 ---
 title: "App deployment"
-description: "AlgoKit contains advanced smart contract deployment capabilities that allow you to have idempotent (safely retryable) deployment of a named app, including deploy-time immutability and permanence contr..."
+description: "AlgoKit contains advanced smart contract deployment capabilities that allow you to have idempotent (safely retryable) deployment of a named app, including deploy-time immutability and permanence control and TEAL template substitution. This allows you to control the smart contract development lifecycle of a single-instance app across multiple environments (e.g. LocalNet, TestNet, MainNet)."
 ---
 
 AlgoKit contains advanced smart contract deployment capabilities that allow you to have idempotent (safely retryable) deployment of a named app, including deploy-time immutability and permanence control and TEAL template substitution. This allows you to control the smart contract development lifecycle of a single-instance app across multiple environments (e.g. LocalNet, TestNet, MainNet).
@@ -9,7 +9,7 @@ It's optional to use this functionality, since you can construct your own deploy
 
 App deployment is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities, particularly [App management](../app).
 
-To see some usage examples check out the `automated tests`.
+To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/tree/main/tests/applications).
 
 ## Smart contract development lifecycle
 
@@ -64,6 +64,9 @@ The deployment metadata is defined in `AppDeploymentMetaData`, which is an objec
 - `version: str` - The version of app that is / will be deployed; can be an arbitrary string, but we recommend using [semver](https://semver.org/)
 - `deletable: bool | None` - Whether or not the app is deletable (`True`) / permanent (`False`) / unspecified (`None`)
 - `updatable: bool | None` - Whether or not the app is updatable (`True`) / immutable (`False`) / unspecified (`None`)
+
+> [!NOTE]
+> As of v3.0.0, the contract version is no longer auto-incremented. You must explicitly set the `version` field in `AppDeploymentMetaData` for each deployment.
 
 An example of the ARC-2 transaction note that is attached as an app creation / update transaction note to specify this metadata is:
 
@@ -315,3 +318,8 @@ Based on the value of `operation_performed`, the corresponding result fields wil
 - If `Update` then `update_result` will contain the [`SendAppUpdateTransactionResult`](./app.md#calling-an-app)
 - If `Replace` then both `create_result` and `delete_result` will be populated (the old app is deleted and a new one is created in an atomic transaction)
 - If `Nothing` then all result fields will be `None`
+
+Both `SendAppCreateTransactionResult` and `SendAppUpdateTransactionResult` include compilation results when TEAL templates were compiled during deployment:
+
+- `compiled_approval: CompiledTeal | bytes | None` - The compiled approval program (a `CompiledTeal` object if compiled from a TEAL template, raw `bytes` if bytecode was provided directly, or `None` if not available)
+- `compiled_clear: CompiledTeal | bytes | None` - The compiled clear state program (same semantics as above)

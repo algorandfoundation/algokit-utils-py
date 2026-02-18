@@ -1,6 +1,6 @@
 ---
 title: "Automated testing"
-description: "Automated testing is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It allows you to use terse, robust automated testing primitives..."
+description: "A collection of useful snippets and patterns for testing Algorand applications using AlgoKit Utils with pytest."
 ---
 
 Automated testing is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It allows you to use terse, robust automated testing primitives that work with [pytest](https://docs.pytest.org/en/latest/) to facilitate fixture management, quickly generating isolated and funded test accounts, transaction logging, and log capture.
@@ -221,4 +221,379 @@ def generate_account(algorand: AlgorandClient, initial_funds: AlgoAmount = AlgoA
     )
     algorand.set_signer(sender=account.addr, signer=account.signer)
     return account
+```
+
+## Creating test assets
+
+When testing functionality that involves [Algorand Standard Assets (ASAs)](./asset), you can create test assets using a pytest fixture or helper function. This pairs with a funded test account fixture to create ephemeral assets for each test or test suite.
+
+### Fixture approach
+
+```python
+import pytest
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.types import AssetCreateParams
+
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
+
+@pytest.fixture
+def test_account(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def test_asset_id(algorand: AlgorandClient, test_account: AddressWithSigners) -> int:
+    result = algorand.send.asset_create(
+        AssetCreateParams(
+            sender=test_account.addr,
+            total=1000,
+            decimals=0,
+            default_frozen=False,
+            unit_name="TEST",
+            asset_name="Test Asset",
+            url="https://example.com",
+            manager=test_account.addr,
+            reserve=test_account.addr,
+            freeze=test_account.addr,
+            clawback=test_account.addr,
+        )
+    )
+    assert result.confirmation.asset_id is not None
+    return int(result.confirmation.asset_id)
+
+def test_asset_transfer(algorand: AlgorandClient, test_account: AddressWithSigners, test_asset_id: int):
+    # Use the created asset in your test
+    pass
+```
+
+### Helper function approach
+
+For more flexibility (e.g. varying the total supply per test), use a helper function instead of a fixture:
+
+```python
+import math
+import random
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.transactions.types import AssetCreateParams
+
+def generate_test_asset(algorand: AlgorandClient, sender: AddressWithSigners, total: int | None = None) -> int:
+    if total is None:
+        total = math.floor(random.random() * 100) + 20
+
+    result = algorand.send.asset_create(
+        AssetCreateParams(
+            sender=sender.addr,
+            total=total,
+            decimals=0,
+            default_frozen=False,
+            unit_name="TST",
+            asset_name=f"Test Asset {math.floor(random.random() * 1000)}",
+            url="https://example.com",
+            manager=sender.addr,
+            reserve=sender.addr,
+            freeze=sender.addr,
+            clawback=sender.addr,
+        )
+    )
+    assert result.confirmation.asset_id is not None
+    return int(result.confirmation.asset_id)
+
+def test_with_asset(algorand: AlgorandClient, test_account: AddressWithSigners):
+    asset_id = generate_test_asset(algorand, test_account, total=500)
+    # Use asset_id in your test
+    pass
+```
+
+## Testing asset transfers
+
+When testing [asset transfers](./asset), the receiver must first opt in to the asset before receiving it. You can then transfer assets and assert on the resulting balances.
+
+```python
+import pytest
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.models.amount import AlgoAmount
+from algokit_utils.transactions.types import AssetCreateParams, AssetOptInParams, AssetTransferParams
+
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
+
+@pytest.fixture
+def sender(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def receiver(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def test_asset_id(algorand: AlgorandClient, sender: AddressWithSigners) -> int:
+    result = algorand.send.asset_create(
+        AssetCreateParams(
+            sender=sender.addr,
+            total=1000,
+            decimals=0,
+            default_frozen=False,
+            unit_name="TEST",
+            asset_name="Test Asset",
+            manager=sender.addr,
+            reserve=sender.addr,
+            freeze=sender.addr,
+            clawback=sender.addr,
+        )
+    )
+    assert result.confirmation.asset_id is not None
+    return int(result.confirmation.asset_id)
+
+def test_asset_transfer(
+    algorand: AlgorandClient,
+    sender: AddressWithSigners,
+    receiver: AddressWithSigners,
+    test_asset_id: int,
+):
+    # Opt the receiver in to the asset
+    algorand.send.asset_opt_in(
+        AssetOptInParams(
+            sender=receiver.addr,
+            asset_id=test_asset_id,
+        )
+    )
+
+    # Transfer assets from sender to receiver
+    algorand.send.asset_transfer(
+        AssetTransferParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            asset_id=test_asset_id,
+            amount=50,
+        )
+    )
+
+    # Assert on resulting balances
+    receiver_info = algorand.asset.get_account_information(receiver, test_asset_id)
+    assert receiver_info.balance == 50
+
+    sender_info = algorand.asset.get_account_information(sender, test_asset_id)
+    assert sender_info.balance == 950
+```
+
+## Testing application deployments
+
+When testing [smart contract deployments](./app-deploy), you can use the [`AppFactory`](./app-client#appfactory) to deploy an application and then assert on the deployment result. The deploy result includes the operation performed, the app ID, and the app address.
+
+```python
+import json
+from pathlib import Path
+import pytest
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.applications.app_factory import AppFactory
+from algokit_utils.applications.app_deployer import OperationPerformed, OnUpdate
+from algokit_utils.models.amount import AlgoAmount
+
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
+
+@pytest.fixture
+def test_account(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def factory(algorand: AlgorandClient, test_account: AddressWithSigners) -> AppFactory:
+    app_spec = json.loads(Path("path/to/application.json").read_text())
+    return algorand.client.get_app_factory(
+        app_spec=app_spec,
+        default_sender=test_account.addr,
+    )
+
+def test_deploy_creates_app(factory: AppFactory):
+    app_client, deploy_result = factory.deploy()
+
+    assert deploy_result.operation_performed == OperationPerformed.Create
+    assert deploy_result.create_result
+    assert deploy_result.create_result.app_id > 0
+    assert app_client.app_id == deploy_result.create_result.app_id
+
+def test_deploy_updates_existing_app(factory: AppFactory):
+    # First deploy creates the app
+    _, create_result = factory.deploy(on_update=OnUpdate.UpdateApp)
+    assert create_result.operation_performed == OperationPerformed.Create
+
+    # Second deploy with same name triggers an update
+    _, update_result = factory.deploy(on_update=OnUpdate.UpdateApp)
+    assert update_result.operation_performed == OperationPerformed.Update
+    assert update_result.update_result
+    assert update_result.app.app_id == create_result.app.app_id
+```
+
+## Testing application calls
+
+When testing [application calls](./app-client), you can use an [`AppClient`](./app-client#appclient) to call ABI methods and assert on the return values. The `app_client.send.call()` method returns a result with an `abi_return` field containing the decoded ABI return value.
+
+```python
+import json
+from pathlib import Path
+import pytest
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams
+from algokit_utils.models.amount import AlgoAmount
+
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
+
+@pytest.fixture
+def test_account(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def app_client(algorand: AlgorandClient, test_account: AddressWithSigners) -> AppClient:
+    app_spec = json.loads(Path("path/to/application.json").read_text())
+    factory = algorand.client.get_app_factory(
+        app_spec=app_spec,
+        default_sender=test_account.addr,
+    )
+    app_client, _ = factory.deploy()
+    return app_client
+
+def test_abi_method_call(app_client: AppClient):
+    # Call an ABI method and assert on the return value
+    result = app_client.send.call(
+        AppClientMethodCallParams(method="hello", args=["world"])
+    )
+    assert result.abi_return == "Hello, world"
+
+def test_abi_struct_return(app_client: AppClient):
+    # ABI struct return values are decoded as dicts
+    result = app_client.send.call(
+        AppClientMethodCallParams(method="get_record", args=[1])
+    )
+    assert result.abi_return == {"id": 1, "name": "Alice"}
+```
+
+## Testing box storage
+
+When testing [box storage](./app-client#boxes) operations, you need to fund the application account to cover the minimum balance requirement (MBR) for boxes, then create, write, and read boxes via the [`AppClient`](./app-client#appclient). Box references must be included in the transaction so the AVM can access them.
+
+```python
+import base64
+import json
+from pathlib import Path
+import pytest
+from algokit_utils import AlgorandClient, AddressWithSigners
+from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
+from algokit_utils.models.amount import AlgoAmount
+
+@pytest.fixture
+def algorand() -> AlgorandClient:
+    return AlgorandClient.default_localnet()
+
+@pytest.fixture
+def test_account(algorand: AlgorandClient) -> AddressWithSigners:
+    new_account = algorand.account.random()
+    dispenser = algorand.account.localnet_dispenser()
+    algorand.account.ensure_funded(
+        new_account,
+        dispenser,
+        min_spending_balance=AlgoAmount.from_algo(10),
+    )
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
+    return new_account
+
+@pytest.fixture
+def app_client(algorand: AlgorandClient, test_account: AddressWithSigners) -> AppClient:
+    app_spec = json.loads(Path("path/to/application.json").read_text())
+    factory = algorand.client.get_app_factory(
+        app_spec=app_spec,
+        default_sender=test_account.addr,
+    )
+    app_client, _ = factory.deploy()
+    # Fund the app account so it can hold boxes
+    app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
+    return app_client
+
+def test_box_create_and_read(app_client: AppClient):
+    box_name = bytes([0, 0, 0, 1])
+
+    # Write a value to a box
+    app_client.send.call(
+        AppClientMethodCallParams(
+            method="set_box",
+            args=[box_name, "value1"],
+            box_references=[box_name],
+        )
+    )
+
+    # Read a single box value
+    box_value = app_client.get_box_value(box_name)
+    assert box_value == b"value1"
+
+def test_box_list_all(app_client: AppClient):
+    box_name1 = bytes([0, 0, 0, 1])
+    box_name2 = bytes([0, 0, 0, 2])
+
+    # Create two boxes
+    app_client.send.call(
+        AppClientMethodCallParams(
+            method="set_box",
+            args=[box_name1, "value1"],
+            box_references=[box_name1],
+        )
+    )
+    app_client.send.call(
+        AppClientMethodCallParams(
+            method="set_box",
+            args=[box_name2, "value2"],
+            box_references=[box_name2],
+        )
+    )
+
+    # List all boxes and assert on values
+    box_values = app_client.get_box_values()
+    box1 = next(b for b in box_values if b.name.name_raw == box_name1)
+    box2 = next(b for b in box_values if b.name.name_raw == box_name2)
+    assert box1.value == b"value1"
+    assert box2.value == b"value2"
 ```

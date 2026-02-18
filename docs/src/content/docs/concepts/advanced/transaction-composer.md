@@ -59,6 +59,68 @@ result = (
 )
 ```
 
+### Transaction parameter types
+
+Each `add_*` method accepts a corresponding params dataclass. All param types are defined in `algokit_utils.transactions.types` and extend `CommonTxnParams`.
+
+| Composer method | Params type | Key fields (beyond common) |
+| --- | --- | --- |
+| `add_payment` | `PaymentParams` | `receiver`, `amount`, `close_remainder_to` |
+| `add_asset_create` | `AssetCreateParams` | `total`, `asset_name`, `unit_name`, `url`, `decimals`, `default_frozen`, `manager`, `reserve`, `freeze`, `clawback`, `metadata_hash` |
+| `add_asset_config` | `AssetConfigParams` | `asset_id`, `manager`, `reserve`, `freeze`, `clawback` |
+| `add_asset_freeze` | `AssetFreezeParams` | `asset_id`, `account`, `frozen` |
+| `add_asset_destroy` | `AssetDestroyParams` | `asset_id` |
+| `add_asset_transfer` | `AssetTransferParams` | `asset_id`, `amount`, `receiver`, `close_asset_to`, `clawback_target` |
+| `add_asset_opt_in` | `AssetOptInParams` | `asset_id` |
+| `add_asset_opt_out` | `AssetOptOutParams` | `asset_id`, `creator` |
+| `add_app_call` | `AppCallParams` | `app_id`, `args`, `on_complete`, reference arrays |
+| `add_app_create` | `AppCreateParams` | `approval_program`, `clear_state_program`, `schema`, `on_complete`, `args`, `extra_program_pages`, reference arrays |
+| `add_app_update` | `AppUpdateParams` | `app_id`, `approval_program`, `clear_state_program`, `on_complete`, `args`, reference arrays |
+| `add_app_delete` | `AppDeleteParams` | `app_id`, `on_complete`, `args`, reference arrays |
+| `add_app_call_method_call` | `AppCallMethodCallParams` | `app_id`, `method`, `args`, `on_complete`, reference arrays |
+| `add_app_create_method_call` | `AppCreateMethodCallParams` | `method`, `approval_program`, `clear_state_program`, `schema`, `extra_program_pages`, reference arrays |
+| `add_app_update_method_call` | `AppUpdateMethodCallParams` | `app_id`, `method`, `approval_program`, `clear_state_program`, reference arrays |
+| `add_app_delete_method_call` | `AppDeleteMethodCallParams` | `app_id`, `method`, reference arrays |
+| `add_online_key_registration` | `OnlineKeyRegistrationParams` | `vote_key`, `selection_key`, `state_proof_key`, `vote_first`, `vote_last`, `vote_key_dilution`, `nonparticipation` |
+| `add_offline_key_registration` | `OfflineKeyRegistrationParams` | `prevent_account_from_ever_participating_again` |
+
+> [!NOTE]
+> "Reference arrays" refers to the optional fields `account_references`, `app_references`, `asset_references`, and `box_references` available on all app call param types.
+
+#### Common transaction parameters
+
+All param types inherit these fields from `CommonTxnParams`:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `sender` | `str` | The address of the account sending the transaction (required) |
+| `signer` | `TransactionSigner \| AddressWithTransactionSigner \| None` | The signer to use; defaults to the registered signer for `sender` |
+| `rekey_to` | `str \| None` | Rekey the sender account to this address |
+| `note` | `bytes \| None` | Arbitrary note to attach |
+| `lease` | `bytes \| None` | Lease to prevent duplicate transactions |
+| `static_fee` | `AlgoAmount \| None` | Exact fee (overrides calculated fee) |
+| `extra_fee` | `AlgoAmount \| None` | Additional fee on top of the calculated fee |
+| `max_fee` | `AlgoAmount \| None` | Maximum fee cap; errors if exceeded |
+| `validity_window` | `int \| None` | Number of rounds the transaction is valid |
+| `first_valid_round` | `int \| None` | Explicit first valid round |
+| `last_valid_round` | `int \| None` | Explicit last valid round |
+
+#### Example: `PaymentParams` structure
+
+```python
+from algokit_utils.transactions.types import PaymentParams
+from algokit_utils.models.amount import AlgoAmount
+
+params = PaymentParams(
+    sender="SENDER_ADDRESS",
+    receiver="RECEIVER_ADDRESS",
+    amount=AlgoAmount.from_algo(1),
+    # Optional common fields
+    note=b"payment note",
+    max_fee=AlgoAmount.from_micro_algo(2000),
+)
+```
+
 ## Sending a transaction
 
 Once you have constructed all the required transactions, they can be sent by calling `send()` on the `TransactionComposer`.
@@ -89,6 +151,25 @@ result = (
 ```
 
 If `my_method` in the above example accesses any resources, they will be automatically discovered and added before sending the transaction to the network.
+
+#### How resource population works
+
+Resource population is enabled by default via `TransactionComposerConfig(populate_app_call_resources=True)`. You can override it per-send via `SendParams` or disable it globally when constructing the composer.
+
+When at least one `AppCall` transaction is present in the group, the composer runs the following flow before signing and sending:
+
+1. **Simulate** — The composer builds a copy of all transactions and submits them to the algod simulate endpoint with `allow_unnamed_resources=True` and empty signers. This tells algod to report which resources each transaction accessed without requiring real signatures.
+2. **Collect results** — The simulate response provides `unnamed_resources_accessed` at both per-transaction and group level, listing accounts, apps, assets, boxes, app-local state, and asset-holding cross-references that were accessed but not explicitly included in the transaction's reference arrays.
+3. **Per-transaction population** — For each app call transaction, simple resources (accounts, apps, assets) are added directly to that transaction's reference arrays, up to the maximum reference limit.
+4. **Group-level population** — Cross-reference resources (app-local state lookups, asset-holding lookups, boxes) require slots in multiple reference arrays simultaneously. The composer distributes these across the group's app call transactions using a best-fit strategy: it first tries transactions that already hold one side of the cross-reference, then falls back to the first transaction with available capacity.
+
+The population order for group-level resources is: app-local cross-references, asset-holding cross-references, remaining accounts, boxes, remaining assets, remaining apps, and finally extra box references.
+
+> [!NOTE]
+> If a transaction already has explicitly provided reference arrays, resource population will skip that transaction and log a warning. This prevents the composer from overwriting resources you have set manually.
+
+> [!NOTE]
+> If the group runs out of reference slots across all app call transactions, a `ValueError` is raised suggesting you add another app call transaction to the group to provide more reference capacity.
 
 ### Covering App Call Inner Transaction Fees
 
@@ -267,3 +348,75 @@ result = (
     .simulate(skip_signatures=True)
 )
 ```
+
+## Error Transformers
+
+Error transformers let you intercept and transform errors raised when sending or simulating transactions. This is useful for mapping low-level Algorand errors into domain-specific exceptions.
+
+### Type definitions
+
+```python
+from collections.abc import Callable
+
+# A transformer receives an Exception and must return an Exception
+ErrorTransformer = Callable[[Exception], Exception]
+```
+
+Two guard-rail exceptions are defined in `algokit_utils.transactions.transaction_composer`:
+
+| Exception | Raised when |
+| --- | --- |
+| `ErrorTransformerError` | A transformer itself raises an exception |
+| `InvalidErrorTransformerValueError` | A transformer returns a non-`Exception` value |
+
+When a transaction fails, the composer wraps the underlying error into a `TransactionComposerError` (which carries `traces`, `sent_transactions`, and `simulate_response` for debugging) before passing it through the transformer chain.
+
+### Registration API
+
+Transformers can be registered at two levels:
+
+**On `AlgorandClient`** — applies to all composers created via `new_group()`:
+
+```python
+def my_transformer(err: Exception) -> Exception:
+    if "TRANSACTION_REJECTED" in str(err):
+        return MyDomainError("Transaction was rejected by the network")
+    return err
+
+algorand.register_error_transformer(my_transformer)
+
+# Remove it later
+algorand.unregister_error_transformer(my_transformer)
+```
+
+`AlgorandClient` stores transformers in a set (de-duplicated). A snapshot is passed to each new composer at `new_group()` time.
+
+**On `TransactionComposer`** — applies only to that composer instance:
+
+```python
+composer = algorand.new_group()
+composer.register_error_transformer(my_transformer)
+```
+
+Transformers registered directly on the composer are appended after those inherited from the client.
+
+### Error flow
+
+When `send()` catches an exception, the following steps occur:
+
+1. **Interpret** — The raw error is unwrapped (e.g. extracting the algod message from HTTP status errors).
+2. **Wrap** — The interpreted error is wrapped into a `TransactionComposerError` with debug context (simulation traces, sent transactions).
+3. **Transform** — The composer error is passed through each registered transformer in order. Each transformer receives the output of the previous one (chained), not the original error.
+4. **Raise** — The final transformed error is raised with the original exception set as the cause (`raise transformed from original`).
+
+```python
+# Simplified flow inside send()
+try:
+    # ... build, sign, send
+except Exception as err:
+    interpreted = self._interpret_error(err)
+    composer_error = self._create_composer_error(interpreted, ...)
+    raise self._transform_error(composer_error) from err
+```
+
+If a transformer raises, the chain stops and an `ErrorTransformerError` is raised instead. If a transformer returns a non-`Exception` value, an `InvalidErrorTransformerValueError` is raised.

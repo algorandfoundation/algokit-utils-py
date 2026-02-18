@@ -1,11 +1,11 @@
 ---
 title: "Client management"
-description: "Client management is one of the core capabilities provided by AlgoKit Utils. It allows you to create (auto-retry) algod, indexer and kmd clients against various networks resolved from environment or specified configuration."
+description: "Client management is one of the core capabilities provided by AlgoKit Utils. It allows you to create (auto-retry) [algod](https://dev.algorand.co/reference/rest-apis/algod), [indexer](https://dev.algorand.co/reference/rest-apis/indexer) and [kmd](https://dev.algorand.co/reference/rest-apis/kmd) clients against various networks resolved from environment or specified configuration."
 ---
 
 Client management is one of the core capabilities provided by AlgoKit Utils. It allows you to create (auto-retry) [algod](https://dev.algorand.co/reference/rest-apis/algod), [indexer](https://dev.algorand.co/reference/rest-apis/indexer) and [kmd](https://dev.algorand.co/reference/rest-apis/kmd) clients against various networks resolved from environment or specified configuration.
 
-To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/test_network_clients.py).
+To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/blob/main/tests/clients/).
 
 ## `ClientManager`
 
@@ -87,11 +87,11 @@ algorand.client.kmd  # Raises error
 
 ### Creating an app client instance
 
-See [how to create app clients via ClientManager via AlgorandClient](../../building/app-client#dynamically-creating-clients-for-a-given-app-spec).
+See [how to create app clients via ClientManager via AlgorandClient](../building/app-client#dynamically-creating-clients-for-a-given-app-spec).
 
 ### Creating a TestNet dispenser API client instance
 
-You can also create a [TestNet dispenser API client instance](../../advanced/dispenser-client) from `ClientManager` too.
+You can also create a [TestNet dispenser API client instance](../advanced/dispenser-client) from `ClientManager` too.
 
 ## Automatic retry
 

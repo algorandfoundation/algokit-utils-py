@@ -1,6 +1,6 @@
 ---
 title: "App management"
-description: "App management is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It allows you to create, update, delete, call (ABI and otherwise) smart cont..."
+description: "App management is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It allows you to create, update, delete, call (ABI and otherwise) smart contract apps and the metadata associated with them (including state and boxes)."
 ---
 
 App management is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It allows you to create, update, delete, call (ABI and otherwise) smart contract apps and the metadata associated with them (including state and boxes).
@@ -109,11 +109,11 @@ algorand.send.app_create(AppCreateParams(
     # You wouldn't normally set this field
     first_valid_round=1000,
     validity_window=10,
-    extra_fee=AlgoAmount.from_micro_algo(1000),
-    static_fee=AlgoAmount.from_micro_algo(1000),
+    extra_fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     # Max fee doesn't make sense with extra_fee AND static_fee
     #  already specified, but here for completeness
-    max_fee=AlgoAmount.from_micro_algo(3000),
+    max_fee=AlgoAmount(micro_algo=3000),
     # Signer only needed if you want to provide one,
     #  generally you'd register it with AlgorandClient
     #  against the sender and not need to pass it in
@@ -178,11 +178,11 @@ algorand.send.app_update(AppUpdateParams(
     # You wouldn't normally set this field
     first_valid_round=1000,
     validity_window=10,
-    extra_fee=AlgoAmount.from_micro_algo(1000),
-    static_fee=AlgoAmount.from_micro_algo(1000),
+    extra_fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     # Max fee doesn't make sense with extra_fee AND static_fee
     #  already specified, but here for completeness
-    max_fee=AlgoAmount.from_micro_algo(3000),
+    max_fee=AlgoAmount(micro_algo=3000),
     # Signer only needed if you want to provide one,
     #  generally you'd register it with AlgorandClient
     #  against the sender and not need to pass it in
@@ -239,11 +239,11 @@ algorand.send.app_delete(AppDeleteParams(
     # You wouldn't normally set this field
     first_valid_round=1000,
     validity_window=10,
-    extra_fee=AlgoAmount.from_micro_algo(1000),
-    static_fee=AlgoAmount.from_micro_algo(1000),
+    extra_fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     # Max fee doesn't make sense with extra_fee AND static_fee
     #  already specified, but here for completeness
-    max_fee=AlgoAmount.from_micro_algo(3000),
+    max_fee=AlgoAmount(micro_algo=3000),
     # Signer only needed if you want to provide one,
     #  generally you'd register it with AlgorandClient
     #  against the sender and not need to pass it in
@@ -298,11 +298,11 @@ algorand.send.app_call(AppCallParams(
     # You wouldn't normally set this field
     first_valid_round=1000,
     validity_window=10,
-    extra_fee=AlgoAmount.from_micro_algo(1000),
-    static_fee=AlgoAmount.from_micro_algo(1000),
+    extra_fee=AlgoAmount(micro_algo=1000),
+    static_fee=AlgoAmount(micro_algo=1000),
     # Max fee doesn't make sense with extra_fee AND static_fee
     #  already specified, but here for completeness
-    max_fee=AlgoAmount.from_micro_algo(3000),
+    max_fee=AlgoAmount(micro_algo=3000),
     # Signer only needed if you want to provide one,
     #  generally you'd register it with AlgorandClient
     #  against the sender and not need to pass it in

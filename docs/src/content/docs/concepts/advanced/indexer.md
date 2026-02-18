@@ -1,11 +1,11 @@
 ---
 title: "Indexer lookups / searching"
-description: "Indexer lookups / searching is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It provides type-safe indexer API wrappers (no more `dict[str, A..."
+description: "Indexer lookups / searching is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It provides type-safe indexer API wrappers (no more dict[str, Any] pain), with typed dataclass response models and built-in retry logic."
 ---
 
 Indexer lookups / searching is a higher-order use case capability provided by AlgoKit Utils that builds on top of the core capabilities. It provides type-safe indexer API wrappers (no more `dict[str, Any]` pain), with typed dataclass response models and built-in retry logic.
 
-To see some usage examples check out the `automated tests`.
+To see some usage examples check out the [automated tests](https://github.com/algorandfoundation/algokit-utils-py/tree/main/tests/modules/indexer_client).
 
 To access the indexer client you can get it from [`AlgorandClient`](../../core/algorand-client) via `algorand.client.indexer`:
 
