@@ -9,7 +9,7 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
 > **Note**
 > If you prefer TypeScript there's an equivalent [TypeScript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
 
-[Install](https://github.com/algorandfoundation/algokit-utils-py#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py)
+[Install](#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py/)
 
 ## Install
 
@@ -21,7 +21,7 @@ pip install algokit-utils
 
 ## Migration from `v2.x` to `v3.x`
 
-Refer to the [v3 migration](./docs/source/v3-migration-guide.md) for more information on how to migrate to latest version of `algokit-utils-py`.
+Refer to the [v3 migration guide](https://algorandfoundation.github.io/algokit-utils-py/migration/v3-migration-guide/) for more information on how to migrate to latest version of `algokit-utils-py`.
 
 ## Guiding principles
 
