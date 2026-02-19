@@ -492,7 +492,7 @@ class IndexerClient:
 
         raise UnexpectedStatusError(response.status_code, response.text)
 
-    def lookup_application_box_by_idand_name(
+    def lookup_application_box_by_id_and_name(
         self,
         application_id: int,
         name: str,
