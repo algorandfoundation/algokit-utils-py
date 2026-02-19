@@ -17,8 +17,6 @@ Covered operations:
 
 import sys
 
-from algokit_kmd_client.models import GenerateKeyRequest, ListKeysRequest
-
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -29,6 +27,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_kmd_client.models import GenerateKeyRequest, ListKeysRequest
 
 
 def main() -> None:

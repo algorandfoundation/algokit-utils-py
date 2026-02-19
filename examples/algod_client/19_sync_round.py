@@ -32,8 +32,6 @@ Note: On some nodes, these endpoints may require admin privileges
 or return errors if the feature is not supported.
 """
 
-from algokit_algod_client.models import GetSyncRoundResponse
-
 from shared import (
     create_algod_client,
     print_error,
@@ -42,6 +40,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_algod_client.models import GetSyncRoundResponse
 
 
 def display_sync_round_response(response: GetSyncRoundResponse) -> None:

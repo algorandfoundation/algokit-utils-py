@@ -15,6 +15,8 @@ No LocalNet required - demonstrates error conditions
 
 import secrets
 
+from shared import print_error, print_header, print_info, print_step, print_success
+
 from algokit_algo25 import (
     FAIL_TO_DECODE_MNEMONIC_ERROR_MSG,
     NOT_IN_WORDS_LIST_ERROR_MSG,
@@ -24,7 +26,6 @@ from algokit_algo25 import (
     mnemonic_from_seed,
     seed_from_mnemonic,
 )
-from shared import print_error, print_header, print_info, print_step, print_success
 
 
 def main() -> None:

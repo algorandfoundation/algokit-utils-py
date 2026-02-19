@@ -11,7 +11,6 @@ Prerequisites:
 
 import time
 
-from algokit_utils import AssetCreateParams, AssetOptInParams, AssetTransferParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -23,6 +22,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AssetCreateParams, AssetOptInParams, AssetTransferParams
 
 
 def main() -> None:
@@ -70,15 +71,17 @@ def main() -> None:
 
     try:
         print_info("Creating test asset: BalanceToken (BAL)...")
-        result = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=10_000_000,  # 10,000 units with 3 decimals
-            decimals=3,
-            asset_name="BalanceToken",
-            unit_name="BAL",
-            url="https://example.com/balancetoken",
-            default_frozen=False,
-        ))
+        result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=10_000_000,  # 10,000 units with 3 decimals
+                decimals=3,
+                asset_name="BalanceToken",
+                unit_name="BAL",
+                url="https://example.com/balancetoken",
+                default_frozen=False,
+            )
+        )
         asset_id = result.asset_id
         print_success(f"Created BalanceToken with Asset ID: {asset_id}")
     except Exception as e:
@@ -95,38 +98,48 @@ def main() -> None:
     try:
         # Holder 1: Opt-in and receive 1000 BAL
         print_info("Opting in Holder 1 and sending 1000 BAL...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=holder_1_address,
-            asset_id=asset_id,
-        ))
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=creator_address,
-            receiver=holder_1_address,
-            asset_id=asset_id,
-            amount=1_000_000,  # 1000 BAL (with 3 decimals)
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=holder_1_address,
+                asset_id=asset_id,
+            )
+        )
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=creator_address,
+                receiver=holder_1_address,
+                asset_id=asset_id,
+                amount=1_000_000,  # 1000 BAL (with 3 decimals)
+            )
+        )
         print_success("Holder 1 received 1000 BAL")
 
         # Holder 2: Opt-in and receive 500 BAL
         print_info("Opting in Holder 2 and sending 500 BAL...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=holder_2_address,
-            asset_id=asset_id,
-        ))
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=creator_address,
-            receiver=holder_2_address,
-            asset_id=asset_id,
-            amount=500_000,  # 500 BAL (with 3 decimals)
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=holder_2_address,
+                asset_id=asset_id,
+            )
+        )
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=creator_address,
+                receiver=holder_2_address,
+                asset_id=asset_id,
+                amount=500_000,  # 500 BAL (with 3 decimals)
+            )
+        )
         print_success("Holder 2 received 500 BAL")
 
         # Holder 3: Opt-in only (0 balance but still a holder)
         print_info("Opting in Holder 3 (no transfer, will have 0 balance)...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=holder_3_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=holder_3_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Holder 3 opted in with 0 balance")
 
         print_info("")
@@ -159,7 +172,7 @@ def main() -> None:
 
         if balances_result.balances:
             print_info("Asset balances:")
-            for balance in (balances_result.balances or []):
+            for balance in balances_result.balances or []:
                 print_info(f"  Address: {shorten_address(balance.address)}")
                 print_info(f"    - amount: {balance.amount:,}")
                 print_info(f"    - is_frozen: {balance.is_frozen}")
@@ -185,7 +198,7 @@ def main() -> None:
         )
 
         print_success(f"Found {len(high_balance_result.balances or [])} holder(s) with balance > 500 BAL")
-        for balance in (high_balance_result.balances or []):
+        for balance in high_balance_result.balances or []:
             print_info(f"  {shorten_address(balance.address)}: {balance.amount:,} base units")
     except Exception as e:
         print_error(f"currency_greater_than query failed: {e}")
@@ -204,7 +217,7 @@ def main() -> None:
         )
 
         print_success(f"Found {len(low_balance_result.balances or [])} holder(s) with balance < 1000 BAL")
-        for balance in (low_balance_result.balances or []):
+        for balance in low_balance_result.balances or []:
             print_info(f"  {shorten_address(balance.address)}: {balance.amount:,} base units")
     except Exception as e:
         print_error(f"currency_less_than query failed: {e}")
@@ -224,7 +237,7 @@ def main() -> None:
         )
 
         print_success(f"Found {len(range_result.balances or [])} holder(s) with balance between 100 and 2000 BAL")
-        for balance in (range_result.balances or []):
+        for balance in range_result.balances or []:
             print_info(f"  {shorten_address(balance.address)}: {balance.amount:,} base units")
     except Exception as e:
         print_error(f"Range filter query failed: {e}")
@@ -254,7 +267,7 @@ def main() -> None:
         print_info("")
 
         print_info("All holders:")
-        for balance in (all_holders_result.balances or []):
+        for balance in all_holders_result.balances or []:
             balance_str = "0 (opted-in only)" if balance.amount == 0 else f"{balance.amount:,}"
             print_info(f"  {shorten_address(balance.address)}: {balance_str}")
     except Exception as e:
@@ -275,7 +288,7 @@ def main() -> None:
         )
 
         print_info(f"Page 1: Retrieved {len(page_1.balances or [])} holder(s)")
-        for balance in (page_1.balances or []):
+        for balance in page_1.balances or []:
             print_info(f"  - {shorten_address(balance.address)}: {balance.amount:,}")
 
         # Check if there are more results
@@ -294,7 +307,7 @@ def main() -> None:
             )
 
             print_info(f"Page 2: Retrieved {len(page_2.balances or [])} holder(s)")
-            for balance in (page_2.balances or []):
+            for balance in page_2.balances or []:
                 print_info(f"  - {shorten_address(balance.address)}: {balance.amount:,}")
 
             if page_2.next_token:

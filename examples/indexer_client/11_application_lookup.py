@@ -12,7 +12,6 @@ Prerequisites:
 import base64
 import time
 
-from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -25,6 +24,8 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams
 
 
 def main() -> None:
@@ -124,17 +125,19 @@ return
 
         # Create first application
         print_info("Creating first test application: DemoApp1...")
-        txn_1 = algorand.create_transaction.app_create(AppCreateParams(
-            sender=creator_address,
-            approval_program=approval_program,
-            clear_state_program=clear_program,
-            schema={
-                "global_ints": 1,
-                "global_byte_slices": 1,
-                "local_ints": 0,
-                "local_byte_slices": 0,
-            },
-        ))
+        txn_1 = algorand.create_transaction.app_create(
+            AppCreateParams(
+                sender=creator_address,
+                approval_program=approval_program,
+                clear_state_program=clear_program,
+                schema={
+                    "global_ints": 1,
+                    "global_byte_slices": 1,
+                    "local_ints": 0,
+                    "local_byte_slices": 0,
+                },
+            )
+        )
         signed_txn_1 = creator_account.signer([txn_1], [0])
         result_1 = algod.send_raw_transaction(signed_txn_1)
         tx_id_1 = result_1.tx_id
@@ -144,17 +147,19 @@ return
 
         # Create second application with different schema
         print_info("Creating second test application: DemoApp2...")
-        txn_2 = algorand.create_transaction.app_create(AppCreateParams(
-            sender=creator_address,
-            approval_program=approval_program,
-            clear_state_program=clear_program,
-            schema={
-                "global_ints": 2,
-                "global_byte_slices": 2,
-                "local_ints": 1,
-                "local_byte_slices": 1,
-            },
-        ))
+        txn_2 = algorand.create_transaction.app_create(
+            AppCreateParams(
+                sender=creator_address,
+                approval_program=approval_program,
+                clear_state_program=clear_program,
+                schema={
+                    "global_ints": 2,
+                    "global_byte_slices": 2,
+                    "local_ints": 1,
+                    "local_byte_slices": 1,
+                },
+            )
+        )
         signed_txn_2 = creator_account.signer([txn_2], [0])
         result_2 = algod.send_raw_transaction(signed_txn_2)
         tx_id_2 = result_2.tx_id
@@ -326,10 +331,12 @@ return
     try:
         # Delete the second application
         print_info(f"Deleting application {app_id_2}...")
-        delete_txn = algorand.create_transaction.app_delete(AppDeleteParams(
-            sender=creator_address,
-            app_id=app_id_2,
-        ))
+        delete_txn = algorand.create_transaction.app_delete(
+            AppDeleteParams(
+                sender=creator_address,
+                app_id=app_id_2,
+            )
+        )
         signed_delete = creator_account.signer([delete_txn], [0])
         delete_result = algod.send_raw_transaction(signed_delete)
         delete_tx_id = delete_result.tx_id

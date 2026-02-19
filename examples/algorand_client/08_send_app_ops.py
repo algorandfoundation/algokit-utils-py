@@ -15,16 +15,6 @@ This example demonstrates how to perform smart contract (application) operations
 LocalNet required for sending transactions
 """
 
-from algokit_transact import OnApplicationComplete
-from algokit_utils import AlgoAmount, AlgorandClient
-from algokit_utils.transactions.types import (
-    AppCallParams,
-    AppCreateParams,
-    AppDeleteParams,
-    AppUpdateParams,
-    AssetCreateParams,
-)
-
 from shared import (
     load_teal_source,
     print_error,
@@ -33,6 +23,16 @@ from shared import (
     print_step,
     print_success,
     shorten_address,
+)
+
+from algokit_transact import OnApplicationComplete
+from algokit_utils import AlgoAmount, AlgorandClient
+from algokit_utils.transactions.types import (
+    AppCallParams,
+    AppCreateParams,
+    AppDeleteParams,
+    AppUpdateParams,
+    AssetCreateParams,
 )
 
 # ============================================================================

@@ -25,8 +25,6 @@ Note: These endpoints return HTTP 404 if not running on a DevMode node.
 import time
 from datetime import datetime, timezone
 
-from algokit_algod_client.models import BlockResponse, GetBlockTimeStampOffsetResponse
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -37,6 +35,9 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_algod_client.models import BlockResponse, GetBlockTimeStampOffsetResponse
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def display_timestamp_offset(response: GetBlockTimeStampOffsetResponse) -> None:

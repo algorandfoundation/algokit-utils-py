@@ -18,7 +18,6 @@ No LocalNet required - pure encoding utility functions
 
 import json
 
-from algokit_transact.codec.msgpack import decode_msgpack, encode_msgpack
 from shared import (
     format_bytes,
     format_hex,
@@ -27,6 +26,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_transact.codec.msgpack import decode_msgpack, encode_msgpack
 
 
 def main() -> None:

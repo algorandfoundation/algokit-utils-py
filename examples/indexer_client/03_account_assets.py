@@ -9,7 +9,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_utils import AssetCreateParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -20,6 +19,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AssetCreateParams
 
 
 def main() -> None:
@@ -53,29 +54,33 @@ def main() -> None:
     try:
         # Create first test asset
         print_info("Creating first test asset: TestCoin (TC)...")
-        result1 = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=1_000_000_000,
-            decimals=6,
-            asset_name="TestCoin",
-            unit_name="TC",
-            url="https://example.com/testcoin",
-            default_frozen=False,
-        ))
+        result1 = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=1_000_000_000,
+                decimals=6,
+                asset_name="TestCoin",
+                unit_name="TC",
+                url="https://example.com/testcoin",
+                default_frozen=False,
+            )
+        )
         asset_id_1 = result1.asset_id
         print_success(f"Created TestCoin with Asset ID: {asset_id_1}")
 
         # Create second test asset
         print_info("Creating second test asset: DemoCoin (DEMO)...")
-        result2 = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=500_000,
-            decimals=3,
-            asset_name="DemoCoin",
-            unit_name="DEMO",
-            url="https://example.com/democoin",
-            default_frozen=False,
-        ))
+        result2 = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=500_000,
+                decimals=3,
+                asset_name="DemoCoin",
+                unit_name="DEMO",
+                url="https://example.com/democoin",
+                default_frozen=False,
+            )
+        )
         asset_id_2 = result2.asset_id
         print_success(f"Created DemoCoin with Asset ID: {asset_id_2}")
         print_info("")
@@ -99,7 +104,7 @@ def main() -> None:
 
         if len(assets_result.assets or []) > 0:
             print_info("Asset holdings:")
-            for holding in (assets_result.assets or []):
+            for holding in assets_result.assets or []:
                 print_info(f"  Asset ID: {holding.asset_id}")
                 amount_formatted = f"{holding.amount:,}"
                 print_info(f"    - amount: {amount_formatted}")
@@ -126,7 +131,7 @@ def main() -> None:
 
         if len(created_result.assets or []) > 0:
             print_info("Created assets:")
-            for asset in (created_result.assets or []):
+            for asset in created_result.assets or []:
                 print_info(f"  Asset ID: {asset.id_}")
                 if asset.params:
                     print_info(f"    - creator: {shorten_address(asset.params.creator)}")

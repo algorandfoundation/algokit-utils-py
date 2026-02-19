@@ -16,10 +16,6 @@ Covered operations:
 
 import sys
 
-from algokit_kmd_client.models import GenerateKeyRequest, SignTxnRequest
-from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, assign_fee, encode_transaction_raw
-from algokit_utils import AlgoAmount
-from algokit_utils.transactions.types import PaymentParams
 from shared import (
     cleanup_test_wallet,
     create_algod_client,
@@ -34,6 +30,11 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_kmd_client.models import GenerateKeyRequest, SignTxnRequest
+from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, assign_fee, encode_transaction_raw
+from algokit_utils import AlgoAmount
+from algokit_utils.transactions.types import PaymentParams
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 8, show_last: int = 8) -> str:
@@ -78,9 +79,11 @@ def main() -> None:
         # =========================================================================
         print_step(2, "Generating a key in the wallet")
 
-        generate_key_response = kmd.generate_key(GenerateKeyRequest(
-            wallet_handle_token=wallet_handle_token,
-        ))
+        generate_key_response = kmd.generate_key(
+            GenerateKeyRequest(
+                wallet_handle_token=wallet_handle_token,
+            )
+        )
         sender_address = generate_key_response.address
 
         print_success(f"Key generated: {sender_address}")
@@ -95,11 +98,13 @@ def main() -> None:
 
         # Fund the generated key with 1 ALGO
         fund_amount = AlgoAmount.from_algo(1)
-        algorand.send.payment(PaymentParams(
-            sender=dispenser.addr,
-            receiver=sender_address,
-            amount=fund_amount,
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=dispenser.addr,
+                receiver=sender_address,
+                amount=fund_amount,
+            )
+        )
 
         # Verify funding
         account_info = algod.account_information(sender_address)
@@ -164,11 +169,13 @@ def main() -> None:
         print_step(5, "Signing the transaction with sign_transaction()")
 
         tx_bytes = encode_transaction_raw(transaction)
-        signed_txn_response = kmd.sign_transaction(SignTxnRequest(
-            transaction=tx_bytes,
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-        ))
+        signed_txn_response = kmd.sign_transaction(
+            SignTxnRequest(
+                transaction=tx_bytes,
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+            )
+        )
         signed_txn = signed_txn_response.signed_transaction
 
         print_success("Transaction signed successfully!")

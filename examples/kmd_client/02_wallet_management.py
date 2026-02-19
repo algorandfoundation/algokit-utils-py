@@ -18,12 +18,6 @@ Covered operations:
 import sys
 import time
 
-from algokit_kmd_client.models import (
-    CreateWalletRequest,
-    InitWalletHandleTokenRequest,
-    RenameWalletRequest,
-    WalletInfoRequest,
-)
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -32,6 +26,13 @@ from shared import (
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_kmd_client.models import (
+    CreateWalletRequest,
+    InitWalletHandleTokenRequest,
+    RenameWalletRequest,
+    WalletInfoRequest,
 )
 
 

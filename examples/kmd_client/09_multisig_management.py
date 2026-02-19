@@ -26,14 +26,6 @@ Covered operations:
 
 import sys
 
-from algokit_common import public_key_from_address
-from algokit_kmd_client.models import (
-    DeleteMultisigRequest,
-    ExportMultisigRequest,
-    GenerateKeyRequest,
-    ImportMultisigRequest,
-    ListMultisigRequest,
-)
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -43,6 +35,15 @@ from shared import (
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_common import public_key_from_address
+from algokit_kmd_client.models import (
+    DeleteMultisigRequest,
+    ExportMultisigRequest,
+    GenerateKeyRequest,
+    ImportMultisigRequest,
+    ListMultisigRequest,
 )
 
 

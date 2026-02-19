@@ -17,6 +17,16 @@ application deployment with create, update, and replace strategies:
 LocalNet required for app deployment
 """
 
+from shared import (
+    load_teal_source,
+    print_error,
+    print_header,
+    print_info,
+    print_step,
+    print_success,
+    shorten_address,
+)
+
 from algokit_utils import (
     AlgoAmount,
     AlgorandClient,
@@ -26,15 +36,6 @@ from algokit_utils import (
     AppDeployParams,
     AppUpdateParams,
     OperationPerformed,
-)
-from shared import (
-    load_teal_source,
-    print_error,
-    print_header,
-    print_info,
-    print_step,
-    print_success,
-    shorten_address,
 )
 
 # ============================================================================

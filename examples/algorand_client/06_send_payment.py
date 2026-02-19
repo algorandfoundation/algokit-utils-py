@@ -17,7 +17,6 @@ LocalNet required for sending transactions
 import json
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 from shared import (
     format_algo,
     print_error,
@@ -27,6 +26,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 
 
 def main() -> None:
@@ -86,11 +87,13 @@ def main() -> None:
     print_step(2, "Basic payment with algorand.send.payment()")
     print_info("Sending a simple ALGO payment with sender, receiver, and amount")
 
-    basic_payment_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(5),  # Using AlgoAmount helper
-    ))
+    basic_payment_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(5),  # Using AlgoAmount helper
+        )
+    )
 
     print_info("")
     print_info("Basic payment sent:")
@@ -125,11 +128,13 @@ def main() -> None:
     print_info(f"  AlgoAmount.from_micro_algo(500_000) = {format_algo(amount2)} ({amount2.micro_algo} uALGO)")
 
     # Send payment with microAlgo amount
-    micro_algo_payment_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_micro_algo(250_000),  # 0.25 ALGO
-    ))
+    micro_algo_payment_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_micro_algo(250_000),  # 0.25 ALGO
+        )
+    )
 
     print_info("")
     print_info("Payment with microAlgo amount:")
@@ -144,12 +149,14 @@ def main() -> None:
     print_info("Notes can be strings, byte arrays, or structured data (JSON)")
 
     # String note
-    string_note_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.1),
-        note=b"Payment for services rendered",
-    ))
+    string_note_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.1),
+            note=b"Payment for services rendered",
+        )
+    )
 
     print_info("")
     print_info("Payment with string note:")
@@ -165,12 +172,14 @@ def main() -> None:
         }
     )
 
-    json_note_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.1),
-        note=json_note.encode(),
-    ))
+    json_note_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.1),
+            note=json_note.encode(),
+        )
+    )
 
     print_info("")
     print_info("Payment with JSON note:")
@@ -180,12 +189,14 @@ def main() -> None:
     # Byte array note
     byte_note = b"Binary data note"
 
-    byte_note_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.1),
-        note=byte_note,
-    ))
+    byte_note_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.1),
+            note=byte_note,
+        )
+    )
 
     print_info("")
     print_info("Payment with byte array note:")
@@ -209,11 +220,13 @@ def main() -> None:
 
     # Send a precise amount
     precise_amount = AlgoAmount.from_algo(2)
-    algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=precise_amount,
-    ))
+    algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=precise_amount,
+        )
+    )
 
     # Get balances after payment
     sender_after_info = algorand.account.get_information(sender.addr)
@@ -259,12 +272,14 @@ def main() -> None:
     # 1. Send the specified amount to receiver
     # 2. Send ALL remaining balance to close_remainder_to address
     # 3. Close the sender account
-    close_result = algorand.send.payment(PaymentParams(
-        sender=account_to_close.addr,
-        receiver=receiver.addr,  # Receiver gets the explicit amount
-        amount=AlgoAmount.from_algo(1),  # Explicit amount to receiver
-        close_remainder_to=close_to_account.addr,  # Remainder goes here, account closes
-    ))
+    close_result = algorand.send.payment(
+        PaymentParams(
+            sender=account_to_close.addr,
+            receiver=receiver.addr,  # Receiver gets the explicit amount
+            amount=AlgoAmount.from_algo(1),  # Explicit amount to receiver
+            close_remainder_to=close_to_account.addr,  # Remainder goes here, account closes
+        )
+    )
 
     print_info("")
     print_info("Close account transaction:")
@@ -294,11 +309,13 @@ def main() -> None:
     print_info("algorand.send.payment() automatically waits for confirmation")
     print_info("The result includes confirmation details from the network")
 
-    confirmation_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.5),
-    ))
+    confirmation_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.5),
+        )
+    )
 
     print_info("")
     print_info("Transaction confirmation details:")

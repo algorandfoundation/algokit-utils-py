@@ -16,15 +16,16 @@ Topics covered:
 No LocalNet required - pure sourcemap parsing
 """
 
-from algokit_common import (
-    ProgramSourceMap,
-    SourceMapVersionError,
-)
 from shared import (
     print_header,
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_common import (
+    ProgramSourceMap,
+    SourceMapVersionError,
 )
 
 

@@ -18,16 +18,6 @@ LocalNet required for client access
 
 import base64
 
-from algokit_kmd_client.models import (
-    InitWalletHandleTokenRequest,
-    ListKeysRequest,
-    ReleaseWalletHandleTokenRequest,
-)
-
-from algokit_utils import AlgoAmount, AlgorandClient
-from algokit_utils.applications.app_deployer import AppDeploymentMetaData, AppDeployParams
-from algokit_utils.models.network import AlgoClientNetworkConfig
-from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams, AppUpdateParams
 from shared import (
     load_teal_source,
     print_error,
@@ -37,6 +27,16 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_kmd_client.models import (
+    InitWalletHandleTokenRequest,
+    ListKeysRequest,
+    ReleaseWalletHandleTokenRequest,
+)
+from algokit_utils import AlgoAmount, AlgorandClient
+from algokit_utils.applications.app_deployer import AppDeploymentMetaData, AppDeployParams
+from algokit_utils.models.network import AlgoClientNetworkConfig
+from algokit_utils.transactions.types import AppCreateParams, AppDeleteParams, AppUpdateParams
 
 # ============================================================================
 # Simple TEAL Programs for App Client Demonstrations (loaded from shared artifacts)
@@ -234,9 +234,7 @@ def main() -> None:
         )
         wallet_handle_token = handle_result.wallet_handle_token
 
-        keys_result = kmd.list_keys_in_wallet(
-            ListKeysRequest(wallet_handle_token=wallet_handle_token)
-        )
+        keys_result = kmd.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
         addresses = keys_result.addresses
 
         print_info("")
@@ -248,9 +246,7 @@ def main() -> None:
             print_info(f"    ... and {len(addresses) - 3} more")
 
         # Release the wallet handle
-        kmd.release_wallet_handle_token(
-            ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
-        )
+        kmd.release_wallet_handle_token(ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token))
 
     print_success("Raw KMD client accessed successfully")
 

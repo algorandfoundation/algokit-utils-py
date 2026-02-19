@@ -14,15 +14,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_transact import (
-    MultisigAccount,
-    MultisigMetadata,
-    PaymentTransactionFields,
-    Transaction,
-    TransactionType,
-    assign_fee,
-)
-from algokit_utils import AlgorandClient
 from shared import (
     create_algod_client,
     format_algo,
@@ -35,6 +26,16 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_transact import (
+    MultisigAccount,
+    MultisigMetadata,
+    PaymentTransactionFields,
+    Transaction,
+    TransactionType,
+    assign_fee,
+)
+from algokit_utils import AlgorandClient
 
 
 def main() -> None:
@@ -86,8 +87,8 @@ def main() -> None:
         sub_signers=[account1, account2],
     )
 
-    print_info(f"Multisig version: 1")
-    print_info(f"Multisig threshold: 2")
+    print_info("Multisig version: 1")
+    print_info("Multisig threshold: 2")
     print_info(f"Number of participants: {len(multisig_addrs)}")
 
     # Step 4: Show the derived multisig address

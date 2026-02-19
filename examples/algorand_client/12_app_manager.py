@@ -17,15 +17,6 @@ application information, state, box storage, and TEAL compilation:
 LocalNet required for app operations
 """
 
-from algokit_abi.abi import ABIType
-from algokit_transact import OnApplicationComplete
-from algokit_utils import AlgoAmount, AlgorandClient
-from algokit_utils.transactions.types import (
-    AppCallParams,
-    AppCreateParams,
-    AppDeleteParams,
-    PaymentParams,
-)
 from shared import (
     load_teal_source,
     print_error,
@@ -34,6 +25,16 @@ from shared import (
     print_step,
     print_success,
     shorten_address,
+)
+
+from algokit_abi.abi import ABIType
+from algokit_transact import OnApplicationComplete
+from algokit_utils import AlgoAmount, AlgorandClient
+from algokit_utils.transactions.types import (
+    AppCallParams,
+    AppCreateParams,
+    AppDeleteParams,
+    PaymentParams,
 )
 
 # ============================================================================
@@ -317,9 +318,7 @@ def main() -> None:
     print_info('Created box "abi_number" with ABI-encoded uint64 value')
 
     # Read and decode the ABI value
-    decoded_values = algorand.app.get_box_values_from_abi_type(
-        app_id, ["abi_number"], abi_type
-    )
+    decoded_values = algorand.app.get_box_values_from_abi_type(app_id, ["abi_number"], abi_type)
 
     print_info("")
     print_info("Decoded ABI values:")
@@ -342,9 +341,7 @@ def main() -> None:
         )
     )
 
-    decoded_strings = algorand.app.get_box_values_from_abi_type(
-        app_id, ["abi_string"], string_type
-    )
+    decoded_strings = algorand.app.get_box_values_from_abi_type(app_id, ["abi_string"], string_type)
 
     print_info(f'  "abi_string" (string): "{decoded_strings[0]}"')
 

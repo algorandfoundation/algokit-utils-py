@@ -12,7 +12,6 @@ Prerequisites:
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -23,6 +22,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def format_bytes_hex(data: bytes) -> str:
@@ -282,12 +283,14 @@ def main() -> None:
         receiver = algorand.account.random()
 
         for i in range(3):
-            algorand.send.payment(PaymentParams(
-                sender=dispenser_address,
-                receiver=receiver.addr,
-                amount=AlgoAmount.from_micro_algo(100000),
-                note=f"Block lookup example payment {i + 1}".encode(),
-            ))
+            algorand.send.payment(
+                PaymentParams(
+                    sender=dispenser_address,
+                    receiver=receiver.addr,
+                    amount=AlgoAmount.from_micro_algo(100000),
+                    note=f"Block lookup example payment {i + 1}".encode(),
+                )
+            )
 
         print_success("Created 3 transactions")
 

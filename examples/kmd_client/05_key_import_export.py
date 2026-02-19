@@ -22,9 +22,6 @@ import secrets
 import sys
 
 from nacl.signing import SigningKey
-
-from algokit_kmd_client.models import ExportKeyRequest, ImportKeyRequest, ListKeysRequest
-
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -35,6 +32,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_kmd_client.models import ExportKeyRequest, ImportKeyRequest, ListKeysRequest
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 4, show_last: int = 4) -> str:
@@ -94,7 +93,9 @@ def main() -> None:
         # =========================================================================
         print_step(3, "Importing the private key with import_key()")
 
-        imported_address = kmd.import_key(ImportKeyRequest(wallet_handle_token=wallet_handle_token, private_key=original_private_key)).address
+        imported_address = kmd.import_key(
+            ImportKeyRequest(wallet_handle_token=wallet_handle_token, private_key=original_private_key)
+        ).address
 
         print_success("Key imported successfully!")
         print_info("")
@@ -125,11 +126,13 @@ def main() -> None:
         # =========================================================================
         print_step(5, "Exporting the private key with export_key()")
 
-        exported_private_key = kmd.export_key(ExportKeyRequest(
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-            address=imported_address,
-        )).private_key
+        exported_private_key = kmd.export_key(
+            ExportKeyRequest(
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+                address=imported_address,
+            )
+        ).private_key
 
         print_success("Key exported successfully!")
         print_info("")

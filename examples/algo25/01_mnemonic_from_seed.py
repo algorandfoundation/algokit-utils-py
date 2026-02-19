@@ -16,8 +16,9 @@ No LocalNet required - pure utility function
 
 import secrets
 
-from algokit_algo25 import mnemonic_from_seed
 from shared import format_bytes, format_hex, print_header, print_info, print_step, print_success
+
+from algokit_algo25 import mnemonic_from_seed
 
 
 def main() -> None:

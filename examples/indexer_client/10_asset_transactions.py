@@ -12,7 +12,6 @@ Prerequisites:
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AssetConfigParams, AssetCreateParams, AssetFreezeParams, AssetOptInParams, AssetTransferParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -25,6 +24,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AssetConfigParams, AssetCreateParams, AssetFreezeParams, AssetOptInParams, AssetTransferParams
 
 
 def main() -> None:
@@ -74,19 +75,21 @@ def main() -> None:
 
         # Create asset with freeze address to enable freeze transactions
         print_info("Creating test asset: TxnToken (TXN)...")
-        result = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=10_000_000,  # 10,000 units with 3 decimals
-            decimals=3,
-            asset_name="TxnToken",
-            unit_name="TXN",
-            url="https://example.com/txntoken",
-            default_frozen=False,
-            manager=creator_address,
-            reserve=creator_address,
-            freeze=creator_address,  # Enable freeze functionality
-            clawback=creator_address,
-        ))
+        result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=10_000_000,  # 10,000 units with 3 decimals
+                decimals=3,
+                asset_name="TxnToken",
+                unit_name="TXN",
+                url="https://example.com/txntoken",
+                default_frozen=False,
+                manager=creator_address,
+                reserve=creator_address,
+                freeze=creator_address,  # Enable freeze functionality
+                clawback=creator_address,
+            )
+        )
         asset_id = result.asset_id
         print_success(f"Created TxnToken with Asset ID: {asset_id}")
         print_info(f"  - freeze address: {shorten_address(creator_address)} (enables freeze transactions)")
@@ -104,70 +107,84 @@ def main() -> None:
     try:
         # 1. Holder 1: Opt-in (axfer to self with 0 amount)
         print_info("Holder 1 opting into asset...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=holder_1_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=holder_1_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Holder 1 opted in (axfer)")
 
         # 2. Transfer to Holder 1
         print_info("Transferring 1000 TXN to Holder 1...")
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=creator_address,
-            receiver=holder_1_address,
-            asset_id=asset_id,
-            amount=1_000_000,  # 1000 TXN (with 3 decimals)
-        ))
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=creator_address,
+                receiver=holder_1_address,
+                asset_id=asset_id,
+                amount=1_000_000,  # 1000 TXN (with 3 decimals)
+            )
+        )
         print_success("Transfer to Holder 1 complete (axfer)")
 
         # 3. Holder 2: Opt-in
         print_info("Holder 2 opting into asset...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=holder_2_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=holder_2_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Holder 2 opted in (axfer)")
 
         # 4. Transfer to Holder 2
         print_info("Transferring 500 TXN to Holder 2...")
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=creator_address,
-            receiver=holder_2_address,
-            asset_id=asset_id,
-            amount=500_000,  # 500 TXN (with 3 decimals)
-        ))
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=creator_address,
+                receiver=holder_2_address,
+                asset_id=asset_id,
+                amount=500_000,  # 500 TXN (with 3 decimals)
+            )
+        )
         print_success("Transfer to Holder 2 complete (axfer)")
 
         # 5. Freeze Holder 1's account
         print_info("Freezing Holder 1 account...")
-        algorand.send.asset_freeze(AssetFreezeParams(
-            sender=creator_address,
-            asset_id=asset_id,
-            account=holder_1_address,
-            frozen=True,
-        ))
+        algorand.send.asset_freeze(
+            AssetFreezeParams(
+                sender=creator_address,
+                asset_id=asset_id,
+                account=holder_1_address,
+                frozen=True,
+            )
+        )
         print_success("Holder 1 account frozen (afrz)")
 
         # 6. Unfreeze Holder 1's account
         print_info("Unfreezing Holder 1 account...")
-        algorand.send.asset_freeze(AssetFreezeParams(
-            sender=creator_address,
-            asset_id=asset_id,
-            account=holder_1_address,
-            frozen=False,
-        ))
+        algorand.send.asset_freeze(
+            AssetFreezeParams(
+                sender=creator_address,
+                asset_id=asset_id,
+                account=holder_1_address,
+                frozen=False,
+            )
+        )
         print_success("Holder 1 account unfrozen (afrz)")
 
         # 7. Reconfigure asset (acfg)
         print_info("Reconfiguring asset (updating manager)...")
-        algorand.send.asset_config(AssetConfigParams(
-            sender=creator_address,
-            asset_id=asset_id,
-            manager=creator_address,
-            reserve=creator_address,
-            freeze=creator_address,
-            clawback=creator_address,
-        ))
+        algorand.send.asset_config(
+            AssetConfigParams(
+                sender=creator_address,
+                asset_id=asset_id,
+                manager=creator_address,
+                reserve=creator_address,
+                freeze=creator_address,
+                clawback=creator_address,
+            )
+        )
         print_success("Asset reconfigured (acfg)")
 
         print_info("")

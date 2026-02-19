@@ -14,6 +14,15 @@ This example demonstrates basic address operations using the algokit_common modu
 No LocalNet required - pure utility functions
 """
 
+from shared import (
+    format_bytes,
+    format_hex,
+    print_header,
+    print_info,
+    print_step,
+    print_success,
+)
+
 from algokit_common import (
     ADDRESS_LENGTH,
     CHECKSUM_BYTE_LENGTH,
@@ -22,14 +31,6 @@ from algokit_common import (
     address_from_public_key,
     public_key_from_address,
     sha512_256,
-)
-from shared import (
-    format_bytes,
-    format_hex,
-    print_header,
-    print_info,
-    print_step,
-    print_success,
 )
 
 

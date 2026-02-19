@@ -13,8 +13,6 @@ import base64
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
-from algokit_utils.transactions.types import AppCreateParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -29,6 +27,9 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
+from algokit_utils.transactions.types import AppCreateParams
 
 
 def main() -> None:
@@ -74,50 +75,60 @@ def main() -> None:
 
         # 1. Payment transaction
         print_info("Creating payment transaction...")
-        algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_algo(10),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_algo(10),
+            )
+        )
         print_success("Payment sent: 10 ALGO")
 
         # 2. Another payment with different amount
         print_info("Creating another payment transaction...")
-        algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_algo(5),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_algo(5),
+            )
+        )
         print_success("Payment sent: 5 ALGO")
 
         # 3. Asset creation (acfg transaction)
         print_info("Creating asset config transaction (asset creation)...")
-        asset_create_result = algorand.send.asset_create(AssetCreateParams(
-            sender=sender_address,
-            total=1_000_000,
-            decimals=6,
-            asset_name="SearchTestToken",
-            unit_name="SRCH",
-        ))
+        asset_create_result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=sender_address,
+                total=1_000_000,
+                decimals=6,
+                asset_name="SearchTestToken",
+                unit_name="SRCH",
+            )
+        )
         asset_id = asset_create_result.asset_id
         print_success(f"Created asset: SearchTestToken (ID: {asset_id})")
 
         # 4. Asset opt-in (axfer to self with 0 amount)
         print_info("Creating asset opt-in transaction...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=receiver_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=receiver_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Receiver opted into asset")
 
         # 5. Asset transfer (axfer)
         print_info("Creating asset transfer transaction...")
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            asset_id=asset_id,
-            amount=50_000,
-        ))
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                asset_id=asset_id,
+                amount=50_000,
+            )
+        )
         print_success("Asset transfer sent: 50,000 units")
 
         # 6. Application creation (appl transaction)
@@ -133,17 +144,19 @@ def main() -> None:
         clear_program = base64.b64decode(clear_result.result)
 
         # Create the app transaction
-        txn = algorand.create_transaction.app_create(AppCreateParams(
-            sender=sender_address,
-            approval_program=approval_program,
-            clear_state_program=clear_program,
-            schema={
-                "global_ints": 0,
-                "global_byte_slices": 0,
-                "local_ints": 0,
-                "local_byte_slices": 0,
-            },
-        ))
+        txn = algorand.create_transaction.app_create(
+            AppCreateParams(
+                sender=sender_address,
+                approval_program=approval_program,
+                clear_state_program=clear_program,
+                schema={
+                    "global_ints": 0,
+                    "global_byte_slices": 0,
+                    "local_ints": 0,
+                    "local_byte_slices": 0,
+                },
+            )
+        )
 
         # Sign and send
         signed_txn = sender_account.signer([txn], [0])
@@ -366,7 +379,9 @@ def main() -> None:
 
         print_success(f"Found {len(round_filtered_txns.transactions or [])} transaction(s) in round range")
         if round_filtered_txns.transactions:
-            rounds = [tx.confirmed_round for tx in (round_filtered_txns.transactions or []) if tx.confirmed_round is not None]
+            rounds = [
+                tx.confirmed_round for tx in (round_filtered_txns.transactions or []) if tx.confirmed_round is not None
+            ]
             if rounds:
                 min_found_round = min(rounds)
                 max_found_round = max(rounds)
@@ -436,7 +451,7 @@ def main() -> None:
 
         print_success(f"Found {len(app_txns.transactions or [])} transaction(s) for app {app_id}")
         if app_txns.transactions:
-            for tx in (app_txns.transactions or []):
+            for tx in app_txns.transactions or []:
                 tx_id_display = shorten_address(tx.id_, 8, 6) if tx.id_ else "N/A"
                 print_info(f"  - {tx_id_display}:")
                 print_info(f"      tx_type: {tx.tx_type}")
@@ -500,7 +515,7 @@ def main() -> None:
         page_1 = indexer.search_for_transactions(limit=2)
 
         print_info(f"Page 1: Retrieved {len(page_1.transactions or [])} transaction(s)")
-        for tx in (page_1.transactions or []):
+        for tx in page_1.transactions or []:
             tx_id_display = shorten_address(tx.id_, 8, 6) if tx.id_ else "N/A"
             print_info(f"  - {tx_id_display}: {tx.tx_type}")
 
@@ -516,7 +531,7 @@ def main() -> None:
             )
 
             print_info(f"Page 2: Retrieved {len(page_2.transactions or [])} transaction(s)")
-            for tx in (page_2.transactions or []):
+            for tx in page_2.transactions or []:
                 tx_id_display = shorten_address(tx.id_, 8, 6) if tx.id_ else "N/A"
                 print_info(f"  - {tx_id_display}: {tx.tx_type}")
 

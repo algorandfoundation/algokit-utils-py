@@ -20,9 +20,10 @@ These checks are essential for:
 No LocalNet required - pure ABI encoding/decoding
 """
 
+from shared import print_header, print_info, print_step, print_success
+
 from algokit_abi import abi
 from algokit_abi.arc56 import AVMType, Method, ReferenceType, TransactionType
-from shared import print_header, print_info, print_step, print_success
 
 
 def is_transaction_type(arg_type: abi.ABIType | ReferenceType | TransactionType) -> bool:

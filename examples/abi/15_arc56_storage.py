@@ -31,9 +31,10 @@ No LocalNet required - demonstrates ARC-56 spec parsing
 import base64
 from pathlib import Path
 
+from shared import format_hex, print_header, print_info, print_step, print_success
+
 from algokit_abi import abi
 from algokit_abi.arc56 import Arc56Contract, AVMType, StorageKey, StorageMap
-from shared import format_hex, print_header, print_info, print_step, print_success
 
 
 def format_key_or_value_type(type_val: abi.ABIType | AVMType) -> str:

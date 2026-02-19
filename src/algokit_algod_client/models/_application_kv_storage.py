@@ -10,7 +10,7 @@ from ._serde_helpers import decode_model_sequence, encode_model_sequence
 
 
 @dataclass(slots=True)
-class ApplicationKvstorage:
+class ApplicationKvStorage:
     """
     An application's global/local/box state.
     """

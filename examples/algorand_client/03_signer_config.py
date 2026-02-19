@@ -13,7 +13,6 @@ This example demonstrates how to configure transaction signers on AlgorandClient
 LocalNet required for transaction signing
 """
 
-from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 from shared import (
     print_error,
     print_header,
@@ -22,6 +21,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 
 
 def main() -> None:
@@ -68,11 +69,13 @@ def main() -> None:
     print_info(f"Funding each account with {fund_amount.algo} ALGO...")
 
     for account in [account1, account2, account3]:
-        algorand.send.payment(PaymentParams(
-            sender=dispenser.addr,
-            receiver=account.addr,
-            amount=fund_amount,
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=dispenser.addr,
+                receiver=account.addr,
+                amount=fund_amount,
+            )
+        )
 
     print_success("Funded all accounts with 10 ALGO each")
 
@@ -92,11 +95,13 @@ def main() -> None:
     print_info("Now Account 1 can be used as a sender in transactions")
 
     # Send a payment from account1 to account2
-    payment1_result = algorand2.send.payment(PaymentParams(
-        sender=account1.addr,
-        receiver=account2.addr,
-        amount=AlgoAmount.from_algo(1),
-    ))
+    payment1_result = algorand2.send.payment(
+        PaymentParams(
+            sender=account1.addr,
+            receiver=account2.addr,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
 
     print_info("")
     print_info("Payment transaction sent:")
@@ -123,11 +128,13 @@ def main() -> None:
     algorand3.set_signer(sender=account2.addr, signer=account2.signer)
 
     # Send a payment from account2 to account3
-    payment2_result = algorand3.send.payment(PaymentParams(
-        sender=account2.addr,
-        receiver=account3.addr,
-        amount=AlgoAmount.from_algo(0.5),
-    ))
+    payment2_result = algorand3.send.payment(
+        PaymentParams(
+            sender=account2.addr,
+            receiver=account3.addr,
+            amount=AlgoAmount.from_algo(0.5),
+        )
+    )
 
     print_info("")
     print_info("Payment transaction sent:")
@@ -153,11 +160,13 @@ def main() -> None:
 
     # Now we can send a transaction from account3 without explicitly registering it
     # The default signer will be used
-    payment3_result = algorand4.send.payment(PaymentParams(
-        sender=account3.addr,
-        receiver=account1.addr,
-        amount=AlgoAmount.from_algo(0.25),
-    ))
+    payment3_result = algorand4.send.payment(
+        PaymentParams(
+            sender=account3.addr,
+            receiver=account1.addr,
+            amount=AlgoAmount.from_algo(0.25),
+        )
+    )
 
     print_info("")
     print_info("Payment transaction sent using default signer:")
@@ -190,22 +199,26 @@ def main() -> None:
     # Send from account2 (uses registered signer)
     print_info("")
     print_info("Sending from Account 2 (uses registered signer):")
-    payment4_result = algorand5.send.payment(PaymentParams(
-        sender=account2.addr,
-        receiver=account3.addr,
-        amount=AlgoAmount.from_algo(0.1),
-    ))
+    payment4_result = algorand5.send.payment(
+        PaymentParams(
+            sender=account2.addr,
+            receiver=account3.addr,
+            amount=AlgoAmount.from_algo(0.1),
+        )
+    )
     print_info(f"  Transaction ID: {payment4_result.tx_ids[0]}")
     print_info(f"  Confirmed in round: {payment4_result.confirmation.confirmed_round}")
 
     # Send from account1 (uses default signer)
     print_info("")
     print_info("Sending from Account 1 (uses default signer):")
-    payment5_result = algorand5.send.payment(PaymentParams(
-        sender=account1.addr,
-        receiver=account3.addr,
-        amount=AlgoAmount.from_algo(0.1),
-    ))
+    payment5_result = algorand5.send.payment(
+        PaymentParams(
+            sender=account1.addr,
+            receiver=account3.addr,
+            amount=AlgoAmount.from_algo(0.1),
+        )
+    )
     print_info(f"  Transaction ID: {payment5_result.tx_ids[0]}")
     print_info(f"  Confirmed in round: {payment5_result.confirmation.confirmed_round}")
 
@@ -230,11 +243,13 @@ def main() -> None:
 
     try:
         # Try to send from the address without registering a signer
-        algorand7.send.payment(PaymentParams(
-            sender=unregistered_account.addr,  # This address has no signer in algorand7
-            receiver=account1.addr,
-            amount=AlgoAmount.from_algo(0.01),
-        ))
+        algorand7.send.payment(
+            PaymentParams(
+                sender=unregistered_account.addr,  # This address has no signer in algorand7
+                receiver=account1.addr,
+                amount=AlgoAmount.from_algo(0.01),
+            )
+        )
         print_info("Unexpectedly succeeded")
     except Exception as e:
         print_success("Caught expected error when no signer is registered")

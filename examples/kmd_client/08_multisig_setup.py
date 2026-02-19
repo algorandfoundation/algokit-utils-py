@@ -23,8 +23,6 @@ Covered operations:
 
 import sys
 
-from algokit_common import public_key_from_address
-from algokit_kmd_client.models import GenerateKeyRequest, ImportMultisigRequest, ListMultisigRequest
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -35,6 +33,9 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_common import public_key_from_address
+from algokit_kmd_client.models import GenerateKeyRequest, ImportMultisigRequest, ListMultisigRequest
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 4, show_last: int = 4) -> str:

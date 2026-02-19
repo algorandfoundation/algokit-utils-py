@@ -13,7 +13,7 @@ from ._allocations_for_genesis_file import AllocationsForGenesisFile
 from ._allocations_for_genesis_file_state_model import AllocationsForGenesisFileStateModel
 from ._application import Application
 from ._application_initial_states import ApplicationInitialStates
-from ._application_kvstorage import ApplicationKvstorage
+from ._application_kv_storage import ApplicationKvStorage
 from ._application_local_state import ApplicationLocalState
 from ._application_params import ApplicationParams
 from ._application_state_operation import ApplicationStateOperation
@@ -126,7 +126,7 @@ __all__ = [
     "AllocationsForGenesisFileStateModel",
     "Application",
     "ApplicationInitialStates",
-    "ApplicationKvstorage",
+    "ApplicationKvStorage",
     "ApplicationLocalState",
     "ApplicationParams",
     "ApplicationStateOperation",
