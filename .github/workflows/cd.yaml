@@ -74,26 +74,29 @@ jobs:
       - name: Create Continuous Deployment - Alpha
         id: release-alpha
         if: steps.get_branch.outputs.branch == 'alpha'
-        uses: python-semantic-release/python-semantic-release@v10.3.1
-        with:
-          github_token: ${{ steps.app_token.outputs.token }}
-          prerelease: true
-          prerelease_token: alpha
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          uv run semantic-release -v version --as-prerelease --prerelease-token alpha
+          uv run semantic-release publish
 
       - name: Create Continuous Deployment - Beta (non-prod)
         id: release-beta
         if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
-        uses: python-semantic-release/python-semantic-release@v10.3.1
-        with:
-          github_token: ${{ steps.app_token.outputs.token }}
-          prerelease: true
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          uv run semantic-release -v version --as-prerelease
+          uv run semantic-release publish
 
       - name: Create Continuous Deployment - Production
         id: release-prod
         if: steps.get_branch.outputs.branch == 'main' && inputs.production_release
-        uses: python-semantic-release/python-semantic-release@v10.3.1
-        with:
-          github_token: ${{ steps.app_token.outputs.token }}
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          uv run semantic-release -v version
+          uv run semantic-release publish
 
       - name: Publish package distributions to PyPI
         if: |

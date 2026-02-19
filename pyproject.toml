@@ -331,7 +331,7 @@ ignore_missing_imports = true
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
-build_command = "pip install build && python -m build"
+build_command = "uv build"
 major_on_zero = true
 commit_message = "{version}\n\nskip-checks: true"
 tag_format = "v{version}"
