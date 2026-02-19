@@ -216,7 +216,7 @@ algorand.client.close()  # Clean up HTTP connections
 
 ### 3.1 SigningAccount → AddressWithSigners
 
-The primary account type has been renamed for cross-SDK alignment:
+The primary account type has been replaced with a **secretless signing architecture**. `SigningAccount` stored the raw private key as a field (`account.private_key`). `AddressWithSigners` never exposes the key — it is held in closures, enabling KMS/HSM compatibility:
 
 ```python
 # v4
@@ -224,6 +224,7 @@ from algokit_utils import SigningAccount
 
 account = SigningAccount(private_key=key)
 print(account.address)  # string address
+print(account.private_key)  # raw key was readable
 
 # v5
 from algokit_transact import AddressWithSigners
@@ -231,6 +232,33 @@ from algokit_transact import AddressWithSigners
 # Or generate via AlgorandClient (recommended)
 account = algorand.account.random()
 print(account.addr)  # .address → .addr
+# account.private_key does not exist — key is in a signing closure
+```
+
+> **Note:** There is **no backward-compatible alias** for `SigningAccount`. All usages must be updated.
+
+If you have existing code that holds a raw base64 private key string (e.g. loaded from environment or storage), use `make_basic_account_transaction_signer` as the bridge:
+
+```python
+from algokit_transact import make_basic_account_transaction_signer
+from algokit_common import address_from_public_key
+import base64
+
+# Bridge for legacy raw-key code
+signer = make_basic_account_transaction_signer(private_key_b64)
+
+# Or create a full AddressWithSigners from an existing key:
+from algokit_transact import generate_address_with_signers
+import nacl.signing
+
+key_bytes = base64.b64decode(private_key_b64)
+seed = key_bytes[:32]
+public_key = key_bytes[32:]
+signing_key = nacl.signing.SigningKey(seed)
+account = generate_address_with_signers(
+    ed25519_pubkey=public_key,
+    raw_ed25519_signer=lambda data: signing_key.sign(data).signature,
+)
 ```
 
 ### 3.2 TransactionSignerAccountProtocol → AddressWithTransactionSigner
@@ -267,7 +295,7 @@ metadata = MultisigMetadata(version=1, threshold=2, addrs=["addr1", "addr2"])  #
 msig = MultisigAccount(metadata, [signer1, signer2])  # MultiSigAccount → MultisigAccount
 ```
 
-Backward-compatible re-exports exist via `algokit_utils.transact` and `algokit_utils.models.account`.
+Backward-compatible re-exports for `MultisigAccount`, `MultisigMetadata`, and `LogicSigAccount` exist via `algokit_utils.transact` and `algokit_utils.models.account`. Note that `SigningAccount` has **no** compat re-export — see [3.1](#31-signingaccount--addresswithsigners).
 
 ### 3.4 LogicSigAccount Relocation
 
@@ -361,6 +389,23 @@ composer = TransactionComposer(
 )
 ```
 
+Composer-level fee and resource behaviour is controlled via the separate `TransactionComposerConfig` dataclass, passed as `composer_config` inside `TransactionComposerParams`:
+
+```python
+from algokit_utils.transactions import TransactionComposer, TransactionComposerParams, TransactionComposerConfig
+
+composer = TransactionComposer(
+    params=TransactionComposerParams(
+        algod=algod_client,
+        get_signer=get_signer_fn,
+        composer_config=TransactionComposerConfig(
+            cover_app_call_inner_transaction_fees=True,  # default: False
+            populate_app_call_resources=False,           # default: True
+        ),
+    )
+)
+```
+
 Result types have been renamed:
 
 ```python
@@ -431,8 +476,10 @@ The helper functions `prepare_group_for_sending` and `send_atomic_transaction_co
 New types for fee management:
 
 ```python
-from algokit_utils.transactions.fee_coverage import FeeDelta, FeePriority
+from algokit_utils.transactions.fee_coverage import FeeDeltaType, FeeDelta, FeePriority
 ```
+
+`FeeDeltaType` is an enum discriminant on `FeeDelta.delta_type` indicating whether the fee delta is a fixed amount or a multiplier. `FeePriority` configures priority fee strategies.
 
 ---
 
@@ -520,6 +567,8 @@ The `confirmation` field is now `algod_models.PendingTransactionResponse` (a typ
 ## Part 6: ABI Changes
 
 ### 6.1 Return Type Changes
+
+> **⚠️ Silent runtime risk:** These type changes do **not** produce `ImportError` or `AttributeError` at startup — they will only fail at runtime when your code processes the return value. Make sure to test all ABI method call paths, not just import paths.
 
 ABI decoding now returns more Pythonic types:
 
@@ -796,7 +845,7 @@ These files that re-exported legacy v2 code with deprecation warnings are delete
 pip uninstall py-algorand-sdk
 
 # Install the latest algokit-utils (v5 includes all sub-packages)
-pip install algokit-utils@latest
+pip install --upgrade algokit-utils
 ```
 
 ### Step 2: Update Entry Point
