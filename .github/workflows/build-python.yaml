@@ -13,17 +13,13 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+      - name: Setup Python environment
+        uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
         with:
           python-version: ${{ matrix.python }}
+          install-algokit: "false"
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
-      - name: Install dependencies
+      - name: Install extra dependency groups
         run: uv sync --group api-generator
 
       - name: Setup Polytest
