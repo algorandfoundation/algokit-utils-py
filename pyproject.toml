@@ -1,6 +1,6 @@
 [project]
 name = "algokit-utils"
-version = "4.2.3"
+version = "5.0.0-alpha.16"
 description = "Utilities for Algorand development for use by AlgoKit"
 authors = [
   { name = "Algorand Foundation", email = "contact@algorand.foundation" },
