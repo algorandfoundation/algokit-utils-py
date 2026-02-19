@@ -12,8 +12,6 @@ Prerequisites:
 import base64
 import time
 
-from algokit_utils import AlgoAmount, PaymentParams
-from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -27,6 +25,9 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_utils import AlgoAmount, PaymentParams
+from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 
 
 def decode_log_entry(log_bytes: bytes) -> str:
@@ -73,11 +74,13 @@ def main() -> None:
         print_success(f"Using caller account: {shorten_address(caller_address)}")
 
         # Fund the caller account
-        algorand.send.payment(PaymentParams(
-            sender=creator_address,
-            receiver=caller_address,
-            amount=AlgoAmount.from_algo(1),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=creator_address,
+                receiver=caller_address,
+                amount=AlgoAmount.from_algo(1),
+            )
+        )
         print_info("Funded caller account with 1 ALGO")
     except Exception as e:
         print_error(f"Failed to get accounts: {e}")
@@ -110,17 +113,19 @@ def main() -> None:
 
         # Create application
         print_info("Creating application...")
-        create_txn = algorand.create_transaction.app_create(AppCreateParams(
-            sender=creator_address,
-            approval_program=approval_program,
-            clear_state_program=clear_state_program,
-            schema={
-                "global_ints": 0,
-                "global_byte_slices": 0,
-                "local_ints": 0,
-                "local_byte_slices": 0,
-            },
-        ))
+        create_txn = algorand.create_transaction.app_create(
+            AppCreateParams(
+                sender=creator_address,
+                approval_program=approval_program,
+                clear_state_program=clear_state_program,
+                schema={
+                    "global_ints": 0,
+                    "global_byte_slices": 0,
+                    "local_ints": 0,
+                    "local_byte_slices": 0,
+                },
+            )
+        )
 
         signed_create_txn = creator_account.signer([create_txn], [0])
         result = algod.send_raw_transaction(signed_create_txn)
@@ -148,11 +153,13 @@ def main() -> None:
     try:
         # Make several calls from the creator account using the high-level send API
         for i in range(3):
-            call_result = algorand.send.app_call(AppCallParams(
-                sender=creator_address,
-                app_id=app_id,
-                note=f"log call {i + 1}".encode(),
-            ))
+            call_result = algorand.send.app_call(
+                AppCallParams(
+                    sender=creator_address,
+                    app_id=app_id,
+                    note=f"log call {i + 1}".encode(),
+                )
+            )
 
             call_tx_id = call_result.tx_ids[0]
             call_tx_ids.append(call_tx_id)
@@ -166,11 +173,13 @@ def main() -> None:
             print_info(f"Call {i + 1}: txId={tx_id_preview}..., round={confirmed_round}")
 
         # Make a call from the caller account (different sender)
-        caller_call_result = algorand.send.app_call(AppCallParams(
-            sender=caller_address,
-            app_id=app_id,
-            note=b"log call from caller",
-        ))
+        caller_call_result = algorand.send.app_call(
+            AppCallParams(
+                sender=caller_address,
+                app_id=app_id,
+                note=b"log call from caller",
+            )
+        )
 
         caller_tx_id = caller_call_result.tx_ids[0]
         call_tx_ids.append(caller_tx_id)

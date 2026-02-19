@@ -13,7 +13,6 @@ import base64
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -25,6 +24,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
 
 
 def main() -> None:
@@ -65,43 +66,51 @@ def main() -> None:
 
         # Send a payment transaction
         print_info("Sending payment transaction...")
-        payment_result = algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_algo(5),
-        ))
+        payment_result = algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_algo(5),
+            )
+        )
         payment_tx_id = payment_result.tx_ids[0]
         print_success(f"Payment transaction sent: {shorten_address(payment_tx_id, 8, 6)}")
         print_info(f"  Full txId: {payment_tx_id}")
 
         # Create an asset for asset transfer demonstration
         print_info("Creating a test asset...")
-        asset_create_result = algorand.send.asset_create(AssetCreateParams(
-            sender=sender_address,
-            total=1_000_000,
-            decimals=6,
-            asset_name="LookupToken",
-            unit_name="LOOK",
-        ))
+        asset_create_result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=sender_address,
+                total=1_000_000,
+                decimals=6,
+                asset_name="LookupToken",
+                unit_name="LOOK",
+            )
+        )
         asset_id = asset_create_result.asset_id
         print_success(f"Created asset: LookupToken (ID: {asset_id})")
 
         # Opt-in receiver to the asset
         print_info("Opting receiver into asset...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=receiver_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=receiver_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Receiver opted into asset")
 
         # Send an asset transfer transaction
         print_info("Sending asset transfer transaction...")
-        asset_transfer_result = algorand.send.asset_transfer(AssetTransferParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            asset_id=asset_id,
-            amount=50_000,
-        ))
+        asset_transfer_result = algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                asset_id=asset_id,
+                amount=50_000,
+            )
+        )
         asset_transfer_tx_id = asset_transfer_result.tx_ids[0]
         print_success(f"Asset transfer transaction sent: {shorten_address(asset_transfer_tx_id, 8, 6)}")
         print_info(f"  Full txId: {asset_transfer_tx_id}")

@@ -170,7 +170,7 @@ class TypeResolver:
         # Check if items are integers with uint8 format
         return items.get("type") == "integer" and items.get("format") == "uint8"
 
-    def resolve(self, schema: ctx.RawSchema, *, hint: str = "Inline") -> TypeInfo:  # noqa: C901, PLR0911, PLR0912
+    def resolve(self, schema: ctx.RawSchema, *, hint: str = "Inline") -> TypeInfo:
         schema = schema or {}
         schema_type = schema.get("type")
         nullable = bool(schema.get("nullable"))
@@ -390,7 +390,7 @@ class ModelBuilder:
             pending.sort()
         return models, enums, aliases
 
-    def _build_model(self, entry: SchemaEntry) -> ctx.ModelDescriptor:  # noqa: C901, PLR0912, PLR0915
+    def _build_model(self, entry: SchemaEntry) -> ctx.ModelDescriptor:  # noqa: PLR0915
         properties = entry.schema.get("properties", {}) or {}
         required = set(entry.schema.get("required", []) or [])
         fields: list[ctx.ModelField] = []

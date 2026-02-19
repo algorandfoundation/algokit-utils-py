@@ -12,7 +12,6 @@ Prerequisites:
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -23,6 +22,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def format_timestamp(timestamp: int) -> str:
@@ -51,7 +52,7 @@ def main() -> None:
         print_info("")
 
         print_info("Block headers (results are returned in ascending round order):")
-        for block in (result.blocks or []):
+        for block in result.blocks or []:
             print_info(f"  Round {block.round_}:")
             print_info(f"    Timestamp:  {block.timestamp} ({format_timestamp(block.timestamp)})")
             if hasattr(block, "proposer") and block.proposer:
@@ -105,7 +106,7 @@ def main() -> None:
 
         if len(result.blocks or []) > 0:
             print_info("Block rounds found:")
-            for block in (result.blocks or []):
+            for block in result.blocks or []:
                 print_info(f"  Round {block.round_} - {format_timestamp(block.timestamp)}")
         print_info("")
 
@@ -148,7 +149,7 @@ def main() -> None:
 
             if len(result.blocks or []) > 0:
                 print_info("Blocks found:")
-                for block in (result.blocks or []):
+                for block in result.blocks or []:
                     print_info(f"  Round {block.round_} - {format_timestamp(block.timestamp)}")
         print_info("")
 
@@ -178,12 +179,14 @@ def main() -> None:
         receiver = algorand.account.random()
 
         for i in range(3):
-            algorand.send.payment(PaymentParams(
-                sender=dispenser_address,
-                receiver=receiver.addr,
-                amount=AlgoAmount.from_micro_algo(100000),
-                note=f"Block headers example payment {i + 1}".encode(),
-            ))
+            algorand.send.payment(
+                PaymentParams(
+                    sender=dispenser_address,
+                    receiver=receiver.addr,
+                    amount=AlgoAmount.from_micro_algo(100000),
+                    note=f"Block headers example payment {i + 1}".encode(),
+                )
+            )
 
         print_success("Created 3 transactions")
 
@@ -195,7 +198,7 @@ def main() -> None:
         recent_headers = indexer.search_for_block_headers(limit=10)
 
         # Find a block with a proposer
-        for block in (recent_headers.blocks or []):
+        for block in recent_headers.blocks or []:
             if hasattr(block, "proposer") and block.proposer:
                 proposer_address = str(block.proposer)
                 print_success(f"Found block with proposer: {shorten_address(proposer_address)}")
@@ -229,7 +232,7 @@ def main() -> None:
 
             if len(result.blocks or []) > 0:
                 print_info("Blocks found:")
-                for block in (result.blocks or []):
+                for block in result.blocks or []:
                     proposer_str = (
                         shorten_address(str(block.proposer))
                         if hasattr(block, "proposer") and block.proposer
@@ -310,7 +313,7 @@ def main() -> None:
             total_blocks += len(result.blocks or [])
 
             print_info(f"Page {page_count}: Retrieved {len(result.blocks or [])} block(s)")
-            for block in (result.blocks or []):
+            for block in result.blocks or []:
                 print_info(f"  Round {block.round_} - {format_timestamp(block.timestamp)}")
 
             if result.next_token:
@@ -363,7 +366,7 @@ def main() -> None:
 
         if len(result.blocks or []) > 0:
             print_info("Blocks found:")
-            for block in (result.blocks or []):
+            for block in result.blocks or []:
                 proposer_str = (
                     shorten_address(str(block.proposer))
                     if hasattr(block, "proposer") and block.proposer

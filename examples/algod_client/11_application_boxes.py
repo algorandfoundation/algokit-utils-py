@@ -18,8 +18,6 @@ Prerequisites:
 
 import base64
 
-from algokit_common import get_application_address
-from algokit_utils import AlgoAmount, AppCallParams, AppCreateParams, BoxReference, PaymentParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -32,6 +30,9 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_common import get_application_address
+from algokit_utils import AlgoAmount, AppCallParams, AppCreateParams, BoxReference, PaymentParams
 
 
 def main() -> None:

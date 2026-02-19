@@ -34,8 +34,6 @@ Covered operations:
 import base64
 import sys
 
-from algokit_kmd_client.models import GenerateKeyRequest, SignProgramRequest
-from algokit_transact import LogicSigAccount
 from shared import (
     cleanup_test_wallet,
     create_algod_client,
@@ -49,6 +47,9 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_kmd_client.models import GenerateKeyRequest, SignProgramRequest
+from algokit_transact import LogicSigAccount
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 8, show_last: int = 8) -> str:
@@ -86,9 +87,11 @@ def main() -> None:
         # =========================================================================
         print_step(2, "Generating a key in the wallet")
 
-        generate_key_response = kmd.generate_key(GenerateKeyRequest(
-            wallet_handle_token=wallet_handle_token,
-        ))
+        generate_key_response = kmd.generate_key(
+            GenerateKeyRequest(
+                wallet_handle_token=wallet_handle_token,
+            )
+        )
         signer_address = generate_key_response.address
 
         print_success("Key generated!")
@@ -141,12 +144,14 @@ def main() -> None:
         print_info(f"Signer: {shorten_address(signer_address)}")
         print_info("")
 
-        sign_program_response = kmd.sign_program(SignProgramRequest(
-            address=signer_address,
-            program=program_bytes,
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-        ))
+        sign_program_response = kmd.sign_program(
+            SignProgramRequest(
+                address=signer_address,
+                program=program_bytes,
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+            )
+        )
         signature = sign_program_response.sig
 
         print_success("Program signed successfully!")

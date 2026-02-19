@@ -12,7 +12,6 @@ Prerequisites:
 import time
 from datetime import datetime, timezone
 
-from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -24,6 +23,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AssetCreateParams, AssetOptInParams, AssetTransferParams, PaymentParams
 
 
 def main() -> None:
@@ -64,57 +65,69 @@ def main() -> None:
 
         # Fund the receiver with some initial ALGO
         print_info("Sending initial payment to receiver...")
-        algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_algo(10),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_algo(10),
+            )
+        )
         print_success("Initial payment sent: 10 ALGO")
 
         # Send a few more payments with different amounts
         print_info("Sending additional payments...")
-        algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_algo(5),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_algo(5),
+            )
+        )
         print_success("Payment sent: 5 ALGO")
 
-        algorand.send.payment(PaymentParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            amount=AlgoAmount.from_micro_algo(500_000),  # 0.5 ALGO
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                amount=AlgoAmount.from_micro_algo(500_000),  # 0.5 ALGO
+            )
+        )
         print_success("Payment sent: 0.5 ALGO")
 
         # Create an asset
         print_info("Creating a test asset...")
-        asset_create_result = algorand.send.asset_create(AssetCreateParams(
-            sender=sender_address,
-            total=1_000_000,
-            decimals=6,
-            asset_name="TestToken",
-            unit_name="TEST",
-        ))
+        asset_create_result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=sender_address,
+                total=1_000_000,
+                decimals=6,
+                asset_name="TestToken",
+                unit_name="TEST",
+            )
+        )
         asset_id = asset_create_result.asset_id
         print_success(f"Created asset: TestToken (ID: {asset_id})")
 
         # Opt-in receiver to the asset
         print_info("Opting receiver into asset...")
-        algorand.send.asset_opt_in(AssetOptInParams(
-            sender=receiver_address,
-            asset_id=asset_id,
-        ))
+        algorand.send.asset_opt_in(
+            AssetOptInParams(
+                sender=receiver_address,
+                asset_id=asset_id,
+            )
+        )
         print_success("Receiver opted into asset")
 
         # Transfer some assets
         print_info("Sending asset transfer...")
-        algorand.send.asset_transfer(AssetTransferParams(
-            sender=sender_address,
-            receiver=receiver_address,
-            asset_id=asset_id,
-            amount=100_000,
-        ))
+        algorand.send.asset_transfer(
+            AssetTransferParams(
+                sender=sender_address,
+                receiver=receiver_address,
+                asset_id=asset_id,
+                amount=100_000,
+            )
+        )
         print_success("Asset transfer sent: 100,000 TestToken (0.1 TEST)")
 
         # Small delay to allow indexer to catch up
@@ -365,7 +378,7 @@ def main() -> None:
         page1 = indexer.lookup_account_transactions(sender_address, limit=2)
 
         print_info(f"Page 1: Retrieved {len(page1.transactions or [])} transaction(s)")
-        for tx in (page1.transactions or []):
+        for tx in page1.transactions or []:
             tx_id_short = shorten_address(tx.id_, 8, 6) if tx.id_ else "N/A"
             print_info(f"  - {tx_id_short}: {tx.tx_type}")
 
@@ -383,7 +396,7 @@ def main() -> None:
             )
 
             print_info(f"Page 2: Retrieved {len(page2.transactions or [])} transaction(s)")
-            for tx in (page2.transactions or []):
+            for tx in page2.transactions or []:
                 tx_id_short = shorten_address(tx.id_, 8, 6) if tx.id_ else "N/A"
                 print_info(f"  - {tx_id_short}: {tx.tx_type}")
 

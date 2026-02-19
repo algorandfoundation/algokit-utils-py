@@ -19,8 +19,9 @@ ARC-4 specification: Structs are tuples with named fields for improved readabili
 No LocalNet required - pure ABI encoding/decoding
 """
 
-from algokit_abi import abi
 from shared import format_hex, print_header, print_info, print_step, print_success
+
+from algokit_abi import abi
 
 
 def main() -> None:

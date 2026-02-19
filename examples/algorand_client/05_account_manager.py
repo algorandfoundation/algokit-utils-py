@@ -20,9 +20,6 @@ LocalNet required for KMD access and account operations
 
 import secrets
 
-from algokit_algo25 import mnemonic_from_seed
-from algokit_transact import MultisigMetadata
-from algokit_utils import AlgoAmount, AlgorandClient
 from shared import (
     format_algo,
     load_teal_source,
@@ -33,6 +30,10 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_algo25 import mnemonic_from_seed
+from algokit_transact import MultisigMetadata
+from algokit_utils import AlgoAmount, AlgorandClient
 
 
 def main() -> None:

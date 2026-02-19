@@ -25,7 +25,7 @@ def _download_to_temp(url: str) -> Path:
     """Download URL to a temporary file and return the path."""
     tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False)  # noqa: SIM115
     try:
-        urllib.request.urlretrieve(url, tmp.name)  # noqa: S310
+        urllib.request.urlretrieve(url, tmp.name)
     except urllib.error.URLError as e:
         msg = f"Failed to download spec from {url}: {e}"
         raise RuntimeError(msg) from e

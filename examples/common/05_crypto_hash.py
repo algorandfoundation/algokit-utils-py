@@ -12,11 +12,6 @@ SHA-512/256 hashes. This hash algorithm is used throughout Algorand for:
 No LocalNet required - pure cryptographic function
 """
 
-from algokit_common import (
-    HASH_BYTES_LENGTH,
-    TRANSACTION_DOMAIN_SEPARATOR,
-    sha512_256,
-)
 from shared import (
     format_bytes,
     format_hex,
@@ -24,6 +19,12 @@ from shared import (
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_common import (
+    HASH_BYTES_LENGTH,
+    TRANSACTION_DOMAIN_SEPARATOR,
+    sha512_256,
 )
 
 

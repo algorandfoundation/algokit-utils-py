@@ -16,14 +16,6 @@ LocalNet required to verify connection works
 
 import os
 
-from algokit_algod_client import AlgodClient
-from algokit_algod_client.config import ClientConfig as AlgodConfig
-from algokit_indexer_client import IndexerClient
-from algokit_indexer_client.config import ClientConfig as IndexerConfig
-from algokit_kmd_client import KmdClient
-from algokit_kmd_client.config import ClientConfig as KmdConfig
-from algokit_utils import AlgorandClient
-from algokit_utils.models.network import AlgoClientNetworkConfig
 from shared import (
     print_error,
     print_header,
@@ -42,6 +34,15 @@ from shared.constants import (
     KMD_SERVER,
     KMD_TOKEN,
 )
+
+from algokit_algod_client import AlgodClient
+from algokit_algod_client.config import ClientConfig as AlgodConfig
+from algokit_indexer_client import IndexerClient
+from algokit_indexer_client.config import ClientConfig as IndexerConfig
+from algokit_kmd_client import KmdClient
+from algokit_kmd_client.config import ClientConfig as KmdConfig
+from algokit_utils import AlgorandClient
+from algokit_utils.models.network import AlgoClientNetworkConfig
 
 
 def main() -> None:

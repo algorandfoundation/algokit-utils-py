@@ -9,7 +9,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_utils import AssetCreateParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -20,6 +19,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AssetCreateParams
 
 
 def main() -> None:
@@ -54,33 +55,37 @@ def main() -> None:
     try:
         # Create first test asset with full configuration
         print_info("Creating first test asset: AlphaToken (ALPHA)...")
-        result_1 = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=1_000_000_000_000,  # 1,000,000 units with 6 decimals
-            decimals=6,
-            asset_name="AlphaToken",
-            unit_name="ALPHA",
-            url="https://example.com/alpha",
-            default_frozen=False,
-            manager=creator_address,
-            reserve=creator_address,
-            freeze=creator_address,
-            clawback=creator_address,
-        ))
+        result_1 = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=1_000_000_000_000,  # 1,000,000 units with 6 decimals
+                decimals=6,
+                asset_name="AlphaToken",
+                unit_name="ALPHA",
+                url="https://example.com/alpha",
+                default_frozen=False,
+                manager=creator_address,
+                reserve=creator_address,
+                freeze=creator_address,
+                clawback=creator_address,
+            )
+        )
         asset_id_1 = result_1.asset_id
         print_success(f"Created AlphaToken with Asset ID: {asset_id_1}")
 
         # Create second test asset with different unit name
         print_info("Creating second test asset: BetaCoin (BETA)...")
-        result_2 = algorand.send.asset_create(AssetCreateParams(
-            sender=creator_address,
-            total=500_000_000,  # 500,000 units with 3 decimals
-            decimals=3,
-            asset_name="BetaCoin",
-            unit_name="BETA",
-            url="https://example.com/beta",
-            default_frozen=False,
-        ))
+        result_2 = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=creator_address,
+                total=500_000_000,  # 500,000 units with 3 decimals
+                decimals=3,
+                asset_name="BetaCoin",
+                unit_name="BETA",
+                url="https://example.com/beta",
+                default_frozen=False,
+            )
+        )
         asset_id_2 = result_2.asset_id
         print_success(f"Created BetaCoin with Asset ID: {asset_id_2}")
         print_info("")
@@ -176,7 +181,7 @@ def main() -> None:
 
         print_success(f'Found {len(name_result.assets or [])} asset(s) matching name "Alpha"')
         if name_result.assets:
-            for asset in (name_result.assets or []):
+            for asset in name_result.assets or []:
                 print_info(f"  - Asset ID {asset.id_}: {asset.params.name} ({asset.params.unit_name})")
     except Exception as e:
         print_error(f"Filter by name failed: {e}")
@@ -193,7 +198,7 @@ def main() -> None:
 
         print_success(f'Found {len(unit_result.assets or [])} asset(s) matching unit "BETA"')
         if unit_result.assets:
-            for asset in (unit_result.assets or []):
+            for asset in unit_result.assets or []:
                 print_info(f"  - Asset ID {asset.id_}: {asset.params.name} ({asset.params.unit_name})")
     except Exception as e:
         print_error(f"Filter by unit failed: {e}")
@@ -210,7 +215,7 @@ def main() -> None:
 
         print_success(f"Found {len(creator_result.assets or [])} asset(s) created by this account")
         if creator_result.assets:
-            for asset in (creator_result.assets or []):
+            for asset in creator_result.assets or []:
                 name_display = asset.params.name or "(unnamed)"
                 unit_display = asset.params.unit_name or "N/A"
                 print_info(f"  - Asset ID {asset.id_}: {name_display} ({unit_display})")
@@ -272,7 +277,7 @@ def main() -> None:
         )
 
         print_success(f"Found {len(all_assets_result.assets or [])} asset(s) (including any deleted)")
-        for asset in (all_assets_result.assets or []):
+        for asset in all_assets_result.assets or []:
             status = " [DELETED]" if asset.deleted else ""
             name_display = asset.params.name or "(unnamed)"
             print_info(f"  - Asset ID {asset.id_}: {name_display}{status}")

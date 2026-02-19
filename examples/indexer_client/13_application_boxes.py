@@ -3,7 +3,7 @@
 Example: Application Boxes Lookup
 
 This example demonstrates how to query application boxes using
-the IndexerClient search_for_application_boxes() and lookup_application_box_by_idand_name() methods.
+the IndexerClient search_for_application_boxes() and lookup_application_box_by_id_and_name() methods.
 
 Prerequisites:
 - LocalNet running (via `algokit localnet start`)
@@ -12,10 +12,6 @@ Prerequisites:
 import base64
 import time
 
-from algokit_common import get_application_address
-from algokit_transact import BoxReference
-from algokit_utils import AlgoAmount, PaymentParams
-from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -28,6 +24,11 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_common import get_application_address
+from algokit_transact import BoxReference
+from algokit_utils import AlgoAmount, PaymentParams
+from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 
 
 def decode_box_name(name_bytes: bytes) -> str:
@@ -115,17 +116,19 @@ def main() -> None:
 
         # Create application using AlgorandClient's high-level API
         print_info("Creating application...")
-        result = algorand.send.app_create(AppCreateParams(
-            sender=creator_address,
-            approval_program=approval_program,
-            clear_state_program=clear_state_program,
-            schema={
-                "global_ints": 0,
-                "global_byte_slices": 0,
-                "local_ints": 0,
-                "local_byte_slices": 0,
-            },
-        ))
+        result = algorand.send.app_create(
+            AppCreateParams(
+                sender=creator_address,
+                approval_program=approval_program,
+                clear_state_program=clear_state_program,
+                schema={
+                    "global_ints": 0,
+                    "global_byte_slices": 0,
+                    "local_ints": 0,
+                    "local_byte_slices": 0,
+                },
+            )
+        )
 
         app_id = result.app_id
         print_success(f"Created application with ID: {app_id}")
@@ -133,11 +136,13 @@ def main() -> None:
         # Fund the application account for box storage MBR
         app_address = get_application_address(app_id)
         print_info(f"Funding application account: {shorten_address(app_address)}")
-        algorand.send.payment(PaymentParams(
-            sender=creator_address,
-            receiver=app_address,
-            amount=AlgoAmount.from_algo(1),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=creator_address,
+                receiver=app_address,
+                amount=AlgoAmount.from_algo(1),
+            )
+        )
         print_success("Funded application account with 1 ALGO for box storage")
         print_info("")
     except Exception as e:
@@ -184,12 +189,14 @@ def main() -> None:
             box_name_bytes = box["name"].encode("utf-8")
             box_value_bytes = box["value"].encode("utf-8")
 
-            algorand.send.app_call(AppCallParams(
-                sender=creator_address,
-                app_id=app_id,
-                args=[b"create_box", box_name_bytes, box_value_bytes],
-                box_references=[BoxReference(app_id=app_id, name=box_name_bytes)],
-            ))
+            algorand.send.app_call(
+                AppCallParams(
+                    sender=creator_address,
+                    app_id=app_id,
+                    args=[b"create_box", box_name_bytes, box_value_bytes],
+                    box_references=[BoxReference(app_id=app_id, name=box_name_bytes)],
+                )
+            )
 
             print_info(f'Created box "{box["name"]}" with value: "{box["value"]}"')
         print_success(f"Created {len(box_data)} boxes for demonstration")
@@ -228,7 +235,7 @@ def main() -> None:
                 print_info(f"  [{i}] {name_display}")
             print_info("")
             print_info("Note: search_for_application_boxes returns only box names (BoxDescriptor[]),")
-            print_info("not the values. Use lookup_application_box_by_idand_name to get values.")
+            print_info("not the values. Use lookup_application_box_by_id_and_name to get values.")
 
         if boxes_result.next_token:
             token_preview = boxes_result.next_token[:20]
@@ -237,12 +244,12 @@ def main() -> None:
         print_error(f"search_for_application_boxes failed: {e}")
 
     # =========================================================================
-    # Step 6: Lookup specific box by name with lookup_application_box_by_idand_name()
+    # Step 6: Lookup specific box by name with lookup_application_box_by_id_and_name()
     # =========================================================================
-    print_step(6, "Looking up specific box values with lookup_application_box_by_idand_name()")
+    print_step(6, "Looking up specific box values with lookup_application_box_by_id_and_name()")
 
     try:
-        # lookup_application_box_by_idand_name() requires the box name as a string
+        # lookup_application_box_by_id_and_name() requires the box name as a string
         # Use the b64: prefix to pass base64-encoded box name
         box_name_bytes = b"settings"
         box_name_str = "b64:" + base64.b64encode(box_name_bytes).decode()
@@ -251,7 +258,7 @@ def main() -> None:
         print_info(f"Box name encoded: {box_name_str}")
         print_info("")
 
-        box_result = indexer.lookup_application_box_by_idand_name(app_id, box_name_str)
+        box_result = indexer.lookup_application_box_by_id_and_name(app_id, box_name_str)
 
         print_success("Retrieved box details:")
         print_info(f"  Round: {box_result.round_}")
@@ -278,7 +285,7 @@ def main() -> None:
             except json.JSONDecodeError:
                 pass
     except Exception as e:
-        print_error(f"lookup_application_box_by_idand_name failed: {e}")
+        print_error(f"lookup_application_box_by_id_and_name failed: {e}")
 
     # =========================================================================
     # Step 7: Show how to properly encode box names using bytes
@@ -298,7 +305,7 @@ def main() -> None:
         print_info("")
 
         # Lookup this box
-        box1 = indexer.lookup_application_box_by_idand_name(app_id, string_name_encoded)
+        box1 = indexer.lookup_application_box_by_id_and_name(app_id, string_name_encoded)
         value1 = base64.b64decode(box1.value) if isinstance(box1.value, str) else box1.value
         print_info(f"   Box value: {decode_box_value(value1)}")
         print_info("")
@@ -311,7 +318,7 @@ def main() -> None:
         print_info(f'   Decodes to: "{direct_bytes.decode("utf-8")}"')
         print_info(f"   Encoded: {direct_encoded}")
 
-        box2 = indexer.lookup_application_box_by_idand_name(app_id, direct_encoded)
+        box2 = indexer.lookup_application_box_by_id_and_name(app_id, direct_encoded)
         value2 = base64.b64decode(box2.value) if isinstance(box2.value, str) else box2.value
         print_info(f"   Box value: {decode_box_value(value2)}")
         print_info("")
@@ -325,7 +332,7 @@ def main() -> None:
         print_info(f'   Decodes to: "{hex_bytes.decode("utf-8")}"')
         print_info(f"   Encoded: {hex_encoded}")
 
-        box3 = indexer.lookup_application_box_by_idand_name(app_id, hex_encoded)
+        box3 = indexer.lookup_application_box_by_id_and_name(app_id, hex_encoded)
         value3 = base64.b64decode(box3.value) if isinstance(box3.value, str) else box3.value
         print_info(f"   Box value: {decode_box_value(value3)}")
     except Exception as e:
@@ -340,7 +347,7 @@ def main() -> None:
         non_existent_name = "b64:" + base64.b64encode(b"does_not_exist").decode()
         print_info('Attempting to lookup non-existent box "does_not_exist"...')
 
-        indexer.lookup_application_box_by_idand_name(app_id, non_existent_name)
+        indexer.lookup_application_box_by_id_and_name(app_id, non_existent_name)
 
         # If we get here, the box was found (unexpected)
         print_info("Box was found (unexpected)")
@@ -362,7 +369,7 @@ def main() -> None:
         page1 = indexer.search_for_application_boxes(app_id, limit=2)
 
         print_info(f"Page 1: Retrieved {len(page1.boxes or [])} box(es)")
-        for box in (page1.boxes or []):
+        for box in page1.boxes or []:
             name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
             print_info(f"  - {decode_box_name(name_bytes)}")
 
@@ -381,7 +388,7 @@ def main() -> None:
             )
 
             print_info(f"Page 2: Retrieved {len(page2.boxes or [])} box(es)")
-            for box in (page2.boxes or []):
+            for box in page2.boxes or []:
                 name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
                 print_info(f"  - {decode_box_name(name_bytes)}")
 
@@ -398,7 +405,7 @@ def main() -> None:
                 )
 
                 print_info(f"Page 3: Retrieved {len(page3.boxes or [])} box(es)")
-                for box in (page3.boxes or []):
+                for box in page3.boxes or []:
                     name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
                     print_info(f"  - {decode_box_name(name_bytes)}")
 
@@ -420,7 +427,7 @@ def main() -> None:
     print_info("  2. Creating several boxes via app calls")
     print_info("  3. Handling the case where application has no boxes")
     print_info("  4. search_for_application_boxes(app_id) - List all box names")
-    print_info("  5. lookup_application_box_by_idand_name(app_id, box_name) - Get specific box value")
+    print_info("  5. lookup_application_box_by_id_and_name(app_id, box_name) - Get specific box value")
     print_info("  6. Properly encoding box names using bytes")
     print_info("  7. Displaying box values after decoding from bytes")
     print_info("  8. Handling the case where box is not found")
@@ -434,7 +441,7 @@ def main() -> None:
     print_info("Key BoxDescriptor fields:")
     print_info("  - name: Box name as bytes (raw bytes)")
     print_info("")
-    print_info("Key lookup_application_box_by_idand_name response fields (Box):")
+    print_info("Key lookup_application_box_by_id_and_name response fields (Box):")
     print_info("  - round: Round at which box was retrieved (int)")
     print_info("  - name: Box name as bytes")
     print_info("  - value: Box value as bytes")

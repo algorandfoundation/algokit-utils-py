@@ -24,7 +24,6 @@ demonstrates the API call and handles the expected errors gracefully.
 
 import base64
 
-from algokit_algod_client.models import LightBlockHeaderProof
 from shared import (
     create_algod_client,
     print_error,
@@ -33,6 +32,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_algod_client.models import LightBlockHeaderProof
 
 
 def display_light_block_header_proof(proof: LightBlockHeaderProof, block_round: int) -> None:

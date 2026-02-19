@@ -30,7 +30,7 @@ The `IndexerClient` (from `algokit_indexer_client`) exposes the full [indexer AP
 - `indexer.lookup_account_created_assets(account_id)` - Finds all assets created by an account
 - `indexer.lookup_application_by_id(application_id)` - Finds an application by ID
 - `indexer.lookup_application_logs_by_id(application_id)` - Finds log messages for an application
-- `indexer.lookup_application_box_by_idand_name(application_id, name)` - Finds a specific application box by name
+- `indexer.lookup_application_box_by_id_and_name(application_id, name)` - Finds a specific application box by name
 - `indexer.lookup_asset_by_id(asset_id)` - Finds an asset by ID
 - `indexer.lookup_asset_balances(asset_id)` - Finds all asset holdings for the given asset
 - `indexer.lookup_asset_transactions(asset_id)` - Finds all transactions for an asset

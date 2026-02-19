@@ -12,7 +12,6 @@ Prerequisites:
 
 from typing import Any
 
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -24,6 +23,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def format_fee(micro_algos: int) -> str:

@@ -19,8 +19,9 @@ No LocalNet required - pure ABI encoding/decoding
 
 from typing import Any
 
-from algokit_abi import abi
 from shared import format_hex, print_header, print_info, print_step, print_success
+
+from algokit_abi import abi
 
 
 def get_tuple_from_struct(struct_type: abi.StructType, struct_value: dict[str, Any]) -> tuple:

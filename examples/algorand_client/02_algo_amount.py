@@ -17,7 +17,6 @@ Topics covered:
 No LocalNet required - pure utility class demonstration (except for payment example)
 """
 
-from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 from shared import (
     print_error,
     print_header,
@@ -26,6 +25,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 
 
 def main() -> None:
@@ -221,11 +222,13 @@ def main() -> None:
         print_info("")
         print_info(f"Sending {payment_amount.algo} ALGO ({payment_amount.micro_algo:,} uALGO)...")
 
-        result = algorand.send.payment(PaymentParams(
-            sender=dispenser.addr,
-            receiver=receiver.addr,
-            amount=payment_amount,
-        ))
+        result = algorand.send.payment(
+            PaymentParams(
+                sender=dispenser.addr,
+                receiver=receiver.addr,
+                amount=payment_amount,
+            )
+        )
 
         print_info(f"Transaction ID: {result.tx_ids[0]}")
         print_info(f"Confirmed in round: {result.confirmation.confirmed_round}")

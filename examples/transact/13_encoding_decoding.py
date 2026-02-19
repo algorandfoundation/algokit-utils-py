@@ -14,6 +14,16 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
+from shared import (
+    create_algod_client,
+    print_error,
+    print_header,
+    print_info,
+    print_step,
+    print_success,
+    shorten_address,
+)
+
 from algokit_transact import (
     PaymentTransactionFields,
     SignedTransaction,
@@ -27,15 +37,6 @@ from algokit_transact import (
     encode_transaction_raw,
 )
 from algokit_utils import AlgorandClient
-from shared import (
-    create_algod_client,
-    print_error,
-    print_header,
-    print_info,
-    print_step,
-    print_success,
-    shorten_address,
-)
 
 
 def bytes_to_hex(data: bytes, max_length: int | None = None) -> str:
@@ -189,7 +190,9 @@ def main() -> None:
     print_info("")
     print_info("Field comparison:")
     type_match = tx_with_fee.transaction_type == decoded_from_prefix.transaction_type
-    print_info(f"  Type: {tx_with_fee.transaction_type} === {decoded_from_prefix.transaction_type} {'match' if type_match else 'mismatch'}")
+    print_info(
+        f"  Type: {tx_with_fee.transaction_type} === {decoded_from_prefix.transaction_type} {'match' if type_match else 'mismatch'}"
+    )
     sender_match = tx_with_fee.sender == decoded_from_prefix.sender
     print_info(f"  Sender: {'match' if sender_match else 'mismatch'}")
     receiver_match = tx_with_fee.payment.receiver == decoded_from_prefix.payment.receiver

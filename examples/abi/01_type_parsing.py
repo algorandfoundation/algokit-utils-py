@@ -13,8 +13,9 @@ And demonstrates type properties and isinstance checks for type category detecti
 No LocalNet required - pure ABI encoding/decoding
 """
 
-from algokit_abi import abi
 from shared import print_header, print_info, print_step, print_success
+
+from algokit_abi import abi
 
 
 def main() -> None:

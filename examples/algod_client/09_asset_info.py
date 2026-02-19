@@ -9,7 +9,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_utils import AssetCreateParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -21,6 +20,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AssetCreateParams
 
 
 def main() -> None:

@@ -230,9 +230,7 @@ def create_test_wallet(
     wallet_id = create_result.wallet.id_
 
     # Initialize the wallet handle (unlock the wallet)
-    init_result = kmd.init_wallet_handle(
-        InitWalletHandleTokenRequest(wallet_id=wallet_id, wallet_password=password)
-    )
+    init_result = kmd.init_wallet_handle(InitWalletHandleTokenRequest(wallet_id=wallet_id, wallet_password=password))
     wallet_handle_token = init_result.wallet_handle_token
 
     return {
@@ -254,9 +252,7 @@ def cleanup_test_wallet(kmd: KmdClient, wallet_handle_token: str) -> None:
     """
     # Ignore errors during cleanup (handle may have already expired)
     with contextlib.suppress(Exception):
-        kmd.release_wallet_handle_token(
-            ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
-        )
+        kmd.release_wallet_handle_token(ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token))
 
 
 # ============================================================================

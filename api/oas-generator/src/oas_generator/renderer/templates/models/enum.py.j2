@@ -8,4 +8,3 @@ class {{ enum.name }}(Enum):
     {%- for value in enum.values %}
     {{ value.member_name }} = {{ value.value | tojson }}
     {%- endfor %}
-

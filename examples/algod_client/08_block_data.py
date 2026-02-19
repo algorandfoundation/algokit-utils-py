@@ -11,8 +11,6 @@ Prerequisites:
 
 from datetime import datetime, timezone
 
-from algokit_transact import TransactionType
-from algokit_utils import AlgoAmount
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -24,6 +22,9 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_transact import TransactionType
+from algokit_utils import AlgoAmount
 
 
 def format_timestamp(timestamp: int) -> str:

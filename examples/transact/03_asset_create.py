@@ -13,8 +13,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_transact import AssetConfigTransactionFields, Transaction, TransactionType, assign_fee
-from algokit_utils import AlgorandClient
 from shared import (
     create_algod_client,
     print_error,
@@ -25,6 +23,9 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_transact import AssetConfigTransactionFields, Transaction, TransactionType, assign_fee
+from algokit_utils import AlgorandClient
 
 
 def main() -> None:

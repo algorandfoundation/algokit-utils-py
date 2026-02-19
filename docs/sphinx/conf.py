@@ -1,5 +1,5 @@
 # Isolated Sphinx configuration for API-only markdown generation.
-# This config is used by docs/api-build.sh to generate API reference
+# This config is used by docs/api_build.py to generate API reference
 # markdown that is consumed by Starlight. It intentionally omits HTML
 # themes, MyST, and other presentation-layer extensions.
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from docutils import nodes
 
 project = "algokit-utils-py"
-copyright = "2025, Algorand Foundation"
+copyright = "2026, Algorand Foundation"
 author = "Algorand Foundation"
 release = "3.0"
 
