@@ -169,9 +169,9 @@ suppress-none-returning = true
 
 
 [tool.poe.tasks]
-docs-api = "bash docs/api-build.sh"
-docs-dev = { shell = "bash docs/api-build.sh && npm run --prefix docs dev" }
-docs-build = { shell = "bash docs/api-build.sh && npm run --prefix docs build" }
+docs-api = "python docs/api_build.py"
+docs-dev = { shell = "python docs/api_build.py && npm run --prefix docs dev" }
+docs-build = { shell = "python docs/api_build.py && npm run --prefix docs build" }
 docs-preview = "npm run --prefix docs preview"
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false"
 # Polytest tasks for test generation and validation

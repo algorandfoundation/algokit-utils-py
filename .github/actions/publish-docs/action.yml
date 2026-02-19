@@ -16,10 +16,10 @@ runs:
       shell: bash
       run: uv sync
 
-    - name: Set up Node.js 20
+    - name: Set up Node.js 22
       uses: actions/setup-node@v4
       with:
-        node-version: "20"
+        node-version: "22"
         cache: "npm"
         cache-dependency-path: docs/package-lock.json
 
@@ -29,7 +29,7 @@ runs:
 
     - name: Generate API docs
       shell: bash
-      run: bash docs/api-build.sh
+      run: uv run poe docs-api
 
     - name: Build Starlight site
       shell: bash
