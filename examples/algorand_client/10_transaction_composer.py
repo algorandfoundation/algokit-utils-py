@@ -18,15 +18,6 @@ LocalNet required for sending transactions
 
 import base64
 
-from algokit_utils import AlgoAmount, AlgorandClient
-from algokit_utils.transactions.types import (
-    AssetCreateParams,
-    AssetDestroyParams,
-    AssetOptInParams,
-    AssetOptOutParams,
-    AssetTransferParams,
-    PaymentParams,
-)
 from shared import (
     format_algo,
     print_error,
@@ -35,6 +26,16 @@ from shared import (
     print_step,
     print_success,
     shorten_address,
+)
+
+from algokit_utils import AlgoAmount, AlgorandClient
+from algokit_utils.transactions.types import (
+    AssetCreateParams,
+    AssetDestroyParams,
+    AssetOptInParams,
+    AssetOptOutParams,
+    AssetTransferParams,
+    PaymentParams,
 )
 
 
@@ -194,7 +195,9 @@ def main() -> None:
     print_info("Simulated transaction results:")
     txn_results = group_result.txn_results or []
     for i, txn_result in enumerate(txn_results):
-        confirmed_round = txn_result.txn_result.confirmed_round if txn_result.txn_result.confirmed_round else "N/A (simulated)"
+        confirmed_round = (
+            txn_result.txn_result.confirmed_round if txn_result.txn_result.confirmed_round else "N/A (simulated)"
+        )
         print_info(f"  [{i}]: Confirmed round: {confirmed_round}")
 
     print_success("Simulation completed successfully")
@@ -414,7 +417,9 @@ def main() -> None:
     print_info("  .add_asset_freeze(AssetFreezeParams(sender=..., asset_id=..., account=..., frozen=...))")
     print_info("  .add_asset_destroy(AssetDestroyParams(sender=..., asset_id=...))")
     print_info("  .add_app_create(AppCreateParams(sender=..., approval_program=..., clear_state_program=...))")
-    print_info("  .add_app_update(AppUpdateParams(sender=..., app_id=..., approval_program=..., clear_state_program=...))")
+    print_info(
+        "  .add_app_update(AppUpdateParams(sender=..., app_id=..., approval_program=..., clear_state_program=...))"
+    )
     print_info("  .add_app_call(AppCallParams(sender=..., app_id=...))")
     print_info("  .add_app_delete(AppDeleteParams(sender=..., app_id=...))")
     print_info("  .add_transaction(txn, signer?) - Add a pre-built transaction")

@@ -12,10 +12,6 @@ Prerequisites:
 import base64
 import time
 
-from algokit_common import get_application_address
-from algokit_transact import BoxReference
-from algokit_utils import AlgoAmount, PaymentParams
-from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -28,6 +24,11 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_common import get_application_address
+from algokit_transact import BoxReference
+from algokit_utils import AlgoAmount, PaymentParams
+from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 
 
 def decode_box_name(name_bytes: bytes) -> str:
@@ -115,17 +116,19 @@ def main() -> None:
 
         # Create application using AlgorandClient's high-level API
         print_info("Creating application...")
-        result = algorand.send.app_create(AppCreateParams(
-            sender=creator_address,
-            approval_program=approval_program,
-            clear_state_program=clear_state_program,
-            schema={
-                "global_ints": 0,
-                "global_byte_slices": 0,
-                "local_ints": 0,
-                "local_byte_slices": 0,
-            },
-        ))
+        result = algorand.send.app_create(
+            AppCreateParams(
+                sender=creator_address,
+                approval_program=approval_program,
+                clear_state_program=clear_state_program,
+                schema={
+                    "global_ints": 0,
+                    "global_byte_slices": 0,
+                    "local_ints": 0,
+                    "local_byte_slices": 0,
+                },
+            )
+        )
 
         app_id = result.app_id
         print_success(f"Created application with ID: {app_id}")
@@ -133,11 +136,13 @@ def main() -> None:
         # Fund the application account for box storage MBR
         app_address = get_application_address(app_id)
         print_info(f"Funding application account: {shorten_address(app_address)}")
-        algorand.send.payment(PaymentParams(
-            sender=creator_address,
-            receiver=app_address,
-            amount=AlgoAmount.from_algo(1),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=creator_address,
+                receiver=app_address,
+                amount=AlgoAmount.from_algo(1),
+            )
+        )
         print_success("Funded application account with 1 ALGO for box storage")
         print_info("")
     except Exception as e:
@@ -184,12 +189,14 @@ def main() -> None:
             box_name_bytes = box["name"].encode("utf-8")
             box_value_bytes = box["value"].encode("utf-8")
 
-            algorand.send.app_call(AppCallParams(
-                sender=creator_address,
-                app_id=app_id,
-                args=[b"create_box", box_name_bytes, box_value_bytes],
-                box_references=[BoxReference(app_id=app_id, name=box_name_bytes)],
-            ))
+            algorand.send.app_call(
+                AppCallParams(
+                    sender=creator_address,
+                    app_id=app_id,
+                    args=[b"create_box", box_name_bytes, box_value_bytes],
+                    box_references=[BoxReference(app_id=app_id, name=box_name_bytes)],
+                )
+            )
 
             print_info(f'Created box "{box["name"]}" with value: "{box["value"]}"')
         print_success(f"Created {len(box_data)} boxes for demonstration")
@@ -362,7 +369,7 @@ def main() -> None:
         page1 = indexer.search_for_application_boxes(app_id, limit=2)
 
         print_info(f"Page 1: Retrieved {len(page1.boxes or [])} box(es)")
-        for box in (page1.boxes or []):
+        for box in page1.boxes or []:
             name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
             print_info(f"  - {decode_box_name(name_bytes)}")
 
@@ -381,7 +388,7 @@ def main() -> None:
             )
 
             print_info(f"Page 2: Retrieved {len(page2.boxes or [])} box(es)")
-            for box in (page2.boxes or []):
+            for box in page2.boxes or []:
                 name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
                 print_info(f"  - {decode_box_name(name_bytes)}")
 
@@ -398,7 +405,7 @@ def main() -> None:
                 )
 
                 print_info(f"Page 3: Retrieved {len(page3.boxes or [])} box(es)")
-                for box in (page3.boxes or []):
+                for box in page3.boxes or []:
                     name_bytes = base64.b64decode(box.name) if isinstance(box.name, str) else box.name
                     print_info(f"  - {decode_box_name(name_bytes)}")
 

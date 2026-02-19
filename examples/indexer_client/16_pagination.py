@@ -14,7 +14,6 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from algokit_utils import AlgoAmount, AssetCreateParams, PaymentParams
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -27,9 +26,12 @@ from shared import (
     shorten_address,
 )
 
+from algokit_utils import AlgoAmount, AssetCreateParams, PaymentParams
+
 # ============================================================================
 # Generic Pagination Helper Function
 # ============================================================================
+
 
 @dataclass
 class PaginationOptions:
@@ -161,23 +163,27 @@ def main() -> None:
             receiver = algorand.account.random()
             receiver_accounts.append(receiver.addr)
 
-            algorand.send.payment(PaymentParams(
-                sender=sender_address,
-                receiver=receiver.addr,
-                amount=AlgoAmount.from_algo(1),
-            ))
+            algorand.send.payment(
+                PaymentParams(
+                    sender=sender_address,
+                    receiver=receiver.addr,
+                    amount=AlgoAmount.from_algo(1),
+                )
+            )
 
         print_success(f"Created {len(receiver_accounts)} payment transactions")
 
         # Create a test asset
         print_info("Creating test asset...")
-        asset_result = algorand.send.asset_create(AssetCreateParams(
-            sender=sender_address,
-            total=1_000_000,
-            decimals=0,
-            asset_name="PaginationTestToken",
-            unit_name="PAGE",
-        ))
+        asset_result = algorand.send.asset_create(
+            AssetCreateParams(
+                sender=sender_address,
+                total=1_000_000,
+                decimals=0,
+                asset_name="PaginationTestToken",
+                unit_name="PAGE",
+            )
+        )
         print_success(f"Created asset: PaginationTestToken (ID: {asset_result.asset_id})")
 
         # Wait for indexer to catch up
@@ -214,8 +220,8 @@ def main() -> None:
                 next_=next_token,
             )
 
-            all_transactions.extend((result.transactions or []))
-            print_info(f"  Page {page_number}: Retrieved {len((result.transactions or []))} transaction(s)")
+            all_transactions.extend(result.transactions or [])
+            print_info(f"  Page {page_number}: Retrieved {len(result.transactions or [])} transaction(s)")
 
             next_token = result.next_token
             if not next_token:
@@ -258,12 +264,12 @@ def main() -> None:
                 next_=next_token,
             )
 
-            for account in (result.accounts or []):
+            for account in result.accounts or []:
                 if len(all_accounts) >= max_items:
                     break
                 all_accounts.append(account)
 
-            print_info(f"  Page {page_number}: Retrieved {len((result.accounts or []))} account(s)")
+            print_info(f"  Page {page_number}: Retrieved {len(result.accounts or [])} account(s)")
 
             next_token = result.next_token
             if not next_token:
@@ -306,12 +312,12 @@ def main() -> None:
                 next_=next_token,
             )
 
-            for asset in (result.assets or []):
+            for asset in result.assets or []:
                 if len(all_assets) >= max_items:
                     break
                 all_assets.append(asset)
 
-            print_info(f"  Page {page_number}: Retrieved {len((result.assets or []))} asset(s)")
+            print_info(f"  Page {page_number}: Retrieved {len(result.assets or [])} asset(s)")
 
             next_token = result.next_token
             if not next_token:
@@ -357,7 +363,7 @@ def main() -> None:
                 next_=next_token,
             )
 
-            total_transactions += len((result.transactions or []))
+            total_transactions += len(result.transactions or [])
             next_token = result.next_token
 
             # Safety limit for demo
@@ -386,7 +392,7 @@ def main() -> None:
                 next_=next_token,
             )
 
-            total_accounts += len((result.accounts or []))
+            total_accounts += len(result.accounts or [])
             next_token = result.next_token
 
             if page_count >= 10:
@@ -420,9 +426,9 @@ def main() -> None:
                 next_=next_token,
             )
 
-            print_info(f"  Page {page_number}: Checking {len((result.transactions or []))} transaction(s)...")
+            print_info(f"  Page {page_number}: Checking {len(result.transactions or [])} transaction(s)...")
 
-            for tx in (result.transactions or []):
+            for tx in result.transactions or []:
                 if tx.tx_type == "pay":
                     tx_id = tx.id_ if tx.id_ else "N/A"
                     idx = len(all_transactions)
@@ -457,7 +463,7 @@ def main() -> None:
                 next_=next_token,
             )
 
-            for account in (result.accounts or []):
+            for account in result.accounts or []:
                 # Stop when we find an account with > 1000 ALGO (1,000,000,000,000 microAlgos)
                 if account.amount > 1_000_000_000_000:
                     found_whale = True
@@ -503,8 +509,8 @@ def main() -> None:
                 next_=next_token,
             )
 
-            print_info(f"  Page {page_number}: Retrieved {len((result.assets or []))} item(s)")
-            all_assets.extend((result.assets or []))
+            print_info(f"  Page {page_number}: Retrieved {len(result.assets or [])} item(s)")
+            all_assets.extend(result.assets or [])
 
             next_token = result.next_token
             if not next_token:
@@ -532,7 +538,7 @@ def main() -> None:
                 next_=next_token,
             )
 
-            all_accounts.extend((result.accounts or []))
+            all_accounts.extend(result.accounts or [])
 
             next_token = result.next_token
             if not next_token:
@@ -566,10 +572,12 @@ def main() -> None:
                 next_=next_token,
             )
 
-            all_transactions.extend((page.transactions or []))
+            all_transactions.extend(page.transactions or [])
             next_token = page.next_token
 
-            print_info(f"  Page {page_num}: {len((page.transactions or []))} transactions (total: {len(all_transactions)})")
+            print_info(
+                f"  Page {page_num}: {len(page.transactions or [])} transactions (total: {len(all_transactions)})"
+            )
 
             # Limit for demo
             if page_num >= 3:

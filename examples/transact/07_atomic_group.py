@@ -16,14 +16,6 @@ Prerequisites:
 
 import base64
 
-from algokit_transact import (
-    PaymentTransactionFields,
-    Transaction,
-    TransactionType,
-    assign_fee,
-    group_transactions,
-)
-from algokit_utils import AlgorandClient
 from shared import (
     create_algod_client,
     format_algo,
@@ -36,6 +28,15 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_transact import (
+    PaymentTransactionFields,
+    Transaction,
+    TransactionType,
+    assign_fee,
+    group_transactions,
+)
+from algokit_utils import AlgorandClient
 
 
 def main() -> None:

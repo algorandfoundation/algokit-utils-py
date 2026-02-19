@@ -1,7 +1,6 @@
 """Tests for IdentifierSanitizer camelCase / PascalCase → snake_case conversion."""
 
 import pytest
-
 from oas_generator.naming import IdentifierSanitizer
 
 _san = IdentifierSanitizer()

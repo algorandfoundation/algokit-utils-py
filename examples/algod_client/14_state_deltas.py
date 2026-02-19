@@ -15,11 +15,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_algod_client.models import (
-    LedgerStateDelta,
-    TransactionGroupLedgerStateDeltasForRound,
-)
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -31,6 +26,12 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_algod_client.models import (
+    LedgerStateDelta,
+    TransactionGroupLedgerStateDeltasForRound,
+)
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def get_account_status(status: int) -> str:

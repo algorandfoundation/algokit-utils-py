@@ -13,7 +13,6 @@ LocalNet required to fetch suggested params and send transactions
 
 import time
 
-from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 from shared import (
     print_error,
     print_header,
@@ -22,6 +21,8 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_utils import AlgoAmount, AlgorandClient, PaymentParams
 
 
 def main() -> None:
@@ -70,23 +71,27 @@ def main() -> None:
     receiver = algorand.account.random()
 
     # Fund the sender
-    algorand.send.payment(PaymentParams(
-        sender=dispenser.addr,
-        receiver=sender.addr,
-        amount=AlgoAmount.from_algo(10),
-    ))
+    algorand.send.payment(
+        PaymentParams(
+            sender=dispenser.addr,
+            receiver=sender.addr,
+            amount=AlgoAmount.from_algo(10),
+        )
+    )
 
     print_info("")
     print_info(f"Sender: {shorten_address(str(sender.addr))}")
     print_info(f"Receiver: {shorten_address(str(receiver.addr))}")
 
     # Send a transaction and inspect its validity window
-    tx_result = algorand.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.1),
-        note=b"Transaction 1",
-    ))
+    tx_result = algorand.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.1),
+            note=b"Transaction 1",
+        )
+    )
 
     # Access the transaction directly from the result
     tx = tx_result.transactions[0]
@@ -108,12 +113,14 @@ def main() -> None:
     algorand_custom = AlgorandClient.default_localnet().set_default_validity_window(50)
     algorand_custom.account.set_signer_from_account(sender)
 
-    tx_result_custom = algorand_custom.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.1),
-        note=b"Transaction with custom validity",
-    ))
+    tx_result_custom = algorand_custom.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.1),
+            note=b"Transaction with custom validity",
+        )
+    )
 
     # Access the transaction directly from the result
     tx_custom = tx_result_custom.transactions[0]
@@ -200,12 +207,14 @@ def main() -> None:
 
     start_with_cache = time.time()
     for i in range(num_transactions):
-        algorand.send.payment(PaymentParams(
-            sender=sender.addr,
-            receiver=receiver.addr,
-            amount=AlgoAmount.from_algo(0.01),
-            note=f"Performance test transaction {i + 1} at {time.time()}".encode(),
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=sender.addr,
+                receiver=receiver.addr,
+                amount=AlgoAmount.from_algo(0.01),
+                note=f"Performance test transaction {i + 1} at {time.time()}".encode(),
+            )
+        )
     duration_with_cache = (time.time() - start_with_cache) * 1000
 
     print_info(f"  Total time: {duration_with_cache:.0f}ms")
@@ -219,9 +228,7 @@ def main() -> None:
     print_info("All configuration methods return the AlgorandClient for chaining")
 
     configured_client = (
-        AlgorandClient.default_localnet()
-        .set_default_validity_window(25)
-        .set_suggested_params_cache_timeout(10_000)
+        AlgorandClient.default_localnet().set_default_validity_window(25).set_suggested_params_cache_timeout(10_000)
     )
     configured_client.account.set_signer_from_account(sender)
 
@@ -232,12 +239,14 @@ def main() -> None:
     print_info("  .account.set_signer_from_account(sender)")
 
     # Send a transaction to verify the configuration
-    chained_tx_result = configured_client.send.payment(PaymentParams(
-        sender=sender.addr,
-        receiver=receiver.addr,
-        amount=AlgoAmount.from_algo(0.01),
-        note=b"Chained config test",
-    ))
+    chained_tx_result = configured_client.send.payment(
+        PaymentParams(
+            sender=sender.addr,
+            receiver=receiver.addr,
+            amount=AlgoAmount.from_algo(0.01),
+            note=b"Chained config test",
+        )
+    )
 
     # Access the transaction directly from the result
     chained_tx = chained_tx_result.transactions[0]

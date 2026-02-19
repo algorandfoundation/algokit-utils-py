@@ -24,8 +24,6 @@ Note: On LocalNet in dev mode, state proofs are NOT generated because:
 This example demonstrates the API call and handles the expected errors gracefully.
 """
 
-from algokit_algod_client.models import StateProof
-
 from shared import (
     create_algod_client,
     print_error,
@@ -34,6 +32,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_algod_client.models import StateProof
 
 
 def display_state_proof(proof: StateProof) -> None:

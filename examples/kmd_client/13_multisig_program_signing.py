@@ -40,17 +40,6 @@ import base64
 import sys
 
 import msgpack
-
-from algokit_common import address_from_public_key, public_key_from_address
-from algokit_kmd_client.models import (
-    GenerateKeyRequest,
-    ImportMultisigRequest,
-    MultisigSig,
-    MultisigSubsig,
-    SignProgramMultisigRequest,
-)
-from algokit_transact import LogicSigAccount
-from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
 from shared import (
     cleanup_test_wallet,
     create_algod_client,
@@ -64,6 +53,17 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_common import address_from_public_key, public_key_from_address
+from algokit_kmd_client.models import (
+    GenerateKeyRequest,
+    ImportMultisigRequest,
+    MultisigSig,
+    MultisigSubsig,
+    SignProgramMultisigRequest,
+)
+from algokit_transact import LogicSigAccount
+from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 8, show_last: int = 8) -> str:
@@ -150,9 +150,11 @@ def main() -> None:
         num_participants = 3
 
         for i in range(1, num_participants + 1):
-            generate_key_response = kmd.generate_key(GenerateKeyRequest(
-                wallet_handle_token=wallet_handle_token,
-            ))
+            generate_key_response = kmd.generate_key(
+                GenerateKeyRequest(
+                    wallet_handle_token=wallet_handle_token,
+                )
+            )
             address = generate_key_response.address
             participant_addresses.append(address)
             pk = public_key_from_address(address)
@@ -169,12 +171,14 @@ def main() -> None:
         threshold = 2  # Minimum signatures required
         multisig_version = 1  # Multisig format version
 
-        import_multisig_response = kmd.import_multisig(ImportMultisigRequest(
-            multisig_version=multisig_version,
-            public_keys=public_keys,
-            threshold=threshold,
-            wallet_handle_token=wallet_handle_token,
-        ))
+        import_multisig_response = kmd.import_multisig(
+            ImportMultisigRequest(
+                multisig_version=multisig_version,
+                public_keys=public_keys,
+                threshold=threshold,
+                wallet_handle_token=wallet_handle_token,
+            )
+        )
         multisig_address = import_multisig_response.address
 
         print_success("Multisig account created!")
@@ -226,13 +230,15 @@ def main() -> None:
         print_info(f"First signer: {shorten_address(participant_addresses[0])}")
         print_info("")
 
-        first_result = kmd.sign_multisig_program(SignProgramMultisigRequest(
-            address=multisig_address,
-            program=program_bytes,
-            public_key=public_keys[0],
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-        ))
+        first_result = kmd.sign_multisig_program(
+            SignProgramMultisigRequest(
+                address=multisig_address,
+                program=program_bytes,
+                public_key=public_keys[0],
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+            )
+        )
         first_sign_result = first_result.multisig
 
         print_success("First signature obtained!")
@@ -274,22 +280,24 @@ def main() -> None:
 
         # Convert decoded dict to MultisigSig for passing back to KMD
         partial_msig_obj = MultisigSig(
-            version=partial_kmd_multisig['version'],
-            threshold=partial_kmd_multisig['threshold'],
+            version=partial_kmd_multisig["version"],
+            threshold=partial_kmd_multisig["threshold"],
             subsignatures=[
-                MultisigSubsig(public_key=s['public_key'], signature=s['signature'])
-                for s in partial_kmd_multisig['subsignatures']
+                MultisigSubsig(public_key=s["public_key"], signature=s["signature"])
+                for s in partial_kmd_multisig["subsignatures"]
             ],
         )
 
-        second_result = kmd.sign_multisig_program(SignProgramMultisigRequest(
-            address=multisig_address,
-            program=program_bytes,
-            public_key=public_keys[1],
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-            partial_multisig=partial_msig_obj,
-        ))
+        second_result = kmd.sign_multisig_program(
+            SignProgramMultisigRequest(
+                address=multisig_address,
+                program=program_bytes,
+                public_key=public_keys[1],
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+                partial_multisig=partial_msig_obj,
+            )
+        )
         second_sign_result = second_result.multisig
 
         print_success("Second signature obtained!")

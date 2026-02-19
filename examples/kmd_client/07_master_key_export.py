@@ -21,8 +21,6 @@ Covered operations:
 
 import sys
 
-from algokit_kmd_client.models import ExportMasterKeyRequest, GenerateKeyRequest, ListKeysRequest
-
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -33,6 +31,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_kmd_client.models import ExportMasterKeyRequest, GenerateKeyRequest, ListKeysRequest
 
 
 def format_bytes_for_display(data: bytes, show_first: int = 4, show_last: int = 4) -> str:
@@ -87,7 +87,9 @@ def main() -> None:
         # =========================================================================
         print_step(3, "Exporting the master derivation key with export_master_key()")
 
-        master_key = kmd.export_master_key(ExportMasterKeyRequest(wallet_handle_token=wallet_handle_token, wallet_password=wallet_password)).master_derivation_key
+        master_key = kmd.export_master_key(
+            ExportMasterKeyRequest(wallet_handle_token=wallet_handle_token, wallet_password=wallet_password)
+        ).master_derivation_key
 
         print_success("Master derivation key exported successfully!")
         print_info("")

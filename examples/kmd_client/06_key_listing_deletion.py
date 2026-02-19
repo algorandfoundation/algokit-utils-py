@@ -15,8 +15,6 @@ Covered operations:
 
 import sys
 
-from algokit_kmd_client.models import DeleteKeyRequest, GenerateKeyRequest, ListKeysRequest
-
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -27,6 +25,8 @@ from shared import (
     print_step,
     print_success,
 )
+
+from algokit_kmd_client.models import DeleteKeyRequest, GenerateKeyRequest, ListKeysRequest
 
 
 def main() -> None:
@@ -91,7 +91,11 @@ def main() -> None:
         print_info(f"Key to delete: {key_to_delete}")
         print_info("")
 
-        kmd.delete_key(DeleteKeyRequest(wallet_handle_token=wallet_handle_token, wallet_password=wallet_password, address=key_to_delete))
+        kmd.delete_key(
+            DeleteKeyRequest(
+                wallet_handle_token=wallet_handle_token, wallet_password=wallet_password, address=key_to_delete
+            )
+        )
 
         print_success("Key deleted successfully!")
         print_info("")
@@ -135,7 +139,11 @@ def main() -> None:
 
         # Note: KMD does NOT throw an error when deleting a non-existent key.
         # The operation silently succeeds even if the key doesn't exist.
-        kmd.delete_key(DeleteKeyRequest(wallet_handle_token=wallet_handle_token, wallet_password=wallet_password, address=key_to_delete))
+        kmd.delete_key(
+            DeleteKeyRequest(
+                wallet_handle_token=wallet_handle_token, wallet_password=wallet_password, address=key_to_delete
+            )
+        )
 
         print_success("delete_key() completed (no error thrown)")
         print_info("")

@@ -166,6 +166,10 @@ suppress-none-returning = true
   "I001",
   "RUF022",
 ] # Ignore import sorting for __init__.py
+# OAS generator has inherently complex schema-walking code
+"api/oas-generator/src/oas_generator/builder.py" = ["C901", "PLR0911", "PLR0912", "E501", "ARG002", "ANN401", "FBT003"]
+# Examples may have long demo lines
+"examples/**/*" = ["E501"]
 
 
 [tool.poe.tasks]
@@ -199,7 +203,7 @@ polytest-validate-all = [
 ]
 
 [tool.poe.tasks.ruff-check]
-cmd = "ruff check src tests"
+cmd = "ruff check src tests examples api"
 
 [tool.poe.tasks.mypy-check]
 cmd = "mypy src"
@@ -209,7 +213,7 @@ sequence = ["ruff-check", "mypy-check"]
 ignore_fail = "return_non_zero"
 
 [tool.poe.tasks.ruff-format]
-cmd = "ruff format src tests"
+cmd = "ruff format src tests examples api"
 
 [tool.poe.tasks.ruff-fix]
 ref = "ruff-check --fix"

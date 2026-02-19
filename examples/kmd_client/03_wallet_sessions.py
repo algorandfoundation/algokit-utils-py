@@ -19,13 +19,6 @@ Covered operations:
 import sys
 import time
 
-from algokit_kmd_client.models import (
-    CreateWalletRequest,
-    InitWalletHandleTokenRequest,
-    ReleaseWalletHandleTokenRequest,
-    RenewWalletHandleTokenRequest,
-    WalletInfoRequest,
-)
 from shared import (
     cleanup_test_wallet,
     create_kmd_client,
@@ -34,6 +27,14 @@ from shared import (
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_kmd_client.models import (
+    CreateWalletRequest,
+    InitWalletHandleTokenRequest,
+    ReleaseWalletHandleTokenRequest,
+    RenewWalletHandleTokenRequest,
+    WalletInfoRequest,
 )
 
 
@@ -132,9 +133,7 @@ def main() -> None:
         # =========================================================================
         print_step(5, "Invalidating token with release_wallet_handle()")
 
-        kmd.release_wallet_handle_token(
-            ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
-        )
+        kmd.release_wallet_handle_token(ReleaseWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token))
 
         print_success("Token released successfully!")
         print_info("")

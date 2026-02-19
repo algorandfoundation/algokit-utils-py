@@ -21,20 +21,6 @@ Covered operations:
 import sys
 
 import msgpack
-
-from algokit_common import address_from_public_key, public_key_from_address
-from algokit_kmd_client.models import (
-    GenerateKeyRequest,
-    ImportMultisigRequest,
-    MultisigSig,
-    MultisigSubsig,
-    SignMultisigTxnRequest,
-)
-from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, assign_fee, encode_signed_transaction, encode_transaction_raw
-from algokit_transact.models.signed_transaction import SignedTransaction
-from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
-from algokit_utils import AlgoAmount
-from algokit_utils.transactions.types import PaymentParams
 from shared import (
     cleanup_test_wallet,
     create_algod_client,
@@ -49,6 +35,27 @@ from shared import (
     shorten_address,
     wait_for_confirmation,
 )
+
+from algokit_common import address_from_public_key, public_key_from_address
+from algokit_kmd_client.models import (
+    GenerateKeyRequest,
+    ImportMultisigRequest,
+    MultisigSig,
+    MultisigSubsig,
+    SignMultisigTxnRequest,
+)
+from algokit_transact import (
+    PaymentTransactionFields,
+    Transaction,
+    TransactionType,
+    assign_fee,
+    encode_signed_transaction,
+    encode_transaction_raw,
+)
+from algokit_transact.models.signed_transaction import SignedTransaction
+from algokit_transact.signing.types import MultisigSignature, MultisigSubsignature
+from algokit_utils import AlgoAmount
+from algokit_utils.transactions.types import PaymentParams
 
 
 def format_micro_algo(micro_algo: int) -> str:
@@ -132,9 +139,11 @@ def main() -> None:
         num_participants = 3
 
         for i in range(1, num_participants + 1):
-            generate_key_response = kmd.generate_key(GenerateKeyRequest(
-                wallet_handle_token=wallet_handle_token,
-            ))
+            generate_key_response = kmd.generate_key(
+                GenerateKeyRequest(
+                    wallet_handle_token=wallet_handle_token,
+                )
+            )
             address = generate_key_response.address
             participant_addresses.append(address)
             pk = public_key_from_address(address)
@@ -151,12 +160,14 @@ def main() -> None:
         threshold = 2  # Minimum signatures required
         multisig_version = 1  # Multisig format version
 
-        import_multisig_response = kmd.import_multisig(ImportMultisigRequest(
-            multisig_version=multisig_version,
-            public_keys=public_keys,
-            threshold=threshold,
-            wallet_handle_token=wallet_handle_token,
-        ))
+        import_multisig_response = kmd.import_multisig(
+            ImportMultisigRequest(
+                multisig_version=multisig_version,
+                public_keys=public_keys,
+                threshold=threshold,
+                wallet_handle_token=wallet_handle_token,
+            )
+        )
         multisig_address = import_multisig_response.address
 
         print_success("Multisig account created!")
@@ -173,11 +184,13 @@ def main() -> None:
 
         # Fund the multisig account with 1 ALGO
         fund_amount = AlgoAmount.from_algo(1)
-        algorand.send.payment(PaymentParams(
-            sender=dispenser.addr,
-            receiver=multisig_address,
-            amount=fund_amount,
-        ))
+        algorand.send.payment(
+            PaymentParams(
+                sender=dispenser.addr,
+                receiver=multisig_address,
+                amount=fund_amount,
+            )
+        )
 
         # Verify funding
         account_info = algod.account_information(multisig_address)
@@ -239,12 +252,14 @@ def main() -> None:
 
         tx_bytes = encode_transaction_raw(transaction)
 
-        first_result = kmd.sign_multisig_transaction(SignMultisigTxnRequest(
-            public_key=public_keys[0],
-            transaction=tx_bytes,
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-        ))
+        first_result = kmd.sign_multisig_transaction(
+            SignMultisigTxnRequest(
+                public_key=public_keys[0],
+                transaction=tx_bytes,
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+            )
+        )
         first_sign_result = first_result.multisig
 
         print_success("First signature obtained!")
@@ -286,21 +301,23 @@ def main() -> None:
 
         # Convert decoded dict to MultisigSig for passing back to KMD
         partial_msig_obj = MultisigSig(
-            version=partial_kmd_multisig['version'],
-            threshold=partial_kmd_multisig['threshold'],
+            version=partial_kmd_multisig["version"],
+            threshold=partial_kmd_multisig["threshold"],
             subsignatures=[
-                MultisigSubsig(public_key=s['public_key'], signature=s['signature'])
-                for s in partial_kmd_multisig['subsignatures']
+                MultisigSubsig(public_key=s["public_key"], signature=s["signature"])
+                for s in partial_kmd_multisig["subsignatures"]
             ],
         )
 
-        second_result = kmd.sign_multisig_transaction(SignMultisigTxnRequest(
-            public_key=public_keys[1],
-            transaction=tx_bytes,
-            wallet_handle_token=wallet_handle_token,
-            wallet_password=wallet_password,
-            partial_multisig=partial_msig_obj,
-        ))
+        second_result = kmd.sign_multisig_transaction(
+            SignMultisigTxnRequest(
+                public_key=public_keys[1],
+                transaction=tx_bytes,
+                wallet_handle_token=wallet_handle_token,
+                wallet_password=wallet_password,
+                partial_multisig=partial_msig_obj,
+            )
+        )
         second_sign_result = second_result.multisig
 
         print_success("Second signature obtained!")

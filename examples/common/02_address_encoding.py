@@ -13,14 +13,6 @@ and compute application addresses:
 No LocalNet required - pure utility functions
 """
 
-from algokit_common import (
-    CHECKSUM_BYTE_LENGTH,
-    ZERO_ADDRESS,
-    address_from_public_key,
-    get_application_address,
-    public_key_from_address,
-    sha512_256,
-)
 from shared import (
     format_bytes,
     format_hex,
@@ -28,6 +20,15 @@ from shared import (
     print_info,
     print_step,
     print_success,
+)
+
+from algokit_common import (
+    CHECKSUM_BYTE_LENGTH,
+    ZERO_ADDRESS,
+    address_from_public_key,
+    get_application_address,
+    public_key_from_address,
+    sha512_256,
 )
 
 

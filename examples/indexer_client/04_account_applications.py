@@ -9,9 +9,6 @@ Prerequisites:
 - LocalNet running (via `algokit localnet start`)
 """
 
-from algokit_transact import OnApplicationComplete
-from algokit_utils.transactions.types import AppCallParams, AppCreateParams
-
 from shared import (
     create_algorand_client,
     create_indexer_client,
@@ -23,6 +20,9 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_transact import OnApplicationComplete
+from algokit_utils.transactions.types import AppCallParams, AppCreateParams
 
 
 def main() -> None:
@@ -140,7 +140,7 @@ def main() -> None:
 
         if len(created_apps_result.applications or []) > 0:
             print_info("Created applications:")
-            for app in (created_apps_result.applications or []):
+            for app in created_apps_result.applications or []:
                 print_info(f"  Application ID: {app.id_}")
                 if app.params:
                     if app.params.creator:

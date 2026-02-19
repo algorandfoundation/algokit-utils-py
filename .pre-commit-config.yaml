@@ -1,4 +1,21 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+            tests/_snapshots/.*\.approved\.txt$|
+            tests/applications/_snapshots/.*\.approved\.txt$|
+            tests/artifacts/.*\.(json|puya\.map)$
+          )
+      - id: trailing-whitespace
+        exclude: |
+          (?x)^(
+            tests/_snapshots/.*\.approved\.txt$|
+            tests/applications/_snapshots/.*\.approved\.txt$|
+            tests/artifacts/.*\.(json|puya\.map)$
+          )
   - repo: local
     hooks:
       - id: format
@@ -12,7 +29,7 @@ repos:
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
         pass_filenames: false
-        files: "^(src|tests)/"
+        files: "^(src|tests|examples|api)/"
       - id: generate-api-clients
         name: generate-api-clients
         description: "Generate API clients before linting"
@@ -22,7 +39,7 @@ repos:
         args: []
         require_serial: true
         pass_filenames: false
-        files: "^(src|tests)/"
+        files: "^(src|tests|examples|api)/"
       - id: lint
         name: lint
         description: "`mypy` and 'ruff' will check Python types for correctness"
@@ -34,11 +51,11 @@ repos:
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
         pass_filenames: false
-        files: "^(src|tests)/"
+        files: "^(src|tests|examples|api)/"
       - id: docs
         name: docs
         description: "Build documentation (always passes)"
-        entry: bash -c 'uv run poe docs || true'
+        entry: bash -c 'uv run poe docs-build || true'
         language: system
         pass_filenames: false
         always_run: true

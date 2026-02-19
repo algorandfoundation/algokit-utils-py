@@ -15,9 +15,6 @@ Prerequisites:
 
 from decimal import Decimal
 
-from algokit_algod_client.models import SimulateRequest, SimulateRequestTransactionGroup
-from algokit_transact import SignedTransaction, decode_signed_transaction
-from algokit_utils import AlgoAmount, PaymentParams
 from shared import (
     create_algod_client,
     create_algorand_client,
@@ -28,6 +25,10 @@ from shared import (
     print_success,
     shorten_address,
 )
+
+from algokit_algod_client.models import SimulateRequest, SimulateRequestTransactionGroup
+from algokit_transact import SignedTransaction, decode_signed_transaction
+from algokit_utils import AlgoAmount, PaymentParams
 
 
 def main() -> None:
@@ -96,13 +97,7 @@ def main() -> None:
     # Create a SimulateRequest with the signed transaction
     # Decode the signed transaction bytes to get a SignedTransaction object
     signed_txn = decode_signed_transaction(signed_txn_bytes[0])
-    sim_request = SimulateRequest(
-        txn_groups=[
-            SimulateRequestTransactionGroup(
-                txns=[signed_txn]
-            )
-        ]
-    )
+    sim_request = SimulateRequest(txn_groups=[SimulateRequestTransactionGroup(txns=[signed_txn])])
 
     sim_result = algod.simulate_transactions(sim_request)
 
@@ -316,11 +311,7 @@ def main() -> None:
     )
 
     overspend_request = SimulateRequest(
-        txn_groups=[
-            SimulateRequestTransactionGroup(
-                txns=[SignedTransaction(txn=overspend_txn)]
-            )
-        ],
+        txn_groups=[SimulateRequestTransactionGroup(txns=[SignedTransaction(txn=overspend_txn)])],
         allow_empty_signatures=True,
     )
 
@@ -367,11 +358,7 @@ def main() -> None:
     )
 
     close_out_request = SimulateRequest(
-        txn_groups=[
-            SimulateRequestTransactionGroup(
-                txns=[SignedTransaction(txn=close_out_txn)]
-            )
-        ],
+        txn_groups=[SimulateRequestTransactionGroup(txns=[SignedTransaction(txn=close_out_txn)])],
         allow_empty_signatures=True,
     )
 
@@ -404,11 +391,7 @@ def main() -> None:
     )
 
     low_fee_request = SimulateRequest(
-        txn_groups=[
-            SimulateRequestTransactionGroup(
-                txns=[SignedTransaction(txn=low_fee_txn)]
-            )
-        ],
+        txn_groups=[SimulateRequestTransactionGroup(txns=[SignedTransaction(txn=low_fee_txn)])],
         allow_empty_signatures=True,
     )
 
