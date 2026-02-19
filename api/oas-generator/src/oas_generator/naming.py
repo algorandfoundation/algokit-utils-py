@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 
 _NON_WORD = re.compile(r"[^0-9a-zA-Z]+")
+_ACRONYM_BOUNDARY = re.compile(r"([A-Z]+)([A-Z][a-z])")
 _LOWER_TO_UPPER = re.compile(r"([a-z0-9])([A-Z])")
 _PY_RESERVED = {*keyword.kwlist, *keyword.softkwlist, *dir(builtins), "self", "cls"}
 
@@ -16,7 +17,10 @@ class IdentifierSanitizer:
 
     def _words(self, raw: str) -> list[str]:
         cleaned = _NON_WORD.sub(" ", raw)
-        spaced = _LOWER_TO_UPPER.sub(r"\1 \2", cleaned)
+        # Split between consecutive uppercase acronym and a PascalCase word,
+        # e.g. "IDAndName" → "ID AndName", before applying the lower→upper pass.
+        spaced = _ACRONYM_BOUNDARY.sub(r"\1 \2", cleaned)
+        spaced = _LOWER_TO_UPPER.sub(r"\1 \2", spaced)
         parts = [part for part in spaced.strip().split() if part]
         return parts or ["value"]
 
