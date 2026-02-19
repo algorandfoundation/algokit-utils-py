@@ -25,7 +25,7 @@ _LINKED_QUALIFIED_RE = re.compile(
     r"(?:\.\w+)*\.(\w+)\]"
 )
 _PLAIN_QUALIFIED_RE = re.compile(
-    r"(?<!\[|#|/|\.md)(?:algokit_\w+|typing_extensions|collections\.abc|algokit_common)"
+    r"(?<!\[)(?<!#)(?<!/)(?<!\.md)(?:algokit_\w+|typing_extensions|collections\.abc|algokit_common)"
     r"(?:\.\w+)*\.(\w+)"
 )
 _INDEX_MD_RE = re.compile(r"/index\.md")
