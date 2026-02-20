@@ -78,6 +78,21 @@ export default defineConfig({
           autogenerate: { directory: "migration" },
         },
         {
+          label: "Examples",
+          collapsed: true,
+          items: [
+            { label: "Overview", link: "/examples/" },
+            { label: "ABI Encoding", link: "/examples/abi/" },
+            { label: "Mnemonic Utilities", link: "/examples/algo25/" },
+            { label: "Algod Client", link: "/examples/algod-client/" },
+            { label: "Algorand Client", link: "/examples/algorand-client/" },
+            { label: "Common Utilities", link: "/examples/common/" },
+            { label: "Indexer Client", link: "/examples/indexer-client/" },
+            { label: "KMD Client", link: "/examples/kmd-client/" },
+            { label: "Transactions", link: "/examples/transact/" },
+          ],
+        },
+        {
           label: "API Reference",
           collapsed: true,
           items: [

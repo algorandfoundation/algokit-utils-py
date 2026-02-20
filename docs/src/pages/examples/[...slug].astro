@@ -1,0 +1,86 @@
+---
+import { getCollection } from 'astro:content'
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro'
+import { Code } from '@astrojs/starlight/components'
+import { CATEGORIES } from '../../loaders/examples-loader'
+import DescriptionRenderer from '../../components/DescriptionRenderer.astro'
+
+export async function getStaticPaths() {
+  const examples = await getCollection('examples')
+  return examples.map((example) => ({
+    params: { slug: example.id },
+    props: { example },
+  }))
+}
+
+const { example } = Astro.props
+const { title, description, prerequisites, code, category, categoryLabel, filename, runCommand } = example.data
+
+// Get category meta for breadcrumb
+const categoryMeta = CATEGORIES[category]
+const categorySlug = categoryMeta?.slug || category
+
+// Build sidebar for this example
+const allExamples = await getCollection('examples')
+const categoryExamples = allExamples
+  .filter((e) => e.data.category === category)
+  .sort((a, b) => a.data.order - b.data.order)
+
+// GitHub source URL
+const githubUrl = `https://github.com/algorandfoundation/algokit-utils-py/blob/main/examples/${category}/${filename}`
+---
+
+<StarlightPage
+  frontmatter={{
+    title: title,
+    description: description,
+  }}
+  headings={[
+    { depth: 2, text: 'Description', slug: 'description' },
+    { depth: 2, text: 'Prerequisites', slug: 'prerequisites' },
+    { depth: 2, text: 'Run This Example', slug: 'run-this-example' },
+    { depth: 2, text: 'Code', slug: 'code' },
+  ]}
+>
+  <p><a href={`/algokit-utils-py/examples/${categorySlug}/`}>&larr; Back to {categoryLabel}</a></p>
+
+  <h2 id="description">Description</h2>
+  <DescriptionRenderer text={description || 'This example demonstrates usage of the AlgoKit Utils Python library.'} />
+
+  <h2 id="prerequisites">Prerequisites</h2>
+  <ul>
+    {
+      prerequisites.split('\n').map((prereq) => {
+        const text = prereq.replace(/^[-•]\s*/, '').trim()
+        return text ? <li set:html={text} /> : null
+      })
+    }
+  </ul>
+
+  <h2 id="run-this-example">Run This Example</h2>
+  <p>From the repository's <code>examples</code> directory:</p>
+  <Code code={runCommand} lang="bash" />
+
+  <h2 id="code">Code</h2>
+  <p>
+    <a href={githubUrl} target="_blank" rel="noopener noreferrer">View source on GitHub &rarr;</a>
+  </p>
+  <Code code={code} lang="python" title={filename} />
+
+  <hr />
+
+  <h3>Other examples in {categoryLabel}</h3>
+  <ul>
+    {
+      categoryExamples.map((e) => (
+        <li>
+          {e.id === example.id ? (
+            <strong>{e.data.title}</strong>
+          ) : (
+            <a href={`/algokit-utils-py/examples/${e.id}/`}>{e.data.title}</a>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</StarlightPage>
