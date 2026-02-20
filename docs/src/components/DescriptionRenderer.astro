@@ -1,0 +1,46 @@
+---
+interface Props {
+  text: string
+}
+
+const { text } = Astro.props
+
+const lines = text.split('\n')
+
+type Element = { tag: 'p'; content: string } | { tag: 'ul'; items: string[] }
+const elements: Element[] = []
+let bulletBuffer: string[] = []
+
+const flushBullets = () => {
+  if (bulletBuffer.length > 0) {
+    elements.push({ tag: 'ul', items: [...bulletBuffer] })
+    bulletBuffer = []
+  }
+}
+
+for (const line of lines) {
+  const trimmed = line.trim()
+  if (!trimmed) continue
+  if (/^[-•]\s/.test(trimmed)) {
+    bulletBuffer.push(trimmed.replace(/^[-•]\s*/, ''))
+  } else {
+    flushBullets()
+    elements.push({ tag: 'p', content: trimmed })
+  }
+}
+flushBullets()
+---
+
+{
+  elements.map((el) =>
+    el.tag === 'ul' ? (
+      <ul>
+        {el.items.map((item) => (
+          <li set:html={item} />
+        ))}
+      </ul>
+    ) : (
+      <p set:html={el.content} />
+    ),
+  )
+}
