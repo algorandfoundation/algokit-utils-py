@@ -1,5 +1,6 @@
 # build output
 dist/
+dist-devportal/
 # generated types
 .astro/
 # generated API docs (built by sphinx-autoapi)

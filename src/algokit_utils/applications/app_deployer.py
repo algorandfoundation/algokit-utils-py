@@ -678,7 +678,7 @@ class AppDeployer:
 
     def get_creator_apps_by_name(self, *, creator_address: str, ignore_cache: bool = False) -> ApplicationLookup:
         """Returns a lookup of name => app metadata (id, address, ...metadata) for all apps created by the given account
-        that have an [ARC-2](https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md) `AppDeployNote` as
+        that have an ARC-2 (https://github.com/algorandfoundation/ARCs/blob/main/ARCs/arc-0002.md) `AppDeployNote` as
         the transaction note of the app creation transaction.
 
         This function caches the result for the given creator account so that subsequent calls won't require an indexer
