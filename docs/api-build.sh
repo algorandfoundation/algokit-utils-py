@@ -57,7 +57,7 @@ done
 echo "==> Normalizing links to absolute paths..."
 # Convert all relative markdown links in both guides/ and api/ to absolute
 # paths rooted at the site base, so docs work when imported into the devportal.
-cd "$SCRIPT_DIR" && npx tsx normalize-links.sphinx.ts
+cd "$SCRIPT_DIR" && npx tsx normalize-links.ts
 
 echo "==> Shortening qualified names in headings..."
 # Strip fully-qualified module paths from heading text so the TOC sidebar and

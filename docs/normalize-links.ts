@@ -1,12 +1,12 @@
 #!/usr/bin/env npx tsx
 /**
- * Normalize relative markdown links to absolute paths in a Sphinx-based
- * Starlight docs site. Handles both hand-written guides (with filesystem
- * fallback for broken links) and Sphinx-generated API docs.
+ * Normalize relative markdown links to absolute paths in a Starlight docs
+ * site. Handles both hand-written guides (with filesystem fallback for
+ * broken links) and generated API docs (Sphinx, TypeDoc, etc.).
  *
  * Usage:
- *   npx tsx normalize-links.sphinx.ts
- *   npx tsx normalize-links.sphinx.ts --base /algokit-utils-py
+ *   npx tsx normalize-links.ts
+ *   npx tsx normalize-links.ts --base /algokit-utils-ts
  */
 
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -154,7 +154,16 @@ function normalizeLinksInContent(
   const warnings: string[] = [];
   let changed = false;
 
-  const result = content.replace(
+  // Temporarily replace code blocks and inline code so the link regex
+  // doesn't match patterns inside them (e.g. TemplateVar[bool]("X")).
+  const codeSlots: string[] = [];
+  const placeholder = (i: number) => `\x00CODE${i}\x00`;
+  let safeContent = content.replace(/```[\s\S]*?```|`[^`\n]+`/g, (m) => {
+    codeSlots.push(m);
+    return placeholder(codeSlots.length - 1);
+  });
+
+  safeContent = safeContent.replace(
     /\[([^\]]*)\]\(([^)]+)\)/g,
     (match, text: string, url: string) => {
       if (SKIP_PATTERN.test(url)) return match;
@@ -190,6 +199,9 @@ function normalizeLinksInContent(
       return replacement;
     },
   );
+
+  // Restore code blocks
+  const result = safeContent.replace(/\x00CODE(\d+)\x00/g, (_, i) => codeSlots[Number(i)]);
 
   return { content: result, changed, warnings };
 }
