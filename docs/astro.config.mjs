@@ -1,5 +1,6 @@
 // @ts-check
 import starlight from "@astrojs/starlight";
+import starlightLinksValidator from "starlight-links-validator";
 import { defineConfig } from "astro/config";
 import remarkGithubAlerts from "remark-github-alerts";
 import { sidebar } from "./sidebar.config";
@@ -13,6 +14,12 @@ export default defineConfig({
   },
   integrations: [
     starlight({
+      plugins: [
+        starlightLinksValidator({
+          errorOnInvalidHashes: false,
+          errorOnLocalLinks: false,
+        }),
+      ],
       title: "AlgoKit Utils Python",
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
       customCss: [
