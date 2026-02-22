@@ -54,12 +54,10 @@ find "$API_OUT" -name "*.md" -type f | while read -r file; do
     mv "$tmp_file" "$file"
 done
 
-echo "==> Fixing internal links for Starlight..."
-# Sphinx generates links like (foo/index.md) and (../../bar/index.md#anchor)
-# Starlight doesn't use .md extensions — strip index.md from link paths
-# Using perl -pi -e for cross-platform compatibility
-find "$API_OUT" -name "*.md" -type f -exec \
-    perl -pi -e 's|/index\.md|/|g' {} +
+echo "==> Normalizing links to absolute paths..."
+# Convert all relative markdown links in both guides/ and api/ to absolute
+# paths rooted at the site base, so docs work when imported into the devportal.
+cd "$SCRIPT_DIR" && npx tsx normalize-links.sphinx.ts
 
 echo "==> Shortening qualified names in headings..."
 # Strip fully-qualified module paths from heading text so the TOC sidebar and
