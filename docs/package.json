@@ -11,7 +11,7 @@
     "api-build": "bash api-build.sh",
     "normalize-links": "npx tsx normalize-links.ts",
     "build-sidebar": "npx tsx build-sidebar-json.ts",
-    "build-devportal": "npm run api-build && npm run build && npm run normalize-links && npm run build-sidebar"
+    "build-devportal": "npm run api-build && SKIP_LINK_VALIDATION=1 npm run build && npm run normalize-links && npm run build-sidebar"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.6",
@@ -21,6 +21,14 @@
     "starlight-links-validator": "^0.19.2"
   },
   "devDependencies": {
+    "@astrojs/starlight-tailwind": "^4.0.2",
+    "@tailwindcss/vite": "^4.2.1",
+    "tailwindcss": "^4.2.1",
     "tsx": "^4.21.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite": "^6.4.1"
+    }
   }
 }

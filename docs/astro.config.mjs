@@ -1,28 +1,25 @@
 // @ts-check
 import starlight from "@astrojs/starlight";
-import starlightLinksValidator from "starlight-links-validator";
+import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import remarkGithubAlerts from "remark-github-alerts";
+import starlightLinksValidator from "starlight-links-validator";
 import { sidebar } from "./sidebar.config";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://algorandfoundation.github.io",
   base: "/algokit-utils-py/",
+  vite: { plugins: [tailwindcss()] },
   markdown: {
     remarkPlugins: [remarkGithubAlerts],
   },
   integrations: [
     starlight({
-      plugins: [
-        starlightLinksValidator({
-          errorOnInvalidHashes: false,
-          errorOnLocalLinks: false,
-        }),
-      ],
       title: "AlgoKit Utils Python",
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
       customCss: [
+        "./src/styles/global.css",
         "./src/styles/api-reference.css",
         "remark-github-alerts/styles/github-colors-light.css",
         "remark-github-alerts/styles/github-colors-dark-media.css",
@@ -40,7 +37,19 @@ export default defineConfig({
           href: "https://discord.gg/algorand",
         },
       ],
-      sidebar,
+      plugins: [
+        // Skip link validation during devportal builds — cross-site links
+        // only resolve in the full portal, not in standalone builds.
+        ...(process.env.SKIP_LINK_VALIDATION
+          ? []
+          : [
+              starlightLinksValidator({
+                errorOnInvalidHashes: false,
+                errorOnLocalLinks: false,
+              }),
+            ]),
+      ],
+      sidebar: [...sidebar],
     }),
   ],
 });
