@@ -20,7 +20,7 @@ wheels = [
 
 [[package]]
 name = "algokit-utils"
-version = "5.0.0a16"
+version = "5.0.0a17"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
