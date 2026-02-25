@@ -27,6 +27,9 @@ importers:
         specifier: ^0.19.2
         version: 0.19.2(@astrojs/starlight@0.37.6(astro@5.17.3(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)))(astro@5.17.3(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3))
     devDependencies:
+      '@algorandfoundation/devportal-docs':
+        specifier: file:/Users/larkinyoung/dev/af/devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz
+        version: file:../../devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz
       '@astrojs/starlight-tailwind':
         specifier: ^4.0.2
         version: 4.0.2(@astrojs/starlight@0.37.6(astro@5.17.3(jiti@2.6.1)(lightningcss@1.31.1)(rollup@4.59.0)(tsx@4.21.0)(typescript@5.9.3)))(tailwindcss@4.2.1)
@@ -41,6 +44,12 @@ importers:
         version: 4.21.0
 
 packages:
+
+  '@algorandfoundation/devportal-docs@file:../../devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz':
+    resolution: {integrity: sha512-21dh4HIyfMBz57Iu4mFoRXqHfEi0yFEAs3JnRrg7DlVbWQmycKMDxNLU4kmpSo1aQaextSuI9RMYs0oYOilJpw==, tarball: file:../../devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz}
+    version: 0.1.0
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@astrojs/compiler@2.13.1':
     resolution: {integrity: sha512-f3FN83d2G/v32ipNClRKgYv30onQlMZX1vCeZMjPsMMPl1mDpmbl0+N5BYo4S/ofzqJyS5hvwacEo0CCVDn/Qg==}
@@ -2247,6 +2256,10 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
 snapshots:
+
+  '@algorandfoundation/devportal-docs@file:../../devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz':
+    dependencies:
+      tsx: 4.21.0
 
   '@astrojs/compiler@2.13.1': {}
 

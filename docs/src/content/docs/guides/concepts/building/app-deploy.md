@@ -29,7 +29,7 @@ Namely, it described the concept of a smart contract development lifecycle:
    1. **Validate** the deployed app via automated testing of the smart contracts to provide confidence in their correctness
    2. **Call** deployed smart contract with runtime parameters to utilise it
 
-![App deployment lifecycle](/algokit-utils-py/images/lifecycle.jpg)
+!App deployment lifecycle
 
 The App deployment capability provided by AlgoKit Utils helps implement **#2 Deployment**.
 
@@ -253,11 +253,11 @@ Below is a sample in [Algorand Python SDK](https://github.com/algorandfoundation
 # ... your contract code ...
 @arc4.baremethod(allow_actions=["UpdateApplication"])
 def update(self) -> None:
-    assert TemplateVar[bool](/algokit-utils-py/guides/concepts/building/"UPDATABLE"/)
+    assert TemplateVarbool
 
 @arc4.baremethod(allow_actions=["DeleteApplication"])
 def delete(self) -> None:
-    assert TemplateVar[bool](/algokit-utils-py/guides/concepts/building/"DELETABLE"/)
+    assert TemplateVarbool
 # ... your contract code ...
 ```
 

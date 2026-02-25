@@ -1,4 +1,5 @@
 // @ts-check
+import { css, fonts } from "@algorandfoundation/devportal-docs/theme";
 import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
@@ -17,8 +18,15 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "AlgoKit Utils Python",
+      logo: {
+        light: "./public/logo-light.png",
+        dark: "./public/logo-dark.png",
+        replacesTitle: true,
+      },
       tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
       customCss: [
+        css,
+        fonts,
         "./src/styles/global.css",
         "./src/styles/api-reference.css",
         "remark-github-alerts/styles/github-colors-light.css",

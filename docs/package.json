@@ -9,9 +9,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "api-build": "bash api-build.sh",
-    "normalize-links": "npx tsx normalize-links.ts",
-    "build-sidebar": "npx tsx build-sidebar-json.ts",
-    "build-devportal": "npm run api-build && SKIP_LINK_VALIDATION=1 npm run build && npm run normalize-links && npm run build-sidebar"
+    "docs:devportal": "astro build && devportal-docs build"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.37.6",
@@ -21,6 +19,7 @@
     "starlight-links-validator": "^0.19.2"
   },
   "devDependencies": {
+    "@algorandfoundation/devportal-docs": "file:/Users/larkinyoung/dev/af/devportal-fork/packages/devportal-docs/algorandfoundation-devportal-docs-0.1.0.tgz",
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@tailwindcss/vite": "^4.2.1",
     "tailwindcss": "^4.2.1",
