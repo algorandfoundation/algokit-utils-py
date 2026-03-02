@@ -1280,7 +1280,7 @@ class AppClient:
         >>> # Get a signer from account manager
         >>> account = algorand.account.from_mnemonic("your mnemonic here...")
         >>> params = AppClientParams(
-        ...     app_spec=Arc56Contract.from_json(app_spec_json),
+        ...     app_spec=arc56.Arc56Contract.from_json(app_spec_json),
         ...     algorand=algorand,
         ...     app_id=1234567890,
         ...     app_name="My App",
@@ -1456,7 +1456,7 @@ class AppClient:
             >>> # Get a signer from account manager
             >>> account = algorand.account.from_mnemonic("your mnemonic here...")
             >>> client = AppClient.from_network(
-            ...     app_spec=Arc56Contract.from_json(app_spec_json),
+            ...     app_spec=arc56.Arc56Contract.from_json(app_spec_json),
             ...     algorand=algorand,
             ...     app_name="My App",
             ...     default_sender=account.addr,
@@ -1533,7 +1533,7 @@ class AppClient:
             >>> client = AppClient.from_creator_and_name(
             ...     creator_address="CREATORADDRESS",
             ...     app_name="APPNAME",
-            ...     app_spec=Arc56Contract.from_json(app_spec_json),
+            ...     app_spec=arc56.Arc56Contract.from_json(app_spec_json),
             ...     algorand=algorand,
             ... )
         """

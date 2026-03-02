@@ -78,7 +78,7 @@ class KmdAccountManager:
         wallet_name: str,
         predicate_or_address: Callable[[dict[str, Any]], bool] | str | None = None,
         sender: str | None = None,
-    ) -> KmdAccount | None:
+    ) -> AddressWithSigners | None:
         kmd_client = self.kmd()
         wallets = kmd_client.list_wallets().wallets or []
         wallet = next((w for w in wallets if w.name == wallet_name), None)
@@ -89,24 +89,7 @@ class KmdAccountManager:
         wallet_handle = kmd_client.init_wallet_handle(InitWalletHandleTokenRequest(wallet_id, "")).wallet_handle_token
         addresses = kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle)).addresses or []
 
-        matched_address = None
-        if predicate:
-            for address in addresses:
-                account_info = self._client_manager.algod.account_information(address)
-                if predicate(to_wire(account_info)):
-                    matched_address = address
-                    break
-        else:
-            addresses = kmd_client.list_keys(wallet_handle)
-            if addresses:
-                if callable(predicate_or_address):
-                    for address in addresses:
-                        account_info = self._client_manager.algod.account_info(address)
-                        if predicate_or_address(cast(dict[str, Any], account_info)):
-                            matched_address = address
-                            break
-                else:
-                    matched_address = addresses[0]
+        matched_address = self._find_matching_address(addresses, predicate_or_address)
 
         if not matched_address:
             return None
@@ -128,6 +111,25 @@ class KmdAccountManager:
             raw_ed25519_signer=raw_signer,
             sending_address=sender,
         )
+
+    def _find_matching_address(
+        self,
+        addresses: list[str],
+        predicate_or_address: Callable[[dict[str, Any]], bool] | str | None = None,
+    ) -> str | None:
+        if not addresses:
+            return None
+
+        if callable(predicate_or_address):
+            for address in addresses:
+                account_info = self._client_manager.algod.account_information(address)
+                if predicate_or_address(to_wire(account_info)):
+                    return address
+            return None
+        elif isinstance(predicate_or_address, str):
+            return predicate_or_address if predicate_or_address in addresses else None
+        else:
+            return addresses[0]
 
     def get_or_create_wallet_account(self, name: str, fund_with: AlgoAmount | None = None) -> AddressWithSigners:
         """Gets or creates a funded account in a KMD wallet of the given name.

@@ -5,7 +5,7 @@ For more specific functionality, import directly from the relevant submodules:
 
     from algokit_utils.accounts import KmdAccountManager
     from algokit_utils.applications import AppClient
-    from algokit_utils.applications.app_spec import Arc52Contract
+    from algokit_utils.applications.app_spec import Arc56Contract
     from algokit_utils.transact import Transaction, TransactionSigner
     etc.
 """
