@@ -1,7 +1,7 @@
 """Hierarchical Deterministic (HD) wallet generation using xhd-wallet-api."""
 
 from collections.abc import Callable
-from typing import TypedDict
+from typing import Protocol, TypedDict, runtime_checkable
 
 from xhd_wallet_api_py import (
     DerivationScheme,
@@ -70,6 +70,20 @@ HdWalletGenerator = Callable[[bytes | None], HdWalletResult]
 
 Takes optional seed bytes and returns HdWalletResult with root key and account generator.
 """
+
+
+@runtime_checkable
+class WrappedHdExtendedPrivateKey(Protocol):
+    """Represents a 96-byte ``scalar || prefix || chain_code`` secret that can be unwrapped
+    for short-lived use and then re-wrapped.
+
+    The ``chain_code`` is NOT used for signing. It can, however, be used for key derivation.
+    If your secret is only used for signing, it is recommended to only store the first 64 bytes
+    in the secret store and then pad the secret to 96 bytes in the unwrap function.
+    """
+
+    def unwrap_hd_extended_private_key(self) -> bytearray: ...
+    def wrap_hd_extended_private_key(self) -> None: ...
 
 def peikert_hd_wallet_generator(seed: bytes | None = None) -> HdWalletResult:
     """Generate an HD wallet using the Peikert derivation scheme.

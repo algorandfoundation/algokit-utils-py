@@ -1,7 +1,7 @@
 """Ed25519 signature verification and key generation utilities."""
 
 from collections.abc import Callable
-from typing import Protocol, TypedDict
+from typing import Protocol, TypedDict, runtime_checkable
 
 import nacl.exceptions
 import nacl.signing
@@ -28,6 +28,21 @@ class Ed25519Keypair(TypedDict):
     ed25519_pubkey: bytes
     ed25519_secret_key: bytes
     raw_ed25519_signer: RawEd25519Signer
+
+
+class Ed25519SigningKey(TypedDict):
+    """Ed25519 signing key containing a public key and a raw signer function."""
+
+    ed25519_pubkey: bytes
+    raw_ed25519_signer: RawEd25519Signer
+
+
+@runtime_checkable
+class WrappedEd25519Seed(Protocol):
+    """Represents a 32-byte Ed25519 seed that can be unwrapped for short-lived use and then re-wrapped."""
+
+    def unwrap_ed25519_seed(self) -> bytearray: ...
+    def wrap_ed25519_seed(self) -> None: ...
 
 
 class Ed25519Generator(Protocol):
