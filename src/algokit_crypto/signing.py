@@ -7,33 +7,36 @@ and HD extended private keys.
 
 from __future__ import annotations
 
+import builtins
 import hashlib
 import sys
-from typing import Union
 
 import nacl.bindings
 import nacl.signing
 from xhd_wallet_api_py import public_key
 
 if sys.version_info >= (3, 11):
-    _ExceptionGroup = ExceptionGroup
+    _ExceptionGroupError = builtins.ExceptionGroup
 else:
-    class _ExceptionGroup(Exception):
+
+    class _ExceptionGroupError(Exception):
         """Backport of ExceptionGroup for Python 3.10."""
 
         def __init__(self, message: str, exceptions: list[BaseException]) -> None:
             super().__init__(message)
             self.exceptions = exceptions
 
-from algokit_crypto.ed25519 import Ed25519SigningKey, RawEd25519Signer, WrappedEd25519Seed
+
+from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed
 from algokit_crypto.hd import WrappedHdExtendedPrivateKey
 
-WrappedEd25519Secret = Union[WrappedEd25519Seed, WrappedHdExtendedPrivateKey]
+WrappedEd25519Secret = WrappedEd25519Seed | WrappedHdExtendedPrivateKey
 
 ED25519_SEED_LENGTH = 32
 ED25519_EXTENDED_PRIVATE_KEY_LENGTH = 96
 
-_ED25519_ORDER = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
+_ED25519_ORDER = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+
 
 def _assert_ed25519_secret_length(secret: bytearray | bytes, secret_type: str) -> None:
     if secret_type == "ed25519 seed":
@@ -47,7 +50,6 @@ def _assert_ed25519_secret_length(secret: bytearray | bytes, secret_type: str) -
         raise ValueError(f"Expected unwrapped {secret_type} to be {expected_length} bytes, got {len(secret)}.")
 
 
-
 def _raw_sign(extended_secret_key: bytes | bytearray, data: bytes) -> bytes:
     """Sign data using an HD extended secret key (first 64 bytes: scalar || prefix).
 
@@ -55,28 +57,28 @@ def _raw_sign(extended_secret_key: bytes | bytearray, data: bytes) -> bytes:
     secret key), matching the Peikert HD wallet derivation scheme.
     """
     scalar = int.from_bytes(extended_secret_key[:32], "little")
-    kR = bytes(extended_secret_key[32:64])
+    k_r = bytes(extended_secret_key[32:64])
 
     # (1): pubKey = scalar * G
     pubkey = public_key(bytes(extended_secret_key))
 
     # (2): r = SHA512(kR || data) mod order
-    r_hash = hashlib.sha512(kR + data).digest()
+    r_hash = hashlib.sha512(k_r + data).digest()
     r = int.from_bytes(r_hash, "little") % _ED25519_ORDER
 
     # (3): R = r * G
     r_bytes = r.to_bytes(32, "little")
-    R = nacl.bindings.crypto_scalarmult_ed25519_base_noclamp(r_bytes)
+    r_point = nacl.bindings.crypto_scalarmult_ed25519_base_noclamp(r_bytes)
 
     # (4): h = SHA512(R || pubkey || data) mod order
-    h_hash = hashlib.sha512(R + pubkey + data).digest()
+    h_hash = hashlib.sha512(r_point + pubkey + data).digest()
     h = int.from_bytes(h_hash, "little") % _ED25519_ORDER
 
     # (5): S = (r + h * scalar) mod order
-    S = (r + h * scalar) % _ED25519_ORDER
-    S_bytes = S.to_bytes(32, "little")
+    s = (r + h * scalar) % _ED25519_ORDER
+    s_bytes = s.to_bytes(32, "little")
 
-    return R + S_bytes
+    return r_point + s_bytes
 
 
 def _zero_secret(secret: bytearray | None) -> None:
@@ -102,7 +104,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
 
     Raises:
         ValueError: If the unwrapped secret has an invalid length.
-        _ExceptionGroup: If both the crypto operation and re-wrap fail.
+        _ExceptionGroupError: If both the crypto operation and re-wrap fail.
     """
     # Determine wrap function
     if isinstance(wrapped, WrappedEd25519Seed):
@@ -140,7 +142,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
             _zero_secret(secret)
 
     if pubkey_error is not None and wrap_error is not None:
-        raise _ExceptionGroup(
+        raise _ExceptionGroupError(
             "Deriving Ed25519 public key failed and failed to re-wrap Ed25519 secret. Check both errors for details.",
             [pubkey_error, wrap_error],
         )
@@ -184,7 +186,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
                 _zero_secret(sign_secret)
 
         if signing_error is not None and sign_wrap_error is not None:
-            raise _ExceptionGroup(
+            raise _ExceptionGroupError(
                 "Signing failed and failed to re-wrap Ed25519 secret. Check both errors for details.",
                 [signing_error, sign_wrap_error],
             )

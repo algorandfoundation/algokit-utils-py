@@ -9,8 +9,8 @@ from xhd_wallet_api_py import (
     derive_path,
     from_seed,
     key_gen,
-    raw_sign,
     public_key,
+    raw_sign,
 )
 
 from algokit_crypto.ed25519 import RawEd25519Signer
