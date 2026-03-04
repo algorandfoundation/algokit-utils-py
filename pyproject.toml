@@ -60,6 +60,7 @@ module-name = [
   "algokit_algo25",
   "algokit_algod_client",
   "algokit_common",
+  "algokit_crypto",
   "algokit_indexer_client",
   "algokit_kmd_client",
   "algokit_transact",
@@ -68,6 +69,7 @@ module-name = [
 
 [tool.uv.sources]
 oas-generator = { path = "api/oas-generator", editable = true }
+xhd-wallet-api = { git = "https://github.com/algorandfoundation/xHD-Wallet-API-py", rev = "initial_commit" }
 
 [tool.ruff]
 line-length = 120
