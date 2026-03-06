@@ -14,17 +14,7 @@ import sys
 import nacl.bindings
 import nacl.signing
 from xhd_wallet_api_py import public_key
-
-if sys.version_info >= (3, 11):
-    _ExceptionGroupError = builtins.ExceptionGroup
-else:
-
-    class _ExceptionGroupError(Exception):
-        """Backport of ExceptionGroup for Python 3.10."""
-
-        def __init__(self, message: str, exceptions: list[BaseException]) -> None:
-            super().__init__(message)
-            self.exceptions = exceptions
+from exceptiongroup import ExceptionGroup
 
 
 from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed
@@ -104,7 +94,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
 
     Raises:
         ValueError: If the unwrapped secret has an invalid length.
-        _ExceptionGroupError: If both the crypto operation and re-wrap fail.
+        ExceptionGroupError: If both the crypto operation and re-wrap fail.
     """
     # Determine wrap function
     if isinstance(wrapped, WrappedEd25519Seed):
@@ -131,18 +121,18 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
             pubkey = public_key(bytes(secret))
         else:
             raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
-    except BaseException as e:
+    except Exception as e:
         pubkey_error = e
     finally:
         try:
             wrap_function()
-        except BaseException as e:
+        except Exception as e:
             wrap_error = e
         finally:
             _zero_secret(secret)
 
     if pubkey_error is not None and wrap_error is not None:
-        raise _ExceptionGroupError(
+        raise ExceptionGroup(
             "Deriving Ed25519 public key failed and failed to re-wrap Ed25519 secret. Check both errors for details.",
             [pubkey_error, wrap_error],
         )
@@ -175,18 +165,18 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
                 signature = _raw_sign(sign_secret, bytes_to_sign)
             else:
                 raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
-        except BaseException as e:
+        except Exception as e:
             signing_error = e
         finally:
             try:
                 wrap_function()
-            except BaseException as e:
+            except Exception as e:
                 sign_wrap_error = e
             finally:
                 _zero_secret(sign_secret)
 
         if signing_error is not None and sign_wrap_error is not None:
-            raise _ExceptionGroupError(
+            raise ExceptionGroup(
                 "Signing failed and failed to re-wrap Ed25519 secret. Check both errors for details.",
                 [signing_error, sign_wrap_error],
             )

@@ -2,6 +2,7 @@
 
 import os
 
+from exceptiongroup import ExceptionGroup
 import nacl.signing
 import pytest
 
@@ -11,7 +12,6 @@ from algokit_crypto import (
     pynacl_ed25519_signing_key_from_wrapped_secret,
     peikert_hd_wallet_generator,
 )
-from algokit_crypto.signing import _ExceptionGroup
 
 
 class TestSigningBasics:
@@ -111,7 +111,7 @@ class TestWrappedSeedSigning:
                 raise RuntimeError("wrap failed")
 
         with pytest.raises(
-            _ExceptionGroup,
+            ExceptionGroup,
             match="Deriving Ed25519 public key failed and failed to re-wrap Ed25519 secret",
         ):
             pynacl_ed25519_signing_key_from_wrapped_secret(BothFailWrappedSeed())
@@ -138,7 +138,7 @@ class TestWrappedSeedSigning:
         wrap_should_fail = True
 
         with pytest.raises(
-            _ExceptionGroup,
+            ExceptionGroup,
             match="Signing failed and failed to re-wrap Ed25519 secret",
         ):
             signing_key["raw_ed25519_signer"](b"\x01\x02\x03")
