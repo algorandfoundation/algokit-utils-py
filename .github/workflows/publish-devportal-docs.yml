@@ -1,0 +1,37 @@
+name: Publish DevPortal Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/add-publish-to-devportal-workflow] # change to decoupling, then main when ready
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publish-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Python environment
+        uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
+        with:
+          install-algokit: "false"
+
+      - name: Generate API docs
+        run: uv run poe docs-api
+
+      - name: Publish DevPortal Docs
+        uses: algorandfoundation/devportal/.github/actions/publish-devportal-docs@ci/update-publish-devportal-docs-workflow
+        with:
+          docs-dir: docs

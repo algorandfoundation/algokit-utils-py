@@ -5,6 +5,9 @@ dist/
 # generated API docs (built by sphinx-autoapi)
 src/content/docs/api/
 
+# generated example pages (built by generate-examples-mdx.ts)
+src/content/docs/examples/
+
 # dependencies
 node_modules/
 

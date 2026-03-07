@@ -13,12 +13,14 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: "22"
-        cache: "npm"
-        cache-dependency-path: docs/package-lock.json
+
+    - uses: pnpm/action-setup@v4
+      with:
+        version: 10
 
     - name: Install docs dependencies
       shell: bash
-      run: npm ci --prefix docs
+      run: cd docs && pnpm install --frozen-lockfile
 
     - name: Generate API docs
       shell: bash
@@ -26,4 +28,4 @@ runs:
 
     - name: Build Starlight site
       shell: bash
-      run: npm run --prefix docs build
+      run: cd docs && pnpm run build
