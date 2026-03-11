@@ -80,6 +80,11 @@ def _run_tests(
     # Verify the signature against the transaction bytes
     txn_bytes = encode_transaction(txn)
     assert ed25519_verifier(stxn.sig, txn_bytes, expected_pubkey) is True
+    # Verify auth_address is set correctly when txn.sender != addr (rekeying scenario)
+    if txn.sender == addr:
+        assert stxn.auth_address is None
+    else:
+        assert stxn.auth_address == addr
 
     # Test 2: LogicSig delegation signing and verification
     lsig_account = LogicSigAccount(logic=lsig.logic, args=lsig.args, _address=addr)
@@ -278,3 +283,42 @@ class TestSigner:
         # Demonstrate it is not a raw signature
         is_raw_valid = ed25519_verifier(mx_bytes_sig, message, public_key)
         assert is_raw_valid is False
+
+    def test_auth_address_when_sender_equals_signer(self) -> None:
+        """Test that auth_address is None when transaction sender equals signer address."""
+        # Generate a new keypair
+        generated = ed25519_generator()
+        public_key = generated["ed25519_pubkey"]
+
+        # Generate Algorand-specific signing functions
+        address_with_signers = generate_address_with_signers(
+            ed25519_pubkey=public_key,
+            raw_ed25519_signer=generated["raw_ed25519_signer"],
+        )
+
+        addr = address_with_signers.addr
+        signer = address_with_signers.signer
+
+        # Create a transaction where sender equals the signer address
+        txn = Transaction(
+            transaction_type=TransactionType.Payment,
+            sender=addr,  # Same as signer address
+            first_valid=1,
+            last_valid=1000,
+            payment=PaymentTransactionFields(
+                amount=1000,
+                receiver="XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA",
+            ),
+        )
+
+        # Sign the transaction
+        stxns = signer([txn], [0])
+        stxn = decode_signed_transaction(stxns[0])
+
+        # Verify signature is present and valid
+        assert stxn.sig is not None
+        txn_bytes = encode_transaction(txn)
+        assert ed25519_verifier(stxn.sig, txn_bytes, public_key) is True
+
+        # Verify auth_address is None when sender == signer address
+        assert stxn.auth_address is None

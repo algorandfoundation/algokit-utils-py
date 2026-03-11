@@ -7,15 +7,12 @@ and HD extended private keys.
 
 from __future__ import annotations
 
-import builtins
 import hashlib
-import sys
 
 import nacl.bindings
 import nacl.signing
-from xhd_wallet_api_py import public_key
 from exceptiongroup import ExceptionGroup
-
+from xhd_wallet_api_py import public_key
 
 from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed
 from algokit_crypto.hd import WrappedHdExtendedPrivateKey

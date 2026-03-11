@@ -41,7 +41,7 @@ class HdAccountResult(TypedDict):
 
     ed25519_pubkey: bytes
     """The ed25519 public key corresponding to the generated account and index (32 bytes)."""
-    extended_private_key: bytes
+    extended_private_key: bytearray
     """The extended ed25519 private key (96 bytes for scalar + prefix + chain code)."""
     bip44_path: BIP44Path
     """The BIP44 path used to derive the key for the generated account and index."""
@@ -59,7 +59,7 @@ Takes (account: int, index: int) and returns HdAccountResult.
 class HdWalletResult(TypedDict):
     """Result of HD wallet generation."""
 
-    hd_root_key: bytes
+    hd_root_key: bytearray
     """The HD root key (96 bytes extended private key)."""
     account_generator: HdAccountGenerator
     """Function to generate accounts from the HD wallet."""
@@ -85,7 +85,7 @@ class WrappedHdExtendedPrivateKey(Protocol):
     def unwrap_hd_extended_private_key(self) -> bytearray: ...
     def wrap_hd_extended_private_key(self) -> None: ...
 
-def peikert_hd_wallet_generator(seed: bytes | None = None) -> HdWalletResult:
+def peikert_hd_wallet_generator(seed: bytearray | None = None) -> HdWalletResult:
     """Generate an HD wallet using the Peikert derivation scheme.
 
     Args:
@@ -98,14 +98,11 @@ def peikert_hd_wallet_generator(seed: bytes | None = None) -> HdWalletResult:
     import os
 
     if seed is None:
-        seed = os.urandom(HD_WALLET_SEED_SIZE)
+        seed = bytearray(os.urandom(HD_WALLET_SEED_SIZE))
     elif len(seed) != HD_WALLET_SEED_SIZE:
         raise ValueError(f"Seed must be {HD_WALLET_SEED_SIZE} bytes")
 
-    # The from_seed function expects 64 bytes, so we pad the 32-byte seed
-    # Using the seed as the first 32 bytes and zeros for the rest
-    seed_64 = seed + bytes(32)
-    root_key = from_seed(seed_64)
+    root_key = from_seed(seed)
 
     def _account_generator(account: int, index: int) -> HdAccountResult:
         # Generate key using key_gen with Peikert derivation
