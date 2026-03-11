@@ -12,7 +12,6 @@ from algokit_crypto.ed25519 import (
     pynacl_ed25519_generator,
     pynacl_ed25519_verifier,
 )
-from algokit_crypto.hash import hash_bytes
 from algokit_crypto.hd import (
     HdAccountResult,
     HdWalletResult,
