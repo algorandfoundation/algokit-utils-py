@@ -16,7 +16,7 @@ from xhd_wallet_api_py import (
 from algokit_crypto.ed25519 import RawEd25519Signer
 
 # Seed size for HD wallet generation (TypeScript uses 32 bytes)
-HD_WALLET_SEED_SIZE = 32
+HD_WALLET_SEED_SIZE = 64
 
 # BIP44 path constants for Algorand
 BIP44_PURPOSE = 44
