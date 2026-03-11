@@ -40,7 +40,7 @@ def _assert_ed25519_secret_length(secret: bytearray | bytes, secret_type: str) -
         raise ValueError(f"Expected unwrapped {secret_type} to be {expected_length} bytes, got {len(secret)}.")
 
 
-def _raw_sign(extended_secret_key: bytes | bytearray, data: bytes) -> bytes:
+def _raw_sign(extended_secret_key: bytearray, data: bytes) -> bytes:
     """Sign data using an HD extended secret key (first 64 bytes: scalar || prefix).
 
     Implements Ed25519 signing with a pre-derived scalar (no SHA-512 hashing of the
@@ -50,7 +50,7 @@ def _raw_sign(extended_secret_key: bytes | bytearray, data: bytes) -> bytes:
     k_r = bytes(extended_secret_key[32:64])
 
     # (1): pubKey = scalar * G
-    pubkey = public_key(bytes(extended_secret_key))
+    pubkey = public_key(extended_secret_key)
 
     # (2): r = SHA512(kR || data) mod order
     r_hash = hashlib.sha512(k_r + data).digest()
@@ -118,7 +118,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
         elif isinstance(wrapped, WrappedHdExtendedPrivateKey):
             secret = wrapped.unwrap_hd_extended_private_key()
             _assert_ed25519_secret_length(secret, "HD extended key")
-            pubkey = public_key(bytes(secret))
+            pubkey = public_key(secret)
         else:
             raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
     except Exception as e:
