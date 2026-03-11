@@ -103,8 +103,8 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
 
     # Derive public key
     pubkey: bytes | None = None
-    pubkey_error: BaseException | None = None
-    wrap_error: BaseException | None = None
+    pubkey_error: Exception | None = None
+    wrap_error: Exception | None = None
     secret: bytearray | None = None
     try:
         if isinstance(wrapped, WrappedEd25519Seed):
@@ -146,8 +146,8 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
     # Build signer closure
     def signer(bytes_to_sign: bytes) -> bytes:
         signature: bytes | None = None
-        signing_error: BaseException | None = None
-        sign_wrap_error: BaseException | None = None
+        signing_error: Exception | None = None
+        sign_wrap_error: Exception | None = None
         sign_secret: bytearray | None = None
         try:
             if isinstance(wrapped, WrappedEd25519Seed):
