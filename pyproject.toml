@@ -174,9 +174,9 @@ suppress-none-returning = true
 
 [tool.poe.tasks]
 docs-api = "python docs/api_build.py"
-docs-dev = { shell = "python docs/api_build.py && npm run --prefix docs dev" }
-docs-build = { shell = "python docs/api_build.py && npm run --prefix docs build" }
-docs-preview = "npm run --prefix docs preview"
+docs-dev = { shell = "python docs/api_build.py && pnpm --dir docs dev" }
+docs-build = { shell = "python docs/api_build.py && pnpm --dir docs build" }
+docs-preview = { shell = "pnpm --dir docs preview" }
 docstrings-check = "pydoclint src --style sphinx --arg-type-hints-in-docstring false --check-return-types false"
 # Polytest tasks for test generation and validation
 # Uses --git flag to pull config from central polytest repo without storing jsonc files locally
