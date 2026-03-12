@@ -21,7 +21,7 @@ dependencies = [
 cicd = []
 dev = [
   "pytest>=8,<9",
-  "ruff>=0.1.6,<=0.11.8",
+  "ruff>=0.1.6,<=0.14.8",
   "pip>=26.0",  # Fix GHSA-6vgw-5pg2-w6jp vulnerability
   "pip-audit>=2.5.6,<3",
   "pip>=26.0",
@@ -32,16 +32,16 @@ dev = [
   "pre-commit>=3.4.0,<4",
   "python-dotenv>=1.0.0,<2",
   "sphinx>=8.0.0,<9",
-  "poethepoet>=0.19,<0.35",
+  "poethepoet>=0.19,<0.39",
   "pytest-httpx>=0.35.0,<0.36",
   "pytest-xdist>=3.6.1,<4",
   "linkify-it-py>=2.0.3,<3",
   "setuptools>=80.9.0,<81",
-  "pydoclint>=0.6.0,<0.7",
+  "pydoclint>=0.6.0,<0.9",
   "pytest-sugar>=1.0.0,<2",
   "types-deprecated>=1.2.15.20241117,<2",
   "sphinx-autobuild>=2024.10.3,<2025",
-  "furo>=2024.8.6,<2025",
+  "furo>=2024.8.6,<2026",
   "myst-parser>=4.0.0,<5",
   "sphinx-autoapi>=3.4.0,<4",
   "sphinx-markdown-builder>=0.6.8,<0.7",
@@ -51,7 +51,7 @@ dev = [
 api-generator = ["oas-generator"]
 
 [build-system]
-requires = ["uv_build>=0.9.5,<0.10.0"]
+requires = ["uv_build>=0.9.5,<0.11.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
