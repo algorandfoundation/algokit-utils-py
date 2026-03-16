@@ -102,7 +102,7 @@ class BoolType(ABIType):
     def byte_len(self) -> int:
         return 1
 
-    def encode(self, value: bool) -> bytes:  # noqa: FBT001
+    def encode(self, value: bool) -> bytes:
         # note: bool in an array or tuple is handled separately
         # intentionally comparing to True and False to handle invalid types
         if value is True:

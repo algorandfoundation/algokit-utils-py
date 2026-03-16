@@ -999,7 +999,7 @@ class AppFactory:
 
         return result
 
-    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001
+    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:
         """
         Convert a low-level exception into a descriptive logic error.
 
