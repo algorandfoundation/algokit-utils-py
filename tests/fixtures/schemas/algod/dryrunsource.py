@@ -9,4 +9,4 @@ class DryrunSourceSchema(BaseModel):
     field_name: str = Field(alias="field-name")
     source: str = Field(alias="source")
     txn_index: int = Field(alias="txn-index")
-    app_index: int = Field(alias="app-index")
+    app_id: int = Field(alias="app-index")

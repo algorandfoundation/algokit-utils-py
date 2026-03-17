@@ -25,7 +25,7 @@ class AccountSchema(BaseModel):
     pending_rewards: int = Field(alias="pending-rewards")
     reward_base: int | None = Field(default=None, alias="reward-base")
     rewards: int = Field(alias="rewards")
-    round: int = Field(alias="round")
+    round_: int = Field(alias="round")
     status: str = Field(alias="status")
     sig_type: str | None = Field(default=None, alias="sig-type")
     total_apps_opted_in: int = Field(alias="total-apps-opted-in")

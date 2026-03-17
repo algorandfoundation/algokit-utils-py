@@ -8,7 +8,7 @@ class WalletSchema(BaseModel):
 
     driver_name: str = Field(alias="driver_name")
     driver_version: int = Field(alias="driver_version")
-    id: str = Field(alias="id")
+    id_: str = Field(alias="id")
     mnemonic_ux: bool = Field(alias="mnemonic_ux")
     name: str = Field(alias="name")
     supported_txs: "list[TxTypeSchema]" = Field(alias="supported_txs")

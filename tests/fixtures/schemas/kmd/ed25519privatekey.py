@@ -1,5 +1,5 @@
 from pydantic import RootModel
 
 
-class ed25519PrivateKeySchema(RootModel[list[int]]):
+class ed25519PrivateKeySchema(RootModel[str]):
     pass

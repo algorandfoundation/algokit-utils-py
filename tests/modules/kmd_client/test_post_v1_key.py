@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import GenerateKeyRequest, ListKeysRequest
 
+from tests.fixtures.schemas.kmd import GenerateKeyResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 # Polytest Suite: POST v1_key
 
 # Polytest Group: Common Tests
@@ -18,6 +21,7 @@ def test_basic_request_and_response_validation(
     wallet_handle_token, _, _ = wallet_handle
 
     result = localnet_kmd_client.generate_key(GenerateKeyRequest(wallet_handle_token=wallet_handle_token))
+    validate_with_schema(result, GenerateKeyResponseSchema)
 
     assert result.address is not None
 

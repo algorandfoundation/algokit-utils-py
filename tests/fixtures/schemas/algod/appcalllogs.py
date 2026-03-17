@@ -7,5 +7,5 @@ class AppCallLogsSchema(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     logs: list[str] = Field(alias="logs")
-    application_index: int = Field(alias="application-index")
-    txId: str = Field(alias="txId")
+    app_id: int = Field(alias="application-index")
+    tx_id: str = Field(alias="txId")

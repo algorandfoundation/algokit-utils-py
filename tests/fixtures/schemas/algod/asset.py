@@ -6,5 +6,5 @@ class AssetSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    index: int = Field(alias="index")
+    id_: int = Field(alias="index")
     params: "AssetParamsSchema" = Field(alias="params")

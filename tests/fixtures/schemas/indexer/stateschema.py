@@ -6,5 +6,5 @@ class StateSchemaSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    num_uint: int = Field(ge=0, le=64, alias="num-uint")
-    num_byte_slice: int = Field(ge=0, le=64, alias="num-byte-slice")
+    num_uints: int = Field(ge=0, le=64, alias="num-uint")
+    num_byte_slices: int = Field(ge=0, le=64, alias="num-byte-slice")

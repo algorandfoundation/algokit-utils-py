@@ -6,5 +6,5 @@ class ApplicationSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    id: int = Field(alias="id")
+    id_: int = Field(alias="id")
     params: "ApplicationParamsSchema" = Field(alias="params")

@@ -8,7 +8,7 @@ class GenesisSchema(BaseModel):
     comment: str | None = Field(default=None, alias="comment")
     devmode: bool | None = Field(default=None, alias="devmode")
     fees: str = Field(alias="fees")
-    id: str = Field(alias="id")
+    id_: str = Field(alias="id")
     network: str = Field(alias="network")
     proto: str = Field(alias="proto")
     rwd: str = Field(alias="rwd")

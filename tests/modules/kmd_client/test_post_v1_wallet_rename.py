@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import RenameWalletRequest, WalletInfoRequest
 
+from tests.fixtures.schemas.kmd import RenameWalletResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD
 
 # Polytest Suite: POST v1_wallet_rename
@@ -27,6 +30,7 @@ def test_basic_request_and_response_validation(
             wallet_name=new_wallet_name,
         )
     )
+    validate_with_schema(result, RenameWalletResponseSchema)
 
     assert result.wallet is not None
 

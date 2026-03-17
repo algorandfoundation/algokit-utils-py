@@ -7,5 +7,5 @@ class MultisigSubsigSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    pk: "PublicKeySchema" = Field(alias="pk")
-    s: "SignatureSchema | None" = Field(default=None, alias="s")
+    public_key: "PublicKeySchema" = Field(alias="pk")
+    signature: "SignatureSchema | None" = Field(default=None, alias="s")

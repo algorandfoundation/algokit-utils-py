@@ -3,7 +3,8 @@ from syrupy.assertion import SnapshotAssertion
 
 from algokit_indexer_client import IndexerClient
 
-from tests.modules.conftest import TEST_ADDRESS, DataclassSnapshotSerializer
+from tests.fixtures.schemas.indexer import AccountResponseSchema
+from tests.modules.conftest import TEST_ADDRESS, DataclassSnapshotSerializer, validate_with_schema
 
 # Polytest Suite: GET v2_accounts_ACCOUNT-ID
 
@@ -15,4 +16,5 @@ def test_basic_request_and_response_validation(indexer_client: IndexerClient, sn
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
     result = indexer_client.lookup_account_by_id(TEST_ADDRESS)
 
+    validate_with_schema(result, AccountResponseSchema)
     assert DataclassSnapshotSerializer.serialize(result) == snapshot_json

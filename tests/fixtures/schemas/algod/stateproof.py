@@ -6,5 +6,5 @@ class StateProofSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    Message: "StateProofMessageSchema" = Field(alias="Message")
-    StateProof: str = Field(alias="StateProof")
+    message: "StateProofMessageSchema" = Field(alias="Message")
+    state_proof: str = Field(alias="StateProof")

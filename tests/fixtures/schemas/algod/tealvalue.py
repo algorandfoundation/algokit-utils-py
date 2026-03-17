@@ -6,6 +6,6 @@ class TealValueSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    type: int = Field(alias="type")
-    bytes: str = Field(alias="bytes")
+    type_: int = Field(alias="type")
+    bytes_: str = Field(alias="bytes")
     uint: int = Field(ge=0, le=18446744073709551615, alias="uint")

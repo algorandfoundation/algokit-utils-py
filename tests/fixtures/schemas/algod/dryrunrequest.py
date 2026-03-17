@@ -10,6 +10,6 @@ class DryrunRequestSchema(BaseModel):
     accounts: "list[AccountSchema]" = Field(alias="accounts")
     apps: "list[ApplicationSchema]" = Field(alias="apps")
     protocol_version: str = Field(alias="protocol-version")
-    round: int = Field(alias="round")
+    round_: int = Field(alias="round")
     latest_timestamp: int = Field(ge=0, alias="latest-timestamp")
     sources: "list[DryrunSourceSchema]" = Field(alias="sources")

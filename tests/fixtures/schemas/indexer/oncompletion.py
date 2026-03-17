@@ -1,8 +1,7 @@
-from typing import Any
-from pydantic import BaseModel, ConfigDict
+from pydantic import RootModel
 
 
-class OnCompletionSchema(BaseModel):
+class OnCompletionSchema(RootModel[str]):
     """\[apan\] defines the what additional actions occur with the transaction.
 
     Valid types:
@@ -13,4 +12,4 @@ class OnCompletionSchema(BaseModel):
     * update
     * delete"""
 
-    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True, extra="allow")
+    pass

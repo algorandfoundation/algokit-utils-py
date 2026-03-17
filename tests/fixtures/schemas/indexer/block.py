@@ -18,7 +18,7 @@ class BlockSchema(BaseModel):
     previous_block_hash: str = Field(alias="previous-block-hash")
     previous_block_hash_512: str | None = Field(default=None, alias="previous-block-hash-512")
     rewards: "BlockRewardsSchema" = Field(alias="rewards")
-    round: int = Field(alias="round")
+    round_: int = Field(alias="round")
     seed: str = Field(alias="seed")
     state_proof_tracking: "list[StateProofTrackingSchema] | None" = Field(default=None, alias="state-proof-tracking")
     timestamp: int = Field(alias="timestamp")

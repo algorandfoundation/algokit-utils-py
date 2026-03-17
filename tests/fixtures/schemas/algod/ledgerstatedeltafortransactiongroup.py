@@ -6,5 +6,5 @@ class LedgerStateDeltaForTransactionGroupSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    Delta: "LedgerStateDeltaSchema" = Field(alias="Delta")
-    Ids: list[str] = Field(alias="Ids")
+    delta: "LedgerStateDeltaSchema" = Field(alias="Delta")
+    ids: list[str] = Field(alias="Ids")

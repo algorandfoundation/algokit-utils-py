@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Generate Pydantic validation schemas from OpenAPI specs."""
 
+import builtins
 import json
+import keyword
+import re
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -9,6 +12,26 @@ from typing import Any, cast
 
 # Algorand uses uint64 for amounts, rounds, etc.
 UINT64_MAX = 2**64 - 1  # 18446744073709551615
+
+# Replicates the OAS generator's IdentifierSanitizer.snake() logic
+# to ensure schema field names match the generated dataclass field names.
+_NON_WORD = re.compile(r"[^0-9a-zA-Z]+")
+_ACRONYM_BOUNDARY = re.compile(r"([A-Z]+)([A-Z][a-z])")
+_LOWER_TO_UPPER = re.compile(r"([a-z0-9])([A-Z])")
+_PY_RESERVED = {*keyword.kwlist, *keyword.softkwlist, *dir(builtins), "self", "cls"}
+
+
+def _to_snake(raw: str) -> str:
+    """Convert an OAS field name to the same snake_case the OAS generator produces."""
+    cleaned = _NON_WORD.sub(" ", raw)
+    spaced = _ACRONYM_BOUNDARY.sub(r"\1 \2", cleaned)
+    spaced = _LOWER_TO_UPPER.sub(r"\1 \2", spaced)
+    parts = [part for part in spaced.strip().split() if part]
+    candidate = "_".join(word.lower() for word in parts) if parts else "value"
+    if candidate in _PY_RESERVED:
+        candidate += "_"
+    return candidate
+
 
 SPECS = {
     "algod": "https://raw.githubusercontent.com/algorandfoundation/algokit-oas-generator/main/specs/algod.oas3.json",
@@ -60,9 +83,12 @@ def map_type(details: dict[str, Any], *, required: bool) -> str:
 
 def build_field(prop: str, details: dict[str, Any], *, required: bool) -> str:
     """Build a Pydantic field definition."""
-    field_name = prop.replace("-", "_")
+    # Use x-algokit-field-rename if the OAS spec provides a custom Python name,
+    # otherwise apply the same snake_case conversion as the OAS generator.
+    rename = details.get("x-algokit-field-rename")
+    field_name = _to_snake(rename) if rename else _to_snake(prop)
 
-    # Avoid shadowing BaseModel attributes
+    # Avoid shadowing Pydantic BaseModel attributes
     if field_name in {"model_config", "model_fields", "model_computed_fields", "schema"}:
         field_name += "_"
     field_type = map_type(details, required=required)
@@ -87,6 +113,25 @@ def generate_schema(name: str, schema: dict[str, Any]) -> str:
     """Generate a Pydantic schema class."""
     desc = f'    """{schema.get("description", "")}"""' if schema.get("description") else ""
 
+    # String/enum schema — generate a RootModel[str] for schemas that are just strings
+    if schema.get("type") == "string":
+        return f"""from pydantic import RootModel
+
+class {name}Schema(RootModel[str]):
+{desc}
+    pass
+"""
+
+    # Byte array schema (array of uint8) — in Python these are base64-encoded strings
+    items = schema.get("items", {})
+    if schema.get("type") == "array" and items.get("type") == "integer" and items.get("format") == "uint8":
+        return f"""from pydantic import RootModel
+
+class {name}Schema(RootModel[str]):
+{desc}
+    pass
+"""
+
     # Array schema
     if schema.get("type") == "array":
         item = map_type(schema.get("items", {}), required=True)
@@ -101,7 +146,16 @@ class {name}Schema(RootModel[list[{item_str}]]):
 
     properties = schema.get("properties", {})
 
-    # Empty object schema
+    # Opaque/empty schema (no type, no properties) — typically byte types serialized as base64
+    if not properties and not schema.get("type"):
+        return f"""from pydantic import RootModel
+
+class {name}Schema(RootModel[str]):
+{desc}
+    pass
+"""
+
+    # Empty object schema (has type but no properties)
     if not properties:
         return f"""from typing import Any
 from pydantic import BaseModel, ConfigDict

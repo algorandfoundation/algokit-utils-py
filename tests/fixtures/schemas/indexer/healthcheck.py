@@ -9,7 +9,7 @@ class HealthCheckSchema(BaseModel):
 
     version: str = Field(alias="version")
     data: dict[str, Any] | None = Field(default=None, alias="data")
-    round: int = Field(alias="round")
+    round_: int = Field(alias="round")
     is_migrating: bool = Field(alias="is-migrating")
     db_available: bool = Field(alias="db-available")
     message: str = Field(alias="message")

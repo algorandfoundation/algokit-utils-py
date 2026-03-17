@@ -5,6 +5,9 @@ from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import SignMultisigTxnRequest
 from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, encode_transaction_raw
 
+from tests.fixtures.schemas.kmd import SignMultisigResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, create_test_multisig
 
 # Polytest Suite: POST v1_multisig_sign
@@ -54,5 +57,6 @@ def test_basic_request_and_response_validation(
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, SignMultisigResponseSchema)
 
     assert result.multisig is not None

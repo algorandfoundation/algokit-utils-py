@@ -6,7 +6,7 @@ class ParticipationKeySchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    id: str = Field(alias="id")
+    id_: str = Field(alias="id")
     address: str = Field(alias="address")
     effective_first_valid: int | None = Field(default=None, alias="effective-first-valid")
     effective_last_valid: int | None = Field(default=None, alias="effective-last-valid")

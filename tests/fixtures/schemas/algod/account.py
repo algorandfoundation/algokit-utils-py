@@ -31,7 +31,7 @@ class AccountSchema(BaseModel):
     pending_rewards: int = Field(ge=0, le=18446744073709551615, alias="pending-rewards")
     reward_base: int | None = Field(default=None, ge=0, le=18446744073709551615, alias="reward-base")
     rewards: int = Field(ge=0, le=18446744073709551615, alias="rewards")
-    round: int = Field(alias="round")
+    round_: int = Field(alias="round")
     status: str = Field(alias="status")
     sig_type: str | None = Field(default=None, alias="sig-type")
     auth_addr: str | None = Field(default=None, alias="auth-addr")

@@ -6,7 +6,7 @@ class AssetSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    index: int = Field(alias="index")
+    id_: int = Field(alias="index")
     deleted: bool | None = Field(default=None, alias="deleted")
     created_at_round: int | None = Field(default=None, alias="created-at-round")
     destroyed_at_round: int | None = Field(default=None, alias="destroyed-at-round")

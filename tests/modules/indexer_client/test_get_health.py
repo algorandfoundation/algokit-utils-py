@@ -2,6 +2,9 @@ import pytest
 
 from algokit_indexer_client import IndexerClient
 
+from tests.fixtures.schemas.indexer import HealthCheckSchema
+from tests.modules.conftest import validate_with_schema
+
 # Polytest Suite: GET health
 
 # Polytest Group: Common Tests
@@ -13,5 +16,6 @@ def test_basic_request_and_response_validation(indexer_client: IndexerClient) ->
     # Note: TS skips this test due to schema mismatch with 'migration-required' and 'read-only-mode' fields
     # Python implementation handles this gracefully
     result = indexer_client.health_check()
+    validate_with_schema(result, HealthCheckSchema)
     assert result is not None
     assert result.round_ is not None

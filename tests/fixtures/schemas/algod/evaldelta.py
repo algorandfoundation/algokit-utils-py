@@ -7,5 +7,5 @@ class EvalDeltaSchema(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     action: int = Field(alias="action")
-    bytes: str | None = Field(default=None, alias="bytes")
+    bytes_: str | None = Field(default=None, alias="bytes")
     uint: int | None = Field(default=None, ge=0, le=18446744073709551615, alias="uint")

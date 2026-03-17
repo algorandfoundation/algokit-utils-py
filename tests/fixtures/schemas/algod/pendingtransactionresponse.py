@@ -7,8 +7,8 @@ class PendingTransactionResponseSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    asset_index: int | None = Field(default=None, alias="asset-index")
-    application_index: int | None = Field(default=None, alias="application-index")
+    asset_id: int | None = Field(default=None, alias="asset-index")
+    app_id: int | None = Field(default=None, alias="application-index")
     close_rewards: int | None = Field(default=None, alias="close-rewards")
     closing_amount: int | None = Field(default=None, alias="closing-amount")
     asset_closing_amount: int | None = Field(default=None, alias="asset-closing-amount")

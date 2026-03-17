@@ -6,5 +6,5 @@ class ApplicationLogDataSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    txid: str = Field(alias="txid")
+    tx_id: str = Field(alias="txid")
     logs: list[str] = Field(alias="logs")

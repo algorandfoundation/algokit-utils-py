@@ -7,7 +7,7 @@ class SignProgramMultisigRequestSchema(BaseModel):
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
     address: str = Field(alias="address")
-    data: str = Field(alias="data")
+    program: str = Field(alias="data")
     partial_multisig: "MultisigSigSchema | None" = Field(default=None, alias="partial_multisig")
     public_key: "PublicKeySchema" = Field(alias="public_key")
     use_legacy_msig: bool | None = Field(default=None, alias="use_legacy_msig")

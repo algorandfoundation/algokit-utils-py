@@ -6,6 +6,6 @@ class MultisigSigSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    subsig: "list[MultisigSubsigSchema]" = Field(alias="subsig")
-    thr: int = Field(alias="thr")
-    v: int = Field(alias="v")
+    subsignatures: "list[MultisigSubsigSchema]" = Field(alias="subsig")
+    threshold: int = Field(alias="thr")
+    version: int = Field(alias="v")

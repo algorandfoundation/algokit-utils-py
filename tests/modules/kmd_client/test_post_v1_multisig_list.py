@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ListMultisigRequest
 
+from tests.fixtures.schemas.kmd import ListMultisigResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import create_test_multisig
 
 # Polytest Suite: POST v1_multisig_list
@@ -23,6 +26,7 @@ def test_basic_request_and_response_validation(
     multisig_address, _, _, _ = create_test_multisig(localnet_kmd_client, wallet_handle_token)
 
     result = localnet_kmd_client.list_multisig(ListMultisigRequest(wallet_handle_token=wallet_handle_token))
+    validate_with_schema(result, ListMultisigResponseSchema)
 
     assert result.addresses is not None
     # Verify the multisig is in the list

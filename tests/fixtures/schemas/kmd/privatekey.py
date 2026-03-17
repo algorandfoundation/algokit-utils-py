@@ -1,6 +1,5 @@
-from typing import Any
-from pydantic import BaseModel, ConfigDict
+from pydantic import RootModel
 
 
-class PrivateKeySchema(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True, extra="allow")
+class PrivateKeySchema(RootModel[str]):
+    pass
