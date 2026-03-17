@@ -109,51 +109,40 @@ def build_field(prop: str, details: dict[str, Any], *, required: bool) -> str:
     return f"    {field_name}: {type_str} = Field({', '.join(parts)})"
 
 
+def _root_model(name: str, root_type: str, desc: str, typing_import: str = "") -> str:
+    """Generate a RootModel schema wrapping a single type."""
+    return f"""{typing_import}from pydantic import RootModel
+
+class {name}Schema(RootModel[{root_type}]):
+{desc}
+    pass
+"""
+
+
+def _is_byte_array(schema: dict[str, Any]) -> bool:
+    """Check if schema is an array of uint8 (byte array)."""
+    items = schema.get("items", {})
+    return schema.get("type") == "array" and items.get("type") == "integer" and items.get("format") == "uint8"
+
+
 def generate_schema(name: str, schema: dict[str, Any]) -> str:
     """Generate a Pydantic schema class."""
     desc = f'    """{schema.get("description", "")}"""' if schema.get("description") else ""
 
-    # String/enum schema — generate a RootModel[str] for schemas that are just strings
-    if schema.get("type") == "string":
-        return f"""from pydantic import RootModel
+    # String, byte array, or opaque schema → RootModel[str]
+    is_string = schema.get("type") == "string"
+    is_opaque = not schema.get("properties") and not schema.get("type")
+    if is_string or _is_byte_array(schema) or is_opaque:
+        return _root_model(name, "str", desc)
 
-class {name}Schema(RootModel[str]):
-{desc}
-    pass
-"""
-
-    # Byte array schema (array of uint8) — in Python these are base64-encoded strings
-    items = schema.get("items", {})
-    if schema.get("type") == "array" and items.get("type") == "integer" and items.get("format") == "uint8":
-        return f"""from pydantic import RootModel
-
-class {name}Schema(RootModel[str]):
-{desc}
-    pass
-"""
-
-    # Array schema
+    # Array schema → RootModel[list[...]]
     if schema.get("type") == "array":
         item = map_type(schema.get("items", {}), required=True)
         item_str = f'"{item}"' if "Schema" in item else item
         typing_import = "from typing import Any\n" if "Any" in item_str else ""
-        return f"""{typing_import}from pydantic import RootModel
-
-class {name}Schema(RootModel[list[{item_str}]]):
-{desc}
-    pass
-"""
+        return _root_model(name, f"list[{item_str}]", desc, typing_import)
 
     properties = schema.get("properties", {})
-
-    # Opaque/empty schema (no type, no properties) — typically byte types serialized as base64
-    if not properties and not schema.get("type"):
-        return f"""from pydantic import RootModel
-
-class {name}Schema(RootModel[str]):
-{desc}
-    pass
-"""
 
     # Empty object schema (has type but no properties)
     if not properties:
