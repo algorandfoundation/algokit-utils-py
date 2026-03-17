@@ -19,22 +19,17 @@ python scripts/generate_schemas.py
 ```
 
 This fetches OpenAPI specs from GitHub and generates Pydantic schemas in:
-- `src/algokit_algod_client/schemas/` (84 schemas)
-- `src/algokit_kmd_client/schemas/` (50 schemas)
-- `src/algokit_indexer_client/schemas/` (74 schemas)
+- `tests/fixtures/schemas/algod/` (84 schemas)
+- `tests/fixtures/schemas/kmd/` (50 schemas)
+- `tests/fixtures/schemas/indexer/` (74 schemas)
 
 **Total: 208 validation schemas**
 
 ### Using Schemas
 
-First install pydantic (not included by default):
-```bash
-pip install pydantic>=2.0
-```
-
-Then use schemas for validation:
+Use schemas for validation:
 ```python
-from algokit_algod_client.schemas import AccountSchema, NodeStatusResponseSchema
+from tests.fixtures.schemas.algod import AccountSchema, NodeStatusResponseSchema
 
 # Validate API response
 response_data = algod_client.status()
@@ -51,7 +46,7 @@ print(f"Last round: {validated.last_round}")
 - **Nested Schemas**: Handles complex nested object structures
 - **Array Types**: Supports both object and array-based schemas (RootModel)
 - **Alias Support**: Maps hyphenated API field names to Python-friendly snake_case
-- **Forward References**: Uses TYPE_CHECKING pattern to avoid circular imports
+- **Forward References**: Uses string annotations to handle cross-schema references
 
 ## Testing
 

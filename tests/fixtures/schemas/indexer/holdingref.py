@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +6,5 @@ class HoldingRefSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    address: str = Field(default=None, alias="address")
-    asset: int = Field(default=None, alias="asset")
+    address: str = Field(alias="address")
+    asset: int = Field(alias="asset")

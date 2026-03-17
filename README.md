@@ -21,13 +21,10 @@ pip install algokit-utils
 
 ## Validation Schemas
 
-This library includes **optional** Pydantic validation schemas for runtime validation of API client responses.
-
-> **Note**: Validation schemas require `pydantic>=2.0` which is a dev dependency (not installed by default).
+This repository includes Pydantic validation schemas for **development-time** validation of API client responses. These are test fixtures, not shipped as part of the published package.
 
 ```python
-# Install pydantic first: pip install pydantic>=2.0
-from algokit_algod_client.schemas import AccountSchema, NodeStatusResponseSchema
+from tests.fixtures.schemas.algod import AccountSchema, NodeStatusResponseSchema
 
 # Validate API responses
 response = algod_client.status()

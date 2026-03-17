@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +6,5 @@ class AssetSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    index: int = Field(default=None, alias="index")
-    params: "AssetParamsSchema" = Field(default=None, alias="params")
+    index: int = Field(alias="index")
+    params: "AssetParamsSchema" = Field(alias="params")

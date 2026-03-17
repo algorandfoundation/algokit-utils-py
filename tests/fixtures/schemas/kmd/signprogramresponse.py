@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,4 +6,4 @@ class SignProgramResponseSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    sig: str = Field(default=None, alias="sig")
+    sig: str = Field(alias="sig")

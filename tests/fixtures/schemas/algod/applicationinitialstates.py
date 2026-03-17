@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,7 +6,7 @@ class ApplicationInitialStatesSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    id: int = Field(default=None, alias="id")
+    id: int = Field(alias="id")
     app_locals: "list[ApplicationKVStorageSchema] | None" = Field(default=None, alias="app-locals")
     app_globals: "ApplicationKVStorageSchema | None" = Field(default=None, alias="app-globals")
     app_boxes: "ApplicationKVStorageSchema | None" = Field(default=None, alias="app-boxes")

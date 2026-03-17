@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,4 +6,4 @@ class ListMultisigRequestSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    wallet_handle_token: str = Field(default=None, alias="wallet_handle_token")
+    wallet_handle_token: str = Field(alias="wallet_handle_token")

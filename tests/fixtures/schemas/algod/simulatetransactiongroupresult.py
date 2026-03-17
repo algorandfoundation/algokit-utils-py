@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,7 +6,7 @@ class SimulateTransactionGroupResultSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    txn_results: "list[SimulateTransactionResultSchema]" = Field(default=None, alias="txn-results")
+    txn_results: "list[SimulateTransactionResultSchema]" = Field(alias="txn-results")
     failure_message: str | None = Field(default=None, alias="failure-message")
     failed_at: list[int] | None = Field(default=None, alias="failed-at")
     app_budget_added: int | None = Field(default=None, alias="app-budget-added")

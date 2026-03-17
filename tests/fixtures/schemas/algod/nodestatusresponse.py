@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,14 +6,14 @@ class NodeStatusResponseSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    catchup_time: int = Field(default=None, alias="catchup-time")
-    last_round: int = Field(default=None, alias="last-round")
-    last_version: str = Field(default=None, alias="last-version")
-    next_version: str = Field(default=None, alias="next-version")
-    next_version_round: int = Field(default=None, alias="next-version-round")
-    next_version_supported: bool = Field(default=None, alias="next-version-supported")
-    stopped_at_unsupported_round: bool = Field(default=None, alias="stopped-at-unsupported-round")
-    time_since_last_round: int = Field(default=None, alias="time-since-last-round")
+    catchup_time: int = Field(alias="catchup-time")
+    last_round: int = Field(alias="last-round")
+    last_version: str = Field(alias="last-version")
+    next_version: str = Field(alias="next-version")
+    next_version_round: int = Field(alias="next-version-round")
+    next_version_supported: bool = Field(alias="next-version-supported")
+    stopped_at_unsupported_round: bool = Field(alias="stopped-at-unsupported-round")
+    time_since_last_round: int = Field(alias="time-since-last-round")
     last_catchpoint: str | None = Field(default=None, alias="last-catchpoint")
     catchpoint: str | None = Field(default=None, alias="catchpoint")
     catchpoint_total_accounts: int | None = Field(default=None, alias="catchpoint-total-accounts")

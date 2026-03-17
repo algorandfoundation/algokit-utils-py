@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -10,8 +9,8 @@ class TransactionApplicationSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    application_id: int = Field(default=None, alias="application-id")
-    on_completion: "OnCompletionSchema" = Field(default=None, alias="on-completion")
+    application_id: int = Field(alias="application-id")
+    on_completion: "OnCompletionSchema" = Field(alias="on-completion")
     application_args: list[str] | None = Field(default=None, alias="application-args")
     access: "list[ResourceRefSchema] | None" = Field(default=None, alias="access")
     accounts: list[str] | None = Field(default=None, alias="accounts")

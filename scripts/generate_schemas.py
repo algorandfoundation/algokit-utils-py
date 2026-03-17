@@ -2,6 +2,7 @@
 """Generate Pydantic validation schemas from OpenAPI specs."""
 
 import json
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Any, cast
@@ -18,8 +19,11 @@ SPECS = {
 
 def fetch_spec(url: str) -> dict[str, Any]:
     """Fetch OpenAPI spec from URL."""
-    with urllib.request.urlopen(url) as response:
-        return cast(dict[str, Any], json.loads(response.read()))
+    try:
+        with urllib.request.urlopen(url, timeout=30) as response:
+            return cast(dict[str, Any], json.loads(response.read()))
+    except (urllib.error.URLError, json.JSONDecodeError) as e:
+        raise SystemExit(f"Failed to fetch spec from {url}: {e}") from e
 
 
 def map_type(details: dict[str, Any], *, required: bool) -> str:
@@ -66,7 +70,7 @@ def build_field(prop: str, details: dict[str, Any], *, required: bool) -> str:
     # String literal for schema refs, actual type for primitives (enables validation)
     type_str = f'"{field_type}"' if "Schema" in field_type else field_type
 
-    constraints = ["default=None"]
+    constraints = [] if required else ["default=None"]
     if details.get("format") == "uint64":
         constraints.extend(["ge=0", f"le={UINT64_MAX}"])
     if "minimum" in details:
@@ -74,7 +78,9 @@ def build_field(prop: str, details: dict[str, Any], *, required: bool) -> str:
     if "maximum" in details:
         constraints.append(f"le={details['maximum']}")
 
-    return f'    {field_name}: {type_str} = Field({", ".join(constraints)}, alias="{prop}")'
+    # Build Field() call — alias is always present, constraints may be empty
+    parts = [*constraints, f'alias="{prop}"']
+    return f"    {field_name}: {type_str} = Field({', '.join(parts)})"
 
 
 def generate_schema(name: str, schema: dict[str, Any]) -> str:
@@ -85,8 +91,8 @@ def generate_schema(name: str, schema: dict[str, Any]) -> str:
     if schema.get("type") == "array":
         item = map_type(schema.get("items", {}), required=True)
         item_str = f'"{item}"' if "Schema" in item else item
-        return f"""from typing import Any
-from pydantic import RootModel
+        typing_import = "from typing import Any\n" if "Any" in item_str else ""
+        return f"""{typing_import}from pydantic import RootModel
 
 class {name}Schema(RootModel[list[{item_str}]]):
 {desc}
@@ -109,8 +115,8 @@ class {name}Schema(BaseModel):
     required_fields = schema.get("required", [])
     fields = [build_field(prop, details, required=prop in required_fields) for prop, details in properties.items()]
 
-    return f"""from typing import Any
-from pydantic import BaseModel, ConfigDict, Field
+    typing_import = "from typing import Any\n" if any("Any" in f for f in fields) else ""
+    return f"""{typing_import}from pydantic import BaseModel, ConfigDict, Field
 
 class {name}Schema(BaseModel):
 {desc}

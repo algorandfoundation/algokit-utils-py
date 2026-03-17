@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,6 +6,6 @@ class ExportMultisigResponseSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    multisig_version: int = Field(default=None, alias="multisig_version")
-    pks: "list[PublicKeySchema]" = Field(default=None, alias="pks")
-    threshold: int = Field(default=None, alias="threshold")
+    multisig_version: int = Field(alias="multisig_version")
+    pks: "list[PublicKeySchema]" = Field(alias="pks")
+    threshold: int = Field(alias="threshold")

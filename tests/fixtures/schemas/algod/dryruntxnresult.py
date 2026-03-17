@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,7 +6,7 @@ class DryrunTxnResultSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    disassembly: list[str] = Field(default=None, alias="disassembly")
+    disassembly: list[str] = Field(alias="disassembly")
     logic_sig_disassembly: list[str] | None = Field(default=None, alias="logic-sig-disassembly")
     logic_sig_trace: "list[DryrunStateSchema] | None" = Field(default=None, alias="logic-sig-trace")
     logic_sig_messages: list[str] | None = Field(default=None, alias="logic-sig-messages")

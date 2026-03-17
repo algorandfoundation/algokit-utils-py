@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,7 +6,7 @@ class SimulationOpcodeTraceUnitSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    pc: int = Field(default=None, alias="pc")
+    pc: int = Field(alias="pc")
     scratch_changes: "list[ScratchChangeSchema] | None" = Field(default=None, alias="scratch-changes")
     state_changes: "list[ApplicationStateOperationSchema] | None" = Field(default=None, alias="state-changes")
     spawned_inners: list[int] | None = Field(default=None, alias="spawned-inners")

@@ -627,7 +627,7 @@ class TestCoverAppCallInnerFees:
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     @pytest.mark.parametrize("cover_inner_fees", [True, False])
-    def test_readonly_uses_fixed_opcode_budget_without_op_up_inner_transactions(self, cover_inner_fees: bool) -> None:
+    def test_readonly_uses_fixed_opcode_budget_without_op_up_inner_transactions(self, cover_inner_fees: bool) -> None:  # noqa: FBT001
         """Test that readonly calls use fixed opcode budget and don't require inner transactions for op-ups
         regardless of fee coverage setting"""
 

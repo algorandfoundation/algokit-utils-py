@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,6 +6,6 @@ class MultisigSigSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    subsig: "list[MultisigSubsigSchema]" = Field(default=None, alias="subsig")
-    thr: int = Field(default=None, alias="thr")
-    v: int = Field(default=None, alias="v")
+    subsig: "list[MultisigSubsigSchema]" = Field(alias="subsig")
+    thr: int = Field(alias="thr")
+    v: int = Field(alias="v")

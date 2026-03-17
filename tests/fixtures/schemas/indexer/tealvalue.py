@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,6 +6,6 @@ class TealValueSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    type: int = Field(default=None, alias="type")
-    bytes: str = Field(default=None, alias="bytes")
-    uint: int = Field(default=None, alias="uint")
+    type: int = Field(alias="type")
+    bytes: str = Field(alias="bytes")
+    uint: int = Field(alias="uint")

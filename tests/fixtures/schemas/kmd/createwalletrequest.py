@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -9,5 +8,5 @@ class CreateWalletRequestSchema(BaseModel):
 
     master_derivation_key: "MasterDerivationKeySchema | None" = Field(default=None, alias="master_derivation_key")
     wallet_driver_name: str | None = Field(default=None, alias="wallet_driver_name")
-    wallet_name: str = Field(default=None, alias="wallet_name")
-    wallet_password: str = Field(default=None, alias="wallet_password")
+    wallet_name: str = Field(alias="wallet_name")
+    wallet_password: str = Field(alias="wallet_password")

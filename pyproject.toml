@@ -136,10 +136,6 @@ lint.ignore = [
   "Q003",   # avoidable escaped quotes
   "W191",   # indentation contains tabs
   "ERA001", # commented out code
-  "PLC0415", # allow local imports used to avoid cycles and optional deps
-  "FBT001", # existing public APIs use boolean positional flags
-  "FBT002", # existing public APIs use boolean positional flags
-  "PLW1641", # allow dataclasses and value objects without __hash__
 ]
 # Exclude a variety of commonly ignored directories.
 extend-exclude = [

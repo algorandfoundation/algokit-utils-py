@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -8,9 +7,9 @@ class TransactionParametersResponseSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    consensus_version: str = Field(default=None, alias="consensus-version")
-    fee: int = Field(default=None, alias="fee")
-    genesis_hash: str = Field(default=None, alias="genesis-hash")
-    genesis_id: str = Field(default=None, alias="genesis-id")
-    last_round: int = Field(default=None, alias="last-round")
-    min_fee: int = Field(default=None, alias="min-fee")
+    consensus_version: str = Field(alias="consensus-version")
+    fee: int = Field(alias="fee")
+    genesis_hash: str = Field(alias="genesis-hash")
+    genesis_id: str = Field(alias="genesis-id")
+    last_round: int = Field(alias="last-round")
+    min_fee: int = Field(alias="min-fee")

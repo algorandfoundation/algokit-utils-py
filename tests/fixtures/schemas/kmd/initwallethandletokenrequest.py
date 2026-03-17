@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +6,5 @@ class InitWalletHandleTokenRequestSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    wallet_id: str = Field(default=None, alias="wallet_id")
-    wallet_password: str = Field(default=None, alias="wallet_password")
+    wallet_id: str = Field(alias="wallet_id")
+    wallet_password: str = Field(alias="wallet_password")

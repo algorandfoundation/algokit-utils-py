@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +6,5 @@ class AssetHoldingReferenceSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    account: str = Field(default=None, alias="account")
-    asset: int = Field(default=None, alias="asset")
+    account: str = Field(alias="account")
+    asset: int = Field(alias="asset")

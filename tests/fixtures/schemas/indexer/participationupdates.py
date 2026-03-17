@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -7,5 +6,5 @@ class ParticipationUpdatesSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    expired_participation_accounts: list[str] = Field(default=None, alias="expired-participation-accounts")
-    absent_participation_accounts: list[str] = Field(default=None, alias="absent-participation-accounts")
+    expired_participation_accounts: list[str] = Field(alias="expired-participation-accounts")
+    absent_participation_accounts: list[str] = Field(alias="absent-participation-accounts")

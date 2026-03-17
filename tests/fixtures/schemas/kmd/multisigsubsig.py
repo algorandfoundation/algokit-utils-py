@@ -1,4 +1,3 @@
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -8,5 +7,5 @@ class MultisigSubsigSchema(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
 
-    pk: "PublicKeySchema" = Field(default=None, alias="pk")
+    pk: "PublicKeySchema" = Field(alias="pk")
     s: "SignatureSchema | None" = Field(default=None, alias="s")
