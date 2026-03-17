@@ -1,9 +1,0 @@
-from pydantic import BaseModel, ConfigDict, Field
-
-
-class ImportMultisigResponseSchema(BaseModel):
-    """ImportMultisigResponse is the response to `POST /v1/multisig/import`"""
-
-    model_config = ConfigDict(populate_by_name=True, arbitrary_types_allowed=True)
-
-    address: str = Field(alias="address")

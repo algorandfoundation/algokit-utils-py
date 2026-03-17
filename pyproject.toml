@@ -177,8 +177,6 @@ suppress-none-returning = true
 "src/algokit_algod_client/**/*" = ["F821", "N815", "E501"]
 "src/algokit_indexer_client/**/*" = ["F821", "N815", "E501"]
 "src/algokit_kmd_client/**/*" = ["F821", "N815", "E501", "N801"]
-# Ignore lint rules for test fixture schemas (generated from OpenAPI)
-"tests/fixtures/schemas/**/*" = ["F821", "N815", "E501", "N801", "I001", "F401", "RUF022", "PIE790", "W605"]
 
 
 [tool.poe.tasks]
@@ -278,7 +276,7 @@ sequence = [
 [tool.poe.tasks.generate-schemas]
 sequence = [
   { cmd = "python scripts/generate_schemas.py" },
-  { cmd = "ruff format tests/fixtures/schemas" },
+  { cmd = "ruff format tests/fixtures/schemas/algod.py tests/fixtures/schemas/indexer.py tests/fixtures/schemas/kmd.py" },
 ]
 help = "Generate Pydantic validation schemas from OpenAPI specs"
 
