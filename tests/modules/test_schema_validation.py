@@ -1,0 +1,192 @@
+"""Runtime schema validation tests for all API clients."""
+
+import pytest
+from pydantic import ValidationError
+
+from tests.fixtures.schemas.algod import AccountSchema, NodeStatusResponseSchema
+from tests.fixtures.schemas.indexer import AccountResponseSchema
+from tests.fixtures.schemas.kmd import CreateWalletResponseSchema, WalletSchema
+
+# All required fields for algod AccountSchema
+VALID_ALGOD_ACCOUNT: dict = {
+    "address": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ",
+    "amount": 1000000,
+    "amount-without-pending-rewards": 1000000,
+    "min-balance": 100000,
+    "pending-rewards": 0,
+    "rewards": 0,
+    "round": 1000,
+    "status": "Offline",
+    "total-apps-opted-in": 0,
+    "total-assets-opted-in": 0,
+    "total-created-apps": 0,
+    "total-created-assets": 0,
+}
+
+# All required fields for indexer AccountSchema (includes extra fields vs algod)
+VALID_INDEXER_ACCOUNT: dict = {
+    **VALID_ALGOD_ACCOUNT,
+    "total-boxes": 0,
+    "total-box-bytes": 0,
+}
+
+
+def test_algod_schemas_validate():
+    """Algod schemas validate correct data and reject invalid data."""
+    account = AccountSchema.model_validate(VALID_ALGOD_ACCOUNT)
+    assert account.address == VALID_ALGOD_ACCOUNT["address"]
+    assert account.amount == 1000000
+
+    # Type validation — amount should be an integer
+    with pytest.raises(ValidationError):
+        AccountSchema.model_validate({**VALID_ALGOD_ACCOUNT, "amount": "not_int"})
+
+    # uint64 bounds — amount cannot be negative
+    with pytest.raises(ValidationError):
+        AccountSchema.model_validate({**VALID_ALGOD_ACCOUNT, "amount": -1})
+
+    # Required field validation — missing fields should fail
+    with pytest.raises(ValidationError):
+        AccountSchema.model_validate({})
+
+
+def test_kmd_schemas_validate():
+    """KMD schemas validate nested structures."""
+    valid = {
+        "wallet": {
+            "id": "test-id",
+            "name": "test-wallet",
+            "driver_name": "sqlite",
+            "driver_version": 1,
+            "mnemonic_ux": False,
+            "supported_txs": [],
+        },
+    }
+
+    wallet = CreateWalletResponseSchema.model_validate(valid)
+    assert wallet.wallet.name == "test-wallet"
+
+    # Type validation — wallet should be an object, not a string
+    with pytest.raises(ValidationError):
+        CreateWalletResponseSchema.model_validate({"wallet": "not_an_object"})
+
+
+def test_indexer_schemas_validate():
+    """Indexer schemas validate with enums from models."""
+    valid = {
+        "current-round": 1000,
+        "account": {
+            **VALID_INDEXER_ACCOUNT,
+            "created-at-round": 0,
+            "deleted": False,
+            "reward-base": 0,
+        },
+    }
+
+    response = AccountResponseSchema.model_validate(valid)
+    assert response.current_round == 1000
+    assert response.account.address == VALID_INDEXER_ACCOUNT["address"]
+
+    # Type validation — current-round should be an integer
+    with pytest.raises(ValidationError):
+        AccountResponseSchema.model_validate({**valid, "current-round": "not_an_int"})
+
+
+@pytest.mark.localnet
+def test_algod_runtime_validation(algorand_localnet: object) -> None:
+    """Validate real algod API responses."""
+    from dataclasses import asdict
+
+    from algokit_utils.algorand import AlgorandClient
+
+    client = algorand_localnet if isinstance(algorand_localnet, AlgorandClient) else AlgorandClient.default_localnet()
+    response = client.client.algod.status()
+    # Convert dataclass response to dict for Pydantic validation
+    response_dict = asdict(response)
+    validated = NodeStatusResponseSchema.model_validate(response_dict)
+    assert validated.last_round >= 0
+
+
+class TestBasicValidation:
+    """Test basic schema validation."""
+
+    def test_valid_data(self) -> None:
+        """Valid data should pass validation."""
+        schema = AccountSchema.model_validate(VALID_ALGOD_ACCOUNT)
+        assert schema.address == VALID_ALGOD_ACCOUNT["address"]
+        assert schema.amount == 1000000
+
+    def test_invalid_type(self) -> None:
+        """Invalid type should fail validation."""
+        with pytest.raises(ValidationError):
+            AccountSchema.model_validate({**VALID_ALGOD_ACCOUNT, "amount": "not_a_number"})
+
+    def test_missing_required_fields(self) -> None:
+        """Missing required fields should fail validation."""
+        with pytest.raises(ValidationError) as exc_info:
+            AccountSchema.model_validate({"address": "test"})
+        # Should report multiple missing required fields
+        assert "Field required" in str(exc_info.value)
+
+
+class TestUint64Bounds:
+    """Test uint64 field bounds validation."""
+
+    def test_valid_uint64(self) -> None:
+        """Values within uint64 range should pass."""
+        schema = AccountSchema.model_validate(VALID_ALGOD_ACCOUNT)
+        assert schema.amount == 1000000
+        assert schema.min_balance == 100000
+
+    def test_max_uint64(self) -> None:
+        """Maximum uint64 value should pass."""
+        max_uint64 = 18446744073709551615
+        data = {**VALID_ALGOD_ACCOUNT, "amount": max_uint64}
+        schema = AccountSchema.model_validate(data)
+        assert schema.amount == max_uint64
+
+    def test_negative_uint64(self) -> None:
+        """Negative values should fail."""
+        with pytest.raises(ValidationError) as exc_info:
+            AccountSchema.model_validate({**VALID_ALGOD_ACCOUNT, "amount": -1})
+        assert "greater than or equal to 0" in str(exc_info.value)
+
+    def test_overflow_uint64(self) -> None:
+        """Values exceeding uint64 max should fail."""
+        with pytest.raises(ValidationError) as exc_info:
+            AccountSchema.model_validate({**VALID_ALGOD_ACCOUNT, "amount": 18446744073709551616})
+        assert "less than or equal to" in str(exc_info.value)
+
+
+class TestSchemaImports:
+    """Test that schemas can be imported correctly."""
+
+    def test_algod_schemas_import(self) -> None:
+        """Algod schemas should be importable."""
+        from tests.fixtures.schemas.algod import (
+            ApplicationSchema,
+            AssetSchema,
+        )
+
+        assert AccountSchema is not None
+        assert AssetSchema is not None
+        assert ApplicationSchema is not None
+
+    def test_kmd_schemas_import(self) -> None:
+        """KMD schemas should be importable."""
+        from tests.fixtures.schemas.kmd import CreateWalletRequestSchema
+
+        assert WalletSchema is not None
+        assert CreateWalletRequestSchema is not None
+
+    def test_indexer_schemas_import(self) -> None:
+        """Indexer schemas should be importable."""
+        from tests.fixtures.schemas.indexer import (
+            AccountSchema as IndexerAccountSchema,
+            BlockSchema,
+            TransactionSchema,
+        )
+
+        assert IndexerAccountSchema is not None
+        assert TransactionSchema is not None
+        assert BlockSchema is not None

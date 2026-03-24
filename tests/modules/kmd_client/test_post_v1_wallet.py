@@ -2,6 +2,9 @@ import pytest
 
 from algokit_kmd_client import KmdClient
 
+from tests.fixtures.schemas.kmd import ListWalletsResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import create_test_wallet
 
 # Polytest Suite: POST v1_wallet
@@ -17,6 +20,7 @@ def test_basic_request_and_response_validation(localnet_kmd_client: KmdClient) -
 
     # Verify the wallet was created
     list_result = localnet_kmd_client.list_wallets()
+    validate_with_schema(list_result, ListWalletsResponseSchema)
     wallets = list_result.wallets or []
     created_wallet = next((w for w in wallets if w.id_ == wallet_id), None)
     assert created_wallet is not None

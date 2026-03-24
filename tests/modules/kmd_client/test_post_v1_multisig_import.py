@@ -4,6 +4,9 @@ from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ImportMultisigRequest
 from algokit_transact import address_from_multisig_signature, new_multisig_signature
 
+from tests.fixtures.schemas.kmd import ImportMultisigResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import (
     MULTISIG_KEY_COUNT,
     MULTISIG_THRESHOLD,
@@ -42,5 +45,6 @@ def test_basic_request_and_response_validation(
             public_keys=public_keys,
         )
     )
+    validate_with_schema(result, ImportMultisigResponseSchema)
 
     assert result.address == expected_address

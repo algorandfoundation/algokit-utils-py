@@ -687,7 +687,10 @@ class TestCoverAppCallInnerFees:
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
             max_fee=AlgoAmount.from_micro_algo(2000),
         )
-        with pytest.raises(ValueError, match="Fees were too small. You may need to increase the transaction `maxFee`."):
+        with pytest.raises(
+            ValueError,
+            match=r"Fees were too small\. You may need to increase the transaction `maxFee`\.",
+        ):
             self.app_client1.send.call(
                 params,
                 send_params={

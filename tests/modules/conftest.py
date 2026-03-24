@@ -8,6 +8,7 @@ Mock server fixtures are in individual module conftest files:
 
 import base64
 from dataclasses import fields, is_dataclass
+from enum import Enum
 from pathlib import Path
 
 # Load .env file from project root for local development
@@ -33,10 +34,12 @@ TEST_TXID = "VIXTUMAPT7NR4RB2WVOGMETW4QY43KIDA3HWDWWXS3UEDKGTEECQ"
 TEST_ROUND = 24099447
 
 
-def _dataclass_to_dict(obj: object) -> object:
+def _dataclass_to_dict(obj: object) -> object:  # noqa: PLR0911
     """Recursively convert a dataclass to a dict for JSON serialization."""
     if obj is None:
         return None
+    if isinstance(obj, Enum):
+        return obj.value
     if is_dataclass(obj) and not isinstance(obj, type):
         return {f.name: _dataclass_to_dict(getattr(obj, f.name)) for f in fields(obj)}
     if isinstance(obj, bytes | bytearray | memoryview):
@@ -54,6 +57,15 @@ class DataclassSnapshotSerializer:
     @staticmethod
     def serialize(data: object) -> object:
         return _dataclass_to_dict(data)
+
+
+def validate_with_schema(result: object, schema_class: type) -> None:
+    """Validate a dataclass API response against its Pydantic schema.
+
+    Mirrors the TS approach of calling Schema.parse(result) in every polytest
+    to ensure the real API response matches the OAS-generated schema.
+    """
+    schema_class.model_validate(_dataclass_to_dict(result))
 
 
 @pytest.fixture

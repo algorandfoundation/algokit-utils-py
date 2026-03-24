@@ -283,7 +283,7 @@ class AppClientBareCallCreateParams(CommonAppCallCreateParams):
 
 
 @dataclass(kw_only=True, frozen=True)
-class BaseAppClientMethodCallParams(Generic[ArgsT, MethodT], CommonAppCallParams):
+class BaseAppClientMethodCallParams(CommonAppCallParams, Generic[ArgsT, MethodT]):
     """Base parameters for application method calls."""
 
     method: MethodT

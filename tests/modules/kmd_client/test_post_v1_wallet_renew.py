@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import RenewWalletHandleTokenRequest
 
+from tests.fixtures.schemas.kmd import RenewWalletHandleTokenResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 # Polytest Suite: POST v1_wallet_renew
 
 # Polytest Group: Common Tests
@@ -20,5 +23,6 @@ def test_basic_request_and_response_validation(
     result = localnet_kmd_client.renew_wallet_handle_token(
         RenewWalletHandleTokenRequest(wallet_handle_token=wallet_handle_token)
     )
+    validate_with_schema(result, RenewWalletHandleTokenResponseSchema)
 
     assert result.wallet_handle is not None

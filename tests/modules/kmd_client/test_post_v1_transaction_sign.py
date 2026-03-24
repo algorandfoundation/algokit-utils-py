@@ -5,6 +5,9 @@ from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import SignTxnRequest
 from algokit_transact import PaymentTransactionFields, Transaction, TransactionType, encode_transaction_raw
 
+from tests.fixtures.schemas.kmd import SignTransactionResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, generate_test_key
 
 # Polytest Suite: POST v1_transaction_sign
@@ -53,5 +56,6 @@ def test_basic_request_and_response_validation(
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, SignTransactionResponseSchema)
 
     assert result.signed_transaction is not None

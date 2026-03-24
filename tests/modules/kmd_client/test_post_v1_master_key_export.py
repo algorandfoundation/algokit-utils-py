@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ExportMasterKeyRequest
 
+from tests.fixtures.schemas.kmd import ExportMasterKeyResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD
 
 # Polytest Suite: POST v1_master-key_export
@@ -25,5 +28,6 @@ def test_basic_request_and_response_validation(
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, ExportMasterKeyResponseSchema)
 
     assert result.master_derivation_key is not None

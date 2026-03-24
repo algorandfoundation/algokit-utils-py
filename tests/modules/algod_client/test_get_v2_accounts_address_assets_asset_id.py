@@ -3,7 +3,8 @@ from syrupy.assertion import SnapshotAssertion
 
 from algokit_algod_client import AlgodClient
 
-from tests.modules.conftest import TEST_ADDRESS, TEST_ASSET_ID, DataclassSnapshotSerializer
+from tests.fixtures.schemas.algod import AccountAssetResponseSchema
+from tests.modules.conftest import TEST_ADDRESS, TEST_ASSET_ID, DataclassSnapshotSerializer, validate_with_schema
 
 # Polytest Suite: GET v2_accounts_ADDRESS_assets_ASSET-ID
 
@@ -15,4 +16,5 @@ def test_basic_request_and_response_validation(algod_client: AlgodClient, snapsh
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
     result = algod_client.account_asset_information(TEST_ADDRESS, TEST_ASSET_ID)
 
+    validate_with_schema(result, AccountAssetResponseSchema)
     assert DataclassSnapshotSerializer.serialize(result) == snapshot_json

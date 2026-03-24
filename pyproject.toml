@@ -20,6 +20,8 @@ dependencies = [
 [dependency-groups]
 cicd = []
 dev = [
+  "pip>=26.0,<27",
+  "pydantic>=2.0.0,<3",
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.14.8",
   "pip>=26.0",  # Fix GHSA-6vgw-5pg2-w6jp vulnerability
@@ -168,8 +170,13 @@ suppress-none-returning = true
 ] # Ignore import sorting for __init__.py
 # OAS generator has inherently complex schema-walking code
 "api/oas-generator/src/oas_generator/builder.py" = ["C901", "PLR0911", "PLR0912", "E501", "ARG002", "ANN401", "FBT003"]
-# Examples may have long demo lines
-"examples/**/*" = ["E501"]
+# Examples are validated separately; ignore local import/style-noise here
+"examples/**/*" = ["E501", "PLC0415", "RUF100"]
+"scripts/**/*" = ["T201"] # Allow print statements in CLI scripts
+# Ignore lint rules for generated API clients
+"src/algokit_algod_client/**/*" = ["F821", "N815", "E501"]
+"src/algokit_indexer_client/**/*" = ["F821", "N815", "E501"]
+"src/algokit_kmd_client/**/*" = ["F821", "N815", "E501", "N801"]
 
 
 [tool.poe.tasks]
@@ -266,6 +273,13 @@ sequence = [
   "generate-kmd-client",
 ]
 
+[tool.poe.tasks.generate-schemas]
+sequence = [
+  { cmd = "python scripts/generate_schemas.py" },
+  { cmd = "ruff format tests/fixtures/schemas/algod.py tests/fixtures/schemas/indexer.py tests/fixtures/schemas/kmd.py" },
+]
+help = "Generate Pydantic validation schemas from OpenAPI specs"
+
 [tool.poe.tasks.release-preview]
 sequence = [
   { cmd = "semantic-release version --print" },
@@ -305,7 +319,7 @@ norecursedirs = [
 
 [tool.mypy]
 files = ["src", "tests"]
-exclude = ["dist", "tests/artifacts", "src/algokit_algosdk"]
+exclude = ["dist", "tests/artifacts", "tests/fixtures/schemas", "src/algokit_algosdk", "src/algokit_algod_client", "src/algokit_indexer_client", "src/algokit_kmd_client"]
 python_version = "3.10"
 warn_unused_ignores = true
 warn_redundant_casts = true
