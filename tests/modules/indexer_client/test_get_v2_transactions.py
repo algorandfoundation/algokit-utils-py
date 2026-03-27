@@ -3,7 +3,8 @@ from syrupy.assertion import SnapshotAssertion
 
 from algokit_indexer_client import IndexerClient
 
-from tests.modules.conftest import DataclassSnapshotSerializer
+from tests.fixtures.schemas.indexer import TransactionsResponseSchema
+from tests.modules.conftest import DataclassSnapshotSerializer, validate_with_schema
 
 # Polytest Suite: GET v2_transactions
 
@@ -18,4 +19,5 @@ def test_basic_request_and_response_validation(indexer_client: IndexerClient, sn
     assert result.transactions is not None
     assert len(result.transactions) == 1
 
+    validate_with_schema(result, TransactionsResponseSchema)
     assert DataclassSnapshotSerializer.serialize(result) == snapshot_json

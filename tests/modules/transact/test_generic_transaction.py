@@ -19,5 +19,5 @@ def test_malformed_bytes() -> None:
 @pytest.mark.group_generic_transaction_tests
 def test_encode_0_bytes() -> None:
     """Ensure a helpful error message is thrown when attempting to encode 0 bytes"""
-    with pytest.raises(ValueError, match="^attempted to decode 0 bytes$"):
+    with pytest.raises(ValueError, match=r"^attempted to decode 0 bytes$"):
         decode_transaction(b"")

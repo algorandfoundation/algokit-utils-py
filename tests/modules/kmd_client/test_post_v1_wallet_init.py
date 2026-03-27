@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import InitWalletHandleTokenRequest
 
+from tests.fixtures.schemas.kmd import InitWalletHandleTokenResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, create_test_wallet
 
 # Polytest Suite: POST v1_wallet_init
@@ -23,5 +26,6 @@ def test_basic_request_and_response_validation(localnet_kmd_client: KmdClient) -
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, InitWalletHandleTokenResponseSchema)
 
     assert result.wallet_handle_token is not None

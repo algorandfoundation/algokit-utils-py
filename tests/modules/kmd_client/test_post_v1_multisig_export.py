@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ExportMultisigRequest
 
+from tests.fixtures.schemas.kmd import ExportMultisigResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import create_test_multisig
 
 # Polytest Suite: POST v1_multisig_export
@@ -28,6 +31,7 @@ def test_basic_request_and_response_validation(
             address=multisig_address,
         )
     )
+    validate_with_schema(result, ExportMultisigResponseSchema)
 
     assert result.multisig_version == 1
     assert result.threshold == threshold

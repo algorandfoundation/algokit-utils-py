@@ -64,13 +64,13 @@ const CATEGORIES: Record<string, CategoryMeta> = {
   },
 }
 
-function lineSeparator(text: string, isBullet: boolean, lastWasBullet: boolean): string {
+export function lineSeparator(text: string, isBullet: boolean, lastWasBullet: boolean): string {
   if (!text) return ''
   if (isBullet || lastWasBullet) return '\n'
   return ' '
 }
 
-function parseDocstring(content: string): { title: string; description: string; prerequisites: string } {
+export function parseDocstring(content: string): { title: string; description: string; prerequisites: string } {
   const docstringMatch = content.match(/"""([\s\S]*?)"""/)
 
   if (!docstringMatch) {
@@ -120,12 +120,12 @@ function parseDocstring(content: string): { title: string; description: string; 
 /**
  * Extract order number from filename (e.g., "01_example.py" -> 1)
  */
-function extractOrder(filename: string): number {
+export function extractOrder(filename: string): number {
   const match = filename.match(/^(\d+)_/)
   return match ? parseInt(match[1], 10) : 999
 }
 
-function createSlug(filename: string): string {
+export function createSlug(filename: string): string {
   return filename.replace(/\.py$/, '').replace(/_/g, '-')
 }
 

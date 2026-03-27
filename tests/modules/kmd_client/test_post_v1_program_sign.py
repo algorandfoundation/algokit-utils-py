@@ -6,6 +6,9 @@ from algokit_algod_client import AlgodClient
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import SignProgramRequest
 
+from tests.fixtures.schemas.kmd import SignProgramResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, generate_test_key
 
 # Polytest Suite: POST v1_program_sign
@@ -40,5 +43,6 @@ def test_basic_request_and_response_validation(
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, SignProgramResponseSchema)
 
     assert result.sig is not None

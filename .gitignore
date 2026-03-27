@@ -180,6 +180,9 @@ cython_debug/
 # Downloaded OAS specs (fetched from algokit-oas-generator)
 api/specs/
 
+# Note: schemas/ directories under client packages are NOT ignored
+# They contain generated Pydantic validation schemas and should be committed
+
 *.xml
 
 .polytest*/

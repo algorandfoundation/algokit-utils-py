@@ -221,7 +221,7 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:
-    app_client, create_deploy_result = factory.deploy(
+    _app_client, create_deploy_result = factory.deploy(
         compilation_params={
             "deploy_time_params": {
                 "VALUE": 1,
@@ -232,7 +232,7 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
-    updated_app_client, update_deploy_result = factory.deploy(
+    _updated_app_client, update_deploy_result = factory.deploy(
         compilation_params={
             "deploy_time_params": {
                 "VALUE": 2,
@@ -467,7 +467,7 @@ def test_call_app_with_too_many_args(factory: AppFactory) -> None:
         },
     )
 
-    with pytest.raises(Exception, match="Unexpected arg at position 1. call_abi only expects 1 args"):
+    with pytest.raises(Exception, match=r"Unexpected arg at position 1\. call_abi only expects 1 args"):
         app_client.send.call(AppClientMethodCallParams(method="call_abi", args=["test", "extra"]))
 
 
@@ -707,7 +707,7 @@ def test_bare_create_abi_delete(
     factory_bare_create_abi_delete: AppFactory,
 ) -> None:
     factory = factory_bare_create_abi_delete
-    app_client, _ = factory.send.bare.create(
+    _app_client, _ = factory.send.bare.create(
         compilation_params={
             "deploy_time_params": {
                 "GREETING": "Hello, World!",

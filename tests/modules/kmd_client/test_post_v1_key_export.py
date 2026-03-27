@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ExportKeyRequest
 
+from tests.fixtures.schemas.kmd import ExportKeyResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, generate_test_key
 
 # Polytest Suite: POST v1_key_export
@@ -29,5 +32,6 @@ def test_basic_request_and_response_validation(
             wallet_password=TEST_WALLET_PASSWORD,
         )
     )
+    validate_with_schema(result, ExportKeyResponseSchema)
 
     assert result.private_key is not None

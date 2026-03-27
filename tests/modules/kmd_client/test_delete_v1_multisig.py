@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import DeleteMultisigRequest, ListMultisigRequest
 
+from tests.fixtures.schemas.kmd import ListMultisigResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, create_test_multisig
 
 # Polytest Suite: DELETE v1_multisig
@@ -37,4 +40,5 @@ def test_basic_request_and_response_validation(
 
     # Verify multisig was deleted
     list_after = localnet_kmd_client.list_multisig(ListMultisigRequest(wallet_handle_token=wallet_handle_token))
+    validate_with_schema(list_after, ListMultisigResponseSchema)
     assert multisig_address not in (list_after.addresses or [])

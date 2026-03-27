@@ -15,4 +15,7 @@ def test_basic_request_and_response_validation(indexer_client: IndexerClient, sn
     """Given a known request validate that the same request can be made using our models. Then, validate that our response model aligns with the known response"""
     result = indexer_client.lookup_account_app_local_states(TEST_ADDRESS)
 
+    # NOTE: OAS spec marks apps-local-states as required but API returns null when empty.
+    # This is a known spec mismatch — skip schema validation until spec is fixed upstream.
+    # validate_with_schema(result, ApplicationLocalStatesResponseSchema)
     assert DataclassSnapshotSerializer.serialize(result) == snapshot_json

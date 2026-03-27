@@ -3,6 +3,9 @@ import pytest
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import DeleteKeyRequest, ListKeysRequest
 
+from tests.fixtures.schemas.kmd import ListKeysResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import TEST_WALLET_PASSWORD, generate_test_key
 
 # Polytest Suite: DELETE v1_key
@@ -37,4 +40,5 @@ def test_basic_request_and_response_validation(
 
     # Verify key was deleted
     list_after = localnet_kmd_client.list_keys_in_wallet(ListKeysRequest(wallet_handle_token=wallet_handle_token))
+    validate_with_schema(list_after, ListKeysResponseSchema)
     assert address not in (list_after.addresses or [])

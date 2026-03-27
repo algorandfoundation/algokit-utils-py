@@ -118,7 +118,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -184,7 +184,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -294,7 +294,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -461,7 +461,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -525,7 +525,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -775,7 +775,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -843,7 +843,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -911,7 +911,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -979,7 +979,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1185,7 +1185,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1390,7 +1390,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1457,7 +1457,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1524,7 +1524,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1592,7 +1592,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1660,7 +1660,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1728,7 +1728,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1796,7 +1796,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1864,7 +1864,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -1932,7 +1932,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2000,7 +2000,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2068,7 +2068,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2136,7 +2136,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2204,7 +2204,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2272,7 +2272,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2340,7 +2340,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2406,7 +2406,7 @@
           "num_byte_slices": 2,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2517,7 +2517,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2585,7 +2585,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2653,7 +2653,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2721,7 +2721,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2796,7 +2796,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2863,7 +2863,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2930,7 +2930,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -2997,7 +2997,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3065,7 +3065,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3179,7 +3179,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3441,7 +3441,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3521,7 +3521,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3596,7 +3596,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3673,7 +3673,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3748,7 +3748,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3826,7 +3826,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3901,7 +3901,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -3974,7 +3974,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4051,7 +4051,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4124,7 +4124,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4199,7 +4199,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4274,7 +4274,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4349,7 +4349,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4424,7 +4424,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4488,7 +4488,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4554,7 +4554,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4621,7 +4621,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4689,7 +4689,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4757,7 +4757,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4825,7 +4825,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4893,7 +4893,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -4961,7 +4961,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5029,7 +5029,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5096,7 +5096,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5163,7 +5163,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5230,7 +5230,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5298,7 +5298,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5362,7 +5362,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5428,7 +5428,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5495,7 +5495,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5563,7 +5563,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5631,7 +5631,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5699,7 +5699,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5767,7 +5767,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5835,7 +5835,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5903,7 +5903,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -5971,7 +5971,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6039,7 +6039,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6106,7 +6106,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6173,7 +6173,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6241,7 +6241,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6308,7 +6308,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6375,7 +6375,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6442,7 +6442,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6509,7 +6509,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6577,7 +6577,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6645,7 +6645,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6712,7 +6712,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6780,7 +6780,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6847,7 +6847,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6914,7 +6914,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -6981,7 +6981,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7049,7 +7049,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7115,7 +7115,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7181,7 +7181,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7245,7 +7245,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7307,7 +7307,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7369,7 +7369,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7431,7 +7431,7 @@
           "num_byte_slices": 0,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7505,7 +7505,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7569,7 +7569,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7631,7 +7631,7 @@
           "num_byte_slices": 0,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7734,7 +7734,7 @@
           "num_byte_slices": 0,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7837,7 +7837,7 @@
           "num_byte_slices": 0,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -7940,7 +7940,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8005,7 +8005,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8072,7 +8072,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8136,7 +8136,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8202,7 +8202,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8266,7 +8266,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8349,7 +8349,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8460,7 +8460,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8526,7 +8526,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8607,7 +8607,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8671,7 +8671,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8736,7 +8736,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8804,7 +8804,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8871,7 +8871,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -8938,7 +8938,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9006,7 +9006,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9070,7 +9070,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9136,7 +9136,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9276,7 +9276,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9498,7 +9498,7 @@
           "num_byte_slices": 0,
           "num_uints": 0
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,
@@ -9601,7 +9601,7 @@
           "num_byte_slices": 0,
           "num_uints": 1
         },
-        "on_completion": "<OnCompletion.NOOP: 'noop'>",
+        "on_completion": "noop",
         "reject_version": null
       },
       "asset_config_transaction": null,

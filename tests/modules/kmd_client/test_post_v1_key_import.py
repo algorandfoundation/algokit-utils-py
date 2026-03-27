@@ -6,6 +6,9 @@ from nacl.signing import SigningKey
 from algokit_kmd_client import KmdClient
 from algokit_kmd_client.models import ImportKeyRequest
 
+from tests.fixtures.schemas.kmd import ImportKeyResponseSchema
+from tests.modules.conftest import validate_with_schema
+
 from .fixtures import public_key_to_address
 
 # Polytest Suite: POST v1_key_import
@@ -34,6 +37,7 @@ def test_basic_request_and_response_validation(
             private_key=private_key,
         )
     )
+    validate_with_schema(result, ImportKeyResponseSchema)
 
     assert result.address is not None
 

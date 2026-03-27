@@ -3,7 +3,8 @@ from syrupy.assertion import SnapshotAssertion
 
 from algokit_indexer_client import IndexerClient
 
-from tests.modules.conftest import TEST_ROUND, DataclassSnapshotSerializer
+from tests.fixtures.schemas.indexer import BlockSchema
+from tests.modules.conftest import TEST_ROUND, DataclassSnapshotSerializer, validate_with_schema
 
 # Polytest Suite: GET v2_blocks_ROUND-NUMBER
 
@@ -18,4 +19,5 @@ def test_basic_request_and_response_validation(indexer_client: IndexerClient, sn
     assert result.round_ is not None
     assert result.round_ == TEST_ROUND
 
+    validate_with_schema(result, BlockSchema)
     assert DataclassSnapshotSerializer.serialize(result) == snapshot_json
