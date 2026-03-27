@@ -28,7 +28,7 @@ jobs:
           #
           # Ignored vulnerabilities:
           # GHSA-gc5v-m9x4-r6x2 does not affect us since we don't use `extract_zipped_paths`
-          # GHSA-5239-wwwm-4pmq is a regex redoc only affecting dev deps
+          # GHSA-5239-wwwm-4pmq is a regex redos only affecting dev deps
           uv run --no-sync pip-audit --ignore-vuln GHSA-gc5v-m9x4-r6x2 --ignore-vuln GHSA-5239-wwwm-4pmq
 
       - name: Check codebase with ruff and mypy

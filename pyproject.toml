@@ -16,6 +16,7 @@ dependencies = [
   "pycryptodomex>=3.19,<4",
   "typing-extensions>=4.6.0",
   "xhd-wallet-api>=1.0.0",
+  "exceptiongroup>=1.3.1",
 ]
 
 [dependency-groups]
