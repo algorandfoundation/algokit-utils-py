@@ -21,13 +21,15 @@ jobs:
 
       - name: Audit with pip-audit
         run: |
-          # GHSA-4xh5-x5gv-qwph is safe to ignore since we are using a python version that is not affected
-          # GHSA-6vgw-5pg2-w6jp is low severity pip path traversal, can remove once pip >= 26.0
           # Audit all installed dependencies with exclusions
           # If a vulnerability is found in a dev dependency without an available fix,
           # it can be temporarily ignored by adding --ignore-vuln e.g.
-          # --ignore-vuln "GHSA-hcpj-qp55-gfph" # GitPython vulnerability, dev only dependency
-          uv run --no-sync pip-audit --ignore-vuln GHSA-4xh5-x5gv-qwph
+          # --ignore-vuln "GHSA-hcpj-qp55-gfph" # GitPython  vulnerability, dev only dependency
+          #
+          # Ignored vulnerabilities:
+          # GHSA-gc5v-m9x4-r6x2 does not affect us since we don't use `extract_zipped_paths`
+          # GHSA-5239-wwwm-4pmq is a regex redoc only affecting dev deps
+          uv run --no-sync pip-audit --ignore-vuln GHSA-gc5v-m9x4-r6x2 --ignore-vuln GHSA-5239-wwwm-4pmq
 
       - name: Check codebase with ruff and mypy
         run: |
