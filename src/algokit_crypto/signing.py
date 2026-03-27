@@ -91,7 +91,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
 
     Raises:
         ValueError: If the unwrapped secret has an invalid length.
-        ExceptionGroupError: If both the crypto operation and re-wrap fail.
+        ExceptionGroup: If both the crypto operation and re-wrap fail.
     """
     # Determine wrap function
     if isinstance(wrapped, WrappedEd25519Seed):

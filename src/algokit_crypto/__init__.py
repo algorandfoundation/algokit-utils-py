@@ -38,7 +38,6 @@ __all__ = [
     "ed25519_generator",
     "ed25519_signing_key_from_wrapped_secret",
     "ed25519_verifier",
-    "hash_bytes",
     "peikert_hd_wallet_generator",
     "pynacl_ed25519_generator",
     "pynacl_ed25519_signing_key_from_wrapped_secret",
