@@ -15,7 +15,7 @@ dependencies = [
   "pynacl>=1.4.0,<2",
   "pycryptodomex>=3.19,<4",
   "typing-extensions>=4.6.0",
-  "xhd-wallet-api",
+  "xhd-wallet-api>=1.0.0",
 ]
 
 [dependency-groups]
@@ -70,7 +70,6 @@ module-name = [
 
 [tool.uv.sources]
 oas-generator = { path = "api/oas-generator", editable = true }
-xhd-wallet-api = { git = "https://github.com/algorandfoundation/xHD-Wallet-API-py", rev = "95f118d67b52646a0ae0dec9577679fbf10e0711" }
 
 [tool.ruff]
 line-length = 120

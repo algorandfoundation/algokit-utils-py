@@ -73,7 +73,7 @@ requires-dist = [
     { name = "pycryptodomex", specifier = ">=3.19,<4" },
     { name = "pynacl", specifier = ">=1.4.0,<2" },
     { name = "typing-extensions", specifier = ">=4.6.0" },
-    { name = "xhd-wallet-api", git = "https://github.com/algorandfoundation/xHD-Wallet-API-py?rev=95f118d67b52646a0ae0dec9577679fbf10e0711" },
+    { name = "xhd-wallet-api", specifier = ">=1.0.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -614,7 +614,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371 }
 wheels = [
@@ -2400,10 +2400,18 @@ wheels = [
 
 [[package]]
 name = "xhd-wallet-api"
-version = "0.1.0"
-source = { git = "https://github.com/algorandfoundation/xHD-Wallet-API-py?rev=95f118d67b52646a0ae0dec9577679fbf10e0711#95f118d67b52646a0ae0dec9577679fbf10e0711" }
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cffi" },
-    { name = "exceptiongroup" },
     { name = "types-cffi" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0f/fb/a50dbe3ec6ed5b7257894735e46306bd11c0daee09e971441b2fadeeb05c/xhd_wallet_api-1.0.0-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:e37dbb3f434d9baf28f49decf09d52a8ab64a58f926d50f49eab124a961a3a7e", size = 378250 },
+    { url = "https://files.pythonhosted.org/packages/f0/46/32d7fdbc321a89ba5cedbf772a328badd76c3ff0e04c61d574f93801032e/xhd_wallet_api-1.0.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:915a89efacc1174f64af07c52672b026a355aee4374ab04d92721fc2b0930db9", size = 363100 },
+    { url = "https://files.pythonhosted.org/packages/64/df/51a32ee17ed10723239215a6dc6a3eda81308ed9f29a10598de61d5fa25f/xhd_wallet_api-1.0.0-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:092b079f244e5d88c254d8af3630181b4c049269374e4e25ed764baf417fdd3d", size = 386354 },
+    { url = "https://files.pythonhosted.org/packages/53/5a/5da7ef4c70ede3b1bfbbe445a78857de99019b66169a0f9d75ebe0563e2f/xhd_wallet_api-1.0.0-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:38b4843464cdf2398ca635bc4cb6ba37ef7fbd2191c6b9053743bcc66a4784be", size = 395015 },
+    { url = "https://files.pythonhosted.org/packages/d2/f8/6052412d8b360240fa4958319dc257a01517e864a1539accda639a7836cc/xhd_wallet_api-1.0.0-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:71d6aa0291fea0f0ecc22f7eda8a0f61482dc92e19345c0a354dd8a4f1bdb72a", size = 450127 },
+    { url = "https://files.pythonhosted.org/packages/f8/38/9f3d3849e1bdff900f405dc4a636c872c189e0f4d3202bdfa969e3206825/xhd_wallet_api-1.0.0-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:a956ca70a155de9a0afc528a3bf216f9408172bc54afc5b8103c5425c5f9f912", size = 474598 },
+    { url = "https://files.pythonhosted.org/packages/b1/78/5477067a40347a88af0b57b9dabf0f1dc3e5796f785073c2dd157434f56b/xhd_wallet_api-1.0.0-py3-none-win_amd64.whl", hash = "sha256:d4a633e0cdb8095e941b9ce84e05e96904ef273f7b655abd81f13f265bf195a9", size = 267934 },
 ]
