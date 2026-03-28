@@ -65,7 +65,7 @@ class HdWalletResult(TypedDict):
     """Function to generate accounts from the HD wallet."""
 
 
-HdWalletGenerator = Callable[[bytes | None], HdWalletResult]
+HdWalletGenerator = Callable[[bytearray | None], HdWalletResult]
 """Type for HD wallet generator functions.
 
 Takes optional seed bytes and returns HdWalletResult with root key and account generator.
