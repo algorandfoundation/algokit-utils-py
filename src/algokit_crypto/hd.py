@@ -89,7 +89,7 @@ def peikert_hd_wallet_generator(seed: bytearray | None = None) -> HdWalletResult
     """Generate an HD wallet using the Peikert derivation scheme.
 
     Args:
-        seed: Optional 32-byte seed for deterministic wallet generation.
+        seed: Optional 64-byte seed for deterministic wallet generation.
             If not provided, a random seed will be generated.
 
     Returns:
