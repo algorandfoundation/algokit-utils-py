@@ -14,12 +14,11 @@ import nacl.signing
 from exceptiongroup import ExceptionGroup
 from xhd_wallet_api_py import public_key
 
-from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed
+from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed, ED25519_SEED_SIZE
 from algokit_crypto.hd import WrappedHdExtendedPrivateKey
 
 WrappedEd25519Secret = WrappedEd25519Seed | WrappedHdExtendedPrivateKey
 
-ED25519_SEED_LENGTH = 32
 ED25519_EXTENDED_PRIVATE_KEY_LENGTH = 96
 
 _ED25519_ORDER = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
@@ -27,7 +26,7 @@ _ED25519_ORDER = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D
 
 def _assert_ed25519_secret_length(secret: bytearray | bytes, secret_type: str) -> None:
     if secret_type == "ed25519 seed":
-        expected_length = ED25519_SEED_LENGTH
+        expected_length = ED25519_SEED_SIZE
     elif secret_type == "HD extended key":
         expected_length = ED25519_EXTENDED_PRIVATE_KEY_LENGTH
     else:
