@@ -14,7 +14,7 @@ import nacl.signing
 from exceptiongroup import ExceptionGroup
 from xhd_wallet_api_py import public_key
 
-from algokit_crypto.ed25519 import Ed25519SigningKey, WrappedEd25519Seed, ED25519_SEED_SIZE
+from algokit_crypto.ed25519 import ED25519_SEED_SIZE, Ed25519SigningKey, WrappedEd25519Seed
 from algokit_crypto.hd import WrappedHdExtendedPrivateKey
 
 WrappedEd25519Secret = WrappedEd25519Seed | WrappedHdExtendedPrivateKey
