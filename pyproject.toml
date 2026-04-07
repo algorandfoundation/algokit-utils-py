@@ -15,6 +15,8 @@ dependencies = [
   "pynacl>=1.4.0,<2",
   "pycryptodomex>=3.19,<4",
   "typing-extensions>=4.6.0",
+  "xhd-wallet-api>=1.0.0",
+  "exceptiongroup>=1.3.1",
 ]
 
 [dependency-groups]
@@ -24,9 +26,7 @@ dev = [
   "pydantic>=2.0.0,<3",
   "pytest>=8,<9",
   "ruff>=0.1.6,<=0.14.8",
-  "pip>=26.0",  # Fix GHSA-6vgw-5pg2-w6jp vulnerability
   "pip-audit>=2.5.6,<3",
-  "pip>=26.0",
   "pytest-mock~=3.14",
   "mypy>=1.5.1,<2",
   "python-semantic-release>=10.5.0,<11",
@@ -62,6 +62,7 @@ module-name = [
   "algokit_algo25",
   "algokit_algod_client",
   "algokit_common",
+  "algokit_crypto",
   "algokit_indexer_client",
   "algokit_kmd_client",
   "algokit_transact",
@@ -163,7 +164,7 @@ suppress-none-returning = true
 "tests/**/*" = ["PLR2004"]
 # Ignore lint rules for polytest auto-generated test stubs
 "tests/modules/**/*" = ["E501", "W292", "I001"]
-"src/algokit_transact/__init__.py" = ["RUF022"]
+"src/algokit_crypto/signing.py" = ["C901", "PLR0912", "PLR0915"]
 "src/algokit_utils/__init__.py" = [
   "I001",
   "RUF022",
