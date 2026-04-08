@@ -24,7 +24,7 @@ cicd = []
 dev = [
   "pip>=26.0,<27",
   "pydantic>=2.0.0,<3",
-  "pytest>=8,<9",
+  "pytest>=8,<10",
   "ruff>=0.1.6,<=0.14.8",
   "pip-audit>=2.5.6,<3",
   "pytest-mock~=3.14",
