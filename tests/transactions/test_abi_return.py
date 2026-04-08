@@ -1,25 +1,19 @@
-from algosdk.abi import ABIType, Method
-from algosdk.abi.method import Returns
-from algosdk.atomic_transaction_composer import ABIResult
-
+from algokit_abi import abi, arc56
 from algokit_utils.applications.abi import ABIReturn, ABIValue
 
 
 def get_abi_result(type_str: str, value: ABIValue) -> ABIReturn:
     """Helper function to simulate ABI method return value"""
-    abi_type = ABIType.from_string(type_str)
+    abi_type = abi.ABIType.from_string(type_str)
     encoded = abi_type.encode(value)
     decoded = abi_type.decode(encoded)
-    result = ABIResult(
-        method=Method(name="", args=[], returns=Returns(arg_type=type_str)),
-        raw_value=encoded,
-        return_value=decoded,
-        tx_id="",
-        tx_info={},
-        decode_error=None,
+    method = arc56.Method(
+        name="",
+        args=(),
+        returns=arc56.Returns(type=abi_type),
+        actions=arc56.Actions(call=(), create=()),
     )
-
-    return ABIReturn(result)
+    return ABIReturn(method=method, raw_value=encoded, value=decoded, decode_error=None)
 
 
 class TestABIReturn:
@@ -79,27 +73,27 @@ class TestABIReturn:
 
     def test_tuple(self) -> None:
         type_str = "(uint32,uint64,(uint32,uint64),uint32[],uint64[])"
-        assert get_abi_result(type_str, [0, 0, [0, 0], [0], [0]]).value == [
+        assert get_abi_result(type_str, [0, 0, [0, 0], [0], [0]]).value == (
             0,
             0,
-            [0, 0],
+            (0, 0),
             [0],
             [0],
-        ]
-        assert get_abi_result(type_str, [1, 1, [1, 1], [1], [1]]).value == [
+        )
+        assert get_abi_result(type_str, [1, 1, [1, 1], [1], [1]]).value == (
             1,
             1,
-            [1, 1],
+            (1, 1),
             [1],
             [1],
-        ]
+        )
         assert get_abi_result(
             type_str,
             [2**32 - 1, 2**64 - 1, [2**32 - 1, 2**64 - 1], [1, 2, 3], [1, 2, 3]],
-        ).value == [
+        ).value == (
             2**32 - 1,
             2**64 - 1,
-            [2**32 - 1, 2**64 - 1],
+            (2**32 - 1, 2**64 - 1),
             [1, 2, 3],
             [1, 2, 3],
-        ]
+        )

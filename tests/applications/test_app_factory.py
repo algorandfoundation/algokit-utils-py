@@ -1,10 +1,14 @@
 from pathlib import Path
 
-import algosdk
 import pytest
-from algosdk.logic import get_application_address
-from algosdk.transaction import OnComplete
 
+import algokit_utils
+from algokit_abi import arc56
+from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
+from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import AddressWithSigners
+from algokit_utils import AppClientCompilationParams
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -19,9 +23,7 @@ from algokit_utils.applications.app_factory import (
     AppFactoryCreateMethodCallParams,
     AppFactoryCreateParams,
 )
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract
 from algokit_utils.errors import LogicError
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.transactions.transaction_composer import PaymentParams
 
@@ -32,13 +34,13 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
@@ -53,33 +55,45 @@ def app_spec_bare_create_abi_delete() -> str:
 
 
 @pytest.fixture
-def factory(algorand: AlgorandClient, funded_account: SigningAccount, app_spec: str) -> AppFactory:
+def legacy_app_client_test_app_spec() -> str:
+    return (Path(__file__).parent.parent / "artifacts" / "legacy_app_client_test" / "app_client_test.json").read_text()
+
+
+@pytest.fixture
+def legacy_app_client_factory(
+    algorand: AlgorandClient, funded_account: AddressWithSigners, legacy_app_client_test_app_spec: str
+) -> AppFactory:
     """Create AppFactory fixture"""
-    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.address)
+    app_spec = arc56.Arc56Contract.from_arc32(legacy_app_client_test_app_spec)
+    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.addr)
+
+
+@pytest.fixture
+def factory(algorand: AlgorandClient, funded_account: AddressWithSigners, app_spec: str) -> AppFactory:
+    """Create AppFactory fixture"""
+    return algorand.client.get_app_factory(app_spec=app_spec, default_sender=funded_account.addr)
 
 
 @pytest.fixture
 def factory_bare_create_abi_delete(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     app_spec_bare_create_abi_delete: str,
 ) -> AppFactory:
     """Create AppFactory fixture for bare create with ABI delete"""
-    return algorand.client.get_app_factory(
-        app_spec=app_spec_bare_create_abi_delete, default_sender=funded_account.address
-    )
+    return algorand.client.get_app_factory(app_spec=app_spec_bare_create_abi_delete, default_sender=funded_account.addr)
 
 
 @pytest.fixture
 def arc56_factory(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> AppFactory:
     """Create AppFactory fixture"""
     arc56_raw_spec = (
         Path(__file__).parent.parent / "artifacts" / "testing_app_arc56" / "app_spec.arc56.json"
     ).read_text()
-    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.address)
+    return algorand.client.get_app_factory(app_spec=arc56_raw_spec, default_sender=funded_account.addr)
 
 
 def test_create_app(factory: AppFactory) -> None:
@@ -98,8 +112,8 @@ def test_create_app(factory: AppFactory) -> None:
 
     assert app_client.app_id > 0
     assert app_client.app_address == get_application_address(app_client.app_id)
-    assert isinstance(result.confirmation, dict)
-    assert result.confirmation.get("application-index", 0) == app_client.app_id
+    assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
+    assert result.confirmation.app_id == app_client.app_id
     assert result.compiled_approval is not None
     assert result.compiled_clear is not None
 
@@ -110,14 +124,14 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
     dispenser_account = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         account_to_fund=random_account,
-        dispenser_account=dispenser_account.address,
+        dispenser_account=dispenser_account.addr,
         min_spending_balance=AlgoAmount.from_algo(10),
         min_funding_increment=AlgoAmount.from_algo(1),
     )
 
     factory = algorand.client.get_app_factory(
         app_spec=app_spec,
-        default_sender=random_account.address,
+        default_sender=random_account.addr,
         compilation_params={
             "deploy_time_params": {
                 # It should strip off the TMPL_
@@ -137,7 +151,7 @@ def test_create_app_with_constructor_deploy_time_params(algorand: AlgorandClient
 def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
     app_client, result = factory.send.bare.create(
         params=AppFactoryCreateParams(
-            on_complete=OnComplete.OptInOC,
+            on_complete=OnApplicationComplete.OptIn,
         ),
         compilation_params={
             "updatable": True,
@@ -149,11 +163,11 @@ def test_create_app_with_oncomplete_overload(factory: AppFactory) -> None:
     )
 
     assert result.transaction.application_call
-    assert result.transaction.application_call.on_complete == OnComplete.OptInOC
+    assert result.transaction.application_call.on_complete == OnApplicationComplete.OptIn
     assert app_client.app_id > 0
     assert app_client.app_address == get_application_address(app_client.app_id)
-    assert isinstance(result.confirmation, dict)
-    assert result.confirmation.get("application-index", 0) == app_client.app_id
+    assert isinstance(result.confirmation, algod_models.PendingTransactionResponse)
+    assert result.confirmation.app_id == app_client.app_id
 
 
 def test_deploy_when_immutable_and_permanent(factory: AppFactory) -> None:
@@ -200,13 +214,14 @@ def test_deploy_app_create_abi(factory: AppFactory) -> None:
     create_result = deploy_result.create_result
     assert create_result is not None
     assert deploy_result.app.app_id > 0
-    app_index = create_result.confirmation["application-index"]  # type: ignore[call-overload]
+    assert create_result.confirmation.app_id is not None
+    app_index = create_result.confirmation.app_id
     assert app_client.app_id == deploy_result.app.app_id == app_index
     assert app_client.app_address == get_application_address(app_client.app_id)
 
 
 def test_deploy_app_update(factory: AppFactory) -> None:
-    app_client, create_deploy_result = factory.deploy(
+    _app_client, create_deploy_result = factory.deploy(
         compilation_params={
             "deploy_time_params": {
                 "VALUE": 1,
@@ -217,7 +232,7 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
-    updated_app_client, update_deploy_result = factory.deploy(
+    _updated_app_client, update_deploy_result = factory.deploy(
         compilation_params={
             "deploy_time_params": {
                 "VALUE": 2,
@@ -236,18 +251,19 @@ def test_deploy_app_update(factory: AppFactory) -> None:
     assert create_deploy_result.app.updated_round != update_deploy_result.app.updated_round
     assert create_deploy_result.app.created_round == update_deploy_result.app.created_round
     assert update_deploy_result.update_result.confirmation
-    confirmed_round = update_deploy_result.update_result.confirmation["confirmed-round"]  # type: ignore[call-overload]
+    assert update_deploy_result.update_result.confirmation.confirmed_round is not None
+    confirmed_round = update_deploy_result.update_result.confirmation.confirmed_round
     assert update_deploy_result.app.updated_round == confirmed_round
 
 
-def test_deploy_app_update_detects_extra_page_deficit_as_breaking_change(
-    algorand: AlgorandClient, funded_account: SigningAccount
+def test_deploy_app_update_detects_extra_pages_as_breaking_change(
+    algorand: AlgorandClient, funded_account: AddressWithSigners
 ) -> None:
     small_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "small.arc56.json").read_text()
     large_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "large.arc56.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=small_app_spec,
-        default_sender=funded_account.address,
+        default_sender=funded_account.addr,
     )
     small_client, create_deploy_result = factory.deploy(
         compilation_params={
@@ -257,7 +273,7 @@ def test_deploy_app_update_detects_extra_page_deficit_as_breaking_change(
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
-    factory._app_spec = Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
+    factory._app_spec = arc56.Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
     large_client, update_deploy_result = factory.deploy(
         compilation_params={
             "updatable": True,
@@ -272,13 +288,13 @@ def test_deploy_app_update_detects_extra_page_deficit_as_breaking_change(
 
 
 def test_deploy_app_update_detects_extra_page_surplus_as_non_breaking_change(
-    algorand: AlgorandClient, funded_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners
 ) -> None:
     small_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "small.arc56.json").read_text()
     large_app_spec = (Path(__file__).parent.parent / "artifacts" / "extra_pages_test" / "large.arc56.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=small_app_spec,
-        default_sender=funded_account.address,
+        default_sender=funded_account.addr,
     )
     small_client, create_deploy_result = factory.deploy(
         compilation_params={
@@ -289,7 +305,7 @@ def test_deploy_app_update_detects_extra_page_surplus_as_non_breaking_change(
     assert create_deploy_result.operation_performed == OperationPerformed.Create
     assert create_deploy_result.create_result
 
-    factory._app_spec = Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
+    factory._app_spec = arc56.Arc56Contract.from_json(large_app_spec)  # noqa: SLF001
     large_client, update_deploy_result = factory.deploy(
         compilation_params={
             "updatable": True,
@@ -331,11 +347,13 @@ def test_deploy_app_update_abi(factory: AppFactory) -> None:
     assert update_deploy_result.update_result.confirmation is not None
     assert update_deploy_result.app.created_round == create_deploy_result.app.created_round
     assert update_deploy_result.app.updated_round != update_deploy_result.app.created_round
-    assert (
-        update_deploy_result.app.updated_round == update_deploy_result.update_result.confirmation["confirmed-round"]  # type: ignore[call-overload]
-    )
+    assert update_deploy_result.update_result.confirmation.confirmed_round is not None
+    assert update_deploy_result.app.updated_round == update_deploy_result.update_result.confirmation.confirmed_round
     assert update_deploy_result.update_result.transaction.application_call
-    assert update_deploy_result.update_result.transaction.application_call.on_complete == OnComplete.UpdateApplicationOC
+    assert (
+        update_deploy_result.update_result.transaction.application_call.on_complete
+        == OnApplicationComplete.UpdateApplication
+    )
     assert update_deploy_result.update_result.abi_return == "args_io"
 
 
@@ -362,9 +380,7 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
 
     assert replace_deploy_result.operation_performed == OperationPerformed.Replace
     assert replace_deploy_result.app.app_id > create_deploy_result.app.app_id
-    assert replace_deploy_result.app.app_address == algosdk.logic.get_application_address(
-        replace_deploy_result.app.app_id
-    )
+    assert replace_deploy_result.app.app_address == get_application_address(replace_deploy_result.app.app_id)
     assert replace_deploy_result.create_result is not None
     assert replace_deploy_result.delete_result is not None
     assert replace_deploy_result.delete_result.confirmation is not None
@@ -373,9 +389,10 @@ def test_deploy_app_replace(factory: AppFactory) -> None:
         == 2
     )
     assert replace_deploy_result.delete_result.transaction.application_call
-    assert replace_deploy_result.delete_result.transaction.application_call.index == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.application_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
+        replace_deploy_result.delete_result.transaction.application_call.on_complete
+        == OnApplicationComplete.DeleteApplication
     )
 
 
@@ -406,7 +423,7 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
 
     assert replace_deploy_result.operation_performed == OperationPerformed.Replace
     assert replace_deploy_result.app.app_id > create_deploy_result.app.app_id
-    assert replace_deploy_result.app.app_address == algosdk.logic.get_application_address(replaced_app_client.app_id)
+    assert replace_deploy_result.app.app_address == get_application_address(replaced_app_client.app_id)
     assert replace_deploy_result.create_result is not None
     assert replace_deploy_result.delete_result is not None
     assert replace_deploy_result.delete_result.confirmation is not None
@@ -415,9 +432,10 @@ def test_deploy_app_replace_abi(factory: AppFactory) -> None:
         == 2
     )
     assert replace_deploy_result.delete_result.transaction.application_call
-    assert replace_deploy_result.delete_result.transaction.application_call.index == create_deploy_result.app.app_id
+    assert replace_deploy_result.delete_result.transaction.application_call.app_id == create_deploy_result.app.app_id
     assert (
-        replace_deploy_result.delete_result.transaction.application_call.on_complete == OnComplete.DeleteApplicationOC
+        replace_deploy_result.delete_result.transaction.application_call.on_complete
+        == OnApplicationComplete.DeleteApplication
     )
     assert replace_deploy_result.create_result.abi_return == "arg_io"
     assert replace_deploy_result.delete_result.abi_return == "arg2_io"
@@ -449,11 +467,11 @@ def test_call_app_with_too_many_args(factory: AppFactory) -> None:
         },
     )
 
-    with pytest.raises(Exception, match="Unexpected arg at position 1. call_abi only expects 1 args"):
+    with pytest.raises(Exception, match=r"Unexpected arg at position 1\. call_abi only expects 1 args"):
         app_client.send.call(AppClientMethodCallParams(method="call_abi", args=["test", "extra"]))
 
 
-def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandClient, factory: AppFactory) -> None:
+def test_call_app_with_rekey(funded_account: AddressWithSigners, algorand: AlgorandClient, factory: AppFactory) -> None:
     rekey_to = algorand.account.random()
 
     app_client, _ = factory.send.bare.create(
@@ -466,12 +484,12 @@ def test_call_app_with_rekey(funded_account: SigningAccount, algorand: AlgorandC
         },
     )
 
-    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.address))
+    app_client.send.opt_in(AppClientMethodCallParams(method="opt_in", rekey_to=rekey_to.addr))
 
     # If the rekey didn't work this will throw
-    rekeyed_account = algorand.account.rekeyed(sender=funded_account.address, account=rekey_to)
+    rekeyed_account = algorand.account.rekeyed(sender=funded_account.addr, account=rekey_to)
     algorand.send.payment(
-        PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.address, receiver=funded_account.address)
+        PaymentParams(amount=AlgoAmount.from_algo(0), sender=rekeyed_account.addr, receiver=funded_account.addr)
     )
 
 
@@ -544,7 +562,7 @@ def test_delete_app_with_abi(factory: AppFactory) -> None:
 def test_export_import_sourcemaps(
     factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     # Export source maps from original client
     app_client, _ = factory.deploy(compilation_params={"deploy_time_params": {"VALUE": 1}})
@@ -554,7 +572,7 @@ def test_export_import_sourcemaps(
     new_client = AppClient(
         AppClientParams(
             app_id=app_client.app_id,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             algorand=algorand,
             app_spec=app_client.app_spec,
@@ -606,7 +624,7 @@ def test_arc56_error_messages_with_dynamic_template_vars_cblock_offset(
 def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     arc56_factory: AppFactory,
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
 ) -> None:
     # Deploy app with template parameters
     app_client, _ = arc56_factory.deploy(
@@ -626,7 +644,7 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     app_client = AppClient(
         AppClientParams(
             app_id=app_id,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             algorand=algorand,
             app_spec=app_client.app_spec,
@@ -649,11 +667,47 @@ def test_arc56_undefined_error_message_with_dynamic_template_vars_cblock_offset(
     assert "*abi_route_specificLengthTemplateVar:" in actual_trace
 
 
+def test_bare_create_update_delete(legacy_app_client_factory: AppFactory) -> None:
+    client, _ = legacy_app_client_factory.send.bare.create(
+        compilation_params=AppClientCompilationParams(
+            deploy_time_params={"TMPL_VERSION": 1},
+            deletable=False,
+            updatable=True,
+        )
+    )
+
+    # should fail to delete
+    with pytest.raises(algokit_utils.LogicError, match="// is deletable\n\tassert\t\t<-- Error"):
+        client.send.bare.delete()
+
+    # make deletable but not updatable
+    client.send.bare.update(
+        compilation_params=AppClientCompilationParams(
+            deploy_time_params={"TMPL_VERSION": 2},
+            deletable=True,
+            updatable=False,
+        )
+    )
+
+    # should fail to update
+    with pytest.raises(algokit_utils.LogicError, match="// is updatable\n\tassert\t\t<-- Error"):
+        client.send.bare.update(
+            compilation_params=AppClientCompilationParams(
+                deploy_time_params={"TMPL_VERSION": 3},
+                deletable=True,
+                updatable=False,
+            )
+        )
+
+    # should delete
+    client.send.bare.delete()
+
+
 def test_bare_create_abi_delete(
     factory_bare_create_abi_delete: AppFactory,
 ) -> None:
     factory = factory_bare_create_abi_delete
-    app_client, _ = factory.send.bare.create(
+    _app_client, _ = factory.send.bare.create(
         compilation_params={
             "deploy_time_params": {
                 "GREETING": "Hello, World!",

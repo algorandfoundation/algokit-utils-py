@@ -1,0 +1,370 @@
+{
+  "bonus": null,
+  "fees_collected": null,
+  "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+  "genesis_id": "testnet-v1.0",
+  "participation_updates": {
+    "absent_participation_accounts": [],
+    "expired_participation_accounts": []
+  },
+  "previous_block_hash": "hOHRimJmsjGBuPuoHEXmlxmJevy6490ogIxC930olFA=",
+  "previous_block_hash_512": null,
+  "proposer": null,
+  "proposer_payout": null,
+  "rewards": {
+    "fee_sink": "A7NMWS3NT3IUDMLVO26ULGXGIIOUQ3ND2TXSER6EBGRZNOBOUIQXHIBGDE",
+    "rewards_calculation_round": 24500000,
+    "rewards_level": 27521,
+    "rewards_pool": "7777777777777777777777777777777777777777777777777774MSJUVU",
+    "rewards_rate": 0,
+    "rewards_residue": 2030197303
+  },
+  "round_": 24099447,
+  "seed": "vVRd7jhGqGtiX2kZwAIw82j6RDnv1SXaedqlknx61ZQ=",
+  "state_proof_tracking": [
+    {
+      "next_round": 24099328,
+      "online_total_weight": 0,
+      "type_": 0,
+      "voters_commitment": null
+    }
+  ],
+  "timestamp": 1663197976,
+  "transactions": [
+    {
+      "application_transaction": {
+        "access": null,
+        "accounts": [
+          "RG5HZBMB4RWG654N6R6PWEAPVBQODJ5HA3NRGUP2ZBJX7TME54YYGCJDAA",
+          "3T5PQZSWM63YALNDUBMV2C5QQPEJ2BN27SC36SVBYIW5KOAFWUAOACL5AA"
+        ],
+        "application_args": [
+          "bWF0Y2hfb3JkZXJz",
+          "AAAAAAABqCA=",
+          "AAAAAAAAADo=",
+          "AAAAAAABrEM=",
+          "AAAAAAAAADs=",
+          "AAAAAAAPQkA=",
+          "AAAAAAADrac="
+        ],
+        "application_id": 92138200,
+        "approval_program": null,
+        "box_references": null,
+        "clear_state_program": null,
+        "extra_program_pages": null,
+        "foreign_apps": [],
+        "foreign_assets": [
+          81981957
+        ],
+        "global_state_schema": {
+          "num_byte_slices": 0,
+          "num_uints": 0
+        },
+        "local_state_schema": {
+          "num_byte_slices": 0,
+          "num_uints": 0
+        },
+        "on_completion": "noop",
+        "reject_version": null
+      },
+      "asset_config_transaction": null,
+      "asset_freeze_transaction": null,
+      "asset_transfer_transaction": null,
+      "auth_addr": null,
+      "close_rewards": 0,
+      "closing_amount": 0,
+      "confirmed_round": 24099447,
+      "created_app_id": null,
+      "created_asset_id": null,
+      "fee": 1000,
+      "first_valid": 24099445,
+      "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+      "genesis_id": "testnet-v1.0",
+      "global_state_delta": null,
+      "group": null,
+      "heartbeat_transaction": null,
+      "id_": "W6SAFSKT3V4SMLQXG3YDLI4TOBEGPPVQ5PQNJ7BCQ6K7WEDVDFEQ",
+      "inner_txns": null,
+      "intra_round_offset": 0,
+      "keyreg_transaction": null,
+      "last_valid": 24100445,
+      "lease": null,
+      "local_state_delta": [
+        {
+          "address": "RG5HZBMB4RWG654N6R6PWEAPVBQODJ5HA3NRGUP2ZBJX7TME54YYGCJDAA",
+          "delta": [
+            {
+              "key": "Dg==",
+              "value": {
+                "action": 1,
+                "bytes_": "AAAAAAABnhNTAAAAAAAAITQAAAAAMGYjADA5AAAAAAABqCBCAAAAAAAAFXwAAAAACcZxADA6AAAAAAABkmpTAAAAAAAAJgcAAAAAGBSNADA7AAAAAAABovJCAAAAAAAAE4gAAAAAZEFIgDA8",
+                "uint": 0
+              }
+            },
+            {
+              "key": "YWNjb3VudEluZm8=",
+              "value": {
+                "action": 1,
+                "bytes_": "AAAAAADb62UAAAAAAAAAAAAAAAGU5PRAAAAAAATEtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf////w==",
+                "uint": 0
+              }
+            }
+          ]
+        },
+        {
+          "address": "3T5PQZSWM63YALNDUBMV2C5QQPEJ2BN27SC36SVBYIW5KOAFWUAOACL5AA",
+          "delta": [
+            {
+              "key": "Dg==",
+              "value": {
+                "action": 1,
+                "bytes_": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABqPpCAAAAAAAAHtwAAAAAAA9CQEk8",
+                "uint": 0
+              }
+            },
+            {
+              "key": "YWNjb3VudEluZm8=",
+              "value": {
+                "action": 1,
+                "bytes_": "AAAAAAAAHtwAAAAAAACr1gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH/////////w==",
+                "uint": 0
+              }
+            }
+          ]
+        }
+      ],
+      "logs": [
+        "bWF0Y2hfb3JkZXI=",
+        "AAAAAAADrac=",
+        "AAAAAAABqCA=",
+        "AAAAAAABrEM=",
+        "AAAAAAAAFXw=",
+        "AAAAAAAPQkA=",
+        "ibp8hYHkbG93jfR8+xAPqGDhp6cG2xNR+shTf82E7zE=",
+        "AAAAAAAAAAA=",
+        "AAAAAADb62U=",
+        "AAAAAATEtAA=",
+        "AAAAAZTk9EA=",
+        "3Pr4ZlZnt4Ato6BZXQuwg8idBbr8hb9KocIt1TgFtQA=",
+        "AAAAAAAAq9Y=",
+        "AAAAAAAAHtw=",
+        "AAAAAAAAAAA=",
+        "AAAAAAAAAAA="
+      ],
+      "note": null,
+      "payment_transaction": null,
+      "receiver_rewards": 0,
+      "rekey_to": null,
+      "round_time": 1663197976,
+      "sender": "6DJL462RP2DWBGMJIPDQ5PJCXRJKI34Z4GRWB3MEPAGRBAPTBL7U42RDYI",
+      "sender_rewards": 0,
+      "signature": {
+        "logicsig": null,
+        "multisig": null,
+        "sig": "Xd2RGdTuIDu6UHGkQY2q8lbPbQt6UuR3RWm9h5ruWOEV1K+LDMhHagDos4+Cqnhanq2SBpB7gGAl2rbFpDimCw=="
+      },
+      "state_proof_transaction": null,
+      "tx_type": "appl"
+    },
+    {
+      "application_transaction": null,
+      "asset_config_transaction": null,
+      "asset_freeze_transaction": null,
+      "asset_transfer_transaction": null,
+      "auth_addr": null,
+      "close_rewards": 0,
+      "closing_amount": 0,
+      "confirmed_round": 24099447,
+      "created_app_id": null,
+      "created_asset_id": null,
+      "fee": 1000,
+      "first_valid": 24099445,
+      "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+      "genesis_id": "testnet-v1.0",
+      "global_state_delta": null,
+      "group": null,
+      "heartbeat_transaction": null,
+      "id_": "Q5T6IHV62WN5YRGGBZ5PTTOGD4UEEJ2IJVWVVQPDSRZ5JYLNY2LQ",
+      "inner_txns": null,
+      "intra_round_offset": 1,
+      "keyreg_transaction": null,
+      "last_valid": 24099450,
+      "lease": null,
+      "local_state_delta": null,
+      "logs": null,
+      "note": "2+8E",
+      "payment_transaction": {
+        "amount": 1,
+        "close_amount": 0,
+        "close_remainder_to": null,
+        "receiver": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY"
+      },
+      "receiver_rewards": 0,
+      "rekey_to": null,
+      "round_time": 1663197976,
+      "sender": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY",
+      "sender_rewards": 0,
+      "signature": {
+        "logicsig": null,
+        "multisig": null,
+        "sig": "7Ub7X+MS4kcKfTeGO5CdXmYw8Jp/hCy5XX53s7LwdejMIRAIZKZi1FAXqWGeAHxBKV3SfiQkt8+07XZMHB/HDw=="
+      },
+      "state_proof_transaction": null,
+      "tx_type": "pay"
+    },
+    {
+      "application_transaction": null,
+      "asset_config_transaction": null,
+      "asset_freeze_transaction": null,
+      "asset_transfer_transaction": null,
+      "auth_addr": null,
+      "close_rewards": 0,
+      "closing_amount": 0,
+      "confirmed_round": 24099447,
+      "created_app_id": null,
+      "created_asset_id": null,
+      "fee": 1000,
+      "first_valid": 24099446,
+      "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+      "genesis_id": "testnet-v1.0",
+      "global_state_delta": null,
+      "group": null,
+      "heartbeat_transaction": null,
+      "id_": "GX4OEJETJKWAFK4RK26SYSLBIAUHP7KQVK6N7CONESCS5UZOZSXQ",
+      "inner_txns": null,
+      "intra_round_offset": 2,
+      "keyreg_transaction": null,
+      "last_valid": 24099451,
+      "lease": null,
+      "local_state_delta": null,
+      "logs": null,
+      "note": "3O8E",
+      "payment_transaction": {
+        "amount": 1,
+        "close_amount": 0,
+        "close_remainder_to": null,
+        "receiver": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY"
+      },
+      "receiver_rewards": 0,
+      "rekey_to": null,
+      "round_time": 1663197976,
+      "sender": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY",
+      "sender_rewards": 0,
+      "signature": {
+        "logicsig": null,
+        "multisig": null,
+        "sig": "OLiQ/1LKpRKV/w5qLCChUeY4gupuSkq8NGxrpiTsgw5rIS0lYTCG09kWFxUU0W5Sn0jVbZboEtumXh9hy9xoBA=="
+      },
+      "state_proof_transaction": null,
+      "tx_type": "pay"
+    },
+    {
+      "application_transaction": null,
+      "asset_config_transaction": null,
+      "asset_freeze_transaction": null,
+      "asset_transfer_transaction": null,
+      "auth_addr": null,
+      "close_rewards": 0,
+      "closing_amount": 0,
+      "confirmed_round": 24099447,
+      "created_app_id": null,
+      "created_asset_id": null,
+      "fee": 1000,
+      "first_valid": 24099446,
+      "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+      "genesis_id": "testnet-v1.0",
+      "global_state_delta": null,
+      "group": null,
+      "heartbeat_transaction": null,
+      "id_": "5UJZEZJDYQZZC5DTUYYGMW2W65KFMETQLYC34JPFSMBCQXLX6T4Q",
+      "inner_txns": null,
+      "intra_round_offset": 3,
+      "keyreg_transaction": null,
+      "last_valid": 24099451,
+      "lease": null,
+      "local_state_delta": null,
+      "logs": null,
+      "note": "3e8E",
+      "payment_transaction": {
+        "amount": 1,
+        "close_amount": 0,
+        "close_remainder_to": null,
+        "receiver": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY"
+      },
+      "receiver_rewards": 0,
+      "rekey_to": null,
+      "round_time": 1663197976,
+      "sender": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY",
+      "sender_rewards": 0,
+      "signature": {
+        "logicsig": null,
+        "multisig": null,
+        "sig": "HLxU1HhmnRwGGHccdoE7ZY7aBrr8Ol5Qepn85Eran4VtsFiaBfcgkMVC+04dzS4QLFhT0BjTKsN11mYETUWKBw=="
+      },
+      "state_proof_transaction": null,
+      "tx_type": "pay"
+    },
+    {
+      "application_transaction": null,
+      "asset_config_transaction": null,
+      "asset_freeze_transaction": null,
+      "asset_transfer_transaction": null,
+      "auth_addr": null,
+      "close_rewards": 0,
+      "closing_amount": 0,
+      "confirmed_round": 24099447,
+      "created_app_id": null,
+      "created_asset_id": null,
+      "fee": 1000,
+      "first_valid": 24099446,
+      "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+      "genesis_id": "testnet-v1.0",
+      "global_state_delta": null,
+      "group": null,
+      "heartbeat_transaction": null,
+      "id_": "ONXCSR5POM7B53L56LOVJUD5VUNQFPDXOSODIH6LOXMBTQALWB5A",
+      "inner_txns": null,
+      "intra_round_offset": 4,
+      "keyreg_transaction": null,
+      "last_valid": 24099451,
+      "lease": null,
+      "local_state_delta": null,
+      "logs": null,
+      "note": "3u8E",
+      "payment_transaction": {
+        "amount": 1,
+        "close_amount": 0,
+        "close_remainder_to": null,
+        "receiver": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY"
+      },
+      "receiver_rewards": 0,
+      "rekey_to": null,
+      "round_time": 1663197976,
+      "sender": "BFO7NQTTXGYDPUEWJYLWPFZRUFQISHY4E2SKXARM7UROMAW36YYBGPSUYY",
+      "sender_rewards": 0,
+      "signature": {
+        "logicsig": null,
+        "multisig": null,
+        "sig": "Qh/iCwtexJCsIGLIA8TNzknsIi4lBgdzKhBNbVnVkgnSIFwHYznoLhrsCU+QgHWrOdwyiymBakku7G7t9GrbBQ=="
+      },
+      "state_proof_transaction": null,
+      "tx_type": "pay"
+    }
+  ],
+  "transactions_root": "HrkqCoO2LN8/90BejBWP05AN6dleSGRJm3ePEe5sMvU=",
+  "transactions_root_sha256": "K89pAIWibxpbUwkNdSZcw9K9XxsVK1OMB7e8VcD+in4=",
+  "transactions_root_sha512": null,
+  "txn_counter": 109962116,
+  "upgrade_state": {
+    "current_protocol": "https://github.com/algorandfoundation/specs/tree/433d8e9a7274b6fca703d91213e05c7e6a589e69",
+    "next_protocol": null,
+    "next_protocol_approvals": 0,
+    "next_protocol_switch_on": 0,
+    "next_protocol_vote_before": 0
+  },
+  "upgrade_vote": {
+    "upgrade_approve": false,
+    "upgrade_delay": 0,
+    "upgrade_propose": null
+  }
+}

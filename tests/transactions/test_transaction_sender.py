@@ -1,12 +1,11 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import algosdk
 import pytest
-from algosdk.transaction import OnComplete
 
-from algokit_utils import SigningAccount
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_abi import abi, arc32_to_arc56, arc56
+from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
@@ -26,6 +25,7 @@ from algokit_utils.transactions.transaction_composer import (
     OnlineKeyRegistrationParams,
     PaymentParams,
     TransactionComposer,
+    TransactionComposerParams,
 )
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
 
@@ -36,23 +36,23 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
 @pytest.fixture
-def sender(funded_account: SigningAccount) -> SigningAccount:
+def sender(funded_account: AddressWithSigners) -> AddressWithSigners:
     return funded_account
 
 
 @pytest.fixture
-def receiver(algorand: AlgorandClient) -> SigningAccount:
+def receiver(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
@@ -68,27 +68,31 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def test_hello_world_arc32_app_spec() -> ApplicationSpecification:
-    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
-    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+def hello_world_arc56_app_spec(raw_hello_world_arc32_app_spec: str) -> arc56.Arc56Contract:
+    return arc32_to_arc56(raw_hello_world_arc32_app_spec)
 
 
 @pytest.fixture
-def test_hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, test_hello_world_arc32_app_spec: ApplicationSpecification
+def hello_world_arc56_app_id(
+    algorand: AlgorandClient, funded_account: AddressWithSigners, hello_world_arc56_app_spec: arc56.Arc56Contract
 ) -> int:
-    global_schema = test_hello_world_arc32_app_spec.global_state_schema
-    local_schema = test_hello_world_arc32_app_spec.local_state_schema
+    global_schema = hello_world_arc56_app_spec.state.schema.global_state
+    local_schema = hello_world_arc56_app_spec.state.schema.local_state
+    source = hello_world_arc56_app_spec.source
+    assert source, "Source programs must be present"
+    approval_program = source.get_decoded_approval()
+    clear_program = source.get_decoded_clear()
+
     response = algorand.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
-            approval_program=test_hello_world_arc32_app_spec.approval_program,
-            clear_state_program=test_hello_world_arc32_app_spec.clear_program,
+            sender=funded_account.addr,
+            approval_program=approval_program,
+            clear_state_program=clear_program,
             schema={
-                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
-                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "global_ints": int(global_schema.ints) if global_schema.ints else 0,
+                "global_byte_slices": int(global_schema.bytes) if global_schema.bytes else 0,
+                "local_ints": int(local_schema.ints) if local_schema.ints else 0,
+                "local_byte_slices": int(local_schema.bytes) if local_schema.bytes else 0,
             },
         )
     )
@@ -96,11 +100,13 @@ def test_hello_world_arc32_app_id(
 
 
 @pytest.fixture
-def transaction_sender(algorand: AlgorandClient, sender: SigningAccount) -> AlgorandClientTransactionSender:
+def transaction_sender(algorand: AlgorandClient, sender: AddressWithSigners) -> AlgorandClientTransactionSender:
     def new_group() -> TransactionComposer:
         return TransactionComposer(
-            algod=algorand.client.algod,
-            get_signer=lambda _: sender.signer,
+            TransactionComposerParams(
+                algod=algorand.client.algod,
+                get_signer=lambda _: sender.signer,
+            )
         )
 
     return AlgorandClientTransactionSender(
@@ -112,30 +118,31 @@ def transaction_sender(algorand: AlgorandClient, sender: SigningAccount) -> Algo
 
 
 def test_payment(
-    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+    transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     amount = AlgoAmount.from_algo(1)
     result = transaction_sender.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=amount,
         )
     )
 
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
     txn = result.transaction.payment
     assert txn
-    assert txn.sender == sender.address
-    assert txn.receiver == receiver.address
-    assert txn.amt == amount.micro_algo
+    assert result.transaction.sender == sender.addr
+    assert txn.receiver == receiver.addr
+    assert txn.amount == amount.micro_algo
 
 
-def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
+def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners) -> None:
     total = 1000
     params = AssetCreateParams(
-        sender=sender.address,
+        sender=sender.addr,
         total=total,
         decimals=0,
         default_frozen=False,
@@ -146,41 +153,43 @@ def test_asset_create(transaction_sender: AlgorandClientTransactionSender, sende
 
     result = transaction_sender.asset_create(params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
+    assert result.transaction.sender == sender.addr
     assert txn.total == total
-    assert txn.decimals == 0
-    assert txn.default_frozen is False
+    assert (txn.decimals or 0) == 0
+    assert (txn.default_frozen or False) is False
     assert txn.unit_name == "TEST"
     assert txn.asset_name == "Test Asset"
     assert txn.url == "https://example.com"
 
 
 def test_asset_config(
-    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+    transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
             unit_name="CFG",
             asset_name="Config Asset",
             url="https://example.com",
-            manager=sender.address,
+            manager=sender.addr,
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then configure it
     config_params = AssetConfigParams(
-        sender=sender.address,
+        sender=sender.addr,
         asset_id=asset_id,
-        manager=receiver.address,
+        manager=receiver.addr,
     )
     result = transaction_sender.asset_config(config_params)
 
@@ -188,36 +197,37 @@ def test_asset_config(
     assert result.transaction.asset_config
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
-    assert txn.manager == receiver.address
+    assert result.transaction.sender == sender.addr
+    assert txn.asset_id == asset_id
+    assert txn.manager == receiver.addr
 
 
 def test_asset_freeze(
     transaction_sender: AlgorandClientTransactionSender,
-    sender: SigningAccount,
+    sender: AddressWithSigners,
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
             unit_name="FRZ",
             url="https://example.com",
             asset_name="Freeze Asset",
-            freeze=sender.address,
-            manager=sender.address,
+            freeze=sender.addr,
+            manager=sender.addr,
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then freeze it
     freeze_params = AssetFreezeParams(
-        sender=sender.address,
+        sender=sender.addr,
         asset_id=asset_id,
-        account=sender.address,
+        account=sender.addr,
         frozen=True,
     )
     result = transaction_sender.asset_freeze(freeze_params)
@@ -226,31 +236,32 @@ def test_asset_freeze(
     assert result.transaction.asset_freeze
     txn = result.transaction.asset_freeze
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
-    assert txn.target == sender.address
-    assert txn.new_freeze_state is True
+    assert result.transaction.sender == sender.addr
+    assert txn.asset_id == asset_id
+    assert txn.freeze_target == sender.addr
+    assert bool(txn.frozen) is True
 
 
-def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
+def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
             unit_name="DEL",
             asset_name="Delete Asset",
-            manager=sender.address,
+            manager=sender.addr,
             url="https://example.com",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then destroy it
     destroy_params = AssetDestroyParams(
-        sender=sender.address,
+        sender=sender.addr,
         asset_id=asset_id,
     )
     result = transaction_sender.asset_destroy(destroy_params)
@@ -258,17 +269,17 @@ def test_asset_destroy(transaction_sender: AlgorandClientTransactionSender, send
     assert len(result.tx_ids) == 1
     txn = result.transaction.asset_config
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == sender.addr
+    assert txn.asset_id == asset_id
 
 
 def test_asset_transfer(
-    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+    transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
@@ -277,12 +288,13 @@ def test_asset_transfer(
             asset_name="Transfer Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in receiver
     transaction_sender.asset_opt_in(
         AssetOptInParams(
-            sender=receiver.address,
+            sender=receiver.addr,
             asset_id=asset_id,
             signer=receiver.signer,
         )
@@ -291,9 +303,9 @@ def test_asset_transfer(
     # Then transfer it
     amount = 100
     transfer_params = AssetTransferParams(
-        sender=sender.address,
+        sender=sender.addr,
         asset_id=asset_id,
-        receiver=receiver.address,
+        receiver=receiver.addr,
         amount=amount,
     )
     result = transaction_sender.asset_transfer(transfer_params)
@@ -301,19 +313,19 @@ def test_asset_transfer(
     assert len(result.tx_ids) == 1
     txn = result.transaction.asset_transfer
     assert txn
-    assert txn.sender == sender.address
-    assert txn.index == asset_id
-    assert txn.receiver == receiver.address
+    assert result.transaction.sender == sender.addr
+    assert txn.asset_id == asset_id
+    assert txn.receiver == receiver.addr
     assert txn.amount == amount
 
 
 def test_asset_opt_in(
-    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+    transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
@@ -322,11 +334,12 @@ def test_asset_opt_in(
             asset_name="Opt Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in
     opt_in_params = AssetOptInParams(
-        sender=receiver.address,
+        sender=receiver.addr,
         asset_id=asset_id,
         signer=receiver.signer,
     )
@@ -335,19 +348,19 @@ def test_asset_opt_in(
     assert len(result.tx_ids) == 1
     assert result.transaction.asset_transfer
     txn = result.transaction.asset_transfer
-    assert txn.sender == receiver.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == receiver.addr
+    assert txn.asset_id == asset_id
     assert txn.amount == 0
-    assert txn.receiver == receiver.address
+    assert txn.receiver == receiver.addr
 
 
 def test_asset_opt_out(
-    transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount, receiver: SigningAccount
+    transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners, receiver: AddressWithSigners
 ) -> None:
     # First create an asset
     create_result = transaction_sender.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=1000,
             decimals=0,
             default_frozen=False,
@@ -356,12 +369,13 @@ def test_asset_opt_out(
             asset_name="Opt Out Asset",
         )
     )
-    asset_id = int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    asset_id = int(create_result.confirmation.asset_id)
 
     # Then opt-in
     transaction_sender.asset_opt_in(
         AssetOptInParams(
-            sender=receiver.address,
+            sender=receiver.addr,
             asset_id=asset_id,
             signer=receiver.signer,
         )
@@ -369,27 +383,27 @@ def test_asset_opt_out(
 
     # Then opt-out
     opt_out_params = AssetOptOutParams(
-        sender=receiver.address,
+        sender=receiver.addr,
         asset_id=asset_id,
-        creator=sender.address,
+        creator=sender.addr,
         signer=receiver.signer,
     )
     result = transaction_sender.asset_opt_out(params=opt_out_params)
 
     assert result.transaction.asset_transfer
     txn = result.transaction.asset_transfer
-    assert txn.sender == receiver.address
-    assert txn.index == asset_id
+    assert result.transaction.sender == receiver.addr
+    assert txn.asset_id == asset_id
     assert txn.amount == 0
-    assert txn.receiver == receiver.address
-    assert txn.close_assets_to == sender.address
+    assert txn.receiver == receiver.addr
+    assert txn.close_remainder_to == sender.addr
 
 
-def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
+def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners) -> None:
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
     params = AppCreateParams(
-        sender=sender.address,
+        sender=sender.addr,
         approval_program=approval_program,
         clear_state_program=clear_state_program,
         schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
@@ -401,36 +415,50 @@ def test_app_create(transaction_sender: AlgorandClientTransactionSender, sender:
 
     assert result.transaction.application_call
     txn = result.transaction.application_call
-    assert txn.sender == sender.address
+    assert result.transaction.sender == sender.addr
     assert txn.approval_program == b"\x06\x81\x01"
-    assert txn.clear_program == b"\x06\x81\x01"
+    assert txn.clear_state_program == b"\x06\x81\x01"
 
 
 def test_app_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
+    hello_world_arc56_app_id: int,
+    transaction_sender: AlgorandClientTransactionSender,
+    sender: AddressWithSigners,
 ) -> None:
-    params = AppCallParams(
-        app_id=test_hello_world_arc32_app_id,
-        sender=sender.address,
-        on_complete=OnComplete.NoOpOC,
-        args=[b"\x02\xbe\xce\x11", b"test"],
+    method = arc56.Method.from_signature("hello(string)string")
+    selector = method.get_selector()
+    encoded_arg = abi.ABIType.from_string("string").encode("test")
+
+    result = transaction_sender.app_call(
+        AppCallParams(
+            app_id=hello_world_arc56_app_id,
+            sender=sender.addr,
+            on_complete=OnApplicationComplete.NoOp,
+            args=[selector, encoded_arg],
+        )
     )
 
-    result = transaction_sender.app_call(params)
-    assert not result.abi_return  # TODO: improve checks
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
+    assert result.transaction.application_call
 
 
 def test_app_call_method_call(
-    test_hello_world_arc32_app_id: int, transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount
+    hello_world_arc56_app_id: int,
+    transaction_sender: AlgorandClientTransactionSender,
+    sender: AddressWithSigners,
 ) -> None:
-    params = AppCallMethodCallParams(
-        app_id=test_hello_world_arc32_app_id,
-        sender=sender.address,
-        method=algosdk.abi.Method.from_signature("hello(string)string"),
-        args=["test"],
+    method = arc56.Method.from_signature("hello(string)string")
+
+    result = transaction_sender.app_call_method_call(
+        AppCallMethodCallParams(
+            app_id=hello_world_arc56_app_id,
+            sender=sender.addr,
+            method=method,
+            args=["test"],
+        )
     )
 
-    result = transaction_sender.app_call_method_call(params)
     assert result.abi_return
     assert result.abi_return.value == "Hello2, test"
 
@@ -439,14 +467,14 @@ def test_app_call_method_call(
 def test_payment_logging(
     mock_debug: MagicMock,
     transaction_sender: AlgorandClientTransactionSender,
-    sender: SigningAccount,
-    receiver: SigningAccount,
+    sender: AddressWithSigners,
+    receiver: AddressWithSigners,
 ) -> None:
     amount = AlgoAmount.from_algo(1)
     transaction_sender.payment(
         PaymentParams(
-            sender=sender.address,
-            receiver=receiver.address,
+            sender=sender.addr,
+            receiver=receiver.addr,
             amount=amount,
         )
     )
@@ -454,34 +482,34 @@ def test_payment_logging(
     assert mock_debug.call_count == 1
     log_message = mock_debug.call_args[0][0]
     assert "Sending 1,000,000 µALGO" in log_message
-    assert sender.address in log_message
-    assert receiver.address in log_message
+    assert sender.addr in log_message
+    assert receiver.addr in log_message
 
 
-def test_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: SigningAccount) -> None:
+def test_key_registration(transaction_sender: AlgorandClientTransactionSender, sender: AddressWithSigners) -> None:
     sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
 
     params = OnlineKeyRegistrationParams(
-        sender=sender.address,
+        sender=sender.addr,
         vote_key="G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=",
         selection_key="LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=",
         state_proof_key=b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
-        vote_first=sp.first,
-        vote_last=sp.first + int(10e6),
+        vote_first=sp.first_valid,
+        vote_last=sp.first_valid + int(10e6),
         vote_key_dilution=100,
     )
 
     result = transaction_sender.online_key_registration(params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
-
-    sp = transaction_sender._algod.suggested_params()  # noqa: SLF001
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0
 
     off_key_reg_params = OfflineKeyRegistrationParams(
-        sender=sender.address,
+        sender=sender.addr,
         prevent_account_from_ever_participating_again=True,
     )
 
     result = transaction_sender.offline_key_registration(off_key_reg_params)
     assert len(result.tx_ids) == 1
-    assert result.confirmations[-1]["confirmed-round"] > 0  # type: ignore[call-overload]
+    assert result.confirmations[-1].confirmed_round is not None
+    assert result.confirmations[-1].confirmed_round > 0

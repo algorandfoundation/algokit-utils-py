@@ -4,18 +4,17 @@ from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from typing import Any, Generic, TypeVar
 
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.source_map import SourceMap
-from algosdk.transaction import OnComplete, Transaction
 from typing_extensions import Self
 
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_abi import arc56
+from algokit_common import ProgramSourceMap
+from algokit_transact import OnApplicationComplete
+from algokit_transact.models.transaction import Transaction
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import (
     ABIReturn,
     Arc56ReturnValueType,
     get_abi_decoded_value,
-    get_abi_tuple_from_abi_struct,
 )
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -39,11 +38,9 @@ from algokit_utils.applications.app_deployer import (
     OperationPerformed,
 )
 from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Method
-from algokit_utils.models.application import (
-    AppSourceMaps,
-)
+from algokit_utils.models.application import AppSourceMaps
 from algokit_utils.models.transaction import SendParams
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     AppCreateMethodCallParams,
     AppCreateParams,
@@ -78,7 +75,7 @@ __all__ = [
 @dataclass(kw_only=True, frozen=True)
 class AppFactoryParams:
     algorand: AlgorandClient
-    app_spec: Arc56Contract | ApplicationSpecification | str
+    app_spec: arc56.Arc56Contract | str
     app_name: str | None = None
     default_sender: str | None = None
     default_signer: TransactionSigner | None = None
@@ -146,7 +143,7 @@ class AppFactoryDeployResult:
         cls,
         response: AppDeployResult,
         deploy_params: AppDeployParams,
-        app_spec: Arc56Contract,
+        app_spec: arc56.Arc56Contract,  # noqa: ARG003
         app_compilation_data: AppClientCompilationResult | None = None,
     ) -> Self:
         """
@@ -166,13 +163,18 @@ class AppFactoryDeployResult:
             | None,
             params: Any,  # noqa: ANN401
         ) -> Any | None:  # noqa: ANN401
+            _ = params  # kept for compatibility
             if not response_data:
                 return None
 
-            response_data_dict = asdict(response_data)
+            response_data_dict = {
+                field.name: getattr(response_data, field.name) for field in dataclasses.fields(type(response_data))
+            }
             abi_return = response_data.abi_return
             if abi_return and abi_return.method:
-                response_data_dict["abi_return"] = abi_return.get_arc56_value(params.method, app_spec.structs)
+                if abi_return.decode_error:
+                    raise ValueError(abi_return.decode_error)
+                response_data_dict["abi_return"] = abi_return.value
 
             match response_data:
                 case SendAppCreateTransactionResult():
@@ -247,7 +249,7 @@ class _BareParamsBuilder:
                 },
                 "sender": self._factory._get_sender(base_params.sender),
                 "signer": self._factory._get_signer(base_params.sender, base_params.signer),
-                "on_complete": base_params.on_complete or OnComplete.NoOpOC,
+                "on_complete": base_params.on_complete or OnApplicationComplete.NoOp,
             }
         )
 
@@ -269,7 +271,7 @@ class _BareParamsBuilder:
                 "approval_program": "",
                 "clear_state_program": "",
                 "sender": self._factory._get_sender(params.sender if params else None),
-                "on_complete": OnComplete.UpdateApplicationOC,
+                "on_complete": OnApplicationComplete.UpdateApplication,
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
@@ -295,7 +297,7 @@ class _BareParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "on_complete": OnComplete.DeleteApplicationOC,
+                "on_complete": OnApplicationComplete.DeleteApplication,
             }
         )
 
@@ -352,9 +354,9 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
+                "method": self._factory._app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": params.on_complete or OnComplete.NoOpOC,
+                "on_complete": params.on_complete or OnApplicationComplete.NoOp,
             }
         )
 
@@ -379,9 +381,9 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory._app_spec.get_arc56_method(params.method).to_abi_method(),
+                "method": self._factory._app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": OnComplete.UpdateApplicationOC,
+                "on_complete": OnApplicationComplete.UpdateApplication,
             }
         )
 
@@ -404,9 +406,9 @@ class _MethodParamsBuilder:
                 "signer": self._factory._get_signer(
                     params.sender if params else None, params.signer if params else None
                 ),
-                "method": self._factory.app_spec.get_arc56_method(params.method).to_abi_method(),
+                "method": self._factory.app_spec.get_abi_method(params.method),
                 "args": self._factory._get_create_abi_args_with_default_values(params.method, params.args),
-                "on_complete": OnComplete.DeleteApplicationOC,
+                "on_complete": OnApplicationComplete.DeleteApplication,
             }
         )
 
@@ -587,7 +589,7 @@ class _TransactionSender:
                 lambda: self._algorand.send.app_create_method_call(
                     self._factory.params.create(params, compilation_params), send_params
                 ),
-                self._factory._app_spec.get_arc56_method(params.method),
+                self._factory._app_spec.get_abi_method(params.method),
             )
         )
 
@@ -635,8 +637,8 @@ class AppFactory:
         self._version = params.version or "1.0"
         self._default_sender = params.default_sender
         self._default_signer = params.default_signer
-        self._approval_source_map: SourceMap | None = None
-        self._clear_source_map: SourceMap | None = None
+        self._approval_source_map: ProgramSourceMap | None = None
+        self._clear_source_map: ProgramSourceMap | None = None
         self._params_accessor = _MethodParamsBuilder(self)
         self._send_accessor = _TransactionSender(self)
         self._create_transaction_accessor = _TransactionCreator(self)
@@ -652,7 +654,7 @@ class AppFactory:
         return self._app_name
 
     @property
-    def app_spec(self) -> Arc56Contract:
+    def app_spec(self) -> arc56.Arc56Contract:
         """The app spec"""
         return self._app_spec
 
@@ -882,8 +884,8 @@ class AppFactory:
         app_name: str | None = None,
         default_sender: str | None = None,  # Address can be string or bytes
         default_signer: TransactionSigner | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> AppClient:
         """Returns a new `AppClient` client for an app instance of the given ID.
 
@@ -919,8 +921,8 @@ class AppFactory:
         default_signer: TransactionSigner | None = None,
         ignore_cache: bool | None = None,
         app_lookup_cache: ApplicationLookup | None = None,
-        approval_source_map: SourceMap | None = None,
-        clear_source_map: SourceMap | None = None,
+        approval_source_map: ProgramSourceMap | None = None,
+        clear_source_map: ProgramSourceMap | None = None,
     ) -> AppClient:
         """Returns a new `AppClient` client, resolving the app by creator address and name
         using AlgoKit app deployment semantics (i.e. looking for the app creation transaction note).
@@ -997,7 +999,7 @@ class AppFactory:
 
         return result
 
-    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT002 FBT001
+    def _expose_logic_error(self, e: Exception, is_clear_state_program: bool = False) -> Exception:  # noqa: FBT001, FBT002
         """
         Convert a low-level exception into a descriptive logic error.
 
@@ -1069,22 +1071,29 @@ class AppFactory:
         result: Callable[
             [], SendAppTransactionResult | SendAppCreateTransactionResult | SendAppUpdateTransactionResult
         ],
-        method: Method,
+        method: arc56.Method,
     ) -> AppFactoryCreateMethodCallResult[Arc56ReturnValueType]:
+        _ = method  # kept for compatibility
         """
         Parse the method call return value and convert the ABI return.
 
         :param result: A callable that returns the transaction result.
         :param method: The ABI method associated with the call.
         :return: An AppFactoryCreateMethodCallResult with the parsed ABI return.
+        :raises ValueError: If ABI return decoding failed.
         """
         result_value = result()
+        abi_return_value: Arc56ReturnValueType
+        if isinstance(result_value.abi_return, ABIReturn):
+            if result_value.abi_return.decode_error:
+                raise ValueError(result_value.abi_return.decode_error)
+            abi_return_value = result_value.abi_return.value
+        else:
+            abi_return_value = None
         return AppFactoryCreateMethodCallResult[Arc56ReturnValueType](
             **{
                 **result_value.__dict__,
-                "abi_return": result_value.abi_return.get_arc56_value(method, self._app_spec.structs)
-                if isinstance(result_value.abi_return, ABIReturn)
-                else None,
+                "abi_return": abi_return_value,
             }
         )
 
@@ -1097,19 +1106,14 @@ class AppFactory:
         Builds a list of ABI argument values for creation calls, applying default
         argument values when not provided.
         """
-        method = self._app_spec.get_arc56_method(method_name_or_signature)
+        method = self._app_spec.get_abi_method(method_name_or_signature)
 
         results: list[Any] = []
 
         for i, param in enumerate(method.args):
             if user_args and i < len(user_args):
                 arg_value = user_args[i]
-                if param.struct and isinstance(arg_value, dict):
-                    arg_value = get_abi_tuple_from_abi_struct(
-                        arg_value,
-                        self._app_spec.structs[param.struct],
-                        self._app_spec.structs,
-                    )
+
                 results.append(arg_value)
                 continue
 
@@ -1117,8 +1121,11 @@ class AppFactory:
             if default_value:
                 if default_value.source == "literal":
                     raw_value = base64.b64decode(default_value.data)
-                    value_type = default_value.type or str(param.type)
-                    decoded_value = get_abi_decoded_value(raw_value, value_type, self._app_spec.structs)
+                    value_type = default_value.type or param.type
+                    assert not isinstance(value_type, arc56.TransactionType), (
+                        "transaction type cannot be a default value"
+                    )
+                    decoded_value = get_abi_decoded_value(raw_value, value_type)
                     results.append(decoded_value)
                 else:
                     raise ValueError(

@@ -1,20 +1,11 @@
+import base64
 from pathlib import Path
 
-import algosdk
 import pytest
-from algosdk.transaction import (
-    ApplicationCallTxn,
-    AssetConfigTxn,
-    AssetCreateTxn,
-    AssetDestroyTxn,
-    AssetFreezeTxn,
-    AssetTransferTxn,
-    KeyregTxn,
-    PaymentTxn,
-)
 
+from algokit_abi import arc56
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
@@ -37,45 +28,45 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
 @pytest.fixture
-def funded_secondary_account(algorand: AlgorandClient, funded_account: SigningAccount) -> SigningAccount:
+def funded_secondary_account(algorand: AlgorandClient, funded_account: AddressWithSigners) -> AddressWithSigners:
     account = algorand.account.random()
     algorand.send.payment(
-        PaymentParams(sender=funded_account.address, receiver=account.address, amount=AlgoAmount.from_algo(1))
+        PaymentParams(sender=funded_account.addr, receiver=account.addr, amount=AlgoAmount.from_algo(1))
     )
     return account
 
 
-def test_create_payment_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_payment_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=AlgoAmount.from_algo(1),
         )
     )
 
-    assert isinstance(txn, PaymentTxn)
-    assert txn.sender == funded_account.address
-    assert txn.receiver == funded_account.address
-    assert txn.amt == AlgoAmount.from_algo(1).micro_algo
+    assert txn.payment
+    assert txn.sender == funded_account.addr
+    assert txn.payment.receiver == funded_account.addr
+    assert txn.payment.amount == AlgoAmount.from_algo(1).micro_algo
 
 
-def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_asset_create_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     expected_total = 1000
     txn = algorand.create_transaction.asset_create(
         AssetCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             total=expected_total,
             decimals=0,
             default_frozen=False,
@@ -85,175 +76,195 @@ def test_create_asset_create_transaction(algorand: AlgorandClient, funded_accoun
         )
     )
 
-    assert isinstance(txn, AssetCreateTxn)
-    assert txn.sender == funded_account.address
-    assert txn.total == expected_total
-    assert txn.decimals == 0
-    assert txn.default_frozen is False
-    assert txn.unit_name == "TEST"
-    assert txn.asset_name == "Test Asset"
-    assert txn.url == "https://example.com"
+    assert txn.asset_config
+    assert txn.sender == funded_account.addr
+    assert txn.asset_config.total == expected_total
+    assert txn.asset_config.decimals == 0
+    assert txn.asset_config.default_frozen is False
+    assert txn.asset_config.unit_name == "TEST"
+    assert txn.asset_config.asset_name == "Test Asset"
+    assert txn.asset_config.url == "https://example.com"
 
 
 def test_create_asset_config_transaction(
-    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners, funded_secondary_account: AddressWithSigners
 ) -> None:
     txn = algorand.create_transaction.asset_config(
         AssetConfigParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
-            manager=funded_secondary_account.address,
+            manager=funded_secondary_account.addr,
         )
     )
 
-    assert isinstance(txn, AssetConfigTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.manager == funded_secondary_account.address
+    assert txn.asset_config
+    assert txn.sender == funded_account.addr
+    assert txn.asset_config.asset_id == 1
+    assert txn.asset_config.manager == funded_secondary_account.addr
 
 
 def test_create_asset_freeze_transaction(
-    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners, funded_secondary_account: AddressWithSigners
 ) -> None:
     txn = algorand.create_transaction.asset_freeze(
         AssetFreezeParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
-            account=funded_secondary_account.address,
+            account=funded_secondary_account.addr,
             frozen=True,
         )
     )
 
-    assert isinstance(txn, AssetFreezeTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.target == funded_secondary_account.address
-    assert txn.new_freeze_state is True
+    assert txn.asset_freeze
+    assert txn.sender == funded_account.addr
+    assert txn.asset_freeze.asset_id == 1
+    assert txn.asset_freeze.freeze_target == funded_secondary_account.addr
+    assert txn.asset_freeze.frozen is True
 
 
-def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_asset_destroy_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     txn = algorand.create_transaction.asset_destroy(
         AssetDestroyParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
         )
     )
 
-    assert isinstance(txn, AssetDestroyTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
+    assert txn.asset_config
+    assert txn.sender == funded_account.addr
+    assert txn.asset_config.asset_id == 1
 
 
 def test_create_asset_transfer_transaction(
-    algorand: AlgorandClient, funded_account: SigningAccount, funded_secondary_account: SigningAccount
+    algorand: AlgorandClient, funded_account: AddressWithSigners, funded_secondary_account: AddressWithSigners
 ) -> None:
     expected_amount = 100
     txn = algorand.create_transaction.asset_transfer(
         AssetTransferParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
             amount=expected_amount,
-            receiver=funded_secondary_account.address,
+            receiver=funded_secondary_account.addr,
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == expected_amount
-    assert txn.receiver == funded_secondary_account.address
+    assert txn.asset_transfer
+    assert txn.sender == funded_account.addr
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == expected_amount
+    assert txn.asset_transfer.receiver == funded_secondary_account.addr
 
 
-def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_created_transactions_have_no_group(
+    algorand: AlgorandClient, funded_account: AddressWithSigners, funded_secondary_account: AddressWithSigners
+) -> None:
+    txn = algorand.create_transaction.asset_transfer(
+        AssetTransferParams(
+            sender=funded_account.addr,
+            asset_id=1,
+            amount=10,
+            receiver=funded_secondary_account.addr,
+        )
+    )
+
+    assert txn.group is None
+
+
+def test_create_asset_opt_in_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     txn = algorand.create_transaction.asset_opt_in(
         AssetOptInParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == 0
-    assert txn.receiver == funded_account.address
+    assert txn.asset_transfer
+    assert txn.sender == funded_account.addr
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == 0
+    assert txn.asset_transfer.receiver == funded_account.addr
 
 
-def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_asset_opt_out_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     txn = algorand.create_transaction.asset_opt_out(
         AssetOptOutParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             asset_id=1,
-            creator=funded_account.address,
+            creator=funded_account.addr,
         )
     )
 
-    assert isinstance(txn, AssetTransferTxn)
-    assert txn.sender == funded_account.address
-    assert txn.index == 1
-    assert txn.amount == 0
-    assert txn.receiver == funded_account.address
-    assert txn.close_assets_to == funded_account.address
+    assert txn.asset_transfer
+    assert txn.sender == funded_account.addr
+    assert txn.asset_transfer.asset_id == 1
+    assert txn.asset_transfer.amount == 0
+    assert txn.asset_transfer.receiver == funded_account.addr
+    assert txn.asset_transfer.close_remainder_to == funded_account.addr
 
 
-def test_create_app_create_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_app_create_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     approval_program = "#pragma version 6\nint 1"
     clear_state_program = "#pragma version 6\nint 1"
     txn = algorand.create_transaction.app_create(
         AppCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             approval_program=approval_program,
             clear_state_program=clear_state_program,
             schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
 
-    assert isinstance(txn, ApplicationCallTxn)
-    assert txn.sender == funded_account.address
-    assert txn.approval_program == b"\x06\x81\x01"
-    assert txn.clear_program == b"\x06\x81\x01"
+    assert txn.application_call
+    assert txn.sender == funded_account.addr
+    assert txn.application_call.approval_program == b"\x06\x81\x01"
+    assert txn.application_call.clear_state_program == b"\x06\x81\x01"
 
 
-def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_app_call_method_call_transaction(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     approval_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "approval.teal").read_text()
     clear_state_program = Path(Path(__file__).parent.parent / "artifacts" / "hello_world" / "clear.teal").read_text()
 
     # First create the app
     create_result = algorand.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             approval_program=approval_program,
             clear_state_program=clear_state_program,
             schema={"global_ints": 0, "global_byte_slices": 0, "local_ints": 0, "local_byte_slices": 0},
         )
     )
-    app_id = algorand.client.algod.pending_transaction_info(create_result.tx_ids[0])["application-index"]  # type: ignore[call-overload]
+    confirmation = algorand.client.algod.pending_transaction_information(create_result.tx_ids[0])
+    assert confirmation.app_id is not None
+    app_id = confirmation.app_id
 
     # Then test creating a method call transaction
     result = algorand.create_transaction.app_call_method_call(
         AppCallMethodCallParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             app_id=app_id,
-            method=algosdk.abi.Method.from_signature("hello(string)string"),
+            method=arc56.Method.from_signature("hello(string)string"),
             args=["world"],
         )
     )
 
     assert len(result.transactions) == 1
-    assert isinstance(result.transactions[0], ApplicationCallTxn)
-    assert result.transactions[0].sender == funded_account.address
-    assert result.transactions[0].index == app_id
+    transactions = result.transactions[0]
+    assert transactions.application_call
+    assert transactions.sender == funded_account.addr
+    assert transactions.application_call.app_id == app_id
 
 
-def test_create_online_key_registration_transaction(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_create_online_key_registration_transaction(
+    algorand: AlgorandClient, funded_account: AddressWithSigners
+) -> None:
     sp = algorand.get_suggested_params()
     expected_dilution = 100
-    expected_first = sp.first
-    expected_last = sp.first + int(10e6)
+    expected_first = sp.first_valid
+    expected_last = sp.first_valid + int(10e6)
 
     txn = algorand.create_transaction.online_key_registration(
         OnlineKeyRegistrationParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             vote_key="G/lqTV6MKspW6J8wH2d8ZliZ5XZVZsruqSBJMwLwlmo=",
             selection_key="LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=",
             state_proof_key=b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA==",
@@ -263,10 +274,12 @@ def test_create_online_key_registration_transaction(algorand: AlgorandClient, fu
         )
     )
 
-    assert isinstance(txn, KeyregTxn)
-    assert txn.sender == funded_account.address
-    assert txn.selkey == "LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk="
-    assert txn.sprfkey == b"RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=="
-    assert txn.votefst == expected_first
-    assert txn.votelst == expected_last
-    assert txn.votekd == expected_dilution
+    assert txn.key_registration
+    assert txn.sender == funded_account.addr
+    assert txn.key_registration.selection_key == base64.b64decode("LrpLhvzr+QpN/bivh6IPpOaKGbGzTTB5lJtVfixmmgk=")
+    assert txn.key_registration.state_proof_key == base64.b64decode(
+        "RpUpNWfZMjZ1zOOjv3MF2tjO714jsBt0GKnNsw0ihJ4HSZwci+d9zvUi3i67LwFUJgjQ5Dz4zZgHgGduElnmSA=="
+    )
+    assert txn.key_registration.vote_first == expected_first
+    assert txn.key_registration.vote_last == expected_last
+    assert txn.key_registration.vote_key_dilution == expected_dilution

@@ -1,10 +1,40 @@
-import warnings
+"""Common utilities - user-facing facade for algokit_common.
 
-warnings.warn(
-    "The legacy v2 common module is deprecated and will be removed in a future version. "
-    "Refer to `CompiledTeal` class from `algokit_utils` instead.",
-    DeprecationWarning,
-    stacklevel=2,
+Users should import from this module instead of algokit_common directly.
+"""
+
+from algokit_common import (
+    ADDRESS_LENGTH,
+    CHECKSUM_BYTE_LENGTH,
+    HASH_BYTES_LENGTH,
+    MAX_TRANSACTION_GROUP_SIZE,
+    MICROALGOS_TO_ALGOS_RATIO,
+    MIN_TXN_FEE,
+    PUBLIC_KEY_BYTE_LENGTH,
+    SIGNATURE_BYTE_LENGTH,
+    TRANSACTION_ID_LENGTH,
+    ZERO_ADDRESS,
+    ProgramSourceMap,
+    address_from_public_key,
+    get_application_address,
+    public_key_from_address,
+    sha512_256,
 )
 
-from algokit_utils._legacy_v2.common import *  # noqa: F403, E402
+__all__ = [
+    "ADDRESS_LENGTH",
+    "CHECKSUM_BYTE_LENGTH",
+    "HASH_BYTES_LENGTH",
+    "MAX_TRANSACTION_GROUP_SIZE",
+    "MICROALGOS_TO_ALGOS_RATIO",
+    "MIN_TXN_FEE",
+    "PUBLIC_KEY_BYTE_LENGTH",
+    "SIGNATURE_BYTE_LENGTH",
+    "TRANSACTION_ID_LENGTH",
+    "ZERO_ADDRESS",
+    "ProgramSourceMap",
+    "address_from_public_key",
+    "get_application_address",
+    "public_key_from_address",
+    "sha512_256",
+]

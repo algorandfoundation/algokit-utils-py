@@ -1,14 +1,16 @@
 import base64
 import json
 import random
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-import algosdk
 import pytest
-from algosdk.atomic_transaction_composer import TransactionSigner, TransactionWithSigner
 
-from algokit_utils._legacy_v2.application_specification import ApplicationSpecification
+from algokit_abi import arc32, arc32_to_arc56, arc56
+from algokit_common import ProgramSourceMap
+from algokit_transact.models.transaction import Transaction
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.abi import ABIType
 from algokit_utils.applications.app_client import (
@@ -19,12 +21,16 @@ from algokit_utils.applications.app_client import (
 )
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.applications.app_manager import AppManager
-from algokit_utils.applications.app_spec.arc56 import Arc56Contract, Network
 from algokit_utils.errors.logic_error import LogicError
-from algokit_utils.models.account import SigningAccount
 from algokit_utils.models.amount import AlgoAmount, micro_algo
 from algokit_utils.models.state import BoxReference
-from algokit_utils.transactions.transaction_composer import AppCallMethodCallParams, AppCreateParams, PaymentParams
+from algokit_utils.protocols.signer import TransactionSigner
+from algokit_utils.transactions.transaction_composer import (
+    AppCallMethodCallParams,
+    AppCreateParams,
+    PaymentParams,
+    TransactionWithSigner,
+)
 
 
 @pytest.fixture
@@ -33,13 +39,13 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(
         new_account, dispenser, AlgoAmount.from_algo(100), min_funding_increment=AlgoAmount.from_algo(1)
     )
-    algorand.set_signer(sender=new_account.address, signer=new_account.signer)
+    algorand.set_signer(sender=new_account.addr, signer=new_account.signer)
     return new_account
 
 
@@ -50,27 +56,33 @@ def raw_hello_world_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def hello_world_arc32_app_spec() -> ApplicationSpecification:
+def hello_world_arc32_app_spec() -> arc56.Arc56Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "hello_world" / "app_spec.arc32.json"
-    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+    return arc32_to_arc56(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def hello_world_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, hello_world_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: AddressWithSigners, hello_world_arc32_app_spec: arc56.Arc56Contract
 ) -> int:
-    global_schema = hello_world_arc32_app_spec.global_state_schema
-    local_schema = hello_world_arc32_app_spec.local_state_schema
+    global_schema = hello_world_arc32_app_spec.state.schema.global_state
+    local_schema = hello_world_arc32_app_spec.state.schema.local_state
+    source = hello_world_arc32_app_spec.source
+    assert source is not None, "App spec is missing source content"
+    approval = source.get_decoded_approval()
+    clear = source.get_decoded_clear()
+    assert approval is not None, "Approval program must be defined in the app spec"
+    assert clear is not None, "Clear state program must be defined in the app spec"
     response = algorand.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
-            approval_program=hello_world_arc32_app_spec.approval_program,
-            clear_state_program=hello_world_arc32_app_spec.clear_program,
+            sender=funded_account.addr,
+            approval_program=approval,
+            clear_state_program=clear,
             schema={
-                "global_ints": int(global_schema.num_uints) if global_schema.num_uints else 0,
-                "global_byte_slices": int(global_schema.num_byte_slices) if global_schema.num_byte_slices else 0,
-                "local_ints": int(local_schema.num_uints) if local_schema.num_uints else 0,
-                "local_byte_slices": int(local_schema.num_byte_slices) if local_schema.num_byte_slices else 0,
+                "global_ints": int(global_schema.ints) if global_schema.ints else 0,
+                "global_byte_slices": int(global_schema.bytes) if global_schema.bytes else 0,
+                "local_ints": int(local_schema.ints) if local_schema.ints else 0,
+                "local_byte_slices": int(local_schema.bytes) if local_schema.bytes else 0,
             },
         )
     )
@@ -84,14 +96,14 @@ def raw_testing_app_arc32_app_spec() -> str:
 
 
 @pytest.fixture
-def testing_app_arc32_app_spec() -> ApplicationSpecification:
+def testing_app_arc32_app_spec() -> arc32.Arc32Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app" / "app_spec.arc32.json"
-    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+    return arc32.Arc32Contract.from_json(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def testing_app_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: AddressWithSigners, testing_app_arc32_app_spec: arc32.Arc32Contract
 ) -> int:
     global_schema = testing_app_arc32_app_spec.global_state_schema
     local_schema = testing_app_arc32_app_spec.local_state_schema
@@ -105,7 +117,7 @@ def testing_app_arc32_app_id(
     )
     response = algorand.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             approval_program=approval,
             clear_state_program=testing_app_arc32_app_spec.clear_program,
             schema={
@@ -122,13 +134,13 @@ def testing_app_arc32_app_id(
 @pytest.fixture
 def test_app_client(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    testing_app_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
     return AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=testing_app_arc32_app_id,
             algorand=algorand,
@@ -140,8 +152,8 @@ def test_app_client(
 @pytest.fixture
 def test_app_client_with_sourcemaps(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    testing_app_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
     testing_app_arc32_app_id: int,
 ) -> AppClient:
     sourcemaps = json.loads(
@@ -149,33 +161,33 @@ def test_app_client_with_sourcemaps(
     )
     return AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=testing_app_arc32_app_id,
             algorand=algorand,
-            approval_source_map=algosdk.source_map.SourceMap(sourcemaps["approvalSourceMap"]),
-            clear_source_map=algosdk.source_map.SourceMap(sourcemaps["clearSourceMap"]),
+            approval_source_map=ProgramSourceMap(sourcemaps["approvalSourceMap"]),
+            clear_source_map=ProgramSourceMap(sourcemaps["clearSourceMap"]),
             app_spec=testing_app_arc32_app_spec,
         )
     )
 
 
 @pytest.fixture
-def testing_app_puya_arc32_app_spec() -> ApplicationSpecification:
+def testing_app_puya_arc32_app_spec() -> arc32.Arc32Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "app_spec.arc32.json"
-    return ApplicationSpecification.from_json(raw_json_spec.read_text())
+    return arc32.Arc32Contract.from_json(raw_json_spec.read_text())
 
 
 @pytest.fixture
 def testing_app_puya_arc32_app_id(
-    algorand: AlgorandClient, funded_account: SigningAccount, testing_app_puya_arc32_app_spec: ApplicationSpecification
+    algorand: AlgorandClient, funded_account: AddressWithSigners, testing_app_puya_arc32_app_spec: arc32.Arc32Contract
 ) -> int:
     global_schema = testing_app_puya_arc32_app_spec.global_state_schema
     local_schema = testing_app_puya_arc32_app_spec.local_state_schema
 
     response = algorand.send.app_create(
         AppCreateParams(
-            sender=funded_account.address,
+            sender=funded_account.addr,
             approval_program=testing_app_puya_arc32_app_spec.approval_program,
             clear_state_program=testing_app_puya_arc32_app_spec.clear_program,
             schema={
@@ -192,13 +204,13 @@ def testing_app_puya_arc32_app_id(
 @pytest.fixture
 def test_app_client_puya(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    testing_app_puya_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    testing_app_puya_arc32_app_spec: arc32.Arc32Contract,
     testing_app_puya_arc32_app_id: int,
 ) -> AppClient:
     return AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=testing_app_puya_arc32_app_id,
             algorand=algorand,
@@ -209,13 +221,13 @@ def test_app_client_puya(
 
 def test_clone_overriding_default_sender_and_inheriting_app_name(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    hello_world_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=hello_world_arc32_app_id,
             algorand=algorand,
@@ -230,18 +242,18 @@ def test_clone_overriding_default_sender_and_inheriting_app_name(
     assert cloned_app_client.app_id == app_client.app_id
     assert cloned_app_client.app_name == app_client.app_name
     assert cloned_app_client._default_sender == cloned_default_sender  # noqa: SLF001
-    assert app_client._default_sender == funded_account.address  # noqa: SLF001
+    assert app_client._default_sender == funded_account.addr  # noqa: SLF001
 
 
 def test_clone_overriding_app_name(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    hello_world_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=hello_world_arc32_app_id,
             algorand=algorand,
@@ -251,7 +263,7 @@ def test_clone_overriding_app_name(
 
     cloned_app_name = "George CLONEy"
     cloned_app_client = app_client.clone(app_name=cloned_app_name)
-    assert app_client.app_name == hello_world_arc32_app_spec.contract.name == "HelloWorld"
+    assert app_client.app_name == hello_world_arc32_app_spec.name == "HelloWorld"
     assert cloned_app_client.app_name == cloned_app_name
 
     # Test for explicit None when closning
@@ -261,13 +273,13 @@ def test_clone_overriding_app_name(
 
 def test_clone_inheriting_app_name_based_on_default_handling(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
-    hello_world_arc32_app_spec: ApplicationSpecification,
+    funded_account: AddressWithSigners,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
     hello_world_arc32_app_id: int,
 ) -> None:
     app_client = AppClient(
         AppClientParams(
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
             default_signer=funded_account.signer,
             app_id=hello_world_arc32_app_id,
             algorand=algorand,
@@ -277,26 +289,24 @@ def test_clone_inheriting_app_name_based_on_default_handling(
 
     cloned_app_name = None
     cloned_app_client = app_client.clone(app_name=cloned_app_name)
-    assert cloned_app_client.app_name == hello_world_arc32_app_spec.contract.name == app_client.app_name
+    assert cloned_app_client.app_name == hello_world_arc32_app_spec.name == app_client.app_name
 
 
 def test_group_simulate_matches_send(
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     test_app_client: AppClient,
 ) -> None:
     app_call1_params = AppCallMethodCallParams(
-        sender=funded_account.address,
+        sender=funded_account.addr,
         app_id=test_app_client.app_id,
-        method=algosdk.abi.Method.from_signature("set_global(uint64,uint64,string,byte[4])void"),
+        method=arc56.Method.from_signature("set_global(uint64,uint64,string,byte[4])void"),
         args=[1, 2, "asdf", bytes([1, 2, 3, 4])],
     )
-    payment_params = PaymentParams(
-        sender=funded_account.address, receiver=funded_account.address, amount=micro_algo(10000)
-    )
+    payment_params = PaymentParams(sender=funded_account.addr, receiver=funded_account.addr, amount=micro_algo(10000))
     app_call2_params = AppCallMethodCallParams(
-        sender=funded_account.address,
+        sender=funded_account.addr,
         app_id=test_app_client.app_id,
-        method=algosdk.abi.Method.from_signature("call_abi(string)string"),
+        method=arc56.Method.from_signature("call_abi(string)string"),
         args=["test"],
     )
 
@@ -324,22 +334,22 @@ def test_group_simulate_matches_send(
 
 def test_normalise_app_spec(
     raw_hello_world_arc32_app_spec: str,
-    hello_world_arc32_app_spec: ApplicationSpecification,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
 ) -> None:
     normalized_app_spec_from_arc32 = AppClient.normalise_app_spec(hello_world_arc32_app_spec)
-    assert isinstance(normalized_app_spec_from_arc32, Arc56Contract)
+    assert isinstance(normalized_app_spec_from_arc32, arc56.Arc56Contract)
 
     normalize_app_spec_from_raw_arc32 = AppClient.normalise_app_spec(raw_hello_world_arc32_app_spec)
-    assert isinstance(normalize_app_spec_from_raw_arc32, Arc56Contract)
+    assert isinstance(normalize_app_spec_from_raw_arc32, arc56.Arc56Contract)
 
 
 def test_resolve_from_network(
     algorand: AlgorandClient,
     hello_world_arc32_app_id: int,
-    hello_world_arc32_app_spec: ApplicationSpecification,
+    hello_world_arc32_app_spec: arc56.Arc56Contract,
 ) -> None:
-    arc56_app_spec = Arc56Contract.from_arc32(hello_world_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": Network(app_id=hello_world_arc32_app_id)}
+    arc56_app_spec = hello_world_arc32_app_spec
+    arc56_app_spec.networks = {"localnet": arc56.Network(app_id=hello_world_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
@@ -357,8 +367,8 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert isinstance(call.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
+    assert call.transactions[0].application_call
+    assert call.transactions[0].application_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
     # Test with string box reference
     call2 = test_app_client.create_transaction.call(
@@ -369,19 +379,19 @@ def test_construct_transaction_with_boxes(test_app_client: AppClient) -> None:
         )
     )
 
-    assert isinstance(call2.transactions[0], algosdk.transaction.ApplicationCallTxn)
-    assert call2.transactions[0].boxes == [BoxReference(app_id=0, name=b"1")]  # type: ignore  # noqa: PGH003
+    assert call2.transactions[0].application_call
+    assert call2.transactions[0].application_call.box_references == [BoxReference(app_id=0, name=b"1")]
 
 
 def test_construct_transaction_with_abi_encoding_including_transaction(
-    algorand: AlgorandClient, funded_account: SigningAccount, test_app_client: AppClient
+    algorand: AlgorandClient, funded_account: AddressWithSigners, test_app_client: AppClient
 ) -> None:
     # Create a payment transaction with random amount
     amount = AlgoAmount.from_micro_algo(random.randint(1, 10000))
     payment_txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=amount,
         )
     )
@@ -396,9 +406,7 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
     assert result.confirmation
     assert len(result.transactions) == 2
-    response = AppManager.get_abi_return(
-        result.confirmation, test_app_client.app_spec.get_arc56_method("call_abi_txn").to_abi_method()
-    )
+    response = AppManager.get_abi_return(result.confirmation, test_app_client.app_spec.get_abi_method("call_abi_txn"))
     expected_return = f"Sent {amount.micro_algo}. test"
     assert result.abi_return == expected_return
     assert response
@@ -406,33 +414,31 @@ def test_construct_transaction_with_abi_encoding_including_transaction(
 
 
 def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: AddressWithSigners
 ) -> None:
     # Create a payment transaction with a random amount
     amount = AlgoAmount.from_micro_algo(random.randint(1, 10000))
     txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=amount,
         )
     )
 
-    called_indexes = []
-    original_signer = algorand.account.get_signer(funded_account.address)
+    called_indexes: list[int] = []
+    original_signer = algorand.account.get_signer(funded_account.addr)
 
     class IndexCapturingSigner(TransactionSigner):
-        def sign_transactions(
-            self, txn_group: list[algosdk.transaction.Transaction], indexes: list[int]
-        ) -> list[algosdk.transaction.GenericSignedTransaction]:
+        def __call__(self, txn_group: Sequence[Transaction], indexes: Sequence[int]) -> Sequence[bytes]:
             called_indexes.extend(indexes)
-            return original_signer.sign_transactions(txn_group, indexes)
+            return original_signer(txn_group, indexes)
 
     test_app_client.send.call(
         AppClientMethodCallParams(
             method="call_abi_txn",
             args=[txn, "test"],
-            sender=funded_account.address,
+            sender=funded_account.addr,
             signer=IndexCapturingSigner(),
         )
     )
@@ -441,7 +447,7 @@ def test_sign_all_transactions_in_group_with_abi_call_with_transaction_arg(
 
 
 def test_sign_transaction_in_group_with_different_signer_if_provided(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: AddressWithSigners
 ) -> None:
     # Generate a new account
     test_account = algorand.account.random()
@@ -455,8 +461,8 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
     # Fund the account with 1 Algo
     txn = algorand.create_transaction.payment(
         PaymentParams(
-            sender=test_account.address,
-            receiver=test_account.address,
+            sender=test_account.addr,
+            receiver=test_account.addr,
             amount=AlgoAmount.from_algo(random.randint(1, 5)),
         )
     )
@@ -471,7 +477,7 @@ def test_sign_transaction_in_group_with_different_signer_if_provided(
 
 
 def test_construct_transaction_with_abi_encoding_including_foreign_references_not_in_signature(
-    algorand: AlgorandClient, test_app_client: AppClient, funded_account: SigningAccount
+    algorand: AlgorandClient, test_app_client: AppClient, funded_account: AddressWithSigners
 ) -> None:
     test_account = algorand.account.random()
     algorand.account.ensure_funded(
@@ -485,15 +491,14 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
         AppClientMethodCallParams(
             method="call_abi_foreign_refs",
             app_references=[345],
-            account_references=[test_account.address],
+            account_references=[test_account.addr],
             asset_references=[567],
         )
     )
 
     # Assuming the method returns a string matching the format below
     expected_return = AppManager.get_abi_return(
-        result.confirmations[0],
-        test_app_client.app_spec.get_arc56_method("call_abi_foreign_refs").to_abi_method(),
+        result.confirmations[0], test_app_client.app_spec.get_abi_method("call_abi_foreign_refs")
     )
     assert result.abi_return
     assert str(result.abi_return).startswith("App: 345, Asset: 567, Account: ")
@@ -501,10 +506,15 @@ def test_construct_transaction_with_abi_encoding_including_foreign_references_no
     assert expected_return.value == result.abi_return
 
 
-def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccount) -> None:
-    # Test global state
-    test_app_client.send.call(AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
+def test_retrieve_global_state(test_app_client: AppClient) -> None:
+    set_global_result = test_app_client.send.call(
+        AppClientMethodCallParams(method="set_global", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
+    )
     global_state = test_app_client.get_global_state()
+    confirmation_global_delta_kvs = {
+        x.key.decode("utf-8"): (x.value.bytes_ if x.value.action == 1 else x.value.uint)
+        for x in sorted(set_global_result.confirmation.global_state_delta or [], key=lambda x: x.key)
+    }
 
     assert "int1" in global_state
     assert "int2" in global_state
@@ -516,11 +526,25 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
     assert global_state["int2"].value == 2
     assert global_state["bytes1"].value == "asdf"
     assert global_state["bytes2"].value_raw == bytes([1, 2, 3, 4])
+    assert confirmation_global_delta_kvs == {
+        "bytes1": b"asdf",
+        "bytes2": bytes([1, 2, 3, 4]),
+        "int1": 1,
+        "int2": 2,
+    }
 
-    # Test local state
+
+def test_retrieve_local_state(test_app_client: AppClient, funded_account: AddressWithSigners) -> None:
     test_app_client.send.opt_in(AppClientMethodCallParams(method="opt_in"))
-    test_app_client.send.call(AppClientMethodCallParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])]))
-    local_state = test_app_client.get_local_state(funded_account.address)
+    set_local_result = test_app_client.send.call(
+        AppClientMethodCallParams(method="set_local", args=[1, 2, "asdf", bytes([1, 2, 3, 4])])
+    )
+    local_state = test_app_client.get_local_state(funded_account.addr)
+    assert set_local_result.confirmation.local_state_delta is not None
+    confirmation_local_delta_kvs = {
+        x.key.decode("utf-8"): (x.value.bytes_ if x.value.action == 1 else x.value.uint)
+        for x in sorted(set_local_result.confirmation.local_state_delta[0].delta or [], key=lambda x: x.key)
+    }
 
     assert "local_int1" in local_state
     assert "local_int2" in local_state
@@ -531,8 +555,15 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
     assert local_state["local_int2"].value == 2
     assert local_state["local_bytes1"].value == "asdf"
     assert local_state["local_bytes2"].value_raw == bytes([1, 2, 3, 4])
+    assert confirmation_local_delta_kvs == {
+        "local_bytes1": b"asdf",
+        "local_bytes2": bytes([1, 2, 3, 4]),
+        "local_int1": 1,
+        "local_int2": 2,
+    }
 
-    # Test box storage
+
+def test_retrieve_box_state(test_app_client: AppClient) -> None:
     box_name1 = bytes([0, 0, 0, 1])
     box_name1_base64 = base64.b64encode(box_name1).decode()
     box_name2 = bytes([0, 0, 0, 2])
@@ -596,7 +627,7 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
             "name1",
             b"test_bytes",  # Updated to match Bytes type
             "byte[]",
-            [116, 101, 115, 116, 95, 98, 121, 116, 101, 115],
+            b"test_bytes",
         ),
         (
             "name2",
@@ -618,9 +649,9 @@ def test_retrieve_state(test_app_client: AppClient, funded_account: SigningAccou
         ),
         (
             "name5",  # Updated to use string key
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
             "byte[4]",
-            [1, 2, 3, 4],
+            bytes([1, 2, 3, 4]),
         ),
     ],
 )
@@ -661,7 +692,7 @@ def test_box_methods_with_manually_encoded_abi_args(
         ("box_str", "set_box_str", "string", "string"),
         ("box_int", "set_box_int", 123, "uint32"),
         ("box_int512", "set_box_int512", 2**256, "uint512"),
-        ("box_static", "set_box_static", [1, 2, 3, 4], "byte[4]"),
+        ("box_static", "set_box_static", bytes([1, 2, 3, 4]), "byte[4]"),
         ("", "set_struct", ("box1", 123), "(string,uint64)"),
     ],
 )
@@ -711,16 +742,16 @@ def test_box_methods_with_arc4_returns_parametrized(
 
 def test_abi_with_default_arg_method(
     algorand: AlgorandClient,
-    funded_account: SigningAccount,
+    funded_account: AddressWithSigners,
     testing_app_arc32_app_id: int,
-    testing_app_arc32_app_spec: ApplicationSpecification,
+    testing_app_arc32_app_spec: arc32.Arc32Contract,
 ) -> None:
-    arc56_app_spec = Arc56Contract.from_arc32(testing_app_arc32_app_spec)
-    arc56_app_spec.networks = {"localnet": Network(app_id=testing_app_arc32_app_id)}
+    arc56_app_spec = arc32_to_arc56(testing_app_arc32_app_spec)
+    arc56_app_spec.networks = {"localnet": arc56.Network(app_id=testing_app_arc32_app_id)}
     app_client = AppClient.from_network(
         algorand=algorand,
         app_spec=arc56_app_spec,
-        default_sender=funded_account.address,
+        default_sender=funded_account.addr,
         default_signer=funded_account.signer,
     )
     # app_client.send.
@@ -760,16 +791,16 @@ def test_exposing_logic_error(test_app_client_with_sourcemaps: AppClient) -> Non
 
 
 @pytest.fixture
-def nested_struct_app_spec() -> Arc56Contract:
+def nested_struct_app_spec() -> arc56.Arc56Contract:
     raw_json_spec = Path(__file__).parent.parent / "artifacts" / "nested_struct" / "nested_struct.arc56.json"
-    return Arc56Contract.from_json(raw_json_spec.read_text())
+    return arc56.Arc56Contract.from_json(raw_json_spec.read_text())
 
 
 def test_nested_structs_described_by_structure(
-    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: AddressWithSigners, nested_struct_app_spec: arc56.Arc56Contract
 ) -> None:
     """Test nested struct when described by structure."""
-    factory = algorand.client.get_app_factory(app_spec=nested_struct_app_spec, default_sender=funded_account.address)
+    factory = algorand.client.get_app_factory(app_spec=nested_struct_app_spec, default_sender=funded_account.addr)
     app_client, _ = factory.send.create(AppFactoryCreateMethodCallParams(method="createApplication", args=[]))
     app_client.send.call(AppClientMethodCallParams(method="setValue", args=[1, "hello"]))
 
@@ -794,7 +825,7 @@ def test_app_client_error_transformer_logic_error_enhancement(test_app_client_wi
 
 
 def test_nested_structs_referenced_by_name(
-    algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
+    algorand: AlgorandClient, funded_account: AddressWithSigners, nested_struct_app_spec: arc56.Arc56Contract
 ) -> None:
     """Test nested struct when referenced by name."""
     edited_spec_dict = nested_struct_app_spec.dictify()
@@ -812,11 +843,49 @@ def test_nested_structs_referenced_by_name(
             }
         ],
     }
-    edited_spec = Arc56Contract.from_json(json.dumps(edited_spec_dict))
-    factory = algorand.client.get_app_factory(app_spec=edited_spec, default_sender=funded_account.address)
+    edited_spec = arc56.Arc56Contract.from_json(json.dumps(edited_spec_dict))
+    factory = algorand.client.get_app_factory(app_spec=edited_spec, default_sender=funded_account.addr)
     app_client, _ = factory.send.create(AppFactoryCreateMethodCallParams(method="createApplication", args=[]))
     app_client.send.call(AppClientMethodCallParams(method="setValue", args=[1, "hello"]))
 
     result = app_client.send.call(AppClientMethodCallParams(method="getValue", args=[1]))
 
     assert result.abi_return == {"x": {"a": "hello"}}
+
+
+def test_logic_error_includes_simulation_traces(
+    test_app_client_with_sourcemaps: AppClient,
+) -> None:
+    """Test that LogicError includes simulation traces when errors occur during send phase.
+
+    When debug=True and a transaction fails during send, the composer performs a
+    post-failure re-simulation to capture execution traces and attach them to the error.
+    This enables better debugging by showing the exact execution state at failure.
+    """
+    from algokit_utils.config import config
+    from algokit_utils.transactions.transaction_composer import SendParams
+
+    # Enable debug mode for send-phase trace capture
+    original_debug = config.debug
+    try:
+        config.configure(debug=True)
+
+        with pytest.raises(LogicError) as exc_info:
+            test_app_client_with_sourcemaps.send.call(
+                AppClientMethodCallParams(method="error"),
+                send_params=SendParams(populate_app_call_resources=False),
+            )
+
+        error = exc_info.value
+        # Verify the error contains simulation traces
+        assert error.traces is not None, "LogicError should include simulation traces"
+        assert len(error.traces) > 0, "LogicError should have at least one simulation trace"
+
+        # Verify the trace structure - uses SimulateTransactionResult from algod client
+        trace = error.traces[0]
+        assert hasattr(trace, "exec_trace"), "SimulateTransactionResult should have exec_trace attribute"
+        assert hasattr(trace, "app_budget_consumed"), "SimulateTransactionResult should have app_budget_consumed"
+        assert hasattr(trace, "txn_result"), "SimulateTransactionResult should have txn_result"
+    finally:
+        # Restore original debug setting
+        config.configure(debug=original_debug)

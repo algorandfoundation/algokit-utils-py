@@ -9,14 +9,14 @@ from uuid import uuid4
 import pytest
 from dotenv import load_dotenv
 
-from algokit_utils import (
-    ApplicationClient,
-    ApplicationSpecification,
-    SigningAccount,
-    replace_template_variables,
-)
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
-from algokit_utils.applications.app_manager import DELETABLE_TEMPLATE_NAME, UPDATABLE_TEMPLATE_NAME
+from algokit_utils.applications import Arc32Contract
+from algokit_utils.applications.app_manager import (
+    DELETABLE_TEMPLATE_NAME,
+    UPDATABLE_TEMPLATE_NAME,
+    AppManager,
+)
 from algokit_utils.transactions.transaction_composer import AssetCreateParams
 
 if TYPE_CHECKING:
@@ -74,9 +74,9 @@ def read_spec(
     updatable: bool | None = None,
     deletable: bool | None = None,
     template_values: dict | None = None,
-) -> ApplicationSpecification:
+) -> Arc32Contract:
     path = Path(__file__).parent / file_name
-    spec = ApplicationSpecification.from_json(Path(path).read_text(encoding="utf-8"))
+    spec = Arc32Contract.from_json(Path(path).read_text(encoding="utf-8"))
 
     template_variables = template_values or {}
     if updatable is not None:
@@ -86,7 +86,7 @@ def read_spec(
         template_variables["DELETABLE"] = int(deletable)
 
     spec.approval_program = (
-        replace_template_variables(spec.approval_program, template_variables)
+        AppManager.replace_template_variables(spec.approval_program, template_variables)
         .replace(f"// {UPDATABLE_TEMPLATE_NAME}", "// updatable")
         .replace(f"// {DELETABLE_TEMPLATE_NAME}", "// deletable")
     )
@@ -96,7 +96,7 @@ def read_spec(
 def get_specs(
     updatable: bool | None = None,
     deletable: bool | None = None,
-) -> tuple[ApplicationSpecification, ApplicationSpecification, ApplicationSpecification]:
+) -> tuple[Arc32Contract, Arc32Contract, Arc32Contract]:
     return (
         read_spec("app_v1.json", updatable=updatable, deletable=deletable),
         read_spec("app_v2.json", updatable=updatable, deletable=deletable),
@@ -110,15 +110,7 @@ def get_unique_name() -> str:
     return name
 
 
-def is_opted_in(client_fixture: ApplicationClient) -> bool:
-    _, sender = client_fixture.resolve_signer_sender()
-    account_info = client_fixture.algod_client.account_info(sender)
-    assert isinstance(account_info, dict)
-    apps_local_state = account_info["apps-local-state"]
-    return any(x for x in apps_local_state if x["id"] == client_fixture.app_id)
-
-
-def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total: int | None) -> int:
+def generate_test_asset(algorand: AlgorandClient, sender: AddressWithSigners, total: int | None) -> int:
     if total is None:
         total = math.floor(random.random() * 100) + 20
 
@@ -127,18 +119,19 @@ def generate_test_asset(algorand: AlgorandClient, sender: SigningAccount, total:
 
     create_result = algorand.send.asset_create(
         AssetCreateParams(
-            sender=sender.address,
+            sender=sender.addr,
             total=total,
             decimals=decimals,
             default_frozen=False,
             unit_name="CFG",
             asset_name=asset_name,
             url="https://example.com",
-            manager=sender.address,
-            reserve=sender.address,
-            freeze=sender.address,
-            clawback=sender.address,
+            manager=sender.addr,
+            reserve=sender.addr,
+            freeze=sender.addr,
+            clawback=sender.addr,
         )
     )
 
-    return int(create_result.confirmation["asset-index"])  # type: ignore[call-overload]
+    assert create_result.confirmation.asset_id is not None
+    return int(create_result.confirmation.asset_id)

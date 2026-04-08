@@ -70,8 +70,15 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
+# Sphinx (API generation artifacts)
+docs/sphinx/autoapi/
+docs/sphinx/.doctrees/
+docs/markdown/.doctrees/
+
+# Starlight
+docs/dist/
+docs/.astro/
+docs/node_modules/
 
 # PyBuilder
 .pybuilder/
@@ -164,12 +171,26 @@ cython_debug/
 # macOS
 .DS_Store
 
-#Sphinx
-.doctrees/
-# ignore auto-generated sources
-/docs/source/apidocs
-
-!docs/html
 
 # Received approval test files
 *.received.*
+
+.references/
+
+# Downloaded OAS specs (fetched from algokit-oas-generator)
+api/specs/
+
+# Note: schemas/ directories under client packages are NOT ignored
+# They contain generated Pydantic validation schemas and should be committed
+
+*.xml
+
+.polytest*/
+polytest_resources/
+.algokit-*
+
+references/
+
+AGENTS.md
+
+.claude/

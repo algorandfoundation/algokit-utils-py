@@ -12,7 +12,7 @@ class AlgoKitLogger(logging.Logger):
     def __init__(self, name: str = "algokit-utils-py", level: int = logging.NOTSET):
         super().__init__(name, level)
 
-    def _log(self, level: int, msg: object, args, exc_info=None, extra=None, stack_info=False, stacklevel=1) -> None:  # type: ignore[no-untyped-def]  # noqa: FBT002, ANN001
+    def _log(self, level: int, msg: object, args, exc_info=None, extra=None, stack_info=False, stacklevel=1) -> None:  # type: ignore[no-untyped-def]  # noqa: ANN001, FBT002
         """
         Overrides the base _log method to allow suppressing individual log calls.
         When a caller passes suppress_log=True in the extra keyword, the log call is ignored.

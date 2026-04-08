@@ -1,0 +1,15 @@
+{
+  "build": {
+    "branch": "AVAIL",
+    "build_number": 1,
+    "channel": "AVAIL",
+    "commit_hash": "7b607ce4+",
+    "major": 4,
+    "minor": 4
+  },
+  "genesis_hash_b64": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+  "genesis_id": "testnet-v1.0",
+  "versions": [
+    "v2"
+  ]
+}

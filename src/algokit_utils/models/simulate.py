@@ -1,11 +1,7 @@
-from dataclasses import dataclass
+# Re-export SimulateTransactionResult from algod client for simulation traces.
+# Previously this module defined a custom SimulationTrace wrapper class, but
+# now we use the algod client type directly for cross-language consistency.
 
-__all__ = ["SimulationTrace"]
+from algokit_algod_client.models import SimulateTransactionResult
 
-
-@dataclass
-class SimulationTrace:
-    app_budget_added: int | None
-    app_budget_consumed: int | None
-    failure_message: str | None
-    exec_trace: dict[str, object]
+__all__ = ["SimulateTransactionResult"]

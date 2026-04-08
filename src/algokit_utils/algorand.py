@@ -2,22 +2,23 @@ import copy
 import time
 
 import typing_extensions
-from algosdk.atomic_transaction_composer import TransactionSigner
-from algosdk.kmd import KMDClient
-from algosdk.transaction import SuggestedParams
-from algosdk.v2client.algod import AlgodClient
-from algosdk.v2client.indexer import IndexerClient
 
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import models as algod_models
+from algokit_indexer_client import IndexerClient
+from algokit_kmd_client.client import KmdClient
+from algokit_transact.signer import AddressWithTransactionSigner
 from algokit_utils.accounts.account_manager import AccountManager
 from algokit_utils.applications.app_deployer import AppDeployer
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.clients.client_manager import AlgoSdkClients, ClientManager
 from algokit_utils.models.network import AlgoClientConfigs, AlgoClientNetworkConfig
-from algokit_utils.protocols.account import TransactionSignerAccountProtocol
+from algokit_utils.protocols.signer import TransactionSigner
 from algokit_utils.transactions.transaction_composer import (
     ErrorTransformer,
     TransactionComposer,
+    TransactionComposerParams,
 )
 from algokit_utils.transactions.transaction_creator import AlgorandClientTransactionCreator
 from algokit_utils.transactions.transaction_sender import AlgorandClientTransactionSender
@@ -48,7 +49,7 @@ class AlgorandClient:
             new_group=lambda: self.new_group(),
         )
 
-        self._cached_suggested_params: SuggestedParams | None = None
+        self._cached_suggested_params: algod_models.SuggestedParams | None = None
         self._cached_suggested_params_expiry: float | None = None
         self._cached_suggested_params_timeout: int = 3_000  # three seconds
         self._default_validity_window: int | None = None
@@ -66,16 +67,14 @@ class AlgorandClient:
         self._default_validity_window = validity_window
         return self
 
-    def set_default_signer(
-        self, signer: TransactionSigner | TransactionSignerAccountProtocol
-    ) -> typing_extensions.Self:
+    def set_default_signer(self, signer: TransactionSigner | AddressWithTransactionSigner) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
-        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
+        :param signer: The signer to use, either a `TransactionSigner` or an `AddressWithTransactionSigner`
         :return: The `AlgorandClient` so method calls can be chained
         :example:
-            >>> signer = SigningAccount(private_key=..., address=...)
+            >>> signer = account_manager.random()  # Returns AddressWithSigners
             >>> algorand = AlgorandClient.mainnet().set_default_signer(signer)
         """
         self._account_manager.set_default_signer(signer)
@@ -89,31 +88,31 @@ class AlgorandClient:
         :param signer: The signer to sign transactions with for the given sender
         :return: The `AlgorandClient` so method calls can be chained
         :example:
-            >>> signer = SigningAccount(private_key=..., address=...)
-            >>> algorand = AlgorandClient.mainnet().set_signer(signer.addr, signer.signer)
+            >>> account = account_manager.random()  # Returns AddressWithSigners
+            >>> algorand = AlgorandClient.mainnet().set_signer(account.addr, account.signer)
         """
         self._account_manager.set_signer(sender, signer)
         return self
 
-    def set_signer_from_account(self, signer: TransactionSignerAccountProtocol) -> typing_extensions.Self:
+    def set_signer_from_account(self, signer: AddressWithTransactionSigner) -> typing_extensions.Self:
         """
         Sets the default signer to use if no other signer is specified.
 
-        :param signer: The signer to use, either a `TransactionSigner` or a `TransactionSignerAccountProtocol`
+        :param signer: The signer to use, either a `TransactionSigner` or an `AddressWithTransactionSigner`
         :return: The `AlgorandClient` so method calls can be chained
         :example:
             >>> accountManager = AlgorandClient.mainnet()
-            >>> accountManager.set_signer_from_account(TransactionSignerAccount(address=..., signer=...))
-            >>> accountManager.set_signer_from_account(algosdk.LogicSigAccount(program, args))
-            >>> accountManager.set_signer_from_account(SigningAccount(private_key=..., address=...))
-            >>> accountManager.set_signer_from_account(MultisigAccount(metadata, signing_accounts))
+            >>> accountManager.set_signer_from_account(AddressWithSigners(addr=..., signer=...))
+            >>> accountManager.set_signer_from_account(LogicSigAccount(logic=..., args=...))
+            >>> accountManager.set_signer_from_account(account_manager.random())  # AddressWithSigners
+            >>> accountManager.set_signer_from_account(MultisigAccount(metadata, sub_signers))
             >>> accountManager.set_signer_from_account(account)
         """
         self._account_manager.set_default_signer(signer)
         return self
 
     def set_suggested_params_cache(
-        self, suggested_params: SuggestedParams, until: float | None = None
+        self, suggested_params: algod_models.SuggestedParams, until: float | None = None
     ) -> typing_extensions.Self:
         """
         Sets a cache value to use for suggested params.
@@ -140,7 +139,7 @@ class AlgorandClient:
         self._cached_suggested_params_timeout = timeout
         return self
 
-    def get_suggested_params(self) -> SuggestedParams:
+    def get_suggested_params(self) -> algod_models.SuggestedParams:
         """
         Get suggested params for a transaction (either cached or from algod if the cache is stale or empty)
 
@@ -182,15 +181,18 @@ class AlgorandClient:
 
         :example:
             >>> composer = AlgorandClient.mainnet().new_group()
-            >>> result = await composer.add_transaction(payment).send()
+            >>> result = composer.add_transaction(payment).send()
         """
 
         return TransactionComposer(
-            algod=self.client.algod,
-            get_signer=lambda addr: self.account.get_signer(addr),
-            get_suggested_params=self.get_suggested_params,
-            default_validity_window=self._default_validity_window,
-            error_transformers=list(self._error_transformers),
+            TransactionComposerParams(
+                algod=self.client.algod,
+                get_signer=lambda addr: self.account.get_signer(addr),
+                get_suggested_params=self.get_suggested_params,
+                default_validity_window=self._default_validity_window,
+                app_manager=self._app_manager,
+                error_transformers=list(self._error_transformers),
+            )
         )
 
     @property
@@ -248,12 +250,13 @@ class AlgorandClient:
         Methods for sending a transaction and waiting for confirmation
 
         :example:
-            >>> result = await AlgorandClient.mainnet().send.payment(
-            >>> PaymentParams(
-            >>>  sender="SENDERADDRESS",
-            >>>  receiver="RECEIVERADDRESS",
-            >>>  amount=AlgoAmount(algo-1)
-            >>> ))
+            >>> result = AlgorandClient.mainnet().send.payment(
+            >>>     PaymentParams(
+            >>>         sender="SENDERADDRESS",
+            >>>         receiver="RECEIVERADDRESS",
+            >>>         amount=AlgoAmount(algo=1)
+            >>>     )
+            >>> )
         """
         return self._transaction_sender
 
@@ -328,7 +331,7 @@ class AlgorandClient:
 
     @staticmethod
     def from_clients(
-        algod: AlgodClient, indexer: IndexerClient | None = None, kmd: KMDClient | None = None
+        algod: AlgodClient, indexer: IndexerClient | None = None, kmd: KmdClient | None = None
     ) -> "AlgorandClient":
         """
         Returns an `AlgorandClient` pointing to the given client(s).

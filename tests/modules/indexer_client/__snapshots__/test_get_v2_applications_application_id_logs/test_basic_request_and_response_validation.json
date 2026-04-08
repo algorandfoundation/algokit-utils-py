@@ -1,0 +1,19 @@
+{
+  "application_id": 718348254,
+  "current_round": 57772761,
+  "log_data": [
+    {
+      "logs": [
+        "FR98dQAKAAAAAAdbzRUABEpvaG4="
+      ],
+      "tx_id": "BIVEPHMPLY5BL76MWU55TP65EWPI4UQZD2O2FOFLIL4SQO6Z7WXA"
+    },
+    {
+      "logs": [
+        "FR98dQAKAAAAAAAAAHsABXRlc3Qg"
+      ],
+      "tx_id": "OUQEBRIXBLCFGEYLIY45XKBNYVIYRJRCTE53HF6R55IUYBIIPOQA"
+    }
+  ],
+  "next_token": "Q9GiAgAAAAAAAAAA"
+}

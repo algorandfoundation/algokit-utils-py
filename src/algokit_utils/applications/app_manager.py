@@ -1,17 +1,13 @@
 import base64
-from collections.abc import Mapping
-from typing import Any, cast
+from collections.abc import Mapping, Sequence
 
-import algosdk
-import algosdk.atomic_transaction_composer
-import algosdk.box_reference
-from algosdk.atomic_transaction_composer import AccountTransactionSigner
-from algosdk.box_reference import BoxReference as AlgosdkBoxReference
-from algosdk.logic import get_application_address
-from algosdk.source_map import SourceMap
-from algosdk.v2client import algod
-
-from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue
+from algokit_abi import arc56
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import models as algod_models
+from algokit_common import ProgramSourceMap, get_application_address, public_key_from_address
+from algokit_common.serde import to_wire
+from algokit_transact.signer import AddressWithTransactionSigner
+from algokit_utils.applications.abi import ABIReturn, ABIType, ABIValue, extract_abi_return_from_logs
 from algokit_utils.models.application import (
     AppInformation,
     AppState,
@@ -124,7 +120,7 @@ class AppManager:
         >>> app_manager = AppManager(algod_client)
     """
 
-    def __init__(self, algod_client: algod.AlgodClient):
+    def __init__(self, algod_client: AlgodClient):
         self._algod = algod_client
         self._compilation_results: dict[str, CompiledTeal] = {}
 
@@ -138,13 +134,14 @@ class AppManager:
         if teal_code in self._compilation_results:
             return self._compilation_results[teal_code]
 
-        compiled = self._algod.compile(teal_code, source_map=True)
+        compiled = self._algod.teal_compile(teal_code.encode("utf-8"), sourcemap=True)
+        sourcemap_dict = to_wire(compiled.sourcemap) if compiled.sourcemap else {}
         result = CompiledTeal(
             teal=teal_code,
-            compiled=compiled["result"],
-            compiled_hash=compiled["hash"],
-            compiled_base64_to_bytes=base64.b64decode(compiled["result"]),
-            source_map=SourceMap(compiled.get("sourcemap", {})),
+            compiled=compiled.result,
+            compiled_hash=compiled.hash_,
+            compiled_base64_to_bytes=base64.b64decode(compiled.result),
+            source_map=ProgramSourceMap(sourcemap_dict),
         )
         self._compilation_results[teal_code] = result
         return result
@@ -205,22 +202,21 @@ class AppManager:
             >>> app_info = app_manager.get_by_id(app_id)
         """
 
-        app = self._algod.application_info(app_id)
-        assert isinstance(app, dict)
-        app_params = app["params"]
+        app = self._algod.application_by_id(app_id)
+        app_params = app.params
 
         return AppInformation(
             app_id=app_id,
             app_address=get_application_address(app_id),
-            approval_program=base64.b64decode(app_params["approval-program"]),
-            clear_state_program=base64.b64decode(app_params["clear-state-program"]),
-            creator=app_params["creator"],
-            local_ints=app_params["local-state-schema"]["num-uint"],
-            local_byte_slices=app_params["local-state-schema"]["num-byte-slice"],
-            global_ints=app_params["global-state-schema"]["num-uint"],
-            global_byte_slices=app_params["global-state-schema"]["num-byte-slice"],
-            extra_program_pages=app_params.get("extra-program-pages", 0),
-            global_state=self.decode_app_state(app_params.get("global-state", [])),
+            approval_program=app_params.approval_program,
+            clear_state_program=app_params.clear_state_program,
+            creator=app_params.creator,
+            local_ints=app_params.local_state_schema.num_uints if app_params.local_state_schema else 0,
+            local_byte_slices=app_params.local_state_schema.num_byte_slices if app_params.local_state_schema else 0,
+            global_ints=app_params.global_state_schema.num_uints if app_params.global_state_schema else 0,
+            global_byte_slices=app_params.global_state_schema.num_byte_slices if app_params.global_state_schema else 0,
+            extra_program_pages=app_params.extra_program_pages or 0,
+            global_state=self.decode_app_state(app_params.global_state),
         )
 
     def get_global_state(self, app_id: int) -> dict[str, AppState]:
@@ -252,11 +248,10 @@ class AppManager:
             >>> local_state = app_manager.get_local_state(app_id, address)
         """
 
-        app_info = self._algod.account_application_info(address, app_id)
-        assert isinstance(app_info, dict)
-        if not app_info.get("app-local-state", {}).get("key-value"):
+        app_info = self._algod.account_application_information(address, app_id)
+        if not app_info.app_local_state or not app_info.app_local_state.key_value:
             raise ValueError("Couldn't find local state")
-        return self.decode_app_state(app_info["app-local-state"]["key-value"])
+        return self.decode_app_state(app_info.app_local_state.key_value)
 
     def get_box_names(self, app_id: int) -> list[BoxName]:
         """Get names of all boxes for an application.
@@ -280,14 +275,13 @@ class AppManager:
                 return str(b)
 
         box_result = self._algod.application_boxes(app_id)
-        assert isinstance(box_result, dict)
         return [
             BoxName(
-                name_raw=base64.b64decode(b["name"]),
-                name_base64=b["name"],
-                name=utf8_decode_or_string_cast(base64.b64decode(b["name"])),
+                name_raw=b.name,
+                name_base64=base64.b64encode(b.name).decode("utf-8"),
+                name=utf8_decode_or_string_cast(b.name),
             )
-            for b in box_result["boxes"]
+            for b in (box_result.boxes or [])
         ]
 
     def get_box_value(self, app_id: int, box_name: BoxIdentifier) -> bytes:
@@ -305,9 +299,11 @@ class AppManager:
         """
 
         name = AppManager.get_box_reference(box_name)[1]
-        box_result = self._algod.application_box_by_name(app_id, name)
-        assert isinstance(box_result, dict)
-        return base64.b64decode(box_result["value"])
+        box_result = self._algod.application_box_by_name(
+            app_id,
+            name if isinstance(name, bytes | bytearray | memoryview) else str(name).encode("utf-8"),
+        )
+        return box_result.value
 
     def get_box_values(self, app_id: int, box_names: list[BoxIdentifier]) -> list[bytes]:
         """Get values for multiple boxes.
@@ -344,9 +340,7 @@ class AppManager:
 
         value = self.get_box_value(app_id, box_name)
         try:
-            parse_to_tuple = isinstance(abi_type, algosdk.abi.TupleType)
-            decoded_value = abi_type.decode(value)
-            return tuple(decoded_value) if parse_to_tuple else decoded_value
+            return abi_type.decode(value)  # type: ignore[no-any-return]
         except Exception as e:
             raise ValueError(f"Failed to decode box value {value.decode('utf-8')} with ABI type {abi_type}") from e
 
@@ -385,18 +379,16 @@ class AppManager:
             >>> box_reference = app_manager.get_box_reference(box_name)
         """
 
-        if isinstance(box_id, (BoxReference | AlgosdkBoxReference)):
-            return box_id.app_index, box_id.name
+        if isinstance(box_id, BoxReference):
+            return box_id.app_id, box_id.name
 
         name = b""
         if isinstance(box_id, str):
             name = box_id.encode("utf-8")
         elif isinstance(box_id, bytes):
             name = box_id
-        elif isinstance(box_id, AccountTransactionSigner):
-            name = cast(
-                bytes, algosdk.encoding.decode_address(algosdk.account.address_from_private_key(box_id.private_key))
-            )
+        elif isinstance(box_id, AddressWithTransactionSigner):
+            name = public_key_from_address(box_id.addr)
         else:
             raise ValueError(f"Invalid box identifier type: {type(box_id)}")
 
@@ -404,7 +396,8 @@ class AppManager:
 
     @staticmethod
     def get_abi_return(
-        confirmation: algosdk.v2client.algod.AlgodResponseType, method: algosdk.abi.Method | None = None
+        confirmation: algod_models.PendingTransactionResponse,
+        method: arc56.Method | None = None,
     ) -> ABIReturn | None:
         """Get the ABI return value from a transaction confirmation.
 
@@ -416,26 +409,16 @@ class AppManager:
             >>> app_manager = AppManager(algod_client)
             >>> app_id = 123
             >>> method = "METHOD_NAME"
-            >>> confirmation = algod_client.pending_transaction_info(tx_id)
+            >>> confirmation = algod_client.pending_transaction_information(tx_id)
             >>> abi_return = app_manager.get_abi_return(confirmation, method)
         """
         if not method:
             return None
 
-        atc = algosdk.atomic_transaction_composer.AtomicTransactionComposer()
-        abi_result = atc.parse_result(
-            method,
-            "dummy_txn",
-            confirmation,  # type: ignore[arg-type]
-        )
-
-        if not abi_result:
-            return None
-
-        return ABIReturn(abi_result)
+        return extract_abi_return_from_logs(confirmation, method)
 
     @staticmethod
-    def decode_app_state(state: list[dict[str, Any]]) -> dict[str, AppState]:
+    def decode_app_state(state: Sequence[algod_models.TealKeyValue] | None) -> dict[str, AppState]:
         """Decode application state from raw format.
 
         :param state: The raw application state
@@ -457,17 +440,20 @@ class AppManager:
             except UnicodeDecodeError:
                 return value.hex()
 
-        for state_val in state:
-            key_base64 = state_val["key"]
-            key_raw = base64.b64decode(key_base64)
-            key = decode_bytes_to_str(key_raw)
-            teal_value = state_val["value"]
+        if not state:
+            return state_values
 
-            data_type_flag = teal_value.get("action", teal_value.get("type"))
+        for state_val in state:
+            key_raw = state_val.key
+            key_base64 = base64.b64encode(key_raw).decode("utf-8")
+            key = decode_bytes_to_str(key_raw)
+            teal_value = state_val.value
+
+            data_type_flag = DataTypeFlag(teal_value.type_)
 
             if data_type_flag == DataTypeFlag.BYTES:
-                value_base64 = teal_value.get("bytes", "")
-                value_raw = base64.b64decode(value_base64)
+                value_raw = teal_value.bytes_ or b""
+                value_base64 = base64.b64encode(value_raw).decode("utf-8")
                 state_values[key] = AppState(
                     key_raw=key_raw,
                     key_base64=key_base64,
@@ -476,13 +462,12 @@ class AppManager:
                     value=decode_bytes_to_str(value_raw),
                 )
             elif data_type_flag == DataTypeFlag.UINT:
-                value = teal_value.get("uint", 0)
                 state_values[key] = AppState(
                     key_raw=key_raw,
                     key_base64=key_base64,
                     value_raw=None,
                     value_base64=None,
-                    value=int(value),
+                    value=int(teal_value.uint or 0),
                 )
             else:
                 raise ValueError(f"Received unknown state data type of {data_type_flag}")

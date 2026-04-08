@@ -1,0 +1,26 @@
+name: Verify Examples
+
+on: [workflow_call]
+
+jobs:
+  verify-examples:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
+
+      - name: Install examples dependencies
+        run: cd examples && uv sync
+
+      - name: Verify examples
+        run: |
+          cd examples
+          chmod +x verify-all.sh
+          ./verify-all.sh
+
+      - name: Stop LocalNet
+        if: always()
+        run: algokit localnet stop

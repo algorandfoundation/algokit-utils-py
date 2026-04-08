@@ -9,7 +9,7 @@ Largely these functions wrap the underlying Algorand SDK, but provide a higher l
 > **Note**
 > If you prefer TypeScript there's an equivalent [TypeScript utility library](https://github.com/algorandfoundation/algokit-utils-ts).
 
-[Install](https://github.com/algorandfoundation/algokit-utils-py#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py)
+[Install](#install) | [Documentation](https://algorandfoundation.github.io/algokit-utils-py/)
 
 ## Install
 
@@ -19,9 +19,35 @@ This library can be installed using pip, e.g.:
 pip install algokit-utils
 ```
 
+## Validation Schemas
+
+This repository includes Pydantic validation schemas for **development-time** validation of API client responses. These are test fixtures, not shipped as part of the published package.
+
+```python
+from tests.fixtures.schemas.algod import AccountSchema, NodeStatusResponseSchema
+
+# Validate API responses
+response = algod_client.status()
+validated = NodeStatusResponseSchema.model_validate(response)
+print(f"Last round: {validated.last_round}")
+```
+
+**Features:**
+- Type validation (str, int, bool, etc.)
+- Uint64 bounds checking (0 to 2^64-1)
+- Nested schema support
+- 208 schemas across algod, kmd, and indexer clients
+
+**For developers - regenerate schemas:**
+```bash
+poe generate-schemas
+```
+
+See [VALIDATION.md](./api/oas-generator/VALIDATION.md) for details.
+
 ## Migration from `v2.x` to `v3.x`
 
-Refer to the [v3 migration](./docs/source/v3-migration-guide.md) for more information on how to migrate to latest version of `algokit-utils-py`.
+Refer to the [v3 migration guide](https://algorandfoundation.github.io/algokit-utils-py/migration/v3-migration-guide/) for more information on how to migrate to latest version of `algokit-utils-py`.
 
 ## Guiding principles
 
@@ -37,3 +63,53 @@ To successfully run the tests in this repository you need to be running LocalNet
 ```
 algokit localnet start
 ```
+
+### Mock Server Tests
+
+Tests under `tests/modules/` use a mock server for deterministic API testing against pre-recorded HAR files. The mock server is managed externally (not by pytest).
+
+**In CI:** Mock servers are automatically started via the [algokit-polytest](https://github.com/algorandfoundation/algokit-polytest) GitHub Action.
+
+**Local development:**
+
+1. Clone algokit-polytest and start the mock servers:
+
+```bash
+# Clone algokit-polytest (if not already)
+git clone https://github.com/algorandfoundation/algokit-polytest.git
+
+# Start all mock servers (recommended)
+cd algokit-polytest/resources/mock-server
+./scripts/start_all_servers.sh
+```
+
+This starts algod (port 8000), kmd (port 8001), and indexer (port 8002) in the background.
+
+2. Set environment variables and run tests:
+
+```bash
+export MOCK_ALGOD_URL=http://localhost:8000
+export MOCK_INDEXER_URL=http://localhost:8002
+export MOCK_KMD_URL=http://localhost:8001
+
+# Run all module tests
+pytest tests/modules/
+
+# Or run specific client tests
+pytest tests/modules/algod_client/
+```
+
+3. Stop servers when done:
+
+```bash
+cd algokit-polytest/resources/mock-server
+./scripts/stop_all_servers.sh
+```
+
+| Environment Variable | Description | Default Port |
+|---------------------|-------------|--------------|
+| `MOCK_ALGOD_URL` | Algod mock server URL | 8000 |
+| `MOCK_INDEXER_URL` | Indexer mock server URL | 8002 |
+| `MOCK_KMD_URL` | KMD mock server URL | 8001 |
+
+Environment variables can also be set via `.env` file in project root (copy from `.env.template`).

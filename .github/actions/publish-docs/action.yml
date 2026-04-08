@@ -1,0 +1,31 @@
+name: "Build Documentation"
+description: "Generate API docs via Sphinx and build Starlight site"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python environment
+      uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
+      with:
+        install-algokit: "false"
+
+    - name: Set up Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: "22"
+
+    - uses: pnpm/action-setup@v4
+      with:
+        package_json_file: docs/package.json
+
+    - name: Install docs dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile --dir docs
+
+    - name: Generate API docs
+      shell: bash
+      run: uv run poe docs-api
+
+    - name: Build Starlight site
+      shell: bash
+      run: pnpm --dir docs build

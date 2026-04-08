@@ -13,25 +13,78 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
+      - name: Setup Python environment
+        uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
         with:
           python-version: ${{ matrix.python }}
+          install-algokit: "false"
 
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
+      - name: Install extra dependency groups
+        run: uv sync --group api-generator
 
-      - name: Install dependencies
-        run: poetry install --no-interaction
+      - name: Setup Polytest
+        uses: algorandfoundation/algokit-polytest/.github/actions/setup-polytest@main
+
+      - name: Generate all polytest files
+        shell: bash
+        run: uv run poe polytest-generate-all
+
+      - name: Start algod mock server
+        uses: algorandfoundation/algokit-polytest/.github/actions/run-mock-server@main
+        with:
+          client: algod
+
+      - name: Start indexer mock server
+        uses: algorandfoundation/algokit-polytest/.github/actions/run-mock-server@main
+        with:
+          client: indexer
+
+      - name: Start kmd mock server
+        uses: algorandfoundation/algokit-polytest/.github/actions/run-mock-server@main
+        with:
+          client: kmd
+
+      - name: Generate API clients
+        run: uv run poe generate-api-clients
+
+      - name: Check API output stability
+        shell: bash
+        run: |
+          git status --porcelain src > /tmp/post_api_status.txt
+          if [ -s /tmp/post_api_status.txt ]; then
+            echo "❌ API OpenAPI sync needed!"
+            git status --porcelain src
+            git diff -- src
+            echo "🔧 Run 'uv run poe generate-api-clients' locally and commit the results."
+            exit 1
+          else
+            echo "✅ API OpenAPI sync passed"
+          fi
+
+      - name: Generate validation schemas
+        run: uv run poe generate-schemas
+
+      - name: Check schema output stability
+        shell: bash
+        run: |
+          git status --porcelain tests/fixtures/schemas > /tmp/post_schema_status.txt
+          if [ -s /tmp/post_schema_status.txt ]; then
+            echo "❌ Validation schema sync needed!"
+            git status --porcelain tests/fixtures/schemas
+            git diff -- tests/fixtures/schemas
+            echo "🔧 Run 'uv run poe generate-schemas' locally and commit the results."
+            exit 1
+          else
+            echo "✅ Validation schema sync passed"
+          fi
 
       - name: pytest + coverage
         shell: bash
         run: |
           set -o pipefail
-          pipx install algokit
-          algokit localnet start
-          poetry run pytest -n auto --junitxml=pytest-junit.xml --cov-report=term-missing:skip-covered --cov=src | tee pytest-coverage.txt
-          algokit localnet stop
+          uvx algokit localnet start
+          uv run poe test-ci 2>&1 | tee pytest-coverage.txt
+          uvx algokit localnet stop
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
@@ -41,5 +94,13 @@ jobs:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest-junit.xml
 
+      - name: Upload test results and coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-python-${{ matrix.python }}
+          path: pytest-junit.xml
+          retention-days: 30
+
       - name: Build Wheel
-        run: poetry build --format wheel
+        run: uv build

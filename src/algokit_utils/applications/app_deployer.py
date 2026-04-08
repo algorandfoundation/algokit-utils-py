@@ -1,12 +1,12 @@
 import base64
 import dataclasses
 import json
-from dataclasses import asdict, dataclass
-from typing import Literal
+from dataclasses import asdict, dataclass, fields
+from typing import Literal, TypeVar
 
-from algosdk.logic import get_application_address
-from algosdk.v2client.indexer import IndexerClient
-
+from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
+from algokit_indexer_client import IndexerClient
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.applications.enums import OnSchemaBreak, OnUpdate, OperationPerformed
@@ -108,7 +108,7 @@ class ApplicationMetaData:
 class ApplicationLookup:
     """Cache of {py:class}`ApplicationMetaData` for a specific `creator`
 
-    Can be used as an argument to {py:class}`ApplicationClient` to reduce the number of calls when deploying multiple
+    Can be used as an argument to {py:class}`AppClient` to reduce the number of calls when deploying multiple
     apps or discovering multiple app_ids
     """
 
@@ -388,23 +388,21 @@ class AppDeployer:
 
         if isinstance(deployment.create_params, AppCreateMethodCallParams):
             create_result = self._transaction_sender.app_create_method_call(
-                AppCreateMethodCallParams(
-                    **{
-                        **asdict(deployment.create_params),
-                        "approval_program": approval_program,
-                        "clear_state_program": clear_program,
-                    }
+                extend(
+                    AppCreateMethodCallParams,
+                    deployment.create_params,
+                    approval_program=approval_program,
+                    clear_state_program=clear_program,
                 ),
                 send_params=deployment.send_params,
             )
         else:
             create_result = self._transaction_sender.app_create(
-                AppCreateParams(
-                    **{
-                        **asdict(deployment.create_params),
-                        "approval_program": approval_program,
-                        "clear_state_program": clear_program,
-                    }
+                extend(
+                    AppCreateParams,
+                    deployment.create_params,
+                    approval_program=approval_program,
+                    clear_state_program=clear_program,
                 ),
                 send_params=deployment.send_params,
             )
@@ -414,12 +412,8 @@ class AppDeployer:
                 app_id=create_result.app_id, app_address=get_application_address(create_result.app_id)
             ),
             deploy_metadata=deployment.metadata,
-            created_round=create_result.confirmation.get("confirmed-round", 0)
-            if isinstance(create_result.confirmation, dict)
-            else 0,
-            updated_round=create_result.confirmation.get("confirmed-round", 0)
-            if isinstance(create_result.confirmation, dict)
-            else 0,
+            created_round=_get_confirmed_round(create_result.confirmation),
+            updated_round=_get_confirmed_round(create_result.confirmation),
             deleted=False,
         )
 
@@ -497,12 +491,16 @@ class AppDeployer:
             result, is_abi=has_abi_delete, index=-1
         )
 
-        app_id = int(result.confirmations[0]["application-index"])  # type: ignore[call-overload]
+        app_id_raw = result.confirmations[0].app_id
+        if app_id_raw is None:
+            raise ValueError("Could not determine app_id from transaction confirmation")
+        assert app_id_raw is not None
+        app_id = int(app_id_raw)
         app_metadata = ApplicationMetaData(
             reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
             deploy_metadata=deployment.metadata,
-            created_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
-            updated_round=result.confirmations[0]["confirmed-round"],  # type: ignore[call-overload]
+            created_round=_get_confirmed_round(result.confirmations[0]),
+            updated_round=_get_confirmed_round(result.confirmations[0]),
             deleted=False,
         )
         self._update_app_lookup(deployment.create_params.sender, app_metadata)
@@ -560,7 +558,7 @@ class AppDeployer:
             reference=ApplicationReference(app_id=existing_app.app_id, app_address=existing_app.app_address),
             deploy_metadata=deployment.metadata,
             created_round=existing_app.created_round,
-            updated_round=result.confirmation.get("confirmed-round", 0) if isinstance(result.confirmation, dict) else 0,
+            updated_round=_get_confirmed_round(result.confirmation),
             deleted=False,
         )
 
@@ -708,34 +706,39 @@ class AppDeployer:
         app_lookup: dict[str, ApplicationMetaData] = {}
 
         # Get all apps created by account
-        created_apps = self._indexer.search_applications(creator=creator_address)
+        # TODO: See if empty iterable responses can be changed to empty lists instead of None
+        created_apps = self._indexer.search_for_applications(creator=creator_address).applications or []
 
-        for app in created_apps["applications"]:
-            app_id = app["id"]
+        encoded_note_prefix = base64.b64encode(APP_DEPLOY_NOTE_DAPP.encode()).decode()
+
+        for app in created_apps:
+            app_id = app.id_
 
             # Get creation transaction
-            creation_txns = self._indexer.search_transactions(
+            creation_txns = self._indexer.search_for_transactions(
                 application_id=app_id,
-                min_round=app["created-at-round"],
+                min_round=app.created_at_round,
                 address=creator_address,
                 address_role="sender",
-                note_prefix=APP_DEPLOY_NOTE_DAPP.encode(),
+                note_prefix=encoded_note_prefix,
                 limit=1,
-            )
+            ).transactions
 
-            if not creation_txns["transactions"]:
+            if not creation_txns:
                 continue
 
-            creation_txn = creation_txns["transactions"][0]
+            creation_txn = creation_txns[0]
 
             try:
-                note = base64.b64decode(creation_txn["note"]).decode()
+                if not creation_txn.note:
+                    continue
+                note = base64.b64decode(creation_txn.note).decode()
                 if not note.startswith(f"{APP_DEPLOY_NOTE_DAPP}:j"):
                     continue
 
                 metadata = json.loads(note[len(APP_DEPLOY_NOTE_DAPP) + 2 :])
 
-                if metadata.get("name"):
+                if metadata.get("name") and creation_txn.confirmed_round:
                     app_lookup[metadata["name"]] = ApplicationMetaData(
                         reference=ApplicationReference(app_id=app_id, app_address=get_application_address(app_id)),
                         deploy_metadata=AppDeploymentMetaData(
@@ -744,9 +747,9 @@ class AppDeployer:
                             deletable=metadata.get("deletable"),
                             updatable=metadata.get("updatable"),
                         ),
-                        created_round=creation_txn["confirmed-round"],
-                        updated_round=creation_txn["confirmed-round"],
-                        deleted=app.get("deleted", False),
+                        created_round=creation_txn.confirmed_round,
+                        updated_round=creation_txn.confirmed_round,
+                        deleted=app.deleted if app.deleted is not None else False,
                     )
             except Exception as e:
                 config.logger.warning(
@@ -757,3 +760,29 @@ class AppDeployer:
         lookup = ApplicationLookup(creator=creator_address, apps=app_lookup)
         self._app_lookups[creator_address] = lookup
         return lookup
+
+
+_T = TypeVar("_T")
+
+
+def extend(new_type: type[_T], base_instance: object, **changes: object) -> _T:
+    assert dataclasses.is_dataclass(new_type), "expected dataclass type"
+    base_type = type(base_instance)
+    assert dataclasses.is_dataclass(base_type), "expected dataclass instance"
+    old_type_fields = {f.name: f for f in fields(base_type)}
+    new_type_fields = fields(new_type)
+    for a in new_type_fields:
+        if not a.init:
+            continue
+        if a.name not in changes and a.name in old_type_fields:
+            changes[a.name] = getattr(base_instance, a.name)
+
+    return new_type(**changes)
+
+
+def _get_confirmed_round(confirmation: algod_models.PendingTransactionResponse | None) -> int:
+    """Extract the confirmed round from a typed response model."""
+
+    if confirmation is None:
+        return 0
+    return confirmation.confirmed_round or 0

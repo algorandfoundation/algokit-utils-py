@@ -1,23 +1,69 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Python Debugger: Current File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Python: Debug Tests",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}",
-            "purpose": [
-                "debug-test"
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": false
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python: Debug Tests",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "purpose": ["debug-test"],
+      "console": "integratedTerminal",
+      "justMyCode": false
+    },
+    {
+      "name": "Debug generate Algod Client",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "oas_generator.cli",
+      "args": [
+        "--spec",
+        "api/specs/algod.oas3.json",
+        "--out",
+        "src",
+        "--package",
+        "algokit_algod_client"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug generate Indexer Client",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "oas_generator.cli",
+      "args": [
+        "--spec",
+        "api/specs/indexer.oas3.json",
+        "--out",
+        "src",
+        "--package",
+        "algokit_indexer_client"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Debug generate KMD Client",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "oas_generator.cli",
+      "args": [
+        "--spec",
+        "api/specs/kmd.oas3.json",
+        "--out",
+        "src",
+        "--package",
+        "algokit_kmd_client"
+      ],
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
 }

@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - main
+      - alpha
     paths-ignore:
-      - "docs/**"
       - ".github/**"
   workflow_dispatch:
     inputs:
@@ -39,6 +39,9 @@ jobs:
     name: Release Library
     needs: ci-build-python
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
       - name: Generate bot token
@@ -54,16 +57,10 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app_token.outputs.token }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup Python environment
+        uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
         with:
-          python-version: "3.10"
-
-      - name: Set up Poetry
-        uses: ./.github/actions/setup-poetry
-
-      - name: Install dependencies
-        run: poetry install --no-interaction --no-root
+          install-algokit: "false"
 
       - name: Get branch name
         shell: bash
@@ -73,32 +70,69 @@ jobs:
       - name: Set Git user as GitHub actions
         run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
 
-      - name: Create Continuous Deployment - Beta (non-prod)
-        if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
-        run: |
-          poetry run semantic-release \
-            -v DEBUG \
-            --prerelease \
-            --define=branch=main \
-            --define=upload_to_repository=true \
-            publish
-          gh release edit --prerelease "v$(poetry run semantic-release print-version --current)"
+      - name: Create Continuous Deployment - Alpha
+        id: release-alpha
+        if: steps.get_branch.outputs.branch == 'alpha'
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-          REPOSITORY_USERNAME: __token__
-          REPOSITORY_PASSWORD: ${{ secrets.PYPI_API_KEY }}
+        run: |
+          uv run semantic-release -v version --as-prerelease --prerelease-token alpha
+          uv run semantic-release publish
+
+      - name: Create Continuous Deployment - Beta (non-prod)
+        id: release-beta
+        if: steps.get_branch.outputs.branch == 'main' && !inputs.production_release
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          uv run semantic-release -v version --as-prerelease
+          uv run semantic-release publish
 
       - name: Create Continuous Deployment - Production
+        id: release-prod
         if: steps.get_branch.outputs.branch == 'main' && inputs.production_release
-        run: |
-          poetry run semantic-release \
-            -v DEBUG \
-            --define=version_source="commit" \
-            --define=patch_without_tag=true \
-            --define=upload_to_repository=true \
-            --define=branch=main \
-            publish
         env:
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-          REPOSITORY_USERNAME: __token__
-          REPOSITORY_PASSWORD: ${{ secrets.PYPI_API_KEY }}
+        run: |
+          uv run semantic-release -v version
+          uv run semantic-release publish
+
+      - name: Publish package distributions to PyPI
+        if: |
+          (steps.release-alpha.outputs.released == 'true') ||
+          (steps.release-beta.outputs.released == 'true') ||
+          (steps.release-prod.outputs.released == 'true')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+
+  deploy-docs:
+    name: Deploy Documentation
+    needs: ci-build-python
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    concurrency:
+      group: deploy-docs
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build documentation
+        uses: ./.github/actions/publish-docs
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,17 +1,20 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
-import algosdk
-import algosdk.atomic_transaction_composer
-from algosdk.transaction import Transaction
 from typing_extensions import Self
 
+from algokit_abi import arc56
+from algokit_algod_client import AlgodClient
+from algokit_algod_client import models as algod_models
+from algokit_common import get_application_address
+from algokit_transact import Transaction
 from algokit_utils.applications.abi import ABIReturn
 from algokit_utils.applications.app_manager import AppManager
 from algokit_utils.assets.asset_manager import AssetManager
 from algokit_utils.config import config
-from algokit_utils.models.transaction import SendParams, TransactionWrapper
+from algokit_utils.models.application import CompiledTeal
+from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
     AppCallMethodCallParams,
     AppCallParams,
@@ -31,7 +34,7 @@ from algokit_utils.transactions.transaction_composer import (
     OfflineKeyRegistrationParams,
     OnlineKeyRegistrationParams,
     PaymentParams,
-    SendAtomicTransactionComposerResults,
+    SendTransactionComposerResults,
     TransactionComposer,
     TxnParams,
 )
@@ -56,13 +59,13 @@ class SendSingleTransactionResult:
     Represents the result of sending a single transaction.
     """
 
-    transaction: TransactionWrapper  # Last transaction
+    transaction: Transaction  # Last transaction
     """The last transaction"""
 
-    confirmation: algosdk.v2client.algod.AlgodResponseType  # Last confirmation
+    confirmation: algod_models.PendingTransactionResponse  # Last confirmation
     """The last confirmation"""
 
-    # Fields from SendAtomicTransactionComposerResults
+    # Fields from SendTransactionComposerResults
     group_id: str
     """The group ID"""
 
@@ -71,10 +74,10 @@ class SendSingleTransactionResult:
 
     tx_ids: list[str]  # Full array of transaction IDs
     """The full array of transaction IDs"""
-    transactions: list[TransactionWrapper]
+    transactions: list[Transaction]
     """The full array of transactions"""
 
-    confirmations: list[algosdk.v2client.algod.AlgodResponseType]
+    confirmations: list[algod_models.PendingTransactionResponse]
     """The full array of confirmations"""
 
     returns: list[ABIReturn] | None = None
@@ -82,38 +85,48 @@ class SendSingleTransactionResult:
 
     @classmethod
     def from_composer_result(
-        cls, result: SendAtomicTransactionComposerResults, *, is_abi: bool = False, index: int = -1
+        cls, result: SendTransactionComposerResults, *, is_abi: bool = False, index: int = -1
     ) -> Self:
+        wrapped_transactions = result.transactions
+
         # Get base parameters
         base_params = {
-            "transaction": result.transactions[index],
+            "transaction": wrapped_transactions[index],
             "confirmation": result.confirmations[index],
-            "group_id": result.group_id,
+            "group_id": result.group_id or "",
             "tx_id": result.tx_ids[index],
             "tx_ids": result.tx_ids,
-            "transactions": [result.transactions[index]],
+            "transactions": [wrapped_transactions[index]],
             "confirmations": result.confirmations,
             "returns": result.returns,
         }
 
         # For asset creation, extract asset_id from confirmation
         if cls is SendSingleAssetCreateTransactionResult:
-            base_params["asset_id"] = result.confirmations[index]["asset-index"]  # type: ignore[call-overload]
+            confirmation = result.confirmations[index]
+            asset_id = confirmation.asset_id
+            if asset_id is None:
+                raise ValueError("Could not extract asset_id from confirmation")
+            base_params["asset_id"] = int(asset_id)
         # For app creation, extract app_id and calculate app_address
         elif cls is SendAppCreateTransactionResult:
-            app_id = result.confirmations[index]["application-index"]  # type: ignore[call-overload]
+            confirmation = result.confirmations[index]
+            app_id_raw = confirmation.app_id
+            if app_id_raw is None:
+                raise ValueError("Could not extract app_id from confirmation")
+            app_id = int(app_id_raw)
             base_params.update(
                 {
                     "app_id": app_id,
-                    "app_address": algosdk.logic.get_application_address(app_id),
-                    "abi_return": result.returns[index] if result.returns and is_abi else None,  # type: ignore[dict-item]
+                    "app_address": get_application_address(app_id),
+                    "abi_return": result.returns[index] if result.returns and is_abi else None,
                 }
             )
         # For regular app transactions, just add abi_return
         elif cls is SendAppTransactionResult:
-            base_params["abi_return"] = result.returns[index] if result.returns and is_abi else None  # type: ignore[assignment]
+            base_params["abi_return"] = result.returns[index] if result.returns and is_abi else None
 
-        return cls(**base_params)  # type: ignore[arg-type]
+        return cls(**cast(dict[str, Any], base_params))
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -148,10 +161,10 @@ class SendAppUpdateTransactionResult(SendAppTransactionResult[ABIReturnT]):
     Contains the compiled approval and clear programs.
     """
 
-    compiled_approval: Any | None = None
+    compiled_approval: CompiledTeal | bytes | None = None
     """The compiled approval program"""
 
-    compiled_clear: Any | None = None
+    compiled_clear: CompiledTeal | bytes | None = None
     """The compiled clear state program"""
 
 
@@ -181,7 +194,7 @@ class AlgorandClientTransactionSender:
         new_group: Callable[[], TransactionComposer],
         asset_manager: AssetManager,
         app_manager: AppManager,
-        algod_client: algosdk.v2client.algod.AlgodClient,
+        algod_client: AlgodClient,
     ) -> None:
         self._new_group = new_group
         self._asset_manager = asset_manager
@@ -212,21 +225,24 @@ class AlgorandClientTransactionSender:
             c(composer)(params)
 
             if pre_log:
-                transaction = composer.build().transactions[-1].txn
-                config.logger.debug(pre_log(params, transaction))
+                built = composer.build()
+                last_txn = built.transactions[-1]
+                config.logger.debug(pre_log(params, last_txn))
 
             raw_result = composer.send(
                 send_params,
             )
-            raw_result_dict = raw_result.__dict__.copy()
-            raw_result_dict["transactions"] = raw_result.transactions
-            del raw_result_dict["simulate_response"]
-
+            transactions = raw_result.transactions
+            confirmations = list(raw_result.confirmations)
             result = SendSingleTransactionResult(
-                **raw_result_dict,
-                confirmation=raw_result.confirmations[-1],
-                transaction=raw_result_dict["transactions"][-1],
+                transaction=transactions[-1],
+                confirmation=confirmations[-1],
+                group_id=raw_result.group_id or "",
                 tx_id=raw_result.tx_ids[-1],
+                tx_ids=raw_result.tx_ids,
+                transactions=transactions,
+                confirmations=confirmations,
+                returns=raw_result.returns,
             )
 
             if post_log:
@@ -298,17 +314,20 @@ class AlgorandClientTransactionSender:
             params: TxnParamsT, send_params: SendParams | None = None
         ) -> SendAppCreateTransactionResult[ABIReturn]:
             result = self._send_app_update_call(c, pre_log, post_log)(params, send_params)
-            app_id = int(result.confirmation["application-index"])  # type: ignore[call-overload]
+            app_id_raw = result.confirmation.app_id
+            if app_id_raw is None:
+                raise ValueError("Could not extract app_id from confirmation")
+            app_id = int(app_id_raw)
 
             return SendAppCreateTransactionResult[ABIReturn](
                 **result.__dict__,
                 app_id=app_id,
-                app_address=algosdk.logic.get_application_address(app_id),
+                app_address=get_application_address(app_id),
             )
 
         return send_app_create_call
 
-    def _get_method_call_for_log(self, method: algosdk.abi.Method, args: list[Any]) -> str:
+    def _get_method_call_for_log(self, method: arc56.Method, args: list[Any]) -> str:
         """Helper function to format method call logs similar to TypeScript version"""
         args_str = str([str(a) if not isinstance(a, bytes | bytearray) else a.hex() for a in args])
         return f"{method.name}({args_str})"
@@ -343,7 +362,7 @@ class AlgorandClientTransactionSender:
             >>>  max_fee=AlgoAmount(micro_algo=3000),
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -351,7 +370,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_payment,
             pre_log=lambda params, transaction: (
                 f"Sending {params.amount} from {params.sender} to {params.receiver} "
-                f"via transaction {transaction.get_txid()}"
+                f"via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -363,6 +382,7 @@ class AlgorandClientTransactionSender:
         :param params: Asset creation parameters
         :param send_params: Send parameters
         :return: Result containing the new asset ID
+        :raises ValueError: If the confirmation payload does not include an asset_id
 
         :example:
             >>> result = algorand.send.asset_create(AssetCreateParams(
@@ -401,7 +421,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -411,14 +431,17 @@ class AlgorandClientTransactionSender:
                 f"Created asset{f' {params.asset_name}' if hasattr(params, 'asset_name') else ''}"
                 f"{f' ({params.unit_name})' if hasattr(params, 'unit_name') else ''} with "
                 f"{params.total} units and {getattr(params, 'decimals', 0)} decimals created by "
-                f"{params.sender} with ID {result.confirmation['asset-index']} via transaction "  # type: ignore[call-overload]
-                f"{result.tx_ids[-1]}"
+                f"{params.sender} with ID {result.confirmation.asset_id} "
+                f"via transaction {result.tx_ids[-1]}"
             ),
         )(params, send_params)
 
+        asset_id_raw = result.confirmation.asset_id
+        if asset_id_raw is None:
+            raise ValueError("Could not extract asset_id from confirmation")
         return SendSingleAssetCreateTransactionResult(
             **result.__dict__,
-            asset_id=int(result.confirmation["asset-index"]),  # type: ignore[call-overload]
+            asset_id=int(asset_id_raw),
         )
 
     def asset_config(
@@ -453,14 +476,14 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
         return self._send(
             lambda c: c.add_asset_config,
             pre_log=lambda params, transaction: (
-                f"Configuring asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Configuring asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -502,14 +525,14 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
         return self._send(
             lambda c: c.add_asset_freeze,
             pre_log=lambda params, transaction: (
-                f"Freezing asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Freezing asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -547,14 +570,14 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
         return self._send(
             lambda c: c.add_asset_destroy,
             pre_log=lambda params, transaction: (
-                f"Destroying asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Destroying asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -599,7 +622,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -607,7 +630,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_transfer,
             pre_log=lambda params, transaction: (
                 f"Transferring {params.amount} units of asset with ID {params.asset_id} from "
-                f"{params.sender} to {params.receiver} via transaction {transaction.get_txid()}"
+                f"{params.sender} to {params.receiver} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -645,14 +668,14 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
         return self._send(
             lambda c: c.add_asset_opt_in,
             pre_log=lambda params, transaction: (
-                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.get_txid()}"
+                f"Opting in {params.sender} to asset with ID {params.asset_id} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -700,7 +723,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -730,7 +753,7 @@ class AlgorandClientTransactionSender:
             lambda c: c.add_asset_opt_out,
             pre_log=lambda params, transaction: (
                 f"Opting {params.sender} out of asset with ID {params.asset_id} to creator "
-                f"{creator} via transaction {transaction.get_txid()}"
+                f"{creator} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -755,42 +778,37 @@ class AlgorandClientTransactionSender:
             >>>  sender="CREATORADDRESS",
             >>>  approval_program="TEALCODE",
             >>>  clear_state_program="TEALCODE",
+            >>>  schema=AppCreateSchema(
+            >>>   global_ints=1,
+            >>>   global_byte_slices=2,
+            >>>   local_ints=3,
+            >>>   local_byte_slices=4,
+            >>>  ),
+            >>>  extra_program_pages=1,
+            >>>  on_complete=OnApplicationComplete.OptIn,
+            >>>  args=[b'some_bytes'],
+            >>>  account_references=["ACCOUNT_1"],
+            >>>  app_references=[123, 1234],
+            >>>  asset_references=[12345],
+            >>>  box_references=[...],
+            >>>  lease=b'lease',
+            >>>  note=b'note',
+            >>>  # You wouldn't normally set this field
+            >>>  first_valid_round=1000,
+            >>>  validity_window=10,
+            >>>  extra_fee=AlgoAmount(micro_algo=1000),
+            >>>  static_fee=AlgoAmount(micro_algo=1000),
+            >>>  # Max fee doesn't make sense with extra_fee AND static_fee
+            >>>  #  already specified, but here for completeness
+            >>>  max_fee=AlgoAmount(micro_algo=3000),
+            >>>  # Signer only needed if you want to provide one,
+            >>>  #  generally you'd register it with AlgorandClient
+            >>>  #  against the sender and not need to pass it in
+            >>>  signer=transaction_signer,
+            >>> ), send_params=SendParams(
+            >>>  max_rounds_to_wait=5,
+            >>>  suppress_log=True,
             >>> ))
-            >>> # algorand.send.appCreate(AppCreateParams(
-            >>> #  sender='CREATORADDRESS',
-            >>> #  approval_program="TEALCODE",
-            >>> #  clear_state_program="TEALCODE",
-            >>> #  schema={
-            >>> #    "global_ints": 1,
-            >>> #    "global_byte_slices": 2,
-            >>> #    "local_ints": 3,
-            >>> #    "local_byte_slices": 4
-            >>> #  },
-            >>> #  extra_program_pages: 1,
-            >>> #  on_complete: algosdk.transaction.OnComplete.OptInOC,
-            >>> #  args: [b'some_bytes']
-            >>> #  account_references: ["ACCOUNT_1"]
-            >>> #  app_references: [123, 1234]
-            >>> #  asset_references: [12345]
-            >>> #  box_references: ["box1", {app_id: 1234, name: "box2"}]
-            >>> #  lease: 'lease',
-            >>> #  note: 'note',
-            >>> #  # You wouldn't normally set this field
-            >>> #  first_valid_round: 1000,
-            >>> #  validity_window: 10,
-            >>> #  extra_fee: AlgoAmount(micro_algo=1000),
-            >>> #  static_fee: AlgoAmount(micro_algo=1000),
-            >>> #  # Max fee doesn't make sense with extraFee AND staticFee
-            >>> #  #  already specified, but here for completeness
-            >>> #  max_fee: AlgoAmount(micro_algo=3000),
-            >>> #  # Signer only needed if you want to provide one,
-            >>> #  #  generally you'd register it with AlgorandClient
-            >>> #  #  against the sender and not need to pass it in
-            >>> #  signer: transactionSigner
-            >>> #}, send_params=SendParams(
-            >>> #  max_rounds_to_wait_for_confirmation=5,
-            >>> #  suppress_log=True,
-            >>> #))
         """
         return self._send_app_create_call(lambda c: c.add_app_create)(params, send_params)
 
@@ -815,7 +833,7 @@ class AlgorandClientTransactionSender:
             >>>  sender="CREATORADDRESS",
             >>>  approval_program="TEALCODE",
             >>>  clear_state_program="TEALCODE",
-            >>>  on_complete=OnComplete.UpdateApplicationOC,
+            >>>  on_complete=OnApplicationComplete.UpdateApplication,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -836,7 +854,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -860,7 +878,7 @@ class AlgorandClientTransactionSender:
             >>> # Advanced example
             >>> algorand.send.app_delete(AppDeleteParams(
             >>>  sender="CREATORADDRESS",
-            >>>  on_complete=OnComplete.DeleteApplicationOC,
+            >>>  on_complete=OnApplicationComplete.DeleteApplication,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -881,7 +899,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner,
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -905,7 +923,7 @@ class AlgorandClientTransactionSender:
             >>> # Advanced example
             >>> algorand.send.app_call(AppCallParams(
             >>>  sender="CREATORADDRESS",
-            >>>  on_complete=OnComplete.OptInOC,
+            >>>  on_complete=OnApplicationComplete.OptIn,
             >>>  args=[b'some_bytes'],
             >>>  account_references=["ACCOUNT_1"],
             >>>  app_references=[123, 1234],
@@ -926,7 +944,7 @@ class AlgorandClientTransactionSender:
             >>>  #  against the sender and not need to pass it in
             >>>  signer=transactionSigner,
             >>> ), send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -942,63 +960,59 @@ class AlgorandClientTransactionSender:
         :return: Result containing the new application ID and address
 
         :example:
-            >>> # Note: you may prefer to use `algorand.client` to get an app client for more advanced functionality.
-            >>> #
-            >>> # @param params The parameters for the app creation transaction
+            >>> # Note: you may prefer to use `algorand.client` to get an app client
+            >>> # for more advanced functionality.
+            >>> from algokit_abi import arc56
+            >>>
             >>> # Basic example
-            >>> method = algorand.abi.Method(
-            >>>   name='method',
-            >>>   args=[b'arg1'],
-            >>>   returns='string'
-            >>> )
-            >>> result = algorand.send.app_create_method_call({ sender: 'CREATORADDRESS',
-            >>>   approval_program: 'TEALCODE',
-            >>>   clear_state_program: 'TEALCODE',
-            >>>   method: method,
-            >>>   args: ["arg1_value"] })
+            >>> method = arc56.Method.from_signature("method(string)string")
+            >>> result = algorand.send.app_create_method_call(
+            >>>  AppCreateMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   approval_program="TEALCODE",
+            >>>   clear_state_program="TEALCODE",
+            >>>   method=method,
+            >>>   args=["arg1_value"],
+            >>> ))
             >>> created_app_id = result.app_id
-            >>> ...
+            >>>
             >>> # Advanced example
-            >>> method = algorand.abi.Method(
-            >>>   name='method',
-            >>>   args=[b'arg1'],
-            >>>   returns='string'
-            >>> )
-            >>> result = algorand.send.app_create_method_call({
-            >>>  sender: 'CREATORADDRESS',
-            >>>  method: method,
-            >>>  args: ["arg1_value"],
-            >>>  approval_program: "TEALCODE",
-            >>>  clear_state_program: "TEALCODE",
-            >>>  schema: {
-            >>>    "global_ints": 1,
-            >>>    "global_byte_slices": 2,
-            >>>    "local_ints": 3,
-            >>>    "local_byte_slices": 4
-            >>>  },
-            >>>  extra_program_pages: 1,
-            >>>  on_complete: algosdk.transaction.OnComplete.OptInOC,
-            >>>  args: [new Uint8Array(1, 2, 3, 4)],
-            >>>  account_references: ["ACCOUNT_1"],
-            >>>  app_references: [123, 1234],
-            >>>  asset_references: [12345],
-            >>>  box_references: [...],
-            >>>  lease: 'lease',
-            >>>  note: 'note',
-            >>>  # You wouldn't normally set this field
-            >>>  first_valid_round: 1000,
-            >>>  validity_window: 10,
-            >>>  extra_fee: AlgoAmount(micro_algo=1000),
-            >>>  static_fee: AlgoAmount(micro_algo=1000),
-            >>>  # Max fee doesn't make sense with extraFee AND staticFee
-            >>>  #  already specified, but here for completeness
-            >>>  max_fee: AlgoAmount(micro_algo=3000),
-            >>>  # Signer only needed if you want to provide one,
-            >>>  #  generally you'd register it with AlgorandClient
-            >>>  #  against the sender and not need to pass it in
-            >>>  signer: transactionSigner,
-            >>> }, send_params=SendParams(
-            >>>  max_rounds_to_wait_for_confirmation=5,
+            >>> method = arc56.Method.from_signature("method(string)string")
+            >>> result = algorand.send.app_create_method_call(
+            >>>  AppCreateMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   method=method,
+            >>>   args=["arg1_value"],
+            >>>   approval_program="TEALCODE",
+            >>>   clear_state_program="TEALCODE",
+            >>>   schema=AppCreateSchema(
+            >>>    global_ints=1,
+            >>>    global_byte_slices=2,
+            >>>    local_ints=3,
+            >>>    local_byte_slices=4,
+            >>>   ),
+            >>>   extra_program_pages=1,
+            >>>   on_complete=OnApplicationComplete.OptIn,
+            >>>   account_references=["ACCOUNT_1"],
+            >>>   app_references=[123, 1234],
+            >>>   asset_references=[12345],
+            >>>   box_references=[...],
+            >>>   lease=b'lease',
+            >>>   note=b'note',
+            >>>   # You wouldn't normally set this field
+            >>>   first_valid_round=1000,
+            >>>   validity_window=10,
+            >>>   extra_fee=AlgoAmount(micro_algo=1000),
+            >>>   static_fee=AlgoAmount(micro_algo=1000),
+            >>>   # Max fee doesn't make sense with extra_fee AND static_fee
+            >>>   #  already specified, but here for completeness
+            >>>   max_fee=AlgoAmount(micro_algo=3000),
+            >>>   # Signer only needed if you want to provide one,
+            >>>   #  generally you'd register it with AlgorandClient
+            >>>   #  against the sender and not need to pass it in
+            >>>   signer=transaction_signer,
+            >>> ), send_params=SendParams(
+            >>>  max_rounds_to_wait=5,
             >>>  suppress_log=True,
             >>> ))
         """
@@ -1014,42 +1028,32 @@ class AlgorandClientTransactionSender:
         :return: Result containing the compiled programs
 
         :example:
-            # Basic example:
-            >>> method = algorand.abi.Method(
-            ...     name="updateMethod",
-            ...     args=[{"type": "string", "name": "arg1"}],
-            ...     returns="string"
-            ... )
-            >>> params = AppUpdateMethodCallParams(
-            ...     sender="CREATORADDRESS",
-            ...     app_id=123,
-            ...     method=method,
-            ...     args=["new_value"],
-            ...     approval_program="TEALCODE",
-            ...     clear_state_program="TEALCODE"
-            ... )
-            >>> result = algorand.send.app_update_method_call(params)
-            >>> print(result.compiled_approval, result.compiled_clear)
-
-            # Advanced example:
-            >>> method = algorand.abi.Method(
-            ...     name="updateMethod",
-            ...     args=[{"type": "string", "name": "arg1"}, {"type": "uint64", "name": "arg2"}],
-            ...     returns="string"
-            ... )
-            >>> params = AppUpdateMethodCallParams(
-            ...     sender="CREATORADDRESS",
-            ...     app_id=456,
-            ...     method=method,
-            ...     args=["new_value", 42],
-            ...     approval_program="TEALCODE_ADVANCED",
-            ...     clear_state_program="TEALCLEAR_ADVANCED",
-            ...     account_references=["ACCOUNT1", "ACCOUNT2"],
-            ...     app_references=[789],
-            ...     asset_references=[101112]
-            ... )
-            >>> result = algorand.send.app_update_method_call(params)
-            >>> print(result.compiled_approval, result.compiled_clear)
+            >>> # Basic example
+            >>> method = arc56.Method.from_signature("updateMethod(string)string")
+            >>> result = algorand.send.app_update_method_call(
+            >>>  AppUpdateMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   app_id=123,
+            >>>   method=method,
+            >>>   args=["new_value"],
+            >>>   approval_program="TEALCODE",
+            >>>   clear_state_program="TEALCODE",
+            >>> ))
+            >>>
+            >>> # Advanced example
+            >>> method = arc56.Method.from_signature("updateMethod(string,uint64)string")
+            >>> result = algorand.send.app_update_method_call(
+            >>>  AppUpdateMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   app_id=456,
+            >>>   method=method,
+            >>>   args=["new_value", 42],
+            >>>   approval_program="TEALCODE",
+            >>>   clear_state_program="TEALCODE",
+            >>>   account_references=["ACCOUNT1", "ACCOUNT2"],
+            >>>   app_references=[789],
+            >>>   asset_references=[101112],
+            >>> ))
         """
         return self._send_app_update_call(lambda c: c.add_app_update_method_call)(params, send_params)
 
@@ -1063,36 +1067,26 @@ class AlgorandClientTransactionSender:
         :return: Result of the deletion transaction
 
         :example:
-            # Basic example:
-            >>> method = algorand.abi.Method(
-            ...     name="deleteMethod",
-            ...     args=[],
-            ...     returns="void"
-            ... )
-            >>> params = AppDeleteMethodCallParams(
-            ...     sender="CREATORADDRESS",
-            ...     app_id=123,
-            ...     method=method
-            ... )
-            >>> result = algorand.send.app_delete_method_call(params)
-            >>> print(result.tx_id)
-
-            # Advanced example:
-            >>> method = algorand.abi.Method(
-            ...     name="deleteMethod",
-            ...     args=[{"type": "uint64", "name": "confirmation"}],
-            ...     returns="void"
-            ... )
-            >>> params = AppDeleteMethodCallParams(
-            ...     sender="CREATORADDRESS",
-            ...     app_id=123,
-            ...     method=method,
-            ...     args=[1],
-            ...     account_references=["ACCOUNT1"],
-            ...     app_references=[456]
-            ... )
-            >>> result = algorand.send.app_delete_method_call(params)
-            >>> print(result.tx_id)
+            >>> # Basic example
+            >>> method = arc56.Method.from_signature("deleteMethod()void")
+            >>> result = algorand.send.app_delete_method_call(
+            >>>  AppDeleteMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   app_id=123,
+            >>>   method=method,
+            >>> ))
+            >>>
+            >>> # Advanced example
+            >>> method = arc56.Method.from_signature("deleteMethod(uint64)void")
+            >>> result = algorand.send.app_delete_method_call(
+            >>>  AppDeleteMethodCallParams(
+            >>>   sender="CREATORADDRESS",
+            >>>   app_id=123,
+            >>>   method=method,
+            >>>   args=[1],
+            >>>   account_references=["ACCOUNT1"],
+            >>>   app_references=[456],
+            >>> ))
         """
         return self._send_app_call(lambda c: c.add_app_delete_method_call)(params, send_params)
 
@@ -1106,38 +1100,28 @@ class AlgorandClientTransactionSender:
         :return: Result containing any ABI return value
 
         :example:
-            # Basic example:
-            >>> method = algorand.abi.Method(
-            ...     name="callMethod",
-            ...     args=[{"type": "uint64", "name": "arg1"}],
-            ...     returns="uint64"
-            ... )
-            >>> params = AppCallMethodCallParams(
-            ...     sender="CALLERADDRESS",
-            ...     app_id=123,
-            ...     method=method,
-            ...     args=[12345]
-            ... )
-            >>> result = algorand.send.app_call_method_call(params)
-            >>> print(result.abi_return)
-
-            # Advanced example:
-            >>> method = algorand.abi.Method(
-            ...     name="callMethod",
-            ...     args=[{"type": "uint64", "name": "arg1"}, {"type": "string", "name": "arg2"}],
-            ...     returns="uint64"
-            ... )
-            >>> params = AppCallMethodCallParams(
-            ...     sender="CALLERADDRESS",
-            ...     app_id=123,
-            ...     method=method,
-            ...     args=[12345, "extra"],
-            ...     account_references=["ACCOUNT1"],
-            ...     asset_references=[101112],
-            ...     app_references=[789]
-            ... )
-            >>> result = algorand.send.app_call_method_call(params)
-            >>> print(result.abi_return)
+            >>> # Basic example
+            >>> method = arc56.Method.from_signature("callMethod(uint64)uint64")
+            >>> result = algorand.send.app_call_method_call(
+            >>>  AppCallMethodCallParams(
+            >>>   sender="CALLERADDRESS",
+            >>>   app_id=123,
+            >>>   method=method,
+            >>>   args=[12345],
+            >>> ))
+            >>>
+            >>> # Advanced example
+            >>> method = arc56.Method.from_signature("callMethod(uint64,string)uint64")
+            >>> result = algorand.send.app_call_method_call(
+            >>>  AppCallMethodCallParams(
+            >>>   sender="CALLERADDRESS",
+            >>>   app_id=123,
+            >>>   method=method,
+            >>>   args=[12345, "extra"],
+            >>>   account_references=["ACCOUNT1"],
+            >>>   asset_references=[101112],
+            >>>   app_references=[789],
+            >>> ))
         """
         return self._send_app_call(lambda c: c.add_app_call_method_call)(params, send_params)
 
@@ -1179,7 +1163,7 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_online_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering online key for {params.sender} via transaction {transaction.get_txid()}"
+                f"Registering online key for {params.sender} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)
 
@@ -1213,6 +1197,6 @@ class AlgorandClientTransactionSender:
         return self._send(
             lambda c: c.add_offline_key_registration,
             pre_log=lambda params, transaction: (
-                f"Registering offline key for {params.sender} via transaction {transaction.get_txid()}"
+                f"Registering offline key for {params.sender} via transaction {transaction.tx_id()}"
             ),
         )(params, send_params)

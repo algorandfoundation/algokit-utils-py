@@ -1,44 +1,77 @@
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+            tests/_snapshots/.*\.approved\.txt$|
+            tests/applications/_snapshots/.*\.approved\.txt$|
+            tests/artifacts/.*\.(json|puya\.map)$
+          )
+      - id: trailing-whitespace
+        exclude: |
+          (?x)^(
+            tests/_snapshots/.*\.approved\.txt$|
+            tests/applications/_snapshots/.*\.approved\.txt$|
+            tests/artifacts/.*\.(json|puya\.map)$
+          )
   - repo: local
     hooks:
-      - id: ruff-format
-        name: ruff-format
+      - id: format
+        name: format
         description: "Run 'ruff format' for extremely fast Python formatting"
-        entry: poetry run ruff format
+        entry: uv run ruff format
         language: system
         types: [python]
         args: []
         require_serial: true
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
-        files: "^(src|tests)/"
-      - id: ruff
-        name: ruff
-        description: "Run 'ruff' for extremely fast Python linting"
-        entry: poetry run ruff check
-        language: system
-        "types": [python]
-        args: [--fix]
-        require_serial: false
-        additional_dependencies: []
-        minimum_pre_commit_version: "0"
-        files: "^(src|tests)/"
-        exclude: "^tests/artifacts/"
-      - id: mypy
-        name: mypy
-        description: "`mypy` will check Python types for correctness"
-        entry: poetry run mypy
+        pass_filenames: false
+        files: "^(src|tests|examples|api)/"
+      - id: generate-api-clients
+        name: generate-api-clients
+        description: "Generate API clients before linting"
+        entry: uv run poe generate-api-clients
         language: system
         types_or: [python, pyi]
+        args: []
+        require_serial: true
+        pass_filenames: false
+        files: "^(src|tests|examples|api)/"
+      - id: lint
+        name: lint
+        description: "`mypy` and 'ruff' will check Python types for correctness"
+        entry: uv run poe lint
+        language: system
+        types_or: [python, pyi]
+        args: []
         require_serial: true
         additional_dependencies: []
         minimum_pre_commit_version: "2.9.2"
-        files: "^(src|tests)/"
-        exclude: "^tests/artifacts/"
+        pass_filenames: false
+        files: "^(src|tests|examples|api)/"
+      - id: docs
+        name: docs
+        description: "Build documentation (always passes)"
+        entry: bash -c 'uv run poe docs-build || true'
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true
       - id: docstrings-check
         name: docstrings-check
         description: "Check docstrings for correctness"
-        entry: poetry run poe docstrings-check
+        entry: uv run poe docstrings-check
         language: system
         types: [python]
         files: "^(src)/"
+      - id: test
+        name: test
+        description: "Run pytest as final validation"
+        entry: uv run pytest
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]

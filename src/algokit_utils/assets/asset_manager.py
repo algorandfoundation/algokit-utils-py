@@ -1,11 +1,9 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-import algosdk
-from algosdk.atomic_transaction_composer import AccountTransactionSigner, TransactionSigner
-from algosdk.v2client import algod
-
-from algokit_utils.models.account import SigningAccount
+from algokit_algod_client import AlgodClient
+from algokit_common import MAX_TRANSACTION_GROUP_SIZE
+from algokit_transact.signer import AddressWithSigners, AddressWithTransactionSigner, TransactionSigner
 from algokit_utils.models.amount import AlgoAmount
 from algokit_utils.models.transaction import SendParams
 from algokit_utils.transactions.transaction_composer import (
@@ -90,72 +88,81 @@ class BulkAssetOptInOutResult:
 class AssetManager:
     """A manager for Algorand Standard Assets (ASAs).
 
-    :param algod_client: An algod client
+    :param algod_client: An AlgodClient instance
     :param new_group: A function that creates a new TransactionComposer transaction group
 
     :example:
         >>> asset_manager = AssetManager(algod_client)
     """
 
-    def __init__(self, algod_client: algod.AlgodClient, new_group: Callable[[], TransactionComposer]):
+    def __init__(self, algod_client: AlgodClient, new_group: Callable[[], TransactionComposer]):
         self._algod = algod_client
         self._new_group = new_group
 
     def get_by_id(self, asset_id: int) -> AssetInformation:
         """Returns the current asset information for the asset with the given ID.
 
-        :param asset_id: The ID of the asset
-        :return: The asset information
+        Uses typed algod client `get_asset_by_id` and maps `asset.params.*` fields into an
+        `AssetInformation` dataclass. All values are sourced from typed model attributes
+        (e.g. `asset.params.total`, `asset.params.manager`, `asset.params.unit_name`)
+        rather than dictionary keys (legacy: `asset_info["params"]["total"]`, etc.).
+
+        :param asset_id: The asset identifier
+        :return: `AssetInformation` with strongly typed fields
 
         :example:
             >>> asset_manager = AssetManager(algod_client)
-            >>> asset_info = asset_manager.get_by_id(1234567890)
+            >>> info = asset_manager.get_by_id(1234567890)
+            >>> print(info.total, info.creator, info.unit_name)
         """
-        asset = self._algod.asset_info(asset_id)
-        assert isinstance(asset, dict)
-        params = asset["params"]
+        asset = self._algod.asset_by_id(asset_id)
+        params = asset.params
 
         return AssetInformation(
             asset_id=asset_id,
-            total=params["total"],
-            decimals=params["decimals"],
-            asset_name=params.get("name"),
-            asset_name_b64=params.get("name-b64"),
-            unit_name=params.get("unit-name"),
-            unit_name_b64=params.get("unit-name-b64"),
-            url=params.get("url"),
-            url_b64=params.get("url-b64"),
-            creator=params["creator"],
-            manager=params.get("manager"),
-            clawback=params.get("clawback"),
-            freeze=params.get("freeze"),
-            reserve=params.get("reserve"),
-            default_frozen=params.get("default-frozen"),
-            metadata_hash=params.get("metadata-hash"),
+            total=params.total,
+            decimals=params.decimals,
+            asset_name=params.name,
+            asset_name_b64=params.name_b64,
+            unit_name=params.unit_name,
+            unit_name_b64=params.unit_name_b64,
+            url=params.url,
+            url_b64=params.url_b64,
+            creator=params.creator,
+            manager=params.manager,
+            clawback=params.clawback,
+            freeze=params.freeze,
+            reserve=params.reserve,
+            default_frozen=bool(params.default_frozen) if params.default_frozen is not None else None,
+            metadata_hash=params.metadata_hash,
         )
 
     def get_account_information(
-        self, sender: str | SigningAccount | TransactionSigner, asset_id: int
+        self, sender: str | AddressWithTransactionSigner, asset_id: int
     ) -> AccountAssetInformation:
         """Returns the given sender account's asset holding for a given asset.
 
         :param sender: The address of the sender/account to look up
         :param asset_id: The ID of the asset to return a holding for
         :return: The account asset holding information
+        :raises ValueError: If the account has no holding for the specified asset
 
         :example:
             >>> asset_manager = AssetManager(algod_client)
             >>> account_asset_info = asset_manager.get_account_information(sender, asset_id)
         """
         address = self._get_address_from_sender(sender)
-        info = self._algod.account_asset_info(address, asset_id)
-        assert isinstance(info, dict)
+        info = self._algod.account_asset_information(address, asset_id)
+        holding = info.asset_holding
+        if holding is None:
+            raise ValueError("Account has no holding for the specified asset")
 
         return AccountAssetInformation(
             asset_id=asset_id,
-            balance=info["asset-holding"]["amount"],
-            frozen=info["asset-holding"]["is-frozen"],
-            round=info["round"],
+            balance=holding.amount,
+            # TODO: resolve bool val resolution in api generator
+            frozen=bool(holding.is_frozen) if holding.is_frozen is not None else False,
+            round=info.round_,
         )
 
     def bulk_opt_in(  # noqa: PLR0913
@@ -198,7 +205,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TRANSACTION_GROUP_SIZE):
             composer = self._new_group()
 
             for asset_id in asset_group:
@@ -269,7 +276,7 @@ class AssetManager:
         results: list[BulkAssetOptInOutResult] = []
         sender = self._get_address_from_sender(account)
 
-        for asset_group in _chunk_array(asset_ids, algosdk.constants.TX_GROUP_LIMIT):
+        for asset_group in _chunk_array(asset_ids, MAX_TRANSACTION_GROUP_SIZE):
             composer = self._new_group()
 
             not_opted_in_asset_ids: list[int] = []
@@ -322,13 +329,14 @@ class AssetManager:
         return results
 
     @staticmethod
-    def _get_address_from_sender(sender: str | SigningAccount | TransactionSigner) -> str:
+    def _get_address_from_sender(
+        sender: str | AddressWithTransactionSigner | AddressWithSigners,
+    ) -> str:
         if isinstance(sender, str):
             return sender
-        if isinstance(sender, SigningAccount):
-            return sender.address
-        if isinstance(sender, AccountTransactionSigner):
-            return str(algosdk.account.address_from_private_key(sender.private_key))
+        # Both AddressWithSigners and AddressWithTransactionSigner now use 'addr'
+        if isinstance(sender, AddressWithSigners | AddressWithTransactionSigner):
+            return sender.addr
         raise ValueError(f"Unsupported sender type: {type(sender)}")
 
 

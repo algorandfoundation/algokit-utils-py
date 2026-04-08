@@ -1,17 +1,17 @@
 from pathlib import Path
 
-import algosdk
+import nacl.signing
 import pytest
-from algosdk.atomic_transaction_composer import TransactionWithSigner
-from algosdk.transaction import OnComplete, PaymentTxn
 
-from algokit_utils import SigningAccount
+from algokit_common import address_from_public_key, get_application_address
+from algokit_transact import OnApplicationComplete
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import AppClient, AppClientMethodCallParams, FundAppAccountParams
 from algokit_utils.applications.app_factory import AppFactoryCreateMethodCallParams
 from algokit_utils.errors.logic_error import LogicError
 from algokit_utils.models.amount import AlgoAmount
-from algokit_utils.transactions.transaction_composer import PaymentParams
+from algokit_utils.transactions.transaction_composer import AssetCreateParams, PaymentParams, TransactionWithSigner
 
 
 @pytest.fixture
@@ -20,7 +20,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algo(100))
@@ -39,12 +39,12 @@ class BaseResourcePackerTest:
     version: int
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         # Create app based on version
         spec = load_arc32_spec(self.version)
         factory = algorand.client.get_app_factory(
             app_spec=spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         self.app_client, _ = factory.send.create(params=AppFactoryCreateMethodCallParams(method="createApplication"))
         self.app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(2334300)))
@@ -53,7 +53,7 @@ class BaseResourcePackerTest:
         )
 
     @pytest.fixture
-    def external_client(self, algorand: AlgorandClient, funded_account: SigningAccount) -> AppClient:
+    def external_client(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> AppClient:
         external_spec = (
             Path(__file__).parent.parent / "artifacts" / "resource-packer" / "ExternalApp.arc32.json"
         ).read_text()
@@ -61,16 +61,16 @@ class BaseResourcePackerTest:
             app_spec=external_spec,
             app_id=int(self.app_client.get_global_state()["externalAppID"].value),
             app_name="external",
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
 
     def test_accounts_address_balance_invalid_ref(self, algorand: AlgorandClient) -> None:
         random_account = algorand.account.random()
-        with pytest.raises(LogicError, match=f"unavailable Account {random_account.address}"):
+        with pytest.raises(LogicError, match=f"unavailable Account {random_account.addr}"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
-                    args=[random_account.address],
+                    args=[random_account.addr],
                 ),
                 send_params={
                     "populate_app_call_resources": False,
@@ -82,7 +82,7 @@ class BaseResourcePackerTest:
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="addressBalance",
-                args=[random_account.address],
+                args=[random_account.addr],
             ),
         )
 
@@ -148,20 +148,20 @@ class BaseResourcePackerTest:
             ),
         )
 
-    def test_cross_product_reference_has_asset(self, funded_account: SigningAccount) -> None:
+    def test_cross_product_reference_has_asset(self, funded_account: AddressWithSigners) -> None:
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="hasAsset",
-                args=[funded_account.address],
+                args=[funded_account.addr],
             ),
         )
 
-    def test_cross_product_reference_invalid_external_local(self, funded_account: SigningAccount) -> None:
+    def test_cross_product_reference_invalid_external_local(self, funded_account: AddressWithSigners) -> None:
         with pytest.raises(LogicError, match="unavailable App"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="externalLocal",
-                    args=[funded_account.address],
+                    args=[funded_account.addr],
                 ),
                 send_params={
                     "populate_app_call_resources": False,
@@ -169,13 +169,13 @@ class BaseResourcePackerTest:
             )
 
     def test_cross_product_reference_external_local(
-        self, external_client: AppClient, funded_account: SigningAccount, algorand: AlgorandClient
+        self, external_client: AppClient, funded_account: AddressWithSigners, algorand: AlgorandClient
     ) -> None:
         algorand.send.app_call_method_call(
             external_client.params.opt_in(
                 AppClientMethodCallParams(
                     method="optInToApplication",
-                    sender=funded_account.address,
+                    sender=funded_account.addr,
                 ),
             ),
         )
@@ -184,8 +184,8 @@ class BaseResourcePackerTest:
             self.app_client.params.call(
                 AppClientMethodCallParams(
                     method="externalLocal",
-                    args=[funded_account.address],
-                    sender=funded_account.address,
+                    args=[funded_account.addr],
+                    sender=funded_account.addr,
                 ),
             ),
         )
@@ -193,11 +193,13 @@ class BaseResourcePackerTest:
     def test_address_balance_invalid_account_reference(
         self,
     ) -> None:
+        signing_key = nacl.signing.SigningKey.generate()
+        test_address = address_from_public_key(signing_key.verify_key.encode())
         with pytest.raises(LogicError, match="unavailable Account"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
-                    args=[algosdk.account.generate_account()[1]],
+                    args=[test_address],
                 ),
                 send_params={
                     "populate_app_call_resources": False,
@@ -207,20 +209,22 @@ class BaseResourcePackerTest:
     def test_address_balance(
         self,
     ) -> None:
+        signing_key = nacl.signing.SigningKey.generate()
+        test_address = address_from_public_key(signing_key.verify_key.encode())
         self.app_client.send.call(
             AppClientMethodCallParams(
                 method="addressBalance",
-                args=[algosdk.account.generate_account()[1]],
-                on_complete=OnComplete.NoOpOC,
+                args=[test_address],
+                on_complete=OnApplicationComplete.NoOp,
             ),
         )
 
-    def test_cross_product_reference_invalid_has_asset(self, funded_account: SigningAccount) -> None:
+    def test_cross_product_reference_invalid_has_asset(self, funded_account: AddressWithSigners) -> None:
         with pytest.raises(LogicError, match="unavailable Asset"):
             self.app_client.send.call(
                 AppClientMethodCallParams(
                     method="hasAsset",
-                    args=[funded_account.address],
+                    args=[funded_account.addr],
                 ),
                 send_params={
                     "populate_app_call_resources": False,
@@ -244,12 +248,12 @@ class TestResourcePackerMixed:
     """Test resource packing with mixed AVM versions"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         # Create v8 app
         v8_spec = load_arc32_spec(8)
         v8_factory = algorand.client.get_app_factory(
             app_spec=v8_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         self.v8_client, _ = v8_factory.send.create(params=AppFactoryCreateMethodCallParams(method="createApplication"))
 
@@ -257,13 +261,13 @@ class TestResourcePackerMixed:
         v9_spec = load_arc32_spec(9)
         v9_factory = algorand.client.get_app_factory(
             app_spec=v9_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         self.v9_client, _ = v9_factory.send.create(params=AppFactoryCreateMethodCallParams(method="createApplication"))
 
-    def test_same_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def test_same_account(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         rekeyed_to = algorand.account.random()
-        algorand.account.rekey_account(funded_account.address, rekeyed_to)
+        algorand.account.rekey_account(funded_account.addr, rekeyed_to)
 
         random_account = algorand.account.random()
 
@@ -272,8 +276,8 @@ class TestResourcePackerMixed:
             self.v8_client.params.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
-                    args=[random_account.address],
-                    sender=funded_account.address,
+                    args=[random_account.addr],
+                    sender=funded_account.addr,
                     signer=rekeyed_to.signer,
                 ),
             ),
@@ -282,20 +286,25 @@ class TestResourcePackerMixed:
             self.v9_client.params.call(
                 AppClientMethodCallParams(
                     method="addressBalance",
-                    args=[random_account.address],
-                    sender=funded_account.address,
+                    args=[random_account.addr],
+                    sender=funded_account.addr,
                     signer=rekeyed_to.signer,
                 )
             )
         )
 
         result = txn_group.send()
+        transactions = result.transactions
 
-        v8_accounts = getattr(result.transactions[0].application_call, "accounts", None) or []
-        v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
+        v8_accounts = (
+            transactions[0].application_call.account_references if transactions[0].application_call else None
+        ) or []
+        v9_accounts = (
+            transactions[1].application_call.account_references if transactions[1].application_call else None
+        ) or []
         assert len(v8_accounts) + len(v9_accounts) == 1
 
-    def test_app_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def test_app_account(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         self.v8_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(328500)))
         self.v8_client.send.call(
             AppClientMethodCallParams(
@@ -305,7 +314,7 @@ class TestResourcePackerMixed:
         )
 
         external_app_id = int(self.v8_client.get_global_state()["externalAppID"].value)
-        external_app_addr = algosdk.logic.get_application_address(external_app_id)
+        external_app_addr = get_application_address(external_app_id)
 
         txn_group = algorand.send.new_group()
         txn_group.add_app_call_method_call(
@@ -313,7 +322,7 @@ class TestResourcePackerMixed:
                 AppClientMethodCallParams(
                     method="externalAppCall",
                     static_fee=AlgoAmount.from_micro_algo(2_000),
-                    sender=funded_account.address,
+                    sender=funded_account.addr,
                 ),
             ),
         )
@@ -322,15 +331,18 @@ class TestResourcePackerMixed:
                 AppClientMethodCallParams(
                     method="addressBalance",
                     args=[external_app_addr],
-                    sender=funded_account.address,
+                    sender=funded_account.addr,
                 )
             )
         )
 
         result = txn_group.send()
+        transactions = result.transactions
 
-        v8_apps = getattr(result.transactions[0].application_call, "foreign_apps", None) or []
-        v9_accounts = getattr(result.transactions[1].application_call, "accounts", None) or []
+        v8_apps = (transactions[0].application_call.app_references if transactions[0].application_call else None) or []
+        v9_accounts = (
+            transactions[1].application_call.account_references if transactions[1].application_call else None
+        ) or []
         assert len(v8_apps) + len(v9_accounts) == 1
 
 
@@ -338,13 +350,13 @@ class TestResourcePackerMeta:
     """Test meta aspects of resource packing"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         external_spec = (
             Path(__file__).parent.parent / "artifacts" / "resource-packer" / "ExternalApp.arc32.json"
         ).read_text()
         factory = algorand.client.get_app_factory(
             app_spec=external_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         self.external_client, _ = factory.send.create(
             params=AppFactoryCreateMethodCallParams(method="createApplication")
@@ -357,14 +369,15 @@ class TestResourcePackerMeta:
                     method="error",
                 ),
             )
-        assert "Error resolving execution info via simulate in transaction 0" in exc_info.value.logic_error_str
+        assert "Error resolving execution info via simulate in transaction [0]" in exc_info.value.logic_error_str
 
-    def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
-        payment = PaymentTxn(
-            sender=funded_account.address,
-            receiver=funded_account.address,
-            amt=0,
-            sp=algorand.client.algod.suggested_params(),
+    def test_box_with_txn_arg(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+        payment = algorand.create_transaction.payment(
+            PaymentParams(
+                sender=funded_account.addr,
+                receiver=funded_account.addr,
+                amount=AlgoAmount.from_micro_algo(0),
+            )
         )
         payment_with_signer = TransactionWithSigner(payment, funded_account.signer)
 
@@ -388,11 +401,21 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
+        assert (
+            len(
+                (
+                    result.transaction.application_call.account_references
+                    if result.transaction.application_call
+                    else None
+                )
+                or []
+            )
+            == 0
+        )
 
-    def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def test_rekeyed_account(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         auth_addr = algorand.account.random()
-        algorand.account.rekey_account(funded_account.address, auth_addr)
+        algorand.account.rekey_account(funded_account.addr, auth_addr)
 
         self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_001)))
 
@@ -404,9 +427,19 @@ class TestResourcePackerMeta:
         )
         result = self.external_client.send.call(AppClientMethodCallParams(method="senderAssetBalance"))
 
-        assert len(getattr(result.transaction.application_call, "accounts", None) or []) == 0
+        assert (
+            len(
+                (
+                    result.transaction.application_call.account_references
+                    if result.transaction.application_call
+                    else None
+                )
+                or []
+            )
+            == 0
+        )
 
-    def test_create_box_in_new_app(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def test_create_box_in_new_app(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         self.external_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(200_000)))
 
         result = self.external_client.send.call(
@@ -415,7 +448,7 @@ class TestResourcePackerMeta:
                 args=[
                     algorand.create_transaction.payment(
                         PaymentParams(
-                            sender=funded_account.address,
+                            sender=funded_account.addr,
                             receiver=self.external_client.app_address,
                             amount=AlgoAmount.from_algo(1),
                         )
@@ -425,16 +458,20 @@ class TestResourcePackerMeta:
             ),
         )
 
-        box_ref = result.transaction.application_call.boxes[0] if result.transaction.application_call.boxes else None
+        box_ref = (
+            result.transaction.application_call.box_references[0]
+            if result.transaction.application_call.box_references
+            else None
+        )
         assert box_ref is not None
-        assert box_ref.app_index == 0  # type: ignore  # noqa: PGH003
+        assert box_ref.app_id == 0
 
 
-def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
     spec = (Path(__file__).parent.parent / "artifacts" / "testing_app_puya" / "app_spec.arc32.json").read_text()
     factory = algorand.client.get_app_factory(
         app_spec=spec,
-        default_sender=funded_account.address,
+        default_sender=funded_account.addr,
     )
     app_client, _ = factory.send.bare.create()
     app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_algo(1)))
@@ -453,3 +490,129 @@ def test_inner_txn_with_box(algorand: AlgorandClient, funded_account: SigningAcc
     )
 
     assert algorand.app.get_box_value(external_app_id, "box") == b"foo"
+
+
+class TestResourcePackerDeterminism:
+    """Test that resource population produces deterministic ordering."""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
+        # Load ARC-56 spec for the main contract
+        spec_path = (
+            Path(__file__).parent.parent / "artifacts" / "resource-packer-puya" / "ResourcePackerPuya.arc56.json"
+        )
+        spec = spec_path.read_text()
+
+        factory = algorand.client.get_app_factory(
+            app_spec=spec,
+            default_sender=funded_account.addr,
+        )
+        self.app_client, _ = factory.send.create(
+            params=AppFactoryCreateMethodCallParams(
+                method="create_application",
+                note=b"main_app",
+            )
+        )
+        # Fund app account for box storage MBR
+        self.app_client.fund_app_account(FundAppAccountParams(amount=AlgoAmount.from_micro_algo(500_000)))
+
+    def test_order_is_deterministic(  # noqa: C901
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners
+    ) -> None:
+        """Test that resource population produces consistent ordering across multiple iterations.
+
+        The non-determinism comes from the simulate endpoint, not from input order.
+        This test builds the same transaction group 100 times and verifies that
+        after resource population, the resource references are always in the same order.
+        """
+        # Create 4 random accounts
+        accounts = [algorand.account.random().addr for _ in range(4)]
+
+        # Create 4 assets
+        assets = []
+        for i in range(4):
+            result = algorand.send.asset_create(
+                AssetCreateParams(
+                    sender=funded_account.addr,
+                    total=1,
+                    note=f"asset{i}".encode(),
+                )
+            )
+            assets.append(result.asset_id)
+
+        # Create 4 external apps using the ExternalAppPuya contract
+        external_spec = (
+            Path(__file__).parent.parent / "artifacts" / "resource-packer-puya" / "ExternalAppPuya.arc56.json"
+        ).read_text()
+        external_apps = []
+        for i in range(4):
+            factory = algorand.client.get_app_factory(
+                app_spec=external_spec,
+                default_sender=funded_account.addr,
+            )
+            client, _ = factory.send.create(
+                params=AppFactoryCreateMethodCallParams(
+                    method="create_application",
+                    note=f"app{i}".encode(),
+                )
+            )
+            external_apps.append(client.app_id)
+
+        def get_resources() -> dict:
+            """Build and populate a transaction group, returning the resource references."""
+            # Create a fresh composer for each iteration
+            composer = algorand.new_group()
+
+            # Add the many_resources call
+            composer.add_app_call_method_call(
+                self.app_client.params.call(
+                    AppClientMethodCallParams(
+                        method="many_resources",
+                        args=[
+                            accounts,  # address[4]
+                            assets,  # uint64[4]
+                            external_apps,  # uint64[4]
+                            [1, 2, 3, 4],  # uint8[4] box keys
+                        ],
+                        static_fee=AlgoAmount.from_micro_algo(10_000),
+                    ),
+                ),
+            )
+
+            # Add dummy transactions to fill the group
+            for i in range(10):
+                composer.add_app_call_method_call(
+                    self.app_client.params.call(
+                        AppClientMethodCallParams(
+                            method="dummy",
+                            note=f"{i}".encode(),  # Different note each time to make txns unique
+                        )
+                    )
+                )
+
+            # Build (which triggers simulation and resource population)
+            build_result = composer.build()
+
+            # Extract all resources from all transactions
+            resources = []
+            for txn in build_result.transactions:
+                app_call = txn.application_call
+                if app_call:
+                    for acct in app_call.account_references or []:
+                        resources.append(f"acct:{acct}")
+                    for asset in app_call.asset_references or []:
+                        resources.append(f"asset:{asset}")
+                    for app in app_call.app_references or []:
+                        resources.append(f"app:{app}")
+                    for box in app_call.box_references or []:
+                        resources.append(f"box:{box.app_id}-{box.name}")
+
+            return {"resources": tuple(resources)}
+
+        # Collect resources from 100 iterations
+        all_resources = [get_resources() for _ in range(100)]
+
+        # Verify all iterations produced identical results
+        first_result = all_resources[0]
+        for i, result in enumerate(all_resources[1:], 1):
+            assert result == first_result, f"Iteration {i} produced different resource ordering"

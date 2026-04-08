@@ -1,0 +1,10 @@
+{
+  "consensus_version": "https://github.com/algorandfoundation/specs/tree/953304de35264fc3ef91bcd05c123242015eeaed",
+  "fee": 0,
+  "first_valid": 58979813,
+  "flat_fee": false,
+  "genesis_hash": "SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI=",
+  "genesis_id": "testnet-v1.0",
+  "last_valid": 58980813,
+  "min_fee": 1000
+}

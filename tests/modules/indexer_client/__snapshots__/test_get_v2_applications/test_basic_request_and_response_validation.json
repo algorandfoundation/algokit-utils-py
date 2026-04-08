@@ -1,0 +1,69 @@
+{
+  "applications": [
+    {
+      "created_at_round": 8857943,
+      "deleted": false,
+      "deleted_at_round": null,
+      "id_": 12174882,
+      "params": {
+        "approval_program": "AiAFAAQBBQImCgdDcmVhdG9yCFJlZ0JlZ2luBlJlZ0VuZAlWb3RlQmVnaW4HVm90ZUVuZAhyZWdpc3RlcgR2b3RlBXZvdGVkCmNhbmRpZGF0ZWEKY2FuZGlkYXRlYiIxGBJBACYoMQBnMRsjEkEA9Sk2GgAXZyo2GgEXZys2GgIXZycENhoDF2ckQyUxGRJBAAooZDEAEkEAyyRDIzEZEkEACihkMQASQQC6JEMhBDEZEkAArjYaACcFEkAAkDYaACcGEkAAAiJDMgYrZA8yBicEZA4QQQCNIjEYYUEAhiIhBHAASCQPQQB7MgQhBBJBAHMzARAjEkEAayhkMwEUEkEAYjMBESEEEkEAWTMBEiQSQQBRIjEYJwdjQAAuSDYaAScIEjYaAScJEhFBADciNhoBZUAAAkgiJAg1ATYaATQBZyInBzYaAWYkQ0gkQzIGKWQPMgYqZA4QJDEZEhBBAAQkQyRDIkMkQw==",
+        "clear_state_program": "AiABASJD",
+        "creator": "VHRSBAJWA7FAK4AYWKAP3GQFTJNXZZISD6ZBPPGE7OJWRRCOWZPDYMBIY4",
+        "extra_program_pages": null,
+        "global_state": [
+          {
+            "key": "Vm90ZUVuZA==",
+            "value": {
+              "bytes_": "",
+              "type_": 2,
+              "uint": 100
+            }
+          },
+          {
+            "key": "UmVnRW5k",
+            "value": {
+              "bytes_": "",
+              "type_": 2,
+              "uint": 20
+            }
+          },
+          {
+            "key": "Q3JlYXRvcg==",
+            "value": {
+              "bytes_": "qeMggTYHygVwGLKA/ZoFmlt85RIfshe8xPuTaMROtl4=",
+              "type_": 1,
+              "uint": 0
+            }
+          },
+          {
+            "key": "UmVnQmVnaW4=",
+            "value": {
+              "bytes_": "",
+              "type_": 2,
+              "uint": 1
+            }
+          },
+          {
+            "key": "Vm90ZUJlZ2lu",
+            "value": {
+              "bytes_": "",
+              "type_": 2,
+              "uint": 20
+            }
+          }
+        ],
+        "global_state_schema": {
+          "num_byte_slices": 1,
+          "num_uints": 6
+        },
+        "local_state_schema": {
+          "num_byte_slices": 1,
+          "num_uints": 0
+        },
+        "version": null
+      }
+    }
+  ],
+  "current_round": 57774717,
+  "next_token": "12174882"
+}

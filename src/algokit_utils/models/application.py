@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-import algosdk
-from algosdk.source_map import SourceMap
+from algokit_common import ProgramSourceMap
 
 if TYPE_CHECKING:
     pass
@@ -68,7 +67,7 @@ class CompiledTeal:
     """The compiled hash"""
     compiled_base64_to_bytes: bytes
     """The compiled base64 to bytes"""
-    source_map: algosdk.source_map.SourceMap | None
+    source_map: ProgramSourceMap | None
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -85,7 +84,7 @@ class AppCompilationResult:
 class AppSourceMaps:
     """The source maps for the application"""
 
-    approval_source_map: SourceMap | None = None
+    approval_source_map: ProgramSourceMap | None = None
     """The source map for the approval program"""
-    clear_source_map: SourceMap | None = None
+    clear_source_map: ProgramSourceMap | None = None
     """The source map for the clear state program"""

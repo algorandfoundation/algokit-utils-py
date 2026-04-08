@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from algokit_utils import SigningAccount
+from algokit_transact.signer import AddressWithSigners
 from algokit_utils.algorand import AlgorandClient
 from algokit_utils.applications.app_client import (
     AppClient,
@@ -28,7 +28,7 @@ def algorand() -> AlgorandClient:
 
 
 @pytest.fixture
-def funded_account(algorand: AlgorandClient) -> SigningAccount:
+def funded_account(algorand: AlgorandClient) -> AddressWithSigners:
     new_account = algorand.account.random()
     dispenser = algorand.account.localnet_dispenser()
     algorand.account.ensure_funded(new_account, dispenser, AlgoAmount.from_algo(100))
@@ -39,13 +39,13 @@ class TestCoverAppCallInnerFees:
     """Test covering app call inner transaction fees"""
 
     @pytest.fixture(autouse=True)
-    def setup(self, algorand: AlgorandClient, funded_account: SigningAccount) -> None:
+    def setup(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> None:
         # Load inner fee contract spec
         spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
         inner_fee_spec = json.loads(spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.addr)
 
         # Create 3 app instances
         self.app_client1, _ = factory.send.bare.create(params=AppFactoryCreateParams(note=b"app1"))
@@ -101,7 +101,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_throws_when_max_fee_too_small(self) -> None:
@@ -156,7 +156,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_handling_when_all_inners_covered(self) -> None:
@@ -175,7 +175,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_handling_when_some_inners_covered(self) -> None:
@@ -194,7 +194,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_when_some_inners_have_surplus(self) -> None:
@@ -212,7 +212,7 @@ class TestCoverAppCallInnerFees:
                 "cover_app_call_inner_transaction_fees": True,
             },
         )
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_handling_multiple_app_calls_in_group_with_inners_with_varying_fees(self) -> None:
@@ -241,9 +241,10 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == txn_1_expected_fee
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == txn_1_expected_fee
         self._assert_min_fee(self.app_client1, txn_1_params, txn_1_expected_fee)
-        assert result.transactions[1].raw.fee == txn_2_expected_fee
+        assert wrapped_transactions[1].fee == txn_2_expected_fee
         self._assert_min_fee(self.app_client1, txn_2_params, txn_2_expected_fee)
 
     def test_does_not_alter_static_fee_with_surplus(self) -> None:
@@ -262,7 +263,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
 
     def test_alters_fee_with_large_inner_surplus_pooling(self) -> None:
         """Test fee handling with large inner fee surplus pooling to lower siblings"""
@@ -280,7 +281,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_partial_inner_surplus_pooling(self) -> None:
@@ -299,7 +300,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_large_inner_surplus_no_pooling(self) -> None:
@@ -318,7 +319,7 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     def test_alters_fee_with_multiple_inner_surplus_poolings_to_lower_siblings(self) -> None:
@@ -336,10 +337,10 @@ class TestCoverAppCallInnerFees:
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
-        assert result.transaction.raw.fee == expected_fee
+        assert result.transaction.fee == expected_fee
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
-    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: SigningAccount) -> None:
+    def test_does_not_alter_fee_when_group_covers_inner_fees(self, funded_account: AddressWithSigners) -> None:
         """Test that fee is not altered when another transaction in group covers inner fees"""
 
         expected_fee = 8000
@@ -348,8 +349,8 @@ class TestCoverAppCallInnerFees:
             self.app_client1.algorand.new_group()
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(expected_fee),
                 )
@@ -366,12 +367,13 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == expected_fee
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == expected_fee
         # We could technically reduce the below to 0, however it adds more complexity
         # and is probably unlikely to be a common use case
-        assert result.transactions[1].raw.fee == 1000
+        assert wrapped_transactions[1].fee == 1000
 
-    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: SigningAccount) -> None:
+    def test_allocates_surplus_fees_to_most_constrained_first(self, funded_account: AddressWithSigners) -> None:
         """Test that surplus fees are allocated to the most fee constrained transaction first"""
 
         result = (
@@ -387,16 +389,16 @@ class TestCoverAppCallInnerFees:
             )
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(7500),
                 )
             )
             .add_payment(
                 params=PaymentParams(
-                    sender=funded_account.address,
-                    receiver=funded_account.address,
+                    sender=funded_account.addr,
+                    receiver=funded_account.addr,
                     amount=AlgoAmount.from_micro_algo(0),
                     static_fee=AlgoAmount.from_micro_algo(0),
                 )
@@ -404,22 +406,23 @@ class TestCoverAppCallInnerFees:
             .send({"cover_app_call_inner_transaction_fees": True})
         )
 
-        assert result.transactions[0].raw.fee == 1500
-        assert result.transactions[1].raw.fee == 7500
-        assert result.transactions[2].raw.fee == 0
+        wrapped_transactions = result.transactions
+        assert wrapped_transactions[0].fee == 1500
+        assert wrapped_transactions[1].fee == 7500
+        assert wrapped_transactions[2].fee == 0
         assert result.group_id != ""
-        for txn in result.transactions:
-            assert txn.raw.group is not None
-            assert base64.b64encode(txn.raw.group).decode("utf-8") == result.group_id
+        for txn in wrapped_transactions:
+            assert txn.group is not None
+            assert base64.b64encode(txn.group).decode("utf-8") == result.group_id
 
-    def test_handles_nested_abi_method_calls(self, funded_account: SigningAccount) -> None:
+    def test_handles_nested_abi_method_calls(self, funded_account: AddressWithSigners) -> None:
         """Test fee handling with nested ABI method calls"""
 
         # Create nested contract app
         app_spec = (Path(__file__).parent.parent / "artifacts" / "nested_contract" / "application.json").read_text()
         nested_factory = self.app_client1.algorand.client.get_app_factory(
             app_spec=app_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         nested_client, _ = nested_factory.send.create(
             params=AppFactoryCreateMethodCallParams(method="createApplication")
@@ -435,8 +438,8 @@ class TestCoverAppCallInnerFees:
         )
 
         payment_params = PaymentParams(
-            sender=funded_account.address,
-            receiver=funded_account.address,
+            sender=funded_account.addr,
+            receiver=funded_account.addr,
             amount=AlgoAmount.from_micro_algo(0),
             static_fee=AlgoAmount.from_micro_algo(1500),
         )
@@ -453,9 +456,9 @@ class TestCoverAppCallInnerFees:
         result = nested_client.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
         assert len(result.transactions) == 3
-        assert result.transactions[0].raw.fee == 1500
-        assert result.transactions[1].raw.fee == 3500
-        assert result.transactions[2].raw.fee == expected_fee
+        assert result.transactions[0].fee == 1500
+        assert result.transactions[1].fee == 3500
+        assert result.transactions[2].fee == expected_fee
 
         self._assert_min_fee(
             nested_client,
@@ -496,14 +499,14 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_transaction_fees": True})
             )
 
-    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: SigningAccount) -> None:
+    def test_throws_when_nested_max_fee_below_calculated(self, funded_account: AddressWithSigners) -> None:
         """Test that error is thrown when nested max fee is below calculated fee"""
 
         # Create nested contract app
         app_spec = (Path(__file__).parent.parent / "artifacts" / "nested_contract" / "application.json").read_text()
         nested_factory = self.app_client1.algorand.client.get_app_factory(
             app_spec=app_spec,
-            default_sender=funded_account.address,
+            default_sender=funded_account.addr,
         )
         nested_client, _ = nested_factory.send.create(
             params=AppFactoryCreateMethodCallParams(method="createApplication")
@@ -526,8 +529,8 @@ class TestCoverAppCallInnerFees:
                     args=[
                         self.app_client1.algorand.create_transaction.payment(
                             PaymentParams(
-                                sender=funded_account.address,
-                                receiver=funded_account.address,
+                                sender=funded_account.addr,
+                                receiver=funded_account.addr,
                                 amount=AlgoAmount.from_micro_algo(0),
                             )
                         ),
@@ -570,7 +573,7 @@ class TestCoverAppCallInnerFees:
                 .send({"cover_app_call_inner_transaction_fees": True})
             )
 
-    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: SigningAccount) -> None:
+    def test_throws_when_non_app_call_static_fee_too_low(self, funded_account: AddressWithSigners) -> None:
         """Test that error is thrown when static fee for non-app-call transaction is too low"""
 
         with pytest.raises(
@@ -599,8 +602,8 @@ class TestCoverAppCallInnerFees:
                 )
                 .add_payment(
                     params=PaymentParams(
-                        sender=funded_account.address,
-                        receiver=funded_account.address,
+                        sender=funded_account.addr,
+                        receiver=funded_account.addr,
                         amount=AlgoAmount.from_micro_algo(0),
                         static_fee=AlgoAmount.from_micro_algo(500),
                     )
@@ -619,8 +622,8 @@ class TestCoverAppCallInnerFees:
         )
         result = self.app_client1.send.call(params, send_params={"cover_app_call_inner_transaction_fees": True})
 
-        assert result.transaction.raw.fee == expected_fee
-        assert len(result.confirmation.get("inner-txns", [])) == 9  # type: ignore[union-attr]
+        assert result.transaction.fee == expected_fee
+        assert len(result.confirmation.inner_txns or []) == 9
         self._assert_min_fee(self.app_client1, params, expected_fee)
 
     @pytest.mark.parametrize("cover_inner_fees", [True, False])
@@ -637,8 +640,8 @@ class TestCoverAppCallInnerFees:
         )
 
         # No op-up inner transactions needed regardless of fee coverage setting
-        assert len(result.confirmation.get("inner-txns", [])) == 0  # type: ignore[union-attr]
-        assert result.transaction.raw.fee == 1_000
+        assert len(result.confirmation.inner_txns or []) == 0
+        assert result.transaction.fee == 1_000
         assert len(result.tx_ids) == 1
 
     def test_readonly_alters_fee_handling_inner_transactions(self) -> None:
@@ -666,8 +669,8 @@ class TestCoverAppCallInnerFees:
             },
         )
 
-        assert result.transaction.raw.fee == expected_fee
-        assert len(result.confirmation.get("inner-txns", [])) == 4  # type: ignore[union-attr]
+        assert result.transaction.fee == expected_fee
+        assert len(result.confirmation.inner_txns or []) == 4
         assert len(result.tx_ids) == 1
 
     def test_readonly_throws_when_max_fee_too_small(self) -> None:
@@ -684,7 +687,10 @@ class TestCoverAppCallInnerFees:
             args=[self.app_client2.app_id, self.app_client3.app_id, [1000, 0, 200, 0, [500, 0]]],
             max_fee=AlgoAmount.from_micro_algo(2000),
         )
-        with pytest.raises(ValueError, match="Fees were too small. You may need to increase the transaction `maxFee`."):
+        with pytest.raises(
+            ValueError,
+            match=r"Fees were too small\. You may need to increase the transaction `maxFee`\.",
+        ):
             self.app_client1.send.call(
                 params,
                 send_params={
@@ -716,27 +722,27 @@ class TestAppDeployerFees:
         return algorand
 
     @pytest.fixture
-    def inner_app_id(self, algorand: AlgorandClient, funded_account: SigningAccount) -> int:
+    def inner_app_id(self, algorand: AlgorandClient, funded_account: AddressWithSigners) -> int:
         # Load inner fee contract spec
         spec_path = Path(__file__).parent.parent / "artifacts" / "inner-fee" / "application.json"
         inner_fee_spec = json.loads(spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=inner_fee_spec, default_sender=funded_account.addr)
 
         # Create app
         app_client, _ = factory.send.bare.create()
         return app_client.app_id
 
     def test_delete_abi_inner_app_call_fees_should_be_covered(
-        self, algorand: AlgorandClient, funded_account: SigningAccount, inner_app_id: int
+        self, algorand: AlgorandClient, funded_account: AddressWithSigners, inner_app_id: int
     ) -> None:
         # contract spec
         contract_spec_path = Path(__file__).parent.parent / "artifacts" / "delete_abi_with_inner" / "application.json"
         contract_spec = json.loads(contract_spec_path.read_text())
 
         # Create app factory
-        factory = algorand.client.get_app_factory(app_spec=contract_spec, default_sender=funded_account.address)
+        factory = algorand.client.get_app_factory(app_spec=contract_spec, default_sender=funded_account.addr)
 
         # Deploy the app and fund the account
         app_client, _ = factory.deploy(
