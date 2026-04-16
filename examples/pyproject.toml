@@ -6,7 +6,7 @@ dependencies = [
   "algokit-utils",
   "keyring",
   "boto3",
-  "dotenv>=0.9.9",
+  "python-dotenv>=1.2.2",
 ]
 
 [build-system]
