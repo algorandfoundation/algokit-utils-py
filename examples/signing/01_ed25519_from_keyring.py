@@ -68,8 +68,8 @@ def setup_keyring_secret(keyring_instance: KeyringProtocol) -> None:
     print_info(f"Generated mnemonic: {' '.join(mnemonic.split()[:3])}...")
 
     # Store in keyring
-    keyring_instance.set_password("algorand", MNEMONIC_NAME, mnemonic)
-    print_info(f"Stored mnemonic in keyring (service='algorand', account='{MNEMONIC_NAME}')")
+    keyring_instance.set_password("algokit-examples", MNEMONIC_NAME, mnemonic)
+    print_info(f"Stored mnemonic in keyring (service='algokit-examples', account='{MNEMONIC_NAME}')")
 
 
 def main() -> None:

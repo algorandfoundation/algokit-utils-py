@@ -105,8 +105,8 @@ def setup_keyring_hd_secret(keyring_instance: KeyringProtocol) -> bytearray:
     # Store only the first 64 bytes in keyring (chain code not needed for signing)
     esk_64 = bytes(esk[:64])
     esk_b64 = base64.b64encode(esk_64).decode()
-    keyring_instance.set_password("algorand", SECRET_NAME, esk_b64)
-    print_info(f"Stored first 64 bytes of extended key in keyring (service='algorand', account='{SECRET_NAME}')")
+    keyring_instance.set_password("algokit-examples", SECRET_NAME, esk_b64)
+    print_info(f"Stored first 64 bytes of extended key in keyring (service='algokit-examples', account='{SECRET_NAME}')")
 
     return esk
 
