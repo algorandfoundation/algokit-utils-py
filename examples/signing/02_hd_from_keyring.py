@@ -25,8 +25,8 @@ Prerequisites:
 import base64
 import secrets
 
-from shared.mock_keyring import get_keyring, KeyringProtocol
 from shared import print_header, print_info, print_step, print_success
+from shared.mock_keyring import KeyringProtocol, get_keyring
 
 from algokit_crypto import (
     WrappedHdExtendedPrivateKey,
