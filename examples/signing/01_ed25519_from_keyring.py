@@ -86,7 +86,7 @@ def main() -> None:
     # Step 2: Create wrapped seed instance
     print_step(2, "Create wrapped seed implementation")
 
-    wrapped_seed = KeyringWrappedSeed("algorand", MNEMONIC_NAME, keyring_instance)
+    wrapped_seed = KeyringWrappedSeed("algokit-examples", MNEMONIC_NAME, keyring_instance)
     print_info("Created KeyringWrappedSeed instance")
 
     # Step 3: Derive signing key from wrapped secret

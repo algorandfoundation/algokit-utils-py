@@ -125,7 +125,7 @@ def main() -> None:
     # Step 2: Create wrapped HD key instance
     print_step(2, "Create wrapped HD key implementation")
 
-    wrapped_key = KeyringWrappedHdKey("algorand", SECRET_NAME, keyring_instance)
+    wrapped_key = KeyringWrappedHdKey("algokit-examples", SECRET_NAME, keyring_instance)
     print_info("Created KeyringWrappedHdKey instance")
 
     # Step 3: Derive signing key from wrapped secret
