@@ -1,4 +1,7 @@
-# AlgoKit Utils Python: v5 Migration Guide
+---
+title: "v5 Migration Guide"
+description: "Guide for migrating from algokit-utils-py v4.x to v5.x — from algosdk-dependent to standalone multi-module architecture."
+---
 
 ## Overview
 
