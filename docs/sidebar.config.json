@@ -11,7 +11,8 @@
       { "slug": "concepts/core/account" },
       { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
-      { "slug": "concepts/core/client" }
+      { "slug": "concepts/core/client" },
+      { "slug": "concepts/core/secret-management" }
     ]
   },
   {
@@ -54,6 +55,7 @@
       { "label": "Common Utilities", "slug": "examples/common" },
       { "label": "Indexer Client", "slug": "examples/indexer-client" },
       { "label": "KMD Client", "slug": "examples/kmd-client" },
+      { "label": "Signing", "slug": "examples/signing" },
       { "label": "Transactions", "slug": "examples/transact" }
     ]
   },
