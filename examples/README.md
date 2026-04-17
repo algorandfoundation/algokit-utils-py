@@ -179,6 +179,16 @@ Key Management Daemon operations for wallet and key management.
 | `12_program_signing.py`          | Create delegated logic signatures                  |
 | `13_multisig_program_signing.py` | Create delegated multisig logic signatures         |
 
+### Signing (`signing/`)
+
+Secure secret management and external KMS signing for production-grade security.
+
+| File                         | Description                                                    |
+| ---------------------------- | -------------------------------------------------------------- |
+| `01_ed25519_from_keyring.py` | Store and sign with Ed25519 seed from OS keyring               |
+| `02_hd_from_keyring.py`      | Store and sign with HD extended private key from keyring       |
+| `03_aws_kms.py`              | Sign transactions using AWS KMS (with mock client for testing) |
+
 ### Transact (`transact/`)
 
 Low-level transaction construction and signing.

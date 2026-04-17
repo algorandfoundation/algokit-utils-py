@@ -4,6 +4,9 @@ version = "0.0.0"
 requires-python = ">=3.10"
 dependencies = [
   "algokit-utils",
+  "keyring",
+  "boto3",
+  "python-dotenv>=1.2.2",
 ]
 
 [build-system]
@@ -15,3 +18,8 @@ packages = ["shared"]
 
 [tool.uv.sources]
 algokit-utils = { path = "..", editable = true }
+
+[dependency-groups]
+dev = [
+    "mypy>=1.20.1",
+]

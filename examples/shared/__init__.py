@@ -16,6 +16,7 @@ from .constants import (
     KMD_SERVER,
     KMD_TOKEN,
 )
+from .mock_keyring import KeyringProtocol, get_keyring
 from .utils import (
     cleanup_test_wallet,
     create_algod_client,
@@ -41,7 +42,6 @@ from .utils import (
 )
 
 __all__ = [
-    # Constants
     "ALGOD_PORT",
     "ALGOD_SERVER",
     "ALGOD_TOKEN",
@@ -51,32 +51,27 @@ __all__ = [
     "KMD_PORT",
     "KMD_SERVER",
     "KMD_TOKEN",
+    "KeyringProtocol",
     "cleanup_test_wallet",
-    # Client creation helpers
     "create_algod_client",
     "create_algorand_client",
     "create_indexer_client",
     "create_kmd_client",
     "create_random_account",
-    # KMD helpers
     "create_test_wallet",
-    # Formatting helpers
     "format_algo",
     "format_bytes",
     "format_hex",
     "format_micro_algo",
     "get_account_balance",
-    # Account helpers
     "get_funded_account",
-    # TEAL artifact helpers
+    "get_keyring",
     "load_teal_source",
     "print_error",
-    # Console output helpers
     "print_header",
     "print_info",
     "print_step",
     "print_success",
     "shorten_address",
-    # Transaction helpers
     "wait_for_confirmation",
 ]
