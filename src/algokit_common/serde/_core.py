@@ -531,7 +531,11 @@ def addr(alias: str, *, omit_if_none: bool = True) -> dict[str, object]:
     from algokit_common.constants import ZERO_ADDRESS
 
     def _encode(v: object) -> bytes | None:
-        addr_str = cast(str, v)
+        # Handle AddressWithSigners or other objects with .addr attribute
+        if hasattr(v, "addr"):
+            addr_str = cast(str, v.addr)
+        else:
+            addr_str = cast(str, v)
         # Treat ZERO_ADDRESS as default (omit from output)
         if addr_str == ZERO_ADDRESS:
             return None
