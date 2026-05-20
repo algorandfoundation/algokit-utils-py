@@ -1,27 +1,63 @@
 """Wrapped-secret Ed25519 signing utilities.
 
 Provides functions to derive Ed25519 signing keys from wrapped secrets,
-with memory zeroing for security. Supports both standard Ed25519 seeds
-and HD extended private keys.
+with memory zeroing for security. Supports Ed25519 seeds, HD extended
+private keys, HD mnemonics, and legacy Algorand mnemonics.
 """
 
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
+from typing import Protocol, runtime_checkable
 
 import nacl.bindings
 import nacl.signing
 from exceptiongroup import ExceptionGroup
 from xhd_wallet_api_py import public_key
 
+from algokit_algo25 import seed_from_mnemonic
 from algokit_crypto.ed25519 import ED25519_SEED_SIZE, Ed25519SigningKey, WrappedEd25519Seed
-from algokit_crypto.hd import WrappedHdExtendedPrivateKey
-
-WrappedEd25519Secret = WrappedEd25519Seed | WrappedHdExtendedPrivateKey
+from algokit_crypto.hd import (
+    BIP44_CHANGE,
+    BIP44_COIN_TYPE,
+    BIP44_PURPOSE,
+    WrappedHdExtendedPrivateKey,
+    WrappedHdMnemonic,
+    hd_root_key_from_mnemonic,
+)
 
 ED25519_EXTENDED_PRIVATE_KEY_LENGTH = 96
 
 _ED25519_ORDER = 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+
+# Hardening bit for BIP44 derivation
+_HARDENED_BIT = 0x80000000
+
+
+@runtime_checkable
+class WrappedLegacyMnemonic(Protocol):
+    """Represents a legacy 25-word Algorand mnemonic phrase.
+
+    The ``wrap`` method is optional for implementations where wrapping is handled automatically
+    (e.g., hardware wallets, keyring services).
+    """
+
+    def unwrap_legacy_mnemonic(self) -> str: ...
+    def wrap_legacy_mnemonic(self) -> None:
+        """Optional method to re-wrap the mnemonic after use.
+
+        Defaults to no-op if not implemented.
+        """
+        ...
+
+
+WrappedEd25519Secret = WrappedEd25519Seed | WrappedHdExtendedPrivateKey | WrappedHdMnemonic | WrappedLegacyMnemonic
+
+
+def _harden(index: int) -> int:
+    """Convert a normal index to a hardened index."""
+    return index | _HARDENED_BIT
 
 
 def _assert_ed25519_secret_length(secret: bytearray | bytes, secret_type: str) -> None:
@@ -73,17 +109,135 @@ def _zero_secret(secret: bytearray | None) -> None:
         secret[:] = b"\x00" * len(secret)
 
 
+def _get_wrap_function(wrapped: WrappedEd25519Secret) -> Callable[[], None]:
+    """Get the appropriate wrap function for a wrapped secret.
+
+    Returns a no-op function if the wrap method is not implemented.
+    """
+    # Use hasattr to check for unwrap methods to determine the type
+    # This allows implementations without wrap methods to work
+    if hasattr(wrapped, "unwrap_ed25519_seed"):
+        return getattr(wrapped, "wrap_ed25519_seed", lambda: None)
+    elif hasattr(wrapped, "unwrap_hd_extended_private_key"):
+        return getattr(wrapped, "wrap_hd_extended_private_key", lambda: None)
+    elif hasattr(wrapped, "unwrap_hd_mnemonic"):
+        return getattr(wrapped, "wrap_hd_mnemonic", lambda: None)
+    elif hasattr(wrapped, "unwrap_legacy_mnemonic"):
+        return getattr(wrapped, "wrap_legacy_mnemonic", lambda: None)
+    else:
+        raise ValueError("Invalid WrappedEd25519Secret: unknown type")
+
+
+def _unwrap_and_derive_pubkey(wrapped: WrappedEd25519Secret) -> tuple[bytes, bytearray | None]:
+    """Unwrap the secret and derive the public key.
+
+    Returns:
+        A tuple of (public_key, secret_bytes) where secret_bytes may be None for mnemonic types.
+    """
+    # Use hasattr to check for unwrap methods to determine the type
+    if hasattr(wrapped, "unwrap_ed25519_seed"):
+        secret = wrapped.unwrap_ed25519_seed()
+        _assert_ed25519_secret_length(secret, "ed25519 seed")
+        signing_key = nacl.signing.SigningKey(bytes(secret))
+        pubkey = bytes(signing_key.verify_key)
+        return pubkey, secret
+
+    elif hasattr(wrapped, "unwrap_hd_extended_private_key"):
+        secret = wrapped.unwrap_hd_extended_private_key()
+        _assert_ed25519_secret_length(secret, "HD extended key")
+        pubkey = public_key(secret)
+        return pubkey, secret
+
+    elif hasattr(wrapped, "unwrap_hd_mnemonic"):
+        mnemonic = wrapped.unwrap_hd_mnemonic()
+        # Convert mnemonic to root key and derive account 0, index 0
+        root_key = hd_root_key_from_mnemonic(mnemonic)
+        # Derive the extended private key at the BIP44 path
+        from xhd_wallet_api_py import DerivationScheme, derive_path
+
+        bip44_path = [
+            _harden(BIP44_PURPOSE),
+            _harden(BIP44_COIN_TYPE),
+            _harden(0),  # account 0
+            BIP44_CHANGE,
+            0,  # index 0
+        ]
+        extended_private_key = derive_path(root_key, bip44_path, DerivationScheme.Peikert)
+        pubkey = public_key(extended_private_key)
+        return pubkey, extended_private_key
+
+    elif hasattr(wrapped, "unwrap_legacy_mnemonic"):
+        mnemonic = wrapped.unwrap_legacy_mnemonic()
+        seed = seed_from_mnemonic(mnemonic)
+        signing_key = nacl.signing.SigningKey(seed)
+        pubkey = bytes(signing_key.verify_key)
+        # Return the seed as the secret to be zeroed
+        return pubkey, bytearray(seed)
+
+    else:
+        raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
+
+
+def _unwrap_and_sign(wrapped: WrappedEd25519Secret, data: bytes) -> tuple[bytes, bytearray | None]:
+    """Unwrap the secret and sign the data.
+
+    Returns:
+        A tuple of (signature, secret_bytes) where secret_bytes may be None for mnemonic types.
+    """
+    # Use hasattr to check for unwrap methods to determine the type
+    if hasattr(wrapped, "unwrap_ed25519_seed"):
+        secret = wrapped.unwrap_ed25519_seed()
+        _assert_ed25519_secret_length(secret, "ed25519 seed")
+        sk = nacl.signing.SigningKey(bytes(secret))
+        signed = sk.sign(data)
+        return signed.signature, secret
+
+    elif hasattr(wrapped, "unwrap_hd_extended_private_key"):
+        secret = wrapped.unwrap_hd_extended_private_key()
+        _assert_ed25519_secret_length(secret, "HD extended key")
+        signature = _raw_sign(secret, data)
+        return signature, secret
+
+    elif hasattr(wrapped, "unwrap_hd_mnemonic"):
+        mnemonic = wrapped.unwrap_hd_mnemonic()
+        # Convert mnemonic to root key and derive account 0, index 0
+        root_key = hd_root_key_from_mnemonic(mnemonic)
+        # Sign using the derived path
+        from xhd_wallet_api_py import DerivationScheme, raw_sign
+
+        bip44_path = [
+            _harden(BIP44_PURPOSE),
+            _harden(BIP44_COIN_TYPE),
+            _harden(0),  # account 0
+            BIP44_CHANGE,
+            0,  # index 0
+        ]
+        signature = raw_sign(root_key, bip44_path, data, DerivationScheme.Peikert)
+        # Return None for secret since we don't have direct access to it
+        return signature, None
+
+    elif hasattr(wrapped, "unwrap_legacy_mnemonic"):
+        mnemonic = wrapped.unwrap_legacy_mnemonic()
+        seed = seed_from_mnemonic(mnemonic)
+        sk = nacl.signing.SigningKey(seed)
+        signed = sk.sign(data)
+        # Return the seed as the secret to be zeroed
+        return signed.signature, bytearray(seed)
+
+    else:
+        raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
+
+
 def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret) -> Ed25519SigningKey:
     """Create an Ed25519 signing key from a wrapped secret using PyNaCl.
 
-    Supports both standard Ed25519 seeds (via WrappedEd25519Seed) and
-    HD extended private keys (via WrappedHdExtendedPrivateKey).
+    Supports Ed25519 seeds, HD extended private keys, HD mnemonics (BIP39),
+    and legacy Algorand mnemonics (25-word).
 
     The unwrapped secret is zeroed out after use in ``finally`` blocks.
 
     Args:
-        wrapped: A wrapped secret provider implementing either WrappedEd25519Seed
-            or WrappedHdExtendedPrivateKey.
+        wrapped: A wrapped secret implementing one of the WrappedEd25519Secret protocols.
 
     Returns:
         An Ed25519SigningKey with the derived public key and a signer closure.
@@ -93,12 +247,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
         ExceptionGroup: If both the crypto operation and re-wrap fail.
     """
     # Determine wrap function
-    if isinstance(wrapped, WrappedEd25519Seed):
-        wrap_function = wrapped.wrap_ed25519_seed
-    elif isinstance(wrapped, WrappedHdExtendedPrivateKey):
-        wrap_function = wrapped.wrap_hd_extended_private_key
-    else:
-        raise ValueError("Invalid WrappedEd25519Secret: missing wrap function")
+    wrap_function = _get_wrap_function(wrapped)
 
     # Derive public key
     pubkey: bytes | None = None
@@ -106,17 +255,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
     wrap_error: Exception | None = None
     secret: bytearray | None = None
     try:
-        if isinstance(wrapped, WrappedEd25519Seed):
-            secret = wrapped.unwrap_ed25519_seed()
-            _assert_ed25519_secret_length(secret, "ed25519 seed")
-            signing_key = nacl.signing.SigningKey(bytes(secret))
-            pubkey = bytes(signing_key.verify_key)
-        elif isinstance(wrapped, WrappedHdExtendedPrivateKey):
-            secret = wrapped.unwrap_hd_extended_private_key()
-            _assert_ed25519_secret_length(secret, "HD extended key")
-            pubkey = public_key(secret)
-        else:
-            raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
+        pubkey, secret = _unwrap_and_derive_pubkey(wrapped)
     except Exception as e:
         pubkey_error = e
     finally:
@@ -149,18 +288,7 @@ def pynacl_ed25519_signing_key_from_wrapped_secret(wrapped: WrappedEd25519Secret
         sign_wrap_error: Exception | None = None
         sign_secret: bytearray | None = None
         try:
-            if isinstance(wrapped, WrappedEd25519Seed):
-                sign_secret = wrapped.unwrap_ed25519_seed()
-                _assert_ed25519_secret_length(sign_secret, "ed25519 seed")
-                sk = nacl.signing.SigningKey(bytes(sign_secret))
-                signed = sk.sign(bytes_to_sign)
-                signature = signed.signature
-            elif isinstance(wrapped, WrappedHdExtendedPrivateKey):
-                sign_secret = wrapped.unwrap_hd_extended_private_key()
-                _assert_ed25519_secret_length(sign_secret, "HD extended key")
-                signature = _raw_sign(sign_secret, bytes_to_sign)
-            else:
-                raise ValueError("Invalid WrappedEd25519Secret: missing unwrap function")
+            signature, sign_secret = _unwrap_and_sign(wrapped, bytes_to_sign)
         except Exception as e:
             signing_error = e
         finally:

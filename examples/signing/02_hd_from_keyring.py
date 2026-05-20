@@ -106,7 +106,9 @@ def setup_keyring_hd_secret(keyring_instance: KeyringProtocol) -> bytearray:
     esk_64 = bytes(esk[:64])
     esk_b64 = base64.b64encode(esk_64).decode()
     keyring_instance.set_password("algokit-examples", SECRET_NAME, esk_b64)
-    print_info(f"Stored first 64 bytes of extended key in keyring (service='algokit-examples', account='{SECRET_NAME}')")
+    print_info(
+        f"Stored first 64 bytes of extended key in keyring (service='algokit-examples', account='{SECRET_NAME}')"
+    )
 
     return esk
 
@@ -116,7 +118,7 @@ def main() -> None:
 
     # Get appropriate keyring (real or mock)
     keyring_instance = get_keyring()
-    if hasattr(keyring_instance, '__class__') and keyring_instance.__class__.__name__ == 'MockKeyring':
+    if hasattr(keyring_instance, "__class__") and keyring_instance.__class__.__name__ == "MockKeyring":
         print_info("WARNING: Using mock keyring for CI. Not secure - testing only!")
 
     # Setup: Create and store the HD secret

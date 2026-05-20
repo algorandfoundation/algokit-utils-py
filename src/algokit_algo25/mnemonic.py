@@ -1,6 +1,6 @@
 """Algorand mnemonic encoding/decoding (25-word BIP39 format)."""
 
-from typing import Final
+from typing import Final, Protocol, runtime_checkable
 
 from algokit_algo25._encoding import bytes_to_11bit_indices, indices_11bit_to_bytes
 from algokit_algo25._wordlist import INDEX_TO_WORD, WORD_TO_INDEX
@@ -126,3 +126,23 @@ def master_derivation_key_to_mnemonic(key: bytes) -> str:
         25-word mnemonic string
     """
     return mnemonic_from_seed(key)
+
+
+@runtime_checkable
+class WrappedLegacyMnemonic(Protocol):
+    """Represents a legacy 25-word Algorand mnemonic phrase.
+
+    This is the standard Algorand mnemonic format used for encoding 32-byte seeds.
+    The mnemonic can be converted back to a seed using seed_from_mnemonic.
+
+    The ``wrap`` method is optional for implementations where wrapping is handled automatically
+    (e.g., hardware wallets, keyring services).
+    """
+
+    def unwrap_legacy_mnemonic(self) -> str: ...
+    def wrap_legacy_mnemonic(self) -> None:
+        """Optional method to re-wrap the mnemonic after use.
+
+        Defaults to no-op if not implemented.
+        """
+        ...

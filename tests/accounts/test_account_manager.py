@@ -1,8 +1,11 @@
+import os
+
 import nacl.signing
 import pytest
 
 import algokit_algo25
 from algokit_common import address_from_public_key
+from algokit_crypto import peikert_hd_wallet_generator
 from algokit_transact import LogicSigAccount, MultisigAccount, MultisigMetadata
 from algokit_transact.signer import AddressWithSigners
 from algokit_utils import PaymentParams
@@ -173,3 +176,154 @@ def test_logic_sig_account_msig_signing(algorand: AlgorandClient, funded_account
     assert lmsig.subsigs[0].sig is not None
     assert lmsig.subsigs[1].sig is not None
     assert lmsig.subsigs[2].sig is None
+
+
+class TestFromSecret:
+    """Tests for AccountManager.from_secret method."""
+
+    def test_from_secret_with_ed25519_seed(self, algorand: AlgorandClient) -> None:
+        """Test from_secret with Ed25519 seed wrapped secret."""
+        # Generate a random seed
+        seed = os.urandom(32)
+
+        class WrappedSeed:
+            def unwrap_ed25519_seed(self) -> bytearray:
+                return bytearray(seed)
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedSeed())
+
+        # Assert
+        assert account.addr
+        assert len(account.addr) == 58  # Algorand address length
+        assert account.signer is not None
+
+        # Verify we can get the signer
+        signer = algorand.account.get_signer(account.addr)
+        assert signer is not None
+
+    def test_from_secret_with_hd_extended_private_key(self, algorand: AlgorandClient) -> None:
+        """Test from_secret with HD extended private key wrapped secret."""
+        # Generate an HD wallet and get the extended private key for account 0
+        wallet = peikert_hd_wallet_generator()
+        account_data = wallet["account_generator"](0, 0)
+        extended_key = bytearray(account_data["extended_private_key"])
+
+        class WrappedHdKey:
+            def unwrap_hd_extended_private_key(self) -> bytearray:
+                return bytearray(extended_key)
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedHdKey())
+
+        # Assert
+        assert account.addr
+        assert len(account.addr) == 58
+        assert account.signer is not None
+
+    def test_from_secret_with_hd_mnemonic(self, algorand: AlgorandClient) -> None:
+        """Test from_secret with HD mnemonic wrapped secret."""
+
+        class WrappedHdMnemonic:
+            def unwrap_hd_mnemonic(self) -> str:
+                # Standard BIP39 test mnemonic
+                return "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedHdMnemonic())
+
+        # Assert
+        assert account.addr
+        assert len(account.addr) == 58
+        assert account.signer is not None
+
+    def test_from_secret_with_legacy_mnemonic(self, algorand: AlgorandClient) -> None:
+        """Test from_secret with legacy Algorand mnemonic wrapped secret."""
+        # Generate a random keypair and get its mnemonic
+        signing_key = nacl.signing.SigningKey.generate()
+        seed = signing_key.encode()
+        mnemonic = algokit_algo25.mnemonic_from_seed(seed)
+
+        class WrappedLegacyMnemonic:
+            def unwrap_legacy_mnemonic(self) -> str:
+                return mnemonic
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedLegacyMnemonic())
+
+        # Assert
+        assert account.addr
+        assert len(account.addr) == 58
+        assert account.signer is not None
+
+        # Verify the address matches expected (using the deprecated from_mnemonic for comparison)
+        expected_seed = algokit_algo25.seed_from_mnemonic(mnemonic)
+        expected_signing_key = nacl.signing.SigningKey(expected_seed)
+        expected_address = address_from_public_key(expected_signing_key.verify_key.encode())
+        assert account.addr == expected_address
+
+    def test_from_secret_with_sender_rekeyed(self, algorand: AlgorandClient) -> None:
+        """Test from_secret with sender address for rekeyed accounts."""
+        # Generate a random seed
+        seed = os.urandom(32)
+        sender = "XBYLS2E6YI6XXL5BWCAMOA4GTWHXWENZMX5UHXMRNWWUQ7BXCY5WC5TEPA"
+
+        class WrappedSeed:
+            def unwrap_ed25519_seed(self) -> bytearray:
+                return bytearray(seed)
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedSeed(), sender=sender)
+
+        # Assert - account address should be the sender (rekeyed)
+        assert account.addr == sender
+        assert account.signer is not None
+
+    def test_from_secret_optional_wrap_methods(self, algorand: AlgorandClient) -> None:
+        """Test that from_secret works with implementations that don't have wrap methods."""
+        seed = os.urandom(32)
+
+        class WrappedSeedNoWrap:
+            def unwrap_ed25519_seed(self) -> bytearray:
+                return bytearray(seed)
+
+            # Note: no wrap_ed25519_seed method
+
+        # Act - should work without wrap method
+        account = algorand.account.from_secret(secret=WrappedSeedNoWrap())
+
+        # Assert
+        assert account.addr
+        assert len(account.addr) == 58
+        assert account.signer is not None
+
+    def test_from_mnemonic_deprecated(self, algorand: AlgorandClient) -> None:
+        """Test that from_mnemonic raises deprecation warning."""
+        # Generate a random keypair and get its mnemonic
+        signing_key = nacl.signing.SigningKey.generate()
+        seed = signing_key.encode()
+        mnemonic = algokit_algo25.mnemonic_from_seed(seed)
+
+        # Act & Assert
+        with pytest.warns(DeprecationWarning, match="from_mnemonic is deprecated"):
+            account = algorand.account.from_mnemonic(mnemonic=mnemonic)
+
+        # Account should still be created correctly
+        assert account.addr
+        assert len(account.addr) == 58
+
+    def test_from_secret_registers_account(self, algorand: AlgorandClient) -> None:
+        """Test that from_secret properly registers the account for later retrieval."""
+        seed = os.urandom(32)
+
+        class WrappedSeed:
+            def unwrap_ed25519_seed(self) -> bytearray:
+                return bytearray(seed)
+
+        # Act
+        account = algorand.account.from_secret(secret=WrappedSeed())
+
+        # Assert - should be able to retrieve the signer
+        retrieved_account = algorand.account.get_account(account.addr)
+        assert retrieved_account is not None
+        assert retrieved_account.addr == account.addr

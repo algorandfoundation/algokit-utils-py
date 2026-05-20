@@ -77,7 +77,7 @@ def main() -> None:
 
     # Get appropriate keyring (real or mock)
     keyring_instance = get_keyring()
-    if hasattr(keyring_instance, '__class__') and keyring_instance.__class__.__name__ == 'MockKeyring':
+    if hasattr(keyring_instance, "__class__") and keyring_instance.__class__.__name__ == "MockKeyring":
         print_info("WARNING: Using mock keyring for CI. Not secure - testing only!")
 
     # Setup: Create and store the secret
