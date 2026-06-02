@@ -836,7 +836,7 @@ class TransactionComposer:
         group_response = response.txn_groups[0]
 
         if group_response.failure_message:
-            if config.cover_app_call_inner_transaction_fees and "fee too small" in group_response.failure_message:
+            if config.cover_app_call_inner_transaction_fees and "too small" in group_response.failure_message:
                 raise ValueError(
                     "Fees were too small to resolve execution info via simulate. "
                     "You may need to increase an app call transaction maxFee."

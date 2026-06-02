@@ -1,6 +1,6 @@
 [project]
 name = "algokit-utils"
-version = "5.0.0-beta.3"
+version = "5.0.0-beta.5"
 description = "Utilities for Algorand development for use by AlgoKit"
 authors = [
   { name = "Algorand Foundation", email = "contact@algorand.foundation" },
@@ -42,7 +42,6 @@ dev = [
   "pydoclint>=0.6.0,<0.9",
   "pytest-sugar>=1.0.0,<2",
   "types-deprecated>=1.2.15.20241117,<2",
-  "sphinx-autobuild>=2024.10.3,<2025",
   "furo>=2024.8.6,<2026",
   "myst-parser>=4.0.0,<5",
   "sphinx-autoapi>=3.4.0,<4",
@@ -290,10 +289,6 @@ sequence = [
 ]
 help = "Preview current and next prerelease version"
 
-[tool.poe.tasks.release-dry-run-alpha]
-shell = "semantic-release --noop version --as-prerelease --prerelease-token alpha"
-help = "Dry-run alpha release (no changes made)"
-
 [tool.poe.tasks.release-dry-run-beta]
 shell = "semantic-release --noop version --as-prerelease --prerelease-token beta"
 help = "Dry-run beta release (no changes made)"
@@ -361,11 +356,6 @@ tag_format = "v{version}"
 match = "main"
 prerelease_token = "beta"
 prerelease = false
-
-[tool.semantic_release.branches.alpha]
-match = "alpha"
-prerelease_token = "alpha"
-prerelease = true
 
 [tool.semantic_release.commit_parser_options]
 allowed_tags = [

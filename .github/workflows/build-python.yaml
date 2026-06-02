@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup Python environment
         uses: algorandfoundation/algokit-shared-config/.github/actions/setup-algokit-python@main
@@ -24,6 +24,8 @@ jobs:
 
       - name: Setup Polytest
         uses: algorandfoundation/algokit-polytest/.github/actions/setup-polytest@main
+        with:
+          version: "^0.7"
 
       - name: Generate all polytest files
         shell: bash
@@ -88,7 +90,7 @@ jobs:
 
       - name: pytest coverage comment - using Python 3.10 on ubuntu-latest
         if: matrix.python == '3.10' && matrix.os == 'ubuntu-latest'
-        uses: MishaKav/pytest-coverage-comment@main
+        uses: MishaKav/pytest-coverage-comment@dd5b80bde6d16941f336518e92929e89069d8451 # v1.7.2
         continue-on-error: true # forks fail to add a comment, so continue any way
         with:
           pytest-coverage-path: ./pytest-coverage.txt
@@ -96,7 +98,7 @@ jobs:
 
       - name: Upload test results and coverage artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: test-results-python-${{ matrix.python }}
           path: pytest-junit.xml

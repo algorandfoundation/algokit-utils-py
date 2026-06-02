@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - alpha
     paths-ignore:
       - ".github/**"
   workflow_dispatch:
@@ -45,13 +44,13 @@ jobs:
 
     steps:
       - name: Generate bot token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         id: app_token
         with:
           app-id: ${{ secrets.BOT_ID }}
           private-key: ${{ secrets.BOT_SK }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           # Fetch entire repository history so we can determine version number from it
           fetch-depth: 0
@@ -69,15 +68,6 @@ jobs:
 
       - name: Set Git user as GitHub actions
         run: git config --global user.email "179917785+engineering-ci[bot]@users.noreply.github.com" && git config --global user.name "engineering-ci[bot]"
-
-      - name: Create Continuous Deployment - Alpha
-        id: release-alpha
-        if: steps.get_branch.outputs.branch == 'alpha'
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: |
-          uv run semantic-release -v version --as-prerelease --prerelease-token alpha
-          uv run semantic-release publish
 
       - name: Create Continuous Deployment - Beta (non-prod)
         id: release-beta
@@ -99,10 +89,9 @@ jobs:
 
       - name: Publish package distributions to PyPI
         if: |
-          (steps.release-alpha.outputs.released == 'true') ||
           (steps.release-beta.outputs.released == 'true') ||
           (steps.release-prod.outputs.released == 'true')
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
         with:
           verbose: true
 
@@ -123,16 +112,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Build documentation
         uses: ./.github/actions/publish-docs
 
       - name: Upload to GitHub Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: docs/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5

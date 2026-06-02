@@ -1216,7 +1216,7 @@ class _TransactionSender:
                 except Exception as e:
                     # For read-only calls with max opcode budget, fee issues should be rare
                     # but we can still provide helpful error message if they occur
-                    if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "fee too small" in str(e):
+                    if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "too small" in str(e):
                         raise ValueError(
                             "Fees were too small. You may need to increase the transaction `maxFee`."
                         ) from e
