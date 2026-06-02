@@ -19,6 +19,7 @@ from algokit_algo25 import (
     InvalidSeedLengthError,
     MnemonicError,
     WordNotFoundError,
+    WrappedLegacyMnemonic,
     master_derivation_key_to_mnemonic,
     mnemonic_from_seed,
     mnemonic_to_master_derivation_key,
@@ -37,6 +38,8 @@ __all__ = [
     "InvalidSeedLengthError",
     "MnemonicError",
     "WordNotFoundError",
+    # Protocols
+    "WrappedLegacyMnemonic",
     # Functions
     "master_derivation_key_to_mnemonic",
     "mnemonic_from_seed",

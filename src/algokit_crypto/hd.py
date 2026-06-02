@@ -11,6 +11,7 @@ from xhd_wallet_api_py import (
     key_gen,
     public_key,
     raw_sign,
+    seed_from_mnemonic,
 )
 
 from algokit_crypto.ed25519 import RawEd25519Signer
@@ -75,15 +76,91 @@ Takes optional seed bytes and returns HdWalletResult with root key and account g
 @runtime_checkable
 class WrappedHdExtendedPrivateKey(Protocol):
     """Represents a 96-byte ``scalar || prefix || chain_code`` secret that can be unwrapped
-    for short-lived use and then re-wrapped.
+    for short-lived use and optionally re-wrapped.
 
     The ``chain_code`` is NOT used for signing. It can, however, be used for key derivation.
     If your secret is only used for signing, it is recommended to only store the first 64 bytes
     in the secret store and then pad the secret to 96 bytes in the unwrap function.
+
+    The ``wrap`` method is optional for implementations where wrapping is handled automatically
+    (e.g., hardware wallets, keyring services).
     """
 
     def unwrap_hd_extended_private_key(self) -> bytearray: ...
-    def wrap_hd_extended_private_key(self) -> None: ...
+    def wrap_hd_extended_private_key(self) -> None:
+        """Optional method to re-wrap the extended private key after use.
+
+        Defaults to no-op if not implemented.
+        """
+        ...
+
+
+@runtime_checkable
+class WrappedHdMnemonic(Protocol):
+    """Represents a BIP39 mnemonic phrase for HD wallet derivation.
+
+    The mnemonic is converted to a seed internally using the xhd-wallet-api's
+    seed_from_mnemonic function, then used to derive the HD wallet.
+
+    The ``wrap`` method is optional for implementations where wrapping is handled automatically
+    (e.g., hardware wallets, keyring services).
+    """
+
+    def unwrap_hd_mnemonic(self) -> str: ...
+    def wrap_hd_mnemonic(self) -> None:
+        """Optional method to re-wrap the mnemonic after use.
+
+        Defaults to no-op if not implemented.
+        """
+        ...
+
+
+def hd_seed_from_mnemonic(mnemonic: str) -> bytearray:
+    """Convert a BIP39 mnemonic phrase to a 64-byte seed.
+
+    Args:
+        mnemonic: A BIP39 mnemonic phrase (typically 12, 15, 18, 21, or 24 words).
+
+    Returns:
+        A 64-byte seed derived from the mnemonic using the xhd-wallet-api's
+        seed_from_mnemonic function.
+    """
+    seed = seed_from_mnemonic(mnemonic)
+    return bytearray(seed)
+
+
+def hd_root_key_from_seed(seed: bytearray) -> bytearray:
+    """Convert a 64-byte seed to a 96-byte HD extended private key root.
+
+    Args:
+        seed: A 64-byte seed.
+
+    Returns:
+        A 96-byte extended private key (root key).
+
+    Raises:
+        ValueError: If the seed is not 64 bytes.
+    """
+    if len(seed) != HD_WALLET_SEED_SIZE:
+        raise ValueError(f"Seed must be {HD_WALLET_SEED_SIZE} bytes, got {len(seed)}")
+    return from_seed(seed)
+
+
+def hd_root_key_from_mnemonic(mnemonic: str) -> bytearray:
+    """Convert a BIP39 mnemonic phrase directly to a 96-byte HD extended private key root.
+
+    This is a convenience function that combines hd_seed_from_mnemonic and
+    hd_root_key_from_seed.
+
+    Args:
+        mnemonic: A BIP39 mnemonic phrase.
+
+    Returns:
+        A 96-byte extended private key (root key).
+    """
+    seed = hd_seed_from_mnemonic(mnemonic)
+    return hd_root_key_from_seed(seed)
+
 
 def peikert_hd_wallet_generator(seed: bytearray | None = None) -> HdWalletResult:
     """Generate an HD wallet using the Peikert derivation scheme.

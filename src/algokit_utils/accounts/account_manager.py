@@ -1,4 +1,5 @@
 import os
+import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -9,6 +10,7 @@ from typing_extensions import Never, Self
 from algokit_algo25 import seed_from_mnemonic
 from algokit_algod_client import models as algod_models
 from algokit_common.serde import to_wire
+from algokit_crypto import WrappedEd25519Secret, ed25519_signing_key_from_wrapped_secret
 from algokit_transact.logicsig import LogicSig
 from algokit_transact.signer import (
     AddressWithSigners,
@@ -408,8 +410,10 @@ class AccountManager:
         )
 
     def from_mnemonic(self, *, mnemonic: str, sender: str | None = None) -> AddressWithSigners:
-        """
-        Tracks and returns an Algorand account with secret key loaded by taking the mnemonic secret.
+        """Tracks and returns an Algorand account with secret key loaded by taking the mnemonic secret.
+
+        .. deprecated::
+            from_mnemonic is deprecated. Use from_secret with WrappedLegacyMnemonic instead.
 
         :param mnemonic: The mnemonic secret representing the private key of an account
         :param sender: Optional address to use as the sender (for rekeyed accounts)
@@ -422,12 +426,71 @@ class AccountManager:
         :example:
             >>> account = account_manager.from_mnemonic("mnemonic secret ...")
         """
+        warnings.warn(
+            "from_mnemonic is deprecated. Use from_secret with WrappedLegacyMnemonic instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         seed = seed_from_mnemonic(mnemonic)
         signing_key = nacl.signing.SigningKey(seed)
         public_key = signing_key.verify_key.encode()
 
         def raw_signer(bytes_to_sign: bytes) -> bytes:
             return signing_key.sign(bytes_to_sign).signature
+
+        account = generate_address_with_signers(
+            ed25519_pubkey=public_key,
+            raw_ed25519_signer=raw_signer,
+            sending_address=sender,
+        )
+        return self._signer_account(account)
+
+    def from_secret(
+        self,
+        *,
+        secret: WrappedEd25519Secret,
+        sender: str | None = None,
+    ) -> AddressWithSigners:
+        """Create and register an account from a wrapped secret.
+
+        Supports Ed25519 seeds, HD extended private keys, HD mnemonics (BIP39),
+        and legacy Algorand mnemonics (25-word).
+
+        :param secret: A wrapped secret implementing one of the WrappedEd25519Secret protocols
+        :param sender: Optional sender address for rekeyed accounts
+        :returns: The created account with signer registered
+
+        .. note::
+            The wrap methods in wrapped secret protocols are optional. If not implemented,
+            they default to no-op. This is useful for implementations where wrapping is
+            handled automatically (e.g., hardware wallets, keyring services).
+
+        .. warning::
+            Be careful how secrets are handled. Never commit them into source control and
+            ideally load them from the environment or a secure storage service.
+
+        :example:
+            >>> # Using Ed25519 seed
+            >>> class WrappedSeed:
+            ...     def unwrap_ed25519_seed(self) -> bytearray:
+            ...         return bytearray(seed)
+            >>> account = account_manager.from_secret(secret=WrappedSeed())
+            >>>
+            >>> # Using HD mnemonic
+            >>> class WrappedMnemonic:
+            ...     def unwrap_hd_mnemonic(self) -> str:
+            ...         return "word1 word2 ..."
+            >>> account = account_manager.from_secret(secret=WrappedMnemonic())
+            >>>
+            >>> # Using legacy mnemonic
+            >>> class WrappedLegacy:
+            ...     def unwrap_legacy_mnemonic(self) -> str:
+            ...         return "25 word mnemonic..."
+            >>> account = account_manager.from_secret(secret=WrappedLegacy())
+        """
+        signing_key = ed25519_signing_key_from_wrapped_secret(secret)
+        public_key = signing_key["ed25519_pubkey"]
+        raw_signer = signing_key["raw_ed25519_signer"]
 
         account = generate_address_with_signers(
             ed25519_pubkey=public_key,

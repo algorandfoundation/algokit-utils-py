@@ -39,10 +39,19 @@ class Ed25519SigningKey(TypedDict):
 
 @runtime_checkable
 class WrappedEd25519Seed(Protocol):
-    """Represents a 32-byte Ed25519 seed that can be unwrapped for short-lived use and then re-wrapped."""
+    """Represents a 32-byte Ed25519 seed that can be unwrapped for short-lived use and optionally re-wrapped.
+
+    The ``wrap`` method is optional for implementations where wrapping is handled automatically
+    (e.g., hardware wallets, keyring services).
+    """
 
     def unwrap_ed25519_seed(self) -> bytearray: ...
-    def wrap_ed25519_seed(self) -> None: ...
+    def wrap_ed25519_seed(self) -> None:
+        """Optional method to re-wrap the seed after use.
+
+        Defaults to no-op if not implemented.
+        """
+        ...
 
 
 class Ed25519Generator(Protocol):
