@@ -695,3 +695,15 @@ def test_bare_create_abi_delete(
     assert response.create_result.abi_return is None  # None because it's a bare call
     assert response.delete_result
     assert response.delete_result.abi_return is None  # None because abi return value is empty string
+
+
+def test_bare_create_then_update(factory: AppFactory) -> None:
+    client, _ = factory.send.bare.create(
+        compilation_params={"updatable": True, "deletable": True, "deploy_time_params": {"VALUE": 1}}
+    )
+
+    result = client.send.bare.update(
+        compilation_params={"updatable": True, "deletable": True, "deploy_time_params": {"VALUE": 2}}
+    )
+
+    assert result.confirmation is not None

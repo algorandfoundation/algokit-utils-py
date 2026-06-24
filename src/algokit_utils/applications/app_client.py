@@ -960,14 +960,16 @@ class _AppClientBareSendAccessor:
                 "deletable": compilation.get("deletable"),
             }
         )
-        bare_params = self._client.params.bare.update(params)
-        bare_params.__setattr__("approval_program", bare_params.approval_program or compiled.compiled_approval)
-        bare_params.__setattr__("clear_state_program", bare_params.clear_state_program or compiled.compiled_clear)
-        call_result = self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_params, send_params))
-        return SendAppTransactionResult[ABIReturn](
-            **{**call_result.__dict__, **(compiled.__dict__ if compiled else {})},
-            abi_return=AppManager.get_abi_return(call_result.confirmation, getattr(params, "method", None)),
+        bare_call_params = self._client.params.bare.call(params, on_complete=OnComplete.UpdateApplicationOC)
+        update_fields = {k: v for k, v in bare_call_params.__dict__.items() if k not in ("extra_pages", "schema")}
+        bare_params = AppUpdateParams(
+            **{
+                **update_fields,
+                "approval_program": compiled.approval_program,
+                "clear_state_program": compiled.clear_state_program,
+            }
         )
+        return self._client._handle_call_errors(lambda: self._algorand.send.app_update(bare_params, send_params))
 
     def opt_in(
         self, params: AppClientBareCallParams | None = None, send_params: SendParams | None = None
@@ -1215,7 +1217,7 @@ class _TransactionSender:
                 except Exception as e:
                     # For read-only calls with max opcode budget, fee issues should be rare
                     # but we can still provide helpful error message if they occur
-                    if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "fee too small" in str(e):
+                    if readonly_send_params.get("cover_app_call_inner_transaction_fees") and "too small" in str(e):
                         raise ValueError(
                             "Fees were too small. You may need to increase the transaction `maxFee`."
                         ) from e

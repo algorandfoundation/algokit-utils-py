@@ -139,7 +139,7 @@ def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[Str
     :return: The ABI encoded bytes
     """
     if isinstance(value, (bytes | bytearray)):
-        return value
+        return bytes(value)
     if type_str == "AVMUint64":
         return ABIType.from_string("uint64").encode(value)
     if type_str in ("AVMBytes", "AVMString"):
@@ -147,7 +147,7 @@ def get_abi_encoded_value(value: Any, type_str: str, structs: dict[str, list[Str
             return value.encode("utf-8")
         if not isinstance(value, (bytes | bytearray)):
             raise ValueError(f"Expected bytes value for {type_str}, but got {type(value)}")
-        return value
+        return bytes(value)
     if type_str in structs:
         tuple_type = get_abi_tuple_type_from_abi_struct_definition(structs[type_str], structs)
         if isinstance(value, (list | tuple)):

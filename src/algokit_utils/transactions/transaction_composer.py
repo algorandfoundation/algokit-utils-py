@@ -717,7 +717,7 @@ def _get_group_execution_info(  # noqa: C901
 
     if group_response.get("failure-message"):
         msg = group_response["failure-message"]
-        if cover_app_call_inner_transaction_fees and "fee too small" in msg:
+        if cover_app_call_inner_transaction_fees and "too small" in msg:
             raise ValueError(
                 "Fees were too small to resolve execution info via simulate. "
                 "You may need to increase an app call transaction maxFee."

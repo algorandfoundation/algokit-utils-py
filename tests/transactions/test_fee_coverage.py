@@ -78,7 +78,7 @@ class TestCoverAppCallInnerFees:
             max_fee=AlgoAmount.from_micro_algo(expected_fee),
         )
 
-        with pytest.raises(Exception, match="fee too small"):
+        with pytest.raises(Exception, match="too small"):
             self.app_client1.send.call(
                 params,
                 send_params={
@@ -702,7 +702,7 @@ class TestCoverAppCallInnerFees:
             extra_fee=None,
         )
 
-        with pytest.raises(Exception, match="fee too small"):
+        with pytest.raises(Exception, match="too small"):
             app_client.send.call(params_copy)
 
 
