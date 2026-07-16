@@ -12,6 +12,7 @@ dependencies = [
   "py-algorand-sdk>=2.11.0,<3",
   "httpx>=0.23.1,<=0.28.1",
   "typing-extensions>=4.6.0",
+  "msgpack>=1.2.1,<2",
 ]
 
 [dependency-groups]
@@ -34,7 +35,8 @@ dev = [
   "pytest-httpx>=0.36.0,<0.37",
   "pytest-xdist>=3.6.1,<4",
   "linkify-it-py>=2.0.3,<3",
-  "setuptools>=80.9.0,<81",
+  "setuptools>=83.0.0,<84",
+  "click>=8.3.3,<9",
   "pydoclint>=0.6.0,<0.7",
   "pytest-sugar>=1.0.0,<2",
   "types-deprecated>=1.2.15.20241117,<2",
