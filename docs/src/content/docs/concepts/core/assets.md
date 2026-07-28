@@ -3,6 +3,14 @@ title: "Asset management"
 description: "How to create, opt into, transfer, freeze, clawback, and destroy Algorand Standard Assets with AlgoKit Utils Python."
 ---
 
+import RemoteCode from "/src/components/RemoteCode.astro";
+
+<!-- TODO: src points at `docs-staging` because that is the only pushed branch
+containing examples/concepts/assets.py. examples/README.md specifies the `main`
+URL as the final form: switch every src to
+https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py
+once this work has merged to main. -->
+
 This page shows how to perform each Algorand Standard Asset (ASA) operation with AlgoKit Utils Python. For the protocol-level view of what an ASA is and how its control roles, holdings, opt-in requirement, freezing, clawback, and destruction behave, see the main DevPortal [Assets overview](/concepts/assets/overview/) and [Asset Operations](/concepts/assets/asset-operations/) pages.
 
 Each operation is invoked through `algorand.send.<operation>(params)`, where `params` is a typed parameter object such as `AssetCreateParams` or `AssetTransferParams`. To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/docs/algokit-utils/python/latest/concepts/core/algorand-client/) for how these dispatch surfaces relate.
@@ -15,22 +23,11 @@ Once [Guides > Assets](/docs/algokit-utils/python/latest/guides/assets/) is publ
 
 Creating an ASA mints a new token on the Algorand blockchain. Any account with a sufficient Algo balance can create an asset, and the sender becomes the asset's creator. Sending an asset-create transaction returns the newly assigned asset ID.
 
-> **Code example placeholder:** `algorand.send.asset_create(AssetCreateParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_create.py,
-marker ASSET_CREATE_TRANSACTION.
-
 <RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_create.py'
-  snippet='ASSET_CREATE_TRANSACTION'
-  lang='py'
-  title='Create an Asset'
-  frame='none'
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/docs-staging/examples/concepts/assets.py"
+  snippet="CREATE_ASSET"
+  lang="python"
 />
--->
 
 ## Opting In and Out of Assets
 
@@ -40,106 +37,45 @@ An account must opt in to an ASA before it can hold or receive units of that ass
 
 Opting in increases the account's minimum balance requirement by 0.1 Algo per asset.
 
-> **Code example placeholder:** `algorand.send.asset_opt_in(AssetOptInParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py,
-marker ASSET_OPT_IN_TRANSACTION.
-
 <RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py'
-  snippet='ASSET_OPT_IN_TRANSACTION'
-  lang='py'
-  title='Opt In to an Asset'
-  frame='none'
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/docs-staging/examples/concepts/assets.py"
+  snippet="OPT_IN_ASSET"
+  lang="python"
 />
--->
 
 ### Bulk Opt In
 
 `algorand.asset.bulk_opt_in(...)` opts an account into a list of assets in one call by sending the opt-in transactions as an atomic group. It applies when a single account needs to receive several assets at once.
 
-> **Code example placeholder:** `algorand.asset.bulk_opt_in(...)`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py,
-marker ASSET_BULK_OPT_IN_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py'
-  snippet='ASSET_BULK_OPT_IN_TRANSACTION'
-  lang='py'
-  title='Bulk Opt In to Multiple Assets'
-  frame='none'
-/>
--->
+<!-- TODO: no BULK_OPT_IN_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: BULK_OPT_IN_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ### Opt Out
 
 Opting out releases the 0.1 Algo minimum balance requirement associated with holding the asset. The receiver of any remaining balance is specified in the params. By default, `algorand.send.asset_opt_out` verifies a zero balance before submission (`ensure_zero_balance=True`) to prevent asset loss. See [Safety Considerations](#safety-considerations).
 
-> **Code example placeholder:** `algorand.send.asset_opt_out(AssetOptOutParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py,
-marker ASSET_OPT_OUT_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py'
-  snippet='ASSET_OPT_OUT_TRANSACTION'
-  lang='py'
-  title='Opt Out of an Asset'
-  frame='none'
-/>
--->
+<!-- TODO: no OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: OPT_OUT_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ### Bulk Opt Out
 
 `algorand.asset.bulk_opt_out(...)` opts an account out of a list of assets in a single call. It provides the same zero-balance protection as `algorand.send.asset_opt_out` by default. See [Safety Considerations](#safety-considerations).
 
-> **Code example placeholder:** `algorand.asset.bulk_opt_out(...)`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py,
-marker ASSET_BULK_OPT_OUT_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_optin_optout.py'
-  snippet='ASSET_BULK_OPT_OUT_TRANSACTION'
-  lang='py'
-  title='Bulk Opt Out of Multiple Assets'
-  frame='none'
-/>
--->
+<!-- TODO: no BULK_OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: BULK_OPT_OUT_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ## Transfer an Asset
 
 Asset transfers move units of an ASA between accounts that have both opted in. The sender must hold at least the transferred amount and must be authorized to send the asset.
 
-> **Code example placeholder:** `algorand.send.asset_transfer(AssetTransferParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_transfer.py,
-marker ASSET_TRANSFER_TRANSACTION.
-
 <RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_transfer.py'
-  snippet='ASSET_TRANSFER_TRANSACTION'
-  lang='py'
-  title='Transfer an Asset'
-  frame='none'
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/docs-staging/examples/concepts/assets.py"
+  snippet="TRANSFER_ASSET"
+  lang="python"
 />
--->
 
 ## Access Control
 
@@ -149,85 +85,33 @@ The operations in this section update or exercise an asset's authority roles: `m
 
 Reconfiguration updates the mutable control addresses of an asset: `manager`, `reserve`, `freeze`, and `clawback`. The current manager account must send the transaction. A control-address field left unset on `AssetConfigParams` is cleared permanently by the protocol at submission. See [Safety Considerations](#safety-considerations).
 
-> **Code example placeholder:** `algorand.send.asset_config(AssetConfigParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_update.py,
-marker ASSET_UPDATE_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_update.py'
-  snippet='ASSET_UPDATE_TRANSACTION'
-  lang='py'
-  title='Reconfigure an Asset'
-  frame='none'
-/>
--->
+<!-- TODO: no RECONFIGURE_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: RECONFIGURE_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ### Freeze or Unfreeze Assets
 
 A freeze transaction toggles whether a specified account can move a specific asset. The `frozen` flag on `AssetFreezeParams` controls whether the holding is frozen or unfrozen. The transaction must be signed by the asset's freeze authority.
 
-> **Code example placeholder:** `algorand.send.asset_freeze(AssetFreezeParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_freeze.py,
-marker ASSET_FREEZE_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_freeze.py'
-  snippet='ASSET_FREEZE_TRANSACTION'
-  lang='py'
-  title='Freeze or Unfreeze Assets'
-  frame='none'
-/>
--->
+<!-- TODO: no FREEZE_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: FREEZE_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ### Clawback Assets
 
-A clawback moves an asset holding out of another account without that holder's consent. It is expressed as an `AssetTransferParams` with the clawback field set to the account the assets are pulled from. The sender must be the asset's clawback authority. There is no dedicated clawback parameter type. See [Safety Considerations](#safety-considerations).
+A clawback moves an asset holding out of another account without that holder's consent. It is expressed as an `AssetTransferParams` with `clawback_target` set to the account the assets are pulled from. The sender must be the asset's clawback authority. There is no dedicated clawback parameter type. See [Safety Considerations](#safety-considerations).
 
-> **Code example placeholder:** `algorand.send.asset_transfer(AssetTransferParams(clawback_target=...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_clawback.py,
-marker ASSET_CLAWBACK_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_clawback.py'
-  snippet='ASSET_CLAWBACK_TRANSACTION'
-  lang='py'
-  title='Clawback Assets'
-  frame='none'
-/>
--->
+<!-- TODO: no CLAWBACK_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: CLAWBACK_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ## Destroy an Asset
 
 Destroying an asset permanently removes it from the blockchain and releases the creator's minimum balance requirement for it. Destruction requires that the current manager sign the transaction and that all units of the asset sit in the creator account.
 
-> **Code example placeholder:** `algorand.send.asset_destroy(AssetDestroyParams(...))`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with the RemoteCode block below. Verified
-snippet: algorandfoundation/devportal-code-examples,
-projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_delete.py,
-marker ASSET_DESTROY_TRANSACTION.
-
-<RemoteCode
-  src='https://raw.githubusercontent.com/algorandfoundation/devportal-code-examples/refs/heads/main/projects/python-examples/algokit_utils_py_examples/assets(ASA)/asset_delete.py'
-  snippet='ASSET_DESTROY_TRANSACTION'
-  lang='py'
-  title='Destroy an Asset'
-  frame='none'
-/>
--->
+<!-- TODO: no DESTROY_ASSET snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: DESTROY_ASSET` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ## Asset Queries
 
@@ -238,23 +122,9 @@ marker ASSET_DESTROY_TRANSACTION.
 
 For any individual asset transaction not covered by a bulk helper, use the standard dispatch surfaces (`algorand.send`, `algorand.create_transaction`, or `algorand.new_group()`) with the typed parameter objects shown above.
 
-> **Code example placeholder:** `algorand.asset.get_by_id(...)` and `algorand.asset.get_account_information(...)`. Python snippet to be loaded from `algokit-utils-py` using `RemoteCode`.
-
-<!--
-TODO: Replace the placeholder above with a RemoteCode block once an
-AssetManager query snippet is added to algorandfoundation/devportal-code-examples
-(or to algorandfoundation/algokit-utils-py). No verified snippet marker exists
-yet for get_by_id / get_account_information. Suggested marker name if adding:
-ASSET_MANAGER_QUERIES.
-
-<RemoteCode
-  src='VERIFIED_RAW_SOURCE_URL'
-  snippet='VERIFIED_SNIPPET_MARKER'
-  lang='py'
-  title='Asset Queries'
-  frame='none'
-/>
--->
+<!-- TODO: no ASSET_MANAGER_QUERIES snippet exists in examples/concepts/assets.py on
+docs-staging yet. Add a `# example: ASSET_MANAGER_QUERIES` region to that script, then
+render it here with a RemoteCode block matching the ones above. -->
 
 ## Safety Considerations
 
