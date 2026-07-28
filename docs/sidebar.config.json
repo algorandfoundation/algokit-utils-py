@@ -5,9 +5,9 @@
     "items": [{ "slug": "tutorials/quick-start" }]
   },
   {
-    "label": "Core Concepts",
+    "label": "Concepts",
     "items": [
-      { "slug": "concepts/core/algorand-client" },
+      { "slug": "concepts/algorand-client" },
       { "slug": "concepts/core/account" },
       { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
