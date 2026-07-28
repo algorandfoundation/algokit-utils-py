@@ -5,11 +5,11 @@ description: "How to create, opt into, transfer, freeze, clawback, and destroy A
 
 import RemoteCode from "/src/components/RemoteCode.astro";
 
-<!-- TODO: src points at `docs-staging` because that is the only pushed branch
+{/* TODO: src points at `docs-staging` because that is the only pushed branch
 containing examples/concepts/assets.py. examples/README.md specifies the `main`
 URL as the final form: switch every src to
 https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py
-once this work has merged to main. -->
+once this work has merged to main. */}
 
 This page shows how to perform each Algorand Standard Asset (ASA) operation with AlgoKit Utils Python. For the protocol-level view of what an ASA is and how its control roles, holdings, opt-in requirement, freezing, clawback, and destruction behave, see the main DevPortal [Assets overview](/concepts/assets/overview/) and [Asset Operations](/concepts/assets/asset-operations/) pages.
 
@@ -47,25 +47,25 @@ Opting in increases the account's minimum balance requirement by 0.1 Algo per as
 
 `algorand.asset.bulk_opt_in(...)` opts an account into a list of assets in one call by sending the opt-in transactions as an atomic group. It applies when a single account needs to receive several assets at once.
 
-<!-- TODO: no BULK_OPT_IN_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no BULK_OPT_IN_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: BULK_OPT_IN_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ### Opt Out
 
 Opting out releases the 0.1 Algo minimum balance requirement associated with holding the asset. The receiver of any remaining balance is specified in the params. By default, `algorand.send.asset_opt_out` verifies a zero balance before submission (`ensure_zero_balance=True`) to prevent asset loss. See [Safety Considerations](#safety-considerations).
 
-<!-- TODO: no OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: OPT_OUT_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ### Bulk Opt Out
 
 `algorand.asset.bulk_opt_out(...)` opts an account out of a list of assets in a single call. It provides the same zero-balance protection as `algorand.send.asset_opt_out` by default. See [Safety Considerations](#safety-considerations).
 
-<!-- TODO: no BULK_OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no BULK_OPT_OUT_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: BULK_OPT_OUT_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ## Transfer an Asset
 
@@ -85,33 +85,33 @@ The operations in this section update or exercise an asset's authority roles: `m
 
 Reconfiguration updates the mutable control addresses of an asset: `manager`, `reserve`, `freeze`, and `clawback`. The current manager account must send the transaction. A control-address field left unset on `AssetConfigParams` is cleared permanently by the protocol at submission. See [Safety Considerations](#safety-considerations).
 
-<!-- TODO: no RECONFIGURE_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no RECONFIGURE_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: RECONFIGURE_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ### Freeze or Unfreeze Assets
 
 A freeze transaction toggles whether a specified account can move a specific asset. The `frozen` flag on `AssetFreezeParams` controls whether the holding is frozen or unfrozen. The transaction must be signed by the asset's freeze authority.
 
-<!-- TODO: no FREEZE_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no FREEZE_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: FREEZE_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ### Clawback Assets
 
 A clawback moves an asset holding out of another account without that holder's consent. It is expressed as an `AssetTransferParams` with `clawback_target` set to the account the assets are pulled from. The sender must be the asset's clawback authority. There is no dedicated clawback parameter type. See [Safety Considerations](#safety-considerations).
 
-<!-- TODO: no CLAWBACK_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no CLAWBACK_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: CLAWBACK_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ## Destroy an Asset
 
 Destroying an asset permanently removes it from the blockchain and releases the creator's minimum balance requirement for it. Destruction requires that the current manager sign the transaction and that all units of the asset sit in the creator account.
 
-<!-- TODO: no DESTROY_ASSET snippet exists in examples/concepts/assets.py on
+{/* TODO: no DESTROY_ASSET snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: DESTROY_ASSET` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ## Asset Queries
 
@@ -122,9 +122,9 @@ render it here with a RemoteCode block matching the ones above. -->
 
 For any individual asset transaction not covered by a bulk helper, use the standard dispatch surfaces (`algorand.send`, `algorand.create_transaction`, or `algorand.new_group()`) with the typed parameter objects shown above.
 
-<!-- TODO: no ASSET_MANAGER_QUERIES snippet exists in examples/concepts/assets.py on
+{/* TODO: no ASSET_MANAGER_QUERIES snippet exists in examples/concepts/assets.py on
 docs-staging yet. Add a `# example: ASSET_MANAGER_QUERIES` region to that script, then
-render it here with a RemoteCode block matching the ones above. -->
+render it here with a RemoteCode block matching the ones above. */}
 
 ## Safety Considerations
 
