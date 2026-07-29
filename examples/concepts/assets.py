@@ -10,7 +10,6 @@ Prerequisites:
 """
 
 from algokit_utils import (
-    AlgoAmount,
     AssetConfigParams,
     AssetCreateParams,
     AssetDestroyParams,
@@ -23,18 +22,7 @@ from examples._helpers import setup_localnet_environment
 
 
 def main() -> None:
-    env = setup_localnet_environment()
-    algorand, account_a, account_b = env
-
-    # A third funded account is used to demonstrate bulk opt-in and bulk
-    # opt-out against a fresh pair of assets.
-    dispenser = algorand.account.localnet_dispenser()
-    account_c = algorand.account.random()
-    algorand.account.ensure_funded(
-        account_to_fund=account_c.address,
-        dispenser_account=dispenser.address,
-        min_spending_balance=AlgoAmount.from_algo(10),
-    )
+    algorand, account_a, account_b = setup_localnet_environment()
 
     # example: CREATE_ASSET
     create_result = algorand.send.asset_create(
@@ -126,7 +114,7 @@ def main() -> None:
     )
     # example: CLAWBACK_ASSET
 
-    # Two more assets to demonstrate the bulk helpers against a fresh account.
+    # Two throwaway assets to demonstrate the bulk helpers.
     bulk_asset_ids = [
         algorand.send.asset_create(
             AssetCreateParams(sender=account_a.address, total=1000, decimals=0, unit_name="B1")
@@ -138,17 +126,17 @@ def main() -> None:
 
     # example: BULK_OPT_IN_ASSET
     algorand.asset.bulk_opt_in(
-        account=account_c.address,
+        account=account_b.address,
         asset_ids=bulk_asset_ids,
-        signer=account_c.signer,
+        signer=account_b.signer,
     )
     # example: BULK_OPT_IN_ASSET
 
     # example: BULK_OPT_OUT_ASSET
     algorand.asset.bulk_opt_out(
-        account=account_c.address,
+        account=account_b.address,
         asset_ids=bulk_asset_ids,
-        signer=account_c.signer,
+        signer=account_b.signer,
     )
     # example: BULK_OPT_OUT_ASSET
 
