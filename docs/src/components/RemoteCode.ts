@@ -68,34 +68,64 @@ export async function getSelectedCode(
 
 /**
  * Removes common leading whitespace from code lines.
- * @param lines - Array of code lines to dedent
- * @returns Dedented code as a single string
  */
 export function dedentCode(lines: string[]): string {
   if (lines.length === 0) return '';
 
-  // Find the minimum indentation among non-empty lines
   const minIndent = lines.reduce((min, line) => {
-    if (line.trim().length === 0) return min; // Skip empty lines
+    if (line.trim().length === 0) return min;
     const leadingWhitespace = line.match(/^\s*/)?.[0].length ?? 0;
     return Math.min(min, leadingWhitespace);
   }, Infinity);
 
-  // If no non-empty lines or no indentation, return as-is
+  // Infinity means every line was blank
   if (minIndent === Infinity || minIndent === 0) {
     return lines.join('\n');
   }
 
-  // Remove the common leading whitespace from each line
   const dedentedLines = lines.map(line => {
-    if (line.trim().length === 0) return line; // Preserve empty lines
+    if (line.trim().length === 0) return line;
     return line.slice(minIndent);
   });
 
   return dedentedLines.join('\n');
 }
 
+const LOCAL_REPO_RAW_PREFIX =
+  'https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/';
+
+// Resolved relative to this file, so it breaks if RemoteCode.ts moves
+const REPO_ROOT_URL = new URL('../../../', import.meta.url);
+
+/**
+ * Maps a raw.githubusercontent.com URL for this repository to the same file
+ * in the local checkout, so the docs build renders the code as of the current
+ * commit (and PR builds work before the referenced branch has the file).
+ * Returns null if src points outside this repository.
+ */
+export function localPathForRepoUrl(src: string): URL | null {
+  if (!src.startsWith(LOCAL_REPO_RAW_PREFIX)) {
+    return null;
+  }
+  const segments = src.slice(LOCAL_REPO_RAW_PREFIX.length).split('/');
+  // The ref is either a single segment (`main`) or a triple (`refs/heads/main`)
+  const refSegmentCount = segments[0] === 'refs' ? 3 : 1;
+  const filePath = segments.slice(refSegmentCount).join('/');
+  if (!filePath) {
+    return null;
+  }
+  return new URL(filePath, REPO_ROOT_URL);
+}
+
 async function getCode(src: string): Promise<string> {
+  const localPath = localPathForRepoUrl(src);
+  if (localPath) {
+    try {
+      return await fs.readFile(localPath, 'utf-8');
+    } catch {
+      // Fall back to fetching the remote URL
+    }
+  }
   try {
     new URL(src);
     const response = await fetch(src);
@@ -120,38 +150,28 @@ async function getCode(src: string): Promise<string> {
 }
 
 /**
- * Converts a raw GitHub URL to a standard GitHub URL.
- * @param {string} rawUrl - The raw GitHub URL to convert.
- * @returns {string | null} - The converted GitHub URL or null if the input is invalid.
+ * Converts a raw.githubusercontent.com URL to the equivalent github.com blob URL.
  */
 export function convertRawToGitHubUrl(rawUrl: string): URL | string {
-  // Create a URL object to parse the input
   const url = new URL(rawUrl);
 
-  // Check if this is a raw.githubusercontent.com URL
   if (url.hostname !== 'raw.githubusercontent.com') {
     throw new Error('Not a valid raw.githubusercontent.com URL');
   }
 
-  // Split the pathname into segments
   const segments = url.pathname.split('/').filter(segment => segment !== '');
 
-  // We need at least username, repository, and branch
+  // Need at least username, repository, and branch
   if (segments.length < 3) {
     throw new Error('URL does not contain the required components');
   }
 
-  // Extract the username, repository, and branch
   const username = segments[0];
   const repository = segments[1];
   const branch = segments[2];
-
-  // Get the file path (everything after the branch)
   const filePath = segments.slice(3).join('/');
 
-  // Construct the regular GitHub URL
-  const githubUrlString = `https://github.com/${username}/${repository}/blob/${branch}/${filePath}`;
-
-  // Return as URL object
-  return new URL(githubUrlString);
+  return new URL(
+    `https://github.com/${username}/${repository}/blob/${branch}/${filePath}`,
+  );
 }
