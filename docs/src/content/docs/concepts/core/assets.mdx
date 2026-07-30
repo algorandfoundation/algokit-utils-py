@@ -1,6 +1,6 @@
 ---
 title: "Assets"
-description: "How to create, opt into, transfer, freeze, clawback, and destroy Algorand Standard Assets with AlgoKit Utils Python."
+description: "Algorand Standard Assets are created, held, and moved by the Algorand ledger itself, and AlgoKit Utils Python exposes every asset operation as a typed parameter object sent through the Algorand client."
 ---
 
 import RemoteCode from "/src/components/RemoteCode.astro";
@@ -15,26 +15,28 @@ Operations whose effects cannot be undone are collected in [Safety Consideration
 
 ## Create an Asset
 
-Creating an ASA mints a new token on the Algorand blockchain. Any account with a sufficient Algo balance can create an asset, and the sender becomes the asset's creator. Sending an asset-create transaction returns the newly assigned asset ID.
+Any account with enough Algo to cover the transaction fee and the 0.1 Algo minimum balance requirement can create an ASA. The sender becomes the asset's creator, and the entire supply starts in their account. `algorand.send.asset_create` builds, signs, and submits the transaction, and the result carries the new asset's ID.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="CREATE_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Opting In and Out of Assets
 
-An account must opt in to an ASA before it can hold or receive units of that asset, and can opt out to release the associated minimum balance requirement. The library exposes individual and bulk variants for both directions.
+An account cannot receive or hold units of an asset it has not opted into. Opting in creates an empty holding for that asset; opting out closes it again. Both directions have a bulk helper on `algorand.asset` for acting on several assets in one call.
 
 ### Opt In
 
-Opting in increases the account's minimum balance requirement by 0.1 Algo per asset.
+Each holding raises the account's minimum balance requirement by 0.1 Algo, so an account pays for the assets it chooses to hold. The opting-in account sends and signs the transaction itself.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="OPT_IN_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 To opt into several assets at once, `algorand.asset.bulk_opt_in(...)` takes a list of asset IDs and batches the opt-in transactions into atomic groups of up to 16, the protocol's transaction group limit.
@@ -42,99 +44,106 @@ To opt into several assets at once, `algorand.asset.bulk_opt_in(...)` takes a li
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="BULK_OPT_IN_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ### Opt Out
 
-Opting out releases the 0.1 Algo minimum balance requirement associated with holding the asset. `AssetOptOutParams` requires the asset's `creator`, which receives any balance still held. By default, `algorand.send.asset_opt_out` verifies a zero balance before submission (`ensure_zero_balance=True`) to prevent asset loss.
+Closing a holding releases that 0.1 Algo. `AssetOptOutParams` takes the asset's `creator`, which receives any units still held — so `algorand.send.asset_opt_out` checks the balance is zero before submitting, unless `ensure_zero_balance=False` says otherwise.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="OPT_OUT_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
-`algorand.asset.bulk_opt_out(...)` does the same in the other direction, and applies the same zero-balance protection by default.
+`algorand.asset.bulk_opt_out(...)` closes several holdings the same way, with the same zero-balance check applied to each.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="BULK_OPT_OUT_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Transfer an Asset
 
-Asset transfers move units of an ASA between accounts that have both opted in. The sender must hold at least the transferred amount and must be authorized to send the asset.
+A transfer moves units between two accounts that have both opted into the asset. The sender needs at least the amount being sent, and neither holding may be frozen.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="TRANSFER_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Access Control
 
-The operations in this section update or exercise an asset's authority roles: `manager`, `reserve`, `freeze`, and `clawback`.
+An asset carries four optional authority addresses: `manager`, `reserve`, `freeze`, and `clawback`. Each is assigned when the asset is created, and an address left empty at creation can never be filled in later — an asset created without a `freeze` address can never be frozen.
 
 ### Reconfigure an Asset
 
-Reconfiguration updates the mutable control addresses of an asset: `manager`, `reserve`, `freeze`, and `clawback`. The current manager account must send the transaction. A control-address field left unset on `AssetConfigParams` is cleared permanently by the protocol at submission.
+The `manager` can reassign any of the four addresses. `AssetConfigParams` replaces all of them at once rather than patching one field, so an address left unset is submitted as empty and the role is cleared for good. Pass every address you intend to keep.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="RECONFIGURE_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ### Freeze or Unfreeze Assets
 
-A freeze transaction toggles whether a specified account can move a specific asset. The `frozen` flag on `AssetFreezeParams` controls whether the holding is frozen or unfrozen. The transaction must be signed by the asset's freeze authority.
+The `freeze` address can stop a single account from moving a single asset. `AssetFreezeParams` names the account and carries a `frozen` flag, so the same call reverses the freeze by passing `False`.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="FREEZE_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ### Clawback Assets
 
-A clawback moves an asset holding out of another account without that holder's consent. It is expressed as an `AssetTransferParams` with `clawback_target` set to the account the assets are pulled from. The sender must be the asset's clawback authority. There is no dedicated clawback parameter type.
+The `clawback` address can move units out of any opted-in account without the holder's consent. There is no dedicated parameter type for it: a clawback is an `AssetTransferParams` sent by the clawback address, with `clawback_target` naming the account the units come from.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="CLAWBACK_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Asset Queries
 
-`algorand.asset` exposes an [`AssetManager`](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/) for asset queries and higher-level bulk helpers. The bulk helpers (`bulk_opt_in`, `bulk_opt_out`) are covered in the sections above. Two query methods remain:
+Beyond the bulk helpers above, the [`AssetManager`](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/) on `algorand.asset` answers two questions — what an asset is, and what an account holds:
 
 - `algorand.asset.get_by_id(asset_id)` returns the asset's parameters (total supply, decimals, unit name, control addresses, and so on).
 - `algorand.asset.get_account_information(sender, asset_id)` returns the given account's holding for the asset.
 
-For any individual asset transaction not covered by a bulk helper, use the standard dispatch surfaces (`algorand.send`, `algorand.create_transaction`, or `algorand.new_group()`) with the typed parameter objects shown above.
-
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="ASSET_MANAGER_QUERIES"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Destroy an Asset
 
-Destroying an asset permanently removes it from the blockchain and releases the creator's minimum balance requirement for it. Destruction requires that the current manager sign the transaction and that all units of the asset sit in the creator account.
+Destroying an asset removes it from the ledger and releases the creator's 0.1 Algo. The `manager` sends the transaction, and every unit must be back in the creator's account first — an asset with units still circulating cannot be destroyed.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
   snippet="DESTROY_ASSET"
-  lang="python"
+  lang="py"
+  frame="none"
 />
 
 ## Safety Considerations
 
-A few asset behaviors deserve attention because their effects are hard or impossible to reverse. The [main DevPortal Asset Operations](/concepts/assets/asset-operations/) page describes the protocol-level rules in full; the notes below focus on library-level behavior.
+Three asset behaviors deserve attention because their effects are difficult or impossible to reverse. The [main DevPortal Asset Operations](/concepts/assets/asset-operations/) page describes the protocol-level rules in full; the notes below focus on library-level behavior.
 
 - **Reconfiguration can permanently clear control addresses.** A partial reconfiguration that omits a role removes that role from the asset for the remainder of its lifetime.
 - **Clawback removes assets from another account without the holder's consent.** A clawback is a transfer signed by the clawback authority, which can move assets out of any opted-in account without further approval from the holder.
