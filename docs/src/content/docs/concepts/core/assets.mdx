@@ -50,7 +50,7 @@ To opt into several assets at once, `algorand.asset.bulk_opt_in(...)` takes a li
 
 ### Opt Out
 
-Closing a holding releases that 0.1 Algo. `AssetOptOutParams` takes the asset's `creator`, which receives any units still held — so `algorand.send.asset_opt_out` checks the balance is zero before submitting, unless `ensure_zero_balance=False` says otherwise.
+Closing a holding releases the 0.1 Algo it reserved. `AssetOptOutParams` takes the asset's `creator`, which receives any units still held — so `algorand.send.asset_opt_out` checks the balance is zero before submitting, unless `ensure_zero_balance=False` says otherwise.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
@@ -152,5 +152,5 @@ Three asset behaviors deserve attention because their effects are difficult or i
 ## Related Documentation
 
 - Main DevPortal: [Assets overview](/concepts/assets/overview/), [Asset Operations](/concepts/assets/asset-operations/), [Asset Metadata](/concepts/assets/asset-metadata/)
-- AlgoKit Utils Python: [Algorand Client](/docs/algokit-utils/python/latest/concepts/core/algorand-client/), [Transaction](/docs/algokit-utils/python/latest/concepts/core/transaction/), [Transaction Composer](/docs/algokit-utils/python/latest/concepts/advanced/transaction-composer/), [Assets guide](/docs/algokit-utils/python/latest/concepts/building/asset/)
+- AlgoKit Utils Python: [Algorand client](/docs/algokit-utils/python/latest/concepts/core/algorand-client/), [Transaction management](/docs/algokit-utils/python/latest/concepts/core/transaction/), [Transaction composer](/docs/algokit-utils/python/latest/concepts/advanced/transaction-composer/), [Assets guide](/docs/algokit-utils/python/latest/concepts/building/asset/)
 - API Reference: [Asset transaction types](/docs/algokit-utils/python/latest/api/algokit_utils/transactions/transaction_composer/), [`AssetManager` reference](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/), [Transactions overview](/docs/algokit-utils/python/latest/api/algokit_utils/transactions/)
