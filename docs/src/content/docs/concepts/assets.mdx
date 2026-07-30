@@ -5,11 +5,11 @@ description: "Algorand Standard Assets are created, held, and moved by the Algor
 
 import RemoteCode from "/src/components/RemoteCode.astro";
 
-Algorand Standard Assets (ASAs) are a primitive of the Algorand network. Tokens are created, held, and moved by the ledger itself, and every asset operation is an ordinary transaction. AlgoKit Utils reflects this directly. Each operation is a typed params dataclass (`AssetCreateParams`, `AssetTransferParams`, and so on) passed to `algorand.send`, exactly like a payment. What is asset-specific lives in `algorand.asset`, the [`AssetManager`](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/): queries over assets and holdings, plus bulk opt-in and opt-out helpers that add group batching and safety checks single transactions don't provide.
+Algorand Standard Assets (ASAs) are a primitive of the Algorand network. Tokens are created, held, and moved by the ledger itself, and every asset operation is an ordinary transaction. AlgoKit Utils reflects this directly. Each operation is a typed params dataclass (`AssetCreateParams`, `AssetTransferParams`, and so on) passed to `algorand.send`, exactly like a payment. What is asset-specific lives in `algorand.asset`, the [`AssetManager`](/algokit-utils-py/api/algokit_utils/assets/asset_manager/): queries over assets and holdings, plus bulk opt-in and opt-out helpers that add group batching and safety checks single transactions don't provide.
 
-This page walks through the asset lifecycle from creation to destruction. For the protocol rules themselves — the control roles, the opt-in requirement, freeze and clawback semantics — see the [Assets overview](/concepts/assets/overview/) and [Asset Operations](/concepts/assets/asset-operations/) pages on the Algorand Developer Portal.
+This page walks through the asset lifecycle from creation to destruction. For the protocol rules themselves — the control roles, the opt-in requirement, freeze and clawback semantics — see the [Assets overview](https://dev.algorand.co/concepts/assets/overview/) and [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/) pages on the Algorand Developer Portal.
 
-To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/docs/algokit-utils/python/latest/concepts/core/algorand-client/) for how these dispatch surfaces relate.
+To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/algokit-utils-py/concepts/algorand-client/) for how these dispatch surfaces relate.
 
 Operations whose effects cannot be undone are collected in [Safety Considerations](#safety-considerations).
 
@@ -118,7 +118,7 @@ The `clawback` address can move units out of any opted-in account without the ho
 
 ## Asset Queries
 
-Beyond the bulk helpers above, the [`AssetManager`](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/) on `algorand.asset` answers two questions — what an asset is, and what an account holds:
+Beyond the bulk helpers above, the [`AssetManager`](/algokit-utils-py/api/algokit_utils/assets/asset_manager/) on `algorand.asset` answers two questions — what an asset is, and what an account holds:
 
 - `algorand.asset.get_by_id(asset_id)` returns the asset's parameters (total supply, decimals, unit name, control addresses, and so on).
 - `algorand.asset.get_account_information(sender, asset_id)` returns the given account's holding for the asset.
@@ -143,7 +143,7 @@ Destroying an asset removes it from the ledger and releases the creator's 0.1 Al
 
 ## Safety Considerations
 
-Three asset behaviors deserve attention because their effects are difficult or impossible to reverse. The [main DevPortal Asset Operations](/concepts/assets/asset-operations/) page describes the protocol-level rules in full; the notes below focus on library-level behavior.
+Three asset behaviors deserve attention because their effects are difficult or impossible to reverse. The [main DevPortal Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/) page describes the protocol-level rules in full; the notes below focus on library-level behavior.
 
 - **Reconfiguration can permanently clear control addresses.** A partial reconfiguration that omits a role removes that role from the asset for the remainder of its lifetime.
 - **Clawback removes assets from another account without the holder's consent.** A clawback is a transfer signed by the clawback authority, which can move assets out of any opted-in account without further approval from the holder.
@@ -151,6 +151,6 @@ Three asset behaviors deserve attention because their effects are difficult or i
 
 ## Related Documentation
 
-- Main DevPortal: [Assets overview](/concepts/assets/overview/), [Asset Operations](/concepts/assets/asset-operations/), [Asset Metadata](/concepts/assets/asset-metadata/)
-- AlgoKit Utils Python: [Algorand client](/docs/algokit-utils/python/latest/concepts/core/algorand-client/), [Transaction management](/docs/algokit-utils/python/latest/concepts/core/transaction/), [Transaction composer](/docs/algokit-utils/python/latest/concepts/advanced/transaction-composer/), [Assets guide](/docs/algokit-utils/python/latest/concepts/building/asset/)
-- API Reference: [Asset transaction types](/docs/algokit-utils/python/latest/api/algokit_utils/transactions/transaction_composer/), [`AssetManager` reference](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/), [Transactions overview](/docs/algokit-utils/python/latest/api/algokit_utils/transactions/)
+- Main DevPortal: [Assets overview](https://dev.algorand.co/concepts/assets/overview/), [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/), [Asset Metadata](https://dev.algorand.co/concepts/assets/asset-metadata/)
+- AlgoKit Utils Python: [Algorand client](/algokit-utils-py/concepts/algorand-client/), [Transaction management](/algokit-utils-py/concepts/transactions/), [Transaction composer](/algokit-utils-py/concepts/advanced/transaction-composer/), [Assets guide](/algokit-utils-py/concepts/building/asset/)
+- API Reference: [Asset transaction types](/algokit-utils-py/api/algokit_utils/transactions/transaction_composer/), [`AssetManager` reference](/algokit-utils-py/api/algokit_utils/assets/asset_manager/), [Transactions overview](/algokit-utils-py/api/algokit_utils/transactions/)
