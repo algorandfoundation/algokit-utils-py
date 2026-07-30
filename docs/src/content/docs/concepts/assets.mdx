@@ -9,8 +9,6 @@ Algorand Standard Assets (ASAs) are a primitive of the Algorand network. Tokens 
 
 This page walks through the asset lifecycle from creation to destruction. For the protocol rules themselves — the control roles, the opt-in requirement, freeze and clawback semantics — see the [Assets overview](https://dev.algorand.co/concepts/assets/overview/) and [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/) pages on the Algorand Developer Portal.
 
-To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/algokit-utils-py/concepts/algorand-client/) for how these dispatch surfaces relate.
-
 Operations whose effects cannot be undone are collected in [Safety Considerations](#safety-considerations).
 
 ## Create an Asset
