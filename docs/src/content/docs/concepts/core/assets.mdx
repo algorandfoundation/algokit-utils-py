@@ -5,9 +5,11 @@ description: "How to create, opt into, transfer, freeze, clawback, and destroy A
 
 import RemoteCode from "/src/components/RemoteCode.astro";
 
-This page shows how to perform each Algorand Standard Asset (ASA) operation with AlgoKit Utils Python. For the protocol-level view of what an ASA is and how its control roles, holdings, opt-in requirement, freezing, clawback, and destruction behave, see the main DevPortal [Assets overview](/concepts/assets/overview/) and [Asset Operations](/concepts/assets/asset-operations/) pages.
+Algorand Standard Assets (ASAs) are a primitive of the Algorand network. Tokens are created, held, and moved by the ledger itself, and every asset operation is an ordinary transaction. AlgoKit Utils reflects this directly. Each operation is a typed params dataclass (`AssetCreateParams`, `AssetTransferParams`, and so on) passed to `algorand.send`, exactly like a payment. What is asset-specific lives in `algorand.asset`, the [`AssetManager`](/docs/algokit-utils/python/latest/api/algokit_utils/assets/asset_manager/): queries over assets and holdings, plus bulk opt-in and opt-out helpers that add group batching and safety checks single transactions don't provide.
 
-Each operation is invoked through `algorand.send.<operation>(params)`, where `params` is a typed parameter object such as `AssetCreateParams` or `AssetTransferParams`. To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/docs/algokit-utils/python/latest/concepts/core/algorand-client/) for how these dispatch surfaces relate.
+This page walks through the asset lifecycle from creation to destruction. For the protocol rules themselves — the control roles, the opt-in requirement, freeze and clawback semantics — see the [Assets overview](/concepts/assets/overview/) and [Asset Operations](/concepts/assets/asset-operations/) pages on the Algorand Developer Portal.
+
+To build an unsigned transaction instead of sending, use `algorand.create_transaction.<operation>(params)`. To add the operation to an atomic transaction group, use `algorand.new_group().add_<operation>(params)`. See [`AlgorandClient`](/docs/algokit-utils/python/latest/concepts/core/algorand-client/) for how these dispatch surfaces relate.
 
 Operations whose effects cannot be undone are collected in [Safety Considerations](#safety-considerations).
 
@@ -35,9 +37,7 @@ Opting in increases the account's minimum balance requirement by 0.1 Algo per as
   lang="python"
 />
 
-### Bulk Opt In
-
-`algorand.asset.bulk_opt_in(...)` opts an account into a list of assets in one call, batching the opt-in transactions into atomic groups of up to 16, the protocol's transaction group limit. Use it when a single account needs to receive several assets at once.
+To opt into several assets at once, `algorand.asset.bulk_opt_in(...)` takes a list of asset IDs and batches the opt-in transactions into atomic groups of up to 16, the protocol's transaction group limit.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
@@ -55,9 +55,7 @@ Opting out releases the 0.1 Algo minimum balance requirement associated with hol
   lang="python"
 />
 
-### Bulk Opt Out
-
-`algorand.asset.bulk_opt_out(...)` opts an account out of a list of assets in a single call. It provides the same zero-balance protection as `algorand.send.asset_opt_out` by default.
+`algorand.asset.bulk_opt_out(...)` does the same in the other direction, and applies the same zero-balance protection by default.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
