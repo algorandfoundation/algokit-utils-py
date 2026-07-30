@@ -6,7 +6,7 @@ description: "AlgoKit Utils drives smart contract applications from an app spec:
 import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 import RemoteCode from "/src/components/RemoteCode.astro";
 
-Deploying and calling a [smart contract application](https://dev.algorand.co/concepts/smart-contracts/overview/) with AlgoKit Utils starts from one artifact: the application specification (app spec), the JSON document that smart contract frameworks such as Algorand Python and Algorand TypeScript emit when compiling a contract. The format is standardized by [ARC-56](https://dev.algorand.co/arc-standards/arc-0056/). The app spec describes the contract's Application Binary Interface (ABI) methods, its state schema, and its [TEAL](https://dev.algorand.co/concepts/smart-contracts/avm/) programs — everything the library needs to encode calls, compile and deploy the contract, and decode its state and errors.
+Deploying and calling a [smart contract application](https://dev.algorand.co/concepts/smart-contracts/overview/) with AlgoKit Utils starts from one artifact: the application specification (app spec), the JSON document that smart contract frameworks such as Algorand Python and Algorand TypeScript emit when compiling a contract. The format is standardized by [ARC-56](https://dev.algorand.co/arc-standards/arc-0056/). The app spec describes the contract's Application Binary Interface (ABI) methods, its state schema, and its [Transaction Execution Approval Language (TEAL)](https://dev.algorand.co/concepts/smart-contracts/avm/) programs — everything the library needs to encode calls, compile and deploy the contract, and decode its state and errors.
 
 :::note
 Everywhere this page passes an app spec, the older [ARC-32](https://dev.algorand.co/arc-standards/arc-0032/) format is also accepted and converted to ARC-56 internally.
@@ -30,7 +30,7 @@ Two classes consume the app spec. `AppFactory` covers everything before a specif
 
 For contracts you own, the recommended way to deploy and call an app is a _typed_ client, generated from the app spec with [AlgoKit CLI](https://github.com/algorandfoundation/algokit-cli/blob/main/docs/features/generate.md#1-typed-clients):
 
-```bash
+```shell
 algokit generate client HelloWorld.arc56.json --output hello_world_client.py
 ```
 
@@ -250,7 +250,7 @@ Alongside `send`, the client mirrors the `AlgorandClient` surface with `app_clie
 
 ### Readonly Methods
 
-An app spec can declare a method `readonly`. The client never submits a transaction for these methods: they run through algod's simulate endpoint, returning their result immediately without paying a fee or writing to the ledger. Methods without the flag are signed, submitted, and confirmed like any other transaction. The calling code is identical either way.
+An app spec can declare a method as `readonly`. The client never submits a transaction for these methods: they run through algod's simulate endpoint, returning their result immediately without paying a fee or writing to the ledger. Methods without the flag are signed, submitted, and confirmed like any other transaction. The calling code is identical either way.
 
 ### Default Arguments
 
