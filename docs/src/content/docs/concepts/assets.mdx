@@ -15,7 +15,7 @@ Operations whose effects cannot be undone are collected in [Safety Consideration
 
 ## Create an Asset
 
-Any account with enough Algo to cover the transaction fee and the 0.1 Algo minimum balance requirement can create an ASA. The sender becomes the asset's creator, and the entire supply starts in their account. `algorand.send.asset_create` builds, signs, and submits the transaction, and the result carries the new asset's ID.
+Creating an ASA raises the creator's minimum balance requirement by 0.1 Algo, so any account able to cover that increase and the transaction fee can create one. The sender becomes the asset's creator, and the entire supply starts in their account. `algorand.send.asset_create` builds, signs, and submits the transaction, and the result carries the new asset's ID.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
@@ -24,13 +24,13 @@ Any account with enough Algo to cover the transaction fee and the 0.1 Algo minim
   frame="none"
 />
 
-## Opting In and Out of Assets
+## Opt In and Out of Assets
 
 An account cannot receive or hold units of an asset it has not opted into. Opting in creates an empty holding for that asset; opting out closes it again. Both directions have a bulk helper on `algorand.asset` for acting on several assets in one call.
 
 ### Opt In
 
-Each holding raises the account's minimum balance requirement by 0.1 Algo, so an account pays for the assets it chooses to hold. The opting-in account sends and signs the transaction itself.
+Each holding raises the account's minimum balance requirement by 0.1 Algo, so an account pays for the assets it chooses to hold. The opting-in account signs and sends the transaction itself.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/main/examples/concepts/assets.py"
@@ -143,14 +143,14 @@ Destroying an asset removes it from the ledger and releases the creator's 0.1 Al
 
 ## Safety Considerations
 
-Three asset behaviors deserve attention because their effects are difficult or impossible to reverse. The [main DevPortal Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/) page describes the protocol-level rules in full; the notes below focus on library-level behavior.
+Three asset behaviors deserve attention because their effects are difficult or impossible to reverse. The [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/) page on the Algorand Developer Portal describes the protocol-level rules in full; the notes below focus on library-level behavior.
 
 - **Reconfiguration can permanently clear control addresses.** A partial reconfiguration that omits a role removes that role from the asset for the remainder of its lifetime.
 - **Clawback removes assets from another account without the holder's consent.** A clawback is a transfer signed by the clawback authority, which can move assets out of any opted-in account without further approval from the holder.
-- **Opting out with a remaining balance can result in losing those assets.** Both `algorand.send.asset_opt_out` and `algorand.asset.bulk_opt_out` verify a zero balance before submission by default (`ensure_zero_balance=True`). With that check disabled, the opt-out proceeds even when the account still holds units of the asset, and those units are forfeited on submission.
+- **Opting out with a remaining balance can result in losing those assets.** Both `algorand.send.asset_opt_out` and `algorand.asset.bulk_opt_out` verify a zero balance before submission by default (`ensure_zero_balance=True`). With that check disabled, the opt-out proceeds even when the account still holds units of the asset, and those units are sent to the asset's creator on submission.
 
 ## Related Documentation
 
-- Main DevPortal: [Assets overview](https://dev.algorand.co/concepts/assets/overview/), [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/), [Asset Metadata](https://dev.algorand.co/concepts/assets/asset-metadata/)
+- Algorand Developer Portal: [Assets overview](https://dev.algorand.co/concepts/assets/overview/), [Asset Operations](https://dev.algorand.co/concepts/assets/asset-operations/), [Asset Metadata](https://dev.algorand.co/concepts/assets/asset-metadata/)
 - AlgoKit Utils Python: [Algorand client](/algokit-utils-py/concepts/algorand-client/), [Transaction management](/algokit-utils-py/concepts/transactions/), [Transaction composer](/algokit-utils-py/concepts/advanced/transaction-composer/), [Assets guide](/algokit-utils-py/concepts/building/asset/)
 - API Reference: [Asset transaction types](/algokit-utils-py/api/algokit_utils/transactions/transaction_composer/), [`AssetManager` reference](/algokit-utils-py/api/algokit_utils/assets/asset_manager/), [Transactions overview](/algokit-utils-py/api/algokit_utils/transactions/)
