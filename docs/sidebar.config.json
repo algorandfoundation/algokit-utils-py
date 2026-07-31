@@ -13,16 +13,13 @@
       { "slug": "concepts/core/amount" },
       { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
-      { "slug": "concepts/core/secret-management" }
+      { "slug": "concepts/core/secret-management" },
+      { "slug": "concepts/applications" }
     ]
   },
   {
     "label": "Building Applications",
     "items": [
-      { "slug": "concepts/building/app-client" },
-      { "slug": "concepts/building/app-deploy" },
-      { "slug": "concepts/building/app" },
-      { "slug": "concepts/building/typed-app-clients" },
       { "slug": "concepts/building/asset" },
       { "slug": "concepts/building/transfer" },
       { "slug": "concepts/building/testing" }
