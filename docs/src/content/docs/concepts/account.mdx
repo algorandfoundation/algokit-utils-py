@@ -1,5 +1,5 @@
 ---
-title: "Account Management"
+title: "Accounts"
 description: "Reference for the AccountManager in AlgoKit Utils (Python): creating, funding, signing with, rekeying, and tracking Algorand accounts, with runnable examples and links to the full API reference."
 tableOfContents:
   minHeadingLevel: 2
@@ -11,10 +11,7 @@ import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 Account management is one of the core capabilities provided by AlgoKit Utils. It allows you to create mnemonic, rekeyed, multisig, transaction signer, idempotent KMD and environment variable injected accounts that can be used to sign transactions as well as representing a sender address at the same time. This significantly simplifies management of transaction signing.
 
-> [!NOTE]
-> This page documents the AlgoKit Utils (Python) code for working with accounts. For the underlying concepts — account types, keys and addresses, rekeying, multisig — see the account guides on the [Algorand Developer Portal](https://dev.algorand.co/concepts/accounts/overview).
-
-## `AccountManager`
+## Account Manager
 
 The `AccountManager` is a class that is used to get, create, and fund accounts and perform account-related actions such as funding. The `AccountManager` also keeps track of signers for each address so when using the [`TransactionComposer`](../../advanced/transaction-composer/) to send transactions, a signer function does not need to manually be specified for each transaction - instead it can be inferred from the sender address automatically.
 
@@ -27,7 +24,7 @@ To get an instance of `AccountManager`, you can use either [`AlgorandClient`](..
   frame="none"
 />
 
-## Create Accounts
+## Creating Accounts
 
 In order to get/register accounts for signing operations you can use the following methods on [`AccountManager`](#accountmanager) (expressed here as `algorand.account` to denote the syntax via an [`AlgorandClient`](../algorand-client/)). Each returns an account conforming to [`TransactionSignerAccountProtocol`](#transactionsigneraccountprotocol) and registers its signer against its address, so transactions from that sender sign automatically:
 
@@ -43,8 +40,11 @@ In order to get/register accounts for signing operations you can use the followi
 
 Each is detailed below; for full signatures and every parameter, see the [`AccountManager` API reference](../../../api/algokit_utils/accounts/account_manager/).
 
-> [!NOTE]
-> For the concept behind standalone, KMD-managed and logic signature accounts, see [Creating an account](https://dev.algorand.co/concepts/accounts/create).
+<LinkCard
+  title="Creating an Account"
+  href="https://dev.algorand.co/concepts/accounts/create"
+  description="The concepts behind standalone, KMD-managed, and logic signature accounts"
+/>
 
 ### Random Account Generation
 
@@ -140,8 +140,11 @@ The same operations are exposed on [`AccountManager`](#accountmanager) via `algo
 
 All Algorand accounts require a minimum balance to be registered in the ledger. AlgoKit Utils provides helpers to fund accounts from a dispenser, a common need in automation and deployment scripts.
 
-> [!NOTE]
-> For the different funding options across LocalNet, TestNet and MainNet, see [Funding an account](https://dev.algorand.co/concepts/accounts/funding).
+<LinkCard
+  title="Funding an Account"
+  href="https://dev.algorand.co/concepts/accounts/funding"
+  description="Funding options across LocalNet, TestNet, and MainNet"
+/>
 
 ### Dispenser Accounts
 
@@ -203,10 +206,13 @@ To fund an account with a fixed amount immediately (without a balance check), us
 
 The `AccountManager` keeps track of which signer is associated with a given sender address. This is used by [`AlgorandClient`](../algorand-client/) to automatically sign transactions by that sender. Any of the [account methods](#create-accounts) that return an account will automatically register the signer with the sender.
 
-> [!NOTE]
-> For how keys, addresses and mnemonics are derived, and the available signing methods, see [Keys and signing](https://dev.algorand.co/concepts/accounts/keys-signing).
+<LinkCard
+  title="Keys and Signing"
+  href="https://dev.algorand.co/concepts/accounts/keys-signing"
+  description="How keys, addresses, and mnemonics are derived, and the available signing methods"
+/>
 
-### `TransactionSignerAccountProtocol`
+### Transaction Signer Account Protocol
 
 The core internal type that holds information about a signer/sender pair for a transaction is `TransactionSignerAccountProtocol`, which represents an `algosdk.transaction.TransactionSigner` (`signer`) along with a sender address (`address`) as the encoded string address.
 
@@ -287,7 +293,13 @@ A signer can be overridden per transaction. Create an unsigned transaction and p
 
 ## Rekeying Accounts
 
-One of the unique features of Algorand is the ability to change the private key that can authorise transactions for an account. This is called [rekeying](https://dev.algorand.co/concepts/accounts/rekeying).
+One of the unique features of Algorand is the ability to change the private key that can authorise transactions for an account. This is called rekeying.
+
+<LinkCard
+  title="Rekeying"
+  href="https://dev.algorand.co/concepts/accounts/rekeying"
+  description="How rekeying changes the authorising key for an account"
+/>
 
 > [!WARNING]
 > Rekeying should be done with caution as a rekey transaction can result in permanent loss of control of an account.
@@ -312,8 +324,11 @@ In the following example, `account_a` is rekeyed to `account_b`. After rekeying,
 
 A multisignature account is an ordered set of addresses with a threshold and version. The threshold determines how many signatures are required to authorise a transaction (such as 2-of-3 or 3-of-5).
 
-> [!NOTE]
-> For how multisig accounts work at the protocol level, weighted signers and ARC-55 coordination, see [Multisignature accounts](https://dev.algorand.co/concepts/accounts/multisig).
+<LinkCard
+  title="Multisignature Accounts"
+  href="https://dev.algorand.co/concepts/accounts/multisig"
+  description="How multisig works at the protocol level, weighted signers, and ARC-55 coordination"
+/>
 
 Use `multisig` to register and return a multisig account with one or more signing keys loaded. The example below creates a 2-of-3 multisig account that requires only 2 signatures from the 3 possible signers to authorise transactions.
 
