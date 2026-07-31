@@ -13,7 +13,8 @@
       { "slug": "concepts/core/amount" },
       { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
-      { "slug": "concepts/core/secret-management" }
+      { "slug": "concepts/core/secret-management" },
+      { "slug": "concepts/errors-and-debugging" }
     ]
   },
   {
@@ -34,7 +35,6 @@
     "items": [
       { "slug": "concepts/advanced/transaction-composer" },
       { "slug": "concepts/advanced/modular-imports" },
-      { "slug": "concepts/advanced/debugging" },
       { "slug": "concepts/advanced/indexer" },
       { "slug": "concepts/advanced/dispenser-client" }
     ]
