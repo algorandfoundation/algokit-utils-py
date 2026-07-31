@@ -11,6 +11,7 @@
       { "slug": "concepts/core/account" },
       { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
+      { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
       { "slug": "concepts/core/secret-management" }
     ]
