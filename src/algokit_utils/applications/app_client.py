@@ -166,6 +166,17 @@ def get_constant_block_offset(program: bytes) -> int:  # noqa: C901
     return max(bytecblock_offset or 0, intcblock_offset or 0)
 
 
+def _error_refers_to_app_id(error_message: str, app_id: int) -> bool:
+    """Return True if *error_message* refers to exactly *app_id*.
+
+    Matches ``app={app_id}`` only when the id is not a prefix of a longer numeric id,
+    so a transformer for app ``1142`` does not claim errors for app ``11423``.
+    """
+    import re
+
+    return re.search(rf"app={app_id}(?!\d)", error_message) is not None
+
+
 CreateOnComplete = Literal[
     OnComplete.NoOpOC,
     OnComplete.UpdateApplicationOC,
@@ -2014,9 +2025,9 @@ class AppClient:
                 # Instead check the programs to identify if this is the correct app
                 should_transform = self._is_new_app_error_for_this_app(error)
             else:
-                # Only handle errors for this specific app
-                app_id_string = f"app={self._app_id}"
-                should_transform = app_id_string in str(error)
+                # Only handle errors for this specific app (digit-boundary match avoids
+                # prefix collisions, e.g. app=1142 must not match app=11423).
+                should_transform = _error_refers_to_app_id(str(error), self._app_id)
 
             if not should_transform:
                 # Error is not for this app, return unchanged
