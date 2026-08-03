@@ -109,6 +109,20 @@ def main() -> None:
     )
     # example: STATIC_FEE
 
+    # example: EXTRA_FEE
+    # extra_fee adds to the fee the client already calculated instead of
+    # replacing it, so this payment pays the minimum fee plus 1000 microAlgo.
+    algorand.send.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            extra_fee=AlgoAmount.from_micro_algo(1000),
+            note=b"extra-fee payment",
+        )
+    )
+    # example: EXTRA_FEE
+
     # example: MAX_FEE
     # max_fee caps the fee the client will accept; sending raises if the
     # calculated fee would exceed it, guarding against fee spikes.

@@ -28,7 +28,7 @@ Every transaction starts as a _params dataclass_: `PaymentParams`, `AssetTransfe
 | `algorand.create_transaction.<type>(params)` | Build the unsigned transaction and handle signing/sending yourself |
 | `algorand.new_group().add_<type>(params)`    | Collect several transactions into one atomic group              |
 
-The client resolves each transaction's sender to its registered signer, so you rarely pass a signer explicitly. Suggested parameters (the fee, current round, and genesis identifiers) are fetched and cached for you. Both are covered under [Algorand Client](/algokit-utils-py/concepts/algorand-client/) and apply to everything below.
+The client resolves each transaction's sender to its registered signer, so you rarely pass a signer explicitly. When you do, the `signer` field accepts any account wrapper the library provides (including the multisig and logic-signature accounts below) or a raw `algosdk` transaction signer. Suggested parameters (the fee, current round, and genesis identifiers) are fetched and cached for you. Both are covered under [Algorand Client](/algokit-utils-py/concepts/algorand-client/) and apply to everything below.
 
 Every params dataclass also carries a set of common fields, in addition to its type-specific ones:
 
@@ -95,7 +95,7 @@ Algorand's minimum fee is 1000 microAlgo, and the client applies it by default. 
 | Field        | Effect                                                                             |
 | ------------ | ---------------------------------------------------------------------------------- |
 | `static_fee` | Sets an exact, fixed fee, overriding the calculated one                            |
-| `extra_fee`  | Adds an amount on top of the calculated minimum (e.g. to cover a fee in a group)   |
+| `extra_fee`  | Adds to the calculated fee (e.g. to cover another transaction's fee in a group)    |
 | `max_fee`    | Caps the fee the client will accept; sending raises if the fee would exceed it     |
 
 `static_fee` pins the fee to an exact value:
@@ -103,6 +103,15 @@ Algorand's minimum fee is 1000 microAlgo, and the client applies it by default. 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
   snippet="STATIC_FEE"
+  lang="py"
+  frame="none"
+/>
+
+`extra_fee` adds to the fee the client already calculated rather than replacing it. Use it when one transaction has to pay more than its own share, such as covering the fee of an inner transaction an app call will issue:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="EXTRA_FEE"
   lang="py"
   frame="none"
 />
@@ -131,7 +140,7 @@ The same mechanism covers the fees of inner transactions issued by a smart contr
 
 ## Reserve Exclusivity with a Lease
 
-A lease is a 32-byte value that locks the `(sender, lease)` pair until the transaction's last-valid round. While the lock holds, no second transaction with the same pair can confirm. That guarantees a recurring or replaceable payment runs at most once per window.
+A lease is a value of up to 32 bytes that locks the `(sender, lease)` pair until the transaction's last-valid round. A shorter value is padded to 32 bytes. While the lock holds, no second transaction with the same pair can confirm. That guarantees a recurring or replaceable payment runs at most once per window.
 
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
@@ -241,7 +250,7 @@ Groups have a deeper API: resource population, per-transaction ABI returns, and 
   frame="none"
 />
 
-The transaction the client builds is a standard `algosdk` transaction, so anything the SDK can do with it applies. To collect several such transactions into an atomic group, add them with [`add_transaction`](#group-and-simulate-transactions).
+The transaction the client builds is a standard `algosdk` transaction, so anything the SDK can do with it applies. To collect several such transactions into an atomic group, add them with [`add_transaction`](#group-and-simulate-transactions). Building an ABI method call is different: those `create_transaction` methods return a set of built transactions rather than a single one, and are covered under [Applications](/algokit-utils-py/concepts/applications/).
 
 ## Attach a Structured Note (ARC-2)
 
@@ -254,7 +263,7 @@ Every transaction carries an optional `note` of arbitrary bytes. [ARC-2](https:/
   frame="none"
 />
 
-The `format` is `m` for MsgPack, `b` for raw bytes, `u` for UTF-8, or `j` for JSON. The `dapp_name` must be 5 to 32 characters. See the [ARC-2 specification](https://dev.algorand.co/arc-standards/arc-0002/) for the full convention.
+The `format` is `m` for MsgPack, `b` for raw bytes, `u` for UTF-8, or `j` for JSON. The `dapp_name` must be 5 to 32 characters and start with a letter or digit. See the [ARC-2 specification](https://dev.algorand.co/arc-standards/arc-0002/) for the full convention.
 
 ## Send Parameters
 
