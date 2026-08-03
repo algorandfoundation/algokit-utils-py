@@ -8,6 +8,7 @@
     "label": "Concepts",
     "items": [
       { "slug": "concepts/algorand-client" },
+      { "slug": "concepts/transactions" },
       { "slug": "concepts/core/account" },
       { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
