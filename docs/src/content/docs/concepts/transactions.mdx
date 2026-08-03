@@ -8,10 +8,12 @@ import RemoteCode from "/src/components/RemoteCode.astro";
 
 Every action on Algorand — moving Algo, creating an asset, calling a smart contract — is a [transaction](https://dev.algorand.co/concepts/transactions/types/): a signed, atomic instruction the network validates and records. AlgoKit Utils constructs, signs, and submits all of them through one consistent model, so the shape you learn for a payment carries over to every other type.
 
-This page covers how the library builds and sends transactions and configures their shared fields — fees, leases, validity, and grouping. For the protocol-level definition of each transaction type and its wire format, see the Algorand developer portal.
+This page covers how the library builds, signs, and sends transactions and configures the fields they share: sending payments, registering consensus keys, controlling fees, leases, multisig authorization, atomic groups and simulation, building unsigned transactions, structured notes, per-send options, and rekeying. Constructing assets and application calls follows the same model and is covered on their own pages. For the protocol-level definition of each transaction type and its wire format, see the Algorand developer portal.
+
+Building and sending is only half the story; for interpreting what a send returns — confirmations, transaction IDs, and ABI return values — see [Transaction management](/algokit-utils-py/concepts/core/transaction/), which documents the result types every send method returns.
 
 <LinkCard
-  title="Transactions"
+  title="Transactions (protocol)"
   href="https://dev.algorand.co/concepts/transactions/types/"
   description="The protocol-level model: transaction types, fields, signing, and finality"
 />
@@ -174,6 +176,23 @@ Create the account with `algorand.account.multisig`, passing a `MultisigMetadata
   />
 </CardGrid>
 
+## Sign with a Logic Signature
+
+A [logic signature](https://dev.algorand.co/concepts/smart-contracts/logic-sigs/) authorizes a transaction with a compiled program instead of a private key: the program runs at submission and the transaction is valid only if it approves. Create one with `algorand.account.logicsig`, passing the compiled program bytes (here produced from TEAL with `algorand.app.compile_teal`). As with multisig, this registers a signer for the logic signature's address, so sending from it is authorized automatically:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="LOGICSIG"
+  lang="py"
+  frame="none"
+/>
+
+:::caution
+The `int 1` program above approves _every_ transaction, so anyone can spend the escrow. It is illustrative only — a real logic signature encodes the exact conditions under which it will approve.
+:::
+
+The address above is a _contract account_ (an escrow whose address is the program's hash), so the program authorizes spending from itself. A logic signature can also be _delegated_ — an account grants the program authority to sign on its behalf — in which case the program signs for that account's transactions. Either way the account exposes a `signer`, so you can also attach it explicitly to any transaction's `signer` field.
+
 ## Group and Simulate Transactions
 
 `algorand.new_group()` builds an [atomic transaction group](https://dev.algorand.co/concepts/transactions/atomic-txn-groups/): the transactions you add either all confirm or all fail together, with no partial outcome. Add any mix of types with the fluent `add_<type>` methods, then `send()`:
@@ -181,6 +200,15 @@ Create the account with `algorand.account.multisig`, passing a `MultisigMetadata
 <RemoteCode
   src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
   snippet="ATOMIC_GROUP"
+  lang="py"
+  frame="none"
+/>
+
+A transaction built elsewhere can join the group too. `add_transaction` takes a raw `algosdk` transaction — such as one produced by `create_transaction` (see [Build Unsigned Transactions](#build-unsigned-transactions)) — and signs it with the sender's registered signer, letting you mix pre-built transactions with params-built ones:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="ADD_TRANSACTION"
   lang="py"
   frame="none"
 />
@@ -200,6 +228,60 @@ Groups have a deeper API — resource population, per-transaction ABI returns, a
   title="Transaction Composer"
   href="/algokit-utils-py/concepts/advanced/transaction-composer/"
   description="Building groups, simulation options, resource population, and error transformers"
+/>
+
+## Build Unsigned Transactions
+
+`algorand.send.<type>` builds, signs, and submits in one step. When you need control over signing or submission — to hand a transaction to a wallet, sign it out of band, or submit it yourself — `algorand.create_transaction.<type>` returns the unsigned `algosdk` transaction instead. You then sign and submit it through the SDK client:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="BUILD_UNSIGNED"
+  lang="py"
+  frame="none"
+/>
+
+The transaction the client builds is a standard `algosdk` transaction, so anything the SDK can do with it applies. To collect several such transactions into an atomic group, add them with [`add_transaction`](#group-and-simulate-transactions).
+
+## Attach a Structured Note (ARC-2)
+
+Every transaction carries an optional `note` of arbitrary bytes. [ARC-2](https://dev.algorand.co/arc-standards/arc-0002/) standardizes that field so on-chain tools can recognize which application wrote a note and in what format, encoding it as `<dapp_name>:<format><data>`. `TransactionComposer.arc2_note` builds a conforming note; pass the bytes it returns as the `note` field on any transaction:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="ARC2_NOTE"
+  lang="py"
+  frame="none"
+/>
+
+The `format` is one of `m` (MsgPack), `b` (raw bytes), `u` (UTF-8), or `j` (JSON); `dapp_name` must be 5–32 characters. See the [ARC-2 specification](https://dev.algorand.co/arc-standards/arc-0002/) for the full convention.
+
+## Send Parameters
+
+The params dataclass describes _what_ the transaction is; a separate `send_params` argument controls _how_ it is sent. Pass it as the second argument to any `algorand.send.<type>` call or to a group's `send()`:
+
+| Option                                    | Effect                                                                          |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `max_rounds_to_wait`                      | How many rounds to wait for confirmation before giving up                       |
+| `suppress_log`                            | Suppress the library's send and confirmation logging                            |
+| `populate_app_call_resources`             | Auto-populate the resources an app call references (see [Applications](/algokit-utils-py/concepts/applications/)) |
+| `cover_app_call_inner_transaction_fees`   | Have the caller cover inner-transaction fees (see [Transaction Composer](/algokit-utils-py/concepts/advanced/transaction-composer/)) |
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/transactions.py"
+  snippet="SEND_PARAMS"
+  lang="py"
+  frame="none"
+/>
+
+## Rekey an Account
+
+Rekeying moves the authority to sign for an account to a different address while keeping the account's own address unchanged. Every params dataclass exposes a `rekey_to` field that rekeys the sender as a side effect of the transaction, and `algorand.account.rekey_account(...)` is a dedicated helper for doing it on its own. Because a rekey can permanently transfer control of an account, the mechanics, the risks, and how to sign for a rekeyed sender afterward are covered with the account model.
+
+<LinkCard
+  title="Accounts"
+  href="/algokit-utils-py/concepts/account/"
+  description="Rekeying accounts and signing for a rekeyed sender"
 />
 
 ## Other Transaction Types

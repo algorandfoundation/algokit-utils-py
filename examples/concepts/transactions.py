@@ -17,6 +17,7 @@ from algokit_utils import (
     OnlineKeyRegistrationParams,
     PaymentParams,
     SigningAccount,
+    TransactionComposer,
 )
 from examples._helpers import setup_localnet_environment
 
@@ -29,7 +30,7 @@ def _new_funded_account(algorand: AlgorandClient, funder: SigningAccount, amount
 
 
 def main() -> None:
-    algorand, account_a, account_b = setup_localnet_environment(initial_funds=AlgoAmount.from_algo(20))
+    algorand, account_a, account_b = setup_localnet_environment(initial_funds=AlgoAmount.from_algo(30))
 
     balance_before = algorand.account.get_information(account_b.address).amount
 
@@ -184,6 +185,30 @@ def main() -> None:
     )
     # example: MULTISIG
 
+    # example: LOGICSIG
+    # A logic signature is a compiled program that authorizes transactions. This
+    # one approves unconditionally (int 1); a real program encodes spending rules.
+    program = algorand.app.compile_teal("#pragma version 10\nint 1").compiled_base64_to_bytes
+    logic_sig = algorand.account.logicsig(program)
+
+    # The program's hash is a contract (escrow) account. Fund it, then spend from
+    # it — the logic signature authorizes the payment, so no private key signs.
+    algorand.send.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=logic_sig.address,
+            amount=AlgoAmount.from_algo(1),
+        )
+    )
+    algorand.send.payment(
+        PaymentParams(
+            sender=logic_sig.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_micro_algo(100_000),
+        )
+    )
+    # example: LOGICSIG
+
     # example: ATOMIC_GROUP
     # Transactions added to a group either all confirm or all fail together.
     group_result = (
@@ -230,6 +255,73 @@ def main() -> None:
     # example: SIMULATE
 
     assert len(simulation.transactions) == 1
+
+    # example: ADD_TRANSACTION
+    # A transaction built elsewhere — here via create_transaction, but any algosdk
+    # transaction works — can be dropped into a group alongside params-built ones.
+    prebuilt_txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            note=b"prebuilt txn",
+        )
+    )
+    algorand.new_group().add_transaction(prebuilt_txn).add_payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            note=b"group with prebuilt",
+        )
+    ).send()
+    # example: ADD_TRANSACTION
+
+    # example: BUILD_UNSIGNED
+    # create_transaction builds the transaction without signing or sending it, so
+    # you can hand it to a wallet or sign it yourself.
+    unsigned_txn = algorand.create_transaction.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            note=b"manually signed",
+        )
+    )
+    # Sign with the sender's key and submit through the underlying algod client.
+    signed_txn = unsigned_txn.sign(account_a.private_key)
+    tx_id = algorand.client.algod.send_transaction(signed_txn)
+    # example: BUILD_UNSIGNED
+
+    assert tx_id
+
+    # example: ARC2_NOTE
+    # ARC-2 is a convention for structured transaction notes. arc2_note encodes a
+    # note as "<dapp_name>:<format><data>"; pass the resulting bytes as the note.
+    note = TransactionComposer.arc2_note({"dapp_name": "my-dapp", "format": "j", "data": {"amount": 1}})
+    algorand.send.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            note=note,
+        )
+    )
+    # example: ARC2_NOTE
+
+    # example: SEND_PARAMS
+    # send_params tunes how a transaction is sent, not what it contains. Pass it to
+    # any send call — here, wait up to 10 rounds for confirmation and suppress logs.
+    algorand.send.payment(
+        PaymentParams(
+            sender=account_a.address,
+            receiver=account_b.address,
+            amount=AlgoAmount.from_algo(1),
+            note=b"custom send params",
+        ),
+        send_params={"max_rounds_to_wait": 10, "suppress_log": True},
+    )
+    # example: SEND_PARAMS
 
 
 if __name__ == "__main__":
