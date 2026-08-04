@@ -11,19 +11,6 @@ import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 
 Account management is one of the core capabilities provided by AlgoKit Utils. It allows you to create mnemonic, rekeyed, multisig, transaction signer, idempotent KMD and environment variable injected accounts that can be used to sign transactions as well as representing a sender address at the same time. This significantly simplifies management of transaction signing.
 
-## Account Manager
-
-The `AccountManager` is a class that is used to get, create, and fund accounts and perform account-related actions such as funding. The `AccountManager` also keeps track of signers for each address so when using the [`TransactionComposer`](../../advanced/transaction-composer/) to send transactions, a signer function does not need to manually be specified for each transaction - instead it can be inferred from the sender address automatically.
-
-To get an instance of `AccountManager`, you can use either [`AlgorandClient`](../algorand-client/) via `algorand.account` or instantiate it directly:
-
-<RemoteCode
-  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/accounts.py"
-  snippet="ACCOUNT_MANAGER"
-  lang="py"
-  frame="none"
-/>
-
 ## Creating Accounts
 
 In order to get/register accounts for signing operations you can use the following methods on [`AccountManager`](#accountmanager) (expressed here as `algorand.account` to denote the syntax via an [`AlgorandClient`](../algorand-client/)). Each returns an account conforming to [`TransactionSignerAccountProtocol`](#transactionsigneraccountprotocol) and registers its signer against its address, so transactions from that sender sign automatically:
@@ -340,3 +327,18 @@ Use `multisig` to register and return a multisig account with one or more signin
 />
 
 `multisig` takes a `MultisigMetadata` (its `version`, `threshold`, and member `addresses`) and the `signing_accounts` available to sign. It returns a `MultiSigAccount`, whose signer collects the required signatures from those accounts automatically.
+
+## Under the Hood
+
+<a id="accountmanager"></a>
+
+Throughout this page, accounts are reached through `algorand.account` — the `AccountManager` instance that an [`AlgorandClient`](../algorand-client/) creates and shares. `AccountManager` is the class that gets, creates, and funds accounts, and it keeps track of the signer registered for each address so that transactions sent through [`AlgorandClient`](../algorand-client/) or the [`TransactionComposer`](../../advanced/transaction-composer/) are signed by sender automatically, without a signer being specified per transaction.
+
+To get an instance of `AccountManager`, you can use either [`AlgorandClient`](../algorand-client/) via `algorand.account` or instantiate it directly:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/accounts.py"
+  snippet="ACCOUNT_MANAGER"
+  lang="py"
+  frame="none"
+/>
