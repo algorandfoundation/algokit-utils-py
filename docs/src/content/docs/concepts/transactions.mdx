@@ -10,7 +10,7 @@ Moving Algo, creating an asset, or calling a smart contract all happen the same 
 
 That one model covers most of what you will do: payments, atomic groups and simulation, fee control, leases, structured notes, multisig and logic-signature authorization, rekeying, and consensus key registration. Each has a section below. Assets and application calls work the same way, on their own pages. For the protocol-level definition of each transaction type and its wire format, see the Algorand developer portal.
 
-To read what a send returns, such as confirmations, transaction IDs, and ABI return values, see [Transaction management](/algokit-utils-py/concepts/core/transaction/). It documents the result type every send method returns.
+Each send returns a result object with the confirmation, transaction IDs, and any ABI return values. [Transaction Results](#transaction-results) below covers the shapes.
 
 <LinkCard
   title="Transactions (protocol)"
@@ -137,6 +137,53 @@ Groups have a deeper API: resource population, per-transaction ABI returns, and 
 />
 
 The transaction the client builds is a standard `algosdk` transaction, so anything the SDK can do with it applies. To collect several such transactions into an atomic group, add them with [`add_transaction`](#group-and-simulate-transactions). Building an ABI method call is different: those `create_transaction` methods return a set of built transactions rather than a single one, and are covered under [Applications](/algokit-utils-py/concepts/applications/).
+
+## Transaction Results
+
+Every send returns a result object that describes what happened on-chain. A single send runs through the same composer as a group. That makes the two result shapes closely related: learn both and you can read any send's return value in the API.
+
+`algorand.send.<type>` returns a `SendSingleTransactionResult`. It carries the convenience fields for the one transaction you sent, alongside the full group-level arrays it was built from:
+
+```python
+@dataclass(frozen=True, kw_only=True)
+class SendSingleTransactionResult:
+    transaction: TransactionWrapper       # the transaction sent
+    confirmation: AlgodResponseType       # its confirmation from algod
+    group_id: str
+    tx_id: str | None                     # its transaction ID
+    tx_ids: list[str]                     # every ID in the group
+    transactions: list[TransactionWrapper]
+    confirmations: list[AlgodResponseType]
+    returns: list[ABIReturn] | None       # ABI returns, when present
+```
+
+Specialized sends return subtypes that surface a value you would otherwise read out of the raw confirmation:
+
+- `asset_create` returns `SendSingleAssetCreateTransactionResult`, which adds `asset_id`.
+- `app_create` returns `SendAppCreateTransactionResult`, which adds `app_id` and `app_address`.
+- `app_create` and `app_update` also add the `compiled_approval` and `compiled_clear` programs.
+- Application calls add `abi_return`, the raw ABI return value.
+
+Sending a group goes through the composer directly, so `algorand.new_group().send()` and `.simulate()` return a `SendAtomicTransactionComposerResults`. It holds the same arrays without the single-transaction conveniences, plus a `simulate_response` when you simulated rather than sent:
+
+```python
+@dataclass
+class SendAtomicTransactionComposerResults:
+    group_id: str
+    confirmations: list[AlgodResponseType]
+    tx_ids: list[str]
+    transactions: list[TransactionWrapper]
+    returns: list[ABIReturn]
+    simulate_response: dict[str, Any] | None   # set by simulate()
+```
+
+Application clients build on `abi_return`: a typed or factory client decodes it for you, either to `abi_return.value` or to a fully ARC-56 parsed `abi_value`. Those result types live with the client that produces them, in [Applications](/algokit-utils-py/concepts/applications/).
+
+<LinkCard
+  title="Transactions API Reference"
+  href="/algokit-utils-py/api/algokit_utils/transactions/"
+  description="Every result type and its fields, generated from the library source"
+/>
 
 ## Control Fees
 
@@ -330,11 +377,6 @@ State Proof and Heartbeat transactions exist at the protocol level too, but the 
     title="Algorand Client"
     href="/algokit-utils-py/concepts/algorand-client/"
     description="The send pattern, signer resolution, and suggested-parameter caching"
-  />
-  <LinkCard
-    title="Transaction Results"
-    href="/algokit-utils-py/concepts/core/transaction/"
-    description="The result types returned by send and how to read confirmations and returns"
   />
   <LinkCard
     title="Transaction Composer"

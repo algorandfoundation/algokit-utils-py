@@ -10,7 +10,6 @@
       { "slug": "concepts/algorand-client" },
       { "slug": "concepts/transactions" },
       { "slug": "concepts/core/account" },
-      { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
       { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
