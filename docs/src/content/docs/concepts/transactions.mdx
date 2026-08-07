@@ -30,18 +30,6 @@ Every transaction starts as a _params dataclass_: `PaymentParams`, `AssetTransfe
 
 The client resolves each transaction's sender to its registered signer, so you rarely pass a signer explicitly. When you do, the `signer` field accepts any account wrapper the library provides (including the multisig and logic-signature accounts below) or a raw `algosdk` transaction signer. Suggested parameters (the fee, current round, and genesis identifiers) are fetched and cached for you. Both are covered under [Algorand Client](/algokit-utils-py/concepts/algorand-client/) and apply to everything below.
 
-Every params dataclass also carries a set of common fields, in addition to its type-specific ones:
-
-| Common field                                       | Purpose                                                             |
-| -------------------------------------------------- | ------------------------------------------------------------------- |
-| `sender`                                           | The account authorizing and paying for the transaction             |
-| `signer`                                           | An explicit signer, overriding the registered one                  |
-| `note`                                             | Arbitrary bytes recorded with the transaction                      |
-| `lease`                                            | A mutual-exclusion lock (see [Leases](#reserve-exclusivity-with-a-lease)) |
-| `static_fee` / `extra_fee` / `max_fee`             | Fee control (see [Fees](#control-fees))                            |
-| `validity_window` / `first_valid_round` / `last_valid_round` | The round range in which the transaction is valid       |
-| `rekey_to`                                          | Rekey the sender to a new authorizing address                     |
-
 ## Send Parameters
 
 The params dataclass describes the transaction itself. A separate `send_params` argument controls how it is sent. Pass it as the second argument to any `algorand.send.<type>` call or to a group's `send()`:
