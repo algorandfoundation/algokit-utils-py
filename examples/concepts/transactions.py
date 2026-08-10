@@ -337,6 +337,29 @@ def main() -> None:
     )
     # example: SEND_PARAMS
 
+    # example: ERROR_TRANSFORMER
+    # An error transformer rewrites a failure the composer catches into a clearer,
+    # application-specific message. Register it on the client (or on one group) and
+    # it runs whenever a send or simulate in that group raises.
+    def clarify_overspend(error: Exception) -> Exception:
+        if "overspend" in str(error).lower():
+            return Exception("Payment exceeds the sender's available balance")
+        return error  # return the original error unchanged when it does not apply
+
+    algorand.register_error_transformer(clarify_overspend)
+    try:
+        algorand.new_group().add_payment(
+            PaymentParams(
+                sender=account_a.address,
+                receiver=account_b.address,
+                amount=AlgoAmount.from_algo(1_000_000_000),  # far more than the balance
+            )
+        ).send()
+    except Exception as exc:
+        print(f"Transformed error: {exc}")
+    algorand.unregister_error_transformer(clarify_overspend)
+    # example: ERROR_TRANSFORMER
+
 
 if __name__ == "__main__":
     main()
