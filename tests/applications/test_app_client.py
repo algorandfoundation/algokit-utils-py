@@ -765,6 +765,11 @@ def nested_struct_app_spec() -> Arc56Contract:
     return Arc56Contract.from_json(raw_json_spec.read_text())
 
 
+def test_nested_struct_from_arc4() -> None:
+    raw_json_spec = Path(__file__).parent.parent / "artifacts" / "nested_struct" / "nested_struct.arc4.json"
+    Arc56Contract.from_json(raw_json_spec.read_text())
+
+
 def test_nested_structs_described_by_structure(
     algorand: AlgorandClient, funded_account: SigningAccount, nested_struct_app_spec: Arc56Contract
 ) -> None:
