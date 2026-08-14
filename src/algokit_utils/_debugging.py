@@ -30,6 +30,28 @@ DEBUG_TRACES_DIR = "debug_traces"
 TEAL_FILE_EXT = ".teal"
 TEAL_SOURCEMAP_EXT = ".teal.map"
 
+# JS Number.MAX_SAFE_INTEGER — values outside this range lose precision when
+# parsed as JSON numbers by the AVM VS Code debugger (js-algorand-sdk v3).
+_JS_MAX_SAFE_INTEGER = (1 << 53) - 1
+
+
+def prepare_simulate_response_for_avm_debugger(obj: typing.Any) -> typing.Any:  # noqa: ANN401
+    """Prepare a simulate response for AlgoKit AVM Debugger consumption.
+
+    Integers outside JavaScript's ``Number.MAX_SAFE_INTEGER`` are converted to
+    strings so the JS decoder in the AVM VS Code debugger preserves precision.
+    Nested dicts/lists are walked recursively. Booleans are left unchanged.
+    """
+    if isinstance(obj, dict):
+        return {key: prepare_simulate_response_for_avm_debugger(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [prepare_simulate_response_for_avm_debugger(item) for item in obj]
+    if isinstance(obj, int) and not isinstance(obj, bool):
+        if obj > _JS_MAX_SAFE_INTEGER or obj < -_JS_MAX_SAFE_INTEGER:
+            return str(obj)
+        return obj
+    return obj
+
 
 @dataclass
 class AVMDebuggerSourceMapEntry:
@@ -302,5 +324,6 @@ def simulate_and_persist_response(
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     cleanup_old_trace_files(output_file.parent, buffer_size_mb)
-    output_file.write_text(json.dumps(response.simulate_response, indent=2))
+    safe_response = prepare_simulate_response_for_avm_debugger(response.simulate_response)
+    output_file.write_text(json.dumps(safe_response, indent=2))
     return response

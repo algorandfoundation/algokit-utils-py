@@ -19,6 +19,7 @@ from algokit_utils._debugging import (
     PersistSourceMapInput,
     cleanup_old_trace_files,
     persist_sourcemaps,
+    prepare_simulate_response_for_avm_debugger,
     simulate_and_persist_response,
 )
 from algokit_utils.algorand import AlgorandClient
@@ -378,3 +379,44 @@ def test_does_nothing_when_total_size_within_buffer_limit(
 
     remaining_files = list(trace_dir.iterdir())
     assert len(remaining_files) == 2
+
+
+# Pure unit tests (no LocalNet) for AVM debugger JSON integer safety — #199
+
+_JS_MAX_SAFE = (1 << 53) - 1
+
+
+def test_prepare_simulate_response_stringifies_js_unsafe_integers() -> None:
+    payload = {
+        "last-round": 12345,
+        "safe": _JS_MAX_SAFE,
+        "unsafe-pos": _JS_MAX_SAFE + 1,
+        "unsafe-neg": -(_JS_MAX_SAFE + 1),
+        "uint64-like": 18_446_744_073_709_551_615,
+        "flag": True,
+        "nested": {
+            "stack": [1, _JS_MAX_SAFE + 7, "already-str", False],
+        },
+    }
+
+    result = prepare_simulate_response_for_avm_debugger(payload)
+
+    assert result["last-round"] == 12345
+    assert result["safe"] == _JS_MAX_SAFE
+    assert result["unsafe-pos"] == str(_JS_MAX_SAFE + 1)
+    assert result["unsafe-neg"] == str(-(_JS_MAX_SAFE + 1))
+    assert result["uint64-like"] == "18446744073709551615"
+    assert result["flag"] is True
+    assert result["nested"]["stack"] == [1, str(_JS_MAX_SAFE + 7), "already-str", False]
+
+
+def test_prepare_simulate_response_json_roundtrip_preserves_large_ints_as_strings() -> None:
+    payload = {"pc": 42, "uint": 2**64 - 1, "inner": [{"v": 2**60}]}
+    encoded = json.dumps(prepare_simulate_response_for_avm_debugger(payload))
+    # Large ints must appear quoted in the JSON text (JS-safe).
+    assert '"18446744073709551615"' in encoded
+    assert '"1152921504606846976"' in encoded
+    decoded = json.loads(encoded)
+    assert decoded["uint"] == "18446744073709551615"
+    assert decoded["inner"][0]["v"] == "1152921504606846976"
+    assert decoded["pc"] == 42
