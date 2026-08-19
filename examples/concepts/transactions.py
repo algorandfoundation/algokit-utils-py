@@ -348,13 +348,15 @@ def main() -> None:
 
     algorand.register_error_transformer(clarify_overspend)
     try:
+        # suppress_log keeps the library's raw error log out of the way so only the
+        # transformed message surfaces; the transformed exception still raises.
         algorand.new_group().add_payment(
             PaymentParams(
                 sender=account_a.address,
                 receiver=account_b.address,
                 amount=AlgoAmount.from_algo(1_000_000_000),  # far more than the balance
             )
-        ).send()
+        ).send({"suppress_log": True})
     except Exception as exc:
         print(f"Transformed error: {exc}")
     algorand.unregister_error_transformer(clarify_overspend)
