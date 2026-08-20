@@ -8,8 +8,8 @@
     "label": "Concepts",
     "items": [
       { "slug": "concepts/algorand-client" },
+      { "slug": "concepts/transactions" },
       { "slug": "concepts/core/account" },
-      { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
       { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
@@ -29,7 +29,6 @@
     "label": "Advanced Topics",
     "collapsed": true,
     "items": [
-      { "slug": "concepts/advanced/transaction-composer" },
       { "slug": "concepts/advanced/modular-imports" },
       { "slug": "concepts/advanced/debugging" },
       { "slug": "concepts/advanced/indexer" },
