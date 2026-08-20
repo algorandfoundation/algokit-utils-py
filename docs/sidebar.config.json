@@ -5,25 +5,22 @@
     "items": [{ "slug": "tutorials/quick-start" }]
   },
   {
-    "label": "Core Concepts",
+    "label": "Concepts",
     "items": [
-      { "slug": "concepts/core/algorand-client" },
+      { "slug": "concepts/algorand-client" },
+      { "slug": "concepts/transactions" },
       { "slug": "concepts/core/account" },
-      { "slug": "concepts/core/transaction" },
       { "slug": "concepts/core/amount" },
       { "slug": "concepts/assets" },
       { "slug": "concepts/core/client" },
       { "slug": "concepts/core/secret-management" },
+      { "slug": "concepts/applications" },
       { "slug": "concepts/errors-and-debugging" }
     ]
   },
   {
     "label": "Building Applications",
     "items": [
-      { "slug": "concepts/building/app-client" },
-      { "slug": "concepts/building/app-deploy" },
-      { "slug": "concepts/building/app" },
-      { "slug": "concepts/building/typed-app-clients" },
       { "slug": "concepts/building/asset" },
       { "slug": "concepts/building/transfer" },
       { "slug": "concepts/building/testing" }
@@ -33,7 +30,6 @@
     "label": "Advanced Topics",
     "collapsed": true,
     "items": [
-      { "slug": "concepts/advanced/transaction-composer" },
       { "slug": "concepts/advanced/modular-imports" },
       { "slug": "concepts/advanced/indexer" },
       { "slug": "concepts/advanced/dispenser-client" }
