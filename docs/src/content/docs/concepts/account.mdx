@@ -332,7 +332,7 @@ Use `multisig` to register and return a multisig account with one or more signin
 
 <a id="accountmanager"></a>
 
-Throughout this page, accounts are reached through `algorand.account` — the `AccountManager` instance that an [`AlgorandClient`](../algorand-client/) creates and shares. `AccountManager` is the class that gets, creates, and funds accounts, and it keeps track of the signer registered for each address so that transactions sent through [`AlgorandClient`](../algorand-client/) or the [`TransactionComposer`](../../advanced/transaction-composer/) are signed by sender automatically, without a signer being specified per transaction.
+Throughout this page, accounts are reached through `algorand.account` — the `AccountManager` instance that an [`AlgorandClient`](../algorand-client/) creates and shares. `AccountManager` is the class that gets, creates, and funds accounts, and it keeps track of the signer registered for each address so that transactions sent through [`AlgorandClient`](../algorand-client/) or the [`TransactionComposer`](/algokit-utils-py/concepts/transactions/) are signed by sender automatically, without a signer being specified per transaction.
 
 To get an instance of `AccountManager`, you can use either [`AlgorandClient`](../algorand-client/) via `algorand.account` or instantiate it directly:
 
