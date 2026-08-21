@@ -140,6 +140,10 @@ suppress-none-returning = true
 "tests/**/*" = ["PLR2004"]  
 "src/algokit_utils/__init__.py" = ["I001", "RUF022"]  # Ignore import sorting for __init__.py
 "docs/api_build.py" = ["T201", "C901"]  # CLI build script: prints are intentional, complexity acceptable
+"examples/**" = [
+  "T201",     # print is used to show illustrative output in runnable examples
+  "PLR2004",  # magic values are fine in example assertions (they verify example output)
+]
 
 [tool.poe.tasks]
 docs-api = "python docs/api_build.py"
@@ -157,7 +161,7 @@ filterwarnings = [
 ]
 
 [tool.mypy]
-files = ["src", "tests"]
+files = ["src", "tests", "examples"]
 exclude = ["dist", "tests/artifacts", "src/algokit_utils/_legacy_v2"]
 python_version = "3.10"
 warn_unused_ignores = true
