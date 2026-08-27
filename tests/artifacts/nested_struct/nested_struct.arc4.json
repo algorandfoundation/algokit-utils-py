@@ -1,0 +1,41 @@
+{
+  "name": "NestedStruct",
+  "desc": "",
+  "methods": [
+    {
+      "name": "createApplication",
+      "args": [],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "setValue",
+      "args": [
+        {
+          "name": "key",
+          "type": "uint64"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "returns": {
+        "type": "void"
+      }
+    },
+    {
+      "name": "getValue",
+      "args": [
+        {
+          "name": "key",
+          "type": "uint64"
+        }
+      ],
+      "returns": {
+        "type": "((string))"
+      }
+    }
+  ]
+}
