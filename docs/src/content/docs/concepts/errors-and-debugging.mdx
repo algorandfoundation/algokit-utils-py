@@ -1,0 +1,135 @@
+---
+title: "Errors & Debugging"
+description: "AlgoKit Utils decodes failed smart contract calls into logic errors with TEAL source context, lets you transform errors before they raise, and emits traces for the AlgoKit AVM Debugger."
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+import RemoteCode from "/src/components/RemoteCode.astro";
+
+When a smart contract call fails, algod reports a `logic eval error` that identifies a program counter, a position in the compiled program rather than a line of your contract's source. AlgoKit Utils layers three capabilities on top of that raw error. It decodes the failure into a `LogicError` that locates the failing line of [Transaction Execution Approval Language (TEAL)](https://dev.algorand.co/concepts/smart-contracts/avm/) source. It lets you register error transformers that rewrite errors before they raise. And in debug mode it writes simulation traces and source maps that the AlgoKit Algorand Virtual Machine (AVM) Debugger extension can step through.
+
+<LinkCard
+  title="AlgoKit AVM Debugger"
+  href="https://marketplace.visualstudio.com/items?itemName=algorandfoundation.algokit-avm-vscode-debugger"
+  description="The VS Code extension for stepping through AVM execution traces"
+/>
+
+## Read a Logic Error
+
+Any send that fails logic evaluation raises a `LogicError` when the client holds the failing program's source map. Clients created through a factory, or clients that compiled the app's programs themselves, hold one automatically:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/errors_and_debugging.py"
+  snippet="INSPECT_LOGIC_ERROR"
+  lang="py"
+  frame="none"
+/>
+
+The error carries the failing `transaction_id`, the `message` reported by algod, the program counter as `pc`, the located line as `line_no`, the decoded TEAL as `program`, and any simulation results as `traces`. Rendering the error as a string shows the failing line in context with an `<-- Error` marker, and `error.trace(lines=10)` widens the excerpt. Without a source map the error still raises, but `line_no` is `None` and the rendered trace explains how to supply one.
+
+<LinkCard
+  title="Applications"
+  href="/algokit-utils-py/concepts/applications/"
+  description="Deploying apps and calling the methods whose failures raise LogicError"
+/>
+
+## Reuse Source Maps
+
+Source maps are produced when the programs compile, so a client constructed later doesn't hold them, whether it was built from an app ID or in another process entirely. `export_source_maps()` returns an `AppSourceMaps` you can serialize and store. `import_source_maps()` restores the maps onto a fresh client, re-enabling TEAL line resolution in `LogicError`:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/errors_and_debugging.py"
+  snippet="EXPORT_IMPORT_SOURCE_MAPS"
+  lang="py"
+  frame="none"
+/>
+
+## Transform Errors
+
+Every send funnels through a `TransactionComposer`. When sending or simulating fails, the error passes through the registered error transformers before it raises. A transformer is any callable that takes the current exception and returns an exception, either a new one to replace it or the original to leave it unchanged.
+
+`algorand.register_error_transformer(fn)` applies a transformer to every group and send the client creates from then on, and `unregister_error_transformer(fn)` removes it again. Both return the client, so registration chains into one expression:
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/errors_and_debugging.py"
+  snippet="REGISTER_ERROR_TRANSFORMER"
+  lang="py"
+  frame="none"
+/>
+
+A single group can carry its own transformers. Register them on the composer instead, where they run in registration order and each receives the previous one's output:
+
+```python
+composer = algorand.new_group()
+composer.register_error_transformer(to_domain_error)
+```
+
+A transformer must return an `Exception`. Returning any other value surfaces as an `InvalidErrorTransformerValueError`, and a transformer that itself raises surfaces as an `ErrorTransformerError` wrapping the original error. Both types live in `algokit_utils.transactions.transaction_composer`.
+
+The `LogicError` decoding described above is itself an error transformer, registered on the `AlgorandClient` by every `AppClient` at construction.
+
+## Configure the Library
+
+The library reads one process-wide configuration object, the `config` singleton, imported with `from algokit_utils.config import config`. Its `configure()` method sets:
+
+- `debug` is the master switch for trace and source-map emission.
+- `project_root` is the directory debug artifacts are written to. It is auto-detected by searching upward for an `.algokit.toml` file, bounded by `max_search_depth`, and can also be set explicitly or through the `ALGOKIT_PROJECT_ROOT` environment variable.
+- `trace_all` writes traces for every send rather than only for failures. It only takes effect while `debug` is on and `project_root` is set.
+- `trace_buffer_size_mb` caps the stored traces at 256 megabytes by default, removing the oldest files once the cap is exceeded.
+- `populate_app_call_resources` sets the library-wide default for the `SendParams` field of the same name.
+- `logger` replaces the logger the library writes through, covered under [Control Logging](#control-logging) below.
+
+<RemoteCode
+  src="https://raw.githubusercontent.com/algorandfoundation/algokit-utils-py/refs/heads/main/examples/concepts/errors_and_debugging.py"
+  snippet="CONFIGURE_DEBUG"
+  lang="py"
+  frame="none"
+/>
+
+<LinkCard
+  title="Transactions"
+  href="/algokit-utils-py/concepts/transactions/"
+  description="Resource population and the SendParams fields that control it"
+/>
+
+## Capture Traces for the AVM Debugger
+
+With `debug` and `project_root` set, the library emits the artifacts the AVM Debugger consumes. Compiling an app's programs through a client or factory persists AVM-Debugger-compliant source maps. When a send fails, the library simulates the group and writes the execution trace to a `debug_traces` folder under `project_root`, and with `trace_all` it writes a trace for every send, successes included. Trace files are named `<timestamp>_lr<last_round>_<txn_types>.trace.avm.json`.
+
+Open the trace files with the [AlgoKit AVM Debugger extension](https://marketplace.visualstudio.com/items?itemName=algorandfoundation.algokit-avm-vscode-debugger) to step through the TEAL with full source mapping.
+
+## Control Logging
+
+The library logs through `config.logger`, an `AlgoKitLogger` by default. Suppress a single call site by passing `extra={"suppress_log": True}`, silence the library globally with the null logger, or substitute any `logging.Logger` of your own:
+
+```python
+from algokit_utils.config import AlgoKitLogger, config
+
+config.logger.info("hidden", extra={"suppress_log": True})
+config.configure(logger=AlgoKitLogger.get_null_logger())
+```
+
+## What's Next
+
+<CardGrid>
+  <LinkCard
+    title="Applications"
+    href="/algokit-utils-py/concepts/applications/"
+    description="Deploying and calling the contracts whose failures this page decodes"
+  />
+  <LinkCard
+    title="Transactions"
+    href="/algokit-utils-py/concepts/transactions/"
+    description="Groups, simulation, resource population, and fees"
+  />
+  <LinkCard
+    title="AlgoKit AVM Debugger"
+    href="https://marketplace.visualstudio.com/items?itemName=algorandfoundation.algokit-avm-vscode-debugger"
+    description="The VS Code extension for stepping through AVM execution traces"
+  />
+  <LinkCard
+    title="Errors API Reference"
+    href="/algokit-utils-py/api/algokit_utils/errors/"
+    description="The LogicError class and its parsing helpers"
+  />
+</CardGrid>

@@ -73,7 +73,7 @@ python hello_algorand.py
 
 ## What's Next?
 
-- [AlgorandClient](../../concepts/core/algorand-client/) — Learn about the main entry point
-- [Account Management](../../concepts/core/account/) — Different ways to create and manage accounts
-- [Transaction Management](../../concepts/core/transaction/) — Build and send transactions
-- [App Client](../../concepts/building/app-client/) — Deploy and interact with smart contracts
+- [AlgorandClient](../../concepts/algorand-client/) — Learn about the main entry point
+- [Account Management](../../concepts/account/) — Different ways to create and manage accounts
+- [Transactions](../../concepts/transactions/) — Build and send transactions
+- [App Client](../../concepts/applications/) — Deploy and interact with smart contracts
