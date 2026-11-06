@@ -598,12 +598,32 @@ class UnnamedResourcesAccessed:
         if not isinstance(resources, dict):
             raise TypeError(f"Expected dictionary object, got {type(resources_accessed)}")
 
-        self.accounts: list[str] | None = resources.get("accounts", None)
-        self.app_locals: list[dict[str, Any]] | None = resources.get("app-locals", None)
-        self.apps: list[int] | None = resources.get("apps", None)
-        self.asset_holdings: list[dict[str, Any]] | None = resources.get("asset-holdings", None)
-        self.assets: list[int] | None = resources.get("assets", None)
-        self.boxes: list[dict[str, Any]] | None = resources.get("boxes", None)
+        accounts = resources.get("accounts", None)
+        self.accounts: list[str] | None = sorted(accounts, key=str) if accounts is not None else None
+
+        app_locals = resources.get("app-locals", None)
+        self.app_locals: list[dict[str, Any]] | None = (
+            sorted(app_locals, key=lambda a: f"{a.get('app')}-{a.get('account')}") if app_locals is not None else None
+        )
+
+        apps = resources.get("apps", None)
+        self.apps: list[int] | None = sorted(apps, key=int) if apps is not None else None
+
+        asset_holdings = resources.get("asset-holdings", None)
+        self.asset_holdings: list[dict[str, Any]] | None = (
+            sorted(asset_holdings, key=lambda a: f"{a.get('asset')}-{a.get('account')}")
+            if asset_holdings is not None
+            else None
+        )
+
+        assets = resources.get("assets", None)
+        self.assets: list[int] | None = sorted(assets, key=int) if assets is not None else None
+
+        boxes = resources.get("boxes", None)
+        self.boxes: list[dict[str, Any]] | None = (
+            sorted(boxes, key=lambda b: f"{b.get('app')}-{b.get('name')}") if boxes is not None else None
+        )
+
         self.extra_box_refs: int | None = resources.get("extra-box-refs", None)
 
 
